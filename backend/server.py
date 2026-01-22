@@ -759,6 +759,46 @@ Be brief, warm, and grounded. You are not a guru. You are not an explainer. You 
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/charts/{user_id}/details")
+async def get_chart_details(user_id: str):
+    """Get detailed chart information (for Lenses section ONLY)"""
+    try:
+        chart = await db.charts.find_one({"user_id": user_id})
+        if not chart:
+            raise HTTPException(status_code=404, detail="Chart not found")
+        
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Return formatted chart data for Lenses
+        return {
+            "human_design": {
+                "type": chart.get("human_design", {}).get("type"),
+                "authority": chart.get("human_design", {}).get("authority"),
+                "profile": chart.get("human_design", {}).get("profile"),
+                "incarnation_cross": chart.get("human_design", {}).get("incarnation_cross"),
+                "strategy": chart.get("human_design", {}).get("strategy"),
+                "personality_sun": chart.get("human_design", {}).get("personality", {}).get("Sun"),
+                "design_sun": chart.get("human_design", {}).get("design", {}).get("Sun"),
+                "note": "V1 calculations use simplified gate-to-center mapping. Full channel analysis coming in future updates."
+            },
+            "astrology": {
+                "sun": chart.get("astrology", {}).get("planets", {}).get("Sun"),
+                "moon": chart.get("astrology", {}).get("planets", {}).get("Moon"),
+                "rising": chart.get("astrology", {}).get("houses", {}).get("ascendant"),
+                "note": "True Sidereal (Lahiri Ayanamsa) positions"
+            },
+            "numerology": {
+                "life_path": chart.get("numerology", {}).get("life_path"),
+                "expression": chart.get("numerology", {}).get("expression")
+            }
+        }
+    except Exception as e:
+        logger.error(f"Get chart details error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.get("/lenses")
 async def get_lenses():
     """Get information about all interpretive lenses"""
