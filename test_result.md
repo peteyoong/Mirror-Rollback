@@ -116,6 +116,9 @@ backend:
       - working: true
         agent: "main"
         comment: "POST /api/auth/register - creates user with email, password, name. Returns JWT token."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Registration API working correctly. Successfully creates user with unique email, returns JWT token and user object. Tested with realistic user data."
 
   - task: "User Login API"
     implemented: true
@@ -128,6 +131,21 @@ backend:
       - working: true
         agent: "main"
         comment: "POST /api/auth/login - validates credentials, returns JWT token."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Login API working correctly. Successfully validates credentials and returns JWT token and user object. Tested with registered user credentials."
+
+  - task: "User Authentication (Me) API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: GET /api/auth/me working correctly. Successfully validates JWT token and returns current user information (id, email, name, onboarding_completed)."
 
   - task: "Onboarding Complete API"
     implemented: true
@@ -140,6 +158,9 @@ backend:
       - working: true
         agent: "main"
         comment: "POST /api/onboarding/complete - stores 5 onboarding answers."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Onboarding API working correctly. Successfully stores all 5 onboarding answers (relationship_with_self, reflection_style, desired_depth, uncertainty_relationship, intention) and returns success confirmation."
 
   - task: "Mirror Today API"
     implemented: true
@@ -152,6 +173,9 @@ backend:
       - working: true
         agent: "main"
         comment: "GET /api/mirror/today - returns daily reflective content (insight, question, perspective, closing)."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Mirror Today API working correctly. Returns complete daily reflective content with all required fields: id, insight, reflection_question, another_perspective, closing_line, date. Content is framework-blind and appropriate."
 
   - task: "Journal CRUD APIs"
     implemented: true
@@ -164,6 +188,9 @@ backend:
       - working: true
         agent: "main"
         comment: "GET/POST/PUT/DELETE /api/journal - full CRUD for journal entries."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: All Journal CRUD operations working correctly. CREATE: creates entry with UUID and returns entry object. READ: lists all user entries and retrieves single entries by ID. UPDATE: modifies content and updates timestamp. DELETE: removes entry and returns success confirmation. All operations properly scoped to authenticated user."
 
   - task: "Lenses APIs"
     implemented: true
@@ -176,6 +203,9 @@ backend:
       - working: true
         agent: "main"
         comment: "GET /api/lenses and GET /api/lenses/:id - returns lens list and detail with deep_dive."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Lenses APIs working correctly. LIST: returns 5 lenses with id, title, icon, summary. DETAIL: returns complete lens information including deep_dive with description, practices, and invitation. All content is framework-blind and appropriate for reflective practice."
 
 frontend:
   - task: "Welcome Screen"
