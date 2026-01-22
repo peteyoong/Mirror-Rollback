@@ -1,0 +1,157 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import { Colors } from '../../constants/colors';
+import { useAppStore } from '../../store';
+import LensCard from '../../components/LensCard';
+import ChatBot from '../../components/ChatBot';
+import { getLenses } from '../../services/api';
+
+interface Lens {
+  name: string;
+  description: string;
+  helps_with: string;
+  does_not: string;
+  icon: string;
+}
+
+export default function LensesScreen() {
+  const { user } = useAppStore();
+  const [lenses, setLenses] = useState<Lens[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    loadLenses();
+  }, []);
+
+  const loadLenses = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getLenses();
+      setLenses(data.lenses);
+    } catch (err) {
+      console.error('Load lenses error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>No user found</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Your Lenses</Text>
+          <Text style={styles.subtitle}>
+            Four perspectives for understanding yourself. Each offers a different way of
+            seeing, not a definition of who you are.
+          </Text>
+        </View>
+
+        {/* Loading State */}
+        {isLoading ? (
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" color={Colors.textSecondary} />
+          </View>
+        ) : (
+          <View style={styles.lensesContainer}>
+            {lenses.map((lens, index) => (
+              <LensCard
+                key={index}
+                name={lens.name}
+                description={lens.description}
+                helps_with={lens.helps_with}
+                does_not={lens.does_not}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* Footer Note */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            These frameworks are tools for reflection, not rigid definitions. They work best
+            when held lightly.
+          </Text>
+        </View>
+
+        <View style={styles.spacer} />
+      </ScrollView>
+
+      {/* Persistent Chatbot */}
+      <ChatBot userId={user.id} />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  scrollContent: {
+    padding: 24,
+    paddingBottom: 100,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 60,
+  },
+  header: {
+    marginBottom: 32,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 12,
+  },
+  subtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+  },
+  lensesContainer: {
+    marginBottom: 24,
+  },
+  footer: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 20,
+  },
+  footerText: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 14,
+    color: Colors.error,
+  },
+  spacer: {
+    height: 60,
+  },
+});
