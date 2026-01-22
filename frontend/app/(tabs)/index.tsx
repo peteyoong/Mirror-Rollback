@@ -123,7 +123,7 @@ export default function MirrorScreen() {
         {dailyReflection && !isLoading && (
           <View style={styles.journalPrompt}>
             <Text style={styles.journalPromptText}>
-              If this resonates, consider journaling your thoughts.
+              If something surfaced, the journal is here for you.
             </Text>
           </View>
         )}
