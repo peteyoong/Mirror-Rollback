@@ -161,8 +161,8 @@ class LocationSearchRequest(BaseModel):
 async def geocode_location(city: str, country: str) -> Optional[Dict]:
     """Geocode location to get lat/lon"""
     try:
-        geolocator = Nominatim(user_agent="project_mirror")
-        location = geolocator.geocode(f"{city}, {country}")
+        geolocator = Nominatim(user_agent="project_mirror", timeout=10)
+        location = geolocator.geocode(f"{city}, {country}", addressdetails=True)
         if location:
             return {
                 "city": city,
