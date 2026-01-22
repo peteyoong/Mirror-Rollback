@@ -253,7 +253,7 @@ async def search_locations(request: LocationSearchRequest):
     """Search for locations with autocomplete"""
     try:
         geolocator = Nominatim(user_agent="project_mirror")
-        locations = geolocator.geocode(request.query, exactly_one=False, limit=5)
+        locations = geolocator.geocode(request.query, exactly_one=False, limit=5, addressdetails=True)
         
         if not locations:
             return {"results": []}
@@ -261,8 +261,19 @@ async def search_locations(request: LocationSearchRequest):
         results = []
         for loc in locations:
             address = loc.raw.get('address', {})
-            city = address.get('city') or address.get('town') or address.get('village', '')
-            country = address.get('country', '')
+            
+            # Try multiple fields for city name
+            city = (
+                address.get('city') or 
+                address.get('town') or 
+                address.get('village') or 
+                address.get('county') or
+                address.get('state') or
+                address.get('municipality') or
+                loc.address.split(',')[0].strip()
+            )
+            
+            country = address.get('country', 'Unknown')
             
             results.append({
                 "city": city,
