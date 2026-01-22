@@ -1,15 +1,22 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+from datetime import datetime, timezone
+from typing import Optional, List, Dict
+from pydantic import BaseModel, Field
+from bson import ObjectId
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
-import uuid
-from datetime import datetime
+from geopy.geocoders import Nominatim
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 
+# Import calculation engines
+from calculations.astrology import get_full_natal_chart, close_ephemeris
+from calculations.human_design import get_human_design_chart
+from calculations.numerology import get_full_numerology
+from calculations.consciousness import get_consciousness_framework, analyze_consciousness_indicators
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -19,38 +26,653 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# AI Configuration
+EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
+
 # Create the main app without a prefix
 app = FastAPI()
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-# Define Models
-class StatusCheck(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+# ===========================
+# PYDANTIC MODELS
+# ===========================
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+class PyObjectId(ObjectId):
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
 
-# Add your routes to the router instead of directly to app
+    @classmethod
+    def validate(cls, v):
+        if not ObjectId.is_valid(v):
+            raise ValueError("Invalid ObjectId")
+        return ObjectId(v)
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema, handler):
+        return {"type": "string"}
+
+
+class Location(BaseModel):
+    city: str
+    country: str
+    latitude: float
+    longitude: float
+
+
+class UserProfile(BaseModel):
+    name: Optional[str] = None
+    birth_date: datetime
+    birth_time: Optional[str] = None  # HH:MM format
+    birth_location: Location
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class UserProfileCreate(BaseModel):
+    name: Optional[str] = None
+    birth_date: str  # YYYY-MM-DD
+    birth_time: Optional[str] = None  # HH:MM
+    city: str
+    country: str
+
+
+class UserProfileResponse(BaseModel):
+    id: str
+    name: Optional[str]
+    birth_date: str
+    birth_time: Optional[str]
+    birth_location: Location
+    has_chart: bool = False
+
+
+class JournalEntry(BaseModel):
+    user_id: str
+    content: str
+    themes: List[str] = []
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class JournalEntryCreate(BaseModel):
+    user_id: str
+    content: str
+
+
+class JournalEntryResponse(BaseModel):
+    id: str
+    content: str
+    themes: List[str]
+    created_at: str
+
+
+class DailyReflection(BaseModel):
+    user_id: str
+    date: str
+    insight: str
+    question: str
+    perspective: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class DailyReflectionResponse(BaseModel):
+    id: str
+    date: str
+    insight: str
+    question: str
+    perspective: str
+
+
+class ChatMessage(BaseModel):
+    role: str  # 'user' or 'assistant'
+    content: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class ChatRequest(BaseModel):
+    user_id: str
+    message: str
+
+
+class ChatResponse(BaseModel):
+    response: str
+    timestamp: str
+
+
+class ChartCalculationRequest(BaseModel):
+    user_id: str
+
+
+class LocationSearchRequest(BaseModel):
+    query: str
+
+
+# ===========================
+# HELPER FUNCTIONS
+# ===========================
+
+async def geocode_location(city: str, country: str) -> Optional[Dict]:
+    """Geocode location to get lat/lon"""
+    try:
+        geolocator = Nominatim(user_agent="project_mirror")
+        location = geolocator.geocode(f"{city}, {country}")
+        if location:
+            return {
+                "city": city,
+                "country": country,
+                "latitude": location.latitude,
+                "longitude": location.longitude
+            }
+        return None
+    except Exception as e:
+        logger.error(f"Geocoding error: {e}")
+        return None
+
+
+async def get_user_context(user_id: str) -> Dict:
+    """Get user profile and chart data for AI context"""
+    try:
+        # Get user profile
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            return {}
+        
+        # Get chart
+        chart = await db.charts.find_one({"user_id": user_id})
+        
+        # Get recent journal entries
+        journal_entries = await db.journal.find(
+            {"user_id": user_id}
+        ).sort("created_at", -1).limit(5).to_list(5)
+        
+        context = {
+            "name": user.get("name", ""),
+            "has_chart": chart is not None,
+        }
+        
+        if chart:
+            context["human_design_type"] = chart.get("human_design", {}).get("type")
+            context["human_design_authority"] = chart.get("human_design", {}).get("authority")
+            context["life_path"] = chart.get("numerology", {}).get("life_path", {}).get("number")
+        
+        if journal_entries:
+            context["recent_themes"] = [entry.get("content", "")[:100] for entry in journal_entries]
+        
+        return context
+    except Exception as e:
+        logger.error(f"Error getting user context: {e}")
+        return {}
+
+
+async def generate_ai_response(system_prompt: str, user_message: str, user_id: str = None) -> str:
+    """Generate AI response using Emergent LLM"""
+    try:
+        # Get user context if user_id provided
+        context = ""
+        if user_id:
+            user_context = await get_user_context(user_id)
+            if user_context:
+                context = f"\n\nUser Context:\n{user_context}"
+        
+        # Initialize AI chat
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=user_id if user_id else "default",
+            system_message=system_prompt + context
+        )
+        chat.with_model("openai", "gpt-5.2")
+        
+        # Send message
+        message = UserMessage(text=user_message)
+        response = await chat.send_message(message)
+        
+        return response
+    except Exception as e:
+        logger.error(f"AI generation error: {e}")
+        return "I'm having trouble connecting right now. Please try again in a moment."
+
+
+# ===========================
+# API ROUTES
+# ===========================
+
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Project Mirror API", "version": "1.0"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
 
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
+@api_router.post("/locations/search")
+async def search_locations(request: LocationSearchRequest):
+    """Search for locations with autocomplete"""
+    try:
+        geolocator = Nominatim(user_agent="project_mirror")
+        locations = geolocator.geocode(request.query, exactly_one=False, limit=5)
+        
+        if not locations:
+            return {"results": []}
+        
+        results = []
+        for loc in locations:
+            address = loc.raw.get('address', {})
+            city = address.get('city') or address.get('town') or address.get('village', '')
+            country = address.get('country', '')
+            
+            results.append({
+                "city": city,
+                "country": country,
+                "latitude": loc.latitude,
+                "longitude": loc.longitude,
+                "display_name": loc.address
+            })
+        
+        return {"results": results}
+    except Exception as e:
+        logger.error(f"Location search error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/users", response_model=UserProfileResponse)
+async def create_user(profile: UserProfileCreate):
+    """Create user profile"""
+    try:
+        # Geocode location
+        location_data = await geocode_location(profile.city, profile.country)
+        if not location_data:
+            raise HTTPException(status_code=400, detail="Could not geocode location")
+        
+        # Parse birth date
+        birth_date = datetime.strptime(profile.birth_date, "%Y-%m-%d")
+        
+        user_data = {
+            "name": profile.name,
+            "birth_date": birth_date,
+            "birth_time": profile.birth_time,
+            "birth_location": location_data,
+            "created_at": datetime.now(timezone.utc)
+        }
+        
+        result = await db.users.insert_one(user_data)
+        
+        return UserProfileResponse(
+            id=str(result.inserted_id),
+            name=profile.name,
+            birth_date=profile.birth_date,
+            birth_time=profile.birth_time,
+            birth_location=Location(**location_data),
+            has_chart=False
+        )
+    except Exception as e:
+        logger.error(f"Create user error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/users/{user_id}", response_model=UserProfileResponse)
+async def get_user(user_id: str):
+    """Get user profile"""
+    try:
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check if chart exists
+        chart = await db.charts.find_one({"user_id": user_id})
+        
+        return UserProfileResponse(
+            id=str(user["_id"]),
+            name=user.get("name"),
+            birth_date=user["birth_date"].strftime("%Y-%m-%d"),
+            birth_time=user.get("birth_time"),
+            birth_location=Location(**user["birth_location"]),
+            has_chart=chart is not None
+        )
+    except Exception as e:
+        logger.error(f"Get user error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/charts/calculate")
+async def calculate_chart(request: ChartCalculationRequest):
+    """Calculate all frameworks for user"""
+    try:
+        # Get user
+        user = await db.users.find_one({"_id": ObjectId(request.user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Prepare datetime
+        birth_date = user["birth_date"]
+        birth_time = user.get("birth_time", "12:00")
+        
+        if birth_time:
+            hour, minute = map(int, birth_time.split(":"))
+            birth_datetime = birth_date.replace(hour=hour, minute=minute)
+        else:
+            birth_datetime = birth_date.replace(hour=12, minute=0)
+        
+        location = user["birth_location"]
+        lat = location["latitude"]
+        lon = location["longitude"]
+        
+        # Calculate all frameworks
+        logger.info(f"Calculating astrology chart for user {request.user_id}")
+        astrology_chart = get_full_natal_chart(birth_datetime, lat, lon)
+        
+        logger.info(f"Calculating human design for user {request.user_id}")
+        human_design = get_human_design_chart(birth_datetime, lat, lon)
+        
+        logger.info(f"Calculating numerology for user {request.user_id}")
+        numerology = get_full_numerology(birth_date, user.get("name"))
+        
+        logger.info(f"Getting consciousness framework for user {request.user_id}")
+        consciousness = get_consciousness_framework()
+        
+        # Store chart data
+        chart_data = {
+            "user_id": request.user_id,
+            "astrology": astrology_chart,
+            "human_design": human_design,
+            "numerology": numerology,
+            "consciousness_levels": consciousness,
+            "calculated_at": datetime.now(timezone.utc)
+        }
+        
+        # Upsert chart
+        await db.charts.update_one(
+            {"user_id": request.user_id},
+            {"$set": chart_data},
+            upsert=True
+        )
+        
+        return {
+            "success": True,
+            "message": "Chart calculated successfully",
+            "data": chart_data
+        }
+    except Exception as e:
+        logger.error(f"Calculate chart error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/charts/{user_id}")
+async def get_chart(user_id: str):
+    """Get user's calculated chart"""
+    try:
+        chart = await db.charts.find_one({"user_id": user_id})
+        if not chart:
+            raise HTTPException(status_code=404, detail="Chart not found. Please calculate first.")
+        
+        # Convert ObjectId to string
+        chart["_id"] = str(chart["_id"])
+        return chart
+    except Exception as e:
+        logger.error(f"Get chart error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/journal", response_model=JournalEntryResponse)
+async def create_journal_entry(entry: JournalEntryCreate):
+    """Create journal entry"""
+    try:
+        # Analyze consciousness indicators
+        analysis = analyze_consciousness_indicators(entry.content)
+        
+        entry_data = {
+            "user_id": entry.user_id,
+            "content": entry.content,
+            "themes": [analysis.get("estimated_level", "")],
+            "created_at": datetime.now(timezone.utc)
+        }
+        
+        result = await db.journal.insert_one(entry_data)
+        
+        return JournalEntryResponse(
+            id=str(result.inserted_id),
+            content=entry.content,
+            themes=entry_data["themes"],
+            created_at=entry_data["created_at"].isoformat()
+        )
+    except Exception as e:
+        logger.error(f"Create journal error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/journal/{user_id}", response_model=List[JournalEntryResponse])
+async def get_journal_entries(user_id: str, limit: int = 20):
+    """Get user's journal entries"""
+    try:
+        entries = await db.journal.find(
+            {"user_id": user_id}
+        ).sort("created_at", -1).limit(limit).to_list(limit)
+        
+        return [
+            JournalEntryResponse(
+                id=str(entry["_id"]),
+                content=entry["content"],
+                themes=entry.get("themes", []),
+                created_at=entry["created_at"].isoformat()
+            )
+            for entry in entries
+        ]
+    except Exception as e:
+        logger.error(f"Get journal error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/reflections/daily", response_model=DailyReflectionResponse)
+async def generate_daily_reflection(request: ChartCalculationRequest):
+    """Generate personalized daily reflection"""
+    try:
+        # Get user context
+        user_context = await get_user_context(request.user_id)
+        
+        # Get chart data
+        chart = await db.charts.find_one({"user_id": request.user_id})
+        
+        # Check if already generated today
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        existing = await db.reflections.find_one({
+            "user_id": request.user_id,
+            "date": today
+        })
+        
+        if existing:
+            return DailyReflectionResponse(
+                id=str(existing["_id"]),
+                date=existing["date"],
+                insight=existing["insight"],
+                question=existing["question"],
+                perspective=existing["perspective"]
+            )
+        
+        # Generate AI reflection
+        system_prompt = """You are a reflective AI companion for Project Mirror. 
+        
+Your role is to offer gentle, non-directive perspectives based on the user's unique frameworks.
+
+CRITICAL PRINCIPLES:
+- Never predict outcomes or future events
+- Never give advice or instructions
+- Never tell the user who they are
+- Always use perspective language: "One way to look at this...", "You may notice...", "If this resonates..."
+- Keep insights brief (3-5 sentences)
+- Match the user's emotional tone
+- Focus on self-understanding, not self-improvement
+
+Generate a daily reflection with three parts:
+1. A short insight (3-5 sentences) based on their frameworks
+2. A reflective question that invites curiosity
+3. A perspective shift paragraph that offers a different angle
+
+Format as JSON:
+{
+  "insight": "...",
+  "question": "...",
+  "perspective": "..."
+}
+"""
+        
+        # Build context message
+        context_msg = "Generate a daily reflection for this person."
+        if chart:
+            hd = chart.get("human_design", {})
+            num = chart.get("numerology", {})
+            context_msg += f"\n\nHuman Design Type: {hd.get('type')}, Authority: {hd.get('authority')}"
+            context_msg += f"\nLife Path: {num.get('life_path', {}).get('number')}"
+        
+        if user_context.get("recent_themes"):
+            context_msg += f"\n\nRecent journal themes: {', '.join(user_context['recent_themes'])}"
+        
+        # Generate
+        response = await generate_ai_response(system_prompt, context_msg, request.user_id)
+        
+        # Parse response (simplified for V1)
+        try:
+            import json
+            reflection_data = json.loads(response)
+        except:
+            # Fallback if parsing fails
+            reflection_data = {
+                "insight": "One way to look at today is as an invitation to observe, rather than to change.",
+                "question": "What patterns do you notice in how you respond to the unexpected?",
+                "perspective": "Consider that the moments you resist most might be showing you something about what you value. Not as a lesson to learn, but as information about who you're becoming."
+            }
+        
+        # Store reflection
+        reflection = {
+            "user_id": request.user_id,
+            "date": today,
+            "insight": reflection_data.get("insight", ""),
+            "question": reflection_data.get("question", ""),
+            "perspective": reflection_data.get("perspective", ""),
+            "created_at": datetime.now(timezone.utc)
+        }
+        
+        result = await db.reflections.insert_one(reflection)
+        
+        return DailyReflectionResponse(
+            id=str(result.inserted_id),
+            date=today,
+            insight=reflection["insight"],
+            question=reflection["question"],
+            perspective=reflection["perspective"]
+        )
+    except Exception as e:
+        logger.error(f"Generate reflection error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    """Chatbot endpoint with memory and context"""
+    try:
+        # Get chat history
+        chat_history = await db.chat_history.find_one({"user_id": request.user_id})
+        
+        if not chat_history:
+            chat_history = {
+                "user_id": request.user_id,
+                "messages": [],
+                "created_at": datetime.now(timezone.utc)
+            }
+        
+        # Add user message to history
+        user_msg = {
+            "role": "user",
+            "content": request.message,
+            "timestamp": datetime.now(timezone.utc)
+        }
+        chat_history["messages"].append(user_msg)
+        
+        # Generate response
+        system_prompt = """You are a compassionate guide for Project Mirror, a reflective AI app.
+
+Your purpose is to:
+- Guide users through self-reflection
+- Answer questions about their frameworks (Human Design, Astrology, Numerology, Consciousness)
+- Offer perspectives, never predictions or advice
+- Be emotionally attuned and non-directive
+
+PRINCIPLES:
+- Use "One way to see this..." or "You might notice..." language
+- Never predict the future
+- Never tell someone who they are
+- Validate emotions without fixing them
+- Be brief, warm, and grounded
+
+When users ask about their chart or frameworks, explain what they mean and what lens they offer, not what they should do."""
+        
+        response_text = await generate_ai_response(system_prompt, request.message, request.user_id)
+        
+        # Add assistant message to history
+        assistant_msg = {
+            "role": "assistant",
+            "content": response_text,
+            "timestamp": datetime.now(timezone.utc)
+        }
+        chat_history["messages"].append(assistant_msg)
+        
+        # Update chat history (keep last 20 messages)
+        chat_history["messages"] = chat_history["messages"][-20:]
+        chat_history["updated_at"] = datetime.now(timezone.utc)
+        
+        await db.chat_history.update_one(
+            {"user_id": request.user_id},
+            {"$set": chat_history},
+            upsert=True
+        )
+        
+        return ChatResponse(
+            response=response_text,
+            timestamp=datetime.now(timezone.utc).isoformat()
+        )
+    except Exception as e:
+        logger.error(f"Chat error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/lenses")
+async def get_lenses():
+    """Get information about all interpretive lenses"""
+    return {
+        "lenses": [
+            {
+                "name": "True Sidereal Astrology",
+                "description": "A lens for understanding cosmic rhythms and archetypal patterns",
+                "helps_with": "Seeing cycles, timing, and energetic influences",
+                "does_not": "Predict events or determine destiny",
+                "icon": "stars"
+            },
+            {
+                "name": "Human Design",
+                "description": "A synthesis showing how you're designed to interact with the world",
+                "helps_with": "Understanding your natural decision-making and energy type",
+                "does_not": "Tell you who you should be or limit your choices",
+                "icon": "body"
+            },
+            {
+                "name": "Numerology",
+                "description": "A system revealing patterns in numbers and life paths",
+                "helps_with": "Recognizing themes and personal symbolism",
+                "does_not": "Guarantee outcomes or define your identity",
+                "icon": "numbers"
+            },
+            {
+                "name": "Levels of Consciousness",
+                "description": "A map of emotional and spiritual development (Hawkins Scale)",
+                "helps_with": "Understanding where you are and what might shift",
+                "does_not": "Judge or rank people's worth",
+                "icon": "levels"
+            }
+        ]
+    }
+
 
 # Include the router in the main app
 app.include_router(api_router)
@@ -63,13 +685,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
 @app.on_event("shutdown")
-async def shutdown_db_client():
+async def shutdown():
+    """Clean up resources"""
     client.close()
+    close_ephemeris()
