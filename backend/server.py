@@ -624,20 +624,26 @@ Base the reflection ONLY on universal human patterns, not on any astrological, H
                 'defined', 'undefined', 'open', 'bodygraph'
             ]
             
-            # Check each field and rewrite if contaminated
+            # Check for ANY contamination in the full response
+            leak_detected = False
             for field in ['insight', 'question', 'perspective']:
                 if field in reflection_data:
                     text_lower = reflection_data[field].lower()
                     for term in forbidden_terms:
                         if term in text_lower:
                             logger.warning(f"FRAMEWORK LEAK DETECTED in {field}: '{term}' - using fallback")
-                            # Use safe fallback instead
-                            reflection_data = {
-                                "insight": "One way to look at today is as an invitation to observe patterns in how you relate to change and uncertainty.",
-                                "question": "What feels most true for you right now?",
-                                "perspective": "Consider that the moments you resist most might be showing you something about what you value. Not as a lesson to learn, but as information about who you're becoming."
-                            }
+                            leak_detected = True
                             break
+                    if leak_detected:
+                        break
+            
+            # If ANY leak detected, use safe fallback for ALL fields
+            if leak_detected:
+                reflection_data = {
+                    "insight": "One way to look at today is as an invitation to observe patterns in how you relate to change and uncertainty.",
+                    "question": "What feels most true for you right now?",
+                    "perspective": "Consider that the moments you resist most might be showing you something about what you value. Not as a lesson to learn, but as information about who you're becoming."
+                }
         except:
             # Fallback if parsing fails
             reflection_data = {
