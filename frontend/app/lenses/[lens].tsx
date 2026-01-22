@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Colors } from '../../../constants/colors';
+import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 
 const LENS_CONTENT: { [key: string]: any } = {
