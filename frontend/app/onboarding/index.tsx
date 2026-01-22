@@ -119,8 +119,8 @@ export default function Onboarding() {
       // Complete onboarding
       await completeOnboarding();
 
-      // Navigate to main app
-      router.replace('/(tabs)');
+      // Navigate to questionnaire (post-registration onboarding)
+      router.replace('/questionnaire');
     } catch (err: any) {
       console.error('Onboarding error:', err);
       const errorMsg = err.response?.data?.detail || err.message || 'Something went wrong. Please try again.';
