@@ -67,16 +67,35 @@ export default function Onboarding() {
     setLocations([]);
   };
 
+  const validateTime = (time: string): boolean => {
+    if (!time) return true; // Optional field
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return timeRegex.test(time);
+  };
+
   const handleSubmit = async () => {
     setError('');
 
+    // Validate birth date format
     if (!birthDate) {
       setError('Please enter your birth date');
       return;
     }
+    
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(birthDate)) {
+      setError('Please enter birth date in YYYY-MM-DD format (e.g., 1990-05-15)');
+      return;
+    }
+
+    // Validate birth time if provided
+    if (birthTime && !validateTime(birthTime)) {
+      setError('Please enter birth time in HH:MM format (e.g., 14:30)');
+      return;
+    }
 
     if (!selectedLocation) {
-      setError('Please select a birth location');
+      setError('Please select a birth location from the dropdown');
       return;
     }
 
@@ -104,7 +123,8 @@ export default function Onboarding() {
       router.replace('/(tabs)');
     } catch (err: any) {
       console.error('Onboarding error:', err);
-      setError(err.response?.data?.detail || 'Something went wrong. Please try again.');
+      const errorMsg = err.response?.data?.detail || err.message || 'Something went wrong. Please try again.';
+      setError(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
