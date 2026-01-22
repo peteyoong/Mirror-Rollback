@@ -362,10 +362,35 @@ async def calculate_chart(request: ChartCalculationRequest):
         birth_date = user["birth_date"]
         birth_time = user.get("birth_time", "12:00")
         
-        if birth_time:
-            hour, minute = map(int, birth_time.split(":"))
+        # Parse and validate birth time
+        try:
+            if birth_time:
+                # Clean the time string
+                birth_time = birth_time.strip()
+                # Validate format
+                if ':' not in birth_time:
+                    birth_time = "12:00"
+                else:
+                    parts = birth_time.split(":")
+                    if len(parts) != 2:
+                        birth_time = "12:00"
+                    else:
+                        # Validate hour and minute are integers
+                        hour = int(parts[0])
+                        minute = int(parts[1])
+                        if hour < 0 or hour > 23 or minute < 0 or minute > 59:
+                            birth_time = "12:00"
+                            hour, minute = 12, 0
+            else:
+                birth_time = "12:00"
+                hour, minute = 12, 0
+            
+            if birth_time != "12:00" or 'hour' not in locals():
+                hour, minute = map(int, birth_time.split(":"))
+            
             birth_datetime = birth_date.replace(hour=hour, minute=minute)
-        else:
+        except (ValueError, AttributeError) as e:
+            logger.warning(f"Invalid birth time format: {birth_time}, using noon as default. Error: {e}")
             birth_datetime = birth_date.replace(hour=12, minute=0)
         
         location = user["birth_location"]
