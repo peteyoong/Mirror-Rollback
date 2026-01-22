@@ -252,7 +252,7 @@ async def root():
 async def search_locations(request: LocationSearchRequest):
     """Search for locations with autocomplete"""
     try:
-        geolocator = Nominatim(user_agent="project_mirror")
+        geolocator = Nominatim(user_agent="project_mirror", timeout=10)
         locations = geolocator.geocode(request.query, exactly_one=False, limit=5, addressdetails=True)
         
         if not locations:
@@ -286,7 +286,8 @@ async def search_locations(request: LocationSearchRequest):
         return {"results": results}
     except Exception as e:
         logger.error(f"Location search error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Return empty results instead of error to allow retry
+        return {"results": []}
 
 
 @api_router.post("/users", response_model=UserProfileResponse)
