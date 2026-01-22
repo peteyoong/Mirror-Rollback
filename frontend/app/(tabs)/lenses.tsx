@@ -173,6 +173,60 @@ const styles = StyleSheet.create({
   lensesContainer: {
     marginBottom: 24,
   },
+  lensCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+  },
+  lensName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 12,
+  },
+  lensDescription: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+    marginBottom: 16,
+  },
+  infoSection: {
+    marginBottom: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  infoLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginLeft: 6,
+  },
+  infoText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.textTertiary,
+    marginLeft: 22,
+  },
+  viewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.text,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 16,
+    gap: 6,
+  },
+  viewButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.background,
+  },
   footer: {
     backgroundColor: Colors.surface,
     borderRadius: 12,
