@@ -82,9 +82,12 @@ export default function MirrorScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.greeting}>
-            {user.name ? `Hello, ${user.name}` : 'Hello'}
+            {user.name ? `${user.name}` : 'Welcome'}
           </Text>
           <Text style={styles.date}>{today}</Text>
+          <Text style={styles.subtitle}>
+            A quiet place to pause and look at your life from a slightly different angle.
+          </Text>
         </View>
 
         {/* Loading State */}
