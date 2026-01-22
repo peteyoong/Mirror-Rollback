@@ -164,6 +164,12 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 14,
     color: Colors.textTertiary,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.textSecondary,
   },
   loadingText: {
     fontSize: 14,
