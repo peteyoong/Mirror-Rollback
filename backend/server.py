@@ -631,6 +631,7 @@ Base the reflection ONLY on universal human patterns, not on any astrological, H
                     text_lower = reflection_data[field].lower()
                     for term in forbidden_terms:
                         if term in text_lower:
+                            print(f"!!! FRAMEWORK LEAK DETECTED in {field}: '{term}'")
                             logger.warning(f"FRAMEWORK LEAK DETECTED in {field}: '{term}' - using fallback")
                             leak_detected = True
                             break
@@ -639,11 +640,14 @@ Base the reflection ONLY on universal human patterns, not on any astrological, H
             
             # If ANY leak detected, use safe fallback for ALL fields
             if leak_detected:
+                print("!!! USING FALLBACK DUE TO LEAK")
                 reflection_data = {
                     "insight": "One way to look at today is as an invitation to observe patterns in how you relate to change and uncertainty.",
                     "question": "What feels most true for you right now?",
                     "perspective": "Consider that the moments you resist most might be showing you something about what you value. Not as a lesson to learn, but as information about who you're becoming."
                 }
+            else:
+                print("!!! NO LEAK DETECTED - Content is clean")
         except:
             # Fallback if parsing fails
             reflection_data = {
