@@ -197,10 +197,9 @@ async def get_user_context(user_id: str) -> Dict:
             "has_chart": chart is not None,
         }
         
-        if chart:
-            context["human_design_type"] = chart.get("human_design", {}).get("type")
-            context["human_design_authority"] = chart.get("human_design", {}).get("authority")
-            context["life_path"] = chart.get("numerology", {}).get("life_path", {}).get("number")
+        # CRITICAL: DO NOT inject framework data into context
+        # Framework data exists but must NEVER be passed to Mirror AI
+        # Only pass journal themes (universal patterns)
         
         if journal_entries:
             context["recent_themes"] = [entry.get("content", "")[:100] for entry in journal_entries]
