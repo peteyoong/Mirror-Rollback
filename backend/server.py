@@ -590,14 +590,17 @@ Format as JSON:
 }
 """
         
-        # Build context message
-        context_msg = "Generate a daily reflection for this person."
-        
-        # Do NOT include framework data in context - keep it internal
-        # The AI should generate reflections based on universal patterns, not specific chart details
+        # Build context message - NO FRAMEWORK DATA
+        context_msg = """Generate today's reflection.
+
+CRITICAL: This is for the Mirror (Home) screen. You MUST NOT use any framework terms.
+
+Base the reflection ONLY on universal human patterns, not on any astrological, Human Design, or numerological data."""
         
         if user_context.get("recent_themes"):
-            context_msg += f"\n\nRecent journal themes show they've been exploring: {', '.join(user_context['recent_themes'][:2])}"
+            context_msg += f"\n\nRecent journal themes: {', '.join(user_context['recent_themes'][:2])}"
+        
+        context_msg += "\n\nGenerate a grounded, framework-free reflection in JSON format."
         
         # Generate
         response = await generate_ai_response(system_prompt, context_msg, request.user_id)
