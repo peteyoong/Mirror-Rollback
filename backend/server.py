@@ -605,7 +605,37 @@ Format as JSON:
         # Parse response (simplified for V1)
         try:
             import json
+            import re
             reflection_data = json.loads(response)
+            
+            # LEAK-PROOF VALIDATOR: Strip any framework terms that slipped through
+            forbidden_terms = [
+                'human design', 'manifestor', 'generator', 'manifesting generator', 'projector', 'reflector',
+                'authority', 'emotional authority', 'sacral authority', 'splenic authority',
+                'profile', 'gate', 'gates', 'channel', 'channels', 'center', 'centers',
+                'astrology', 'astrological', 'zodiac', 'aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
+                'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces',
+                'sun sign', 'moon sign', 'rising sign', 'ascendant', 'planet', 'planets',
+                'house', 'houses', 'aspect', 'aspects', 'chart', 'natal chart',
+                'numerology', 'life path', 'expression number', 'soul urge',
+                'bazaar', 'gene keys', 'enneagram', 'type', 'strategy', 'incarnation cross',
+                'defined', 'undefined', 'open', 'bodygraph'
+            ]
+            
+            # Check each field and rewrite if contaminated
+            for field in ['insight', 'question', 'perspective']:
+                if field in reflection_data:
+                    text_lower = reflection_data[field].lower()
+                    for term in forbidden_terms:
+                        if term in text_lower:
+                            logger.warning(f"FRAMEWORK LEAK DETECTED in {field}: '{term}' - using fallback")
+                            # Use safe fallback instead
+                            reflection_data = {
+                                "insight": "One way to look at today is as an invitation to observe patterns in how you relate to change and uncertainty.",
+                                "question": "What feels most true for you right now?",
+                                "perspective": "Consider that the moments you resist most might be showing you something about what you value. Not as a lesson to learn, but as information about who you're becoming."
+                            }
+                            break
         except:
             # Fallback if parsing fails
             reflection_data = {
