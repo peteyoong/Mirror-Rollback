@@ -80,6 +80,12 @@ export default function Login() {
           </View>
 
           <View style={styles.form}>
+            {errorMessage ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            ) : null}
+            
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email</Text>
               <TextInput
