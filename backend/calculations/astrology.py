@@ -112,6 +112,19 @@ def get_full_natal_chart(birth_datetime: datetime, lat: float, lon: float) -> Di
         else:
             planets[name] = calculate_planet_position(planet_id, jd, sidereal=True)
     
+    # Calculate Earth as opposite of Sun (for Human Design)
+    sun_long = planets['Sun']['longitude']
+    earth_long = (sun_long + 180) % 360
+    sign_num = int(earth_long / 30)
+    degree_in_sign = earth_long % 30
+    planets['Earth'] = {
+        'longitude': earth_long,
+        'latitude': 0,  # Earth's latitude is always 0 from Sun's perspective
+        'sign': ZODIAC_SIGNS[sign_num],
+        'degree': degree_in_sign,
+        'formatted': f"{int(degree_in_sign)}°{ZODIAC_SIGNS[sign_num]}"
+    }
+    
     # Calculate houses
     house_data = calculate_houses(jd, lat, lon)
     
