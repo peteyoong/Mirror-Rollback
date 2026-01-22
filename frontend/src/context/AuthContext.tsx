@@ -40,11 +40,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const token = await AsyncStorage.getItem('token');
       if (token) {
-        const response = await api.get('/auth/me');
-        setUser(response.data);
+        try {
+          const response = await api.get('/auth/me');
+          setUser(response.data);
+        } catch (error: any) {
+          // Only remove token on auth errors, not network errors
+          if (error.response?.status === 401 || error.response?.status === 403) {
+            await AsyncStorage.removeItem('token');
+          }
+          console.log('Auth check failed:', error.message);
+        }
       }
     } catch (error) {
-      await AsyncStorage.removeItem('token');
+      console.log('Error accessing storage:', error);
     } finally {
       setLoading(false);
     }
