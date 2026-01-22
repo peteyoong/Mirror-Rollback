@@ -583,14 +583,12 @@ Format as JSON:
         
         # Build context message
         context_msg = "Generate a daily reflection for this person."
-        if chart:
-            hd = chart.get("human_design", {})
-            num = chart.get("numerology", {})
-            context_msg += f"\n\nHuman Design Type: {hd.get('type')}, Authority: {hd.get('authority')}"
-            context_msg += f"\nLife Path: {num.get('life_path', {}).get('number')}"
+        
+        # Do NOT include framework data in context - keep it internal
+        # The AI should generate reflections based on universal patterns, not specific chart details
         
         if user_context.get("recent_themes"):
-            context_msg += f"\n\nRecent journal themes: {', '.join(user_context['recent_themes'])}"
+            context_msg += f"\n\nRecent journal themes show they've been exploring: {', '.join(user_context['recent_themes'][:2])}"
         
         # Generate
         response = await generate_ai_response(system_prompt, context_msg, request.user_id)
