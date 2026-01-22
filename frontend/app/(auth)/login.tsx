@@ -24,20 +24,34 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const showError = (message: string) => {
+    setErrorMessage(message);
+    if (Platform.OS !== 'web') {
+      Alert.alert('Error', message);
+    }
+  };
 
   const handleLogin = async () => {
+    console.log('Login button pressed');
+    setErrorMessage('');
+    
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Please fill in all fields');
+      showError('Please fill in all fields');
       return;
     }
 
     setLoading(true);
     try {
+      console.log('Attempting login with:', email);
       await login(email, password);
-      // Navigation will be handled by the index page based on user state
+      console.log('Login successful, navigating...');
       router.replace('/');
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Login failed');
+      console.log('Login error:', error);
+      const message = error.response?.data?.detail || 'Login failed. Please check your credentials.';
+      showError(message);
     } finally {
       setLoading(false);
     }
