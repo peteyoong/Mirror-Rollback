@@ -431,6 +431,76 @@ async def get_mirror_by_date(date: str, user = Depends(get_current_user)):
     content = get_mirror_content_for_date(date)
     return content
 
+# Daily Reflection Routes (with persistence)
+class DateKeyInput(BaseModel):
+    date_key: str  # YYYY-MM-DD format from client's local time
+
+@api_router.post("/reflection/today", response_model=DailyReflectionResponse)
+async def get_or_create_daily_reflection(date_input: DateKeyInput, user = Depends(get_current_user)):
+    """Get today's reflection or create one if it doesn't exist"""
+    date_key = date_input.date_key
+    user_id = user["id"]
+    
+    # Check if reflection exists for today
+    existing = await db.daily_reflections.find_one({
+        "user_id": user_id,
+        "date_key": date_key
+    })
+    
+    if existing:
+        return DailyReflectionResponse(**existing)
+    
+    # Generate new reflection
+    reflection_content = generate_random_reflection()
+    
+    reflection = DailyReflection(
+        user_id=user_id,
+        date_key=date_key,
+        **reflection_content
+    )
+    
+    await db.daily_reflections.insert_one(reflection.dict())
+    return DailyReflectionResponse(**reflection.dict())
+
+@api_router.post("/reflection/regenerate", response_model=DailyReflectionResponse)
+async def regenerate_daily_reflection(date_input: DateKeyInput, user = Depends(get_current_user)):
+    """Regenerate today's reflection (overwrites existing)"""
+    date_key = date_input.date_key
+    user_id = user["id"]
+    
+    # Generate new reflection content
+    reflection_content = generate_random_reflection()
+    
+    # Check if reflection exists
+    existing = await db.daily_reflections.find_one({
+        "user_id": user_id,
+        "date_key": date_key
+    })
+    
+    if existing:
+        # Update existing
+        await db.daily_reflections.update_one(
+            {"user_id": user_id, "date_key": date_key},
+            {"$set": {
+                **reflection_content,
+                "created_at": datetime.utcnow()  # Reset timestamp on regenerate
+            }}
+        )
+        updated = await db.daily_reflections.find_one({
+            "user_id": user_id,
+            "date_key": date_key
+        })
+        return DailyReflectionResponse(**updated)
+    else:
+        # Create new
+        reflection = DailyReflection(
+            user_id=user_id,
+            date_key=date_key,
+            **reflection_content
+        )
+        await db.daily_reflections.insert_one(reflection.dict())
+        return DailyReflectionResponse(**reflection.dict())
+
 # Journal Routes
 @api_router.get("/journal", response_model=List[JournalEntry])
 async def get_journal_entries(user = Depends(get_current_user)):
