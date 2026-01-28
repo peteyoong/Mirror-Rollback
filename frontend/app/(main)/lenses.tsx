@@ -25,7 +25,9 @@ interface Lens {
 interface LensDetail extends Lens {
   deep_dive: {
     description: string;
-    practices: string[];
+    key_concepts?: string[];
+    reflection_themes?: string[];
+    practices?: string[];
     invitation: string;
   };
 }
@@ -36,6 +38,9 @@ const ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
   heart: 'heart-outline',
   search: 'search-outline',
   time: 'time-outline',
+  planet: 'planet-outline',
+  calculator: 'calculator-outline',
+  layers: 'layers-outline',
 };
 
 export default function Lenses() {
