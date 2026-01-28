@@ -375,14 +375,6 @@ LENSES_CONTENT = [
         }
     }
 ]
-                "What motivates most of your daily decisions?",
-                "How do you relate to people who see the world very differently?",
-                "What would 'growth' look like for you right now?"
-            ],
-            "invitation": "Notice what triggers contraction in you versus what invites expansion. These signals often point toward your growing edge."
-        }
-    }
-]
 
 def get_mirror_content_for_date(date_str: str) -> dict:
     """Get deterministic mirror content based on date"""
