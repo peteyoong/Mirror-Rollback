@@ -214,15 +214,43 @@ export default function Lenses() {
                     {selectedLens.deep_dive.description}
                   </Text>
 
-                  <View style={styles.practicesContainer}>
-                    <Text style={styles.practicesLabel}>Practices</Text>
-                    {selectedLens.deep_dive.practices.map((practice, index) => (
-                      <View key={index} style={styles.practiceItem}>
-                        <View style={styles.practiceBullet} />
-                        <Text style={styles.practiceText}>{practice}</Text>
-                      </View>
-                    ))}
-                  </View>
+                  {/* Key Concepts */}
+                  {selectedLens.deep_dive.key_concepts && selectedLens.deep_dive.key_concepts.length > 0 && (
+                    <View style={styles.practicesContainer}>
+                      <Text style={styles.practicesLabel}>Key Concepts</Text>
+                      {selectedLens.deep_dive.key_concepts.map((concept, index) => (
+                        <View key={index} style={styles.practiceItem}>
+                          <View style={styles.practiceBullet} />
+                          <Text style={styles.practiceText}>{concept}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Reflection Themes */}
+                  {selectedLens.deep_dive.reflection_themes && selectedLens.deep_dive.reflection_themes.length > 0 && (
+                    <View style={styles.reflectionThemesContainer}>
+                      <Text style={styles.practicesLabel}>Reflection Themes</Text>
+                      {selectedLens.deep_dive.reflection_themes.map((theme, index) => (
+                        <View key={index} style={styles.themeItem}>
+                          <Text style={styles.themeText}>{theme}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Legacy Practices (for backward compatibility) */}
+                  {selectedLens.deep_dive.practices && selectedLens.deep_dive.practices.length > 0 && (
+                    <View style={styles.practicesContainer}>
+                      <Text style={styles.practicesLabel}>Practices</Text>
+                      {selectedLens.deep_dive.practices.map((practice, index) => (
+                        <View key={index} style={styles.practiceItem}>
+                          <View style={styles.practiceBullet} />
+                          <Text style={styles.practiceText}>{practice}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
 
                   <View style={styles.invitationContainer}>
                     <Text style={styles.invitationLabel}>An Invitation</Text>
