@@ -900,6 +900,7 @@ async def get_or_create_daily_reflection(date_input: DateKeyInput = None, user =
     reflection = DailyReflection(
         user_id=user_id,
         date_key=date_key,
+        timezone_offset=timezone_offset,
         **reflection_content
     )
     
@@ -907,10 +908,14 @@ async def get_or_create_daily_reflection(date_input: DateKeyInput = None, user =
     return DailyReflectionResponse(**reflection.dict())
 
 @api_router.post("/reflection/regenerate", response_model=DailyReflectionResponse)
-async def regenerate_daily_reflection(date_input: DateKeyInput, user = Depends(get_current_user)):
-    """Regenerate today's reflection (overwrites existing)"""
-    date_key = date_input.date_key
+async def regenerate_daily_reflection(date_input: DateKeyInput = None, user = Depends(get_current_user)):
+    """Regenerate today's reflection (overwrites existing).
+    Uses server UTC date for consistency across devices."""
+    
+    # Always use server date for consistency
+    date_key = get_server_date_key()
     user_id = user["id"]
+    timezone_offset = date_input.timezone_offset if date_input else None
     
     # Get user's onboarding answers for personalization
     onboarding_answers = user.get("onboarding_answers")
@@ -939,6 +944,7 @@ async def regenerate_daily_reflection(date_input: DateKeyInput, user = Depends(g
             {"user_id": user_id, "date_key": date_key},
             {"$set": {
                 **reflection_content,
+                "timezone_offset": timezone_offset,
                 "created_at": datetime.utcnow()  # Reset timestamp on regenerate
             }}
         )
@@ -952,6 +958,7 @@ async def regenerate_daily_reflection(date_input: DateKeyInput, user = Depends(g
         reflection = DailyReflection(
             user_id=user_id,
             date_key=date_key,
+            timezone_offset=timezone_offset,
             **reflection_content
         )
         await db.daily_reflections.insert_one(reflection.dict())
