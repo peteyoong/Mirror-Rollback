@@ -777,8 +777,17 @@ async def get_or_create_daily_reflection(date_input: DateKeyInput, user = Depend
     # Get user's onboarding answers for personalization
     onboarding_answers = user.get("onboarding_answers")
     
-    # Generate new personalized reflection
-    reflection_content = generate_random_reflection(onboarding_answers)
+    # Get recent journal entries (last 3) for context
+    recent_journals = await db.journal_entries.find(
+        {"user_id": user_id}
+    ).sort("created_at", -1).limit(3).to_list(3)
+    
+    # Generate new personalized reflection using ChatGPT
+    reflection_content = await generate_random_reflection(
+        onboarding_answers, 
+        recent_journals,
+        date_key
+    )
     
     reflection = DailyReflection(
         user_id=user_id,
@@ -798,8 +807,17 @@ async def regenerate_daily_reflection(date_input: DateKeyInput, user = Depends(g
     # Get user's onboarding answers for personalization
     onboarding_answers = user.get("onboarding_answers")
     
-    # Generate new personalized reflection content
-    reflection_content = generate_random_reflection(onboarding_answers)
+    # Get recent journal entries (last 3) for context
+    recent_journals = await db.journal_entries.find(
+        {"user_id": user_id}
+    ).sort("created_at", -1).limit(3).to_list(3)
+    
+    # Generate new personalized reflection content using ChatGPT
+    reflection_content = await generate_random_reflection(
+        onboarding_answers,
+        recent_journals,
+        date_key
+    )
     
     # Check if reflection exists
     existing = await db.daily_reflections.find_one({
