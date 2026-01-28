@@ -103,11 +103,12 @@ class MirrorContent(BaseModel):
 class DailyReflection(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
-    date_key: str  # YYYY-MM-DD format
+    date_key: str  # YYYY-MM-DD format (server UTC date)
     todays_insight: str
     reflect_on: str
     another_perspective: str
     closing_line: str
+    timezone_offset: Optional[int] = None  # Client timezone offset in minutes (for reference)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class DailyReflectionResponse(BaseModel):
@@ -118,6 +119,7 @@ class DailyReflectionResponse(BaseModel):
     reflect_on: str
     another_perspective: str
     closing_line: str
+    timezone_offset: Optional[int] = None
     created_at: datetime
 
 # ============== Helper Functions ==============
