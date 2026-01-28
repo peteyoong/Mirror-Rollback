@@ -329,15 +329,186 @@ def get_mirror_content_for_date(date_str: str) -> dict:
 
 import random
 
-def generate_random_reflection() -> dict:
-    """Generate a random reflection from the content pool"""
-    content = random.choice(MIRROR_CONTENT_POOL)
+# ============== Personalized Reflection Generator ==============
+# Adapts reflections based on onboarding answers without using any metaphysical frameworks
+
+# Extended content pools for different depths and styles
+DEEP_INSIGHTS = [
+    "The layers of your experience hold wisdom that unfolds gradually, revealing itself when you're ready to receive it.",
+    "Within the complexity of your inner landscape lies a simplicity waiting to be discovered—not by solving, but by allowing.",
+    "What feels like fragmentation may actually be the necessary scattering before a deeper integration can occur.",
+    "The relationship between your past self and present self is not linear; it spirals, revisiting familiar themes with new understanding.",
+    "Meaning often emerges not from the moments we plan, but from the spaces between—the pauses, the transitions, the almost-invisible shifts.",
+    "Your capacity to hold contradiction without resolution is itself a form of wisdom that the rushing mind cannot access.",
+    "The boundaries between healing and growing are more porous than we imagine; sometimes they are the same movement witnessed from different angles.",
+]
+
+LIGHT_INSIGHTS = [
+    "This moment is enough.",
+    "You are here. That matters.",
+    "Small steps count.",
+    "Breathe. Begin again.",
+    "Today holds possibility.",
+    "You don't need to figure it all out.",
+    "Rest is productive too.",
+]
+
+DEEP_QUESTIONS = [
+    "What truth have you been circling around, approaching and retreating from, that might be ready for a closer look?",
+    "If you traced the thread of your current challenge back through time, what earlier version of this pattern might you discover?",
+    "What would it mean to fully accept where you are, not as a stepping stone to somewhere else, but as the destination itself?",
+    "Which of your beliefs about yourself have you inherited rather than chosen, and how do they shape your daily experience?",
+]
+
+LIGHT_QUESTIONS = [
+    "What's one thing you can appreciate right now?",
+    "What would feel like ease today?",
+    "Where can you be gentle with yourself?",
+    "What's asking for your attention?",
+]
+
+DEEP_PERSPECTIVES = [
+    "Perhaps what feels like stagnation is actually a form of integration happening below the surface, invisible but essential.",
+    "The resistance you feel might be information rather than obstacle—a signal pointing toward something important.",
+    "What if the uncertainty you're experiencing is not a problem to solve but a threshold you're being invited to stand in?",
+]
+
+LIGHT_PERSPECTIVES = [
+    "Maybe it's simpler than it seems.",
+    "What if good enough is enough?",
+    "Perhaps you're further along than you realize.",
+]
+
+# Grounding additions for those who struggle with uncertainty
+GROUNDING_PHRASES = [
+    "You are safe to explore this.",
+    "There's no rush to find answers.",
+    "It's okay to not know yet.",
+    "You can return to solid ground anytime.",
+    "This uncertainty won't last forever.",
+]
+
+# Pattern-focused additions
+PATTERN_ADDITIONS = [
+    "You might notice a recurring theme here—",
+    "There may be a pattern worth observing—",
+    "See if this connects to something familiar—",
+    "Watch for echoes of past experiences—",
+]
+
+# Somatic/body-focused additions
+SOMATIC_ADDITIONS = [
+    "Notice where this sits in your body.",
+    "What does your body know about this?",
+    "Feel into this question physically.",
+    "Let your body respond before your mind.",
+    "Where do you sense this in your physical self?",
+]
+
+# Clarity-focused additions
+CLARITY_ADDITIONS = [
+    "Clarity often arrives softly, in its own time.",
+    "Sometimes clarity comes not from seeking, but from settling.",
+    "Let clarity find you rather than chasing it.",
+    "The path may become clear one step at a time.",
+]
+
+def generate_personalized_reflection(onboarding_answers: dict = None) -> dict:
+    """
+    Generate a personalized reflection based on user's onboarding answers.
+    
+    Personalizes based on:
+    - desired_depth: 'deep' vs 'surface' content length/complexity
+    - uncertainty_relationship: adds grounding language if challenging
+    - reflection_style: adds pattern or somatic language
+    - intention: adds clarity-focused language if seeking clarity
+    
+    HARD RULE: Never mentions Human Design, astrology, numerology, charts, 
+    types, authorities, or any framework terms.
+    """
+    
+    # Default to base content if no onboarding answers
+    if not onboarding_answers:
+        content = random.choice(MIRROR_CONTENT_POOL)
+        return {
+            "todays_insight": content["insight"],
+            "reflect_on": content["reflection_question"],
+            "another_perspective": content["another_perspective"],
+            "closing_line": content["closing_line"]
+        }
+    
+    # Extract onboarding values with defaults
+    depth = onboarding_answers.get("desired_depth", "moderate")
+    uncertainty = onboarding_answers.get("uncertainty_relationship", "mixed")
+    reflection_style = onboarding_answers.get("reflection_style", "contemplating")
+    intention = onboarding_answers.get("intention", "self_understanding")
+    
+    # Determine if deep or light content
+    is_deep = depth == "deep"
+    is_light = depth == "surface"
+    needs_grounding = uncertainty in ["challenging", "learning"]
+    is_pattern_focused = reflection_style == "patterns"
+    is_body_focused = reflection_style == "feeling"
+    seeks_clarity = intention == "clarity"
+    
+    # Select base content based on depth
+    if is_deep:
+        insight = random.choice(DEEP_INSIGHTS)
+        question = random.choice(DEEP_QUESTIONS)
+        perspective = random.choice(DEEP_PERSPECTIVES)
+    elif is_light:
+        insight = random.choice(LIGHT_INSIGHTS)
+        question = random.choice(LIGHT_QUESTIONS)
+        perspective = random.choice(LIGHT_PERSPECTIVES)
+    else:
+        # Moderate depth - use original pool
+        content = random.choice(MIRROR_CONTENT_POOL)
+        insight = content["insight"]
+        question = content["reflection_question"]
+        perspective = content["another_perspective"]
+    
+    # Build closing line
+    closing_parts = []
+    
+    # Add grounding language if needed
+    if needs_grounding:
+        closing_parts.append(random.choice(GROUNDING_PHRASES))
+    
+    # Add pattern language if that's their style
+    if is_pattern_focused:
+        question = random.choice(PATTERN_ADDITIONS) + question.lower()
+    
+    # Add somatic language if that's their style
+    if is_body_focused:
+        somatic = random.choice(SOMATIC_ADDITIONS)
+        perspective = f"{perspective} {somatic}"
+    
+    # Add clarity language if that's their intention
+    if seeks_clarity:
+        closing_parts.append(random.choice(CLARITY_ADDITIONS))
+    
+    # Default closing if no special additions
+    if not closing_parts:
+        closing_parts.append(random.choice([
+            "Your journal awaits when you're ready.",
+            "There's space to explore this further.",
+            "Write what feels true.",
+            "Your reflections are welcome here.",
+            "Take what resonates, leave the rest.",
+        ]))
+    
+    closing_line = " ".join(closing_parts)
+    
     return {
-        "todays_insight": content["insight"],
-        "reflect_on": content["reflection_question"],
-        "another_perspective": content["another_perspective"],
-        "closing_line": content["closing_line"]
+        "todays_insight": insight,
+        "reflect_on": question,
+        "another_perspective": perspective,
+        "closing_line": closing_line
     }
+
+def generate_random_reflection(onboarding_answers: dict = None) -> dict:
+    """Generate a reflection, personalized if onboarding answers available"""
+    return generate_personalized_reflection(onboarding_answers)
 
 # ============== Routes ==============
 
