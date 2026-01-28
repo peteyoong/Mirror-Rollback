@@ -86,6 +86,12 @@ export default function Register() {
           </View>
 
           <View style={styles.form}>
+            {errorMessage ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            ) : null}
+
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Name</Text>
               <TextInput
