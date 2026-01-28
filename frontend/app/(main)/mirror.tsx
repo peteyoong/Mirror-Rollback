@@ -26,16 +26,13 @@ interface DailyReflection {
   reflect_on: string;
   another_perspective: string;
   closing_line: string;
+  timezone_offset?: number;
   created_at: string;
 }
 
-function getTodayDateKey(): string {
-  // Get local date in YYYY-MM-DD format
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+function getTimezoneOffset(): number {
+  // Get timezone offset in minutes (negative for UTC+ timezones)
+  return new Date().getTimezoneOffset();
 }
 
 export default function Mirror() {
@@ -48,8 +45,10 @@ export default function Mirror() {
 
   const fetchReflection = useCallback(async () => {
     try {
-      const dateKey = getTodayDateKey();
-      const response = await api.post('/reflection/today', { date_key: dateKey });
+      // Send timezone offset for reference, server determines date_key
+      const response = await api.post('/reflection/today', { 
+        timezone_offset: getTimezoneOffset() 
+      });
       setReflection(response.data);
     } catch (error) {
       console.error('Failed to fetch reflection:', error);
@@ -73,8 +72,10 @@ export default function Mirror() {
     
     setRegenerating(true);
     try {
-      const dateKey = getTodayDateKey();
-      const response = await api.post('/reflection/regenerate', { date_key: dateKey });
+      // Send timezone offset for reference, server determines date_key
+      const response = await api.post('/reflection/regenerate', { 
+        timezone_offset: getTimezoneOffset() 
+      });
       setReflection(response.data);
     } catch (error) {
       console.error('Failed to regenerate reflection:', error);
