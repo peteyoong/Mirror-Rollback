@@ -25,24 +25,39 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const showError = (message: string) => {
+    setErrorMessage(message);
+    if (Platform.OS !== 'web') {
+      Alert.alert('Error', message);
+    }
+  };
 
   const handleRegister = async () => {
+    console.log('Register button pressed');
+    setErrorMessage('');
+
     if (!name.trim() || !email.trim() || !password.trim()) {
-      Alert.alert('Please fill in all fields');
+      showError('Please fill in all fields');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Password must be at least 6 characters');
+      showError('Password must be at least 6 characters');
       return;
     }
 
     setLoading(true);
     try {
+      console.log('Attempting registration with:', email);
       await register(email, password, name);
+      console.log('Registration successful, navigating to onboarding...');
       router.replace('/(onboarding)/questions');
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Registration failed');
+      console.log('Registration error:', error);
+      const message = error.response?.data?.detail || 'Registration failed. Please try again.';
+      showError(message);
     } finally {
       setLoading(false);
     }
