@@ -327,6 +327,18 @@ def get_mirror_content_for_date(date_str: str) -> dict:
         **content
     }
 
+import random
+
+def generate_random_reflection() -> dict:
+    """Generate a random reflection from the content pool"""
+    content = random.choice(MIRROR_CONTENT_POOL)
+    return {
+        "todays_insight": content["insight"],
+        "reflect_on": content["reflection_question"],
+        "another_perspective": content["another_perspective"],
+        "closing_line": content["closing_line"]
+    }
+
 # ============== Routes ==============
 
 @api_router.get("/")
