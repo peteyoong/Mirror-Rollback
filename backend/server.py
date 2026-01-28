@@ -250,8 +250,9 @@ LENSES_CONTENT = [
         "title": "True Sidereal Astrology",
         "icon": "planet",
         "summary": "A perspective that looks at where celestial bodies actually are in the sky, not where they were thousands of years ago. This lens offers a way to reflect on cycles, seasons, and the rhythms that influence how you feel and move through life. It's about noticing patterns, not predicting fate.",
+        "snapshot_prompt": "Based on their onboarding answers, generate a warm, personalized reflection about how they might relate to natural cycles and rhythms. Focus on their relationship to time, seasons, and recurring patterns in life. Be emotionally supportive, intellectually clarifying, and gently evocative. Do NOT assign any astrological signs or make predictions.",
         "deep_dive": {
-            "description": "True Sidereal Astrology differs from tropical astrology by aligning with the actual current positions of constellations. While tropical astrology uses fixed dates established around 2,000 years ago, sidereal astrology accounts for the precession of the equinoxes—Earth's slow wobble that shifts our view of the stars over time. This approach places your sun sign approximately 23 degrees earlier in the zodiac.",
+            "description": "True Sidereal Astrology differs from tropical astrology by aligning with the actual current positions of constellations. While tropical astrology uses fixed dates established around 2,000 years ago, sidereal astrology accounts for the precession of the equinoxes—Earth's slow wobble that shifts our view of the stars over time.",
             "key_concepts": [
                 "Precession of the equinoxes: Earth's 26,000-year wobble cycle",
                 "Actual star positions versus symbolic seasons",
@@ -272,15 +273,47 @@ LENSES_CONTENT = [
         "title": "Human Design",
         "icon": "body",
         "summary": "A system that combines ancient wisdom traditions into a unique map of how you're designed to make decisions and interact with the world. Rather than telling you who to be, it offers language for understanding how your energy naturally flows and what environments help you thrive.",
+        "snapshot_prompt": "Based on their onboarding answers, generate a warm reflection about their relationship to energy, decision-making, and self-trust. Describe implications and lived experience WITHOUT using technical Human Design terms (no Type names, no Authority names, no 'centers' or 'gates'). Focus on how they might naturally move through life—do they seem like someone who initiates or responds? Do they need time to process decisions? What environments might support them? Be emotionally supportive, intellectually clarifying, and gently evocative. Frame everything as patterns to observe, not fixed identity.",
         "deep_dive": {
-            "description": "Human Design synthesizes elements from the I Ching, Kabbalah, the Hindu-Brahmin chakra system, and Western astrology into a comprehensive framework. It uses your birth data to generate a 'bodygraph'—a visual representation of your energetic blueprint. The system identifies your Type (how you exchange energy), Strategy (how to make aligned decisions), Authority (your inner guidance system), and Profile (your life theme).",
-            "key_concepts": [
-                "Five Types: Manifestor, Generator, Manifesting Generator, Projector, Reflector",
-                "Strategy: The optimal way for each type to engage with life",
-                "Authority: Your body's decision-making intelligence (Sacral, Emotional, Splenic, etc.)",
-                "Centers: Nine energy hubs that can be defined or undefined",
-                "Gates and Channels: Specific energetic themes from the I Ching"
-            ],
+            "description": "Human Design synthesizes elements from the I Ching, Kabbalah, the Hindu-Brahmin chakra system, and Western astrology into a comprehensive framework. It uses your birth data to generate a 'bodygraph'—a visual representation of your energetic blueprint.",
+            "structured_elements": {
+                "note": "To see your specific Human Design chart, you would need to enter your birth date, time, and location. The elements below explain what each component reveals:",
+                "type": {
+                    "label": "Type",
+                    "description": "How you're designed to exchange energy with the world. Some people are built to initiate, others to respond, others to guide, and some to reflect. Your Type suggests your natural rhythm of engagement.",
+                    "patterns_to_observe": "Notice when you feel energized versus drained. Do you thrive when starting things, or when responding to what comes to you?"
+                },
+                "strategy": {
+                    "label": "Strategy",
+                    "description": "The optimal way for your Type to make decisions and engage with opportunities. Following your Strategy often reduces resistance and increases flow.",
+                    "patterns_to_observe": "Pay attention to decisions that felt 'right' versus those that felt forced. What was different about how you entered into them?"
+                },
+                "inner_authority": {
+                    "label": "Inner Authority",
+                    "description": "Your body's unique decision-making intelligence. Some people are guided by gut responses, others by emotional waves, others by intuitive hits, and some by the wisdom of time.",
+                    "patterns_to_observe": "Where in your body do you feel 'yes' and 'no'? How long do you typically need to know if something is right for you?"
+                },
+                "profile": {
+                    "label": "Profile",
+                    "description": "Your life theme, expressed as a combination of two numbers (like 3/5 or 6/2). It describes the costume you wear and the role you play in your journey.",
+                    "patterns_to_observe": "What themes keep appearing in your life story? What role do others often see you playing?"
+                },
+                "definition": {
+                    "label": "Definition",
+                    "description": "How your energy centers connect to each other. This affects how self-contained you feel versus how much you need others to feel 'complete.'",
+                    "patterns_to_observe": "Do you feel whole on your own, or do you come alive in partnership? How does being alone versus being with others affect your clarity?"
+                },
+                "incarnation_cross": {
+                    "label": "Incarnation Cross",
+                    "description": "Your life's larger purpose or theme—the backdrop against which your personal journey unfolds. It's not a destination but a context.",
+                    "patterns_to_observe": "What larger themes seem to be woven through your life experiences? What might you be here to explore or express?"
+                },
+                "not_self_and_signature": {
+                    "label": "Not-Self Theme & Signature",
+                    "description": "The Not-Self theme is the emotional signal that you're out of alignment (frustration, anger, bitterness, or disappointment depending on Type). The Signature is the feeling when you're in flow (satisfaction, peace, success, or surprise).",
+                    "patterns_to_observe": "What emotion signals that something is 'off' for you? What do you feel when life is flowing well?"
+                }
+            },
             "reflection_themes": [
                 "How do you typically make decisions? Head, gut, or waiting?",
                 "Do you feel energized by initiating or responding?",
@@ -294,8 +327,9 @@ LENSES_CONTENT = [
         "title": "Numerology",
         "icon": "calculator",
         "summary": "An ancient practice of finding meaning in numbers, particularly those connected to your birth date and name. This lens uses numerical patterns as a mirror for self-reflection—not as prediction, but as a symbolic language for exploring your tendencies, gifts, and growth edges.",
+        "snapshot_prompt": "Based on their onboarding answers, generate a warm reflection about themes and patterns in their life journey. Focus on their relationship to cycles, personal growth, and their natural gifts. Do NOT calculate or assign any specific numbers. Be emotionally supportive, intellectually clarifying, and gently evocative. Frame as patterns to notice, not fixed destiny.",
         "deep_dive": {
-            "description": "Numerology assigns significance to numbers derived from your birth date (Life Path Number) and the letters in your name (Expression, Soul Urge, and Personality Numbers). Each number from 1-9, plus master numbers 11, 22, and 33, carries archetypal qualities. The practice spans many cultures including Pythagorean, Chaldean, and Kabbalistic traditions.",
+            "description": "Numerology assigns significance to numbers derived from your birth date (Life Path Number) and the letters in your name (Expression, Soul Urge, and Personality Numbers). Each number from 1-9, plus master numbers 11, 22, and 33, carries archetypal qualities.",
             "key_concepts": [
                 "Life Path Number: Calculated from your full birth date, representing your journey's theme",
                 "Expression Number: Derived from your full name, reflecting your natural abilities",
@@ -316,18 +350,31 @@ LENSES_CONTENT = [
         "title": "Levels of Consciousness",
         "icon": "layers",
         "summary": "A map of human development that tracks how our awareness expands over time. This lens isn't about being 'higher' or 'better'—it's about understanding where you are, what's available at each stage, and how growth naturally unfolds when conditions support it.",
+        "snapshot_prompt": "DO NOT assign the user any level or stage. Instead, reflect on their growth orientation based on onboarding answers. Focus on their openness to complexity, their relationship to uncertainty, and their capacity for multiple perspectives. Be emotionally supportive and frame growth as a natural unfolding, not a ladder to climb.",
+        "is_dynamic_framework": True,
+        "dynamic_note": "This lens works differently from the others. Rather than mapping you to a fixed position, Project Mirror uses this framework dynamically—adapting its tone, depth, and perspective based on your journaling patterns and interactions over time. You won't be assigned a 'level.' Instead, the app learns how to meet you where you are on any given day.",
         "deep_dive": {
-            "description": "The Levels of Consciousness framework, popularized by David Hawkins' 'Map of Consciousness' and integral theory, suggests that human awareness develops through identifiable stages. Each level represents a different way of making meaning, with its own worldview, values, and limitations. Development isn't linear—we can access different levels in different contexts—but there's a general direction of increasing complexity, compassion, and perspective-taking.",
+            "description": "The Levels of Consciousness framework suggests that human awareness develops through identifiable stages. Each level represents a different way of making meaning, with its own worldview, values, and limitations. Development isn't linear—we can access different levels in different contexts—but there's a general direction of increasing complexity, compassion, and perspective-taking.",
+            "how_mirror_uses_this": "Project Mirror uses this framework to calibrate how it speaks to you. Based on signals from your journal entries and onboarding answers, the app adjusts: depth of reflection (surface to profound), tolerance for paradox (concrete to both/and), emotional tone (reassuring to challenging), and perspective scope (personal to universal). This happens automatically—you don't need to do anything except show up authentically.",
             "key_concepts": [
-                "Survival and Safety: Basic needs, fear-based responses",
-                "Power and Achievement: Ego development, competition, success",
-                "Conformity and Belonging: Rules, roles, group identity",
-                "Rationality and Independence: Logic, individual truth-seeking",
-                "Pluralism and Sensitivity: Multiple perspectives, equality",
-                "Integration and Systems Thinking: Seeing wholes, paradox tolerance",
-                "Unity and Transcendence: Non-dual awareness, universal compassion"
+                "Survival and Safety: Basic needs, fear-based responses, concrete thinking",
+                "Power and Achievement: Ego development, competition, success orientation",
+                "Conformity and Belonging: Rules, roles, group identity, traditional values",
+                "Rationality and Independence: Logic, individual truth-seeking, questioning",
+                "Pluralism and Sensitivity: Multiple perspectives, equality, relativism",
+                "Integration and Systems Thinking: Seeing wholes, paradox tolerance, complexity",
+                "Unity and Transcendence: Non-dual awareness, universal compassion, flow"
             ],
+            "important_note": "These stages are not judgments. Every stage has gifts and limitations. A person at 'Achievement' isn't worse than someone at 'Integration'—they're focused on different developmental tasks. The goal isn't to 'level up' but to fully inhabit wherever you are while remaining open to what's emerging.",
             "reflection_themes": [
+                "How do you typically respond to ideas that challenge your worldview?",
+                "What helps you grow? Comfort or challenge? Or both?",
+                "How do you hold contradictions—do you need to resolve them, or can they coexist?"
+            ],
+            "invitation": "Notice this week: when do you feel most expansive in your thinking? When do you contract? There's no wrong answer—just information."
+        }
+    }
+]
                 "What motivates most of your daily decisions?",
                 "How do you relate to people who see the world very differently?",
                 "What would 'growth' look like for you right now?"
