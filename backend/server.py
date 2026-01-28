@@ -1078,7 +1078,9 @@ async def get_lenses(user = Depends(get_current_user)):
         "id": lens["id"],
         "title": lens["title"],
         "icon": lens["icon"],
-        "summary": lens["summary"]
+        "summary": lens["summary"],
+        "is_dynamic_framework": lens.get("is_dynamic_framework", False),
+        "dynamic_note": lens.get("dynamic_note")
     } for lens in LENSES_CONTENT]
 
 @api_router.get("/lenses/{lens_id}")
@@ -1086,7 +1088,125 @@ async def get_lens_detail(lens_id: str, user = Depends(get_current_user)):
     lens = next((l for l in LENSES_CONTENT if l["id"] == lens_id), None)
     if not lens:
         raise HTTPException(status_code=404, detail="Lens not found")
-    return lens
+    # Return lens without snapshot_prompt (that's internal)
+    result = {k: v for k, v in lens.items() if k != "snapshot_prompt"}
+    return result
+
+# Personalized Snapshot System Prompt
+SNAPSHOT_SYSTEM_PROMPT = """You are generating a personalized "Your Snapshot" for a self-reflection lens in Project Mirror.
+
+Your tone must be:
+- Emotionally supportive: warm, validating, understanding
+- Intellectually clarifying: insightful, precise, illuminating
+- Gently evocative: inviting deeper reflection without pushing
+
+CRITICAL RULES:
+1. Frame everything as PATTERNS TO OBSERVE, not fixed identity or prescription
+2. Use language like "you might notice...", "there may be a tendency...", "one pattern that could be present..."
+3. NEVER make predictions or give advice
+4. NEVER assign specific types, numbers, signs, or levels
+5. Keep the response to 100-150 words
+6. Write in second person ("you")
+
+Output a warm, personalized reflection paragraph based on the user's onboarding context and the specific lens."""
+
+@api_router.get("/lenses/{lens_id}/snapshot")
+async def get_lens_snapshot(lens_id: str, user = Depends(get_current_user)):
+    """Generate a personalized snapshot for a lens based on user's onboarding answers"""
+    lens = next((l for l in LENSES_CONTENT if l["id"] == lens_id), None)
+    if not lens:
+        raise HTTPException(status_code=404, detail="Lens not found")
+    
+    # Check for cached snapshot
+    cached = await db.lens_snapshots.find_one({
+        "user_id": user["id"],
+        "lens_id": lens_id
+    })
+    
+    if cached:
+        return {"snapshot": cached["snapshot"], "cached": True}
+    
+    # Get onboarding answers
+    onboarding_answers = user.get("onboarding_answers", {})
+    
+    # Special handling for Levels of Consciousness - it's dynamic
+    if lens_id == "levels-of-consciousness":
+        snapshot = (
+            "This lens works differently from the others. Rather than offering you a fixed reading, "
+            "Project Mirror uses this framework dynamically—observing patterns in your reflections "
+            "and journaling to calibrate how it speaks with you. Based on what you've shared so far, "
+            "the app will adapt its depth, complexity, and perspective over time. You won't be assigned "
+            "a 'level'—instead, the Mirror learns to meet you where you are on any given day, "
+            "honoring that growth isn't linear and that you contain multitudes."
+        )
+        return {"snapshot": snapshot, "cached": False, "is_dynamic": True}
+    
+    # Generate snapshot with LLM
+    if not EMERGENT_LLM_KEY:
+        return {"snapshot": "Personalized snapshot unavailable. Please try again later.", "cached": False}
+    
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        
+        # Build context
+        context_parts = [
+            f"LENS: {lens['title']}",
+            f"LENS CONTEXT: {lens.get('snapshot_prompt', 'Generate a personalized reflection for this lens.')}",
+            "",
+            "USER'S ONBOARDING ANSWERS:",
+        ]
+        
+        if onboarding_answers:
+            context_parts.append(f"- Relationship with self: {onboarding_answers.get('relationship_with_self', 'not specified')}")
+            context_parts.append(f"- Preferred reflection style: {onboarding_answers.get('reflection_style', 'not specified')}")
+            context_parts.append(f"- Desired depth: {onboarding_answers.get('desired_depth', 'moderate')}")
+            context_parts.append(f"- Relationship to uncertainty: {onboarding_answers.get('uncertainty_relationship', 'not specified')}")
+            context_parts.append(f"- Intention for using app: {onboarding_answers.get('intention', 'self understanding')}")
+        else:
+            context_parts.append("(No onboarding answers available - generate a warm, general reflection)")
+        
+        context_parts.append("")
+        context_parts.append("Generate a personalized 'Your Snapshot' paragraph (100-150 words).")
+        
+        user_prompt = "\n".join(context_parts)
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"snapshot-{lens_id}-{user['id'][:8]}",
+            system_message=SNAPSHOT_SYSTEM_PROMPT
+        ).with_model("openai", "gpt-4o")
+        
+        response = await chat.send_message(UserMessage(text=user_prompt))
+        snapshot = response.strip()
+        
+        # Cache the snapshot
+        await db.lens_snapshots.update_one(
+            {"user_id": user["id"], "lens_id": lens_id},
+            {"$set": {
+                "user_id": user["id"],
+                "lens_id": lens_id,
+                "snapshot": snapshot,
+                "created_at": datetime.utcnow()
+            }},
+            upsert=True
+        )
+        
+        return {"snapshot": snapshot, "cached": False}
+        
+    except Exception as e:
+        logger.error(f"Failed to generate lens snapshot: {str(e)}")
+        return {"snapshot": "Unable to generate personalized snapshot at this time.", "cached": False}
+
+@api_router.post("/lenses/{lens_id}/snapshot/regenerate")
+async def regenerate_lens_snapshot(lens_id: str, user = Depends(get_current_user)):
+    """Regenerate the personalized snapshot for a lens"""
+    # Delete cached snapshot
+    await db.lens_snapshots.delete_one({
+        "user_id": user["id"],
+        "lens_id": lens_id
+    })
+    # Generate new one
+    return await get_lens_snapshot(lens_id, user)
 
 # Include the router in the main app
 app.include_router(api_router)
