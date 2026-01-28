@@ -507,6 +507,48 @@ def generate_personalized_reflection(onboarding_answers: dict = None) -> dict:
 
 # ============== ChatGPT Mirror Generation ==============
 
+# Forbidden terms list (case-insensitive)
+FORBIDDEN_TERMS = [
+    "manifestor",
+    "manifesting generator",
+    "generator",
+    "human design",
+    "authority",
+    "profile",
+    "gates",
+    "astrology",
+    "zodiac",
+    "planet",
+    "houses",
+    "numerology",
+    "life path",
+    "gene keys",
+    "bazi",
+    "enneagram",
+]
+
+def validate_reflection_content(content: dict) -> tuple[bool, list]:
+    """
+    Validate that reflection content does not contain any forbidden terms.
+    Returns (is_valid, list_of_found_terms)
+    """
+    found_terms = []
+    
+    # Combine all text fields for checking
+    all_text = " ".join([
+        str(content.get("todays_insight", "")),
+        str(content.get("reflect_on", "")),
+        str(content.get("another_perspective", "")),
+        str(content.get("closing_line", "")),
+        str(content.get("closing", "")),
+    ]).lower()
+    
+    for term in FORBIDDEN_TERMS:
+        if term.lower() in all_text:
+            found_terms.append(term)
+    
+    return len(found_terms) == 0, found_terms
+
 MIRROR_SYSTEM_PROMPT = """You are a thoughtful, grounded reflection generator for a personal mirror app. Your role is to create daily reflections that help users explore their inner landscape.
 
 CRITICAL RULES (MUST BE FOLLOWED):
