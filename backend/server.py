@@ -96,6 +96,26 @@ class MirrorContent(BaseModel):
     closing_line: str
     date: str
 
+class DailyReflection(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    date_key: str  # YYYY-MM-DD format
+    todays_insight: str
+    reflect_on: str
+    another_perspective: str
+    closing_line: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class DailyReflectionResponse(BaseModel):
+    id: str
+    user_id: str
+    date_key: str
+    todays_insight: str
+    reflect_on: str
+    another_perspective: str
+    closing_line: str
+    created_at: datetime
+
 # ============== Helper Functions ==============
 
 def hash_password(password: str) -> str:
