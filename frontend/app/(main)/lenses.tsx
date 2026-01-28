@@ -20,6 +20,14 @@ interface Lens {
   title: string;
   icon: string;
   summary: string;
+  is_dynamic_framework?: boolean;
+  dynamic_note?: string;
+}
+
+interface StructuredElement {
+  label: string;
+  description: string;
+  patterns_to_observe: string;
 }
 
 interface LensDetail extends Lens {
@@ -27,7 +35,18 @@ interface LensDetail extends Lens {
     description: string;
     key_concepts?: string[];
     reflection_themes?: string[];
-    practices?: string[];
+    structured_elements?: {
+      note: string;
+      type?: StructuredElement;
+      strategy?: StructuredElement;
+      inner_authority?: StructuredElement;
+      profile?: StructuredElement;
+      definition?: StructuredElement;
+      incarnation_cross?: StructuredElement;
+      not_self_and_signature?: StructuredElement;
+    };
+    how_mirror_uses_this?: string;
+    important_note?: string;
     invitation: string;
   };
 }
@@ -43,6 +62,8 @@ const ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
   layers: 'layers-outline',
 };
 
+type ViewMode = 'summary' | 'snapshot' | 'deepdive';
+
 export default function Lenses() {
   const [lenses, setLenses] = useState<Lens[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +71,9 @@ export default function Lenses() {
   const [selectedLens, setSelectedLens] = useState<LensDetail | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
-  const [showDeepDive, setShowDeepDive] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('summary');
+  const [snapshot, setSnapshot] = useState<string | null>(null);
+  const [loadingSnapshot, setLoadingSnapshot] = useState(false);
 
   const fetchLenses = useCallback(async () => {
     try {
@@ -73,10 +96,24 @@ export default function Lenses() {
     fetchLenses();
   };
 
+  const fetchSnapshot = async (lensId: string) => {
+    setLoadingSnapshot(true);
+    try {
+      const response = await api.get(`/lenses/${lensId}/snapshot`);
+      setSnapshot(response.data.snapshot);
+    } catch (error) {
+      console.error('Failed to fetch snapshot:', error);
+      setSnapshot('Unable to load personalized snapshot.');
+    } finally {
+      setLoadingSnapshot(false);
+    }
+  };
+
   const openLensDetail = async (lensId: string) => {
     setLoadingDetail(true);
     setModalVisible(true);
-    setShowDeepDive(false);
+    setViewMode('summary');
+    setSnapshot(null);
     try {
       const response = await api.get(`/lenses/${lensId}`);
       setSelectedLens(response.data);
@@ -90,7 +127,15 @@ export default function Lenses() {
   const closeModal = () => {
     setModalVisible(false);
     setSelectedLens(null);
-    setShowDeepDive(false);
+    setViewMode('summary');
+    setSnapshot(null);
+  };
+
+  const handleViewSnapshot = () => {
+    if (selectedLens && !snapshot) {
+      fetchSnapshot(selectedLens.id);
+    }
+    setViewMode('snapshot');
   };
 
   const renderLensCard = ({ item }: { item: Lens }) => (
@@ -113,6 +158,17 @@ export default function Lenses() {
       </View>
       <Ionicons name="chevron-forward" size={20} color={COLORS.border} />
     </TouchableOpacity>
+  );
+
+  const renderStructuredElement = (element: StructuredElement) => (
+    <View style={styles.structuredElement}>
+      <Text style={styles.structuredLabel}>{element.label}</Text>
+      <Text style={styles.structuredDescription}>{element.description}</Text>
+      <View style={styles.patternsBox}>
+        <Text style={styles.patternsLabel}>Patterns to observe:</Text>
+        <Text style={styles.patternsText}>{element.patterns_to_observe}</Text>
+      </View>
+    </View>
   );
 
   if (loading) {
@@ -184,69 +240,144 @@ export default function Lenses() {
               contentContainerStyle={styles.modalContent}
               showsVerticalScrollIndicator={false}
             >
-              {!showDeepDive ? (
-                // Summary View
+              {/* Navigation Tabs */}
+              <View style={styles.tabContainer}>
+                <TouchableOpacity
+                  style={[styles.tab, viewMode === 'summary' && styles.tabActive]}
+                  onPress={() => setViewMode('summary')}
+                >
+                  <Text style={[styles.tabText, viewMode === 'summary' && styles.tabTextActive]}>
+                    Summary
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.tab, viewMode === 'snapshot' && styles.tabActive]}
+                  onPress={handleViewSnapshot}
+                >
+                  <Text style={[styles.tabText, viewMode === 'snapshot' && styles.tabTextActive]}>
+                    Your Snapshot
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.tab, viewMode === 'deepdive' && styles.tabActive]}
+                  onPress={() => setViewMode('deepdive')}
+                >
+                  <Text style={[styles.tabText, viewMode === 'deepdive' && styles.tabTextActive]}>
+                    Deep Dive
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Summary View */}
+              {viewMode === 'summary' && (
                 <View>
-                  <Text style={styles.summaryLabel}>Summary</Text>
+                  <Text style={styles.sectionLabel}>Summary</Text>
                   <Text style={styles.summaryText}>{selectedLens.summary}</Text>
 
-                  <TouchableOpacity
-                    style={styles.deepDiveButton}
-                    onPress={() => setShowDeepDive(true)}
-                  >
-                    <Text style={styles.deepDiveButtonText}>Explore Deeper</Text>
-                    <Ionicons name="arrow-forward" size={18} color={COLORS.accent} />
-                  </TouchableOpacity>
+                  {/* Dynamic Framework Note */}
+                  {selectedLens.is_dynamic_framework && selectedLens.dynamic_note && (
+                    <View style={styles.dynamicNote}>
+                      <Ionicons name="information-circle-outline" size={20} color={COLORS.accent} />
+                      <Text style={styles.dynamicNoteText}>{selectedLens.dynamic_note}</Text>
+                    </View>
+                  )}
                 </View>
-              ) : (
-                // Deep Dive View
-                <View>
-                  <TouchableOpacity
-                    style={styles.backToSummary}
-                    onPress={() => setShowDeepDive(false)}
-                  >
-                    <Ionicons name="arrow-back" size={18} color={COLORS.secondary} />
-                    <Text style={styles.backToSummaryText}>Back to summary</Text>
-                  </TouchableOpacity>
+              )}
 
-                  <Text style={styles.deepDiveLabel}>Deep Dive</Text>
+              {/* Snapshot View */}
+              {viewMode === 'snapshot' && (
+                <View>
+                  <Text style={styles.sectionLabel}>Your Snapshot</Text>
+                  {loadingSnapshot ? (
+                    <View style={styles.snapshotLoading}>
+                      <ActivityIndicator size="small" color={COLORS.accent} />
+                      <Text style={styles.snapshotLoadingText}>Generating personalized insight...</Text>
+                    </View>
+                  ) : (
+                    <View style={styles.snapshotContainer}>
+                      <Text style={styles.snapshotText}>{snapshot}</Text>
+                    </View>
+                  )}
+                  <Text style={styles.snapshotDisclaimer}>
+                    This reflection is based on what you shared during onboarding. It offers patterns to consider, not fixed truths about who you are.
+                  </Text>
+                </View>
+              )}
+
+              {/* Deep Dive View */}
+              {viewMode === 'deepdive' && (
+                <View>
+                  <Text style={styles.sectionLabel}>Deep Dive</Text>
                   <Text style={styles.deepDiveDescription}>
                     {selectedLens.deep_dive.description}
                   </Text>
 
+                  {/* How Mirror Uses This (for Levels of Consciousness) */}
+                  {selectedLens.deep_dive.how_mirror_uses_this && (
+                    <View style={styles.howMirrorUsesContainer}>
+                      <Text style={styles.howMirrorUsesLabel}>How Project Mirror Uses This</Text>
+                      <Text style={styles.howMirrorUsesText}>
+                        {selectedLens.deep_dive.how_mirror_uses_this}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Structured Elements (for Human Design) */}
+                  {selectedLens.deep_dive.structured_elements && (
+                    <View style={styles.structuredContainer}>
+                      {selectedLens.deep_dive.structured_elements.note && (
+                        <View style={styles.structuredNote}>
+                          <Text style={styles.structuredNoteText}>
+                            {selectedLens.deep_dive.structured_elements.note}
+                          </Text>
+                        </View>
+                      )}
+                      {selectedLens.deep_dive.structured_elements.type && 
+                        renderStructuredElement(selectedLens.deep_dive.structured_elements.type)}
+                      {selectedLens.deep_dive.structured_elements.strategy && 
+                        renderStructuredElement(selectedLens.deep_dive.structured_elements.strategy)}
+                      {selectedLens.deep_dive.structured_elements.inner_authority && 
+                        renderStructuredElement(selectedLens.deep_dive.structured_elements.inner_authority)}
+                      {selectedLens.deep_dive.structured_elements.profile && 
+                        renderStructuredElement(selectedLens.deep_dive.structured_elements.profile)}
+                      {selectedLens.deep_dive.structured_elements.definition && 
+                        renderStructuredElement(selectedLens.deep_dive.structured_elements.definition)}
+                      {selectedLens.deep_dive.structured_elements.incarnation_cross && 
+                        renderStructuredElement(selectedLens.deep_dive.structured_elements.incarnation_cross)}
+                      {selectedLens.deep_dive.structured_elements.not_self_and_signature && 
+                        renderStructuredElement(selectedLens.deep_dive.structured_elements.not_self_and_signature)}
+                    </View>
+                  )}
+
                   {/* Key Concepts */}
                   {selectedLens.deep_dive.key_concepts && selectedLens.deep_dive.key_concepts.length > 0 && (
-                    <View style={styles.practicesContainer}>
-                      <Text style={styles.practicesLabel}>Key Concepts</Text>
+                    <View style={styles.conceptsContainer}>
+                      <Text style={styles.conceptsLabel}>Key Concepts</Text>
                       {selectedLens.deep_dive.key_concepts.map((concept, index) => (
-                        <View key={index} style={styles.practiceItem}>
-                          <View style={styles.practiceBullet} />
-                          <Text style={styles.practiceText}>{concept}</Text>
+                        <View key={index} style={styles.conceptItem}>
+                          <View style={styles.conceptBullet} />
+                          <Text style={styles.conceptText}>{concept}</Text>
                         </View>
                       ))}
+                    </View>
+                  )}
+
+                  {/* Important Note */}
+                  {selectedLens.deep_dive.important_note && (
+                    <View style={styles.importantNote}>
+                      <Text style={styles.importantNoteText}>
+                        {selectedLens.deep_dive.important_note}
+                      </Text>
                     </View>
                   )}
 
                   {/* Reflection Themes */}
                   {selectedLens.deep_dive.reflection_themes && selectedLens.deep_dive.reflection_themes.length > 0 && (
                     <View style={styles.reflectionThemesContainer}>
-                      <Text style={styles.practicesLabel}>Reflection Themes</Text>
+                      <Text style={styles.themesLabel}>Reflection Themes</Text>
                       {selectedLens.deep_dive.reflection_themes.map((theme, index) => (
                         <View key={index} style={styles.themeItem}>
                           <Text style={styles.themeText}>{theme}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  )}
-
-                  {/* Legacy Practices (for backward compatibility) */}
-                  {selectedLens.deep_dive.practices && selectedLens.deep_dive.practices.length > 0 && (
-                    <View style={styles.practicesContainer}>
-                      <Text style={styles.practicesLabel}>Practices</Text>
-                      {selectedLens.deep_dive.practices.map((practice, index) => (
-                        <View key={index} style={styles.practiceItem}>
-                          <View style={styles.practiceBullet} />
-                          <Text style={styles.practiceText}>{practice}</Text>
                         </View>
                       ))}
                     </View>
@@ -369,7 +500,31 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     paddingBottom: SPACING.xxl,
   },
-  summaryLabel: {
+  tabContainer: {
+    flexDirection: 'row',
+    marginBottom: SPACING.lg,
+    backgroundColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    padding: 4,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: SPACING.sm,
+    alignItems: 'center',
+    borderRadius: BORDER_RADIUS.sm,
+  },
+  tabActive: {
+    backgroundColor: COLORS.white,
+  },
+  tabText: {
+    fontSize: 13,
+    color: COLORS.secondary,
+    fontWeight: '500',
+  },
+  tabTextActive: {
+    color: COLORS.accent,
+  },
+  sectionLabel: {
     fontSize: 12,
     fontWeight: '600',
     color: COLORS.accent,
@@ -378,67 +533,143 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   summaryText: {
-    fontSize: 18,
+    fontSize: 17,
     color: COLORS.primary,
-    lineHeight: 28,
+    lineHeight: 26,
   },
-  deepDiveButton: {
+  dynamicNote: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: SPACING.xxl,
-    paddingVertical: SPACING.md,
+    alignItems: 'flex-start',
+    backgroundColor: '#F5F8F3',
     borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
-    borderColor: COLORS.accent,
+    padding: SPACING.md,
+    marginTop: SPACING.lg,
     gap: SPACING.sm,
   },
-  deepDiveButtonText: {
-    color: COLORS.accent,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  backToSummary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-    gap: SPACING.xs,
-  },
-  backToSummaryText: {
-    color: COLORS.secondary,
+  dynamicNoteText: {
+    flex: 1,
     fontSize: 14,
+    color: COLORS.secondary,
+    lineHeight: 22,
   },
-  deepDiveLabel: {
+  snapshotLoading: {
+    alignItems: 'center',
+    paddingVertical: SPACING.xl,
+  },
+  snapshotLoadingText: {
+    marginTop: SPACING.md,
+    fontSize: 14,
+    color: COLORS.secondary,
+  },
+  snapshotContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.lg,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.accent,
+  },
+  snapshotText: {
+    fontSize: 16,
+    color: COLORS.primary,
+    lineHeight: 26,
+  },
+  snapshotDisclaimer: {
     fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.accent,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: SPACING.md,
+    color: COLORS.secondary,
+    marginTop: SPACING.md,
+    fontStyle: 'italic',
+    lineHeight: 18,
   },
   deepDiveDescription: {
     fontSize: 16,
     color: COLORS.primary,
     lineHeight: 26,
+    marginBottom: SPACING.lg,
   },
-  practicesContainer: {
-    marginTop: SPACING.xl,
+  howMirrorUsesContainer: {
+    backgroundColor: '#F0F4ED',
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
+  },
+  howMirrorUsesLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.accent,
+    marginBottom: SPACING.sm,
+  },
+  howMirrorUsesText: {
+    fontSize: 15,
+    color: COLORS.primary,
+    lineHeight: 24,
+  },
+  structuredContainer: {
+    marginTop: SPACING.md,
+  },
+  structuredNote: {
+    backgroundColor: '#FFF9E6',
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.lg,
+  },
+  structuredNoteText: {
+    fontSize: 14,
+    color: '#8B7355',
+    lineHeight: 20,
+  },
+  structuredElement: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
+  },
+  structuredLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.primary,
+    marginBottom: SPACING.sm,
+  },
+  structuredDescription: {
+    fontSize: 15,
+    color: COLORS.secondary,
+    lineHeight: 22,
+    marginBottom: SPACING.md,
+  },
+  patternsBox: {
+    backgroundColor: '#F5F8F3',
+    borderRadius: BORDER_RADIUS.sm,
+    padding: SPACING.md,
+  },
+  patternsLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.accent,
+    marginBottom: SPACING.xs,
+  },
+  patternsText: {
+    fontSize: 14,
+    color: COLORS.secondary,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  conceptsContainer: {
+    marginTop: SPACING.lg,
     backgroundColor: COLORS.white,
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.lg,
   },
-  practicesLabel: {
+  conceptsLabel: {
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.primary,
     marginBottom: SPACING.md,
   },
-  practiceItem: {
+  conceptItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: SPACING.sm,
   },
-  practiceBullet: {
+  conceptBullet: {
     width: 6,
     height: 6,
     borderRadius: 3,
@@ -446,17 +677,36 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginRight: SPACING.sm,
   },
-  practiceText: {
+  conceptText: {
     flex: 1,
     fontSize: 15,
     color: COLORS.secondary,
     lineHeight: 22,
   },
+  importantNote: {
+    backgroundColor: '#FFF5F5',
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.lg,
+    marginTop: SPACING.lg,
+    borderLeftWidth: 3,
+    borderLeftColor: '#E8B4B4',
+  },
+  importantNoteText: {
+    fontSize: 14,
+    color: '#8B6B6B',
+    lineHeight: 22,
+  },
   reflectionThemesContainer: {
-    marginTop: SPACING.xl,
+    marginTop: SPACING.lg,
     backgroundColor: '#F9F9F7',
     borderRadius: BORDER_RADIUS.md,
     padding: SPACING.lg,
+  },
+  themesLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+    marginBottom: SPACING.md,
   },
   themeItem: {
     marginBottom: SPACING.md,
