@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -16,41 +18,72 @@ import { api } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../src/constants/theme';
 
-interface MirrorContent {
+interface DailyReflection {
   id: string;
-  insight: string;
-  reflection_question: string;
+  user_id: string;
+  date_key: string;
+  todays_insight: string;
+  reflect_on: string;
   another_perspective: string;
   closing_line: string;
-  date: string;
+  created_at: string;
+}
+
+function getTodayDateKey(): string {
+  // Get local date in YYYY-MM-DD format
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export default function Mirror() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const [content, setContent] = useState<MirrorContent | null>(null);
+  const [reflection, setReflection] = useState<DailyReflection | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
-  const fetchContent = async () => {
+  const fetchReflection = useCallback(async () => {
     try {
-      const response = await api.get('/mirror/today');
-      setContent(response.data);
+      const dateKey = getTodayDateKey();
+      const response = await api.post('/reflection/today', { date_key: dateKey });
+      setReflection(response.data);
     } catch (error) {
-      console.error('Failed to fetch mirror content:', error);
+      console.error('Failed to fetch reflection:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchContent();
-  }, []);
+    fetchReflection();
+  }, [fetchReflection]);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchContent();
+    fetchReflection();
+  };
+
+  const handleRegenerate = async () => {
+    if (regenerating) return;
+    
+    setRegenerating(true);
+    try {
+      const dateKey = getTodayDateKey();
+      const response = await api.post('/reflection/regenerate', { date_key: dateKey });
+      setReflection(response.data);
+    } catch (error) {
+      console.error('Failed to regenerate reflection:', error);
+      if (Platform.OS !== 'web') {
+        Alert.alert('Error', 'Failed to regenerate reflection');
+      }
+    } finally {
+      setRegenerating(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -91,29 +124,44 @@ export default function Mirror() {
           />
         }
       >
-        {content && (
+        {reflection && (
           <View style={styles.card}>
+            {/* Regenerate button */}
+            <View style={styles.cardHeader}>
+              <TouchableOpacity 
+                onPress={handleRegenerate} 
+                style={styles.regenerateButton}
+                disabled={regenerating}
+              >
+                {regenerating ? (
+                  <ActivityIndicator size="small" color={COLORS.secondary} />
+                ) : (
+                  <Ionicons name="refresh-outline" size={20} color={COLORS.secondary} />
+                )}
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.section}>
               <Text style={styles.sectionLabel}>Today's Insight</Text>
-              <Text style={styles.insight}>{content.insight}</Text>
+              <Text style={styles.insight}>{reflection.todays_insight}</Text>
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.section}>
               <Text style={styles.sectionLabel}>Reflect On</Text>
-              <Text style={styles.reflectionQuestion}>{content.reflection_question}</Text>
+              <Text style={styles.reflectionQuestion}>{reflection.reflect_on}</Text>
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.section}>
               <Text style={styles.sectionLabel}>Another Perspective</Text>
-              <Text style={styles.perspective}>{content.another_perspective}</Text>
+              <Text style={styles.perspective}>{reflection.another_perspective}</Text>
             </View>
 
             <View style={styles.closingSection}>
-              <Text style={styles.closingLine}>{content.closing_line}</Text>
+              <Text style={styles.closingLine}>{reflection.closing_line}</Text>
               <TouchableOpacity
                 style={styles.journalButton}
                 onPress={() => router.push('/(main)/journal')}
@@ -182,6 +230,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: SPACING.sm,
+  },
+  regenerateButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   section: {
     paddingVertical: SPACING.md,
