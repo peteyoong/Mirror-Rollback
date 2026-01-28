@@ -164,7 +164,10 @@ export default function Mirror() {
               <Text style={styles.closingLine}>{reflection.closing_line}</Text>
               <TouchableOpacity
                 style={styles.journalButton}
-                onPress={() => router.push('/(main)/journal')}
+                onPress={() => router.push({
+                  pathname: '/(main)/new-entry',
+                  params: { reflectOn: reflection.reflect_on }
+                })}
               >
                 <Ionicons name="create-outline" size={20} color={COLORS.accent} />
                 <Text style={styles.journalButtonText}>Open Journal</Text>
