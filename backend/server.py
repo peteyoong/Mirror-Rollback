@@ -857,13 +857,21 @@ async def get_mirror_by_date(date: str, user = Depends(get_current_user)):
 
 # Daily Reflection Routes (with persistence)
 class DateKeyInput(BaseModel):
-    date_key: str  # YYYY-MM-DD format from client's local time
+    timezone_offset: Optional[int] = None  # Client timezone offset in minutes (for reference)
+
+def get_server_date_key() -> str:
+    """Get consistent date key from server UTC time"""
+    return datetime.utcnow().strftime("%Y-%m-%d")
 
 @api_router.post("/reflection/today", response_model=DailyReflectionResponse)
-async def get_or_create_daily_reflection(date_input: DateKeyInput, user = Depends(get_current_user)):
-    """Get today's reflection or create one if it doesn't exist"""
-    date_key = date_input.date_key
+async def get_or_create_daily_reflection(date_input: DateKeyInput = None, user = Depends(get_current_user)):
+    """Get today's reflection or create one if it doesn't exist.
+    Uses server UTC date for consistency across devices."""
+    
+    # Always use server date for consistency
+    date_key = get_server_date_key()
     user_id = user["id"]
+    timezone_offset = date_input.timezone_offset if date_input else None
     
     # Check if reflection exists for today
     existing = await db.daily_reflections.find_one({
