@@ -242,81 +242,97 @@ MIRROR_CONTENT_POOL = [
 
 # ============== Lenses Content ==============
 # Lenses are optional perspectives, not definitions
+# IMPORTANT: Mirror must remain framework-blind and never reference these lenses
 
 LENSES_CONTENT = [
     {
-        "id": "inner-observer",
-        "title": "The Inner Observer",
-        "icon": "eye",
-        "summary": "The part of you that watches without judgment. This lens invites you to step back and notice your thoughts and feelings as they pass, like clouds moving across the sky.",
+        "id": "true-sidereal-astrology",
+        "title": "True Sidereal Astrology",
+        "icon": "planet",
+        "summary": "A perspective that looks at where celestial bodies actually are in the sky, not where they were thousands of years ago. This lens offers a way to reflect on cycles, seasons, and the rhythms that influence how you feel and move through life. It's about noticing patterns, not predicting fate.",
         "deep_dive": {
-            "description": "The Inner Observer is a perspective rooted in mindfulness traditions. It represents metacognition—the ability to think about your own thinking. When you engage this lens, you're practicing witness consciousness, observing your mental and emotional landscape without attachment.",
-            "practices": [
-                "Notice when you're lost in thought versus aware of thinking",
-                "Label emotions without becoming them",
-                "Watch reactions before responding"
+            "description": "True Sidereal Astrology differs from tropical astrology by aligning with the actual current positions of constellations. While tropical astrology uses fixed dates established around 2,000 years ago, sidereal astrology accounts for the precession of the equinoxes—Earth's slow wobble that shifts our view of the stars over time. This approach places your sun sign approximately 23 degrees earlier in the zodiac.",
+            "key_concepts": [
+                "Precession of the equinoxes: Earth's 26,000-year wobble cycle",
+                "Actual star positions versus symbolic seasons",
+                "The 13th constellation: Ophiuchus",
+                "Planetary transits and their observed correlations",
+                "Moon phases and emotional tides"
             ],
-            "invitation": "What would you notice if you watched yourself for a day?"
+            "reflection_themes": [
+                "How do you relate to natural cycles in your life?",
+                "What patterns repeat for you seasonally or monthly?",
+                "How might the moon's phases mirror your inner rhythms?"
+            ],
+            "invitation": "Consider tracking your energy and mood alongside lunar phases for a month. What patterns emerge?"
         }
     },
     {
-        "id": "body-wisdom",
-        "title": "Body Wisdom",
+        "id": "human-design",
+        "title": "Human Design",
         "icon": "body",
-        "summary": "Your body holds knowledge that words sometimes can't capture. This lens helps you tune into physical sensations as a source of insight and guidance.",
+        "summary": "A system that combines ancient wisdom traditions into a unique map of how you're designed to make decisions and interact with the world. Rather than telling you who to be, it offers language for understanding how your energy naturally flows and what environments help you thrive.",
         "deep_dive": {
-            "description": "Body Wisdom draws from somatic awareness practices. The body often registers truth before the mind catches up—a gut feeling, a tension in the shoulders, an expansion in the chest. This lens honors the intelligence of embodied experience.",
-            "practices": [
-                "Scan your body before making decisions",
-                "Notice where emotions live physically",
-                "Trust the signals your body sends"
+            "description": "Human Design synthesizes elements from the I Ching, Kabbalah, the Hindu-Brahmin chakra system, and Western astrology into a comprehensive framework. It uses your birth data to generate a 'bodygraph'—a visual representation of your energetic blueprint. The system identifies your Type (how you exchange energy), Strategy (how to make aligned decisions), Authority (your inner guidance system), and Profile (your life theme).",
+            "key_concepts": [
+                "Five Types: Manifestor, Generator, Manifesting Generator, Projector, Reflector",
+                "Strategy: The optimal way for each type to engage with life",
+                "Authority: Your body's decision-making intelligence (Sacral, Emotional, Splenic, etc.)",
+                "Centers: Nine energy hubs that can be defined or undefined",
+                "Gates and Channels: Specific energetic themes from the I Ching"
             ],
-            "invitation": "What is your body telling you right now?"
+            "reflection_themes": [
+                "How do you typically make decisions? Head, gut, or waiting?",
+                "Do you feel energized by initiating or responding?",
+                "What environments drain you versus support you?"
+            ],
+            "invitation": "Notice for one week: when do you feel most yourself, and when do you feel like you're forcing something?"
         }
     },
     {
-        "id": "compassionate-witness",
-        "title": "The Compassionate Witness",
-        "icon": "heart",
-        "summary": "A gentle presence that sees your struggles and successes with equal kindness. This lens softens self-criticism and nurtures self-acceptance.",
+        "id": "numerology",
+        "title": "Numerology",
+        "icon": "calculator",
+        "summary": "An ancient practice of finding meaning in numbers, particularly those connected to your birth date and name. This lens uses numerical patterns as a mirror for self-reflection—not as prediction, but as a symbolic language for exploring your tendencies, gifts, and growth edges.",
         "deep_dive": {
-            "description": "The Compassionate Witness combines elements of self-compassion research with contemplative practices. It's the voice that says 'this is hard' without adding 'and you're failing.' This lens helps rewire patterns of harsh self-judgment.",
-            "practices": [
-                "Speak to yourself as you would a dear friend",
-                "Acknowledge difficulty without dramatizing it",
-                "Celebrate small steps alongside big ones"
+            "description": "Numerology assigns significance to numbers derived from your birth date (Life Path Number) and the letters in your name (Expression, Soul Urge, and Personality Numbers). Each number from 1-9, plus master numbers 11, 22, and 33, carries archetypal qualities. The practice spans many cultures including Pythagorean, Chaldean, and Kabbalistic traditions.",
+            "key_concepts": [
+                "Life Path Number: Calculated from your full birth date, representing your journey's theme",
+                "Expression Number: Derived from your full name, reflecting your natural abilities",
+                "Soul Urge Number: From the vowels in your name, revealing inner desires",
+                "Personal Year Cycles: 9-year patterns of growth and change",
+                "Master Numbers: 11, 22, 33—intensified spiritual significance"
             ],
-            "invitation": "How would you comfort yourself if you were someone you loved?"
+            "reflection_themes": [
+                "What themes keep recurring in your life journey?",
+                "How do you relate to cycles of beginning, building, and releasing?",
+                "What gifts do you naturally bring to situations?"
+            ],
+            "invitation": "Calculate your Life Path Number (reduce your birth date to a single digit) and see if its themes resonate with your experience."
         }
     },
     {
-        "id": "curious-explorer",
-        "title": "The Curious Explorer",
-        "icon": "search",
-        "summary": "Approaching life with wonder instead of worry. This lens transforms problems into puzzles and fears into fascinations.",
+        "id": "levels-of-consciousness",
+        "title": "Levels of Consciousness",
+        "icon": "layers",
+        "summary": "A map of human development that tracks how our awareness expands over time. This lens isn't about being 'higher' or 'better'—it's about understanding where you are, what's available at each stage, and how growth naturally unfolds when conditions support it.",
         "deep_dive": {
-            "description": "The Curious Explorer embodies beginner's mind—approaching experiences as if for the first time. Curiosity deactivates the threat response and opens neural pathways for creative thinking. This lens replaces 'why is this happening to me' with 'what is this teaching me.'",
-            "practices": [
-                "Ask 'what if' instead of 'what's wrong'",
-                "Treat setbacks as experiments",
-                "Stay open to being surprised"
+            "description": "The Levels of Consciousness framework, popularized by David Hawkins' 'Map of Consciousness' and integral theory, suggests that human awareness develops through identifiable stages. Each level represents a different way of making meaning, with its own worldview, values, and limitations. Development isn't linear—we can access different levels in different contexts—but there's a general direction of increasing complexity, compassion, and perspective-taking.",
+            "key_concepts": [
+                "Survival and Safety: Basic needs, fear-based responses",
+                "Power and Achievement: Ego development, competition, success",
+                "Conformity and Belonging: Rules, roles, group identity",
+                "Rationality and Independence: Logic, individual truth-seeking",
+                "Pluralism and Sensitivity: Multiple perspectives, equality",
+                "Integration and Systems Thinking: Seeing wholes, paradox tolerance",
+                "Unity and Transcendence: Non-dual awareness, universal compassion"
             ],
-            "invitation": "What would you explore if you weren't afraid of looking foolish?"
-        }
-    },
-    {
-        "id": "present-moment",
-        "title": "Present Moment Awareness",
-        "icon": "time",
-        "summary": "The only moment that truly exists is now. This lens anchors you in the present, releasing the grip of past regrets and future anxieties.",
-        "deep_dive": {
-            "description": "Present Moment Awareness is central to mindfulness and contemplative traditions worldwide. It recognizes that suffering often comes from mental time travel—reliving the past or rehearsing the future. This lens practices arrival, coming home to now.",
-            "practices": [
-                "Notice five things you can sense right now",
-                "Catch yourself when you drift to past or future",
-                "Find one thing to appreciate in this moment"
+            "reflection_themes": [
+                "What motivates most of your daily decisions?",
+                "How do you relate to people who see the world very differently?",
+                "What would 'growth' look like for you right now?"
             ],
-            "invitation": "What is available to you right now that you might be missing?"
+            "invitation": "Notice what triggers contraction in you versus what invites expansion. These signals often point toward your growing edge."
         }
     }
 ]
