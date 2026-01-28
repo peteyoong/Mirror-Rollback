@@ -452,6 +452,24 @@ const styles = StyleSheet.create({
     color: COLORS.secondary,
     lineHeight: 22,
   },
+  reflectionThemesContainer: {
+    marginTop: SPACING.xl,
+    backgroundColor: '#F9F9F7',
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.lg,
+  },
+  themeItem: {
+    marginBottom: SPACING.md,
+    paddingLeft: SPACING.sm,
+    borderLeftWidth: 2,
+    borderLeftColor: COLORS.accentLight,
+  },
+  themeText: {
+    fontSize: 15,
+    color: COLORS.primary,
+    lineHeight: 22,
+    fontStyle: 'italic',
+  },
   invitationContainer: {
     marginTop: SPACING.xl,
     padding: SPACING.lg,
