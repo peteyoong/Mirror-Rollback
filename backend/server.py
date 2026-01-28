@@ -621,8 +621,11 @@ async def get_or_create_daily_reflection(date_input: DateKeyInput, user = Depend
     if existing:
         return DailyReflectionResponse(**existing)
     
-    # Generate new reflection
-    reflection_content = generate_random_reflection()
+    # Get user's onboarding answers for personalization
+    onboarding_answers = user.get("onboarding_answers")
+    
+    # Generate new personalized reflection
+    reflection_content = generate_random_reflection(onboarding_answers)
     
     reflection = DailyReflection(
         user_id=user_id,
@@ -639,8 +642,11 @@ async def regenerate_daily_reflection(date_input: DateKeyInput, user = Depends(g
     date_key = date_input.date_key
     user_id = user["id"]
     
-    # Generate new reflection content
-    reflection_content = generate_random_reflection()
+    # Get user's onboarding answers for personalization
+    onboarding_answers = user.get("onboarding_answers")
+    
+    # Generate new personalized reflection content
+    reflection_content = generate_random_reflection(onboarding_answers)
     
     # Check if reflection exists
     existing = await db.daily_reflections.find_one({
