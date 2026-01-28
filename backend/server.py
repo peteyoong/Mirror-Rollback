@@ -420,12 +420,7 @@ CLARITY_ADDITIONS = [
 def generate_personalized_reflection(onboarding_answers: dict = None) -> dict:
     """
     Generate a personalized reflection based on user's onboarding answers.
-    
-    Personalizes based on:
-    - desired_depth: 'deep' vs 'surface' content length/complexity
-    - uncertainty_relationship: adds grounding language if challenging
-    - reflection_style: adds pattern or somatic language
-    - intention: adds clarity-focused language if seeking clarity
+    This is the FALLBACK template-based generator.
     
     HARD RULE: Never mentions Human Design, astrology, numerology, charts, 
     types, authorities, or any framework terms.
@@ -510,9 +505,163 @@ def generate_personalized_reflection(onboarding_answers: dict = None) -> dict:
         "closing_line": closing_line
     }
 
-def generate_random_reflection(onboarding_answers: dict = None) -> dict:
-    """Generate a reflection, personalized if onboarding answers available"""
-    return generate_personalized_reflection(onboarding_answers)
+# ============== ChatGPT Mirror Generation ==============
+
+MIRROR_SYSTEM_PROMPT = """You are a thoughtful, grounded reflection generator for a personal mirror app. Your role is to create daily reflections that help users explore their inner landscape.
+
+CRITICAL RULES (MUST BE FOLLOWED):
+1. You are FRAMEWORK-BLIND. You must NEVER mention or reference:
+   - Human Design
+   - Astrology, zodiac signs, planets, houses
+   - Numerology, life path numbers
+   - Gene Keys
+   - BaZi
+   - Enneagram
+   - Any metaphysical or personality typing system
+   - Authority, type, chart (in a framework context)
+
+2. NO predictions, NO advice, NO "you are" statements
+3. Use grounded reflective language:
+   - "One way to look at this..."
+   - "You may notice..."
+   - "If this resonates..."
+   - "Perhaps..."
+   - "What if..."
+
+4. The tone should be:
+   - Warm but not saccharine
+   - Inviting but not prescriptive
+   - Thoughtful but not preachy
+   - Grounded but not clinical
+
+OUTPUT FORMAT (strict JSON):
+{
+  "todays_insight": "A brief insight or observation (80-120 words)",
+  "reflect_on": "One reflective question",
+  "another_perspective": "An alternative way to view things (80-120 words)",
+  "closing": "One sentence inviting journaling"
+}
+
+Respond ONLY with valid JSON. No markdown, no explanation, just the JSON object."""
+
+async def generate_reflection_with_llm(
+    onboarding_answers: dict,
+    recent_journals: list = None,
+    date_key: str = None
+) -> dict:
+    """
+    Generate a personalized reflection using ChatGPT.
+    Falls back to template-based generation if LLM fails.
+    """
+    
+    if not EMERGENT_LLM_KEY:
+        logger.warning("No EMERGENT_LLM_KEY configured, falling back to template")
+        return generate_personalized_reflection(onboarding_answers)
+    
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        
+        # Build user context
+        context_parts = []
+        
+        # Add onboarding context
+        if onboarding_answers:
+            context_parts.append("USER PROFILE FROM ONBOARDING:")
+            context_parts.append(f"- Relationship with self: {onboarding_answers.get('relationship_with_self', 'not specified')}")
+            context_parts.append(f"- Preferred reflection style: {onboarding_answers.get('reflection_style', 'not specified')}")
+            context_parts.append(f"- Desired depth: {onboarding_answers.get('desired_depth', 'moderate')}")
+            context_parts.append(f"- Relationship to uncertainty: {onboarding_answers.get('uncertainty_relationship', 'not specified')}")
+            context_parts.append(f"- Intention for using app: {onboarding_answers.get('intention', 'self understanding')}")
+        
+        # Add recent journal context (if available)
+        if recent_journals and len(recent_journals) > 0:
+            context_parts.append("\nRECENT JOURNAL ENTRIES (most recent first):")
+            for i, entry in enumerate(recent_journals[:3]):  # Max 3 entries
+                # Truncate long entries
+                content = entry.get('content', '')[:500]
+                if len(entry.get('content', '')) > 500:
+                    content += "..."
+                context_parts.append(f"Entry {i+1}: {content}")
+        
+        # Add date context
+        if date_key:
+            context_parts.append(f"\nToday's date: {date_key}")
+        
+        # Personalization instructions based on onboarding
+        personalization = []
+        depth = onboarding_answers.get('desired_depth', 'moderate') if onboarding_answers else 'moderate'
+        uncertainty = onboarding_answers.get('uncertainty_relationship', 'mixed') if onboarding_answers else 'mixed'
+        reflection_style = onboarding_answers.get('reflection_style', 'contemplating') if onboarding_answers else 'contemplating'
+        intention = onboarding_answers.get('intention', 'self_understanding') if onboarding_answers else 'self_understanding'
+        
+        if depth == 'deep':
+            personalization.append("Use longer, more nuanced wording. The user prefers deep, meaningful reflections.")
+        elif depth == 'surface':
+            personalization.append("Keep it simple and brief. The user prefers light, present-focused reflections.")
+        
+        if uncertainty in ['challenging', 'learning']:
+            personalization.append("Include grounding, reassuring language. The user finds uncertainty challenging.")
+        
+        if reflection_style == 'patterns':
+            personalization.append("Include pattern-oriented language like 'you might notice a recurring theme...'")
+        elif reflection_style == 'feeling':
+            personalization.append("Include somatic/body-focused language like 'notice where this sits in your body...'")
+        
+        if intention == 'clarity':
+            personalization.append("Gently orient toward clarity without giving direct advice.")
+        
+        if personalization:
+            context_parts.append("\nPERSONALIZATION NOTES:")
+            context_parts.extend([f"- {p}" for p in personalization])
+        
+        context_parts.append("\nGenerate a unique daily reflection based on this context. Remember: NO frameworks, NO advice, NO predictions.")
+        
+        user_prompt = "\n".join(context_parts)
+        
+        # Initialize LLM chat
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"mirror-{date_key or 'default'}",
+            system_message=MIRROR_SYSTEM_PROMPT
+        ).with_model("openai", "gpt-4o")
+        
+        # Send message
+        user_message = UserMessage(text=user_prompt)
+        response = await chat.send_message(user_message)
+        
+        # Parse JSON response
+        # Clean up response if it has markdown code blocks
+        response_text = response.strip()
+        if response_text.startswith("```"):
+            response_text = response_text.split("```")[1]
+            if response_text.startswith("json"):
+                response_text = response_text[4:]
+        response_text = response_text.strip()
+        
+        result = json.loads(response_text)
+        
+        # Validate required fields
+        required_fields = ["todays_insight", "reflect_on", "another_perspective", "closing"]
+        for field in required_fields:
+            if field not in result:
+                raise ValueError(f"Missing required field: {field}")
+        
+        # Map 'closing' to 'closing_line' for consistency
+        return {
+            "todays_insight": result["todays_insight"],
+            "reflect_on": result["reflect_on"],
+            "another_perspective": result["another_perspective"],
+            "closing_line": result.get("closing", result.get("closing_line", "Your journal awaits."))
+        }
+        
+    except Exception as e:
+        logger.error(f"LLM reflection generation failed: {str(e)}")
+        logger.info("Falling back to template-based generation")
+        return generate_personalized_reflection(onboarding_answers)
+
+async def generate_random_reflection(onboarding_answers: dict = None, recent_journals: list = None, date_key: str = None) -> dict:
+    """Generate a reflection using ChatGPT, with fallback to templates"""
+    return await generate_reflection_with_llm(onboarding_answers, recent_journals, date_key)
 
 # ============== Routes ==============
 
