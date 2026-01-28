@@ -52,6 +52,12 @@ export default function MainLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="new-entry"
+        options={{
+          href: null, // Hide from tab bar
+        }}
+      />
     </Tabs>
   );
 }
