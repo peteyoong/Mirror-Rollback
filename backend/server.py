@@ -600,10 +600,8 @@ async def generate_reflection_with_llm(
         logger.warning("No EMERGENT_LLM_KEY configured, falling back to template")
         return generate_personalized_reflection(onboarding_answers)
     
-    try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-        
-        # Build user context
+    # Build user context (used for both attempts)
+    def build_user_prompt(is_retry: bool = False, found_terms: list = None) -> str:
         context_parts = []
         
         # Add onboarding context
@@ -656,15 +654,44 @@ async def generate_reflection_with_llm(
             context_parts.append("\nPERSONALIZATION NOTES:")
             context_parts.extend([f"- {p}" for p in personalization])
         
+        # Add stricter warning on retry
+        if is_retry and found_terms:
+            context_parts.append(f"\n⚠️ CRITICAL WARNING: Your previous response contained FORBIDDEN terms: {', '.join(found_terms)}")
+            context_parts.append("You MUST NOT use ANY of these terms or related concepts:")
+            context_parts.append("- manifestor, manifesting generator, generator, human design, authority, profile, gates")
+            context_parts.append("- astrology, zodiac, planet, houses, numerology, life path")
+            context_parts.append("- gene keys, bazi, enneagram")
+            context_parts.append("Use ONLY grounded, everyday language about self-reflection.")
+        
         context_parts.append("\nGenerate a unique daily reflection based on this context. Remember: NO frameworks, NO advice, NO predictions.")
         
-        user_prompt = "\n".join(context_parts)
+        return "\n".join(context_parts)
+    
+    async def call_llm(user_prompt: str, is_retry: bool = False) -> dict:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        
+        # Use stricter system prompt on retry
+        system_prompt = MIRROR_SYSTEM_PROMPT
+        if is_retry:
+            system_prompt = MIRROR_SYSTEM_PROMPT + """
+
+⚠️ STRICT MODE ACTIVATED ⚠️
+Your previous response contained forbidden framework terms. 
+You must ABSOLUTELY NOT mention:
+- manifestor, manifesting generator, generator (Human Design types)
+- human design, authority, profile, gates, chart
+- astrology, zodiac, planet, houses, horoscope
+- numerology, life path, life path number
+- gene keys, bazi, enneagram, personality type
+
+Use ONLY everyday reflective language. No typing systems. No frameworks.
+Focus on universal human experiences: emotions, thoughts, growth, presence, awareness."""
         
         # Initialize LLM chat
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
-            session_id=f"mirror-{date_key or 'default'}",
-            system_message=MIRROR_SYSTEM_PROMPT
+            session_id=f"mirror-{date_key or 'default'}-{'retry' if is_retry else 'first'}",
+            system_message=system_prompt
         ).with_model("openai", "gpt-4o")
         
         # Send message
@@ -695,6 +722,35 @@ async def generate_reflection_with_llm(
             "another_perspective": result["another_perspective"],
             "closing_line": result.get("closing", result.get("closing_line", "Your journal awaits."))
         }
+    
+    try:
+        # First attempt
+        user_prompt = build_user_prompt(is_retry=False)
+        result = await call_llm(user_prompt, is_retry=False)
+        
+        # Validate for forbidden terms
+        is_valid, found_terms = validate_reflection_content(result)
+        
+        if is_valid:
+            logger.info("LLM reflection generated successfully (first attempt)")
+            return result
+        
+        # First attempt failed validation - retry with stricter prompt
+        logger.warning(f"LLM reflection contained forbidden terms: {found_terms}. Retrying with stricter prompt.")
+        
+        user_prompt_retry = build_user_prompt(is_retry=True, found_terms=found_terms)
+        result_retry = await call_llm(user_prompt_retry, is_retry=True)
+        
+        # Validate retry result
+        is_valid_retry, found_terms_retry = validate_reflection_content(result_retry)
+        
+        if is_valid_retry:
+            logger.info("LLM reflection generated successfully (second attempt)")
+            return result_retry
+        
+        # Second attempt also failed - fall back to template
+        logger.error(f"LLM reflection still contains forbidden terms after retry: {found_terms_retry}. Falling back to template.")
+        return generate_personalized_reflection(onboarding_answers)
         
     except Exception as e:
         logger.error(f"LLM reflection generation failed: {str(e)}")
