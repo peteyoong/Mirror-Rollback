@@ -2266,6 +2266,12 @@ async def send_integrative_chat_message(chat_input: ChatMessageInput, user = Dep
     )
     await db.integrative_chat_messages.insert_one(assistant_message.dict())
     
+    # Extract and store themes for Mirror feedback loop (async, non-blocking)
+    try:
+        await extract_and_store_user_themes(user["id"])
+    except Exception as e:
+        logger.error(f"Failed to extract themes (non-critical): {e}")
+    
     # Return the new messages
     return [
         IntegrativeChatMessageResponse(**user_message.dict()),
