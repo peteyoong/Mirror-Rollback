@@ -776,6 +776,119 @@ export default function Lenses() {
                         </View>
                       )}
 
+                      {/* Your Human Design Profile - At the TOP of HD Deep Dive */}
+                      {selectedLens.id === 'human-design' && (
+                        <View style={styles.siderealProfileContainer}>
+                          <Text style={styles.siderealProfileTitle}>Your Human Design Profile</Text>
+                          {loadingHdProfile ? (
+                            <ActivityIndicator size="small" color={COLORS.accent} style={{ marginVertical: SPACING.md }} />
+                          ) : hdProfile?.has_profile && hdProfile.profile ? (
+                            <View style={styles.siderealProfileContent}>
+                              <View style={styles.hdProfileGrid}>
+                                <View style={styles.hdProfileItem}>
+                                  <Text style={styles.hdProfileLabel}>Type</Text>
+                                  <Text style={styles.hdProfileValue}>{hdProfile.profile.type}</Text>
+                                </View>
+                                <View style={styles.hdProfileItem}>
+                                  <Text style={styles.hdProfileLabel}>Strategy</Text>
+                                  <Text style={styles.hdProfileValue}>{hdProfile.profile.strategy}</Text>
+                                </View>
+                                <View style={styles.hdProfileItem}>
+                                  <Text style={styles.hdProfileLabel}>Authority</Text>
+                                  <Text style={styles.hdProfileValue}>{hdProfile.profile.authority}</Text>
+                                </View>
+                                {hdProfile.profile.profile && (
+                                  <View style={styles.hdProfileItem}>
+                                    <Text style={styles.hdProfileLabel}>Profile</Text>
+                                    <Text style={styles.hdProfileValue}>{hdProfile.profile.profile}</Text>
+                                  </View>
+                                )}
+                              </View>
+                              {hdProfile.profile.signature && hdProfile.profile.not_self_theme && (
+                                <Text style={styles.hdProfileSubtext}>
+                                  {hdProfile.profile.signature} ↔ {hdProfile.profile.not_self_theme}
+                                </Text>
+                              )}
+                            </View>
+                          ) : (
+                            <View style={styles.siderealProfileEmpty}>
+                              <Text style={styles.siderealProfileEmptyText}>
+                                No Human Design data entered
+                              </Text>
+                              <Text style={styles.siderealProfileEmptyHint}>
+                                Enter your Human Design details to see personalized insights
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      )}
+
+                      {/* Personalized Insights - Only for Human Design with profile */}
+                      {selectedLens.id === 'human-design' && selectedLens.personalized_insights?.has_personalization && (
+                        <View style={styles.personalizedInsightsContainer}>
+                          <Text style={styles.personalizedInsightsTitle}>Your Design at a Glance</Text>
+                          
+                          {(selectedLens.personalized_insights as PersonalizedHDInsights).type_insight && (
+                            <View style={styles.personalizedInsightCard}>
+                              <View style={styles.personalizedInsightHeader}>
+                                <Text style={styles.personalizedInsightPlanet}>⬡ Type</Text>
+                                <Text style={styles.personalizedInsightSign}>
+                                  {(selectedLens.personalized_insights as PersonalizedHDInsights).elements?.type}
+                                </Text>
+                              </View>
+                              <Text style={styles.personalizedInsightText}>
+                                {(selectedLens.personalized_insights as PersonalizedHDInsights).type_insight}
+                              </Text>
+                            </View>
+                          )}
+                          
+                          {(selectedLens.personalized_insights as PersonalizedHDInsights).strategy_insight && (
+                            <View style={styles.personalizedInsightCard}>
+                              <View style={styles.personalizedInsightHeader}>
+                                <Text style={styles.personalizedInsightPlanet}>→ Strategy</Text>
+                                <Text style={styles.personalizedInsightSign}>
+                                  {(selectedLens.personalized_insights as PersonalizedHDInsights).elements?.strategy}
+                                </Text>
+                              </View>
+                              <Text style={styles.personalizedInsightText}>
+                                {(selectedLens.personalized_insights as PersonalizedHDInsights).strategy_insight}
+                              </Text>
+                            </View>
+                          )}
+                          
+                          {(selectedLens.personalized_insights as PersonalizedHDInsights).authority_insight && (
+                            <View style={styles.personalizedInsightCard}>
+                              <View style={styles.personalizedInsightHeader}>
+                                <Text style={styles.personalizedInsightPlanet}>◈ Authority</Text>
+                                <Text style={styles.personalizedInsightSign}>
+                                  {(selectedLens.personalized_insights as PersonalizedHDInsights).elements?.authority}
+                                </Text>
+                              </View>
+                              <Text style={styles.personalizedInsightText}>
+                                {(selectedLens.personalized_insights as PersonalizedHDInsights).authority_insight}
+                              </Text>
+                            </View>
+                          )}
+                          
+                          {(selectedLens.personalized_insights as PersonalizedHDInsights).not_self_awareness && (
+                            <View style={styles.personalizedInsightBalance}>
+                              <Text style={styles.personalizedInsightBalanceText}>
+                                {(selectedLens.personalized_insights as PersonalizedHDInsights).not_self_awareness}
+                              </Text>
+                            </View>
+                          )}
+                          
+                          {(selectedLens.personalized_insights as PersonalizedHDInsights).integration_reflection && (
+                            <View style={styles.personalizedInsightQuestion}>
+                              <Ionicons name="flask-outline" size={18} color={COLORS.accent} />
+                              <Text style={styles.personalizedInsightQuestionText}>
+                                {(selectedLens.personalized_insights as PersonalizedHDInsights).integration_reflection}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      )}
+
                       <Text style={styles.deepDiveDescription}>
                         {selectedLens.deep_dive.description}
                       </Text>
