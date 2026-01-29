@@ -1115,69 +1115,107 @@ export default function Lenses() {
                           
                           {debugExpanded && (
                             <View style={styles.debugContent}>
-                              {/* Birth Data Fields */}
-                              <Text style={styles.debugSubtitle}>Stored Birth Fields (raw):</Text>
-                              {userBirthData ? (
+                              {/* Section 1: Stored Birth Fields (raw) */}
+                              <View style={styles.debugSection}>
+                                <Text style={styles.debugSectionTitle}>1. Stored Birth Fields (raw from user record)</Text>
+                                {userBirthData ? (
+                                  <View style={styles.debugCodeBlock}>
+                                    <Text style={styles.debugCode}>birth_datetime_local: {userBirthData.birth_datetime_local}</Text>
+                                    <Text style={styles.debugCode}>tz_offset_minutes: {userBirthData.tz_offset_minutes}</Text>
+                                    <Text style={styles.debugCode}>latitude: {userBirthData.latitude}</Text>
+                                    <Text style={styles.debugCode}>longitude: {userBirthData.longitude}</Text>
+                                    {userBirthData.updated_at && (
+                                      <Text style={styles.debugCodeMuted}>updated_at: {userBirthData.updated_at}</Text>
+                                    )}
+                                  </View>
+                                ) : (
+                                  <View style={styles.debugWarning}>
+                                    <Ionicons name="warning" size={16} color="#D97706" />
+                                    <Text style={styles.debugWarningText}>No birth fields stored in user record</Text>
+                                  </View>
+                                )}
+                              </View>
+                              
+                              {/* Section 2: Computed Profile Status */}
+                              <View style={styles.debugSection}>
+                                <Text style={styles.debugSectionTitle}>2. Computed Profile State</Text>
                                 <View style={styles.debugCodeBlock}>
-                                  <Text style={styles.debugCode}>birth_datetime_local: {userBirthData.birth_datetime_local}</Text>
-                                  <Text style={styles.debugCode}>tz_offset_minutes: {userBirthData.tz_offset_minutes}</Text>
-                                  <Text style={styles.debugCode}>latitude: {userBirthData.latitude}</Text>
-                                  <Text style={styles.debugCode}>longitude: {userBirthData.longitude}</Text>
-                                </View>
-                              ) : (
-                                <View style={styles.debugWarning}>
-                                  <Ionicons name="warning" size={16} color="#D97706" />
-                                  <Text style={styles.debugWarningText}>Birth fields missing from user record</Text>
-                                </View>
-                              )}
-                              
-                              {/* Computed Profile Status */}
-                              <Text style={styles.debugSubtitle}>computed_profile exists:</Text>
-                              <Text style={[styles.debugCode, { color: userAstrologyProfile ? '#10B981' : '#EF4444' }]}>
-                                {userAstrologyProfile ? 'true' : 'false'}
-                              </Text>
-                              
-                              {/* Compute Endpoint */}
-                              <Text style={styles.debugSubtitle}>Compute Endpoint:</Text>
-                              <Text style={styles.debugCode}>/api/computed-profile/astrology (POST)</Text>
-                              
-                              {/* Last Save Status */}
-                              <Text style={styles.debugSubtitle}>Last Save Status:</Text>
-                              {saveStatus ? (
-                                <View style={styles.debugStatusContainer}>
-                                  <View style={[styles.debugStatusBadge, { backgroundColor: saveStatus.success ? '#D1FAE5' : '#FEE2E2' }]}>
-                                    <Text style={[styles.debugStatusText, { color: saveStatus.success ? '#065F46' : '#991B1B' }]}>
-                                      {saveStatus.success ? '✓ ' : '✗ '}{saveStatus.message}
+                                  <Text style={styles.debugCode}>
+                                    computed_profile.astrology exists: {' '}
+                                    <Text style={{ color: userAstrologyProfile ? '#10B981' : '#EF4444', fontWeight: '600' }}>
+                                      {userAstrologyProfile ? 'TRUE' : 'FALSE'}
                                     </Text>
-                                  </View>
-                                  {saveStatus.response && (
-                                    <Text style={styles.debugResponseText} numberOfLines={3}>
-                                      {saveStatus.response}
-                                    </Text>
+                                  </Text>
+                                  {userAstrologyProfile && (
+                                    <>
+                                      <Text style={styles.debugCode}>ayanamsa: {userAstrologyProfile.ayanamsa}</Text>
+                                      <Text style={styles.debugCode}>computed_at: {userAstrologyProfile.computed_at}</Text>
+                                    </>
                                   )}
                                 </View>
-                              ) : (
-                                <Text style={styles.debugNoStatus}>No save attempted yet</Text>
-                              )}
+                              </View>
                               
-                              {/* Last Compute Status */}
-                              <Text style={styles.debugSubtitle}>Last Compute Status:</Text>
-                              {computeStatus ? (
-                                <View style={styles.debugStatusContainer}>
-                                  <View style={[styles.debugStatusBadge, { backgroundColor: computeStatus.success ? '#D1FAE5' : '#FEE2E2' }]}>
-                                    <Text style={[styles.debugStatusText, { color: computeStatus.success ? '#065F46' : '#991B1B' }]}>
-                                      {computeStatus.success ? '✓ ' : '✗ '}{computeStatus.message}
-                                    </Text>
+                              {/* Section 3: Last Save Status */}
+                              <View style={styles.debugSection}>
+                                <Text style={styles.debugSectionTitle}>3. Last Save Status</Text>
+                                {saveStatus ? (
+                                  <View style={styles.debugFullStatus}>
+                                    <View style={[styles.debugStatusBadge, { backgroundColor: saveStatus.success ? '#D1FAE5' : '#FEE2E2' }]}>
+                                      <Text style={[styles.debugStatusText, { color: saveStatus.success ? '#065F46' : '#991B1B' }]}>
+                                        {saveStatus.success ? '✓ SUCCESS' : '✗ FAILED'}: {saveStatus.message}
+                                      </Text>
+                                    </View>
+                                    {saveStatus.response && (
+                                      <View style={styles.debugErrorBlock}>
+                                        <Text style={styles.debugErrorLabel}>Full API Response:</Text>
+                                        <ScrollView style={styles.debugErrorScroll} nestedScrollEnabled>
+                                          <Text style={styles.debugErrorText}>{saveStatus.response}</Text>
+                                        </ScrollView>
+                                      </View>
+                                    )}
                                   </View>
-                                  {computeStatus.response && (
-                                    <Text style={styles.debugResponseText} numberOfLines={3}>
-                                      {computeStatus.response}
-                                    </Text>
-                                  )}
+                                ) : (
+                                  <View style={styles.debugCodeBlock}>
+                                    <Text style={styles.debugNoStatus}>No save attempted yet</Text>
+                                  </View>
+                                )}
+                              </View>
+                              
+                              {/* Section 4: Last Compute Status */}
+                              <View style={styles.debugSection}>
+                                <Text style={styles.debugSectionTitle}>4. Last Compute Status</Text>
+                                {computeStatus ? (
+                                  <View style={styles.debugFullStatus}>
+                                    <View style={[styles.debugStatusBadge, { backgroundColor: computeStatus.success ? '#D1FAE5' : '#FEE2E2' }]}>
+                                      <Text style={[styles.debugStatusText, { color: computeStatus.success ? '#065F46' : '#991B1B' }]}>
+                                        {computeStatus.success ? '✓ SUCCESS' : '✗ FAILED'}: {computeStatus.message}
+                                      </Text>
+                                    </View>
+                                    {computeStatus.response && (
+                                      <View style={styles.debugErrorBlock}>
+                                        <Text style={styles.debugErrorLabel}>Full API Response:</Text>
+                                        <ScrollView style={styles.debugErrorScroll} nestedScrollEnabled>
+                                          <Text style={styles.debugErrorText}>{computeStatus.response}</Text>
+                                        </ScrollView>
+                                      </View>
+                                    )}
+                                  </View>
+                                ) : (
+                                  <View style={styles.debugCodeBlock}>
+                                    <Text style={styles.debugNoStatus}>No compute attempted yet</Text>
+                                  </View>
+                                )}
+                              </View>
+                              
+                              {/* Section 5: API Endpoints Reference */}
+                              <View style={styles.debugSection}>
+                                <Text style={styles.debugSectionTitle}>5. API Endpoints</Text>
+                                <View style={styles.debugCodeBlock}>
+                                  <Text style={styles.debugCode}>Save: POST /api/user/birth-data</Text>
+                                  <Text style={styles.debugCode}>Compute: POST /api/computed-profile/astrology</Text>
+                                  <Text style={styles.debugCode}>Read: GET /api/auth/me</Text>
                                 </View>
-                              ) : (
-                                <Text style={styles.debugNoStatus}>No compute attempted yet</Text>
-                              )}
+                              </View>
                               
                               {/* Run Compute Button */}
                               {userBirthData ? (
