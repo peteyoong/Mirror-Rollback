@@ -251,6 +251,19 @@ export default function Lenses() {
     }
   };
 
+  const fetchHdProfile = async () => {
+    setLoadingHdProfile(true);
+    try {
+      const response = await api.get('/computed-profile/human-design');
+      setHdProfile(response.data);
+    } catch (error) {
+      console.error('Failed to fetch HD profile:', error);
+      setHdProfile({ has_profile: false });
+    } finally {
+      setLoadingHdProfile(false);
+    }
+  };
+
   const openLensDetail = async (lensId: string) => {
     setLoadingDetail(true);
     setModalVisible(true);
