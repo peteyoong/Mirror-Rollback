@@ -70,7 +70,7 @@ def test_registration_onboarding_astrology_flow():
     print("="*60)
     
     # Test data
-    test_email = "flowtest2@example.com"  # Different email to avoid conflicts
+    test_email = f"flowtest_{timestamp}@example.com"  # Different email to avoid conflicts
     test_password = "Test123!"
     test_name = "Flow Test User"
     
