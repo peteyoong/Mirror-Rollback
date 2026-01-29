@@ -140,6 +140,10 @@ export default function Lenses() {
   
   // Module expansion state
   const [expandedModuleId, setExpandedModuleId] = useState<number | null>(null);
+  
+  // Astrology computed profile state
+  const [astrologyProfile, setAstrologyProfile] = useState<AstrologyProfile | null>(null);
+  const [loadingAstrologyProfile, setLoadingAstrologyProfile] = useState(false);
 
   const fetchLenses = useCallback(async () => {
     try {
