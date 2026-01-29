@@ -239,19 +239,16 @@ export default function Lenses() {
   });
   const [savingBirthData, setSavingBirthData] = useState(false);
   
-  // Computed profile from user context (primary source)
+  // Computed profile from user context (SINGLE SOURCE OF TRUTH)
+  // All astrology data comes from the persisted user record only
   const userAstrologyProfile = user?.computed_profile?.astrology;
   const userBirthData = user?.birth_data;
   
-  // Astrology computed profile state (fallback for separate fetch if needed)
-  const [astrologyProfile, setAstrologyProfile] = useState<AstrologyProfile | null>(null);
-  const [loadingAstrologyProfile, setLoadingAstrologyProfile] = useState(false);
-  
-  // Human Design profile state
+  // Human Design profile state (separate collection - not yet unified)
   const [hdProfile, setHdProfile] = useState<HumanDesignProfile | null>(null);
   const [loadingHdProfile, setLoadingHdProfile] = useState(false);
 
-  // Numerology profile state
+  // Numerology profile state (separate collection - not yet unified)
   const [numerologyProfile, setNumerologyProfile] = useState<NumerologyProfile | null>(null);
   const [loadingNumerologyProfile, setLoadingNumerologyProfile] = useState(false);
 
