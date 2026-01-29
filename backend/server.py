@@ -1509,6 +1509,18 @@ async def get_lens_detail(lens_id: str, user = Depends(get_current_user)):
         except Exception as e:
             logger.error(f"Failed to generate personalized HD insights: {e}")
     
+    # For Numerology, add personalized insights based on numerology profile
+    if lens_id == "numerology":
+        try:
+            num_profile = await db.computed_profiles_numerology.find_one({
+                "user_id": user["id"]
+            })
+            if num_profile and num_profile.get("life_path"):
+                personalized = await generate_personalized_numerology_insights(num_profile)
+                result["personalized_insights"] = personalized
+        except Exception as e:
+            logger.error(f"Failed to generate personalized numerology insights: {e}")
+    
     return result
 
 async def generate_personalized_astrology_insights(astro_profile: dict) -> dict:
