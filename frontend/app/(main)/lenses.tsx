@@ -456,6 +456,7 @@ export default function Lenses() {
     setBirthModalError(null);
     setSavedUserId(null);
     setLocationManuallyEdited(false);
+    setShowManualLocationEntry(false);
     setSelectedCountry('');
     setSelectedCity('');
     setShowCountryPicker(false);
@@ -477,6 +478,7 @@ export default function Lenses() {
       const lat = userBirthData.latitude;
       const lon = userBirthData.longitude;
       if (lat && lon) {
+        let found = false;
         for (const [country, cities] of Object.entries(CITY_DATABASE)) {
           const matchingCity = cities.find(c => 
             Math.abs(c.lat - lat) < 0.1 && Math.abs(c.lon - lon) < 0.1
@@ -484,8 +486,14 @@ export default function Lenses() {
           if (matchingCity) {
             setSelectedCountry(country);
             setSelectedCity(matchingCity.city);
+            found = true;
             break;
           }
+        }
+        // If no matching city found, show manual entry mode
+        if (!found) {
+          setShowManualLocationEntry(true);
+          setLocationManuallyEdited(true);
         }
       }
     } else {
