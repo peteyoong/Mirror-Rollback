@@ -2241,123 +2241,105 @@ export default function Lenses() {
               )}
             </View>
 
-            {/* Birth Location - Country → City Picker */}
+            {/* Birth Location - Searchable Autocomplete */}
             <View style={styles.birthDetailsField}>
-              <Text style={styles.birthDetailsLabel}>Birth Country</Text>
-              <TouchableOpacity 
-                style={styles.birthDetailsInput} 
-                onPress={() => setShowCountryPicker(!showCountryPicker)}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.birthDetailsInputText, !selectedCountry && { color: '#999' }]}>
-                  {selectedCountry || 'Select Country...'}
-                </Text>
-                <Ionicons name={showCountryPicker ? "chevron-up" : "chevron-down"} size={20} color={COLORS.secondary} />
-              </TouchableOpacity>
+              <Text style={styles.birthDetailsLabel}>Birth Location</Text>
+              <Text style={styles.birthDetailsHint}>
+                Search for any city, town, or place worldwide
+              </Text>
               
-              {/* Country Dropdown */}
-              {showCountryPicker && (
-                <View style={styles.pickerDropdown}>
-                  <ScrollView style={styles.pickerScrollView} nestedScrollEnabled>
-                    {countries.map((country) => (
+              {/* Search Input */}
+              <View style={styles.locationSearchContainer}>
+                <Ionicons name="search" size={20} color={COLORS.secondary} style={styles.locationSearchIcon} />
+                <TextInput
+                  style={styles.locationSearchInput}
+                  value={locationSearch}
+                  onChangeText={handleLocationSearchChange}
+                  placeholder="Type to search (e.g., Selangor, Shah Alam...)"
+                  placeholderTextColor="#999"
+                  autoCorrect={false}
+                />
+                {isSearching && (
+                  <ActivityIndicator size="small" color={COLORS.accent} style={styles.locationSearchSpinner} />
+                )}
+                {locationSearch.length > 0 && !isSearching && (
+                  <TouchableOpacity 
+                    onPress={() => {
+                      setLocationSearch('');
+                      setLocationSuggestions([]);
+                    }}
+                    style={styles.locationSearchClear}
+                  >
+                    <Ionicons name="close-circle" size={20} color={COLORS.secondary} />
+                  </TouchableOpacity>
+                )}
+              </View>
+              
+              {/* Search Suggestions Dropdown */}
+              {locationSuggestions.length > 0 && (
+                <View style={styles.locationSuggestionsDropdown}>
+                  <ScrollView style={styles.locationSuggestionsScroll} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                    {locationSuggestions.map((suggestion) => (
                       <TouchableOpacity
-                        key={country}
-                        style={[
-                          styles.pickerOption,
-                          selectedCountry === country && styles.pickerOptionSelected
-                        ]}
-                        onPress={() => {
-                          setSelectedCountry(country);
-                          setSelectedCity('');
-                          setBirthLat('');
-                          setBirthLon('');
-                          setBirthTzOffset('');
-                          setShowCountryPicker(false);
-                        }}
+                        key={suggestion.place_id}
+                        style={styles.locationSuggestionItem}
+                        onPress={() => handleLocationSelect(suggestion)}
                       >
-                        <Text style={[
-                          styles.pickerOptionText,
-                          selectedCountry === country && styles.pickerOptionTextSelected
-                        ]}>{country}</Text>
+                        <Ionicons name="location-outline" size={16} color={COLORS.accent} />
+                        <Text style={styles.locationSuggestionText} numberOfLines={2}>
+                          {suggestion.display_name}
+                        </Text>
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
                 </View>
               )}
-            </View>
-
-            {/* City Picker - Only show when country is selected */}
-            {selectedCountry && (
-              <View style={styles.birthDetailsField}>
-                <Text style={styles.birthDetailsLabel}>Birth City</Text>
-                <TouchableOpacity 
-                  style={styles.birthDetailsInput} 
-                  onPress={() => setShowCityPicker(!showCityPicker)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.birthDetailsInputText, !selectedCity && { color: '#999' }]}>
-                    {selectedCity || 'Select City...'}
+              
+              {/* Selected Location Display */}
+              {selectedLocation && !locationSearch && (
+                <View style={styles.selectedLocationBox}>
+                  <Ionicons name="checkmark-circle" size={18} color="#059669" />
+                  <Text style={styles.selectedLocationText} numberOfLines={2}>
+                    {selectedLocation}
                   </Text>
-                  <Ionicons name={showCityPicker ? "chevron-up" : "chevron-down"} size={20} color={COLORS.secondary} />
-                </TouchableOpacity>
-                
-                {/* City Dropdown */}
-                {showCityPicker && (
-                  <View style={styles.pickerDropdown}>
-                    <ScrollView style={styles.pickerScrollView} nestedScrollEnabled>
-                      {citiesForCountry.map((cityData) => (
-                        <TouchableOpacity
-                          key={cityData.city}
-                          style={[
-                            styles.pickerOption,
-                            selectedCity === cityData.city && styles.pickerOptionSelected
-                          ]}
-                          onPress={() => handleCitySelection(cityData)}
-                        >
-                          <View style={styles.pickerCityOption}>
-                            <Text style={[
-                              styles.pickerOptionText,
-                              selectedCity === cityData.city && styles.pickerOptionTextSelected
-                            ]}>{cityData.city}</Text>
-                            <Text style={styles.pickerCityTz}>{formatTimezone(cityData.tz)}</Text>
-                          </View>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-                )}
-              </View>
-            )}
-
-            {/* Can't find my city? - Manual Entry Toggle */}
-            {!showManualLocationEntry ? (
-              <TouchableOpacity 
-                style={styles.cantFindCityButton}
-                onPress={() => {
-                  setShowManualLocationEntry(true);
-                  setSelectedCountry('');
-                  setSelectedCity('');
-                  setLocationManuallyEdited(true);
-                }}
-              >
-                <Ionicons name="help-circle-outline" size={18} color={COLORS.accent} />
-                <Text style={styles.cantFindCityText}>Can't find my city? Enter manually</Text>
-              </TouchableOpacity>
-            ) : (
-              /* Manual Entry Section */
-              <View style={styles.manualEntrySection}>
-                <View style={styles.manualEntryHeader}>
-                  <Text style={styles.manualEntryTitle}>Manual Location Entry</Text>
                   <TouchableOpacity 
                     onPress={() => {
-                      setShowManualLocationEntry(false);
-                      setLocationManuallyEdited(false);
+                      setSelectedLocation('');
                       setBirthLat('');
                       setBirthLon('');
                       setBirthTzOffset('480');
                     }}
                   >
-                    <Text style={styles.manualEntrySwitchBack}>← Back to city picker</Text>
+                    <Ionicons name="close" size={18} color={COLORS.secondary} />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+
+            {/* Manual Entry Toggle */}
+            {!showManualLocationEntry ? (
+              <TouchableOpacity 
+                style={styles.cantFindCityButton}
+                onPress={() => {
+                  setShowManualLocationEntry(true);
+                  setLocationManuallyEdited(true);
+                }}
+              >
+                <Ionicons name="create-outline" size={18} color={COLORS.accent} />
+                <Text style={styles.cantFindCityText}>Enter coordinates manually instead</Text>
+              </TouchableOpacity>
+            ) : (
+              /* Manual Entry Section */
+              <View style={styles.manualEntrySection}>
+                <View style={styles.manualEntryHeader}>
+                  <Text style={styles.manualEntryTitle}>Manual Coordinates</Text>
+                  <TouchableOpacity 
+                    onPress={() => {
+                      setShowManualLocationEntry(false);
+                      setLocationManuallyEdited(false);
+                    }}
+                  >
+                    <Text style={styles.manualEntrySwitchBack}>← Back to search</Text>
                   </TouchableOpacity>
                 </View>
                 
@@ -2372,7 +2354,7 @@ export default function Lenses() {
                         setBirthLat(v);
                         setLocationManuallyEdited(true);
                       }}
-                      placeholder="e.g., 40.7128"
+                      placeholder="e.g., 3.0738 (for Selangor)"
                       placeholderTextColor="#999"
                       keyboardType="decimal-pad"
                     />
@@ -2386,7 +2368,7 @@ export default function Lenses() {
                         setBirthLon(v);
                         setLocationManuallyEdited(true);
                       }}
-                      placeholder="e.g., -74.0060"
+                      placeholder="e.g., 101.5183"
                       placeholderTextColor="#999"
                       keyboardType="decimal-pad"
                     />
@@ -2400,12 +2382,12 @@ export default function Lenses() {
                     style={styles.birthDetailsTextInput}
                     value={birthTzOffset}
                     onChangeText={setBirthTzOffset}
-                    placeholder="e.g., -300 for EST"
+                    placeholder="e.g., 480 for Malaysia (UTC+8)"
                     placeholderTextColor="#999"
                     keyboardType="numeric"
                   />
                   <Text style={styles.birthDetailsHint}>
-                    Common: -300 (EST), -480 (PST), 0 (UTC), 330 (IST), 540 (JST)
+                    Common: -300 (EST), -480 (PST), 0 (UTC), 330 (IST), 480 (Malaysia/Singapore), 540 (JST)
                   </Text>
                 </View>
                 
@@ -2418,24 +2400,24 @@ export default function Lenses() {
               </View>
             )}
 
-            {/* Auto-generated Timezone Display - Only for city picker mode */}
-            {!showManualLocationEntry && selectedCity && birthTzOffset && (
+            {/* Auto-generated Timezone Display - Only when location selected */}
+            {!showManualLocationEntry && selectedLocation && birthTzOffset && (
               <View style={styles.autoTimezoneBox}>
                 <View style={styles.autoTimezoneRow}>
                   <Ionicons name="time-outline" size={18} color="#059669" />
-                  <Text style={styles.autoTimezoneLabel}>Timezone (auto-detected):</Text>
+                  <Text style={styles.autoTimezoneLabel}>Timezone (estimated from longitude):</Text>
                 </View>
                 <Text style={styles.autoTimezoneValue}>{formatTimezone(parseInt(birthTzOffset))}</Text>
                 <Text style={styles.autoTimezoneHint}>
-                  Based on {selectedCity}, {selectedCountry}
+                  You can adjust this in manual entry if needed
                 </Text>
               </View>
             )}
 
-            {/* Coordinates Display - Only for city picker mode */}
-            {!showManualLocationEntry && (birthLat && birthLon) && (
+            {/* Coordinates Display - Only when location selected */}
+            {!showManualLocationEntry && selectedLocation && birthLat && birthLon && (
               <View style={styles.coordinatesDisplay}>
-                <Text style={styles.coordinatesLabel}>Coordinates (auto-filled):</Text>
+                <Text style={styles.coordinatesLabel}>Coordinates:</Text>
                 <Text style={styles.coordinatesValue}>
                   {parseFloat(birthLat).toFixed(4)}°, {parseFloat(birthLon).toFixed(4)}°
                 </Text>
