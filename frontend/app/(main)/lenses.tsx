@@ -85,6 +85,21 @@ interface PersonalizedHDInsights {
   };
 }
 
+interface PersonalizedNumerologyInsights {
+  has_personalization: boolean;
+  life_path_insight?: string;
+  expression_insight?: string;
+  soul_urge_insight?: string;
+  personal_year_insight?: string;
+  integration_reflection?: string;
+  elements?: {
+    life_path: number;
+    expression?: number;
+    soul_urge?: number;
+    personal_year?: number;
+  };
+}
+
 interface HumanDesignProfile {
   has_profile: boolean;
   profile?: {
@@ -95,6 +110,18 @@ interface HumanDesignProfile {
     definition?: string;
     not_self_theme?: string;
     signature?: string;
+  };
+}
+
+interface NumerologyProfile {
+  has_profile: boolean;
+  profile?: {
+    life_path: number;
+    expression?: number;
+    soul_urge?: number;
+    personality?: number;
+    birthday?: number;
+    personal_year?: number;
   };
 }
 
@@ -118,7 +145,7 @@ interface LensDetail extends Lens {
     important_note?: string;
     invitation: string;
   };
-  personalized_insights?: PersonalizedAstrologyInsights | PersonalizedHDInsights;
+  personalized_insights?: PersonalizedAstrologyInsights | PersonalizedHDInsights | PersonalizedNumerologyInsights;
 }
 
 interface ChatMessage {
