@@ -301,6 +301,8 @@ export default function Lenses() {
     setChatMessages([]);
     setChatInput('');
     setExpandedModuleId(null);
+    setAstrologyProfile(null);
+    setHdProfile(null);
   };
 
   const handleViewSnapshot = () => {
