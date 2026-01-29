@@ -1241,58 +1241,72 @@ export default function Lenses() {
                         </View>
                       )}
 
-                      {/* Your Sidereal Profile - At the TOP, before any explanatory text */}
+                      {/* Your Sidereal Profile - SINGLE SOURCE OF TRUTH from user.computed_profile.astrology */}
                       {selectedLens.id === 'true-sidereal-astrology' && (
                         <View style={styles.siderealProfileContainer}>
                           <Text style={styles.siderealProfileTitle}>Your Sidereal Profile</Text>
-                          {loadingAstrologyProfile ? (
-                            <ActivityIndicator size="small" color={COLORS.accent} style={{ marginVertical: SPACING.md }} />
-                          ) : (userAstrologyProfile?.positions || (astrologyProfile?.has_profile && astrologyProfile.profile)) ? (
+                          {userAstrologyProfile?.positions ? (
                             <View style={styles.siderealProfileContent}>
                               <View style={styles.siderealProfileGrid}>
                                 <View style={styles.siderealProfileItem}>
                                   <Text style={styles.siderealProfileLabel}>Sun</Text>
                                   <Text style={styles.siderealProfileSign}>
-                                    {userAstrologyProfile?.positions?.sun?.sign || astrologyProfile?.profile?.positions.sun.sign}
+                                    {userAstrologyProfile.positions.sun?.sign}
                                   </Text>
                                   <Text style={styles.siderealProfileDegree}>
-                                    {userAstrologyProfile?.positions?.sun?.degree ?? astrologyProfile?.profile?.positions.sun.degree}°
-                                    {userAstrologyProfile?.positions?.sun?.minutes ?? astrologyProfile?.profile?.positions.sun.minutes}'
+                                    {userAstrologyProfile.positions.sun?.degree}°
+                                    {userAstrologyProfile.positions.sun?.minutes}'
                                   </Text>
                                 </View>
                                 <View style={styles.siderealProfileItem}>
                                   <Text style={styles.siderealProfileLabel}>Moon</Text>
                                   <Text style={styles.siderealProfileSign}>
-                                    {userAstrologyProfile?.positions?.moon?.sign || astrologyProfile?.profile?.positions.moon.sign}
+                                    {userAstrologyProfile.positions.moon?.sign}
                                   </Text>
                                   <Text style={styles.siderealProfileDegree}>
-                                    {userAstrologyProfile?.positions?.moon?.degree ?? astrologyProfile?.profile?.positions.moon.degree}°
-                                    {userAstrologyProfile?.positions?.moon?.minutes ?? astrologyProfile?.profile?.positions.moon.minutes}'
+                                    {userAstrologyProfile.positions.moon?.degree}°
+                                    {userAstrologyProfile.positions.moon?.minutes}'
                                   </Text>
                                 </View>
                                 <View style={styles.siderealProfileItem}>
                                   <Text style={styles.siderealProfileLabel}>Ascendant</Text>
                                   <Text style={styles.siderealProfileSign}>
-                                    {userAstrologyProfile?.positions?.ascendant?.sign || astrologyProfile?.profile?.positions.ascendant.sign}
+                                    {userAstrologyProfile.positions.ascendant?.sign}
                                   </Text>
                                   <Text style={styles.siderealProfileDegree}>
-                                    {userAstrologyProfile?.positions?.ascendant?.degree ?? astrologyProfile?.profile?.positions.ascendant.degree}°
-                                    {userAstrologyProfile?.positions?.ascendant?.minutes ?? astrologyProfile?.profile?.positions.ascendant.minutes}'
+                                    {userAstrologyProfile.positions.ascendant?.degree}°
+                                    {userAstrologyProfile.positions.ascendant?.minutes}'
                                   </Text>
                                 </View>
                               </View>
                               <Text style={styles.siderealProfileAyanamsa}>
-                                {(userAstrologyProfile?.ayanamsa || astrologyProfile?.profile?.ayanamsa || 'FAGAN_BRADLEY').replace('_', '-')} ayanamsa
+                                {(userAstrologyProfile.ayanamsa || 'FAGAN_BRADLEY').replace('_', '-')} ayanamsa
+                              </Text>
+                              <Text style={styles.siderealProfileSource}>
+                                Source: user.computed_profile.astrology (persisted)
                               </Text>
                             </View>
                           ) : (
                             <View style={styles.siderealProfileEmpty}>
+                              <Ionicons name="planet-outline" size={32} color={COLORS.secondary} style={{ marginBottom: SPACING.sm }} />
                               <Text style={styles.siderealProfileEmptyText}>
-                                No birth data computed
+                                {userBirthData ? 'Birth data saved but not yet computed' : 'No birth data in user record'}
                               </Text>
                               <Text style={styles.siderealProfileEmptyHint}>
-                                Enter your birth details to see your sidereal placements
+                                {userBirthData 
+                                  ? 'Tap "Run Sidereal Compute Now" in Debug panel to compute your chart'
+                                  : 'Add your birth details to see your sidereal placements'
+                                }
                               </Text>
+                              <TouchableOpacity 
+                                style={styles.siderealProfileCTA}
+                                onPress={openBirthDetailsModal}
+                              >
+                                <Ionicons name="add-circle-outline" size={18} color={COLORS.white} />
+                                <Text style={styles.siderealProfileCTAText}>
+                                  {userBirthData ? 'Edit Birth Details' : 'Add Birth Details'}
+                                </Text>
+                              </TouchableOpacity>
                             </View>
                           )}
                         </View>
