@@ -192,7 +192,7 @@ const ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
 type ViewMode = 'summary' | 'snapshot' | 'deepdive';
 
 export default function Lenses() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [lenses, setLenses] = useState<Lens[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
