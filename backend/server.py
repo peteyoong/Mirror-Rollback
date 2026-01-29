@@ -1357,7 +1357,7 @@ async def complete_onboarding(answers: OnboardingAnswers, user = Depends(get_cur
                 "formatted": f"{asc_sign} {asc_deg}°{asc_min}'"
             }
             
-            # Store the computed profile
+            # Store the computed profile in separate collection
             profile_data = {
                 "user_id": user["id"],
                 "birth_datetime_local": answers.birth_datetime_local,
@@ -1375,6 +1375,20 @@ async def complete_onboarding(answers: OnboardingAnswers, user = Depends(get_cur
                 {"user_id": user["id"]},
                 {"$set": profile_data},
                 upsert=True
+            )
+            
+            # ALSO store in user record under computed_profile.astrology
+            astrology_profile_for_user = {
+                "ayanamsa": ayanamsa_key,
+                "positions": positions,
+                "birth_datetime_local": answers.birth_datetime_local,
+                "latitude": answers.latitude,
+                "longitude": answers.longitude,
+                "computed_at": datetime.utcnow().isoformat()
+            }
+            await db.users.update_one(
+                {"id": user["id"]},
+                {"$set": {"computed_profile.astrology": astrology_profile_for_user}}
             )
             
             logger.info(f"Auto-computed sidereal profile for user {user['id']} after onboarding")
