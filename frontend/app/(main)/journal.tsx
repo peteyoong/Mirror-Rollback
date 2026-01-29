@@ -49,6 +49,7 @@ export default function Journal() {
   const [chatInput, setChatInput] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
+  const [showChatOptions, setShowChatOptions] = useState(false);
   const chatScrollRef = useRef<ScrollView>(null);
 
   const fetchEntries = useCallback(async () => {
