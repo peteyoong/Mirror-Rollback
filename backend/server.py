@@ -1315,14 +1315,24 @@ async def save_birth_data(data: BirthDataInput, user = Depends(get_current_user)
 # Onboarding Routes
 @api_router.post("/onboarding/complete")
 async def complete_onboarding(answers: OnboardingAnswers, user = Depends(get_current_user)):
+    update_data = {
+        "onboarding_completed": True,
+        "onboarding_answers": answers.dict()
+    }
+    
+    # If birth data provided, also save it separately for future compute
+    if answers.birth_datetime_local and answers.latitude and answers.longitude and answers.tz_offset_minutes is not None:
+        update_data["birth_data"] = {
+            "birth_datetime_local": answers.birth_datetime_local,
+            "tz_offset_minutes": answers.tz_offset_minutes,
+            "latitude": answers.latitude,
+            "longitude": answers.longitude,
+            "updated_at": datetime.utcnow().isoformat()
+        }
+    
     await db.users.update_one(
         {"id": user["id"]},
-        {
-            "$set": {
-                "onboarding_completed": True,
-                "onboarding_answers": answers.dict()
-            }
-        }
+        {"$set": update_data}
     )
     
     # Automatically compute sidereal profile if birth data is provided
