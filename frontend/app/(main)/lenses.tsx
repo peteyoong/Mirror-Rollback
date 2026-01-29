@@ -881,11 +881,11 @@ export default function Lenses() {
                         selectedLens?.id === 'true-sidereal-astrology'
                           ? "Ask about your sidereal profile, or how it shows up in your life…"
                           : selectedLens?.id === 'human-design'
-                          ? "Ask about a concept, or explore how it applies to you…"
+                          ? "Ask about your Human Design, or how it shows up in your life…"
                           : selectedLens?.id === 'numerology'
-                          ? "Ask about number themes, or how they might show up for you…"
+                          ? "Ask about your numbers, or how they show up in your life…"
                           : selectedLens?.id === 'levels-of-consciousness'
-                          ? "Ask about a stage, or explore your own experience…"
+                          ? "Ask about a stage, or how it shows up in your experience…"
                           : "Ask a question…"
                       }
                       placeholderTextColor={COLORS.secondary}
