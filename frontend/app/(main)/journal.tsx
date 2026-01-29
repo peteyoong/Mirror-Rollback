@@ -385,32 +385,32 @@ export default function Journal() {
                   <Ionicons name="sparkles-outline" size={48} color={COLORS.border} />
                   <Text style={styles.chatEmptyTitle}>Start a conversation</Text>
                   <Text style={styles.chatEmptySubtitle}>
-                    I can help you see patterns across your journals, reflections, and framework explorations.
+                    I can help you notice patterns across your journals, reflections, and framework explorations.
                   </Text>
                   <View style={styles.chatSuggestions}>
                     <Text style={styles.chatSuggestionsTitle}>Try asking:</Text>
                     <TouchableOpacity
                       style={styles.chatSuggestion}
-                      onPress={() => setChatInput("What themes have been showing up in my recent reflections?")}
+                      onPress={() => setChatInput("What patterns seem to be forming in what I've been reflecting on?")}
                     >
                       <Text style={styles.chatSuggestionText}>
-                        "What themes have been showing up in my recent reflections?"
+                        "What patterns seem to be forming in what I've been reflecting on?"
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.chatSuggestion}
-                      onPress={() => setChatInput("Is there a pattern in what I've been journaling about?")}
+                      onPress={() => setChatInput("Can you connect a few threads from my recent entries?")}
                     >
                       <Text style={styles.chatSuggestionText}>
-                        "Is there a pattern in what I've been journaling about?"
+                        "Can you connect a few threads from my recent entries?"
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.chatSuggestion}
-                      onPress={() => setChatInput("Help me connect the dots across what I've been exploring.")}
+                      onPress={() => setChatInput("What might I be circling around lately?")}
                     >
                       <Text style={styles.chatSuggestionText}>
-                        "Help me connect the dots across what I've been exploring."
+                        "What might I be circling around lately?"
                       </Text>
                     </TouchableOpacity>
                   </View>
