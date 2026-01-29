@@ -219,6 +219,18 @@ backend:
         agent: "main"
         comment: "Implemented GET/POST/DELETE /api/journal/chat endpoints. Journal-anchored chat that draws from all lenses, journals, reflections, and onboarding context for holistic sense-making."
 
+  - task: "Birth Details Flow APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Complete Birth Details Flow working perfectly. Comprehensive testing completed: 1) POST /api/user/birth-data successfully saves birth data with success: true response and correct birth_data object containing birth_datetime_local, tz_offset_minutes, latitude, longitude. 2) POST /api/computed-profile/astrology successfully computes sidereal astrology profile using FAGAN_BRADLEY ayanamsa, returns has_profile: true with accurate positions for Sun (Pisces 5°36'), Moon (Aquarius 28°3'), and Ascendant (Cancer 23°31'). 3) GET /api/auth/me correctly returns user record with both birth_data and computed_profile.astrology persisted. All 36/36 test assertions passed. Swiss Ephemeris integration working correctly. No critical issues found."
+
   - task: "Lens Chat APIs"
     implemented: true
     working: true
