@@ -1206,30 +1206,30 @@ export default function Lenses() {
                         <Text style={styles.computedProfileBlockTitle}>Your Sidereal Profile (Computed)</Text>
                         {loadingAstrologyProfile ? (
                           <ActivityIndicator size="small" color={COLORS.accent} />
-                        ) : astrologyProfile?.has_profile && astrologyProfile.positions ? (
+                        ) : astrologyProfile?.has_profile && astrologyProfile.profile?.positions ? (
                           <View style={styles.computedProfileBlockContent}>
                             <View style={styles.computedProfileRow}>
                               <Text style={styles.computedProfileLabel}>Sun:</Text>
                               <Text style={styles.computedProfileValue}>
-                                {astrologyProfile.positions.sun?.formatted || 'N/A'}
+                                {astrologyProfile.profile.positions.sun?.formatted || 'N/A'}
                               </Text>
                             </View>
                             <View style={styles.computedProfileRow}>
                               <Text style={styles.computedProfileLabel}>Moon:</Text>
                               <Text style={styles.computedProfileValue}>
-                                {astrologyProfile.positions.moon?.formatted || 'N/A'}
+                                {astrologyProfile.profile.positions.moon?.formatted || 'N/A'}
                               </Text>
                             </View>
                             <View style={styles.computedProfileRow}>
                               <Text style={styles.computedProfileLabel}>Ascendant:</Text>
                               <Text style={styles.computedProfileValue}>
-                                {astrologyProfile.positions.ascendant?.formatted || 'N/A'}
+                                {astrologyProfile.profile.positions.ascendant?.formatted || 'N/A'}
                               </Text>
                             </View>
                             <View style={styles.computedProfileRow}>
                               <Text style={styles.computedProfileLabel}>Ayanamsa:</Text>
                               <Text style={styles.computedProfileValue}>
-                                {astrologyProfile.profile?.ayanamsa?.replace('_', '-') || 'N/A'}
+                                {astrologyProfile.profile.ayanamsa?.replace('_', '-') || 'N/A'}
                               </Text>
                             </View>
                           </View>
