@@ -2945,16 +2945,18 @@ async def send_lens_chat_message(lens_id: str, chat_input: ChatMessageInput, use
             except Exception:
                 lens_context.append("\nUSER'S COMPUTED SNAPSHOT: Not available")
             
-            # 2.5. COMPUTED ASTROLOGY PROFILE (for True Sidereal Astrology lens only)
+            # 2.5. COMPUTED ASTROLOGY PROFILE (SINGLE SOURCE OF TRUTH: user.computed_profile.astrology)
             if lens_key == "astrology":
                 try:
-                    astro_profile = await db.computed_profiles_astrology.find_one({
-                        "user_id": user["id"]
-                    })
+                    # Fetch user with computed_profile from single source of truth
+                    user_record = await db.users.find_one({"id": user["id"]})
+                    astro_profile = user_record.get("computed_profile", {}).get("astrology") if user_record else None
+                    
                     if astro_profile and astro_profile.get("positions"):
                         positions = astro_profile["positions"]
                         ayanamsa = astro_profile.get("ayanamsa", "FAGAN_BRADLEY")
                         lens_context.append("\n=== USER'S COMPUTED ASTROLOGY PROFILE (DETERMINISTIC) ===")
+                        lens_context.append("SOURCE: user.computed_profile.astrology (persisted in user record)")
                         lens_context.append(f"Ayanamsa System: {ayanamsa.replace('_', '-')}")
                         lens_context.append(f"Computation Type: True Sidereal (NOT Tropical)")
                         lens_context.append("BIRTH DATA STATUS: AVAILABLE - User has computed their sidereal chart")
@@ -2976,9 +2978,15 @@ async def send_lens_chat_message(lens_id: str, chat_input: ChatMessageInput, use
                         lens_context.append("Tropical positions would typically be ~24° ahead (roughly one sign).")
                         lens_context.append("=== END COMPUTED ASTROLOGY PROFILE ===")
                     else:
+                        # Check if birth data exists but compute hasn't run
+                        birth_data = user_record.get("birth_data") if user_record else None
                         lens_context.append("\n=== USER'S COMPUTED ASTROLOGY PROFILE ===")
-                        lens_context.append("STATUS: No birth data computed yet")
-                        lens_context.append("If user asks about their placements, explain they need to enter birth data first.")
+                        if birth_data:
+                            lens_context.append("STATUS: Birth data saved but sidereal chart not yet computed")
+                            lens_context.append("If user asks about their placements, explain they need to run the compute first.")
+                        else:
+                            lens_context.append("STATUS: No birth data in user record")
+                            lens_context.append("If user asks about their placements, explain they need to enter birth data first.")
                         lens_context.append("You can still discuss general True Sidereal astrology concepts.")
                         lens_context.append("=== END COMPUTED ASTROLOGY PROFILE ===")
                 except Exception as e:
