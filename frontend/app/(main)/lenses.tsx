@@ -604,6 +604,35 @@ export default function Lenses() {
                         </View>
                       )}
 
+                      {/* Learn Over Time Section - Only for Human Design */}
+                      {selectedLens.deep_dive.learn_over_time && (
+                        <View style={styles.learnOverTimeContainer}>
+                          <Text style={styles.learnOverTimeTitle}>Learn Over Time</Text>
+                          <Text style={styles.learnOverTimeIntro}>
+                            {selectedLens.deep_dive.learn_over_time.intro}
+                          </Text>
+                          
+                          <View style={styles.modulesContainer}>
+                            {selectedLens.deep_dive.learn_over_time.modules.map(renderModule)}
+                          </View>
+                          
+                          {/* Optional Advanced Lens */}
+                          {selectedLens.deep_dive.learn_over_time.advanced_lens && (
+                            <View style={styles.advancedLensContainer}>
+                              <Text style={styles.advancedLensTitle}>
+                                {selectedLens.deep_dive.learn_over_time.advanced_lens.title}
+                              </Text>
+                              <Text style={styles.advancedLensDescription}>
+                                {selectedLens.deep_dive.learn_over_time.advanced_lens.description}
+                              </Text>
+                              <Text style={styles.advancedLensNote}>
+                                {selectedLens.deep_dive.learn_over_time.advanced_lens.note}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      )}
+
                       {selectedLens.deep_dive.reflection_themes && selectedLens.deep_dive.reflection_themes.length > 0 && (
                         <View style={styles.reflectionThemesContainer}>
                           <Text style={styles.themesLabel}>Reflection Themes</Text>
