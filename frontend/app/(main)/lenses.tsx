@@ -187,6 +187,10 @@ export default function Lenses() {
   // Astrology computed profile state
   const [astrologyProfile, setAstrologyProfile] = useState<AstrologyProfile | null>(null);
   const [loadingAstrologyProfile, setLoadingAstrologyProfile] = useState(false);
+  
+  // Human Design profile state
+  const [hdProfile, setHdProfile] = useState<HumanDesignProfile | null>(null);
+  const [loadingHdProfile, setLoadingHdProfile] = useState(false);
 
   const fetchLenses = useCallback(async () => {
     try {
