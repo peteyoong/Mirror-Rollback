@@ -34,6 +34,28 @@ interface StructuredElement {
   patterns_to_observe: string;
 }
 
+interface LearnModule {
+  id: number;
+  title: string;
+  subtitle: string;
+  narrative: string;
+  examples: string[];
+  reflective_question: string;
+  experiment: string;
+}
+
+interface AdvancedLens {
+  title: string;
+  description: string;
+  note: string;
+}
+
+interface LearnOverTime {
+  intro: string;
+  modules: LearnModule[];
+  advanced_lens?: AdvancedLens;
+}
+
 interface LensDetail extends Lens {
   deep_dive: {
     description: string;
@@ -49,6 +71,7 @@ interface LensDetail extends Lens {
       incarnation_cross?: StructuredElement;
       not_self_and_signature?: StructuredElement;
     };
+    learn_over_time?: LearnOverTime;
     how_mirror_uses_this?: string;
     important_note?: string;
     invitation: string;
