@@ -86,6 +86,27 @@ interface ChatMessage {
   created_at: string;
 }
 
+interface AstrologyPosition {
+  name: string;
+  sign: string;
+  degree: number;
+  minutes: number;
+  formatted: string;
+}
+
+interface AstrologyProfile {
+  has_profile: boolean;
+  profile?: {
+    positions: {
+      ascendant: AstrologyPosition;
+      sun: AstrologyPosition;
+      moon: AstrologyPosition;
+    };
+    ayanamsa: string;
+    location_name?: string;
+  };
+}
+
 const ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
   eye: 'eye-outline',
   body: 'body-outline',
