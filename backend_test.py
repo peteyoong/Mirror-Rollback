@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime
 
 # Base URL from frontend .env
-BASE_URL = "https://reflective-view.preview.emergentagent.com/api"
+BASE_URL = "https://mirror-insights.preview.emergentagent.com/api"
 
 class ProjectMirrorTester:
     def __init__(self):
