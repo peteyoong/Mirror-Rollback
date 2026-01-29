@@ -1497,6 +1497,18 @@ async def get_lens_detail(lens_id: str, user = Depends(get_current_user)):
         except Exception as e:
             logger.error(f"Failed to generate personalized astrology insights: {e}")
     
+    # For Human Design, add personalized insights based on HD profile
+    if lens_id == "human-design":
+        try:
+            hd_profile = await db.computed_profiles_hd.find_one({
+                "user_id": user["id"]
+            })
+            if hd_profile and hd_profile.get("type"):
+                personalized = await generate_personalized_hd_insights(hd_profile)
+                result["personalized_insights"] = personalized
+        except Exception as e:
+            logger.error(f"Failed to generate personalized HD insights: {e}")
+    
     return result
 
 async def generate_personalized_astrology_insights(astro_profile: dict) -> dict:
