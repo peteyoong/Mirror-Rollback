@@ -1305,12 +1305,14 @@ async def save_birth_data(data: BirthDataInput, user = Depends(get_current_user)
         "updated_at": datetime.utcnow().isoformat()
     }
     
-    await db.users.update_one(
+    result = await db.users.update_one(
         {"id": user["id"]},
         {"$set": {"birth_data": birth_data}}
     )
     
-    return {"success": True, "birth_data": birth_data}
+    logger.info(f"Birth data save result for user {user['id']}: matched={result.matched_count}, modified={result.modified_count}")
+    
+    return {"success": True, "birth_data": birth_data, "user_id": user["id"]}
 
 # Onboarding Routes
 @api_router.post("/onboarding/complete")
