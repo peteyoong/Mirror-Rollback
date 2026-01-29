@@ -1389,7 +1389,7 @@ async def complete_onboarding(answers: OnboardingAnswers, user = Depends(get_cur
             }
             await db.users.update_one(
                 {"id": user["id"]},
-                {"$set": {"computed_profile.astrology": astrology_profile_for_user}}
+                {"$set": {"computed_profile": {"astrology": astrology_profile_for_user}}}
             )
             
             logger.info(f"Auto-computed sidereal profile for user {user['id']} after onboarding")
