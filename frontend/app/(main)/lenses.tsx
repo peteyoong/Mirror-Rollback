@@ -1627,6 +1627,72 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     marginTop: 4,
   },
+  // Personalized Insights Styles
+  personalizedInsightsContainer: {
+    marginBottom: SPACING.lg,
+  },
+  personalizedInsightsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.primary,
+    marginBottom: SPACING.md,
+  },
+  personalizedInsightCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.accent,
+  },
+  personalizedInsightHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.xs,
+  },
+  personalizedInsightPlanet: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  personalizedInsightSign: {
+    fontSize: 13,
+    color: COLORS.accent,
+    fontWeight: '500',
+  },
+  personalizedInsightText: {
+    fontSize: 15,
+    color: COLORS.secondary,
+    lineHeight: 22,
+  },
+  personalizedInsightBalance: {
+    backgroundColor: '#F5F8F3',
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    marginTop: SPACING.sm,
+  },
+  personalizedInsightBalanceText: {
+    fontSize: 14,
+    color: COLORS.primary,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  personalizedInsightQuestion: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#FFF9E6',
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    marginTop: SPACING.sm,
+    gap: SPACING.sm,
+  },
+  personalizedInsightQuestionText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#6B5A45',
+    lineHeight: 20,
+  },
   // Legacy Your Details styles (can be removed if not used elsewhere)
   yourDetailsContainer: {
     marginTop: SPACING.lg,
