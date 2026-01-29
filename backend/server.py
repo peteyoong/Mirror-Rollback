@@ -2027,6 +2027,99 @@ async def clear_lens_chat_history(lens_id: str, user = Depends(get_current_user)
 
 # ============== Integrative Chat (Journal-Anchored) ==============
 
+# Theme Extraction System Prompt - for Mirror feedback loop
+THEME_EXTRACTION_PROMPT = """You are analyzing a user's recent Integrate conversations to extract recurring themes.
+
+Your job is to identify 2-4 core themes that keep emerging, WITHOUT using any framework-specific language.
+
+OUTPUT FORMAT (strict JSON):
+{
+  "themes": [
+    {
+      "theme": "A brief, framework-free description of the theme (5-10 words)",
+      "tension": "The underlying tension or question (optional)",
+      "mirror_angle": "A present-moment angle for future reflection (no reference to past conversations)"
+    }
+  ],
+  "updated_at": "ISO timestamp"
+}
+
+RULES:
+1. NO framework language (no Human Design, astrology, numerology, consciousness levels)
+2. Use universal human language: timing, patience, alignment, energy, decisions, relationships, etc.
+3. Each theme should be translatable into a fresh, present-moment reflection
+4. Focus on TENSIONS and QUESTIONS, not conclusions
+5. Maximum 4 themes
+
+Example themes:
+- "tension between urgency and waiting for clarity"
+- "navigating what others expect vs what feels true"
+- "finding sustainable rhythms in work and rest"
+- "trusting body signals in decision-making"
+
+Respond ONLY with valid JSON."""
+
+async def extract_and_store_user_themes(user_id: str):
+    """Extract recurring themes from Integrate chats and store for Mirror feedback loop"""
+    
+    if not EMERGENT_LLM_KEY:
+        return
+    
+    try:
+        # Get recent Integrate messages (last 20)
+        recent_messages = await db.integrative_chat_messages.find({
+            "user_id": user_id
+        }).sort("created_at", -1).limit(20).to_list(20)
+        
+        if len(recent_messages) < 4:  # Need enough conversation to extract themes
+            return
+        
+        # Build conversation summary for theme extraction
+        conversation_text = []
+        for msg in reversed(recent_messages):  # Chronological order
+            role = "User" if msg['role'] == 'user' else "Mirror"
+            conversation_text.append(f"{role}: {msg['message_text'][:300]}")
+        
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"theme-extraction-{user_id[:8]}",
+            system_message=THEME_EXTRACTION_PROMPT
+        ).with_model("openai", "gpt-4o")
+        
+        user_prompt = f"""Analyze this recent Integrate conversation and extract recurring themes:
+
+{chr(10).join(conversation_text)}
+
+Extract 2-4 core themes that could inform future Mirror reflections (without ever referencing these conversations directly)."""
+        
+        response = await chat.send_message(UserMessage(text=user_prompt))
+        
+        # Parse response
+        response_text = response.strip()
+        if response_text.startswith("```"):
+            response_text = response_text.split("```")[1]
+            if response_text.startswith("json"):
+                response_text = response_text[4:]
+        response_text = response_text.strip()
+        
+        themes_data = json.loads(response_text)
+        themes_data["user_id"] = user_id
+        themes_data["updated_at"] = datetime.utcnow()
+        
+        # Upsert themes
+        await db.user_themes.update_one(
+            {"user_id": user_id},
+            {"$set": themes_data},
+            upsert=True
+        )
+        
+        logger.info(f"Extracted {len(themes_data.get('themes', []))} themes for user {user_id[:8]}")
+        
+    except Exception as e:
+        logger.error(f"Theme extraction failed: {e}")
+
 INTEGRATIVE_CHAT_PROMPT = """You are Project Mirror — Integrate Mode.
 
 Your role is to help the user make sense of their lived experience over time.
