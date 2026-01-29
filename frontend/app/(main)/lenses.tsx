@@ -116,6 +116,9 @@ export default function Lenses() {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
   const chatScrollRef = useRef<ScrollView>(null);
+  
+  // Module expansion state
+  const [expandedModuleId, setExpandedModuleId] = useState<number | null>(null);
 
   const fetchLenses = useCallback(async () => {
     try {
