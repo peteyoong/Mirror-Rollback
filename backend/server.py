@@ -1759,6 +1759,7 @@ async def send_lens_chat_message(lens_id: str, chat_input: ChatMessageInput, use
                 lens_context.append("\nONBOARDING ANSWERS: Not completed")
             
             # 4. Recent journal entries (last 1-3)
+            recent_journals = []
             try:
                 recent_journals = await db.journal_entries.find(
                     {"user_id": user["id"]}
@@ -1776,10 +1777,18 @@ async def send_lens_chat_message(lens_id: str, chat_input: ChatMessageInput, use
             except Exception:
                 lens_context.append("\nRECENT JOURNAL ENTRIES: Unable to retrieve")
             
+            # 5. Dynamic Depth Inference (internal - not shown to user)
+            depth_result = await infer_interaction_depth(
+                user=user,
+                current_message=chat_input.message,
+                recent_journals=recent_journals
+            )
+            
             lens_context.append("=== END LENS CONTEXT HEADER ===\n")
             
-            # Build system prompt with lens-specific guidance
+            # Build system prompt with lens-specific guidance AND depth adaptation
             system_prompt = LENS_CHAT_PROMPTS.get(lens_key, LENS_CHAT_BASE_PROMPT.format(lens_name=lens['title']))
+            system_prompt += "\n" + depth_result.get_adaptation_instructions()
             
             # Build user prompt with full context and history
             user_prompt_parts = ["\n".join(lens_context)]
