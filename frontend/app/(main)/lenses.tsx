@@ -1206,10 +1206,38 @@ export default function Lenses() {
                 {viewMode === 'deepdive' && (
                   <>
                     {/* Computed Profile Block - Above Chat for Astrology */}
+                    {/* Reads directly from user.computed_profile.astrology */}
                     {selectedLens?.id === 'true-sidereal-astrology' && (
                       <View style={styles.computedProfileBlock}>
                         <Text style={styles.computedProfileBlockTitle}>Your Sidereal Profile (Computed)</Text>
-                        {loadingAstrologyProfile ? (
+                        {userAstrologyProfile ? (
+                          <View style={styles.computedProfileBlockContent}>
+                            <View style={styles.computedProfileRow}>
+                              <Text style={styles.computedProfileLabel}>Sun:</Text>
+                              <Text style={styles.computedProfileValue}>
+                                {userAstrologyProfile.positions?.sun?.formatted || 'N/A'}
+                              </Text>
+                            </View>
+                            <View style={styles.computedProfileRow}>
+                              <Text style={styles.computedProfileLabel}>Moon:</Text>
+                              <Text style={styles.computedProfileValue}>
+                                {userAstrologyProfile.positions?.moon?.formatted || 'N/A'}
+                              </Text>
+                            </View>
+                            <View style={styles.computedProfileRow}>
+                              <Text style={styles.computedProfileLabel}>Ascendant:</Text>
+                              <Text style={styles.computedProfileValue}>
+                                {userAstrologyProfile.positions?.ascendant?.formatted || 'N/A'}
+                              </Text>
+                            </View>
+                            <View style={styles.computedProfileRow}>
+                              <Text style={styles.computedProfileLabel}>Ayanamsa:</Text>
+                              <Text style={styles.computedProfileValue}>
+                                {userAstrologyProfile.ayanamsa?.replace('_', '-') || 'N/A'}
+                              </Text>
+                            </View>
+                          </View>
+                        ) : loadingAstrologyProfile ? (
                           <ActivityIndicator size="small" color={COLORS.accent} />
                         ) : astrologyProfile?.has_profile && astrologyProfile.profile?.positions ? (
                           <View style={styles.computedProfileBlockContent}>
