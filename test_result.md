@@ -249,6 +249,18 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: All Human Design Profile APIs working correctly. Comprehensive testing completed: POST /api/computed-profile/human-design successfully saves complete HD profiles with all fields (type, strategy, authority, profile, definition, not_self_theme, signature). GET /api/computed-profile/human-design returns has_profile: false when no profile exists, has_profile: true with complete profile data after saving. DELETE /api/computed-profile/human-design successfully removes profiles. GET /api/lenses/human-design generates personalized_insights with has_personalization: true, includes type_insight, strategy_insight, authority_insight, and elements containing user's type, strategy, authority. Authentication properly required for all endpoints. Profile updates work correctly. All 52/53 test assertions passed - only minor text casing difference in authority description (expected behavior). APIs are fully functional."
 
+  - task: "Registration + Onboarding + Astrology Compute Flow"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Complete registration + onboarding + astrology compute flow working perfectly. Comprehensive testing completed: 1) User registration with email 'flowtest@example.com' successfully creates user and returns JWT token. 2) Login validates credentials and returns token. 3) POST /api/onboarding/complete with birth data (birth_datetime_local: '1990-05-15T10:30:00', tz_offset_minutes: -300, latitude: 40.7128, longitude: -74.0060) successfully saves onboarding answers AND automatically computes sidereal astrology profile. 4) GET /api/auth/me returns user with birth_data saved correctly AND computed_profile.astrology containing positions for Sun (Aries 29°55'), Moon (Capricorn 4°21'), and Ascendant (Cancer 19°24') using FAGAN_BRADLEY ayanamsa. 5) Astrology data persists correctly on subsequent calls. All 48/48 test assertions passed. The Swiss Ephemeris integration is working correctly and computing accurate sidereal positions."
+
 frontend:
   - task: "Welcome Screen"
     implemented: true
