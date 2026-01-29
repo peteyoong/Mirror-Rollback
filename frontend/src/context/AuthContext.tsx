@@ -29,6 +29,14 @@ interface ComputedProfile {
   numerology?: any;
 }
 
+interface BirthData {
+  birth_datetime_local: string;
+  tz_offset_minutes: number;
+  latitude: number;
+  longitude: number;
+  updated_at?: string;
+}
+
 interface User {
   id: string;
   email: string;
@@ -42,6 +50,7 @@ interface User {
     intention: string;
   };
   computed_profile?: ComputedProfile;
+  birth_data?: BirthData;
 }
 
 interface AuthContextType {
