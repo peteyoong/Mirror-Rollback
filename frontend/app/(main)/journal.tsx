@@ -255,14 +255,14 @@ export default function Journal() {
         </View>
       </View>
 
-      {/* Integrative Chat Banner */}
+      {/* Integrate Mode Banner */}
       <TouchableOpacity style={styles.chatBanner} onPress={openChat}>
         <View style={styles.chatBannerIcon}>
           <Ionicons name="sparkles" size={20} color={COLORS.accent} />
         </View>
         <View style={styles.chatBannerText}>
-          <Text style={styles.chatBannerTitle}>Integrative Chat</Text>
-          <Text style={styles.chatBannerSubtitle}>Connect patterns across your reflections</Text>
+          <Text style={styles.chatBannerTitle}>Integrate</Text>
+          <Text style={styles.chatBannerSubtitle}>Make sense of your experience over time</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={COLORS.secondary} />
       </TouchableOpacity>
