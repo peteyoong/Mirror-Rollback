@@ -192,6 +192,7 @@ export default function Lenses() {
     setSnapshot(null);
     setChatMessages([]);
     setChatInput('');
+    setExpandedModuleId(null);
   };
 
   const handleViewSnapshot = () => {
@@ -206,6 +207,15 @@ export default function Lenses() {
       fetchChatHistory(selectedLens.id);
     }
     setViewMode('deepdive');
+  };
+
+  const askAboutModule = (moduleTitle: string, moduleId: number) => {
+    const question = `Help me understand Module ${moduleId}: ${moduleTitle} with examples from work and relationships.`;
+    setChatInput(question);
+    // Scroll to chat section after a short delay
+    setTimeout(() => {
+      chatScrollRef.current?.scrollToEnd({ animated: true });
+    }, 200);
   };
 
   const sendChatMessage = async () => {
