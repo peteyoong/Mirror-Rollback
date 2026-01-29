@@ -939,6 +939,118 @@ export default function Lenses() {
                         </View>
                       )}
 
+                      {/* Your Numerology Profile - At the TOP of Numerology Deep Dive */}
+                      {selectedLens.id === 'numerology' && (
+                        <View style={styles.siderealProfileContainer}>
+                          <Text style={styles.siderealProfileTitle}>Your Numerology Profile</Text>
+                          {loadingNumerologyProfile ? (
+                            <ActivityIndicator size="small" color={COLORS.accent} style={{ marginVertical: SPACING.md }} />
+                          ) : numerologyProfile?.has_profile && numerologyProfile.profile ? (
+                            <View style={styles.siderealProfileContent}>
+                              <View style={styles.hdProfileGrid}>
+                                <View style={styles.hdProfileItem}>
+                                  <Text style={styles.hdProfileLabel}>Life Path</Text>
+                                  <Text style={styles.numerologyNumber}>{numerologyProfile.profile.life_path}</Text>
+                                </View>
+                                {numerologyProfile.profile.expression && (
+                                  <View style={styles.hdProfileItem}>
+                                    <Text style={styles.hdProfileLabel}>Expression</Text>
+                                    <Text style={styles.numerologyNumber}>{numerologyProfile.profile.expression}</Text>
+                                  </View>
+                                )}
+                                {numerologyProfile.profile.soul_urge && (
+                                  <View style={styles.hdProfileItem}>
+                                    <Text style={styles.hdProfileLabel}>Soul Urge</Text>
+                                    <Text style={styles.numerologyNumber}>{numerologyProfile.profile.soul_urge}</Text>
+                                  </View>
+                                )}
+                                {numerologyProfile.profile.personal_year && (
+                                  <View style={styles.hdProfileItem}>
+                                    <Text style={styles.hdProfileLabel}>Personal Year</Text>
+                                    <Text style={styles.numerologyNumber}>{numerologyProfile.profile.personal_year}</Text>
+                                  </View>
+                                )}
+                              </View>
+                            </View>
+                          ) : (
+                            <View style={styles.siderealProfileEmpty}>
+                              <Text style={styles.siderealProfileEmptyText}>
+                                No numerology data entered
+                              </Text>
+                              <Text style={styles.siderealProfileEmptyHint}>
+                                Enter your numerology numbers to see personalized insights
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      )}
+
+                      {/* Personalized Insights - Only for Numerology with profile */}
+                      {selectedLens.id === 'numerology' && selectedLens.personalized_insights?.has_personalization && (
+                        <View style={styles.personalizedInsightsContainer}>
+                          <Text style={styles.personalizedInsightsTitle}>Your Numbers at a Glance</Text>
+                          
+                          {(selectedLens.personalized_insights as PersonalizedNumerologyInsights).life_path_insight && (
+                            <View style={styles.personalizedInsightCard}>
+                              <View style={styles.personalizedInsightHeader}>
+                                <Text style={styles.personalizedInsightPlanet}># Life Path</Text>
+                                <Text style={styles.personalizedInsightSign}>
+                                  {(selectedLens.personalized_insights as PersonalizedNumerologyInsights).elements?.life_path}
+                                </Text>
+                              </View>
+                              <Text style={styles.personalizedInsightText}>
+                                {(selectedLens.personalized_insights as PersonalizedNumerologyInsights).life_path_insight}
+                              </Text>
+                            </View>
+                          )}
+                          
+                          {(selectedLens.personalized_insights as PersonalizedNumerologyInsights).expression_insight && (
+                            <View style={styles.personalizedInsightCard}>
+                              <View style={styles.personalizedInsightHeader}>
+                                <Text style={styles.personalizedInsightPlanet}># Expression</Text>
+                                <Text style={styles.personalizedInsightSign}>
+                                  {(selectedLens.personalized_insights as PersonalizedNumerologyInsights).elements?.expression}
+                                </Text>
+                              </View>
+                              <Text style={styles.personalizedInsightText}>
+                                {(selectedLens.personalized_insights as PersonalizedNumerologyInsights).expression_insight}
+                              </Text>
+                            </View>
+                          )}
+                          
+                          {(selectedLens.personalized_insights as PersonalizedNumerologyInsights).soul_urge_insight && (
+                            <View style={styles.personalizedInsightCard}>
+                              <View style={styles.personalizedInsightHeader}>
+                                <Text style={styles.personalizedInsightPlanet}># Soul Urge</Text>
+                                <Text style={styles.personalizedInsightSign}>
+                                  {(selectedLens.personalized_insights as PersonalizedNumerologyInsights).elements?.soul_urge}
+                                </Text>
+                              </View>
+                              <Text style={styles.personalizedInsightText}>
+                                {(selectedLens.personalized_insights as PersonalizedNumerologyInsights).soul_urge_insight}
+                              </Text>
+                            </View>
+                          )}
+                          
+                          {(selectedLens.personalized_insights as PersonalizedNumerologyInsights).personal_year_insight && (
+                            <View style={styles.personalizedInsightBalance}>
+                              <Text style={styles.personalizedInsightBalanceText}>
+                                {(selectedLens.personalized_insights as PersonalizedNumerologyInsights).personal_year_insight}
+                              </Text>
+                            </View>
+                          )}
+                          
+                          {(selectedLens.personalized_insights as PersonalizedNumerologyInsights).integration_reflection && (
+                            <View style={styles.personalizedInsightQuestion}>
+                              <Ionicons name="eye-outline" size={18} color={COLORS.accent} />
+                              <Text style={styles.personalizedInsightQuestionText}>
+                                {(selectedLens.personalized_insights as PersonalizedNumerologyInsights).integration_reflection}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      )}
+
                       <Text style={styles.deepDiveDescription}>
                         {selectedLens.deep_dive.description}
                       </Text>
