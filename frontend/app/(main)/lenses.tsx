@@ -524,272 +524,82 @@ export default function Lenses() {
     setLocationManuallyEdited(false); // Reset since user chose a preset
   };
 
-  // Comprehensive city database with coordinates and timezone offsets
-  const CITY_DATABASE: { [country: string]: Array<{ city: string; lat: number; lon: number; tz: number }> } = {
-    'United States': [
-      { city: 'New York', lat: 40.7128, lon: -74.0060, tz: -300 },
-      { city: 'Los Angeles', lat: 34.0522, lon: -118.2437, tz: -480 },
-      { city: 'Chicago', lat: 41.8781, lon: -87.6298, tz: -360 },
-      { city: 'Houston', lat: 29.7604, lon: -95.3698, tz: -360 },
-      { city: 'Phoenix', lat: 33.4484, lon: -112.0740, tz: -420 },
-      { city: 'San Francisco', lat: 37.7749, lon: -122.4194, tz: -480 },
-      { city: 'Seattle', lat: 47.6062, lon: -122.3321, tz: -480 },
-      { city: 'Miami', lat: 25.7617, lon: -80.1918, tz: -300 },
-      { city: 'Denver', lat: 39.7392, lon: -104.9903, tz: -420 },
-      { city: 'Boston', lat: 42.3601, lon: -71.0589, tz: -300 },
-      { city: 'Atlanta', lat: 33.7490, lon: -84.3880, tz: -300 },
-      { city: 'Dallas', lat: 32.7767, lon: -96.7970, tz: -360 },
-    ],
-    'United Kingdom': [
-      { city: 'London', lat: 51.5074, lon: -0.1278, tz: 0 },
-      { city: 'Manchester', lat: 53.4808, lon: -2.2426, tz: 0 },
-      { city: 'Birmingham', lat: 52.4862, lon: -1.8904, tz: 0 },
-      { city: 'Edinburgh', lat: 55.9533, lon: -3.1883, tz: 0 },
-      { city: 'Glasgow', lat: 55.8642, lon: -4.2518, tz: 0 },
-      { city: 'Liverpool', lat: 53.4084, lon: -2.9916, tz: 0 },
-    ],
-    'India': [
-      { city: 'Mumbai', lat: 19.0760, lon: 72.8777, tz: 330 },
-      { city: 'Delhi', lat: 28.7041, lon: 77.1025, tz: 330 },
-      { city: 'Bangalore', lat: 12.9716, lon: 77.5946, tz: 330 },
-      { city: 'Chennai', lat: 13.0827, lon: 80.2707, tz: 330 },
-      { city: 'Kolkata', lat: 22.5726, lon: 88.3639, tz: 330 },
-      { city: 'Hyderabad', lat: 17.3850, lon: 78.4867, tz: 330 },
-      { city: 'Pune', lat: 18.5204, lon: 73.8567, tz: 330 },
-      { city: 'Ahmedabad', lat: 23.0225, lon: 72.5714, tz: 330 },
-      { city: 'Jaipur', lat: 26.9124, lon: 75.7873, tz: 330 },
-    ],
-    'Canada': [
-      { city: 'Toronto', lat: 43.6532, lon: -79.3832, tz: -300 },
-      { city: 'Vancouver', lat: 49.2827, lon: -123.1207, tz: -480 },
-      { city: 'Montreal', lat: 45.5017, lon: -73.5673, tz: -300 },
-      { city: 'Calgary', lat: 51.0447, lon: -114.0719, tz: -420 },
-      { city: 'Ottawa', lat: 45.4215, lon: -75.6972, tz: -300 },
-      { city: 'Edmonton', lat: 53.5461, lon: -113.4938, tz: -420 },
-    ],
-    'Australia': [
-      { city: 'Sydney', lat: -33.8688, lon: 151.2093, tz: 600 },
-      { city: 'Melbourne', lat: -37.8136, lon: 144.9631, tz: 600 },
-      { city: 'Brisbane', lat: -27.4698, lon: 153.0251, tz: 600 },
-      { city: 'Perth', lat: -31.9505, lon: 115.8605, tz: 480 },
-      { city: 'Adelaide', lat: -34.9285, lon: 138.6007, tz: 570 },
-    ],
-    'Germany': [
-      { city: 'Berlin', lat: 52.5200, lon: 13.4050, tz: 60 },
-      { city: 'Munich', lat: 48.1351, lon: 11.5820, tz: 60 },
-      { city: 'Frankfurt', lat: 50.1109, lon: 8.6821, tz: 60 },
-      { city: 'Hamburg', lat: 53.5511, lon: 9.9937, tz: 60 },
-      { city: 'Cologne', lat: 50.9375, lon: 6.9603, tz: 60 },
-    ],
-    'France': [
-      { city: 'Paris', lat: 48.8566, lon: 2.3522, tz: 60 },
-      { city: 'Lyon', lat: 45.7640, lon: 4.8357, tz: 60 },
-      { city: 'Marseille', lat: 43.2965, lon: 5.3698, tz: 60 },
-      { city: 'Nice', lat: 43.7102, lon: 7.2620, tz: 60 },
-      { city: 'Bordeaux', lat: 44.8378, lon: -0.5792, tz: 60 },
-    ],
-    'Japan': [
-      { city: 'Tokyo', lat: 35.6762, lon: 139.6503, tz: 540 },
-      { city: 'Osaka', lat: 34.6937, lon: 135.5023, tz: 540 },
-      { city: 'Kyoto', lat: 35.0116, lon: 135.7681, tz: 540 },
-      { city: 'Yokohama', lat: 35.4437, lon: 139.6380, tz: 540 },
-      { city: 'Nagoya', lat: 35.1815, lon: 136.9066, tz: 540 },
-    ],
-    'China': [
-      { city: 'Beijing', lat: 39.9042, lon: 116.4074, tz: 480 },
-      { city: 'Shanghai', lat: 31.2304, lon: 121.4737, tz: 480 },
-      { city: 'Guangzhou', lat: 23.1291, lon: 113.2644, tz: 480 },
-      { city: 'Shenzhen', lat: 22.5431, lon: 114.0579, tz: 480 },
-      { city: 'Hong Kong', lat: 22.3193, lon: 114.1694, tz: 480 },
-    ],
-    'Brazil': [
-      { city: 'São Paulo', lat: -23.5505, lon: -46.6333, tz: -180 },
-      { city: 'Rio de Janeiro', lat: -22.9068, lon: -43.1729, tz: -180 },
-      { city: 'Brasília', lat: -15.8267, lon: -47.9218, tz: -180 },
-      { city: 'Salvador', lat: -12.9714, lon: -38.5014, tz: -180 },
-    ],
-    'Mexico': [
-      { city: 'Mexico City', lat: 19.4326, lon: -99.1332, tz: -360 },
-      { city: 'Guadalajara', lat: 20.6597, lon: -103.3496, tz: -360 },
-      { city: 'Monterrey', lat: 25.6866, lon: -100.3161, tz: -360 },
-      { city: 'Cancún', lat: 21.1619, lon: -86.8515, tz: -300 },
-    ],
-    'Spain': [
-      { city: 'Madrid', lat: 40.4168, lon: -3.7038, tz: 60 },
-      { city: 'Barcelona', lat: 41.3851, lon: 2.1734, tz: 60 },
-      { city: 'Valencia', lat: 39.4699, lon: -0.3763, tz: 60 },
-      { city: 'Seville', lat: 37.3891, lon: -5.9845, tz: 60 },
-    ],
-    'Italy': [
-      { city: 'Rome', lat: 41.9028, lon: 12.4964, tz: 60 },
-      { city: 'Milan', lat: 45.4642, lon: 9.1900, tz: 60 },
-      { city: 'Naples', lat: 40.8518, lon: 14.2681, tz: 60 },
-      { city: 'Florence', lat: 43.7696, lon: 11.2558, tz: 60 },
-      { city: 'Venice', lat: 45.4408, lon: 12.3155, tz: 60 },
-    ],
-    'South Korea': [
-      { city: 'Seoul', lat: 37.5665, lon: 126.9780, tz: 540 },
-      { city: 'Busan', lat: 35.1796, lon: 129.0756, tz: 540 },
-      { city: 'Incheon', lat: 37.4563, lon: 126.7052, tz: 540 },
-    ],
-    'Netherlands': [
-      { city: 'Amsterdam', lat: 52.3676, lon: 4.9041, tz: 60 },
-      { city: 'Rotterdam', lat: 51.9244, lon: 4.4777, tz: 60 },
-      { city: 'The Hague', lat: 52.0705, lon: 4.3007, tz: 60 },
-    ],
-    'Singapore': [
-      { city: 'Singapore', lat: 1.3521, lon: 103.8198, tz: 480 },
-    ],
-    'UAE': [
-      { city: 'Dubai', lat: 25.2048, lon: 55.2708, tz: 240 },
-      { city: 'Abu Dhabi', lat: 24.4539, lon: 54.3773, tz: 240 },
-    ],
-    'South Africa': [
-      { city: 'Johannesburg', lat: -26.2041, lon: 28.0473, tz: 120 },
-      { city: 'Cape Town', lat: -33.9249, lon: 18.4241, tz: 120 },
-      { city: 'Durban', lat: -29.8587, lon: 31.0218, tz: 120 },
-    ],
-    'Russia': [
-      { city: 'Moscow', lat: 55.7558, lon: 37.6173, tz: 180 },
-      { city: 'St. Petersburg', lat: 59.9343, lon: 30.3351, tz: 180 },
-    ],
-    'Philippines': [
-      { city: 'Manila', lat: 14.5995, lon: 120.9842, tz: 480 },
-      { city: 'Cebu City', lat: 10.3157, lon: 123.8854, tz: 480 },
-    ],
-    'Indonesia': [
-      { city: 'Jakarta', lat: -6.2088, lon: 106.8456, tz: 420 },
-      { city: 'Bali', lat: -8.3405, lon: 115.0920, tz: 480 },
-      { city: 'Surabaya', lat: -7.2575, lon: 112.7521, tz: 420 },
-    ],
-    'Thailand': [
-      { city: 'Bangkok', lat: 13.7563, lon: 100.5018, tz: 420 },
-      { city: 'Chiang Mai', lat: 18.7883, lon: 98.9853, tz: 420 },
-      { city: 'Phuket', lat: 7.8804, lon: 98.3923, tz: 420 },
-    ],
-    'Vietnam': [
-      { city: 'Ho Chi Minh City', lat: 10.8231, lon: 106.6297, tz: 420 },
-      { city: 'Hanoi', lat: 21.0278, lon: 105.8342, tz: 420 },
-    ],
-    'Pakistan': [
-      { city: 'Karachi', lat: 24.8607, lon: 67.0011, tz: 300 },
-      { city: 'Lahore', lat: 31.5497, lon: 74.3436, tz: 300 },
-      { city: 'Islamabad', lat: 33.6844, lon: 73.0479, tz: 300 },
-    ],
-    'Bangladesh': [
-      { city: 'Dhaka', lat: 23.8103, lon: 90.4125, tz: 360 },
-      { city: 'Chittagong', lat: 22.3569, lon: 91.7832, tz: 360 },
-    ],
-    'Nigeria': [
-      { city: 'Lagos', lat: 6.5244, lon: 3.3792, tz: 60 },
-      { city: 'Abuja', lat: 9.0765, lon: 7.3986, tz: 60 },
-    ],
-    'Egypt': [
-      { city: 'Cairo', lat: 30.0444, lon: 31.2357, tz: 120 },
-      { city: 'Alexandria', lat: 31.2001, lon: 29.9187, tz: 120 },
-    ],
-    'Turkey': [
-      { city: 'Istanbul', lat: 41.0082, lon: 28.9784, tz: 180 },
-      { city: 'Ankara', lat: 39.9334, lon: 32.8597, tz: 180 },
-      { city: 'Izmir', lat: 38.4237, lon: 27.1428, tz: 180 },
-    ],
-    'Poland': [
-      { city: 'Warsaw', lat: 52.2297, lon: 21.0122, tz: 60 },
-      { city: 'Krakow', lat: 50.0647, lon: 19.9450, tz: 60 },
-    ],
-    'Argentina': [
-      { city: 'Buenos Aires', lat: -34.6037, lon: -58.3816, tz: -180 },
-      { city: 'Córdoba', lat: -31.4201, lon: -64.1888, tz: -180 },
-    ],
-    'Colombia': [
-      { city: 'Bogotá', lat: 4.7110, lon: -74.0721, tz: -300 },
-      { city: 'Medellín', lat: 6.2476, lon: -75.5658, tz: -300 },
-    ],
-    'Chile': [
-      { city: 'Santiago', lat: -33.4489, lon: -70.6693, tz: -240 },
-    ],
-    'Peru': [
-      { city: 'Lima', lat: -12.0464, lon: -77.0428, tz: -300 },
-    ],
-    'New Zealand': [
-      { city: 'Auckland', lat: -36.8509, lon: 174.7645, tz: 720 },
-      { city: 'Wellington', lat: -41.2865, lon: 174.7762, tz: 720 },
-    ],
-    'Ireland': [
-      { city: 'Dublin', lat: 53.3498, lon: -6.2603, tz: 0 },
-      { city: 'Cork', lat: 51.8985, lon: -8.4756, tz: 0 },
-    ],
-    'Sweden': [
-      { city: 'Stockholm', lat: 59.3293, lon: 18.0686, tz: 60 },
-      { city: 'Gothenburg', lat: 57.7089, lon: 11.9746, tz: 60 },
-    ],
-    'Norway': [
-      { city: 'Oslo', lat: 59.9139, lon: 10.7522, tz: 60 },
-      { city: 'Bergen', lat: 60.3913, lon: 5.3221, tz: 60 },
-    ],
-    'Denmark': [
-      { city: 'Copenhagen', lat: 55.6761, lon: 12.5683, tz: 60 },
-    ],
-    'Finland': [
-      { city: 'Helsinki', lat: 60.1699, lon: 24.9384, tz: 120 },
-    ],
-    'Switzerland': [
-      { city: 'Zurich', lat: 47.3769, lon: 8.5417, tz: 60 },
-      { city: 'Geneva', lat: 46.2044, lon: 6.1432, tz: 60 },
-    ],
-    'Austria': [
-      { city: 'Vienna', lat: 48.2082, lon: 16.3738, tz: 60 },
-    ],
-    'Belgium': [
-      { city: 'Brussels', lat: 50.8503, lon: 4.3517, tz: 60 },
-    ],
-    'Portugal': [
-      { city: 'Lisbon', lat: 38.7223, lon: -9.1393, tz: 0 },
-      { city: 'Porto', lat: 41.1579, lon: -8.6291, tz: 0 },
-    ],
-    'Greece': [
-      { city: 'Athens', lat: 37.9838, lon: 23.7275, tz: 120 },
-      { city: 'Thessaloniki', lat: 40.6401, lon: 22.9444, tz: 120 },
-    ],
-    'Israel': [
-      { city: 'Tel Aviv', lat: 32.0853, lon: 34.7818, tz: 120 },
-      { city: 'Jerusalem', lat: 31.7683, lon: 35.2137, tz: 120 },
-    ],
-    'Saudi Arabia': [
-      { city: 'Riyadh', lat: 24.7136, lon: 46.6753, tz: 180 },
-      { city: 'Jeddah', lat: 21.4858, lon: 39.1925, tz: 180 },
-    ],
-    'Malaysia': [
-      { city: 'Kuala Lumpur', lat: 3.1390, lon: 101.6869, tz: 480 },
-    ],
-    'Sri Lanka': [
-      { city: 'Colombo', lat: 6.9271, lon: 79.8612, tz: 330 },
-    ],
-    'Nepal': [
-      { city: 'Kathmandu', lat: 27.7172, lon: 85.3240, tz: 345 },
-    ],
+  // Location search state (OpenStreetMap Nominatim)
+  const [locationSearch, setLocationSearch] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState<Array<{
+    display_name: string;
+    lat: string;
+    lon: string;
+    place_id: number;
+  }>>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<string>('');
+  const searchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  
+  // Search for locations using OpenStreetMap Nominatim API
+  const searchLocation = async (query: string) => {
+    if (query.length < 3) {
+      setLocationSuggestions([]);
+      return;
+    }
+    
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=8`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'ProjectMirror/1.0'
+          }
+        }
+      );
+      const data = await response.json();
+      setLocationSuggestions(data);
+    } catch (error) {
+      console.error('Location search failed:', error);
+      setLocationSuggestions([]);
+    } finally {
+      setIsSearching(false);
+    }
   };
   
-  // State for country/city selection
-  const [selectedCountry, setSelectedCountry] = useState<string>('');
-  const [selectedCity, setSelectedCity] = useState<string>('');
-  const [showCountryPicker, setShowCountryPicker] = useState(false);
-  const [showCityPicker, setShowCityPicker] = useState(false);
+  // Debounced search handler
+  const handleLocationSearchChange = (text: string) => {
+    setLocationSearch(text);
+    
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Debounce search by 500ms
+    searchTimeoutRef.current = setTimeout(() => {
+      searchLocation(text);
+    }, 500);
+  };
   
-  // Get sorted list of countries
-  const countries = Object.keys(CITY_DATABASE).sort();
+  // Calculate timezone offset from longitude (approximate)
+  const calculateTimezoneFromLon = (longitude: number): number => {
+    // Each 15 degrees of longitude = 1 hour (60 minutes)
+    // This is approximate but works for most cases
+    return Math.round(longitude / 15) * 60;
+  };
   
-  // Get cities for selected country
-  const citiesForCountry = selectedCountry ? CITY_DATABASE[selectedCountry] || [] : [];
-  
-  // Handle city selection - auto-fill lat, lon, and timezone
-  const handleCitySelection = (cityData: { city: string; lat: number; lon: number; tz: number }) => {
-    setSelectedCity(cityData.city);
-    setBirthLat(String(cityData.lat));
-    setBirthLon(String(cityData.lon));
-    setBirthTzOffset(String(cityData.tz));
-    setShowCityPicker(false);
+  // Handle location selection from suggestions
+  const handleLocationSelect = (location: { display_name: string; lat: string; lon: string }) => {
+    const lat = parseFloat(location.lat);
+    const lon = parseFloat(location.lon);
+    const tzOffset = calculateTimezoneFromLon(lon);
+    
+    setSelectedLocation(location.display_name);
+    setBirthLat(location.lat);
+    setBirthLon(location.lon);
+    setBirthTzOffset(String(tzOffset));
+    setLocationSearch('');
+    setLocationSuggestions([]);
     setLocationManuallyEdited(false);
+    setShowManualLocationEntry(false);
   };
   
   // Format timezone for display
