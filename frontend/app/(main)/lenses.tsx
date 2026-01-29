@@ -3264,6 +3264,49 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#166534',
   },
+  // Birth Modal Error Styles
+  birthModalErrorBox: {
+    backgroundColor: '#FEF2F2',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    marginBottom: SPACING.lg,
+  },
+  birthModalErrorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    marginBottom: SPACING.xs,
+  },
+  birthModalErrorTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#DC2626',
+  },
+  birthModalErrorMessage: {
+    fontSize: 13,
+    color: '#991B1B',
+    marginBottom: SPACING.xs,
+  },
+  birthModalErrorResponse: {
+    fontSize: 11,
+    color: '#7F1D1D',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    backgroundColor: '#FEE2E2',
+    padding: SPACING.sm,
+    borderRadius: BORDER_RADIUS.sm,
+    marginTop: SPACING.xs,
+  },
+  birthModalErrorDismiss: {
+    marginTop: SPACING.sm,
+    alignSelf: 'flex-end',
+  },
+  birthModalErrorDismissText: {
+    fontSize: 12,
+    color: '#DC2626',
+    fontWeight: '500',
+  },
   birthDetailsSaveButton: {
     backgroundColor: COLORS.accent,
     flexDirection: 'row',
