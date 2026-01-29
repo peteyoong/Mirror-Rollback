@@ -196,9 +196,21 @@ export default function OnboardingQuestions() {
       }
       
       await api.post('/onboarding/complete', submissionData);
-      if (user) {
-        updateUser({ ...user, onboarding_completed: true, onboarding_answers: submissionData as any });
+      
+      // Refetch the full user profile to get computed_profile and birth_data
+      // that were just computed on the backend
+      try {
+        const meResponse = await api.get('/auth/me');
+        if (meResponse.data) {
+          updateUser(meResponse.data);
+        }
+      } catch (refetchError) {
+        // Fallback to basic update if refetch fails
+        if (user) {
+          updateUser({ ...user, onboarding_completed: true, onboarding_answers: submissionData as any });
+        }
       }
+      
       router.replace('/(main)/mirror');
     } catch (error: any) {
       Alert.alert('Error', 'Failed to save your responses. Please try again.');
