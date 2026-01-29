@@ -688,7 +688,9 @@ export default function Lenses() {
     setSnapshot(null);
     setChatMessages([]);
     setChatInput('');
-    setAstrologyProfile(null);
+    // Reset status for new lens view
+    setSaveStatus(null);
+    setComputeStatus(null);
     setHdProfile(null);
     setNumerologyProfile(null);
     try {
@@ -696,10 +698,8 @@ export default function Lenses() {
       setSelectedLens(response.data);
       // Fetch chat history in background
       fetchChatHistory(lensId);
-      // Fetch astrology profile if this is the astrology lens
-      if (lensId === 'true-sidereal-astrology') {
-        fetchAstrologyProfile();
-      }
+      // NOTE: Astrology profile comes from user context (userAstrologyProfile)
+      // No separate fetch needed - single source of truth
       // Fetch HD profile if this is the human design lens
       if (lensId === 'human-design') {
         fetchHdProfile();
@@ -723,7 +723,8 @@ export default function Lenses() {
     setChatMessages([]);
     setChatInput('');
     setExpandedModuleId(null);
-    setAstrologyProfile(null);
+    setSaveStatus(null);
+    setComputeStatus(null);
     setHdProfile(null);
     setNumerologyProfile(null);
   };
