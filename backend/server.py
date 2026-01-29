@@ -354,6 +354,11 @@ class OnboardingAnswers(BaseModel):
     desired_depth: str           # Q3: How deep do you want to go in your reflections?
     uncertainty_relationship: str  # Q4: How do you relate to not knowing?
     intention: str               # Q5: What brings you here today?
+    # Birth data for sidereal compute
+    birth_datetime_local: Optional[str] = None  # ISO format birth datetime in local time
+    tz_offset_minutes: Optional[int] = None     # Timezone offset in minutes
+    latitude: Optional[float] = None            # Birth location latitude
+    longitude: Optional[float] = None           # Birth location longitude
 
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
