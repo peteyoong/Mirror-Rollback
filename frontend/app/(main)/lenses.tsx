@@ -213,6 +213,17 @@ export default function Lenses() {
   // Module expansion state
   const [expandedModuleId, setExpandedModuleId] = useState<number | null>(null);
   
+  // Birth Details Modal state
+  const [birthDetailsModalVisible, setBirthDetailsModalVisible] = useState(false);
+  const [birthDate, setBirthDate] = useState<Date>(new Date(1990, 0, 1, 12, 0));
+  const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
+  const [showBirthTimePicker, setShowBirthTimePicker] = useState(false);
+  const [birthTzOffset, setBirthTzOffset] = useState('480');
+  const [birthLat, setBirthLat] = useState('');
+  const [birthLon, setBirthLon] = useState('');
+  const [savingBirthDetails, setSavingBirthDetails] = useState(false);
+  const [autoComputeAfterSave, setAutoComputeAfterSave] = useState(false);
+  
   // Debug state (POC)
   const [debugExpanded, setDebugExpanded] = useState(false);
   const [computeStatus, setComputeStatus] = useState<{ success: boolean; message: string } | null>(null);
