@@ -1618,6 +1618,179 @@ def generate_template_astrology_insights(sun_sign, moon_sign, asc_sign, sun_elem
         }
     }
 
+# Human Design Profile Models and Personalization
+class HumanDesignProfileInput(BaseModel):
+    type: str = Field(..., description="HD Type: Manifestor, Generator, Manifesting Generator, Projector, Reflector")
+    strategy: str = Field(..., description="Strategy for the type")
+    authority: str = Field(..., description="Inner Authority")
+    profile: Optional[str] = Field(None, description="Profile numbers like 1/3, 4/6, etc.")
+    definition: Optional[str] = Field(None, description="Single, Split, Triple Split, Quadruple Split, None")
+    not_self_theme: Optional[str] = Field(None, description="Frustration, Anger, Bitterness, Disappointment")
+    signature: Optional[str] = Field(None, description="Satisfaction, Peace, Success, Surprise")
+
+async def generate_personalized_hd_insights(hd_profile: dict) -> dict:
+    """Generate personalized Human Design insights based on user's profile"""
+    
+    hd_type = hd_profile.get("type", "")
+    strategy = hd_profile.get("strategy", "")
+    authority = hd_profile.get("authority", "")
+    profile = hd_profile.get("profile", "")
+    not_self = hd_profile.get("not_self_theme", "")
+    signature = hd_profile.get("signature", "")
+    
+    if not hd_type:
+        return {"has_personalization": False}
+    
+    # Generate with AI if available
+    if EMERGENT_LLM_KEY:
+        try:
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            
+            system_prompt = """You are generating personalized Human Design insights for Project Mirror.
+
+CRITICAL RULES:
+1. Use INVITATIONAL language only: "might", "can", "one way this shows up"
+2. NEVER say "you ARE a [Type]" — say "as someone with [Type] energy"
+3. NEVER imply mastery/failure, optimization, or fixed identity
+4. The goal is UNDERSTANDING and EXPERIMENTATION, not optimization
+5. Avoid instructional or prescriptive tone
+6. Keep each insight to 2-3 sentences
+
+OUTPUT FORMAT (JSON):
+{
+  "type_insight": "As someone with [TYPE] energy, you might notice... [how this shows up in daily life]",
+  "strategy_insight": "Your strategy of [STRATEGY] can show up as... [lived experience description]",
+  "authority_insight": "With [AUTHORITY] authority, decision-making might feel like... [body-based description]",
+  "integration_reflection": "One experiment to try: [gentle invitation to notice something]",
+  "not_self_awareness": "When [NOT-SELF THEME] shows up, it might be a signal that... [reframe as information, not failure]"
+}
+
+Remember: This is about experimentation and self-understanding, not about doing Human Design "correctly."
+Human Design is a mechanical lens, not an identity system."""
+
+            user_prompt = f"""Generate personalized Human Design insights for this user:
+
+Type: {hd_type}
+Strategy: {strategy}
+Authority: {authority}
+Profile: {profile if profile else 'Not specified'}
+Not-Self Theme: {not_self if not_self else 'Not specified'}
+Signature: {signature if signature else 'Not specified'}
+
+Make insights specific to THEIR configuration. Use invitational language throughout."""
+
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"hd-personalize-{hd_profile.get('user_id', 'unknown')[:8]}",
+                system_message=system_prompt
+            ).with_model("openai", "gpt-4o")
+            
+            response = await chat.send_message(UserMessage(text=user_prompt))
+            response_text = response.strip()
+            
+            if response_text.startswith("```"):
+                response_text = response_text.split("```")[1]
+                if response_text.startswith("json"):
+                    response_text = response_text[4:]
+            response_text = response_text.strip()
+            
+            insights = json.loads(response_text)
+            insights["has_personalization"] = True
+            insights["elements"] = {
+                "type": hd_type,
+                "strategy": strategy,
+                "authority": authority,
+                "profile": profile
+            }
+            return insights
+            
+        except Exception as e:
+            logger.error(f"HD AI personalization failed, using template: {e}")
+    
+    # Fallback to template-based personalization
+    return generate_template_hd_insights(hd_type, strategy, authority, profile, not_self, signature)
+
+def generate_template_hd_insights(hd_type, strategy, authority, profile, not_self, signature) -> dict:
+    """Template-based fallback for Human Design personalization"""
+    
+    type_descriptions = {
+        "Manifestor": "initiating energy—you might notice an impulse to start things, to set direction, to make things happen without waiting for permission",
+        "Generator": "sustainable life force—you might notice that your energy is most available when you're responding to something that genuinely excites you",
+        "Manifesting Generator": "multi-passionate energy—you might notice a desire to move quickly once something sparks your interest, often juggling multiple directions",
+        "Projector": "guiding energy—you might notice that your insights land best when others have invited them, and that recognition matters more than you expected",
+        "Reflector": "sampling energy—you might notice that you take on the energy of your environment and that clarity comes slowly, over time"
+    }
+    
+    authority_descriptions = {
+        "Emotional": "decisions might need time to settle—you may notice that your first reaction isn't always your final answer, and that waiting for emotional clarity changes things",
+        "Sacral": "decisions might come through body sensations—sounds, gut feelings, a sense of opening or closing that happens before your mind catches up",
+        "Splenic": "decisions might come as quick intuitive hits—a knowing in the moment that doesn't repeat, that you either catch or miss",
+        "Ego": "decisions might hinge on willpower—whether you have the heart and energy to commit, whether something feels worth your effort",
+        "Self-Projected": "decisions might become clearer when you talk them through—hearing yourself speak can reveal what's true for you",
+        "Mental": "decisions might need external input—discussing with trusted others or sensing what the environment is telling you",
+        "Lunar": "decisions might need a full lunar cycle—sampling different perspectives over time before clarity emerges"
+    }
+    
+    type_desc = type_descriptions.get(hd_type, f"the qualities associated with {hd_type} energy")
+    auth_desc = authority_descriptions.get(authority, f"the decision-making style of {authority} authority")
+    
+    return {
+        "has_personalization": True,
+        "type_insight": f"As someone with {hd_type} energy, you might notice {type_desc}.",
+        "strategy_insight": f"Your strategy of '{strategy}' is an experiment to try—notice what happens when you {strategy.lower()} rather than forcing or pushing.",
+        "authority_insight": f"With {authority} authority, {auth_desc}.",
+        "integration_reflection": f"One experiment: Over the next week, notice when you feel {signature.lower() if signature else 'in flow'} versus when {not_self.lower() if not_self else 'resistance'} shows up. What conditions seem to make the difference?",
+        "not_self_awareness": f"When {not_self.lower() if not_self else 'resistance'} shows up, it might be information—a signal that something in the situation isn't aligned, not a failure on your part." if not_self else None,
+        "elements": {
+            "type": hd_type,
+            "strategy": strategy,
+            "authority": authority,
+            "profile": profile
+        }
+    }
+
+# Human Design Profile Endpoints
+@api_router.post("/computed-profile/human-design")
+async def save_hd_profile(data: HumanDesignProfileInput, user = Depends(get_current_user)):
+    """Save user's Human Design profile (manually entered for now)"""
+    
+    profile_data = {
+        "user_id": user["id"],
+        "type": data.type,
+        "strategy": data.strategy,
+        "authority": data.authority,
+        "profile": data.profile,
+        "definition": data.definition,
+        "not_self_theme": data.not_self_theme,
+        "signature": data.signature,
+        "updated_at": datetime.utcnow()
+    }
+    
+    await db.computed_profiles_hd.update_one(
+        {"user_id": user["id"]},
+        {"$set": profile_data},
+        upsert=True
+    )
+    
+    return {"success": True, "profile": profile_data}
+
+@api_router.get("/computed-profile/human-design")
+async def get_hd_profile(user = Depends(get_current_user)):
+    """Get user's Human Design profile"""
+    profile = await db.computed_profiles_hd.find_one({"user_id": user["id"]})
+    
+    if profile:
+        profile.pop("_id", None)
+        return {"has_profile": True, "profile": profile}
+    
+    return {"has_profile": False, "profile": None}
+
+@api_router.delete("/computed-profile/human-design")
+async def delete_hd_profile(user = Depends(get_current_user)):
+    """Delete user's Human Design profile"""
+    result = await db.computed_profiles_hd.delete_one({"user_id": user["id"]})
+    return {"deleted": result.deleted_count > 0}
+
 # Personalized Snapshot System Prompt
 SNAPSHOT_SYSTEM_PROMPT = """You are generating a personalized "Your Snapshot" for a self-reflection lens in Project Mirror.
 
