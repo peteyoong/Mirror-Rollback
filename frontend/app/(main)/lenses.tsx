@@ -3902,6 +3902,86 @@ const styles = StyleSheet.create({
     color: COLORS.accent,
     fontWeight: '500',
   },
+  // Location Search Autocomplete Styles
+  locationSearchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.sm,
+    marginTop: SPACING.xs,
+  },
+  locationSearchIcon: {
+    marginRight: SPACING.xs,
+  },
+  locationSearchInput: {
+    flex: 1,
+    paddingVertical: SPACING.sm,
+    fontSize: 15,
+    color: COLORS.primary,
+  },
+  locationSearchSpinner: {
+    marginLeft: SPACING.xs,
+  },
+  locationSearchClear: {
+    padding: 4,
+  },
+  locationSuggestionsDropdown: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: BORDER_RADIUS.md,
+    marginTop: SPACING.xs,
+    maxHeight: 200,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      },
+    }),
+  },
+  locationSuggestionsScroll: {
+    maxHeight: 200,
+  },
+  locationSuggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    gap: SPACING.xs,
+  },
+  locationSuggestionText: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.primary,
+    lineHeight: 20,
+  },
+  selectedLocationBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    padding: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+    marginTop: SPACING.sm,
+    gap: SPACING.xs,
+  },
+  selectedLocationText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#065F46',
+  },
   manualEntrySection: {
     backgroundColor: '#F9FAFB',
     padding: SPACING.md,
