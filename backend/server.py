@@ -2422,6 +2422,209 @@ async def clear_integrative_chat_history(user = Depends(get_current_user)):
     })
     return {"deleted_count": result.deleted_count}
 
+# ============== Sidereal Compute Endpoint (Deterministic) ==============
+# Uses Swiss Ephemeris for astronomical calculations
+# This is DETERMINISTIC - no AI, no personalization
+# NOT used by Mirror or Integrate - purely computational
+
+import swisseph as swe
+import pytz
+from dateutil import parser as dateutil_parser
+
+# Ayanamsa mapping
+AYANAMSA_MAP = {
+    "FAGAN_BRADLEY": swe.SIDM_FAGAN_BRADLEY,
+    "LAHIRI": swe.SIDM_LAHIRI,
+    "DELUCE": swe.SIDM_DELUCE,
+    "RAMAN": swe.SIDM_RAMAN,
+    "USHASHASHI": swe.SIDM_USHASHASHI,
+    "KRISHNAMURTI": swe.SIDM_KRISHNAMURTI,
+    "DJWHAL_KHUL": swe.SIDM_DJWHAL_KHUL,
+    "YUKTESHWAR": swe.SIDM_YUKTESHWAR,
+    "JN_BHASIN": swe.SIDM_JN_BHASIN,
+    "BABYL_KUGLER1": swe.SIDM_BABYL_KUGLER1,
+    "BABYL_KUGLER2": swe.SIDM_BABYL_KUGLER2,
+    "BABYL_KUGLER3": swe.SIDM_BABYL_KUGLER3,
+    "BABYL_HUBER": swe.SIDM_BABYL_HUBER,
+    "BABYL_ETPSC": swe.SIDM_BABYL_ETPSC,
+    "ALDEBARAN_15TAU": swe.SIDM_ALDEBARAN_15TAU,
+    "HIPPARCHOS": swe.SIDM_HIPPARCHOS,
+    "SASSANIAN": swe.SIDM_SASSANIAN,
+    "GALCENT_0SAG": swe.SIDM_GALCENT_0SAG,
+    "J2000": swe.SIDM_J2000,
+    "J1900": swe.SIDM_J1900,
+    "B1950": swe.SIDM_B1950,
+    "TRUE_CITRA": swe.SIDM_TRUE_CITRA,
+    "TRUE_REVATI": swe.SIDM_TRUE_REVATI,
+}
+
+# Zodiac sign names
+ZODIAC_SIGNS = [
+    "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+]
+
+class SiderealComputeInput(BaseModel):
+    birth_datetime_local: str = Field(..., description="Birth datetime in ISO format (local time)")
+    tz_offset_minutes: int = Field(..., description="Timezone offset from UTC in minutes (e.g., -300 for EST)")
+    latitude: float = Field(..., description="Birth location latitude")
+    longitude: float = Field(..., description="Birth location longitude")
+    ayanamsa: str = Field(default="FAGAN_BRADLEY", description="Ayanamsa system to use")
+
+class CelestialPosition(BaseModel):
+    name: str
+    longitude_absolute: float
+    sign: str
+    degree_in_sign: float
+    minutes: int
+    seconds: int
+    retrograde: Optional[bool] = None
+
+class SiderealComputeResponse(BaseModel):
+    success: bool
+    computation_type: str = "sidereal"
+    ayanamsa_used: str
+    julian_day: float
+    positions: dict
+    input_echo: dict
+
+def longitude_to_sign_position(longitude: float) -> tuple:
+    """Convert absolute longitude to sign and degree within sign"""
+    sign_index = int(longitude // 30)
+    degree_in_sign = longitude % 30
+    degrees = int(degree_in_sign)
+    minutes = int((degree_in_sign - degrees) * 60)
+    seconds = int(((degree_in_sign - degrees) * 60 - minutes) * 60)
+    return ZODIAC_SIGNS[sign_index], degree_in_sign, degrees, minutes, seconds
+
+def datetime_to_julian_day(dt: datetime) -> float:
+    """Convert datetime to Julian Day"""
+    year = dt.year
+    month = dt.month
+    day = dt.day
+    hour = dt.hour + dt.minute / 60.0 + dt.second / 3600.0
+    
+    # Swiss Ephemeris Julian Day calculation
+    jd = swe.julday(year, month, day, hour)
+    return jd
+
+@api_router.post("/compute", response_model=SiderealComputeResponse)
+async def compute_sidereal_positions(data: SiderealComputeInput):
+    """
+    Compute sidereal astronomical positions using Swiss Ephemeris.
+    
+    This is a DETERMINISTIC computation endpoint.
+    - No AI involvement
+    - No personalization
+    - NOT used by Mirror or Integrate
+    
+    POC Scope: Computes Ascendant, Sun, and Moon positions.
+    """
+    try:
+        # Validate ayanamsa
+        ayanamsa_key = data.ayanamsa.upper()
+        if ayanamsa_key not in AYANAMSA_MAP:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid ayanamsa. Valid options: {list(AYANAMSA_MAP.keys())}"
+            )
+        
+        # Parse the birth datetime
+        try:
+            birth_dt_local = dateutil_parser.parse(data.birth_datetime_local)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid datetime format: {str(e)}")
+        
+        # Convert to UTC
+        utc_offset = timedelta(minutes=data.tz_offset_minutes)
+        birth_dt_utc = birth_dt_local - utc_offset
+        
+        # Calculate Julian Day (in UTC)
+        jd_ut = datetime_to_julian_day(birth_dt_utc)
+        
+        # Set sidereal mode with specified ayanamsa
+        swe.set_sid_mode(AYANAMSA_MAP[ayanamsa_key])
+        
+        # Get the ayanamsa value for reference
+        ayanamsa_value = swe.get_ayanamsa(jd_ut)
+        
+        # Calculate positions
+        positions = {}
+        
+        # Sun (SE_SUN = 0)
+        sun_result = swe.calc_ut(jd_ut, swe.SUN, swe.FLG_SIDEREAL)
+        sun_lon = sun_result[0][0]  # Longitude
+        sun_speed = sun_result[0][3]  # Speed (for retrograde)
+        sun_sign, sun_deg_in_sign, sun_deg, sun_min, sun_sec = longitude_to_sign_position(sun_lon)
+        positions["sun"] = {
+            "name": "Sun",
+            "longitude_absolute": round(sun_lon, 6),
+            "sign": sun_sign,
+            "degree_in_sign": round(sun_deg_in_sign, 4),
+            "degrees": sun_deg,
+            "minutes": sun_min,
+            "seconds": sun_sec,
+            "retrograde": False  # Sun never retrogrades
+        }
+        
+        # Moon (SE_MOON = 1)
+        moon_result = swe.calc_ut(jd_ut, swe.MOON, swe.FLG_SIDEREAL)
+        moon_lon = moon_result[0][0]
+        moon_sign, moon_deg_in_sign, moon_deg, moon_min, moon_sec = longitude_to_sign_position(moon_lon)
+        positions["moon"] = {
+            "name": "Moon",
+            "longitude_absolute": round(moon_lon, 6),
+            "sign": moon_sign,
+            "degree_in_sign": round(moon_deg_in_sign, 4),
+            "degrees": moon_deg,
+            "minutes": moon_min,
+            "seconds": moon_sec,
+            "retrograde": False  # Moon never retrogrades
+        }
+        
+        # Ascendant (Rising Sign)
+        # Houses calculation requires geographic coordinates
+        houses_result = swe.houses(jd_ut, data.latitude, data.longitude, b'P')  # Placidus
+        # houses_result[0] contains cusps, houses_result[1] contains ascendant, MC, etc.
+        # Ascendant is at index 0 of the cusps array
+        asc_tropical = houses_result[0][0]
+        # Convert to sidereal by subtracting ayanamsa
+        asc_sidereal = (asc_tropical - ayanamsa_value) % 360
+        asc_sign, asc_deg_in_sign, asc_deg, asc_min, asc_sec = longitude_to_sign_position(asc_sidereal)
+        positions["ascendant"] = {
+            "name": "Ascendant",
+            "longitude_absolute": round(asc_sidereal, 6),
+            "sign": asc_sign,
+            "degree_in_sign": round(asc_deg_in_sign, 4),
+            "degrees": asc_deg,
+            "minutes": asc_min,
+            "seconds": asc_sec
+        }
+        
+        # Clean up Swiss Ephemeris
+        swe.close()
+        
+        return SiderealComputeResponse(
+            success=True,
+            computation_type="sidereal",
+            ayanamsa_used=ayanamsa_key,
+            julian_day=round(jd_ut, 6),
+            positions=positions,
+            input_echo={
+                "birth_datetime_local": data.birth_datetime_local,
+                "tz_offset_minutes": data.tz_offset_minutes,
+                "latitude": data.latitude,
+                "longitude": data.longitude,
+                "ayanamsa": ayanamsa_key
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Sidereal compute error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Computation failed: {str(e)}")
+
 # Include the router in the main app
 app.include_router(api_router)
 
