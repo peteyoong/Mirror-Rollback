@@ -1473,7 +1473,80 @@ const styles = StyleSheet.create({
     color: '#888',
     fontStyle: 'italic',
   },
-  // Your Details Section Styles (Astrology)
+  // Your Sidereal Profile Styles (Top of Deep Dive)
+  siderealProfileContainer: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+  },
+  siderealProfileTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: SPACING.md,
+    textAlign: 'center',
+  },
+  siderealProfileContent: {
+    alignItems: 'center',
+  },
+  siderealProfileGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: SPACING.md,
+  },
+  siderealProfileItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  siderealProfileLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: COLORS.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  siderealProfileSign: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  siderealProfileDegree: {
+    fontSize: 13,
+    color: COLORS.secondary,
+    marginTop: 2,
+  },
+  siderealProfileAyanamsa: {
+    fontSize: 12,
+    color: COLORS.secondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    paddingTop: SPACING.sm,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    width: '100%',
+  },
+  siderealProfileEmpty: {
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+  },
+  siderealProfileEmptyText: {
+    fontSize: 15,
+    color: COLORS.secondary,
+  },
+  siderealProfileEmptyHint: {
+    fontSize: 13,
+    color: COLORS.secondary,
+    opacity: 0.7,
+    marginTop: 4,
+  },
+  // Legacy Your Details styles (can be removed if not used elsewhere)
   yourDetailsContainer: {
     marginTop: SPACING.lg,
     marginBottom: SPACING.md,
