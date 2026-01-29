@@ -90,6 +90,7 @@ interface LensDetail extends Lens {
     important_note?: string;
     invitation: string;
   };
+  personalized_insights?: PersonalizedAstrologyInsights;
 }
 
 interface ChatMessage {
