@@ -1974,6 +1974,44 @@ async def send_lens_chat_message(lens_id: str, chat_input: ChatMessageInput, use
             except Exception:
                 lens_context.append("\nUSER'S COMPUTED SNAPSHOT: Not available")
             
+            # 2.5. COMPUTED ASTROLOGY PROFILE (for True Sidereal Astrology lens only)
+            if lens_key == "astrology":
+                try:
+                    astro_profile = await db.computed_profiles_astrology.find_one({
+                        "user_id": user["id"]
+                    })
+                    if astro_profile and astro_profile.get("positions"):
+                        positions = astro_profile["positions"]
+                        ayanamsa = astro_profile.get("ayanamsa", "FAGAN_BRADLEY")
+                        lens_context.append("\n=== USER'S COMPUTED ASTROLOGY PROFILE (DETERMINISTIC) ===")
+                        lens_context.append(f"Ayanamsa System: {ayanamsa.replace('_', '-')}")
+                        lens_context.append(f"Computation Type: True Sidereal (NOT Tropical)")
+                        lens_context.append("")
+                        lens_context.append("PLACEMENTS:")
+                        if positions.get("ascendant"):
+                            asc = positions["ascendant"]
+                            lens_context.append(f"  Ascendant (Rising): {asc.get('formatted', asc.get('sign', 'Unknown'))}")
+                        if positions.get("sun"):
+                            sun = positions["sun"]
+                            lens_context.append(f"  Sun: {sun.get('formatted', sun.get('sign', 'Unknown'))}")
+                        if positions.get("moon"):
+                            moon = positions["moon"]
+                            lens_context.append(f"  Moon: {moon.get('formatted', moon.get('sign', 'Unknown'))}")
+                        lens_context.append("")
+                        lens_context.append("IMPORTANT: These are ACTUAL computed values. Use them when answering questions about the user's placements.")
+                        lens_context.append("When discussing these placements, always note they are True Sidereal positions.")
+                        lens_context.append("Tropical positions would typically be ~24° ahead (roughly one sign).")
+                        lens_context.append("=== END COMPUTED ASTROLOGY PROFILE ===")
+                    else:
+                        lens_context.append("\n=== USER'S COMPUTED ASTROLOGY PROFILE ===")
+                        lens_context.append("STATUS: No birth data computed yet")
+                        lens_context.append("If user asks about their placements, explain they need to enter birth data first.")
+                        lens_context.append("You can still discuss general True Sidereal astrology concepts.")
+                        lens_context.append("=== END COMPUTED ASTROLOGY PROFILE ===")
+                except Exception as e:
+                    logger.error(f"Failed to fetch astrology profile for chat: {e}")
+                    lens_context.append("\nCOMPUTED ASTROLOGY PROFILE: Unable to retrieve")
+            
             # 3. Onboarding answers
             onboarding = user.get("onboarding_answers", {})
             if onboarding:
