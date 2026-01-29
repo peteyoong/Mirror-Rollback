@@ -2538,8 +2538,97 @@ export default function Lenses() {
               </View>
             )}
 
-            {/* Auto-generated Timezone Display */}
-            {selectedCity && birthTzOffset && (
+            {/* Can't find my city? - Manual Entry Toggle */}
+            {!showManualLocationEntry ? (
+              <TouchableOpacity 
+                style={styles.cantFindCityButton}
+                onPress={() => {
+                  setShowManualLocationEntry(true);
+                  setSelectedCountry('');
+                  setSelectedCity('');
+                  setLocationManuallyEdited(true);
+                }}
+              >
+                <Ionicons name="help-circle-outline" size={18} color={COLORS.accent} />
+                <Text style={styles.cantFindCityText}>Can't find my city? Enter manually</Text>
+              </TouchableOpacity>
+            ) : (
+              /* Manual Entry Section */
+              <View style={styles.manualEntrySection}>
+                <View style={styles.manualEntryHeader}>
+                  <Text style={styles.manualEntryTitle}>Manual Location Entry</Text>
+                  <TouchableOpacity 
+                    onPress={() => {
+                      setShowManualLocationEntry(false);
+                      setLocationManuallyEdited(false);
+                      setBirthLat('');
+                      setBirthLon('');
+                      setBirthTzOffset('480');
+                    }}
+                  >
+                    <Text style={styles.manualEntrySwitchBack}>← Back to city picker</Text>
+                  </TouchableOpacity>
+                </View>
+                
+                {/* Manual Coordinates */}
+                <View style={styles.birthDetailsRow}>
+                  <View style={[styles.birthDetailsField, { flex: 1, marginRight: SPACING.sm }]}>
+                    <Text style={styles.birthDetailsLabel}>Latitude</Text>
+                    <TextInput
+                      style={styles.birthDetailsTextInput}
+                      value={birthLat}
+                      onChangeText={(v) => {
+                        setBirthLat(v);
+                        setLocationManuallyEdited(true);
+                      }}
+                      placeholder="e.g., 40.7128"
+                      placeholderTextColor="#999"
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                  <View style={[styles.birthDetailsField, { flex: 1, marginLeft: SPACING.sm }]}>
+                    <Text style={styles.birthDetailsLabel}>Longitude</Text>
+                    <TextInput
+                      style={styles.birthDetailsTextInput}
+                      value={birthLon}
+                      onChangeText={(v) => {
+                        setBirthLon(v);
+                        setLocationManuallyEdited(true);
+                      }}
+                      placeholder="e.g., -74.0060"
+                      placeholderTextColor="#999"
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                </View>
+                
+                {/* Manual Timezone */}
+                <View style={styles.birthDetailsField}>
+                  <Text style={styles.birthDetailsLabel}>Timezone (UTC offset in minutes)</Text>
+                  <TextInput
+                    style={styles.birthDetailsTextInput}
+                    value={birthTzOffset}
+                    onChangeText={setBirthTzOffset}
+                    placeholder="e.g., -300 for EST"
+                    placeholderTextColor="#999"
+                    keyboardType="numeric"
+                  />
+                  <Text style={styles.birthDetailsHint}>
+                    Common: -300 (EST), -480 (PST), 0 (UTC), 330 (IST), 540 (JST)
+                  </Text>
+                </View>
+                
+                {birthTzOffset && (
+                  <View style={styles.manualTzDisplay}>
+                    <Text style={styles.manualTzLabel}>Selected timezone:</Text>
+                    <Text style={styles.manualTzValue}>{formatTimezone(parseInt(birthTzOffset) || 0)}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Auto-generated Timezone Display - Only for city picker mode */}
+            {!showManualLocationEntry && selectedCity && birthTzOffset && (
               <View style={styles.autoTimezoneBox}>
                 <View style={styles.autoTimezoneRow}>
                   <Ionicons name="time-outline" size={18} color="#059669" />
@@ -2552,8 +2641,8 @@ export default function Lenses() {
               </View>
             )}
 
-            {/* Coordinates Display (read-only, auto-filled) */}
-            {(birthLat && birthLon) && (
+            {/* Coordinates Display - Only for city picker mode */}
+            {!showManualLocationEntry && (birthLat && birthLon) && (
               <View style={styles.coordinatesDisplay}>
                 <Text style={styles.coordinatesLabel}>Coordinates (auto-filled):</Text>
                 <Text style={styles.coordinatesValue}>
