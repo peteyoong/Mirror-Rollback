@@ -536,6 +536,10 @@ export default function Lenses() {
       }
       
       const savedBirthData = saveResponse.data.birth_data;
+      const userId = saveResponse.data.user_id || user?.id;
+      
+      // Show saved user_id for debug
+      setSavedUserId(userId);
       
       // Update user context with birth data immediately
       let updatedUser = user ? {
@@ -546,6 +550,9 @@ export default function Lenses() {
       if (updatedUser) {
         updateUser(updatedUser);
       }
+      
+      // Update save status for debug panel
+      setSaveStatus({ success: true, message: 'Birth data saved to user record' });
       
       // Step 2: Run sidereal compute
       try {
@@ -582,15 +589,8 @@ export default function Lenses() {
           // Also update debug panel status
           setComputeStatus({ success: true, message: 'Profile computed successfully!' });
           
-          // Close modal
-          setBirthDetailsModalVisible(false);
-          
-          // Navigate to Astrology lens and show deep dive
-          const astrologyLens = lenses.find(l => l.id === 'true-sidereal-astrology');
-          if (astrologyLens) {
-            openLensDetail('true-sidereal-astrology');
-            setTimeout(() => setViewMode('deepdive'), 500);
-          }
+          // Don't close modal immediately - let user see success state
+          // User can manually close after seeing confirmation
           
           Alert.alert('Success', 'Birth details saved and sidereal profile computed!');
         } else {
