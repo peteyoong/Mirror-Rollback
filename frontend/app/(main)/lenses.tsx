@@ -807,6 +807,153 @@ export default function Lenses() {
                     <View>
                       <Text style={styles.sectionLabel}>Deep Dive</Text>
 
+                      {/* DEBUG SECTION (POC) - Only for Astrology */}
+                      {selectedLens.id === 'true-sidereal-astrology' && (
+                        <View style={styles.debugContainer}>
+                          <TouchableOpacity 
+                            style={styles.debugHeader}
+                            onPress={() => setDebugExpanded(!debugExpanded)}
+                          >
+                            <Text style={styles.debugHeaderText}>Debug (POC)</Text>
+                            <Ionicons 
+                              name={debugExpanded ? 'chevron-up' : 'chevron-down'} 
+                              size={18} 
+                              color="#888"
+                            />
+                          </TouchableOpacity>
+                          
+                          {debugExpanded && (
+                            <View style={styles.debugContent}>
+                              {/* Birth Data Fields */}
+                              <Text style={styles.debugSubtitle}>Stored Birth Fields (raw):</Text>
+                              {userBirthData ? (
+                                <View style={styles.debugCodeBlock}>
+                                  <Text style={styles.debugCode}>birth_datetime_local: {userBirthData.birth_datetime_local}</Text>
+                                  <Text style={styles.debugCode}>tz_offset_minutes: {userBirthData.tz_offset_minutes}</Text>
+                                  <Text style={styles.debugCode}>latitude: {userBirthData.latitude}</Text>
+                                  <Text style={styles.debugCode}>longitude: {userBirthData.longitude}</Text>
+                                </View>
+                              ) : (
+                                <View style={styles.debugWarning}>
+                                  <Ionicons name="warning" size={16} color="#D97706" />
+                                  <Text style={styles.debugWarningText}>Birth fields missing from user record</Text>
+                                </View>
+                              )}
+                              
+                              {/* Computed Profile Status */}
+                              <Text style={styles.debugSubtitle}>computed_profile exists:</Text>
+                              <Text style={[styles.debugCode, { color: userAstrologyProfile ? '#10B981' : '#EF4444' }]}>
+                                {userAstrologyProfile ? 'true' : 'false'}
+                              </Text>
+                              
+                              {/* Compute Endpoint */}
+                              <Text style={styles.debugSubtitle}>Compute Endpoint:</Text>
+                              <Text style={styles.debugCode}>/api/computed-profile/astrology (POST)</Text>
+                              
+                              {/* Last Compute Status */}
+                              {computeStatus && (
+                                <>
+                                  <Text style={styles.debugSubtitle}>Last Compute Status:</Text>
+                                  <View style={[styles.debugStatusBadge, { backgroundColor: computeStatus.success ? '#D1FAE5' : '#FEE2E2' }]}>
+                                    <Text style={[styles.debugStatusText, { color: computeStatus.success ? '#065F46' : '#991B1B' }]}>
+                                      {computeStatus.success ? '✓ ' : '✗ '}{computeStatus.message}
+                                    </Text>
+                                  </View>
+                                </>
+                              )}
+                              
+                              {/* Run Compute Button */}
+                              {userBirthData ? (
+                                <TouchableOpacity 
+                                  style={[styles.debugButton, runningCompute && styles.debugButtonDisabled]}
+                                  onPress={runSiderealCompute}
+                                  disabled={runningCompute}
+                                >
+                                  {runningCompute ? (
+                                    <ActivityIndicator size="small" color="#FFF" />
+                                  ) : (
+                                    <Text style={styles.debugButtonText}>Run Sidereal Compute Now</Text>
+                                  )}
+                                </TouchableOpacity>
+                              ) : (
+                                <TouchableOpacity 
+                                  style={styles.debugButtonSecondary}
+                                  onPress={() => setShowBirthDataForm(true)}
+                                >
+                                  <Text style={styles.debugButtonSecondaryText}>Add/Edit Birth Details</Text>
+                                </TouchableOpacity>
+                              )}
+                              
+                              {/* Birth Data Form */}
+                              {showBirthDataForm && (
+                                <View style={styles.debugForm}>
+                                  <Text style={styles.debugFormTitle}>Enter Birth Data</Text>
+                                  
+                                  <Text style={styles.debugFormLabel}>Birth DateTime (ISO format)</Text>
+                                  <TextInput
+                                    style={styles.debugFormInput}
+                                    value={birthFormData.birth_datetime_local}
+                                    onChangeText={(v) => setBirthFormData({...birthFormData, birth_datetime_local: v})}
+                                    placeholder="1990-05-15T10:30:00"
+                                    placeholderTextColor="#999"
+                                  />
+                                  
+                                  <Text style={styles.debugFormLabel}>TZ Offset (minutes, e.g., -300 for EST)</Text>
+                                  <TextInput
+                                    style={styles.debugFormInput}
+                                    value={birthFormData.tz_offset_minutes}
+                                    onChangeText={(v) => setBirthFormData({...birthFormData, tz_offset_minutes: v})}
+                                    placeholder="-300"
+                                    placeholderTextColor="#999"
+                                    keyboardType="numeric"
+                                  />
+                                  
+                                  <Text style={styles.debugFormLabel}>Latitude</Text>
+                                  <TextInput
+                                    style={styles.debugFormInput}
+                                    value={birthFormData.latitude}
+                                    onChangeText={(v) => setBirthFormData({...birthFormData, latitude: v})}
+                                    placeholder="40.7128"
+                                    placeholderTextColor="#999"
+                                    keyboardType="decimal-pad"
+                                  />
+                                  
+                                  <Text style={styles.debugFormLabel}>Longitude</Text>
+                                  <TextInput
+                                    style={styles.debugFormInput}
+                                    value={birthFormData.longitude}
+                                    onChangeText={(v) => setBirthFormData({...birthFormData, longitude: v})}
+                                    placeholder="-74.0060"
+                                    placeholderTextColor="#999"
+                                    keyboardType="decimal-pad"
+                                  />
+                                  
+                                  <View style={styles.debugFormButtons}>
+                                    <TouchableOpacity 
+                                      style={styles.debugButtonSecondary}
+                                      onPress={() => setShowBirthDataForm(false)}
+                                    >
+                                      <Text style={styles.debugButtonSecondaryText}>Cancel</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity 
+                                      style={[styles.debugButton, savingBirthData && styles.debugButtonDisabled]}
+                                      onPress={saveBirthData}
+                                      disabled={savingBirthData}
+                                    >
+                                      {savingBirthData ? (
+                                        <ActivityIndicator size="small" color="#FFF" />
+                                      ) : (
+                                        <Text style={styles.debugButtonText}>Save Birth Data</Text>
+                                      )}
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                              )}
+                            </View>
+                          )}
+                        </View>
+                      )}
+
                       {/* Your Sidereal Profile - At the TOP, before any explanatory text */}
                       {selectedLens.id === 'true-sidereal-astrology' && (
                         <View style={styles.siderealProfileContainer}>
