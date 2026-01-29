@@ -377,6 +377,13 @@ class UserResponse(BaseModel):
     onboarding_completed: bool
     onboarding_answers: Optional[dict] = None
     computed_profile: Optional[dict] = None  # Stores computed profiles (astrology, etc.)
+    birth_data: Optional[dict] = None  # Birth data fields for compute
+
+class BirthDataInput(BaseModel):
+    birth_datetime_local: str = Field(..., description="Birth datetime in ISO format (local time)")
+    tz_offset_minutes: int = Field(..., description="Timezone offset from UTC in minutes")
+    latitude: float = Field(..., description="Birth location latitude")
+    longitude: float = Field(..., description="Birth location longitude")
 
 class JournalEntry(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
