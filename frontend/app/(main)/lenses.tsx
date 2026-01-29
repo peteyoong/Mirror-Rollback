@@ -335,6 +335,118 @@ export default function Lenses() {
     }
   };
 
+  // Open birth details modal with existing data if available
+  const openBirthDetailsModal = () => {
+    if (userBirthData) {
+      // Pre-populate from existing data
+      try {
+        const existingDate = new Date(userBirthData.birth_datetime_local);
+        setBirthDate(existingDate);
+      } catch {
+        setBirthDate(new Date(1990, 0, 1, 12, 0));
+      }
+      setBirthTzOffset(String(userBirthData.tz_offset_minutes || 480));
+      setBirthLat(String(userBirthData.latitude || ''));
+      setBirthLon(String(userBirthData.longitude || ''));
+    } else {
+      // Reset to defaults
+      setBirthDate(new Date(1990, 0, 1, 12, 0));
+      setBirthTzOffset('480');
+      setBirthLat('');
+      setBirthLon('');
+    }
+    setBirthDetailsModalVisible(true);
+  };
+
+  // Common locations for quick selection
+  const QUICK_LOCATIONS = [
+    { name: 'New York, USA', lat: 40.7128, lon: -74.0060 },
+    { name: 'Los Angeles, USA', lat: 34.0522, lon: -118.2437 },
+    { name: 'London, UK', lat: 51.5074, lon: -0.1278 },
+    { name: 'Sydney, Australia', lat: -33.8688, lon: 151.2093 },
+    { name: 'Mumbai, India', lat: 19.0760, lon: 72.8777 },
+    { name: 'Tokyo, Japan', lat: 35.6762, lon: 139.6503 },
+  ];
+
+  // Save birth details and optionally run compute
+  const saveBirthDetailsAndCompute = async () => {
+    if (!birthLat || !birthLon) {
+      Alert.alert('Missing Location', 'Please enter latitude and longitude or select a city.');
+      return;
+    }
+    
+    setSavingBirthDetails(true);
+    try {
+      const birthDatetimeISO = birthDate.toISOString();
+      
+      const response = await api.post('/user/birth-data', {
+        birth_datetime_local: birthDatetimeISO,
+        tz_offset_minutes: parseInt(birthTzOffset, 10),
+        latitude: parseFloat(birthLat),
+        longitude: parseFloat(birthLon),
+      });
+      
+      if (response.data.success && user) {
+        const updatedBirthData = response.data.birth_data;
+        
+        // Update user context with birth data
+        let updatedUser = {
+          ...user,
+          birth_data: updatedBirthData,
+        };
+        
+        // Now run compute automatically
+        try {
+          const computeResponse = await api.post('/computed-profile/astrology', {
+            birth_datetime_local: updatedBirthData.birth_datetime_local,
+            tz_offset_minutes: updatedBirthData.tz_offset_minutes,
+            latitude: updatedBirthData.latitude,
+            longitude: updatedBirthData.longitude,
+            ayanamsa: 'FAGAN_BRADLEY',
+          });
+          
+          if (computeResponse.data.has_profile && computeResponse.data.profile) {
+            // Update user with computed profile
+            updatedUser = {
+              ...updatedUser,
+              computed_profile: {
+                ...updatedUser.computed_profile,
+                astrology: {
+                  ayanamsa: computeResponse.data.profile.ayanamsa,
+                  positions: computeResponse.data.profile.positions,
+                  birth_datetime_local: updatedBirthData.birth_datetime_local,
+                  latitude: updatedBirthData.latitude,
+                  longitude: updatedBirthData.longitude,
+                  computed_at: new Date().toISOString(),
+                },
+              },
+            };
+            setComputeStatus({ success: true, message: 'Profile computed successfully!' });
+          }
+        } catch (computeErr: any) {
+          console.error('Auto-compute failed:', computeErr);
+          setComputeStatus({ success: false, message: 'Birth data saved but compute failed.' });
+        }
+        
+        updateUser(updatedUser);
+        setBirthDetailsModalVisible(false);
+        
+        // Navigate to Astrology lens and show deep dive
+        const astrologyLens = lenses.find(l => l.id === 'true-sidereal-astrology');
+        if (astrologyLens) {
+          openLensDetail('true-sidereal-astrology');
+          setTimeout(() => setViewMode('deepdive'), 500);
+        }
+        
+        Alert.alert('Success', 'Birth details saved and sidereal profile computed!');
+      }
+    } catch (error: any) {
+      Alert.alert('Error', 'Failed to save birth details.');
+    } finally {
+      setSavingBirthDetails(false);
+    }
+  };
+
   const fetchLenses = useCallback(async () => {
     try {
       const response = await api.get('/lenses');
