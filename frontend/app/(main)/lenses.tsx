@@ -2267,9 +2267,13 @@ export default function Lenses() {
 
             {/* Save Button */}
             <TouchableOpacity
-              style={[styles.birthDetailsSaveButton, savingBirthDetails && styles.birthDetailsSaveButtonDisabled]}
+              style={[
+                styles.birthDetailsSaveButton, 
+                savingBirthDetails && styles.birthDetailsSaveButtonDisabled,
+                (!birthLat || !birthLon) && styles.birthDetailsSaveButtonDisabled
+              ]}
               onPress={saveBirthDetailsAndCompute}
-              disabled={savingBirthDetails}
+              disabled={savingBirthDetails || !birthLat || !birthLon}
             >
               {savingBirthDetails ? (
                 <ActivityIndicator color={COLORS.white} />
@@ -2280,6 +2284,23 @@ export default function Lenses() {
                 </>
               )}
             </TouchableOpacity>
+            
+            {/* Validation hint */}
+            {(!birthLat || !birthLon) && (
+              <Text style={styles.birthDetailsValidationHint}>
+                ⚠️ Please enter birth location (latitude and longitude) to save
+              </Text>
+            )}
+            
+            {/* Debug line showing saved user_id */}
+            {savedUserId && (
+              <View style={styles.birthDetailsSavedDebug}>
+                <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                <Text style={styles.birthDetailsSavedDebugText}>
+                  Saved user_id: {savedUserId}
+                </Text>
+              </View>
+            )}
           </ScrollView>
 
           {/* Date/Time Pickers */}
