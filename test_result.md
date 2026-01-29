@@ -207,6 +207,18 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: Lenses APIs working correctly. LIST: returns 5 lenses with id, title, icon, summary. DETAIL: returns complete lens information including deep_dive with description, practices, and invitation. All content is framework-blind and appropriate for reflective practice."
 
+  - task: "Integrative Chat APIs"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented GET/POST/DELETE /api/journal/chat endpoints. Journal-anchored chat that draws from all lenses, journals, reflections, and onboarding context for holistic sense-making."
+
   - task: "Lens Chat APIs"
     implemented: true
     working: true
