@@ -330,28 +330,40 @@ export default function Lenses() {
   // Save birth data to user record AND run compute
   const saveBirthData = async () => {
     if (!birthFormData.birth_datetime_local || !birthFormData.latitude || !birthFormData.longitude) {
-      setComputeStatus({ success: false, message: 'Please fill in all birth data fields.' });
+      setSaveStatus({ success: false, message: 'Validation failed', response: 'Please fill in all birth data fields (datetime, latitude, longitude).' });
       return;
     }
     
     setSavingBirthData(true);
+    setSaveStatus(null);
     setComputeStatus(null);
+    
+    const savePayload = {
+      birth_datetime_local: birthFormData.birth_datetime_local,
+      tz_offset_minutes: parseInt(birthFormData.tz_offset_minutes, 10),
+      latitude: parseFloat(birthFormData.latitude),
+      longitude: parseFloat(birthFormData.longitude),
+    };
     
     try {
       // Step 1: Save birth data to user record
-      const saveResponse = await api.post('/user/birth-data', {
-        birth_datetime_local: birthFormData.birth_datetime_local,
-        tz_offset_minutes: parseInt(birthFormData.tz_offset_minutes, 10),
-        latitude: parseFloat(birthFormData.latitude),
-        longitude: parseFloat(birthFormData.longitude),
-      });
+      const saveResponse = await api.post('/user/birth-data', savePayload);
       
       if (!saveResponse.data.success) {
-        setComputeStatus({ success: false, message: 'Failed to save birth data to database.' });
+        setSaveStatus({ 
+          success: false, 
+          message: 'Save returned success=false',
+          response: JSON.stringify(saveResponse.data, null, 2)
+        });
         return;
       }
       
       const savedBirthData = saveResponse.data.birth_data;
+      setSaveStatus({ 
+        success: true, 
+        message: 'Birth data saved to database',
+        response: JSON.stringify(savedBirthData, null, 2)
+      });
       
       // Update user context with birth data immediately
       let updatedUser = user ? {
@@ -364,14 +376,16 @@ export default function Lenses() {
       }
       
       // Step 2: Run sidereal compute
+      const computePayload = {
+        birth_datetime_local: savedBirthData.birth_datetime_local,
+        tz_offset_minutes: savedBirthData.tz_offset_minutes,
+        latitude: savedBirthData.latitude,
+        longitude: savedBirthData.longitude,
+        ayanamsa: 'FAGAN_BRADLEY',
+      };
+      
       try {
-        const computeResponse = await api.post('/computed-profile/astrology', {
-          birth_datetime_local: savedBirthData.birth_datetime_local,
-          tz_offset_minutes: savedBirthData.tz_offset_minutes,
-          latitude: savedBirthData.latitude,
-          longitude: savedBirthData.longitude,
-          ayanamsa: 'FAGAN_BRADLEY',
-        });
+        const computeResponse = await api.post('/computed-profile/astrology', computePayload);
         
         if (computeResponse.data.has_profile && computeResponse.data.profile) {
           // Update user context with computed profile
@@ -395,17 +409,30 @@ export default function Lenses() {
             updateUser(updatedUser);
           }
           
+          const positions = computeResponse.data.profile.positions;
           setComputeStatus({ 
             success: true, 
-            message: `Compute successful! Sun: ${computeResponse.data.profile.positions?.sun?.formatted || 'N/A'}` 
+            message: 'Compute successful!',
+            response: `Sun: ${positions?.sun?.formatted || 'N/A'}, Moon: ${positions?.moon?.formatted || 'N/A'}, Asc: ${positions?.ascendant?.formatted || 'N/A'}`
           });
           setShowBirthDataForm(false);
         } else {
-          setComputeStatus({ success: false, message: 'Compute returned no profile data.' });
+          setComputeStatus({ 
+            success: false, 
+            message: 'Compute returned no profile data',
+            response: JSON.stringify(computeResponse.data, null, 2)
+          });
         }
       } catch (computeError: any) {
         const computeErrMsg = computeError.response?.data?.detail || computeError.message || 'Unknown compute error';
-        setComputeStatus({ success: false, message: `Birth data saved, but compute failed: ${computeErrMsg}` });
+        const fullResponse = computeError.response?.data 
+          ? JSON.stringify(computeError.response.data, null, 2) 
+          : computeError.message || 'No response body';
+        setComputeStatus({ 
+          success: false, 
+          message: `Compute failed: ${computeErrMsg}`,
+          response: fullResponse
+        });
       }
       
     } catch (error: any) {
