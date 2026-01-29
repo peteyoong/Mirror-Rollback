@@ -272,6 +272,7 @@ export default function Lenses() {
     setChatMessages([]);
     setChatInput('');
     setAstrologyProfile(null);
+    setHdProfile(null);
     try {
       const response = await api.get(`/lenses/${lensId}`);
       setSelectedLens(response.data);
@@ -280,6 +281,10 @@ export default function Lenses() {
       // Fetch astrology profile if this is the astrology lens
       if (lensId === 'true-sidereal-astrology') {
         fetchAstrologyProfile();
+      }
+      // Fetch HD profile if this is the human design lens
+      if (lensId === 'human-design') {
+        fetchHdProfile();
       }
     } catch (error) {
       console.error('Failed to fetch lens detail:', error);
