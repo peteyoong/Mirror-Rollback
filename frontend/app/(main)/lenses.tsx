@@ -224,6 +224,8 @@ export default function Lenses() {
   const [birthLon, setBirthLon] = useState('');
   const [savingBirthDetails, setSavingBirthDetails] = useState(false);
   const [birthModalError, setBirthModalError] = useState<{ type: 'save' | 'compute'; message: string; response?: string } | null>(null);
+  const [savedUserId, setSavedUserId] = useState<string | null>(null);
+  const [locationManuallyEdited, setLocationManuallyEdited] = useState(false);
   
   // Debug state (POC) - Detailed status tracking
   const [debugExpanded, setDebugExpanded] = useState(false);
