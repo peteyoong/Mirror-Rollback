@@ -225,14 +225,15 @@ export default function Lenses() {
   const [savingBirthDetails, setSavingBirthDetails] = useState(false);
   const [autoComputeAfterSave, setAutoComputeAfterSave] = useState(false);
   
-  // Debug state (POC)
+  // Debug state (POC) - Detailed status tracking
   const [debugExpanded, setDebugExpanded] = useState(false);
-  const [computeStatus, setComputeStatus] = useState<{ success: boolean; message: string } | null>(null);
+  const [saveStatus, setSaveStatus] = useState<{ success: boolean; message: string; response?: string } | null>(null);
+  const [computeStatus, setComputeStatus] = useState<{ success: boolean; message: string; response?: string } | null>(null);
   const [runningCompute, setRunningCompute] = useState(false);
   const [showBirthDataForm, setShowBirthDataForm] = useState(false);
   const [birthFormData, setBirthFormData] = useState({
     birth_datetime_local: '',
-    tz_offset_minutes: '-300',
+    tz_offset_minutes: '480',
     latitude: '',
     longitude: '',
   });
@@ -257,7 +258,7 @@ export default function Lenses() {
   // Run sidereal compute and update user context
   const runSiderealCompute = async () => {
     if (!userBirthData) {
-      setComputeStatus({ success: false, message: 'Birth fields missing from user record' });
+      setComputeStatus({ success: false, message: 'Birth fields missing from user record', response: 'N/A - No birth data to send' });
       return;
     }
     
