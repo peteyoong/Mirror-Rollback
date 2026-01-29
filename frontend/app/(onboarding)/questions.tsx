@@ -477,4 +477,93 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  // Birth Data Form Styles
+  birthDataContainer: {
+    gap: SPACING.lg,
+  },
+  birthDataSubtitle: {
+    fontSize: 15,
+    color: COLORS.secondary,
+    lineHeight: 22,
+    marginBottom: SPACING.md,
+  },
+  birthDataSection: {
+    gap: SPACING.sm,
+  },
+  birthDataLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.primary,
+  },
+  birthDataInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.white,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  birthDataInputText: {
+    fontSize: 16,
+    color: COLORS.primary,
+  },
+  locationGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  locationChip: {
+    backgroundColor: COLORS.white,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  locationChipText: {
+    fontSize: 13,
+    color: COLORS.primary,
+  },
+  selectedLocation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F5F8F3',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.accent,
+  },
+  selectedLocationText: {
+    fontSize: 16,
+    color: COLORS.accent,
+    fontWeight: '500',
+  },
+  skipOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingVertical: SPACING.md,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent,
+  },
+  skipOptionText: {
+    fontSize: 14,
+    color: COLORS.secondary,
+  },
 });
