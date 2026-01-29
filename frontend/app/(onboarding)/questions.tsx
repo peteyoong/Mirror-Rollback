@@ -97,6 +97,15 @@ export default function OnboardingQuestions() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  
+  // Birth data state
+  const [birthDate, setBirthDate] = useState<Date>(new Date(1990, 0, 1, 12, 0));
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [birthLocation, setBirthLocation] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [skipBirthData, setSkipBirthData] = useState(false);
 
   const currentQuestion = QUESTIONS[currentIndex];
   const isLastQuestion = currentIndex === QUESTIONS.length - 1;
@@ -106,8 +115,56 @@ export default function OnboardingQuestions() {
     setAnswers({ ...answers, [currentQuestion.id]: value });
   };
 
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      const newDate = new Date(birthDate);
+      newDate.setFullYear(selectedDate.getFullYear());
+      newDate.setMonth(selectedDate.getMonth());
+      newDate.setDate(selectedDate.getDate());
+      setBirthDate(newDate);
+    }
+  };
+
+  const handleTimeChange = (event: any, selectedTime?: Date) => {
+    setShowTimePicker(false);
+    if (selectedTime) {
+      const newDate = new Date(birthDate);
+      newDate.setHours(selectedTime.getHours());
+      newDate.setMinutes(selectedTime.getMinutes());
+      setBirthDate(newDate);
+    }
+  };
+
+  // Common city coordinates for quick selection
+  const COMMON_LOCATIONS = [
+    { name: 'New York, USA', lat: 40.7128, lng: -74.0060 },
+    { name: 'Los Angeles, USA', lat: 34.0522, lng: -118.2437 },
+    { name: 'London, UK', lat: 51.5074, lng: -0.1278 },
+    { name: 'Paris, France', lat: 48.8566, lng: 2.3522 },
+    { name: 'Tokyo, Japan', lat: 35.6762, lng: 139.6503 },
+    { name: 'Sydney, Australia', lat: -33.8688, lng: 151.2093 },
+    { name: 'Mumbai, India', lat: 19.0760, lng: 72.8777 },
+    { name: 'Berlin, Germany', lat: 52.5200, lng: 13.4050 },
+  ];
+
+  const selectLocation = (loc: typeof COMMON_LOCATIONS[0]) => {
+    setBirthLocation(loc.name);
+    setLatitude(loc.lat);
+    setLongitude(loc.lng);
+  };
+
+  const canProceedBirthData = () => {
+    if (skipBirthData) return true;
+    return latitude !== null && longitude !== null;
+  };
+
   const handleNext = async () => {
-    if (!answers[currentQuestion.id]) {
+    if (currentQuestion.type === 'options' && !answers[currentQuestion.id]) {
+      return;
+    }
+    
+    if (currentQuestion.type === 'birthdata' && !canProceedBirthData()) {
       return;
     }
 
@@ -127,9 +184,20 @@ export default function OnboardingQuestions() {
   const submitOnboarding = async () => {
     setLoading(true);
     try {
-      await api.post('/onboarding/complete', answers);
+      // Build the submission data
+      const submissionData: Record<string, any> = { ...answers };
+      
+      // Add birth data if provided
+      if (!skipBirthData && latitude !== null && longitude !== null) {
+        submissionData.birth_datetime_local = birthDate.toISOString();
+        submissionData.tz_offset_minutes = -birthDate.getTimezoneOffset();
+        submissionData.latitude = latitude;
+        submissionData.longitude = longitude;
+      }
+      
+      await api.post('/onboarding/complete', submissionData);
       if (user) {
-        updateUser({ ...user, onboarding_completed: true, onboarding_answers: answers as any });
+        updateUser({ ...user, onboarding_completed: true, onboarding_answers: submissionData as any });
       }
       router.replace('/(main)/mirror');
     } catch (error: any) {
@@ -138,6 +206,105 @@ export default function OnboardingQuestions() {
       setLoading(false);
     }
   };
+
+  const renderBirthDataForm = () => (
+    <View style={styles.birthDataContainer}>
+      <Text style={styles.birthDataSubtitle}>
+        This helps personalize your sidereal astrology insights
+      </Text>
+      
+      {/* Date Selection */}
+      <View style={styles.birthDataSection}>
+        <Text style={styles.birthDataLabel}>Birth Date</Text>
+        <TouchableOpacity 
+          style={styles.birthDataInput} 
+          onPress={() => setShowDatePicker(true)}
+        >
+          <Text style={styles.birthDataInputText}>
+            {birthDate.toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </Text>
+          <Ionicons name="calendar-outline" size={20} color={COLORS.secondary} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Time Selection */}
+      <View style={styles.birthDataSection}>
+        <Text style={styles.birthDataLabel}>Birth Time (approximate is fine)</Text>
+        <TouchableOpacity 
+          style={styles.birthDataInput} 
+          onPress={() => setShowTimePicker(true)}
+        >
+          <Text style={styles.birthDataInputText}>
+            {birthDate.toLocaleTimeString('en-US', { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </Text>
+          <Ionicons name="time-outline" size={20} color={COLORS.secondary} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Location Selection */}
+      <View style={styles.birthDataSection}>
+        <Text style={styles.birthDataLabel}>Birth Location</Text>
+        {birthLocation ? (
+          <View style={styles.selectedLocation}>
+            <Text style={styles.selectedLocationText}>{birthLocation}</Text>
+            <TouchableOpacity onPress={() => { setBirthLocation(''); setLatitude(null); setLongitude(null); }}>
+              <Ionicons name="close-circle" size={20} color={COLORS.secondary} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.locationGrid}>
+            {COMMON_LOCATIONS.map((loc) => (
+              <TouchableOpacity
+                key={loc.name}
+                style={styles.locationChip}
+                onPress={() => selectLocation(loc)}
+              >
+                <Text style={styles.locationChipText}>{loc.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+
+      {/* Skip Option */}
+      <TouchableOpacity 
+        style={styles.skipOption} 
+        onPress={() => setSkipBirthData(!skipBirthData)}
+      >
+        <View style={[styles.checkbox, skipBirthData && styles.checkboxChecked]}>
+          {skipBirthData && <Ionicons name="checkmark" size={14} color={COLORS.white} />}
+        </View>
+        <Text style={styles.skipOptionText}>Skip for now (can add later)</Text>
+      </TouchableOpacity>
+
+      {/* Date/Time Pickers */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={birthDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleDateChange}
+          maximumDate={new Date()}
+          minimumDate={new Date(1900, 0, 1)}
+        />
+      )}
+      {showTimePicker && (
+        <DateTimePicker
+          value={birthDate}
+          mode="time"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleTimeChange}
+        />
+      )}
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
