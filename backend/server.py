@@ -1803,6 +1803,194 @@ async def delete_hd_profile(user = Depends(get_current_user)):
     result = await db.computed_profiles_hd.delete_one({"user_id": user["id"]})
     return {"deleted": result.deleted_count > 0}
 
+# ============== NUMEROLOGY PROFILE MODELS AND PERSONALIZATION ==============
+
+class NumerologyProfileInput(BaseModel):
+    life_path: int = Field(..., ge=1, le=33, description="Life Path number (1-9, 11, 22, 33)")
+    expression: Optional[int] = Field(None, ge=1, le=33, description="Expression/Destiny number")
+    soul_urge: Optional[int] = Field(None, ge=1, le=33, description="Soul Urge/Heart's Desire number")
+    personality: Optional[int] = Field(None, ge=1, le=33, description="Personality number")
+    birthday: Optional[int] = Field(None, ge=1, le=31, description="Birthday number (day of birth)")
+    personal_year: Optional[int] = Field(None, ge=1, le=9, description="Current Personal Year (1-9)")
+
+async def generate_personalized_numerology_insights(num_profile: dict) -> dict:
+    """Generate personalized Numerology insights based on user's profile"""
+    
+    life_path = num_profile.get("life_path")
+    expression = num_profile.get("expression")
+    soul_urge = num_profile.get("soul_urge")
+    personality = num_profile.get("personality")
+    personal_year = num_profile.get("personal_year")
+    
+    if not life_path:
+        return {"has_personalization": False}
+    
+    # Generate with AI if available
+    if EMERGENT_LLM_KEY:
+        try:
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            
+            system_prompt = """You are generating personalized Numerology insights for Project Mirror.
+
+CRITICAL RULES:
+1. Use INVITATIONAL language only: "might", "can", "one way this shows up"
+2. NEVER say "you ARE a [number]" — say "with a Life Path [X], one way this can show up is..."
+3. NEVER imply superiority, limitation, or optimization
+4. The goal is UNDERSTANDING and REFLECTION, not prediction
+5. Avoid instructional or prescriptive tone
+6. Keep each insight to 2-3 sentences
+
+OUTPUT FORMAT (JSON):
+{
+  "life_path_insight": "With a Life Path [NUMBER], one way this can show up is... [lived experience description]",
+  "expression_insight": "Your Expression number [NUMBER] might manifest as... [how natural abilities show up]" (only if expression provided),
+  "soul_urge_insight": "With a Soul Urge of [NUMBER], you might notice... [inner motivations description]" (only if soul_urge provided),
+  "personal_year_insight": "In a [NUMBER] Personal Year, you might be experiencing... [current cycle themes]" (only if personal_year provided),
+  "integration_reflection": "One thing to notice: [gentle invitation to observe patterns]"
+}
+
+Remember: Numbers are symbolic lenses, not fixed truths. This is about recognizing patterns, not being defined by them."""
+
+            user_prompt = f"""Generate personalized Numerology insights for this user:
+
+Life Path: {life_path}
+Expression/Destiny: {expression if expression else 'Not specified'}
+Soul Urge: {soul_urge if soul_urge else 'Not specified'}
+Personality: {personality if personality else 'Not specified'}
+Personal Year: {personal_year if personal_year else 'Not specified'}
+
+Make insights specific to THEIR numbers. Use invitational language throughout."""
+
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"num-personalize-{num_profile.get('user_id', 'unknown')[:8]}",
+                system_message=system_prompt
+            ).with_model("openai", "gpt-4o")
+            
+            response = await chat.send_message(UserMessage(text=user_prompt))
+            response_text = response.strip()
+            
+            if response_text.startswith("```"):
+                response_text = response_text.split("```")[1]
+                if response_text.startswith("json"):
+                    response_text = response_text[4:]
+            response_text = response_text.strip()
+            
+            insights = json.loads(response_text)
+            insights["has_personalization"] = True
+            insights["elements"] = {
+                "life_path": life_path,
+                "expression": expression,
+                "soul_urge": soul_urge,
+                "personal_year": personal_year
+            }
+            return insights
+            
+        except Exception as e:
+            logger.error(f"Numerology AI personalization failed, using template: {e}")
+    
+    # Fallback to template-based personalization
+    return generate_template_numerology_insights(life_path, expression, soul_urge, personal_year)
+
+def generate_template_numerology_insights(life_path, expression, soul_urge, personal_year) -> dict:
+    """Template-based fallback for Numerology personalization"""
+    
+    life_path_themes = {
+        1: "independence, initiation, and forging your own path—you might notice a drive to lead or start things rather than follow",
+        2: "partnership, patience, and sensitivity—you might notice an attunement to others' needs and a natural role as mediator",
+        3: "expression, creativity, and communication—you might notice ideas flowing easily and a need to share what's inside",
+        4: "structure, discipline, and building foundations—you might notice a need for order and tangible results",
+        5: "change, freedom, and adventure—you might notice restlessness with routine and a pull toward new experiences",
+        6: "responsibility, nurturing, and home—you might notice a natural caretaking role and concern for loved ones",
+        7: "seeking, introspection, and depth—you might notice a need for solitude and a drive to understand what's beneath the surface",
+        8: "power, achievement, and material mastery—you might notice ambition and an ability to organize resources",
+        9: "completion, humanitarianism, and letting go—you might notice cycles of release and a broader perspective on life",
+        11: "intuition, inspiration, and higher awareness—you might notice sensitivity to subtle energies and visionary thinking",
+        22: "master building, manifesting dreams into reality—you might notice big visions paired with practical capability",
+        33: "master teaching, compassion, and service—you might notice a pull toward healing and uplifting others"
+    }
+    
+    personal_year_themes = {
+        1: "new beginnings and fresh starts—this might feel like a time to initiate rather than wait",
+        2: "patience and partnership—this might feel like a time for cooperation and letting things develop",
+        3: "expression and creativity—this might feel like a time when ideas want to come out",
+        4: "building and discipline—this might feel like a time for focused work and laying foundations",
+        5: "change and freedom—this might feel like a time of movement and unexpected shifts",
+        6: "responsibility and home—this might feel like a time focused on family and care",
+        7: "reflection and inner work—this might feel like a time for solitude and deeper questions",
+        8: "achievement and power—this might feel like a time when effort meets opportunity",
+        9: "completion and release—this might feel like a time of endings making space for what's next"
+    }
+    
+    life_path_desc = life_path_themes.get(life_path, f"themes associated with {life_path}")
+    
+    result = {
+        "has_personalization": True,
+        "life_path_insight": f"With a Life Path {life_path}, one way this can show up is {life_path_desc}.",
+        "integration_reflection": f"One thing to notice: Over the next week, observe when the themes of {life_path} feel most present. What situations bring them forward?",
+        "elements": {
+            "life_path": life_path,
+            "expression": expression,
+            "soul_urge": soul_urge,
+            "personal_year": personal_year
+        }
+    }
+    
+    if expression:
+        expr_desc = life_path_themes.get(expression, f"qualities of {expression}")
+        result["expression_insight"] = f"Your Expression number {expression} might manifest as {expr_desc.replace('you might notice', 'natural abilities in')}."
+    
+    if soul_urge:
+        soul_desc = life_path_themes.get(soul_urge, f"themes of {soul_urge}")
+        result["soul_urge_insight"] = f"With a Soul Urge of {soul_urge}, your inner motivations might include {soul_desc.replace('you might notice', '')}."
+    
+    if personal_year:
+        year_desc = personal_year_themes.get(personal_year, f"themes of a {personal_year} year")
+        result["personal_year_insight"] = f"In a {personal_year} Personal Year, you might be experiencing {year_desc}."
+    
+    return result
+
+# Numerology Profile Endpoints
+@api_router.post("/computed-profile/numerology")
+async def save_numerology_profile(data: NumerologyProfileInput, user = Depends(get_current_user)):
+    """Save user's Numerology profile (manually entered)"""
+    
+    profile_data = {
+        "user_id": user["id"],
+        "life_path": data.life_path,
+        "expression": data.expression,
+        "soul_urge": data.soul_urge,
+        "personality": data.personality,
+        "birthday": data.birthday,
+        "personal_year": data.personal_year,
+        "updated_at": datetime.utcnow()
+    }
+    
+    await db.computed_profiles_numerology.update_one(
+        {"user_id": user["id"]},
+        {"$set": profile_data},
+        upsert=True
+    )
+    
+    return {"success": True, "profile": profile_data}
+
+@api_router.get("/computed-profile/numerology")
+async def get_numerology_profile(user = Depends(get_current_user)):
+    """Get user's Numerology profile"""
+    profile = await db.computed_profiles_numerology.find_one({"user_id": user["id"]})
+    
+    if profile:
+        profile.pop("_id", None)
+        return {"has_profile": True, "profile": profile}
+    
+    return {"has_profile": False, "profile": None}
+
+@api_router.delete("/computed-profile/numerology")
+async def delete_numerology_profile(user = Depends(get_current_user)):
+    """Delete user's Numerology profile"""
+    result = await db.computed_profiles_numerology.delete_one({"user_id": user["id"]})
+    return {"deleted": result.deleted_count > 0}
+
 # Personalized Snapshot System Prompt
 SNAPSHOT_SYSTEM_PROMPT = """You are generating a personalized "Your Snapshot" for a self-reflection lens in Project Mirror.
 
