@@ -1325,27 +1325,81 @@ export default function Lenses() {
                               <Text style={styles.siderealProfileSource}>
                                 Source: user.computed_profile.astrology (persisted)
                               </Text>
+                              {/* Action buttons when profile exists */}
+                              <View style={styles.siderealProfileActions}>
+                                <TouchableOpacity 
+                                  style={styles.siderealProfileActionSecondary}
+                                  onPress={openBirthDetailsModal}
+                                >
+                                  <Ionicons name="create-outline" size={16} color={COLORS.accent} />
+                                  <Text style={styles.siderealProfileActionSecondaryText}>Edit Birth Details</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                  style={[styles.siderealProfileActionPrimary, runningCompute && { opacity: 0.6 }]}
+                                  onPress={runSiderealCompute}
+                                  disabled={runningCompute}
+                                >
+                                  {runningCompute ? (
+                                    <ActivityIndicator size="small" color={COLORS.white} />
+                                  ) : (
+                                    <>
+                                      <Ionicons name="refresh" size={16} color={COLORS.white} />
+                                      <Text style={styles.siderealProfileActionPrimaryText}>Recompute</Text>
+                                    </>
+                                  )}
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          ) : userBirthData ? (
+                            /* State: Birth data exists but not computed */
+                            <View style={styles.siderealProfileEmpty}>
+                              <Ionicons name="hourglass-outline" size={32} color={COLORS.accent} style={{ marginBottom: SPACING.sm }} />
+                              <Text style={styles.siderealProfileEmptyText}>
+                                Birth data saved — ready to compute
+                              </Text>
+                              <Text style={styles.siderealProfileEmptyHint}>
+                                Run computation to see your sidereal placements
+                              </Text>
+                              <View style={styles.siderealProfileActions}>
+                                <TouchableOpacity 
+                                  style={styles.siderealProfileActionSecondary}
+                                  onPress={openBirthDetailsModal}
+                                >
+                                  <Ionicons name="create-outline" size={16} color={COLORS.accent} />
+                                  <Text style={styles.siderealProfileActionSecondaryText}>Edit Birth Details</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                  style={[styles.siderealProfileActionPrimary, runningCompute && { opacity: 0.6 }]}
+                                  onPress={runSiderealCompute}
+                                  disabled={runningCompute}
+                                >
+                                  {runningCompute ? (
+                                    <ActivityIndicator size="small" color={COLORS.white} />
+                                  ) : (
+                                    <>
+                                      <Ionicons name="calculator-outline" size={16} color={COLORS.white} />
+                                      <Text style={styles.siderealProfileActionPrimaryText}>Run Sidereal Compute Now</Text>
+                                    </>
+                                  )}
+                                </TouchableOpacity>
+                              </View>
                             </View>
                           ) : (
+                            /* State: No birth data */
                             <View style={styles.siderealProfileEmpty}>
                               <Ionicons name="planet-outline" size={32} color={COLORS.secondary} style={{ marginBottom: SPACING.sm }} />
                               <Text style={styles.siderealProfileEmptyText}>
-                                {userBirthData ? 'Birth data saved but not yet computed' : 'No birth data in user record'}
+                                No birth data in user record
                               </Text>
                               <Text style={styles.siderealProfileEmptyHint}>
-                                {userBirthData 
-                                  ? 'Tap "Run Sidereal Compute Now" in Debug panel to compute your chart'
-                                  : 'Add your birth details to see your sidereal placements'
-                                }
+                                Add your birth details to compute your sidereal placements
                               </Text>
                               <TouchableOpacity 
                                 style={styles.siderealProfileCTA}
                                 onPress={openBirthDetailsModal}
                               >
                                 <Ionicons name="add-circle-outline" size={18} color={COLORS.white} />
-                                <Text style={styles.siderealProfileCTAText}>
-                                  {userBirthData ? 'Edit Birth Details' : 'Add Birth Details'}
-                                </Text>
+                                <Text style={styles.siderealProfileCTAText}>Add Birth Details</Text>
                               </TouchableOpacity>
                             </View>
                           )}
