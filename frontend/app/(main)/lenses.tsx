@@ -2627,9 +2627,34 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   computedProfileBlockEmpty: {
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+    gap: SPACING.sm,
+  },
+  computedProfileEmptyText: {
     fontSize: 13,
     color: COLORS.secondary,
     fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  computedProfileSource: {
+    fontSize: 9,
+    color: '#10B981',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginTop: SPACING.sm,
+    textAlign: 'center',
+  },
+  computedProfileCTA: {
+    backgroundColor: COLORS.accent,
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.sm,
+    marginTop: SPACING.xs,
+  },
+  computedProfileCTAText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: '600',
   },
   chatInputContainer: {
     flexDirection: 'row',
