@@ -331,6 +331,10 @@ export default function Lenses() {
       if (lensId === 'human-design') {
         fetchHdProfile();
       }
+      // Fetch numerology profile if this is the numerology lens
+      if (lensId === 'numerology') {
+        fetchNumerologyProfile();
+      }
     } catch (error) {
       console.error('Failed to fetch lens detail:', error);
     } finally {
@@ -348,6 +352,7 @@ export default function Lenses() {
     setExpandedModuleId(null);
     setAstrologyProfile(null);
     setHdProfile(null);
+    setNumerologyProfile(null);
   };
 
   const handleViewSnapshot = () => {
