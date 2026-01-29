@@ -219,6 +219,10 @@ export default function Lenses() {
   const [hdProfile, setHdProfile] = useState<HumanDesignProfile | null>(null);
   const [loadingHdProfile, setLoadingHdProfile] = useState(false);
 
+  // Numerology profile state
+  const [numerologyProfile, setNumerologyProfile] = useState<NumerologyProfile | null>(null);
+  const [loadingNumerologyProfile, setLoadingNumerologyProfile] = useState(false);
+
   const fetchLenses = useCallback(async () => {
     try {
       const response = await api.get('/lenses');
