@@ -2,6 +2,7 @@
 """
 Backend API Testing for Project Mirror
 Tests the complete registration + onboarding + astrology compute flow
+AND the specific Add/Edit Birth Details flow as requested
 """
 
 import requests
