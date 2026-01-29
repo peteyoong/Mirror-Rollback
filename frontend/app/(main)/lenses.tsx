@@ -3503,6 +3503,13 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     lineHeight: 14,
   },
+  debugPersistedNote: {
+    fontSize: 10,
+    color: '#059669',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
   debugButton: {
     backgroundColor: '#2563EB',
     paddingVertical: SPACING.sm,
