@@ -1290,8 +1290,27 @@ async def get_me(user = Depends(get_current_user)):
         name=user["name"],
         onboarding_completed=user["onboarding_completed"],
         onboarding_answers=user.get("onboarding_answers"),
-        computed_profile=user.get("computed_profile")
+        computed_profile=user.get("computed_profile"),
+        birth_data=user.get("birth_data")
     )
+
+@api_router.post("/user/birth-data")
+async def save_birth_data(data: BirthDataInput, user = Depends(get_current_user)):
+    """Save or update user's birth data for sidereal compute"""
+    birth_data = {
+        "birth_datetime_local": data.birth_datetime_local,
+        "tz_offset_minutes": data.tz_offset_minutes,
+        "latitude": data.latitude,
+        "longitude": data.longitude,
+        "updated_at": datetime.utcnow().isoformat()
+    }
+    
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"birth_data": birth_data}}
+    )
+    
+    return {"success": True, "birth_data": birth_data}
 
 # Onboarding Routes
 @api_router.post("/onboarding/complete")
