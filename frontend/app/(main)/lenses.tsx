@@ -304,33 +304,90 @@ export default function Lenses() {
     }
   };
 
-  // Save birth data to user record
+  // Save birth data to user record AND run compute
   const saveBirthData = async () => {
     if (!birthFormData.birth_datetime_local || !birthFormData.latitude || !birthFormData.longitude) {
-      Alert.alert('Missing Fields', 'Please fill in all birth data fields.');
+      setComputeStatus({ success: false, message: 'Please fill in all birth data fields.' });
       return;
     }
     
     setSavingBirthData(true);
+    setComputeStatus(null);
+    
     try {
-      const response = await api.post('/user/birth-data', {
+      // Step 1: Save birth data to user record
+      const saveResponse = await api.post('/user/birth-data', {
         birth_datetime_local: birthFormData.birth_datetime_local,
         tz_offset_minutes: parseInt(birthFormData.tz_offset_minutes, 10),
         latitude: parseFloat(birthFormData.latitude),
         longitude: parseFloat(birthFormData.longitude),
       });
       
-      if (response.data.success && user) {
-        const updatedUser = {
-          ...user,
-          birth_data: response.data.birth_data,
-        };
-        updateUser(updatedUser);
-        setShowBirthDataForm(false);
-        Alert.alert('Success', 'Birth data saved! You can now run compute.');
+      if (!saveResponse.data.success) {
+        setComputeStatus({ success: false, message: 'Failed to save birth data to database.' });
+        return;
       }
+      
+      const savedBirthData = saveResponse.data.birth_data;
+      
+      // Update user context with birth data immediately
+      let updatedUser = user ? {
+        ...user,
+        birth_data: savedBirthData,
+      } : null;
+      
+      if (updatedUser) {
+        updateUser(updatedUser);
+      }
+      
+      // Step 2: Run sidereal compute
+      try {
+        const computeResponse = await api.post('/computed-profile/astrology', {
+          birth_datetime_local: savedBirthData.birth_datetime_local,
+          tz_offset_minutes: savedBirthData.tz_offset_minutes,
+          latitude: savedBirthData.latitude,
+          longitude: savedBirthData.longitude,
+          ayanamsa: 'FAGAN_BRADLEY',
+        });
+        
+        if (computeResponse.data.has_profile && computeResponse.data.profile) {
+          // Update user context with computed profile
+          const computedAstrology = {
+            ayanamsa: computeResponse.data.profile.ayanamsa,
+            positions: computeResponse.data.profile.positions,
+            birth_datetime_local: savedBirthData.birth_datetime_local,
+            latitude: savedBirthData.latitude,
+            longitude: savedBirthData.longitude,
+            computed_at: new Date().toISOString(),
+          };
+          
+          if (updatedUser) {
+            updatedUser = {
+              ...updatedUser,
+              computed_profile: {
+                ...updatedUser.computed_profile,
+                astrology: computedAstrology,
+              },
+            };
+            updateUser(updatedUser);
+          }
+          
+          setComputeStatus({ 
+            success: true, 
+            message: `Compute successful! Sun: ${computeResponse.data.profile.positions?.sun?.formatted || 'N/A'}` 
+          });
+          setShowBirthDataForm(false);
+        } else {
+          setComputeStatus({ success: false, message: 'Compute returned no profile data.' });
+        }
+      } catch (computeError: any) {
+        const computeErrMsg = computeError.response?.data?.detail || computeError.message || 'Unknown compute error';
+        setComputeStatus({ success: false, message: `Birth data saved, but compute failed: ${computeErrMsg}` });
+      }
+      
     } catch (error: any) {
-      Alert.alert('Error', 'Failed to save birth data.');
+      const errMsg = error.response?.data?.detail || error.message || 'Unknown error';
+      setComputeStatus({ success: false, message: `Failed to save birth data: ${errMsg}` });
     } finally {
       setSavingBirthData(false);
     }
