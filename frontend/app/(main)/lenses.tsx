@@ -1148,9 +1148,19 @@ export default function Lenses() {
                               ) : (
                                 <TouchableOpacity 
                                   style={styles.debugButtonSecondary}
-                                  onPress={() => setShowBirthDataForm(true)}
+                                  onPress={openBirthDetailsModal}
                                 >
                                   <Text style={styles.debugButtonSecondaryText}>Add/Edit Birth Details</Text>
+                                </TouchableOpacity>
+                              )}
+                              
+                              {/* Always show Edit button when birth data exists */}
+                              {userBirthData && (
+                                <TouchableOpacity 
+                                  style={[styles.debugButtonSecondary, { marginTop: SPACING.sm }]}
+                                  onPress={openBirthDetailsModal}
+                                >
+                                  <Text style={styles.debugButtonSecondaryText}>Edit Birth Details</Text>
                                 </TouchableOpacity>
                               )}
                               
