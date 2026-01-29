@@ -1484,7 +1484,139 @@ async def get_lens_detail(lens_id: str, user = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Lens not found")
     # Return lens without snapshot_prompt (that's internal)
     result = {k: v for k, v in lens.items() if k != "snapshot_prompt"}
+    
+    # For True Sidereal Astrology, add personalized insights based on computed profile
+    if lens_id == "true-sidereal-astrology":
+        try:
+            astro_profile = await db.computed_profiles_astrology.find_one({
+                "user_id": user["id"]
+            })
+            if astro_profile and astro_profile.get("positions"):
+                personalized = await generate_personalized_astrology_insights(astro_profile)
+                result["personalized_insights"] = personalized
+        except Exception as e:
+            logger.error(f"Failed to generate personalized astrology insights: {e}")
+    
     return result
+
+async def generate_personalized_astrology_insights(astro_profile: dict) -> dict:
+    """Generate personalized deep dive insights based on user's computed astrology chart"""
+    positions = astro_profile.get("positions", {})
+    sun = positions.get("sun", {})
+    moon = positions.get("moon", {})
+    asc = positions.get("ascendant", {})
+    
+    sun_sign = sun.get("sign", "")
+    moon_sign = moon.get("sign", "")
+    asc_sign = asc.get("sign", "")
+    
+    # Sign element mapping
+    fire_signs = ["Aries", "Leo", "Sagittarius"]
+    earth_signs = ["Taurus", "Virgo", "Capricorn"]
+    air_signs = ["Gemini", "Libra", "Aquarius"]
+    water_signs = ["Cancer", "Scorpio", "Pisces"]
+    
+    def get_element(sign):
+        if sign in fire_signs: return "fire"
+        if sign in earth_signs: return "earth"
+        if sign in air_signs: return "air"
+        if sign in water_signs: return "water"
+        return ""
+    
+    sun_element = get_element(sun_sign)
+    moon_element = get_element(moon_sign)
+    asc_element = get_element(asc_sign)
+    
+    # Generate personalized insights using AI if available
+    if EMERGENT_LLM_KEY:
+        try:
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            
+            system_prompt = """You are generating personalized astrology insights for Project Mirror's True Sidereal Astrology lens.
+
+CRITICAL RULES:
+1. Use INVITATIONAL language only: "might", "can", "one way this shows up", "you may notice"
+2. NEVER predict outcomes or future events
+3. NEVER imply fixed identity - frame as tendencies to observe
+4. Reference the user's ACTUAL sidereal placements by name
+5. Keep each insight to 2-3 sentences
+6. Be warm and reflective, not authoritative
+
+OUTPUT FORMAT (JSON):
+{
+  "sun_insight": "With your sidereal [SUN SIGN] Sun, you might notice... [insight about core identity/vitality]",
+  "moon_insight": "Your sidereal Moon in [MOON SIGN] can show up as... [insight about emotional nature]",
+  "ascendant_insight": "With [ASC SIGN] rising sidereally, others might experience you as... [insight about outward presence]",
+  "element_balance": "Your chart has [observation about elemental balance]... [what this might mean experientially]",
+  "integration_question": "A question to sit with: [reflective question based on their specific placements]"
+}
+
+Remember: This is "Help me understand MY astrology" not "Teach me astrology."
+The goal is personal recognition, not astrological education."""
+
+            user_prompt = f"""Generate personalized astrology insights for this user's True Sidereal chart:
+
+Sun: {sun_sign} ({sun_element} sign)
+Moon: {moon_sign} ({moon_element} sign)  
+Ascendant: {asc_sign} ({asc_element} sign)
+
+Make each insight specific to THEIR placements. Use their actual sign names.
+Keep language invitational and non-predictive."""
+
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"astro-personalize-{astro_profile.get('user_id', 'unknown')[:8]}",
+                system_message=system_prompt
+            ).with_model("openai", "gpt-4o")
+            
+            response = await chat.send_message(UserMessage(text=user_prompt))
+            response_text = response.strip()
+            
+            # Parse JSON response
+            if response_text.startswith("```"):
+                response_text = response_text.split("```")[1]
+                if response_text.startswith("json"):
+                    response_text = response_text[4:]
+            response_text = response_text.strip()
+            
+            insights = json.loads(response_text)
+            insights["has_personalization"] = True
+            insights["placements"] = {
+                "sun": sun_sign,
+                "moon": moon_sign,
+                "ascendant": asc_sign
+            }
+            return insights
+            
+        except Exception as e:
+            logger.error(f"AI personalization failed, using template: {e}")
+    
+    # Fallback to template-based personalization
+    return generate_template_astrology_insights(sun_sign, moon_sign, asc_sign, sun_element, moon_element, asc_element)
+
+def generate_template_astrology_insights(sun_sign, moon_sign, asc_sign, sun_element, moon_element, asc_element) -> dict:
+    """Template-based fallback for astrology personalization"""
+    
+    element_qualities = {
+        "fire": "a natural warmth and directness",
+        "earth": "a grounded, practical approach",
+        "air": "a curious, mentally-oriented nature",
+        "water": "an intuitive, emotionally attuned quality"
+    }
+    
+    return {
+        "has_personalization": True,
+        "sun_insight": f"With your sidereal {sun_sign} Sun, you might notice {element_qualities.get(sun_element, 'particular qualities')} in how you express your core identity and vitality.",
+        "moon_insight": f"Your sidereal Moon in {moon_sign} can show up as {element_qualities.get(moon_element, 'particular patterns')} in your emotional responses and what makes you feel secure.",
+        "ascendant_insight": f"With {asc_sign} rising sidereally, others might initially experience you as having {element_qualities.get(asc_element, 'certain qualities')} in your presence and approach.",
+        "element_balance": f"Your chart brings together {sun_element}, {moon_element}, and {asc_element} energies—notice how these different qualities show up in different areas of your life.",
+        "integration_question": f"A question to sit with: How do your {sun_sign} Sun's needs, {moon_sign} Moon's feelings, and {asc_sign} rising's way of engaging with the world work together—or sometimes pull in different directions?",
+        "placements": {
+            "sun": sun_sign,
+            "moon": moon_sign,
+            "ascendant": asc_sign
+        }
+    }
 
 # Personalized Snapshot System Prompt
 SNAPSHOT_SYSTEM_PROMPT = """You are generating a personalized "Your Snapshot" for a self-reflection lens in Project Mirror.
