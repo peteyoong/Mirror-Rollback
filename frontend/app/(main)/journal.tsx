@@ -363,15 +363,34 @@ export default function Journal() {
               </TouchableOpacity>
               <View style={styles.chatTitleContainer}>
                 <Text style={styles.chatTitle}>Integrate</Text>
-                <Text style={styles.chatSubtitle}>Make sense of your experience over time</Text>
+                <Text style={styles.chatSubtitle}>Your ongoing reflection journey</Text>
               </View>
               <TouchableOpacity
-                onPress={clearChat}
-                style={styles.chatClearButton}
+                onPress={() => setShowChatOptions(!showChatOptions)}
+                style={styles.chatOptionsButton}
               >
-                <Ionicons name="trash-outline" size={20} color={COLORS.secondary} />
+                <Ionicons name="ellipsis-horizontal" size={20} color={COLORS.secondary} />
               </TouchableOpacity>
             </View>
+            
+            {/* Hidden Options Menu */}
+            {showChatOptions && (
+              <View style={styles.chatOptionsMenu}>
+                <TouchableOpacity
+                  style={styles.chatOptionsItem}
+                  onPress={() => {
+                    setShowChatOptions(false);
+                    clearChat();
+                  }}
+                >
+                  <Ionicons name="trash-outline" size={18} color="#CC6666" />
+                  <Text style={styles.chatOptionsItemText}>Clear conversation history</Text>
+                </TouchableOpacity>
+                <Text style={styles.chatOptionsWarning}>
+                  This cannot be undone
+                </Text>
+              </View>
+            )}
 
             {/* Chat Messages */}
             <ScrollView
