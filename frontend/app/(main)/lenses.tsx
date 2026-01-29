@@ -2114,6 +2114,30 @@ export default function Lenses() {
               </View>
             )}
 
+            {/* Inline Error Display */}
+            {birthModalError && (
+              <View style={styles.birthModalErrorBox}>
+                <View style={styles.birthModalErrorHeader}>
+                  <Ionicons name="alert-circle" size={18} color="#DC2626" />
+                  <Text style={styles.birthModalErrorTitle}>
+                    {birthModalError.type === 'save' ? 'Save Failed' : 'Compute Failed'}
+                  </Text>
+                </View>
+                <Text style={styles.birthModalErrorMessage}>{birthModalError.message}</Text>
+                {birthModalError.response && (
+                  <Text style={styles.birthModalErrorResponse} numberOfLines={5}>
+                    {birthModalError.response}
+                  </Text>
+                )}
+                <TouchableOpacity 
+                  style={styles.birthModalErrorDismiss}
+                  onPress={() => setBirthModalError(null)}
+                >
+                  <Text style={styles.birthModalErrorDismissText}>Dismiss</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Save Button */}
             <TouchableOpacity
               style={[styles.birthDetailsSaveButton, savingBirthDetails && styles.birthDetailsSaveButtonDisabled]}
