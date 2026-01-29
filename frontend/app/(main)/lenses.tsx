@@ -3271,6 +3271,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
+  debugStatusContainer: {
+    marginTop: SPACING.xs,
+  },
+  debugResponseText: {
+    fontSize: 10,
+    color: '#6B7280',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginTop: 4,
+    backgroundColor: '#F9FAFB',
+    padding: 6,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  debugNoStatus: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+    marginTop: SPACING.xs,
+  },
   debugButton: {
     backgroundColor: '#2563EB',
     paddingVertical: SPACING.sm,
