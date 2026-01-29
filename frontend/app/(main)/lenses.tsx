@@ -652,18 +652,8 @@ export default function Lenses() {
     }
   };
 
-  const fetchAstrologyProfile = async () => {
-    setLoadingAstrologyProfile(true);
-    try {
-      const response = await api.get('/computed-profile/astrology');
-      setAstrologyProfile(response.data);
-    } catch (error) {
-      console.error('Failed to fetch astrology profile:', error);
-      setAstrologyProfile({ has_profile: false });
-    } finally {
-      setLoadingAstrologyProfile(false);
-    }
-  };
+  // NOTE: fetchAstrologyProfile removed - astrology data comes from user context only
+  // This ensures single source of truth from user.computed_profile.astrology
 
   const fetchHdProfile = async () => {
     setLoadingHdProfile(true);
