@@ -1324,7 +1324,7 @@ async def get_lens_chat_history(lens_id: str, user = Depends(get_current_user)):
 
 @api_router.post("/lenses/{lens_id}/chat", response_model=List[LensChatMessageResponse])
 async def send_lens_chat_message(lens_id: str, chat_input: ChatMessageInput, user = Depends(get_current_user)):
-    """Send a message to the lens chatbot and get a response"""
+    """Send a message to the lens chatbot and get a response with strict guardrails"""
     lens_key = LENS_CHAT_KEYS.get(lens_id)
     if not lens_key:
         raise HTTPException(status_code=404, detail="Lens not found")
@@ -1360,21 +1360,79 @@ async def send_lens_chat_message(lens_id: str, chat_input: ChatMessageInput, use
             for msg in history[:-1]:  # Exclude the message we just added
                 conversation.append(f"{msg['role'].upper()}: {msg['message_text']}")
             
-            # Get user's onboarding for context
+            # ============== LENS CONTEXT HEADER ==============
+            # Build comprehensive context for personalization
+            
+            # 1. Lens information
+            lens_context = [
+                "=== LENS CONTEXT HEADER ===",
+                f"LENS KEY: {lens_key}",
+                f"LENS TITLE: {lens['title']}",
+                f"LENS SUMMARY: {lens['summary']}",
+            ]
+            
+            # 2. User's personalized snapshot for this lens (if available)
+            try:
+                cached_snapshot = await db.lens_snapshots.find_one({
+                    "user_id": user["id"],
+                    "lens_id": lens_id
+                })
+                if cached_snapshot and cached_snapshot.get("snapshot"):
+                    lens_context.append(f"\nUSER'S COMPUTED SNAPSHOT FOR THIS LENS:\n{cached_snapshot['snapshot']}")
+                else:
+                    lens_context.append("\nUSER'S COMPUTED SNAPSHOT: Not computed yet")
+            except Exception:
+                lens_context.append("\nUSER'S COMPUTED SNAPSHOT: Not available")
+            
+            # 3. Onboarding answers
             onboarding = user.get("onboarding_answers", {})
-            
-            # Build system prompt with lens context
-            system_prompt = LENS_CHAT_PROMPTS.get(lens_key, "You are a helpful assistant.")
-            system_prompt += f"\n\nLens: {lens['title']}\nLens Summary: {lens['summary']}"
-            
             if onboarding:
-                system_prompt += f"\n\nUser Context (for personalization):\n- Desired depth: {onboarding.get('desired_depth', 'moderate')}\n- Reflection style: {onboarding.get('reflection_style', 'contemplating')}"
+                lens_context.append("\nONBOARDING ANSWERS:")
+                lens_context.append(f"- Relationship with self: {onboarding.get('relationship_with_self', 'not specified')}")
+                lens_context.append(f"- Reflection style: {onboarding.get('reflection_style', 'not specified')}")
+                lens_context.append(f"- Desired depth: {onboarding.get('desired_depth', 'moderate')}")
+                lens_context.append(f"- Uncertainty relationship: {onboarding.get('uncertainty_relationship', 'not specified')}")
+                lens_context.append(f"- Intention: {onboarding.get('intention', 'not specified')}")
+            else:
+                lens_context.append("\nONBOARDING ANSWERS: Not completed")
             
-            # Build user prompt with history
-            user_prompt = ""
+            # 4. Recent journal entries (last 1-3)
+            try:
+                recent_journals = await db.journal_entries.find(
+                    {"user_id": user["id"]}
+                ).sort("created_at", -1).limit(3).to_list(3)
+                
+                if recent_journals:
+                    lens_context.append("\nRECENT JOURNAL ENTRIES (for context, most recent first):")
+                    for i, entry in enumerate(recent_journals):
+                        content = entry.get('content', '')[:300]
+                        if len(entry.get('content', '')) > 300:
+                            content += "..."
+                        lens_context.append(f"Entry {i+1}: {content}")
+                else:
+                    lens_context.append("\nRECENT JOURNAL ENTRIES: None yet")
+            except Exception:
+                lens_context.append("\nRECENT JOURNAL ENTRIES: Unable to retrieve")
+            
+            lens_context.append("=== END LENS CONTEXT HEADER ===\n")
+            
+            # Build system prompt with lens-specific guidance
+            system_prompt = LENS_CHAT_PROMPTS.get(lens_key, LENS_CHAT_BASE_PROMPT.format(lens_name=lens['title']))
+            
+            # Build user prompt with full context and history
+            user_prompt_parts = ["\n".join(lens_context)]
+            
             if conversation:
-                user_prompt = "Previous conversation:\n" + "\n".join(conversation[-10:]) + "\n\n"
-            user_prompt += f"USER: {chat_input.message}\n\nRespond helpfully and concisely."
+                user_prompt_parts.append("CONVERSATION HISTORY:")
+                user_prompt_parts.append("\n".join(conversation[-10:]))
+                user_prompt_parts.append("")
+            
+            user_prompt_parts.append(f"USER'S CURRENT MESSAGE: {chat_input.message}")
+            user_prompt_parts.append("")
+            user_prompt_parts.append("Generate your response following the RESPONSE FORMAT in your instructions.")
+            user_prompt_parts.append("Remember: narrative explanation, concrete examples, reflective question, optional experiment.")
+            
+            user_prompt = "\n".join(user_prompt_parts)
             
             chat = LlmChat(
                 api_key=EMERGENT_LLM_KEY,
