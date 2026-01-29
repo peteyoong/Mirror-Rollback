@@ -2922,19 +2922,45 @@ const styles = StyleSheet.create({
     borderTopColor: '#E0E0E0',
     width: '100%',
   },
+  siderealProfileSource: {
+    fontSize: 10,
+    color: '#10B981',
+    textAlign: 'center',
+    marginTop: SPACING.xs,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
   siderealProfileEmpty: {
     alignItems: 'center',
-    paddingVertical: SPACING.md,
+    paddingVertical: SPACING.lg,
   },
   siderealProfileEmptyText: {
     fontSize: 15,
     color: COLORS.secondary,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   siderealProfileEmptyHint: {
     fontSize: 13,
     color: COLORS.secondary,
     opacity: 0.7,
     marginTop: 4,
+    textAlign: 'center',
+    paddingHorizontal: SPACING.md,
+  },
+  siderealProfileCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.accent,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginTop: SPACING.md,
+    gap: SPACING.xs,
+  },
+  siderealProfileCTAText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '600',
   },
   // Human Design Profile Styles
   hdProfileGrid: {
