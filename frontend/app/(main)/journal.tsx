@@ -361,8 +361,8 @@ export default function Journal() {
                 <Ionicons name="close" size={24} color={COLORS.primary} />
               </TouchableOpacity>
               <View style={styles.chatTitleContainer}>
-                <Text style={styles.chatTitle}>Integrative Chat</Text>
-                <Text style={styles.chatSubtitle}>Connect patterns across your journey</Text>
+                <Text style={styles.chatTitle}>Integrate</Text>
+                <Text style={styles.chatSubtitle}>Make sense of your experience over time</Text>
               </View>
               <TouchableOpacity
                 onPress={clearChat}
