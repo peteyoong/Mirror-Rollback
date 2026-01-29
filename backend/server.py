@@ -3825,7 +3825,7 @@ async def save_computed_astrology_profile(data: ComputedProfileInput, user = Dep
         }
         await db.users.update_one(
             {"id": user["id"]},
-            {"$set": {"computed_profile.astrology": astrology_profile_for_user}}
+            {"$set": {"computed_profile": {"astrology": astrology_profile_for_user}}}
         )
         
         return ComputedAstrologyResponse(
