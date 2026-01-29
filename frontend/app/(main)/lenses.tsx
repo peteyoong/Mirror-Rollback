@@ -658,6 +658,72 @@ export default function Lenses() {
                         </View>
                       )}
 
+                      {/* Personalized Insights - Only for Astrology with computed profile */}
+                      {selectedLens.id === 'true-sidereal-astrology' && selectedLens.personalized_insights?.has_personalization && (
+                        <View style={styles.personalizedInsightsContainer}>
+                          <Text style={styles.personalizedInsightsTitle}>Your Chart at a Glance</Text>
+                          
+                          {selectedLens.personalized_insights.sun_insight && (
+                            <View style={styles.personalizedInsightCard}>
+                              <View style={styles.personalizedInsightHeader}>
+                                <Text style={styles.personalizedInsightPlanet}>☉ Sun</Text>
+                                <Text style={styles.personalizedInsightSign}>
+                                  {selectedLens.personalized_insights.placements?.sun}
+                                </Text>
+                              </View>
+                              <Text style={styles.personalizedInsightText}>
+                                {selectedLens.personalized_insights.sun_insight}
+                              </Text>
+                            </View>
+                          )}
+                          
+                          {selectedLens.personalized_insights.moon_insight && (
+                            <View style={styles.personalizedInsightCard}>
+                              <View style={styles.personalizedInsightHeader}>
+                                <Text style={styles.personalizedInsightPlanet}>☽ Moon</Text>
+                                <Text style={styles.personalizedInsightSign}>
+                                  {selectedLens.personalized_insights.placements?.moon}
+                                </Text>
+                              </View>
+                              <Text style={styles.personalizedInsightText}>
+                                {selectedLens.personalized_insights.moon_insight}
+                              </Text>
+                            </View>
+                          )}
+                          
+                          {selectedLens.personalized_insights.ascendant_insight && (
+                            <View style={styles.personalizedInsightCard}>
+                              <View style={styles.personalizedInsightHeader}>
+                                <Text style={styles.personalizedInsightPlanet}>↑ Rising</Text>
+                                <Text style={styles.personalizedInsightSign}>
+                                  {selectedLens.personalized_insights.placements?.ascendant}
+                                </Text>
+                              </View>
+                              <Text style={styles.personalizedInsightText}>
+                                {selectedLens.personalized_insights.ascendant_insight}
+                              </Text>
+                            </View>
+                          )}
+                          
+                          {selectedLens.personalized_insights.element_balance && (
+                            <View style={styles.personalizedInsightBalance}>
+                              <Text style={styles.personalizedInsightBalanceText}>
+                                {selectedLens.personalized_insights.element_balance}
+                              </Text>
+                            </View>
+                          )}
+                          
+                          {selectedLens.personalized_insights.integration_question && (
+                            <View style={styles.personalizedInsightQuestion}>
+                              <Ionicons name="help-circle-outline" size={18} color={COLORS.accent} />
+                              <Text style={styles.personalizedInsightQuestionText}>
+                                {selectedLens.personalized_insights.integration_question}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      )}
+
                       <Text style={styles.deepDiveDescription}>
                         {selectedLens.deep_dive.description}
                       </Text>
