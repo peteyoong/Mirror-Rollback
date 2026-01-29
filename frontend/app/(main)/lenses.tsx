@@ -1241,6 +1241,96 @@ export default function Lenses() {
                       </View>
                     )}
 
+                    {/* Computed Profile Block - Above Chat for Human Design */}
+                    {selectedLens?.id === 'human-design' && (
+                      <View style={styles.computedProfileBlock}>
+                        <Text style={styles.computedProfileBlockTitle}>Your Human Design Profile</Text>
+                        {loadingHdProfile ? (
+                          <ActivityIndicator size="small" color={COLORS.accent} />
+                        ) : hdProfile?.has_profile && hdProfile.profile ? (
+                          <View style={styles.computedProfileBlockContent}>
+                            <View style={styles.computedProfileRow}>
+                              <Text style={styles.computedProfileLabel}>Type:</Text>
+                              <Text style={styles.computedProfileValue}>
+                                {hdProfile.profile.type || 'N/A'}
+                              </Text>
+                            </View>
+                            <View style={styles.computedProfileRow}>
+                              <Text style={styles.computedProfileLabel}>Strategy:</Text>
+                              <Text style={styles.computedProfileValue}>
+                                {hdProfile.profile.strategy || 'N/A'}
+                              </Text>
+                            </View>
+                            <View style={styles.computedProfileRow}>
+                              <Text style={styles.computedProfileLabel}>Authority:</Text>
+                              <Text style={styles.computedProfileValue}>
+                                {hdProfile.profile.authority || 'N/A'}
+                              </Text>
+                            </View>
+                            {hdProfile.profile.profile && (
+                              <View style={styles.computedProfileRow}>
+                                <Text style={styles.computedProfileLabel}>Profile:</Text>
+                                <Text style={styles.computedProfileValue}>
+                                  {hdProfile.profile.profile}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                        ) : (
+                          <Text style={styles.computedProfileBlockEmpty}>
+                            Human Design profile not entered yet.
+                          </Text>
+                        )}
+                      </View>
+                    )}
+
+                    {/* Computed Profile Block - Above Chat for Numerology */}
+                    {selectedLens?.id === 'numerology' && (
+                      <View style={styles.computedProfileBlock}>
+                        <Text style={styles.computedProfileBlockTitle}>Your Numerology Profile</Text>
+                        {loadingNumerologyProfile ? (
+                          <ActivityIndicator size="small" color={COLORS.accent} />
+                        ) : numerologyProfile?.has_profile && numerologyProfile.profile ? (
+                          <View style={styles.computedProfileBlockContent}>
+                            <View style={styles.computedProfileRow}>
+                              <Text style={styles.computedProfileLabel}>Life Path:</Text>
+                              <Text style={styles.computedProfileValue}>
+                                {numerologyProfile.profile.life_path || 'N/A'}
+                              </Text>
+                            </View>
+                            {numerologyProfile.profile.expression && (
+                              <View style={styles.computedProfileRow}>
+                                <Text style={styles.computedProfileLabel}>Expression:</Text>
+                                <Text style={styles.computedProfileValue}>
+                                  {numerologyProfile.profile.expression}
+                                </Text>
+                              </View>
+                            )}
+                            {numerologyProfile.profile.soul_urge && (
+                              <View style={styles.computedProfileRow}>
+                                <Text style={styles.computedProfileLabel}>Soul Urge:</Text>
+                                <Text style={styles.computedProfileValue}>
+                                  {numerologyProfile.profile.soul_urge}
+                                </Text>
+                              </View>
+                            )}
+                            {numerologyProfile.profile.personal_year && (
+                              <View style={styles.computedProfileRow}>
+                                <Text style={styles.computedProfileLabel}>Personal Year:</Text>
+                                <Text style={styles.computedProfileValue}>
+                                  {numerologyProfile.profile.personal_year}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                        ) : (
+                          <Text style={styles.computedProfileBlockEmpty}>
+                            Numerology profile not entered yet.
+                          </Text>
+                        )}
+                      </View>
+                    )}
+
                     <View style={styles.chatInputContainer}>
                       <TextInput
                         style={styles.chatInput}
