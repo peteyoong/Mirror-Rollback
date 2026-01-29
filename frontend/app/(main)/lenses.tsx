@@ -2149,88 +2149,277 @@ export default function Lenses() {
               Enter your birth details to compute your True Sidereal profile
             </Text>
 
-            {/* Date Selection - Platform specific */}
+            {/* Date Selection - Day / Month / Year Dropdowns */}
             <View style={styles.birthDetailsField}>
               <Text style={styles.birthDetailsLabel}>Birth Date</Text>
-              {Platform.OS === 'web' ? (
-                /* Web: Use native HTML date input */
-                <View style={styles.birthDetailsInput}>
-                  <TextInput
-                    style={[styles.birthDetailsTextInput, { flex: 1, borderWidth: 0 }]}
-                    value={`${birthDate.getFullYear()}-${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`}
-                    onChangeText={(text) => {
-                      const parts = text.split('-');
-                      if (parts.length === 3) {
-                        const newDate = new Date(birthDate);
-                        newDate.setFullYear(parseInt(parts[0]) || 1990);
-                        newDate.setMonth((parseInt(parts[1]) || 1) - 1);
-                        newDate.setDate(parseInt(parts[2]) || 1);
-                        setBirthDate(newDate);
-                      }
+              <View style={styles.dateDropdownRow}>
+                {/* Day Dropdown */}
+                <View style={styles.dateDropdownContainer}>
+                  <Text style={styles.dateDropdownLabel}>Day</Text>
+                  <TouchableOpacity 
+                    style={styles.dateDropdown}
+                    onPress={() => {
+                      setShowDayPicker(!showDayPicker);
+                      setShowMonthPicker(false);
+                      setShowYearPicker(false);
                     }}
-                    placeholder="YYYY-MM-DD"
-                    placeholderTextColor="#999"
-                  />
-                  <Ionicons name="calendar-outline" size={20} color={COLORS.secondary} />
+                  >
+                    <Text style={styles.dateDropdownText}>{birthDate.getDate()}</Text>
+                    <Ionicons name="chevron-down" size={16} color={COLORS.secondary} />
+                  </TouchableOpacity>
+                  {showDayPicker && (
+                    <View style={styles.datePickerDropdown}>
+                      <ScrollView style={styles.datePickerScroll} nestedScrollEnabled>
+                        {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                          <TouchableOpacity
+                            key={day}
+                            style={[styles.datePickerOption, birthDate.getDate() === day && styles.datePickerOptionSelected]}
+                            onPress={() => {
+                              const newDate = new Date(birthDate);
+                              newDate.setDate(day);
+                              setBirthDate(newDate);
+                              setShowDayPicker(false);
+                            }}
+                          >
+                            <Text style={[styles.datePickerOptionText, birthDate.getDate() === day && styles.datePickerOptionTextSelected]}>
+                              {day}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
                 </View>
-              ) : (
-                /* Native: Use TouchableOpacity to open picker */
-                <TouchableOpacity 
-                  style={styles.birthDetailsInput} 
-                  onPress={() => setShowBirthDatePicker(true)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.birthDetailsInputText}>
-                    {birthDate.toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
-                    })}
-                  </Text>
-                  <Ionicons name="calendar-outline" size={20} color={COLORS.secondary} />
-                </TouchableOpacity>
-              )}
+
+                {/* Month Dropdown */}
+                <View style={[styles.dateDropdownContainer, { flex: 1.5 }]}>
+                  <Text style={styles.dateDropdownLabel}>Month</Text>
+                  <TouchableOpacity 
+                    style={styles.dateDropdown}
+                    onPress={() => {
+                      setShowMonthPicker(!showMonthPicker);
+                      setShowDayPicker(false);
+                      setShowYearPicker(false);
+                    }}
+                  >
+                    <Text style={styles.dateDropdownText}>
+                      {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][birthDate.getMonth()]}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color={COLORS.secondary} />
+                  </TouchableOpacity>
+                  {showMonthPicker && (
+                    <View style={styles.datePickerDropdown}>
+                      <ScrollView style={styles.datePickerScroll} nestedScrollEnabled>
+                        {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month, index) => (
+                          <TouchableOpacity
+                            key={month}
+                            style={[styles.datePickerOption, birthDate.getMonth() === index && styles.datePickerOptionSelected]}
+                            onPress={() => {
+                              const newDate = new Date(birthDate);
+                              newDate.setMonth(index);
+                              setBirthDate(newDate);
+                              setShowMonthPicker(false);
+                            }}
+                          >
+                            <Text style={[styles.datePickerOptionText, birthDate.getMonth() === index && styles.datePickerOptionTextSelected]}>
+                              {month}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+
+                {/* Year Dropdown */}
+                <View style={styles.dateDropdownContainer}>
+                  <Text style={styles.dateDropdownLabel}>Year</Text>
+                  <TouchableOpacity 
+                    style={styles.dateDropdown}
+                    onPress={() => {
+                      setShowYearPicker(!showYearPicker);
+                      setShowDayPicker(false);
+                      setShowMonthPicker(false);
+                    }}
+                  >
+                    <Text style={styles.dateDropdownText}>{birthDate.getFullYear()}</Text>
+                    <Ionicons name="chevron-down" size={16} color={COLORS.secondary} />
+                  </TouchableOpacity>
+                  {showYearPicker && (
+                    <View style={styles.datePickerDropdown}>
+                      <ScrollView style={styles.datePickerScroll} nestedScrollEnabled>
+                        {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                          <TouchableOpacity
+                            key={year}
+                            style={[styles.datePickerOption, birthDate.getFullYear() === year && styles.datePickerOptionSelected]}
+                            onPress={() => {
+                              const newDate = new Date(birthDate);
+                              newDate.setFullYear(year);
+                              setBirthDate(newDate);
+                              setShowYearPicker(false);
+                            }}
+                          >
+                            <Text style={[styles.datePickerOptionText, birthDate.getFullYear() === year && styles.datePickerOptionTextSelected]}>
+                              {year}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+              </View>
             </View>
 
-            {/* Time Selection - Platform specific */}
+            {/* Time Selection - Hour / Minute / AM-PM Dropdowns */}
             <View style={styles.birthDetailsField}>
               <Text style={styles.birthDetailsLabel}>Birth Time</Text>
-              {Platform.OS === 'web' ? (
-                /* Web: Use native HTML time input */
-                <View style={styles.birthDetailsInput}>
-                  <TextInput
-                    style={[styles.birthDetailsTextInput, { flex: 1, borderWidth: 0 }]}
-                    value={`${String(birthDate.getHours()).padStart(2, '0')}:${String(birthDate.getMinutes()).padStart(2, '0')}`}
-                    onChangeText={(text) => {
-                      const parts = text.split(':');
-                      if (parts.length === 2) {
-                        const newDate = new Date(birthDate);
-                        newDate.setHours(parseInt(parts[0]) || 0);
-                        newDate.setMinutes(parseInt(parts[1]) || 0);
-                        setBirthDate(newDate);
-                      }
+              <View style={styles.dateDropdownRow}>
+                {/* Hour Dropdown (1-12) */}
+                <View style={styles.dateDropdownContainer}>
+                  <Text style={styles.dateDropdownLabel}>Hour</Text>
+                  <TouchableOpacity 
+                    style={styles.dateDropdown}
+                    onPress={() => {
+                      setShowHourPicker(!showHourPicker);
+                      setShowMinutePicker(false);
+                      setShowAmPmPicker(false);
                     }}
-                    placeholder="HH:MM"
-                    placeholderTextColor="#999"
-                  />
-                  <Ionicons name="time-outline" size={20} color={COLORS.secondary} />
+                  >
+                    <Text style={styles.dateDropdownText}>
+                      {(() => {
+                        const h = birthDate.getHours();
+                        const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                        return h12;
+                      })()}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color={COLORS.secondary} />
+                  </TouchableOpacity>
+                  {showHourPicker && (
+                    <View style={styles.datePickerDropdown}>
+                      <ScrollView style={styles.datePickerScroll} nestedScrollEnabled>
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => {
+                          const currentH = birthDate.getHours();
+                          const current12 = currentH === 0 ? 12 : currentH > 12 ? currentH - 12 : currentH;
+                          return (
+                            <TouchableOpacity
+                              key={hour}
+                              style={[styles.datePickerOption, current12 === hour && styles.datePickerOptionSelected]}
+                              onPress={() => {
+                                const newDate = new Date(birthDate);
+                                const isPM = birthDate.getHours() >= 12;
+                                let newHour = hour;
+                                if (isPM) {
+                                  newHour = hour === 12 ? 12 : hour + 12;
+                                } else {
+                                  newHour = hour === 12 ? 0 : hour;
+                                }
+                                newDate.setHours(newHour);
+                                setBirthDate(newDate);
+                                setShowHourPicker(false);
+                              }}
+                            >
+                              <Text style={[styles.datePickerOptionText, current12 === hour && styles.datePickerOptionTextSelected]}>
+                                {hour}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </ScrollView>
+                    </View>
+                  )}
                 </View>
-              ) : (
-                /* Native: Use TouchableOpacity to open picker */
-                <TouchableOpacity 
-                  style={styles.birthDetailsInput} 
-                  onPress={() => setShowBirthTimePicker(true)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.birthDetailsInputText}>
-                    {birthDate.toLocaleTimeString('en-US', { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </Text>
-                  <Ionicons name="time-outline" size={20} color={COLORS.secondary} />
-                </TouchableOpacity>
-              )}
+
+                {/* Minute Dropdown (00-59) */}
+                <View style={styles.dateDropdownContainer}>
+                  <Text style={styles.dateDropdownLabel}>Min</Text>
+                  <TouchableOpacity 
+                    style={styles.dateDropdown}
+                    onPress={() => {
+                      setShowMinutePicker(!showMinutePicker);
+                      setShowHourPicker(false);
+                      setShowAmPmPicker(false);
+                    }}
+                  >
+                    <Text style={styles.dateDropdownText}>
+                      {String(birthDate.getMinutes()).padStart(2, '0')}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color={COLORS.secondary} />
+                  </TouchableOpacity>
+                  {showMinutePicker && (
+                    <View style={styles.datePickerDropdown}>
+                      <ScrollView style={styles.datePickerScroll} nestedScrollEnabled>
+                        {Array.from({ length: 60 }, (_, i) => i).map((minute) => (
+                          <TouchableOpacity
+                            key={minute}
+                            style={[styles.datePickerOption, birthDate.getMinutes() === minute && styles.datePickerOptionSelected]}
+                            onPress={() => {
+                              const newDate = new Date(birthDate);
+                              newDate.setMinutes(minute);
+                              setBirthDate(newDate);
+                              setShowMinutePicker(false);
+                            }}
+                          >
+                            <Text style={[styles.datePickerOptionText, birthDate.getMinutes() === minute && styles.datePickerOptionTextSelected]}>
+                              {String(minute).padStart(2, '0')}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+
+                {/* AM/PM Dropdown */}
+                <View style={styles.dateDropdownContainer}>
+                  <Text style={styles.dateDropdownLabel}>AM/PM</Text>
+                  <TouchableOpacity 
+                    style={styles.dateDropdown}
+                    onPress={() => {
+                      setShowAmPmPicker(!showAmPmPicker);
+                      setShowHourPicker(false);
+                      setShowMinutePicker(false);
+                    }}
+                  >
+                    <Text style={styles.dateDropdownText}>
+                      {birthDate.getHours() >= 12 ? 'PM' : 'AM'}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color={COLORS.secondary} />
+                  </TouchableOpacity>
+                  {showAmPmPicker && (
+                    <View style={[styles.datePickerDropdown, { maxHeight: 100 }]}>
+                      {['AM', 'PM'].map((period) => {
+                        const isPM = birthDate.getHours() >= 12;
+                        const isSelected = (period === 'PM') === isPM;
+                        return (
+                          <TouchableOpacity
+                            key={period}
+                            style={[styles.datePickerOption, isSelected && styles.datePickerOptionSelected]}
+                            onPress={() => {
+                              const newDate = new Date(birthDate);
+                              const currentHour = birthDate.getHours();
+                              if (period === 'AM' && currentHour >= 12) {
+                                newDate.setHours(currentHour - 12);
+                              } else if (period === 'PM' && currentHour < 12) {
+                                newDate.setHours(currentHour + 12);
+                              }
+                              setBirthDate(newDate);
+                              setShowAmPmPicker(false);
+                            }}
+                          >
+                            <Text style={[styles.datePickerOptionText, isSelected && styles.datePickerOptionTextSelected]}>
+                              {period}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
+                </View>
+              </View>
+              <Text style={styles.timePreview}>
+                Selected: {birthDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+              </Text>
             </View>
 
             {/* Birth Location - Searchable Autocomplete */}
