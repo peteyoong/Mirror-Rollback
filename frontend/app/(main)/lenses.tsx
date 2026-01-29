@@ -2912,6 +2912,145 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
     opacity: 0.7,
   },
+  // Header Icon Button
+  headerIconButton: {
+    padding: SPACING.xs,
+  },
+  // Birth Details Modal Styles
+  birthDetailsModal: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  birthDetailsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  birthDetailsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  birthDetailsContent: {
+    flex: 1,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.lg,
+  },
+  birthDetailsSubtitle: {
+    fontSize: 15,
+    color: COLORS.secondary,
+    marginBottom: SPACING.xl,
+    lineHeight: 22,
+  },
+  birthDetailsField: {
+    marginBottom: SPACING.lg,
+  },
+  birthDetailsLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.primary,
+    marginBottom: SPACING.xs,
+  },
+  birthDetailsInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.white,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  birthDetailsInputText: {
+    fontSize: 16,
+    color: COLORS.primary,
+  },
+  birthDetailsTextInput: {
+    backgroundColor: COLORS.white,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    fontSize: 16,
+    color: COLORS.primary,
+  },
+  birthDetailsHint: {
+    fontSize: 12,
+    color: COLORS.secondary,
+    marginTop: SPACING.xs,
+  },
+  birthDetailsRow: {
+    flexDirection: 'row',
+    marginBottom: SPACING.lg,
+  },
+  quickLocationGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+    marginTop: SPACING.sm,
+  },
+  quickLocationChip: {
+    backgroundColor: COLORS.white,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  quickLocationChipSelected: {
+    backgroundColor: '#F0FDF4',
+    borderColor: COLORS.accent,
+  },
+  quickLocationChipText: {
+    fontSize: 13,
+    color: COLORS.primary,
+  },
+  quickLocationChipTextSelected: {
+    color: COLORS.accent,
+    fontWeight: '500',
+  },
+  currentBirthDataBox: {
+    backgroundColor: '#F0FDF4',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    marginBottom: SPACING.lg,
+  },
+  currentBirthDataTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#166534',
+    marginBottom: SPACING.xs,
+  },
+  currentBirthDataText: {
+    fontSize: 13,
+    color: '#166534',
+  },
+  birthDetailsSaveButton: {
+    backgroundColor: COLORS.accent,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.xxl,
+  },
+  birthDetailsSaveButtonDisabled: {
+    opacity: 0.6,
+  },
+  birthDetailsSaveButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
   // Debug Section Styles (POC)
   debugContainer: {
     backgroundColor: '#FEF3C7',
