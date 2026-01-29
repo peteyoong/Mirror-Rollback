@@ -192,6 +192,7 @@ const ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
 type ViewMode = 'summary' | 'snapshot' | 'deepdive';
 
 export default function Lenses() {
+  const { user } = useAuth();
   const [lenses, setLenses] = useState<Lens[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -212,7 +213,10 @@ export default function Lenses() {
   // Module expansion state
   const [expandedModuleId, setExpandedModuleId] = useState<number | null>(null);
   
-  // Astrology computed profile state
+  // Computed profile from user context (primary source)
+  const userAstrologyProfile = user?.computed_profile?.astrology;
+  
+  // Astrology computed profile state (fallback for separate fetch if needed)
   const [astrologyProfile, setAstrologyProfile] = useState<AstrologyProfile | null>(null);
   const [loadingAstrologyProfile, setLoadingAstrologyProfile] = useState(false);
   
