@@ -314,6 +314,76 @@ LENSES_CONTENT = [
                     "patterns_to_observe": "What emotion signals that something is 'off' for you? What do you feel when life is flowing well?"
                 }
             },
+            "learn_over_time": {
+                "intro": "Human Design is best learned gradually through lived experience, not memorization. These modules are designed to be explored over weeks or months, letting each concept sink in before moving to the next.",
+                "modules": [
+                    {
+                        "id": 1,
+                        "title": "Foundations",
+                        "subtitle": "Type, Strategy, Authority, Not-Self Theme & Signature",
+                        "narrative": "Imagine you have a unique way of engaging with the world—like having a particular rhythm that feels natural when you honor it, and exhausting when you don't. Your Type describes this rhythm. Are you someone who needs to wait for invitations before big moves? Or do you thrive when responding to what life brings? Your Strategy is how to work with this rhythm, and your Authority is where in your body you feel the truth of a decision. The Not-Self Theme is the feeling that tells you something's off—maybe frustration, bitterness, anger, or disappointment. The Signature is the feeling when life flows—satisfaction, peace, success, or surprise.",
+                        "examples": [
+                            "At work: Notice if you feel more energized starting projects from scratch or improving what already exists. Do big decisions feel better after sleeping on them, or does your gut know immediately?",
+                            "In relationships: When you've said yes to something that later felt wrong, where did you ignore your body's signals? When commitments feel right, what does that rightness feel like physically?"
+                        ],
+                        "reflective_question": "Think of a recent decision that turned out well. Where in your body did you feel the 'yes' before your mind caught up?",
+                        "experiment": "For one week, before saying yes to any request, pause and notice your body's first response. Don't analyze it—just notice. At the end of the week, reflect on what patterns emerged."
+                    },
+                    {
+                        "id": 2,
+                        "title": "Profile",
+                        "subtitle": "The costume you wear through life",
+                        "narrative": "Your Profile is like a character role you naturally play. It's expressed as two numbers (like 1/3 or 4/6), and each number carries a theme. The first number is how you see yourself and operate in the world; the second is how others tend to see and experience you. Some profiles are naturally investigative, needing to research before acting. Others learn through trial and error. Some are here to share knowledge widely, while others influence through close relationships. None is better—they're different paths through the human experience.",
+                        "examples": [
+                            "At work: A person with a '1' in their profile might need to thoroughly research a project before feeling confident, while a '3' might learn best by diving in and adjusting as they go. A '5' might be seen as someone who can fix problems, while a '2' might be recognized for natural talents they don't even realize they have.",
+                            "In relationships: Notice if you're someone who needs to 'figure out' a partner or situation deeply (investigator energy), or if you naturally attract people who see potential in you that you can't see yourself (hermit energy being called out)."
+                        ],
+                        "reflective_question": "What role do people tend to cast you in, whether or not you asked for it? Does it feel like a gift or a burden—or both?",
+                        "experiment": "Ask three people who know you well: 'What do you see as my natural gift or role?' Notice if their answers surprise you or confirm something you already suspected."
+                    },
+                    {
+                        "id": 3,
+                        "title": "Definition",
+                        "subtitle": "Your relationship to consistency and others",
+                        "narrative": "Definition describes how your energy centers connect internally. Some people have all their defined centers connected in one continuous flow—they tend to feel consistent and self-contained, needing less from others to feel 'complete.' Others have split definition—two or more separate areas that aren't directly connected. They often feel a pull toward others who 'bridge' their split, creating a sense of wholeness in relationship. Still others have very open charts, deeply absorbing and reflecting whatever environment they're in.",
+                        "examples": [
+                            "At work: Someone with single definition might work well independently and feel consistent day to day. Someone with split definition might find their best thinking happens in partnership or collaboration, as if others help 'complete a circuit.'",
+                            "In relationships: If you've ever felt like you 'need' certain people—not emotionally, but energetically, like something clicks into place around them—this might be your definition at work. It's not dependency; it's energetic bridging."
+                        ],
+                        "reflective_question": "Do you generally feel complete and consistent on your own, or do you notice that being around certain people (or types of people) somehow makes you feel more yourself?",
+                        "experiment": "Spend one day mostly alone and one day mostly with others. Notice your energy, clarity, and sense of self in each. Not which is 'better'—just what's different."
+                    },
+                    {
+                        "id": 4,
+                        "title": "Incarnation Cross",
+                        "subtitle": "Life themes, not destiny",
+                        "narrative": "Your Incarnation Cross represents the larger themes your life seems to orbit around—not a fixed destiny, but a context or backdrop. Think of it like the genre of your life story rather than the plot. Someone with a Cross of Service might find themes of helping, supporting, or serving woven through their experiences. Someone with a Cross of Explanation might keep finding themselves in situations where they need to make complex things understandable. These aren't prescriptions—they're invitations to notice what patterns already exist.",
+                        "examples": [
+                            "At work: The themes of your Cross might show up in what problems you're naturally drawn to solve, what roles you keep finding yourself in regardless of job title, or what impact your presence tends to have on teams.",
+                            "In relationships: Your Cross themes might appear in the kinds of growth you catalyze in others, the recurring dynamics you navigate, or the particular flavor of love and challenge you bring to intimate connections."
+                        ],
+                        "reflective_question": "If you had to describe the 'throughline' of your life so far—the theme that keeps appearing regardless of circumstances—what would it be?",
+                        "experiment": "Look back at three major life chapters (school, early career, a relationship). What themes repeat across all three, even though the circumstances were different? Write down what you notice without judging it."
+                    },
+                    {
+                        "id": 5,
+                        "title": "Integration Practices",
+                        "subtitle": "Living the experiment",
+                        "narrative": "Human Design isn't meant to be memorized—it's meant to be lived. The real learning happens when you take these concepts off the page and into your daily life, noticing what resonates and what doesn't. The goal isn't to 'be your design' but to use it as a mirror for self-observation. Some things will click immediately; others might take months or years to make sense. Trust your own experience over any external authority, including this system itself.",
+                        "examples": [
+                            "Morning practice: Before your day begins, set an intention to notice one thing about how you make decisions. Not to change anything—just to observe.",
+                            "Evening reflection: At day's end, ask yourself: 'When did I feel most like myself today? When did I feel like I was forcing something?' Write a sentence or two in your journal."
+                        ],
+                        "reflective_question": "What aspect of Human Design feels most alive or relevant to you right now? What feels abstract or distant? Both answers are useful information.",
+                        "experiment": "Choose one concept from the previous modules that intrigues you. For the next two weeks, make it your sole focus. Notice it in yourself, in others, in how situations unfold. At the end, journal what you learned."
+                    }
+                ],
+                "advanced_lens": {
+                    "title": "Optional Advanced Lens: Gene Keys",
+                    "description": "Gene Keys is a related system that goes deeper into the 64 hexagrams underlying Human Design, exploring how shadow patterns can transform into gifts and ultimately into their highest expression. It's not necessary for understanding Human Design basics, but some find it offers additional depth.",
+                    "note": "This is an optional advanced topic. The foundational modules above are complete on their own."
+                }
+            },
             "reflection_themes": [
                 "How do you typically make decisions? Head, gut, or waiting?",
                 "Do you feel energized by initiating or responding?",
