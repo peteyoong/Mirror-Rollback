@@ -258,21 +258,27 @@ export default function Lenses() {
   // Run sidereal compute and update user context
   const runSiderealCompute = async () => {
     if (!userBirthData) {
-      setComputeStatus({ success: false, message: 'Birth fields missing from user record', response: 'N/A - No birth data to send' });
+      setComputeStatus({ 
+        success: false, 
+        message: 'Birth fields missing from user record', 
+        response: 'N/A - No birth data available to send to compute endpoint' 
+      });
       return;
     }
     
     setRunningCompute(true);
     setComputeStatus(null);
     
+    const requestPayload = {
+      birth_datetime_local: userBirthData.birth_datetime_local,
+      tz_offset_minutes: userBirthData.tz_offset_minutes,
+      latitude: userBirthData.latitude,
+      longitude: userBirthData.longitude,
+      ayanamsa: 'FAGAN_BRADLEY',
+    };
+    
     try {
-      const response = await api.post('/computed-profile/astrology', {
-        birth_datetime_local: userBirthData.birth_datetime_local,
-        tz_offset_minutes: userBirthData.tz_offset_minutes,
-        latitude: userBirthData.latitude,
-        longitude: userBirthData.longitude,
-        ayanamsa: 'FAGAN_BRADLEY',
-      });
+      const response = await api.post('/computed-profile/astrology', requestPayload);
       
       if (response.data.has_profile && response.data.profile) {
         // Update user context with new computed profile
@@ -293,13 +299,29 @@ export default function Lenses() {
           };
           updateUser(updatedUser);
         }
-        setComputeStatus({ success: true, message: 'Compute successful! Profile updated.' });
+        const positions = response.data.profile.positions;
+        setComputeStatus({ 
+          success: true, 
+          message: 'Compute successful!',
+          response: `Sun: ${positions?.sun?.formatted || 'N/A'}, Moon: ${positions?.moon?.formatted || 'N/A'}, Asc: ${positions?.ascendant?.formatted || 'N/A'}`
+        });
       } else {
-        setComputeStatus({ success: false, message: 'Compute returned no profile data' });
+        setComputeStatus({ 
+          success: false, 
+          message: 'Compute returned no profile data',
+          response: JSON.stringify(response.data, null, 2)
+        });
       }
     } catch (error: any) {
       const errMsg = error.response?.data?.detail || error.message || 'Unknown error';
-      setComputeStatus({ success: false, message: `Compute failed: ${errMsg}` });
+      const fullResponse = error.response?.data 
+        ? JSON.stringify(error.response.data, null, 2) 
+        : error.message || 'No response body';
+      setComputeStatus({ 
+        success: false, 
+        message: `Compute failed: ${errMsg}`,
+        response: fullResponse
+      });
     } finally {
       setRunningCompute(false);
     }
