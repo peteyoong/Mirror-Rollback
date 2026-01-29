@@ -592,6 +592,56 @@ export default function Lenses() {
                         {selectedLens.deep_dive.description}
                       </Text>
 
+                      {/* Your Details Section - Only for True Sidereal Astrology */}
+                      {selectedLens.id === 'true-sidereal-astrology' && (
+                        <View style={styles.yourDetailsContainer}>
+                          <Text style={styles.yourDetailsTitle}>Your Details</Text>
+                          {loadingAstrologyProfile ? (
+                            <ActivityIndicator size="small" color={COLORS.accent} style={{ marginVertical: SPACING.md }} />
+                          ) : astrologyProfile?.has_profile && astrologyProfile.profile ? (
+                            <View style={styles.yourDetailsContent}>
+                              <View style={styles.yourDetailsRow}>
+                                <View style={styles.yourDetailsItem}>
+                                  <Text style={styles.yourDetailsLabel}>Ascendant</Text>
+                                  <Text style={styles.yourDetailsValue}>
+                                    {astrologyProfile.profile.positions.ascendant.formatted}
+                                  </Text>
+                                </View>
+                              </View>
+                              <View style={styles.yourDetailsRow}>
+                                <View style={styles.yourDetailsItem}>
+                                  <Text style={styles.yourDetailsLabel}>Sun</Text>
+                                  <Text style={styles.yourDetailsValue}>
+                                    {astrologyProfile.profile.positions.sun.formatted}
+                                  </Text>
+                                </View>
+                                <View style={styles.yourDetailsItem}>
+                                  <Text style={styles.yourDetailsLabel}>Moon</Text>
+                                  <Text style={styles.yourDetailsValue}>
+                                    {astrologyProfile.profile.positions.moon.formatted}
+                                  </Text>
+                                </View>
+                              </View>
+                              <View style={styles.yourDetailsAyanamsa}>
+                                <Text style={styles.yourDetailsAyanamsaLabel}>
+                                  Computed using {astrologyProfile.profile.ayanamsa.replace('_', '-')} ayanamsa
+                                </Text>
+                              </View>
+                            </View>
+                          ) : (
+                            <View style={styles.yourDetailsEmpty}>
+                              <Ionicons name="planet-outline" size={32} color={COLORS.border} />
+                              <Text style={styles.yourDetailsEmptyText}>
+                                No birth data entered yet
+                              </Text>
+                              <Text style={styles.yourDetailsEmptySubtext}>
+                                To see your sidereal placements, enter your birth details in your profile.
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      )}
+
                       {selectedLens.deep_dive.how_mirror_uses_this && (
                         <View style={styles.howMirrorUsesContainer}>
                           <Text style={styles.howMirrorUsesLabel}>How Project Mirror Uses This</Text>
