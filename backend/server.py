@@ -3793,7 +3793,7 @@ async def save_computed_astrology_profile(data: ComputedProfileInput, user = Dep
         
         swe.close()
         
-        # Save to database
+        # Save to database (separate collection)
         profile_data = {
             "user_id": user["id"],
             "birth_datetime_local": data.birth_datetime_local,
@@ -3806,11 +3806,26 @@ async def save_computed_astrology_profile(data: ComputedProfileInput, user = Dep
             "computed_at": datetime.utcnow()
         }
         
-        # Upsert - replace existing profile
+        # Upsert - replace existing profile in separate collection
         await db.computed_profiles_astrology.update_one(
             {"user_id": user["id"]},
             {"$set": profile_data},
             upsert=True
+        )
+        
+        # ALSO save to user record under computed_profile.astrology
+        astrology_profile_for_user = {
+            "ayanamsa": ayanamsa_key,
+            "positions": positions,
+            "birth_datetime_local": data.birth_datetime_local,
+            "latitude": data.latitude,
+            "longitude": data.longitude,
+            "location_name": data.location_name,
+            "computed_at": datetime.utcnow().isoformat()
+        }
+        await db.users.update_one(
+            {"id": user["id"]},
+            {"$set": {"computed_profile.astrology": astrology_profile_for_user}}
         )
         
         return ComputedAstrologyResponse(
