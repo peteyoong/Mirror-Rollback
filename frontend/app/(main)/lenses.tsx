@@ -1199,34 +1199,77 @@ export default function Lenses() {
 
                 {/* Chat Input - Only show in Deep Dive */}
                 {viewMode === 'deepdive' && (
-                  <View style={styles.chatInputContainer}>
-                    <TextInput
-                      style={styles.chatInput}
-                      value={chatInput}
-                      onChangeText={setChatInput}
-                      placeholder={
-                        selectedLens?.id === 'true-sidereal-astrology'
-                          ? "Ask about your sidereal profile, or how it shows up in your life…"
-                          : selectedLens?.id === 'human-design'
-                          ? "Ask about your Human Design, or how it shows up in your life…"
-                          : selectedLens?.id === 'numerology'
-                          ? "Ask about your numerology profile, or how it shows up in your life…"
-                          : selectedLens?.id === 'levels-of-consciousness'
-                          ? "Ask about a stage, or how it shows up in your experience…"
-                          : "Ask a question…"
-                      }
-                      placeholderTextColor={COLORS.secondary}
-                      multiline
-                      maxLength={500}
-                    />
-                    <TouchableOpacity
-                      style={[styles.chatSendButton, (!chatInput.trim() || sendingMessage) && styles.chatSendButtonDisabled]}
-                      onPress={sendChatMessage}
-                      disabled={!chatInput.trim() || sendingMessage}
-                    >
-                      <Ionicons name="send" size={20} color={COLORS.white} />
-                    </TouchableOpacity>
-                  </View>
+                  <>
+                    {/* Computed Profile Block - Above Chat for Astrology */}
+                    {selectedLens?.id === 'true-sidereal-astrology' && (
+                      <View style={styles.computedProfileBlock}>
+                        <Text style={styles.computedProfileBlockTitle}>Your Sidereal Profile (Computed)</Text>
+                        {loadingAstrologyProfile ? (
+                          <ActivityIndicator size="small" color={COLORS.accent} />
+                        ) : astrologyProfile?.has_profile && astrologyProfile.positions ? (
+                          <View style={styles.computedProfileBlockContent}>
+                            <View style={styles.computedProfileRow}>
+                              <Text style={styles.computedProfileLabel}>Sun:</Text>
+                              <Text style={styles.computedProfileValue}>
+                                {astrologyProfile.positions.sun?.formatted || 'N/A'}
+                              </Text>
+                            </View>
+                            <View style={styles.computedProfileRow}>
+                              <Text style={styles.computedProfileLabel}>Moon:</Text>
+                              <Text style={styles.computedProfileValue}>
+                                {astrologyProfile.positions.moon?.formatted || 'N/A'}
+                              </Text>
+                            </View>
+                            <View style={styles.computedProfileRow}>
+                              <Text style={styles.computedProfileLabel}>Ascendant:</Text>
+                              <Text style={styles.computedProfileValue}>
+                                {astrologyProfile.positions.ascendant?.formatted || 'N/A'}
+                              </Text>
+                            </View>
+                            <View style={styles.computedProfileRow}>
+                              <Text style={styles.computedProfileLabel}>Ayanamsa:</Text>
+                              <Text style={styles.computedProfileValue}>
+                                {astrologyProfile.profile?.ayanamsa?.replace('_', '-') || 'N/A'}
+                              </Text>
+                            </View>
+                          </View>
+                        ) : (
+                          <Text style={styles.computedProfileBlockEmpty}>
+                            Sidereal profile not computed yet.
+                          </Text>
+                        )}
+                      </View>
+                    )}
+
+                    <View style={styles.chatInputContainer}>
+                      <TextInput
+                        style={styles.chatInput}
+                        value={chatInput}
+                        onChangeText={setChatInput}
+                        placeholder={
+                          selectedLens?.id === 'true-sidereal-astrology'
+                            ? "Ask about your sidereal profile, or how it shows up in your life…"
+                            : selectedLens?.id === 'human-design'
+                            ? "Ask about your Human Design, or how it shows up in your life…"
+                            : selectedLens?.id === 'numerology'
+                            ? "Ask about your numerology profile, or how it shows up in your life…"
+                            : selectedLens?.id === 'levels-of-consciousness'
+                            ? "Ask about a stage, or how it shows up in your experience…"
+                            : "Ask a question…"
+                        }
+                        placeholderTextColor={COLORS.secondary}
+                        multiline
+                        maxLength={500}
+                      />
+                      <TouchableOpacity
+                        style={[styles.chatSendButton, (!chatInput.trim() || sendingMessage) && styles.chatSendButtonDisabled]}
+                        onPress={sendChatMessage}
+                        disabled={!chatInput.trim() || sendingMessage}
+                      >
+                        <Ionicons name="send" size={20} color={COLORS.white} />
+                      </TouchableOpacity>
+                    </View>
+                  </>
                 )}
               </View>
             ) : null}
