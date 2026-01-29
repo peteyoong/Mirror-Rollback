@@ -295,6 +295,19 @@ export default function Lenses() {
     }
   };
 
+  const fetchNumerologyProfile = async () => {
+    setLoadingNumerologyProfile(true);
+    try {
+      const response = await api.get('/computed-profile/numerology');
+      setNumerologyProfile(response.data);
+    } catch (error) {
+      console.error('Failed to fetch numerology profile:', error);
+      setNumerologyProfile({ has_profile: false });
+    } finally {
+      setLoadingNumerologyProfile(false);
+    }
+  };
+
   const openLensDetail = async (lensId: string) => {
     setLoadingDetail(true);
     setModalVisible(true);
@@ -304,6 +317,7 @@ export default function Lenses() {
     setChatInput('');
     setAstrologyProfile(null);
     setHdProfile(null);
+    setNumerologyProfile(null);
     try {
       const response = await api.get(`/lenses/${lensId}`);
       setSelectedLens(response.data);
