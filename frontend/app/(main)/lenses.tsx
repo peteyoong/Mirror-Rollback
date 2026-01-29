@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,10 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -51,6 +55,14 @@ interface LensDetail extends Lens {
   };
 }
 
+interface ChatMessage {
+  id: string;
+  lens_key: string;
+  role: 'user' | 'assistant';
+  message_text: string;
+  created_at: string;
+}
+
 const ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
   eye: 'eye-outline',
   body: 'body-outline',
@@ -74,6 +86,13 @@ export default function Lenses() {
   const [viewMode, setViewMode] = useState<ViewMode>('summary');
   const [snapshot, setSnapshot] = useState<string | null>(null);
   const [loadingSnapshot, setLoadingSnapshot] = useState(false);
+  
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [loadingChat, setLoadingChat] = useState(false);
+  const chatScrollRef = useRef<ScrollView>(null);
 
   const fetchLenses = useCallback(async () => {
     try {
@@ -109,14 +128,30 @@ export default function Lenses() {
     }
   };
 
+  const fetchChatHistory = async (lensId: string) => {
+    setLoadingChat(true);
+    try {
+      const response = await api.get(`/lenses/${lensId}/chat`);
+      setChatMessages(response.data);
+    } catch (error) {
+      console.error('Failed to fetch chat history:', error);
+    } finally {
+      setLoadingChat(false);
+    }
+  };
+
   const openLensDetail = async (lensId: string) => {
     setLoadingDetail(true);
     setModalVisible(true);
     setViewMode('summary');
     setSnapshot(null);
+    setChatMessages([]);
+    setChatInput('');
     try {
       const response = await api.get(`/lenses/${lensId}`);
       setSelectedLens(response.data);
+      // Fetch chat history in background
+      fetchChatHistory(lensId);
     } catch (error) {
       console.error('Failed to fetch lens detail:', error);
     } finally {
@@ -129,6 +164,8 @@ export default function Lenses() {
     setSelectedLens(null);
     setViewMode('summary');
     setSnapshot(null);
+    setChatMessages([]);
+    setChatInput('');
   };
 
   const handleViewSnapshot = () => {
@@ -136,6 +173,84 @@ export default function Lenses() {
       fetchSnapshot(selectedLens.id);
     }
     setViewMode('snapshot');
+  };
+
+  const handleViewDeepDive = () => {
+    if (selectedLens && chatMessages.length === 0) {
+      fetchChatHistory(selectedLens.id);
+    }
+    setViewMode('deepdive');
+  };
+
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || !selectedLens || sendingMessage) return;
+    
+    const message = chatInput.trim();
+    setChatInput('');
+    setSendingMessage(true);
+    
+    // Optimistically add user message
+    const tempUserMsg: ChatMessage = {
+      id: `temp-${Date.now()}`,
+      lens_key: selectedLens.id,
+      role: 'user',
+      message_text: message,
+      created_at: new Date().toISOString(),
+    };
+    setChatMessages(prev => [...prev, tempUserMsg]);
+    
+    // Scroll to bottom
+    setTimeout(() => {
+      chatScrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+    
+    try {
+      const response = await api.post(`/lenses/${selectedLens.id}/chat`, { message });
+      // Replace temp message with actual messages
+      setChatMessages(prev => {
+        const filtered = prev.filter(m => m.id !== tempUserMsg.id);
+        return [...filtered, ...response.data];
+      });
+      // Scroll to bottom again
+      setTimeout(() => {
+        chatScrollRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      // Remove temp message on error
+      setChatMessages(prev => prev.filter(m => m.id !== tempUserMsg.id));
+      if (Platform.OS !== 'web') {
+        Alert.alert('Error', 'Failed to send message. Please try again.');
+      }
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const clearChatHistory = async () => {
+    if (!selectedLens) return;
+    
+    const doClear = async () => {
+      try {
+        await api.delete(`/lenses/${selectedLens.id}/chat`);
+        setChatMessages([]);
+      } catch (error) {
+        console.error('Failed to clear chat:', error);
+      }
+    };
+    
+    if (Platform.OS !== 'web') {
+      Alert.alert(
+        'Clear Chat',
+        'Are you sure you want to clear this conversation?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Clear', style: 'destructive', onPress: doClear }
+        ]
+      );
+    } else {
+      doClear();
+    }
   };
 
   const renderLensCard = ({ item }: { item: Lens }) => (
@@ -168,6 +283,23 @@ export default function Lenses() {
         <Text style={styles.patternsLabel}>Patterns to observe:</Text>
         <Text style={styles.patternsText}>{element.patterns_to_observe}</Text>
       </View>
+    </View>
+  );
+
+  const renderChatMessage = (message: ChatMessage) => (
+    <View
+      key={message.id}
+      style={[
+        styles.chatMessage,
+        message.role === 'user' ? styles.chatMessageUser : styles.chatMessageAssistant
+      ]}
+    >
+      <Text style={[
+        styles.chatMessageText,
+        message.role === 'user' ? styles.chatMessageTextUser : styles.chatMessageTextAssistant
+      ]}>
+        {message.message_text}
+      </Text>
     </View>
   );
 
@@ -214,185 +346,247 @@ export default function Lenses() {
         onRequestClose={closeModal}
       >
         <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={closeModal} style={styles.modalCloseButton}>
-              <Ionicons name="close" size={24} color={COLORS.primary} />
-            </TouchableOpacity>
-            {selectedLens && (
-              <View style={styles.modalTitleContainer}>
-                <Ionicons
-                  name={ICON_MAP[selectedLens.icon] || 'ellipse-outline'}
-                  size={24}
-                  color={COLORS.accent}
-                />
-                <Text style={styles.modalTitle}>{selectedLens.title}</Text>
-              </View>
-            )}
-            <View style={{ width: 44 }} />
-          </View>
-
-          {loadingDetail ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.accent} />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.modalKeyboard}
+          >
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={closeModal} style={styles.modalCloseButton}>
+                <Ionicons name="close" size={24} color={COLORS.primary} />
+              </TouchableOpacity>
+              {selectedLens && (
+                <View style={styles.modalTitleContainer}>
+                  <Ionicons
+                    name={ICON_MAP[selectedLens.icon] || 'ellipse-outline'}
+                    size={24}
+                    color={COLORS.accent}
+                  />
+                  <Text style={styles.modalTitle}>{selectedLens.title}</Text>
+                </View>
+              )}
+              <View style={{ width: 44 }} />
             </View>
-          ) : selectedLens ? (
-            <ScrollView
-              contentContainerStyle={styles.modalContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {/* Navigation Tabs */}
-              <View style={styles.tabContainer}>
-                <TouchableOpacity
-                  style={[styles.tab, viewMode === 'summary' && styles.tabActive]}
-                  onPress={() => setViewMode('summary')}
-                >
-                  <Text style={[styles.tabText, viewMode === 'summary' && styles.tabTextActive]}>
-                    Summary
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.tab, viewMode === 'snapshot' && styles.tabActive]}
-                  onPress={handleViewSnapshot}
-                >
-                  <Text style={[styles.tabText, viewMode === 'snapshot' && styles.tabTextActive]}>
-                    Your Snapshot
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.tab, viewMode === 'deepdive' && styles.tabActive]}
-                  onPress={() => setViewMode('deepdive')}
-                >
-                  <Text style={[styles.tabText, viewMode === 'deepdive' && styles.tabTextActive]}>
-                    Deep Dive
-                  </Text>
-                </TouchableOpacity>
+
+            {loadingDetail ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.accent} />
               </View>
+            ) : selectedLens ? (
+              <View style={styles.modalBody}>
+                {/* Navigation Tabs */}
+                <View style={styles.tabContainer}>
+                  <TouchableOpacity
+                    style={[styles.tab, viewMode === 'summary' && styles.tabActive]}
+                    onPress={() => setViewMode('summary')}
+                  >
+                    <Text style={[styles.tabText, viewMode === 'summary' && styles.tabTextActive]}>
+                      Summary
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.tab, viewMode === 'snapshot' && styles.tabActive]}
+                    onPress={handleViewSnapshot}
+                  >
+                    <Text style={[styles.tabText, viewMode === 'snapshot' && styles.tabTextActive]}>
+                      Your Snapshot
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.tab, viewMode === 'deepdive' && styles.tabActive]}
+                    onPress={handleViewDeepDive}
+                  >
+                    <Text style={[styles.tabText, viewMode === 'deepdive' && styles.tabTextActive]}>
+                      Deep Dive
+                    </Text>
+                  </TouchableOpacity>
+                </View>
 
-              {/* Summary View */}
-              {viewMode === 'summary' && (
-                <View>
-                  <Text style={styles.sectionLabel}>Summary</Text>
-                  <Text style={styles.summaryText}>{selectedLens.summary}</Text>
+                <ScrollView
+                  style={styles.modalScroll}
+                  contentContainerStyle={styles.modalContent}
+                  showsVerticalScrollIndicator={false}
+                  ref={viewMode === 'deepdive' ? chatScrollRef : undefined}
+                >
+                  {/* Summary View */}
+                  {viewMode === 'summary' && (
+                    <View>
+                      <Text style={styles.sectionLabel}>Summary</Text>
+                      <Text style={styles.summaryText}>{selectedLens.summary}</Text>
 
-                  {/* Dynamic Framework Note */}
-                  {selectedLens.is_dynamic_framework && selectedLens.dynamic_note && (
-                    <View style={styles.dynamicNote}>
-                      <Ionicons name="information-circle-outline" size={20} color={COLORS.accent} />
-                      <Text style={styles.dynamicNoteText}>{selectedLens.dynamic_note}</Text>
+                      {selectedLens.is_dynamic_framework && selectedLens.dynamic_note && (
+                        <View style={styles.dynamicNote}>
+                          <Ionicons name="information-circle-outline" size={20} color={COLORS.accent} />
+                          <Text style={styles.dynamicNoteText}>{selectedLens.dynamic_note}</Text>
+                        </View>
+                      )}
                     </View>
                   )}
-                </View>
-              )}
 
-              {/* Snapshot View */}
-              {viewMode === 'snapshot' && (
-                <View>
-                  <Text style={styles.sectionLabel}>Your Snapshot</Text>
-                  {loadingSnapshot ? (
-                    <View style={styles.snapshotLoading}>
-                      <ActivityIndicator size="small" color={COLORS.accent} />
-                      <Text style={styles.snapshotLoadingText}>Generating personalized insight...</Text>
-                    </View>
-                  ) : (
-                    <View style={styles.snapshotContainer}>
-                      <Text style={styles.snapshotText}>{snapshot}</Text>
-                    </View>
-                  )}
-                  <Text style={styles.snapshotDisclaimer}>
-                    This reflection is based on what you shared during onboarding. It offers patterns to consider, not fixed truths about who you are.
-                  </Text>
-                </View>
-              )}
-
-              {/* Deep Dive View */}
-              {viewMode === 'deepdive' && (
-                <View>
-                  <Text style={styles.sectionLabel}>Deep Dive</Text>
-                  <Text style={styles.deepDiveDescription}>
-                    {selectedLens.deep_dive.description}
-                  </Text>
-
-                  {/* How Mirror Uses This (for Levels of Consciousness) */}
-                  {selectedLens.deep_dive.how_mirror_uses_this && (
-                    <View style={styles.howMirrorUsesContainer}>
-                      <Text style={styles.howMirrorUsesLabel}>How Project Mirror Uses This</Text>
-                      <Text style={styles.howMirrorUsesText}>
-                        {selectedLens.deep_dive.how_mirror_uses_this}
+                  {/* Snapshot View */}
+                  {viewMode === 'snapshot' && (
+                    <View>
+                      <Text style={styles.sectionLabel}>Your Snapshot</Text>
+                      {loadingSnapshot ? (
+                        <View style={styles.snapshotLoading}>
+                          <ActivityIndicator size="small" color={COLORS.accent} />
+                          <Text style={styles.snapshotLoadingText}>Generating personalized insight...</Text>
+                        </View>
+                      ) : (
+                        <View style={styles.snapshotContainer}>
+                          <Text style={styles.snapshotText}>{snapshot}</Text>
+                        </View>
+                      )}
+                      <Text style={styles.snapshotDisclaimer}>
+                        This reflection is based on what you shared during onboarding. It offers patterns to consider, not fixed truths about who you are.
                       </Text>
                     </View>
                   )}
 
-                  {/* Structured Elements (for Human Design) */}
-                  {selectedLens.deep_dive.structured_elements && (
-                    <View style={styles.structuredContainer}>
-                      {selectedLens.deep_dive.structured_elements.note && (
-                        <View style={styles.structuredNote}>
-                          <Text style={styles.structuredNoteText}>
-                            {selectedLens.deep_dive.structured_elements.note}
+                  {/* Deep Dive View */}
+                  {viewMode === 'deepdive' && (
+                    <View>
+                      <Text style={styles.sectionLabel}>Deep Dive</Text>
+                      <Text style={styles.deepDiveDescription}>
+                        {selectedLens.deep_dive.description}
+                      </Text>
+
+                      {selectedLens.deep_dive.how_mirror_uses_this && (
+                        <View style={styles.howMirrorUsesContainer}>
+                          <Text style={styles.howMirrorUsesLabel}>How Project Mirror Uses This</Text>
+                          <Text style={styles.howMirrorUsesText}>
+                            {selectedLens.deep_dive.how_mirror_uses_this}
                           </Text>
                         </View>
                       )}
-                      {selectedLens.deep_dive.structured_elements.type && 
-                        renderStructuredElement(selectedLens.deep_dive.structured_elements.type)}
-                      {selectedLens.deep_dive.structured_elements.strategy && 
-                        renderStructuredElement(selectedLens.deep_dive.structured_elements.strategy)}
-                      {selectedLens.deep_dive.structured_elements.inner_authority && 
-                        renderStructuredElement(selectedLens.deep_dive.structured_elements.inner_authority)}
-                      {selectedLens.deep_dive.structured_elements.profile && 
-                        renderStructuredElement(selectedLens.deep_dive.structured_elements.profile)}
-                      {selectedLens.deep_dive.structured_elements.definition && 
-                        renderStructuredElement(selectedLens.deep_dive.structured_elements.definition)}
-                      {selectedLens.deep_dive.structured_elements.incarnation_cross && 
-                        renderStructuredElement(selectedLens.deep_dive.structured_elements.incarnation_cross)}
-                      {selectedLens.deep_dive.structured_elements.not_self_and_signature && 
-                        renderStructuredElement(selectedLens.deep_dive.structured_elements.not_self_and_signature)}
-                    </View>
-                  )}
 
-                  {/* Key Concepts */}
-                  {selectedLens.deep_dive.key_concepts && selectedLens.deep_dive.key_concepts.length > 0 && (
-                    <View style={styles.conceptsContainer}>
-                      <Text style={styles.conceptsLabel}>Key Concepts</Text>
-                      {selectedLens.deep_dive.key_concepts.map((concept, index) => (
-                        <View key={index} style={styles.conceptItem}>
-                          <View style={styles.conceptBullet} />
-                          <Text style={styles.conceptText}>{concept}</Text>
+                      {selectedLens.deep_dive.structured_elements && (
+                        <View style={styles.structuredContainer}>
+                          {selectedLens.deep_dive.structured_elements.note && (
+                            <View style={styles.structuredNote}>
+                              <Text style={styles.structuredNoteText}>
+                                {selectedLens.deep_dive.structured_elements.note}
+                              </Text>
+                            </View>
+                          )}
+                          {selectedLens.deep_dive.structured_elements.type && 
+                            renderStructuredElement(selectedLens.deep_dive.structured_elements.type)}
+                          {selectedLens.deep_dive.structured_elements.strategy && 
+                            renderStructuredElement(selectedLens.deep_dive.structured_elements.strategy)}
+                          {selectedLens.deep_dive.structured_elements.inner_authority && 
+                            renderStructuredElement(selectedLens.deep_dive.structured_elements.inner_authority)}
+                          {selectedLens.deep_dive.structured_elements.profile && 
+                            renderStructuredElement(selectedLens.deep_dive.structured_elements.profile)}
+                          {selectedLens.deep_dive.structured_elements.definition && 
+                            renderStructuredElement(selectedLens.deep_dive.structured_elements.definition)}
+                          {selectedLens.deep_dive.structured_elements.incarnation_cross && 
+                            renderStructuredElement(selectedLens.deep_dive.structured_elements.incarnation_cross)}
+                          {selectedLens.deep_dive.structured_elements.not_self_and_signature && 
+                            renderStructuredElement(selectedLens.deep_dive.structured_elements.not_self_and_signature)}
                         </View>
-                      ))}
-                    </View>
-                  )}
+                      )}
 
-                  {/* Important Note */}
-                  {selectedLens.deep_dive.important_note && (
-                    <View style={styles.importantNote}>
-                      <Text style={styles.importantNoteText}>
-                        {selectedLens.deep_dive.important_note}
-                      </Text>
-                    </View>
-                  )}
-
-                  {/* Reflection Themes */}
-                  {selectedLens.deep_dive.reflection_themes && selectedLens.deep_dive.reflection_themes.length > 0 && (
-                    <View style={styles.reflectionThemesContainer}>
-                      <Text style={styles.themesLabel}>Reflection Themes</Text>
-                      {selectedLens.deep_dive.reflection_themes.map((theme, index) => (
-                        <View key={index} style={styles.themeItem}>
-                          <Text style={styles.themeText}>{theme}</Text>
+                      {selectedLens.deep_dive.key_concepts && selectedLens.deep_dive.key_concepts.length > 0 && (
+                        <View style={styles.conceptsContainer}>
+                          <Text style={styles.conceptsLabel}>Key Concepts</Text>
+                          {selectedLens.deep_dive.key_concepts.map((concept, index) => (
+                            <View key={index} style={styles.conceptItem}>
+                              <View style={styles.conceptBullet} />
+                              <Text style={styles.conceptText}>{concept}</Text>
+                            </View>
+                          ))}
                         </View>
-                      ))}
+                      )}
+
+                      {selectedLens.deep_dive.important_note && (
+                        <View style={styles.importantNote}>
+                          <Text style={styles.importantNoteText}>
+                            {selectedLens.deep_dive.important_note}
+                          </Text>
+                        </View>
+                      )}
+
+                      {selectedLens.deep_dive.reflection_themes && selectedLens.deep_dive.reflection_themes.length > 0 && (
+                        <View style={styles.reflectionThemesContainer}>
+                          <Text style={styles.themesLabel}>Reflection Themes</Text>
+                          {selectedLens.deep_dive.reflection_themes.map((theme, index) => (
+                            <View key={index} style={styles.themeItem}>
+                              <Text style={styles.themeText}>{theme}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+
+                      <View style={styles.invitationContainer}>
+                        <Text style={styles.invitationLabel}>An Invitation</Text>
+                        <Text style={styles.invitationText}>
+                          {selectedLens.deep_dive.invitation}
+                        </Text>
+                      </View>
+
+                      {/* Chat Section */}
+                      <View style={styles.chatSection}>
+                        <View style={styles.chatHeader}>
+                          <Text style={styles.chatTitle}>Ask About {selectedLens.title}</Text>
+                          {chatMessages.length > 0 && (
+                            <TouchableOpacity onPress={clearChatHistory} style={styles.clearChatButton}>
+                              <Ionicons name="trash-outline" size={18} color={COLORS.secondary} />
+                              <Text style={styles.clearChatText}>Clear</Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
+
+                        {/* Chat Messages */}
+                        {loadingChat ? (
+                          <View style={styles.chatLoading}>
+                            <ActivityIndicator size="small" color={COLORS.accent} />
+                          </View>
+                        ) : chatMessages.length > 0 ? (
+                          <View style={styles.chatMessages}>
+                            {chatMessages.map(renderChatMessage)}
+                          </View>
+                        ) : (
+                          <View style={styles.chatEmpty}>
+                            <Text style={styles.chatEmptyText}>
+                              Have questions about {selectedLens.title}? Ask below and I'll help you explore.
+                            </Text>
+                          </View>
+                        )}
+
+                        {sendingMessage && (
+                          <View style={styles.chatTyping}>
+                            <ActivityIndicator size="small" color={COLORS.accent} />
+                            <Text style={styles.chatTypingText}>Thinking...</Text>
+                          </View>
+                        )}
+                      </View>
                     </View>
                   )}
+                </ScrollView>
 
-                  <View style={styles.invitationContainer}>
-                    <Text style={styles.invitationLabel}>An Invitation</Text>
-                    <Text style={styles.invitationText}>
-                      {selectedLens.deep_dive.invitation}
-                    </Text>
+                {/* Chat Input - Only show in Deep Dive */}
+                {viewMode === 'deepdive' && (
+                  <View style={styles.chatInputContainer}>
+                    <TextInput
+                      style={styles.chatInput}
+                      value={chatInput}
+                      onChangeText={setChatInput}
+                      placeholder="Ask a question..."
+                      placeholderTextColor={COLORS.secondary}
+                      multiline
+                      maxLength={500}
+                    />
+                    <TouchableOpacity
+                      style={[styles.chatSendButton, (!chatInput.trim() || sendingMessage) && styles.chatSendButtonDisabled]}
+                      onPress={sendChatMessage}
+                      disabled={!chatInput.trim() || sendingMessage}
+                    >
+                      <Ionicons name="send" size={20} color={COLORS.white} />
+                    </TouchableOpacity>
                   </View>
-                </View>
-              )}
-            </ScrollView>
-          ) : null}
+                )}
+              </View>
+            ) : null}
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>
@@ -472,6 +666,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  modalKeyboard: {
+    flex: 1,
+  },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -496,13 +693,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.primary,
   },
+  modalBody: {
+    flex: 1,
+  },
+  modalScroll: {
+    flex: 1,
+  },
   modalContent: {
     padding: SPACING.lg,
     paddingBottom: SPACING.xxl,
   },
   tabContainer: {
     flexDirection: 'row',
-    marginBottom: SPACING.lg,
+    marginHorizontal: SPACING.lg,
+    marginTop: SPACING.md,
+    marginBottom: SPACING.sm,
     backgroundColor: COLORS.border,
     borderRadius: BORDER_RADIUS.md,
     padding: 4,
@@ -517,7 +722,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   tabText: {
-    fontSize: 13,
+    fontSize: 12,
     color: COLORS.secondary,
     fontWeight: '500',
   },
@@ -741,5 +946,123 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     lineHeight: 26,
     fontStyle: 'italic',
+  },
+  // Chat Styles
+  chatSection: {
+    marginTop: SPACING.xl,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingTop: SPACING.lg,
+  },
+  chatHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  chatTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  clearChatButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  clearChatText: {
+    fontSize: 14,
+    color: COLORS.secondary,
+  },
+  chatLoading: {
+    padding: SPACING.lg,
+    alignItems: 'center',
+  },
+  chatMessages: {
+    gap: SPACING.sm,
+  },
+  chatMessage: {
+    maxWidth: '85%',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  chatMessageUser: {
+    alignSelf: 'flex-end',
+    backgroundColor: COLORS.accent,
+  },
+  chatMessageAssistant: {
+    alignSelf: 'flex-start',
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  chatMessageText: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  chatMessageTextUser: {
+    color: COLORS.white,
+  },
+  chatMessageTextAssistant: {
+    color: COLORS.primary,
+  },
+  chatEmpty: {
+    padding: SPACING.lg,
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderStyle: 'dashed',
+  },
+  chatEmptyText: {
+    fontSize: 14,
+    color: COLORS.secondary,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  chatTyping: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    marginTop: SPACING.sm,
+    padding: SPACING.sm,
+  },
+  chatTypingText: {
+    fontSize: 14,
+    color: COLORS.secondary,
+    fontStyle: 'italic',
+  },
+  chatInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    backgroundColor: COLORS.background,
+    gap: SPACING.sm,
+  },
+  chatInput: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    fontSize: 16,
+    color: COLORS.primary,
+    maxHeight: 100,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  chatSendButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chatSendButtonDisabled: {
+    opacity: 0.5,
   },
 });
