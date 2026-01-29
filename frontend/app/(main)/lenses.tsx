@@ -2001,6 +2001,13 @@ const styles = StyleSheet.create({
     borderTopColor: '#E0E0E0',
     width: '100%',
   },
+  // Numerology Profile Styles
+  numerologyNumber: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: COLORS.primary,
+    textAlign: 'center',
+  },
   // Personalized Insights Styles
   personalizedInsightsContainer: {
     marginBottom: SPACING.lg,
