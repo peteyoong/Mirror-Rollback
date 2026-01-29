@@ -1075,6 +1075,9 @@ export default function Lenses() {
                               {showBirthDataForm && (
                                 <View style={styles.debugForm}>
                                   <Text style={styles.debugFormTitle}>Enter Birth Data</Text>
+                                  <Text style={styles.debugFormSubtitle}>
+                                    Data will be saved to your user record and compute will run automatically.
+                                  </Text>
                                   
                                   <Text style={styles.debugFormLabel}>Birth DateTime (ISO format)</Text>
                                   <TextInput
@@ -1085,15 +1088,16 @@ export default function Lenses() {
                                     placeholderTextColor="#999"
                                   />
                                   
-                                  <Text style={styles.debugFormLabel}>TZ Offset (minutes, e.g., -300 for EST)</Text>
+                                  <Text style={styles.debugFormLabel}>TZ Offset (minutes from UTC)</Text>
                                   <TextInput
                                     style={styles.debugFormInput}
                                     value={birthFormData.tz_offset_minutes}
                                     onChangeText={(v) => setBirthFormData({...birthFormData, tz_offset_minutes: v})}
-                                    placeholder="-300"
+                                    placeholder="480"
                                     placeholderTextColor="#999"
                                     keyboardType="numeric"
                                   />
+                                  <Text style={styles.debugFormHint}>e.g., -300 (EST), -420 (PDT), 0 (UTC), 330 (IST), 480 (PST)</Text>
                                   
                                   <Text style={styles.debugFormLabel}>Latitude</Text>
                                   <TextInput
@@ -1118,7 +1122,10 @@ export default function Lenses() {
                                   <View style={styles.debugFormButtons}>
                                     <TouchableOpacity 
                                       style={styles.debugButtonSecondary}
-                                      onPress={() => setShowBirthDataForm(false)}
+                                      onPress={() => {
+                                        setShowBirthDataForm(false);
+                                        setComputeStatus(null);
+                                      }}
                                     >
                                       <Text style={styles.debugButtonSecondaryText}>Cancel</Text>
                                     </TouchableOpacity>
@@ -1130,7 +1137,7 @@ export default function Lenses() {
                                       {savingBirthData ? (
                                         <ActivityIndicator size="small" color="#FFF" />
                                       ) : (
-                                        <Text style={styles.debugButtonText}>Save Birth Data</Text>
+                                        <Text style={styles.debugButtonText}>Save & Compute</Text>
                                       )}
                                     </TouchableOpacity>
                                   </View>
