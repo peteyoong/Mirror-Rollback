@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +27,13 @@ interface JournalEntry {
   updated_at: string;
 }
 
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  message_text: string;
+  created_at: string;
+}
+
 export default function Journal() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +42,14 @@ export default function Journal() {
   const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
   const [entryContent, setEntryContent] = useState('');
   const [saving, setSaving] = useState(false);
+  
+  // Integrative Chat state
+  const [chatModalVisible, setChatModalVisible] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [loadingChat, setLoadingChat] = useState(false);
+  const chatScrollRef = useRef<ScrollView>(null);
 
   const fetchEntries = useCallback(async () => {
     try {
@@ -112,6 +128,84 @@ export default function Journal() {
     );
   };
 
+  // Integrative Chat functions
+  const openChat = async () => {
+    setChatModalVisible(true);
+    await fetchChatHistory();
+  };
+
+  const fetchChatHistory = async () => {
+    setLoadingChat(true);
+    try {
+      const response = await api.get('/journal/chat');
+      setChatMessages(response.data);
+      setTimeout(() => chatScrollRef.current?.scrollToEnd({ animated: false }), 100);
+    } catch (error) {
+      console.error('Failed to fetch chat history:', error);
+    } finally {
+      setLoadingChat(false);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!chatInput.trim() || sendingMessage) return;
+
+    const messageText = chatInput.trim();
+    setChatInput('');
+    setSendingMessage(true);
+
+    try {
+      const response = await api.post('/journal/chat', { message: messageText });
+      setChatMessages(prev => [...prev, ...response.data]);
+      setTimeout(() => chatScrollRef.current?.scrollToEnd({ animated: true }), 100);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      Alert.alert('Error', 'Failed to send message. Please try again.');
+      setChatInput(messageText);
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const clearChat = async () => {
+    Alert.alert(
+      'Clear Conversation',
+      'This will clear your integrative chat history. Your journal entries will not be affected.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete('/journal/chat');
+              setChatMessages([]);
+            } catch (error) {
+              Alert.alert('Error', 'Failed to clear chat');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const renderChatMessage = (message: ChatMessage, index: number) => (
+    <View
+      key={message.id || index}
+      style={[
+        styles.chatMessage,
+        message.role === 'user' ? styles.chatMessageUser : styles.chatMessageAssistant
+      ]}
+    >
+      <Text style={[
+        styles.chatMessageText,
+        message.role === 'user' ? styles.chatMessageTextUser : styles.chatMessageTextAssistant
+      ]}>
+        {message.message_text}
+      </Text>
+    </View>
+  );
+
   const renderEntry = ({ item }: { item: JournalEntry }) => (
     <TouchableOpacity
       style={styles.entryCard}
@@ -151,10 +245,27 @@ export default function Journal() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Journal</Text>
-        <TouchableOpacity style={styles.addButton} onPress={openNewEntry}>
-          <Ionicons name="add" size={28} color={COLORS.accent} />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity style={styles.headerButton} onPress={openChat}>
+            <Ionicons name="chatbubbles-outline" size={24} color={COLORS.accent} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerButton} onPress={openNewEntry}>
+            <Ionicons name="add" size={28} color={COLORS.accent} />
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* Integrative Chat Banner */}
+      <TouchableOpacity style={styles.chatBanner} onPress={openChat}>
+        <View style={styles.chatBannerIcon}>
+          <Ionicons name="sparkles" size={20} color={COLORS.accent} />
+        </View>
+        <View style={styles.chatBannerText}>
+          <Text style={styles.chatBannerTitle}>Integrative Chat</Text>
+          <Text style={styles.chatBannerSubtitle}>Connect patterns across your reflections</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={COLORS.secondary} />
+      </TouchableOpacity>
 
       <FlatList
         data={entries}
@@ -174,6 +285,7 @@ export default function Journal() {
         }
       />
 
+      {/* Entry Modal */}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -227,6 +339,121 @@ export default function Journal() {
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
+
+      {/* Integrative Chat Modal */}
+      <Modal
+        visible={chatModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setChatModalVisible(false)}
+      >
+        <SafeAreaView style={styles.chatModalContainer}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.chatModalKeyboard}
+          >
+            {/* Chat Header */}
+            <View style={styles.chatHeader}>
+              <TouchableOpacity
+                onPress={() => setChatModalVisible(false)}
+                style={styles.chatCloseButton}
+              >
+                <Ionicons name="close" size={24} color={COLORS.primary} />
+              </TouchableOpacity>
+              <View style={styles.chatTitleContainer}>
+                <Text style={styles.chatTitle}>Integrative Chat</Text>
+                <Text style={styles.chatSubtitle}>Connect patterns across your journey</Text>
+              </View>
+              <TouchableOpacity
+                onPress={clearChat}
+                style={styles.chatClearButton}
+              >
+                <Ionicons name="trash-outline" size={20} color={COLORS.secondary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Chat Messages */}
+            <ScrollView
+              ref={chatScrollRef}
+              style={styles.chatMessagesContainer}
+              contentContainerStyle={styles.chatMessagesContent}
+            >
+              {loadingChat ? (
+                <ActivityIndicator size="large" color={COLORS.accent} style={styles.chatLoading} />
+              ) : chatMessages.length === 0 ? (
+                <View style={styles.chatEmptyContainer}>
+                  <Ionicons name="sparkles-outline" size={48} color={COLORS.border} />
+                  <Text style={styles.chatEmptyTitle}>Start a conversation</Text>
+                  <Text style={styles.chatEmptySubtitle}>
+                    I can help you see patterns across your journals, reflections, and framework explorations.
+                  </Text>
+                  <View style={styles.chatSuggestions}>
+                    <Text style={styles.chatSuggestionsTitle}>Try asking:</Text>
+                    <TouchableOpacity
+                      style={styles.chatSuggestion}
+                      onPress={() => setChatInput("What themes have been showing up in my recent reflections?")}
+                    >
+                      <Text style={styles.chatSuggestionText}>
+                        "What themes have been showing up in my recent reflections?"
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.chatSuggestion}
+                      onPress={() => setChatInput("Is there a pattern in what I've been journaling about?")}
+                    >
+                      <Text style={styles.chatSuggestionText}>
+                        "Is there a pattern in what I've been journaling about?"
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.chatSuggestion}
+                      onPress={() => setChatInput("Help me connect the dots across what I've been exploring.")}
+                    >
+                      <Text style={styles.chatSuggestionText}>
+                        "Help me connect the dots across what I've been exploring."
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                chatMessages.map(renderChatMessage)
+              )}
+              {sendingMessage && (
+                <View style={[styles.chatMessage, styles.chatMessageAssistant]}>
+                  <ActivityIndicator size="small" color={COLORS.accent} />
+                </View>
+              )}
+            </ScrollView>
+
+            {/* Chat Input */}
+            <View style={styles.chatInputContainer}>
+              <TextInput
+                style={styles.chatInput}
+                placeholder="Ask about patterns in your journey..."
+                placeholderTextColor={COLORS.secondary}
+                value={chatInput}
+                onChangeText={setChatInput}
+                multiline
+                maxLength={1000}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.chatSendButton,
+                  (!chatInput.trim() || sendingMessage) && styles.chatSendButtonDisabled
+                ]}
+                onPress={sendMessage}
+                disabled={!chatInput.trim() || sendingMessage}
+              >
+                <Ionicons
+                  name="send"
+                  size={20}
+                  color={chatInput.trim() && !sendingMessage ? COLORS.white : COLORS.secondary}
+                />
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -253,14 +480,53 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     color: COLORS.primary,
   },
-  addButton: {
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButton: {
     width: 44,
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // Chat Banner Styles
+  chatBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  chatBannerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F5F8F3',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.md,
+  },
+  chatBannerText: {
+    flex: 1,
+  },
+  chatBannerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  chatBannerSubtitle: {
+    fontSize: 13,
+    color: COLORS.secondary,
+    marginTop: 2,
+  },
   listContent: {
     padding: SPACING.lg,
+    paddingTop: SPACING.sm,
     paddingBottom: SPACING.xxl,
   },
   emptyListContent: {
@@ -357,5 +623,161 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: COLORS.primary,
     lineHeight: 28,
+  },
+  // Chat Modal Styles
+  chatModalContainer: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  chatModalKeyboard: {
+    flex: 1,
+  },
+  chatHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    backgroundColor: COLORS.white,
+  },
+  chatCloseButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chatTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  chatTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  chatSubtitle: {
+    fontSize: 12,
+    color: COLORS.secondary,
+    marginTop: 2,
+  },
+  chatClearButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chatMessagesContainer: {
+    flex: 1,
+  },
+  chatMessagesContent: {
+    padding: SPACING.md,
+    paddingBottom: SPACING.lg,
+  },
+  chatLoading: {
+    marginTop: SPACING.xl,
+  },
+  chatEmptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xxl,
+  },
+  chatEmptyTitle: {
+    fontSize: 20,
+    fontWeight: '300',
+    color: COLORS.primary,
+    marginTop: SPACING.lg,
+  },
+  chatEmptySubtitle: {
+    fontSize: 14,
+    color: COLORS.secondary,
+    textAlign: 'center',
+    marginTop: SPACING.sm,
+    lineHeight: 20,
+  },
+  chatSuggestions: {
+    marginTop: SPACING.xl,
+    width: '100%',
+  },
+  chatSuggestionsTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: SPACING.sm,
+  },
+  chatSuggestion: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  chatSuggestionText: {
+    fontSize: 14,
+    color: COLORS.accent,
+    fontStyle: 'italic',
+  },
+  chatMessage: {
+    maxWidth: '85%',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.sm,
+  },
+  chatMessageUser: {
+    alignSelf: 'flex-end',
+    backgroundColor: COLORS.accent,
+  },
+  chatMessageAssistant: {
+    alignSelf: 'flex-start',
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  chatMessageText: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  chatMessageTextUser: {
+    color: COLORS.white,
+  },
+  chatMessageTextAssistant: {
+    color: COLORS.primary,
+  },
+  chatInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    gap: SPACING.sm,
+  },
+  chatInput: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    fontSize: 15,
+    color: COLORS.primary,
+    maxHeight: 100,
+    minHeight: 40,
+  },
+  chatSendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chatSendButtonDisabled: {
+    backgroundColor: COLORS.border,
   },
 });
