@@ -3231,6 +3231,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#78350F',
+    marginBottom: SPACING.xs,
+  },
+  debugFormSubtitle: {
+    fontSize: 11,
+    color: '#92400E',
     marginBottom: SPACING.md,
   },
   debugFormLabel: {
@@ -3239,6 +3244,12 @@ const styles = StyleSheet.create({
     color: '#78350F',
     marginTop: SPACING.sm,
     marginBottom: 4,
+  },
+  debugFormHint: {
+    fontSize: 10,
+    color: '#92400E',
+    marginTop: 2,
+    fontStyle: 'italic',
   },
   debugFormInput: {
     backgroundColor: '#FFF',
