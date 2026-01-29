@@ -1802,6 +1802,43 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     marginTop: 4,
   },
+  // Human Design Profile Styles
+  hdProfileGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: SPACING.sm,
+  },
+  hdProfileItem: {
+    alignItems: 'center',
+    width: '50%',
+    marginBottom: SPACING.md,
+  },
+  hdProfileLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: COLORS.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  hdProfileValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.primary,
+    textAlign: 'center',
+  },
+  hdProfileSubtext: {
+    fontSize: 12,
+    color: COLORS.secondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    paddingTop: SPACING.sm,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    width: '100%',
+  },
   // Personalized Insights Styles
   personalizedInsightsContainer: {
     marginBottom: SPACING.lg,
