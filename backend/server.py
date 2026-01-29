@@ -1295,6 +1295,92 @@ async def complete_onboarding(answers: OnboardingAnswers, user = Depends(get_cur
             }
         }
     )
+    
+    # Automatically compute sidereal profile if birth data is provided
+    if answers.birth_datetime_local and answers.latitude and answers.longitude and answers.tz_offset_minutes is not None:
+        try:
+            # Parse the birth datetime
+            birth_dt_local = dateutil_parser.parse(answers.birth_datetime_local)
+            
+            # Convert to UTC
+            utc_offset = timedelta(minutes=answers.tz_offset_minutes)
+            birth_dt_utc = birth_dt_local - utc_offset
+            
+            # Calculate Julian Day
+            jd_ut = datetime_to_julian_day(birth_dt_utc)
+            
+            # Use FAGAN_BRADLEY as default ayanamsa
+            ayanamsa_key = "FAGAN_BRADLEY"
+            swe.set_sid_mode(AYANAMSA_MAP[ayanamsa_key])
+            ayanamsa_value = swe.get_ayanamsa(jd_ut)
+            
+            # Calculate positions
+            positions = {}
+            
+            # Sun
+            sun_result = swe.calc_ut(jd_ut, swe.SUN, swe.FLG_SIDEREAL)
+            sun_lon = sun_result[0][0]
+            sun_sign, sun_deg_in_sign, sun_deg, sun_min, sun_sec = longitude_to_sign_position(sun_lon)
+            positions["sun"] = {
+                "name": "Sun",
+                "sign": sun_sign,
+                "degree": sun_deg,
+                "minutes": sun_min,
+                "formatted": f"{sun_sign} {sun_deg}°{sun_min}'"
+            }
+            
+            # Moon
+            moon_result = swe.calc_ut(jd_ut, swe.MOON, swe.FLG_SIDEREAL)
+            moon_lon = moon_result[0][0]
+            moon_sign, moon_deg_in_sign, moon_deg, moon_min, moon_sec = longitude_to_sign_position(moon_lon)
+            positions["moon"] = {
+                "name": "Moon",
+                "sign": moon_sign,
+                "degree": moon_deg,
+                "minutes": moon_min,
+                "formatted": f"{moon_sign} {moon_deg}°{moon_min}'"
+            }
+            
+            # Ascendant
+            houses = swe.houses(jd_ut, answers.latitude, answers.longitude, b'P')
+            asc_lon = houses[1][0] - ayanamsa_value
+            if asc_lon < 0:
+                asc_lon += 360
+            asc_sign, asc_deg_in_sign, asc_deg, asc_min, asc_sec = longitude_to_sign_position(asc_lon)
+            positions["ascendant"] = {
+                "name": "Ascendant",
+                "sign": asc_sign,
+                "degree": asc_deg,
+                "minutes": asc_min,
+                "formatted": f"{asc_sign} {asc_deg}°{asc_min}'"
+            }
+            
+            # Store the computed profile
+            profile_data = {
+                "user_id": user["id"],
+                "birth_datetime_local": answers.birth_datetime_local,
+                "latitude": answers.latitude,
+                "longitude": answers.longitude,
+                "tz_offset_minutes": answers.tz_offset_minutes,
+                "ayanamsa": ayanamsa_key,
+                "ayanamsa_value": ayanamsa_value,
+                "julian_day": jd_ut,
+                "positions": positions,
+                "computed_at": datetime.utcnow()
+            }
+            
+            await db.computed_profiles_astrology.update_one(
+                {"user_id": user["id"]},
+                {"$set": profile_data},
+                upsert=True
+            )
+            
+            logger.info(f"Auto-computed sidereal profile for user {user['id']} after onboarding")
+            
+        except Exception as e:
+            # Log the error but don't fail the onboarding
+            logger.error(f"Failed to auto-compute sidereal profile: {str(e)}")
+    
     return {"success": True}
 
 # Mirror Routes
