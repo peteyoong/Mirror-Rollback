@@ -191,6 +191,19 @@ export default function Lenses() {
     }
   };
 
+  const fetchAstrologyProfile = async () => {
+    setLoadingAstrologyProfile(true);
+    try {
+      const response = await api.get('/computed-profile/astrology');
+      setAstrologyProfile(response.data);
+    } catch (error) {
+      console.error('Failed to fetch astrology profile:', error);
+      setAstrologyProfile({ has_profile: false });
+    } finally {
+      setLoadingAstrologyProfile(false);
+    }
+  };
+
   const openLensDetail = async (lensId: string) => {
     setLoadingDetail(true);
     setModalVisible(true);
@@ -198,11 +211,16 @@ export default function Lenses() {
     setSnapshot(null);
     setChatMessages([]);
     setChatInput('');
+    setAstrologyProfile(null);
     try {
       const response = await api.get(`/lenses/${lensId}`);
       setSelectedLens(response.data);
       // Fetch chat history in background
       fetchChatHistory(lensId);
+      // Fetch astrology profile if this is the astrology lens
+      if (lensId === 'true-sidereal-astrology') {
+        fetchAstrologyProfile();
+      }
     } catch (error) {
       console.error('Failed to fetch lens detail:', error);
     } finally {
