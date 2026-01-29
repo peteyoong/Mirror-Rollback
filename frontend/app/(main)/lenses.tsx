@@ -457,10 +457,9 @@ export default function Lenses() {
     setSavedUserId(null);
     setLocationManuallyEdited(false);
     setShowManualLocationEntry(false);
-    setSelectedCountry('');
-    setSelectedCity('');
-    setShowCountryPicker(false);
-    setShowCityPicker(false);
+    setLocationSearch('');
+    setLocationSuggestions([]);
+    setSelectedLocation('');
     
     if (userBirthData) {
       // Pre-populate from existing data
@@ -474,27 +473,9 @@ export default function Lenses() {
       setBirthLat(String(userBirthData.latitude || ''));
       setBirthLon(String(userBirthData.longitude || ''));
       
-      // Try to find matching country/city from existing coordinates
-      const lat = userBirthData.latitude;
-      const lon = userBirthData.longitude;
-      if (lat && lon) {
-        let found = false;
-        for (const [country, cities] of Object.entries(CITY_DATABASE)) {
-          const matchingCity = cities.find(c => 
-            Math.abs(c.lat - lat) < 0.1 && Math.abs(c.lon - lon) < 0.1
-          );
-          if (matchingCity) {
-            setSelectedCountry(country);
-            setSelectedCity(matchingCity.city);
-            found = true;
-            break;
-          }
-        }
-        // If no matching city found, show manual entry mode
-        if (!found) {
-          setShowManualLocationEntry(true);
-          setLocationManuallyEdited(true);
-        }
+      // Show the saved location name if we have coordinates
+      if (userBirthData.latitude && userBirthData.longitude) {
+        setSelectedLocation(`${userBirthData.latitude.toFixed(4)}°, ${userBirthData.longitude.toFixed(4)}° (saved)`);
       }
     } else {
       // Reset to defaults
