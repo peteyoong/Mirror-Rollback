@@ -2441,78 +2441,117 @@ export default function Lenses() {
               )}
             </View>
 
-            {/* Timezone Offset */}
+            {/* Birth Location - Country → City Picker */}
             <View style={styles.birthDetailsField}>
-              <Text style={styles.birthDetailsLabel}>Timezone Offset (minutes from UTC)</Text>
-              <TextInput
-                style={styles.birthDetailsTextInput}
-                value={birthTzOffset}
-                onChangeText={setBirthTzOffset}
-                placeholder="480 (for PST)"
-                placeholderTextColor="#999"
-                keyboardType="numeric"
-              />
-              <Text style={styles.birthDetailsHint}>
-                Examples: -300 (EST), -420 (PDT), 0 (UTC), 330 (IST), 480 (PST)
-              </Text>
-            </View>
-
-            {/* Quick Location Selection */}
-            <View style={styles.birthDetailsField}>
-              <Text style={styles.birthDetailsLabel}>Birth Location</Text>
-              <Text style={styles.birthDetailsHint}>
-                Select a city OR enter coordinates manually below
-              </Text>
-              <View style={styles.quickLocationGrid}>
-                {QUICK_LOCATIONS.map((loc) => (
-                  <TouchableOpacity
-                    key={loc.name}
-                    style={[
-                      styles.quickLocationChip,
-                      !locationManuallyEdited && birthLat === String(loc.lat) && birthLon === String(loc.lon) && styles.quickLocationChipSelected
-                    ]}
-                    onPress={() => handleCitySelect(loc.lat, loc.lon)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[
-                      styles.quickLocationChipText,
-                      !locationManuallyEdited && birthLat === String(loc.lat) && birthLon === String(loc.lon) && styles.quickLocationChipTextSelected
-                    ]}>{loc.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              {locationManuallyEdited && (
-                <Text style={styles.birthDetailsManualNote}>
-                  📍 Using manual coordinates (city chips disabled)
+              <Text style={styles.birthDetailsLabel}>Birth Country</Text>
+              <TouchableOpacity 
+                style={styles.birthDetailsInput} 
+                onPress={() => setShowCountryPicker(!showCountryPicker)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.birthDetailsInputText, !selectedCountry && { color: '#999' }]}>
+                  {selectedCountry || 'Select Country...'}
                 </Text>
+                <Ionicons name={showCountryPicker ? "chevron-up" : "chevron-down"} size={20} color={COLORS.secondary} />
+              </TouchableOpacity>
+              
+              {/* Country Dropdown */}
+              {showCountryPicker && (
+                <View style={styles.pickerDropdown}>
+                  <ScrollView style={styles.pickerScrollView} nestedScrollEnabled>
+                    {countries.map((country) => (
+                      <TouchableOpacity
+                        key={country}
+                        style={[
+                          styles.pickerOption,
+                          selectedCountry === country && styles.pickerOptionSelected
+                        ]}
+                        onPress={() => {
+                          setSelectedCountry(country);
+                          setSelectedCity('');
+                          setBirthLat('');
+                          setBirthLon('');
+                          setBirthTzOffset('');
+                          setShowCountryPicker(false);
+                        }}
+                      >
+                        <Text style={[
+                          styles.pickerOptionText,
+                          selectedCountry === country && styles.pickerOptionTextSelected
+                        ]}>{country}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
               )}
             </View>
 
-            {/* Manual Coordinates */}
-            <View style={styles.birthDetailsRow}>
-              <View style={[styles.birthDetailsField, { flex: 1, marginRight: SPACING.sm }]}>
-                <Text style={styles.birthDetailsLabel}>Latitude</Text>
-                <TextInput
-                  style={styles.birthDetailsTextInput}
-                  value={birthLat}
-                  onChangeText={handleLatChange}
-                  placeholder="40.7128"
-                  placeholderTextColor="#999"
-                  keyboardType="decimal-pad"
-                />
+            {/* City Picker - Only show when country is selected */}
+            {selectedCountry && (
+              <View style={styles.birthDetailsField}>
+                <Text style={styles.birthDetailsLabel}>Birth City</Text>
+                <TouchableOpacity 
+                  style={styles.birthDetailsInput} 
+                  onPress={() => setShowCityPicker(!showCityPicker)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.birthDetailsInputText, !selectedCity && { color: '#999' }]}>
+                    {selectedCity || 'Select City...'}
+                  </Text>
+                  <Ionicons name={showCityPicker ? "chevron-up" : "chevron-down"} size={20} color={COLORS.secondary} />
+                </TouchableOpacity>
+                
+                {/* City Dropdown */}
+                {showCityPicker && (
+                  <View style={styles.pickerDropdown}>
+                    <ScrollView style={styles.pickerScrollView} nestedScrollEnabled>
+                      {citiesForCountry.map((cityData) => (
+                        <TouchableOpacity
+                          key={cityData.city}
+                          style={[
+                            styles.pickerOption,
+                            selectedCity === cityData.city && styles.pickerOptionSelected
+                          ]}
+                          onPress={() => handleCitySelection(cityData)}
+                        >
+                          <View style={styles.pickerCityOption}>
+                            <Text style={[
+                              styles.pickerOptionText,
+                              selectedCity === cityData.city && styles.pickerOptionTextSelected
+                            ]}>{cityData.city}</Text>
+                            <Text style={styles.pickerCityTz}>{formatTimezone(cityData.tz)}</Text>
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
-              <View style={[styles.birthDetailsField, { flex: 1, marginLeft: SPACING.sm }]}>
-                <Text style={styles.birthDetailsLabel}>Longitude</Text>
-                <TextInput
-                  style={styles.birthDetailsTextInput}
-                  value={birthLon}
-                  onChangeText={handleLonChange}
-                  placeholder="-74.0060"
-                  placeholderTextColor="#999"
-                  keyboardType="decimal-pad"
-                />
+            )}
+
+            {/* Auto-generated Timezone Display */}
+            {selectedCity && birthTzOffset && (
+              <View style={styles.autoTimezoneBox}>
+                <View style={styles.autoTimezoneRow}>
+                  <Ionicons name="time-outline" size={18} color="#059669" />
+                  <Text style={styles.autoTimezoneLabel}>Timezone (auto-detected):</Text>
+                </View>
+                <Text style={styles.autoTimezoneValue}>{formatTimezone(parseInt(birthTzOffset))}</Text>
+                <Text style={styles.autoTimezoneHint}>
+                  Based on {selectedCity}, {selectedCountry}
+                </Text>
               </View>
-            </View>
+            )}
+
+            {/* Coordinates Display (read-only, auto-filled) */}
+            {(birthLat && birthLon) && (
+              <View style={styles.coordinatesDisplay}>
+                <Text style={styles.coordinatesLabel}>Coordinates (auto-filled):</Text>
+                <Text style={styles.coordinatesValue}>
+                  {parseFloat(birthLat).toFixed(4)}°, {parseFloat(birthLon).toFixed(4)}°
+                </Text>
+              </View>
+            )}
 
             {/* Current Status */}
             {userBirthData && (
