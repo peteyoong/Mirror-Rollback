@@ -2062,44 +2062,97 @@ export default function Lenses() {
             <View style={{ width: 28 }} />
           </View>
 
-          <ScrollView style={styles.birthDetailsContent} showsVerticalScrollIndicator={false}>
+          <ScrollView 
+            style={styles.birthDetailsContent} 
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             <Text style={styles.birthDetailsSubtitle}>
               Enter your birth details to compute your True Sidereal profile
             </Text>
 
-            {/* Date Selection */}
+            {/* Date Selection - Platform specific */}
             <View style={styles.birthDetailsField}>
               <Text style={styles.birthDetailsLabel}>Birth Date</Text>
-              <TouchableOpacity 
-                style={styles.birthDetailsInput} 
-                onPress={() => setShowBirthDatePicker(true)}
-              >
-                <Text style={styles.birthDetailsInputText}>
-                  {birthDate.toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                </Text>
-                <Ionicons name="calendar-outline" size={20} color={COLORS.secondary} />
-              </TouchableOpacity>
+              {Platform.OS === 'web' ? (
+                /* Web: Use native HTML date input */
+                <View style={styles.birthDetailsInput}>
+                  <TextInput
+                    style={[styles.birthDetailsTextInput, { flex: 1, borderWidth: 0 }]}
+                    value={`${birthDate.getFullYear()}-${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`}
+                    onChangeText={(text) => {
+                      const parts = text.split('-');
+                      if (parts.length === 3) {
+                        const newDate = new Date(birthDate);
+                        newDate.setFullYear(parseInt(parts[0]) || 1990);
+                        newDate.setMonth((parseInt(parts[1]) || 1) - 1);
+                        newDate.setDate(parseInt(parts[2]) || 1);
+                        setBirthDate(newDate);
+                      }
+                    }}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor="#999"
+                  />
+                  <Ionicons name="calendar-outline" size={20} color={COLORS.secondary} />
+                </View>
+              ) : (
+                /* Native: Use TouchableOpacity to open picker */
+                <TouchableOpacity 
+                  style={styles.birthDetailsInput} 
+                  onPress={() => setShowBirthDatePicker(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.birthDetailsInputText}>
+                    {birthDate.toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </Text>
+                  <Ionicons name="calendar-outline" size={20} color={COLORS.secondary} />
+                </TouchableOpacity>
+              )}
             </View>
 
-            {/* Time Selection */}
+            {/* Time Selection - Platform specific */}
             <View style={styles.birthDetailsField}>
               <Text style={styles.birthDetailsLabel}>Birth Time</Text>
-              <TouchableOpacity 
-                style={styles.birthDetailsInput} 
-                onPress={() => setShowBirthTimePicker(true)}
-              >
-                <Text style={styles.birthDetailsInputText}>
-                  {birthDate.toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })}
-                </Text>
-                <Ionicons name="time-outline" size={20} color={COLORS.secondary} />
-              </TouchableOpacity>
+              {Platform.OS === 'web' ? (
+                /* Web: Use native HTML time input */
+                <View style={styles.birthDetailsInput}>
+                  <TextInput
+                    style={[styles.birthDetailsTextInput, { flex: 1, borderWidth: 0 }]}
+                    value={`${String(birthDate.getHours()).padStart(2, '0')}:${String(birthDate.getMinutes()).padStart(2, '0')}`}
+                    onChangeText={(text) => {
+                      const parts = text.split(':');
+                      if (parts.length === 2) {
+                        const newDate = new Date(birthDate);
+                        newDate.setHours(parseInt(parts[0]) || 0);
+                        newDate.setMinutes(parseInt(parts[1]) || 0);
+                        setBirthDate(newDate);
+                      }
+                    }}
+                    placeholder="HH:MM"
+                    placeholderTextColor="#999"
+                  />
+                  <Ionicons name="time-outline" size={20} color={COLORS.secondary} />
+                </View>
+              ) : (
+                /* Native: Use TouchableOpacity to open picker */
+                <TouchableOpacity 
+                  style={styles.birthDetailsInput} 
+                  onPress={() => setShowBirthTimePicker(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.birthDetailsInputText}>
+                    {birthDate.toLocaleTimeString('en-US', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </Text>
+                  <Ionicons name="time-outline" size={20} color={COLORS.secondary} />
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Timezone Offset */}
