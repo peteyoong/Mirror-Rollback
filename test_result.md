@@ -310,3 +310,5 @@ agent_communication:
     message: "Initial implementation complete. All V1 screens built: Registration, Onboarding (5 questions), Mirror (Home), Journal, Lenses. Design is minimal and calm with neutral colors. No mystical symbols, no gamification. Mirror content is framework-blind - no mention of Human Design, astrology, numerology. Ready for backend testing."
   - agent: "testing"
     message: "✅ BACKEND TESTING COMPLETE: All 8 backend API endpoints tested successfully. Auth (register/login/me), Onboarding, Mirror Today, Journal CRUD, and Lenses APIs all working correctly. JWT authentication working properly. All APIs return expected data structures. No critical issues found. Backend is fully functional and ready for production use."
+  - agent: "main"
+    message: "Implemented Lens Chatbot feature with strict guardrails. Updated backend to include: (1) Comprehensive lens context header with lens_key, summary, user's snapshot, onboarding answers, and recent journal entries. (2) Strict non-deterministic, non-predictive, non-directive prompts. (3) Structured response format (narrative, examples, reflective question, experiment). Ready for testing."
