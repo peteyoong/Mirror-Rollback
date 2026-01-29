@@ -1143,9 +1143,10 @@ export default function Lenses() {
                                 </View>
                               </View>
                               
-                              {/* Section 3: Last Save Status */}
+                              {/* Section 3: Last Save Status - Reflects persisted truth */}
                               <View style={styles.debugSection}>
-                                <Text style={styles.debugSectionTitle}>3. Last Save Status</Text>
+                                <Text style={styles.debugSectionTitle}>3. Birth Data Save Status</Text>
+                                {/* Priority: 1) Recent action status, 2) Persisted state from user record */}
                                 {saveStatus ? (
                                   <View style={styles.debugFullStatus}>
                                     <View style={[styles.debugStatusBadge, { backgroundColor: saveStatus.success ? '#D1FAE5' : '#FEE2E2' }]}>
@@ -1162,16 +1163,32 @@ export default function Lenses() {
                                       </View>
                                     )}
                                   </View>
+                                ) : userBirthData ? (
+                                  <View style={styles.debugFullStatus}>
+                                    <View style={[styles.debugStatusBadge, { backgroundColor: '#D1FAE5' }]}>
+                                      <Text style={[styles.debugStatusText, { color: '#065F46' }]}>
+                                        ✓ PERSISTED: Birth data exists in user record
+                                      </Text>
+                                    </View>
+                                    <Text style={styles.debugPersistedNote}>
+                                      (Loaded from GET /api/auth/me)
+                                    </Text>
+                                  </View>
                                 ) : (
-                                  <View style={styles.debugCodeBlock}>
-                                    <Text style={styles.debugNoStatus}>No save attempted yet</Text>
+                                  <View style={styles.debugFullStatus}>
+                                    <View style={[styles.debugStatusBadge, { backgroundColor: '#FEF3C7' }]}>
+                                      <Text style={[styles.debugStatusText, { color: '#92400E' }]}>
+                                        ⚠ NOT SAVED: No birth data in user record
+                                      </Text>
+                                    </View>
                                   </View>
                                 )}
                               </View>
                               
-                              {/* Section 4: Last Compute Status */}
+                              {/* Section 4: Last Compute Status - Reflects persisted truth */}
                               <View style={styles.debugSection}>
-                                <Text style={styles.debugSectionTitle}>4. Last Compute Status</Text>
+                                <Text style={styles.debugSectionTitle}>4. Astrology Compute Status</Text>
+                                {/* Priority: 1) Recent action status, 2) Persisted state from user record */}
                                 {computeStatus ? (
                                   <View style={styles.debugFullStatus}>
                                     <View style={[styles.debugStatusBadge, { backgroundColor: computeStatus.success ? '#D1FAE5' : '#FEE2E2' }]}>
@@ -1188,9 +1205,32 @@ export default function Lenses() {
                                       </View>
                                     )}
                                   </View>
+                                ) : userAstrologyProfile?.positions ? (
+                                  <View style={styles.debugFullStatus}>
+                                    <View style={[styles.debugStatusBadge, { backgroundColor: '#D1FAE5' }]}>
+                                      <Text style={[styles.debugStatusText, { color: '#065F46' }]}>
+                                        ✓ PERSISTED: Compute successful - profile exists
+                                      </Text>
+                                    </View>
+                                    <Text style={styles.debugPersistedNote}>
+                                      (Loaded from user.computed_profile.astrology)
+                                    </Text>
+                                  </View>
+                                ) : userBirthData ? (
+                                  <View style={styles.debugFullStatus}>
+                                    <View style={[styles.debugStatusBadge, { backgroundColor: '#FEF3C7' }]}>
+                                      <Text style={[styles.debugStatusText, { color: '#92400E' }]}>
+                                        ⚠ PENDING: Birth data saved but not yet computed
+                                      </Text>
+                                    </View>
+                                  </View>
                                 ) : (
-                                  <View style={styles.debugCodeBlock}>
-                                    <Text style={styles.debugNoStatus}>No compute attempted yet</Text>
+                                  <View style={styles.debugFullStatus}>
+                                    <View style={[styles.debugStatusBadge, { backgroundColor: '#F3F4F6' }]}>
+                                      <Text style={[styles.debugStatusText, { color: '#6B7280' }]}>
+                                        — BLOCKED: Cannot compute without birth data
+                                      </Text>
+                                    </View>
                                   </View>
                                 )}
                               </View>
