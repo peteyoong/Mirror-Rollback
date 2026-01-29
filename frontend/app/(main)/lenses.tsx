@@ -715,61 +715,61 @@ export default function Lenses() {
                         <View style={styles.personalizedInsightsContainer}>
                           <Text style={styles.personalizedInsightsTitle}>Your Chart at a Glance</Text>
                           
-                          {selectedLens.personalized_insights.sun_insight && (
+                          {(selectedLens.personalized_insights as PersonalizedAstrologyInsights).sun_insight && (
                             <View style={styles.personalizedInsightCard}>
                               <View style={styles.personalizedInsightHeader}>
                                 <Text style={styles.personalizedInsightPlanet}>☉ Sun</Text>
                                 <Text style={styles.personalizedInsightSign}>
-                                  {selectedLens.personalized_insights.placements?.sun}
+                                  {(selectedLens.personalized_insights as PersonalizedAstrologyInsights).placements?.sun}
                                 </Text>
                               </View>
                               <Text style={styles.personalizedInsightText}>
-                                {selectedLens.personalized_insights.sun_insight}
+                                {(selectedLens.personalized_insights as PersonalizedAstrologyInsights).sun_insight}
                               </Text>
                             </View>
                           )}
                           
-                          {selectedLens.personalized_insights.moon_insight && (
+                          {(selectedLens.personalized_insights as PersonalizedAstrologyInsights).moon_insight && (
                             <View style={styles.personalizedInsightCard}>
                               <View style={styles.personalizedInsightHeader}>
                                 <Text style={styles.personalizedInsightPlanet}>☽ Moon</Text>
                                 <Text style={styles.personalizedInsightSign}>
-                                  {selectedLens.personalized_insights.placements?.moon}
+                                  {(selectedLens.personalized_insights as PersonalizedAstrologyInsights).placements?.moon}
                                 </Text>
                               </View>
                               <Text style={styles.personalizedInsightText}>
-                                {selectedLens.personalized_insights.moon_insight}
+                                {(selectedLens.personalized_insights as PersonalizedAstrologyInsights).moon_insight}
                               </Text>
                             </View>
                           )}
                           
-                          {selectedLens.personalized_insights.ascendant_insight && (
+                          {(selectedLens.personalized_insights as PersonalizedAstrologyInsights).ascendant_insight && (
                             <View style={styles.personalizedInsightCard}>
                               <View style={styles.personalizedInsightHeader}>
                                 <Text style={styles.personalizedInsightPlanet}>↑ Rising</Text>
                                 <Text style={styles.personalizedInsightSign}>
-                                  {selectedLens.personalized_insights.placements?.ascendant}
+                                  {(selectedLens.personalized_insights as PersonalizedAstrologyInsights).placements?.ascendant}
                                 </Text>
                               </View>
                               <Text style={styles.personalizedInsightText}>
-                                {selectedLens.personalized_insights.ascendant_insight}
+                                {(selectedLens.personalized_insights as PersonalizedAstrologyInsights).ascendant_insight}
                               </Text>
                             </View>
                           )}
                           
-                          {selectedLens.personalized_insights.element_balance && (
+                          {(selectedLens.personalized_insights as PersonalizedAstrologyInsights).element_balance && (
                             <View style={styles.personalizedInsightBalance}>
                               <Text style={styles.personalizedInsightBalanceText}>
-                                {selectedLens.personalized_insights.element_balance}
+                                {(selectedLens.personalized_insights as PersonalizedAstrologyInsights).element_balance}
                               </Text>
                             </View>
                           )}
                           
-                          {selectedLens.personalized_insights.integration_question && (
+                          {(selectedLens.personalized_insights as PersonalizedAstrologyInsights).integration_question && (
                             <View style={styles.personalizedInsightQuestion}>
                               <Ionicons name="help-circle-outline" size={18} color={COLORS.accent} />
                               <Text style={styles.personalizedInsightQuestionText}>
-                                {selectedLens.personalized_insights.integration_question}
+                                {(selectedLens.personalized_insights as PersonalizedAstrologyInsights).integration_question}
                               </Text>
                             </View>
                           )}
