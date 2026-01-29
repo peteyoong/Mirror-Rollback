@@ -451,8 +451,10 @@ export default function Lenses() {
 
   // Open birth details modal with existing data if available
   const openBirthDetailsModal = () => {
-    // Clear any previous errors
+    // Clear any previous errors and state
     setBirthModalError(null);
+    setSavedUserId(null);
+    setLocationManuallyEdited(false);
     
     if (userBirthData) {
       // Pre-populate from existing data
@@ -473,6 +475,24 @@ export default function Lenses() {
       setBirthLon('');
     }
     setBirthDetailsModalVisible(true);
+  };
+  
+  // Handle manual lat/lon edits - prevent chips from overriding
+  const handleLatChange = (value: string) => {
+    setBirthLat(value);
+    setLocationManuallyEdited(true);
+  };
+  
+  const handleLonChange = (value: string) => {
+    setBirthLon(value);
+    setLocationManuallyEdited(true);
+  };
+  
+  // Handle chip selection - only update if user explicitly taps
+  const handleCitySelect = (lat: number, lon: number) => {
+    setBirthLat(String(lat));
+    setBirthLon(String(lon));
+    setLocationManuallyEdited(false); // Reset since user chose a preset
   };
 
   // Common locations for quick selection
