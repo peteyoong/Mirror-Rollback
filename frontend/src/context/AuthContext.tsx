@@ -2,6 +2,33 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../services/api';
 
+interface AstrologyPosition {
+  name: string;
+  sign: string;
+  degree: number;
+  minutes: number;
+  formatted: string;
+}
+
+interface ComputedAstrologyProfile {
+  ayanamsa: string;
+  positions: {
+    sun: AstrologyPosition;
+    moon: AstrologyPosition;
+    ascendant: AstrologyPosition;
+  };
+  birth_datetime_local: string;
+  latitude: number;
+  longitude: number;
+  computed_at: string;
+}
+
+interface ComputedProfile {
+  astrology?: ComputedAstrologyProfile;
+  human_design?: any;
+  numerology?: any;
+}
+
 interface User {
   id: string;
   email: string;
@@ -14,6 +41,7 @@ interface User {
     uncertainty_relationship: string;
     intention: string;
   };
+  computed_profile?: ComputedProfile;
 }
 
 interface AuthContextType {
