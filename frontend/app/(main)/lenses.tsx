@@ -1719,6 +1719,45 @@ const styles = StyleSheet.create({
     color: COLORS.secondary,
     fontStyle: 'italic',
   },
+  // Computed Profile Block (above chat input)
+  computedProfileBlock: {
+    backgroundColor: '#F8F9FA',
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+  },
+  computedProfileBlockTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: SPACING.sm,
+  },
+  computedProfileBlockContent: {
+    gap: 4,
+  },
+  computedProfileRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  computedProfileLabel: {
+    fontSize: 13,
+    color: COLORS.secondary,
+    fontWeight: '500',
+  },
+  computedProfileValue: {
+    fontSize: 13,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  computedProfileBlockEmpty: {
+    fontSize: 13,
+    color: COLORS.secondary,
+    fontStyle: 'italic',
+  },
   chatInputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
