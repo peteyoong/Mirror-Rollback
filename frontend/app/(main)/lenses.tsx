@@ -452,6 +452,9 @@ export default function Lenses() {
 
   // Open birth details modal with existing data if available
   const openBirthDetailsModal = () => {
+    // Clear any previous errors
+    setBirthModalError(null);
+    
     if (userBirthData) {
       // Pre-populate from existing data
       try {
