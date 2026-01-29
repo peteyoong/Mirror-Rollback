@@ -1023,7 +1023,8 @@ Respond ONLY with valid JSON. No markdown, no explanation, just the JSON object.
 async def generate_reflection_with_llm(
     onboarding_answers: dict,
     recent_journals: list = None,
-    date_key: str = None
+    date_key: str = None,
+    user_themes: dict = None
 ) -> dict:
     """
     Generate a personalized reflection using ChatGPT.
@@ -1056,6 +1057,22 @@ async def generate_reflection_with_llm(
                 if len(entry.get('content', '')) > 500:
                     content += "..."
                 context_parts.append(f"Entry {i+1}: {content}")
+        
+        # Add themes from Integrate conversations (for feedback loop)
+        # These should be used subtly - never referenced directly
+        if user_themes and user_themes.get('themes'):
+            context_parts.append("\n=== SUBTLE CONTEXT (use to inform reflection, NEVER reference directly) ===")
+            context_parts.append("The user has been sitting with these themes recently:")
+            for theme in user_themes['themes'][:3]:
+                theme_text = theme.get('theme', '')
+                mirror_angle = theme.get('mirror_angle', '')
+                if theme_text:
+                    context_parts.append(f"- {theme_text}")
+                    if mirror_angle:
+                        context_parts.append(f"  Possible reflection angle: {mirror_angle}")
+            context_parts.append("IMPORTANT: Weave these themes naturally into today's reflection.")
+            context_parts.append("DO NOT say 'you mentioned' or 'you've been exploring' - make it feel like fresh, present-moment insight.")
+            context_parts.append("=== END SUBTLE CONTEXT ===")
         
         # Add date context
         if date_key:
