@@ -437,7 +437,14 @@ export default function Lenses() {
       
     } catch (error: any) {
       const errMsg = error.response?.data?.detail || error.message || 'Unknown error';
-      setComputeStatus({ success: false, message: `Failed to save birth data: ${errMsg}` });
+      const fullResponse = error.response?.data 
+        ? JSON.stringify(error.response.data, null, 2) 
+        : error.message || 'No response body';
+      setSaveStatus({ 
+        success: false, 
+        message: `Failed to save birth data: ${errMsg}`,
+        response: fullResponse
+      });
     } finally {
       setSavingBirthData(false);
     }
