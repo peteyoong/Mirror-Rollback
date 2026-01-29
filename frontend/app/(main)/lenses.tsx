@@ -1237,39 +1237,42 @@ export default function Lenses() {
                           <Text style={styles.siderealProfileTitle}>Your Sidereal Profile</Text>
                           {loadingAstrologyProfile ? (
                             <ActivityIndicator size="small" color={COLORS.accent} style={{ marginVertical: SPACING.md }} />
-                          ) : astrologyProfile?.has_profile && astrologyProfile.profile ? (
+                          ) : (userAstrologyProfile?.positions || (astrologyProfile?.has_profile && astrologyProfile.profile)) ? (
                             <View style={styles.siderealProfileContent}>
                               <View style={styles.siderealProfileGrid}>
                                 <View style={styles.siderealProfileItem}>
                                   <Text style={styles.siderealProfileLabel}>Sun</Text>
                                   <Text style={styles.siderealProfileSign}>
-                                    {astrologyProfile.profile.positions.sun.sign}
+                                    {userAstrologyProfile?.positions?.sun?.sign || astrologyProfile?.profile?.positions.sun.sign}
                                   </Text>
                                   <Text style={styles.siderealProfileDegree}>
-                                    {astrologyProfile.profile.positions.sun.degree}°{astrologyProfile.profile.positions.sun.minutes}'
+                                    {userAstrologyProfile?.positions?.sun?.degree ?? astrologyProfile?.profile?.positions.sun.degree}°
+                                    {userAstrologyProfile?.positions?.sun?.minutes ?? astrologyProfile?.profile?.positions.sun.minutes}'
                                   </Text>
                                 </View>
                                 <View style={styles.siderealProfileItem}>
                                   <Text style={styles.siderealProfileLabel}>Moon</Text>
                                   <Text style={styles.siderealProfileSign}>
-                                    {astrologyProfile.profile.positions.moon.sign}
+                                    {userAstrologyProfile?.positions?.moon?.sign || astrologyProfile?.profile?.positions.moon.sign}
                                   </Text>
                                   <Text style={styles.siderealProfileDegree}>
-                                    {astrologyProfile.profile.positions.moon.degree}°{astrologyProfile.profile.positions.moon.minutes}'
+                                    {userAstrologyProfile?.positions?.moon?.degree ?? astrologyProfile?.profile?.positions.moon.degree}°
+                                    {userAstrologyProfile?.positions?.moon?.minutes ?? astrologyProfile?.profile?.positions.moon.minutes}'
                                   </Text>
                                 </View>
                                 <View style={styles.siderealProfileItem}>
                                   <Text style={styles.siderealProfileLabel}>Ascendant</Text>
                                   <Text style={styles.siderealProfileSign}>
-                                    {astrologyProfile.profile.positions.ascendant.sign}
+                                    {userAstrologyProfile?.positions?.ascendant?.sign || astrologyProfile?.profile?.positions.ascendant.sign}
                                   </Text>
                                   <Text style={styles.siderealProfileDegree}>
-                                    {astrologyProfile.profile.positions.ascendant.degree}°{astrologyProfile.profile.positions.ascendant.minutes}'
+                                    {userAstrologyProfile?.positions?.ascendant?.degree ?? astrologyProfile?.profile?.positions.ascendant.degree}°
+                                    {userAstrologyProfile?.positions?.ascendant?.minutes ?? astrologyProfile?.profile?.positions.ascendant.minutes}'
                                   </Text>
                                 </View>
                               </View>
                               <Text style={styles.siderealProfileAyanamsa}>
-                                {astrologyProfile.profile.ayanamsa.replace('_', '-')} ayanamsa
+                                {(userAstrologyProfile?.ayanamsa || astrologyProfile?.profile?.ayanamsa || 'FAGAN_BRADLEY').replace('_', '-')} ayanamsa
                               </Text>
                             </View>
                           ) : (
