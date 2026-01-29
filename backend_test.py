@@ -287,7 +287,9 @@ def test_birth_details_flow():
     results = TestResults()
     
     # Test data as specified in the review request
-    test_email = "editbirth@test.com"
+    # Use timestamp to ensure unique email
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    test_email = f"editbirth_{timestamp}@test.com"
     test_password = "Test123!"
     test_name = "Birth Details Test User"
     
