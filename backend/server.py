@@ -1208,9 +1208,9 @@ Focus on universal human experiences: emotions, thoughts, growth, presence, awar
         logger.info("Falling back to template-based generation")
         return generate_personalized_reflection(onboarding_answers)
 
-async def generate_random_reflection(onboarding_answers: dict = None, recent_journals: list = None, date_key: str = None) -> dict:
+async def generate_random_reflection(onboarding_answers: dict = None, recent_journals: list = None, date_key: str = None, user_themes: dict = None) -> dict:
     """Generate a reflection using ChatGPT, with fallback to templates"""
-    return await generate_reflection_with_llm(onboarding_answers, recent_journals, date_key)
+    return await generate_reflection_with_llm(onboarding_answers, recent_journals, date_key, user_themes)
 
 # ============== Routes ==============
 
