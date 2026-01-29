@@ -1772,6 +1772,199 @@ export default function Lenses() {
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
+
+      {/* Birth Details Modal */}
+      <Modal
+        visible={birthDetailsModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setBirthDetailsModalVisible(false)}
+      >
+        <SafeAreaView style={styles.birthDetailsModal}>
+          <View style={styles.birthDetailsHeader}>
+            <TouchableOpacity onPress={() => setBirthDetailsModalVisible(false)}>
+              <Ionicons name="close" size={28} color={COLORS.primary} />
+            </TouchableOpacity>
+            <Text style={styles.birthDetailsTitle}>Birth Details</Text>
+            <View style={{ width: 28 }} />
+          </View>
+
+          <ScrollView style={styles.birthDetailsContent} showsVerticalScrollIndicator={false}>
+            <Text style={styles.birthDetailsSubtitle}>
+              Enter your birth details to compute your True Sidereal profile
+            </Text>
+
+            {/* Date Selection */}
+            <View style={styles.birthDetailsField}>
+              <Text style={styles.birthDetailsLabel}>Birth Date</Text>
+              <TouchableOpacity 
+                style={styles.birthDetailsInput} 
+                onPress={() => setShowBirthDatePicker(true)}
+              >
+                <Text style={styles.birthDetailsInputText}>
+                  {birthDate.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color={COLORS.secondary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Time Selection */}
+            <View style={styles.birthDetailsField}>
+              <Text style={styles.birthDetailsLabel}>Birth Time</Text>
+              <TouchableOpacity 
+                style={styles.birthDetailsInput} 
+                onPress={() => setShowBirthTimePicker(true)}
+              >
+                <Text style={styles.birthDetailsInputText}>
+                  {birthDate.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </Text>
+                <Ionicons name="time-outline" size={20} color={COLORS.secondary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Timezone Offset */}
+            <View style={styles.birthDetailsField}>
+              <Text style={styles.birthDetailsLabel}>Timezone Offset (minutes from UTC)</Text>
+              <TextInput
+                style={styles.birthDetailsTextInput}
+                value={birthTzOffset}
+                onChangeText={setBirthTzOffset}
+                placeholder="480 (for PST)"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+              />
+              <Text style={styles.birthDetailsHint}>
+                Examples: -300 (EST), -420 (PDT), 0 (UTC), 330 (IST), 480 (PST)
+              </Text>
+            </View>
+
+            {/* Quick Location Selection */}
+            <View style={styles.birthDetailsField}>
+              <Text style={styles.birthDetailsLabel}>Birth Location</Text>
+              <Text style={styles.birthDetailsHint}>Select a city or enter coordinates manually</Text>
+              <View style={styles.quickLocationGrid}>
+                {QUICK_LOCATIONS.map((loc) => (
+                  <TouchableOpacity
+                    key={loc.name}
+                    style={[
+                      styles.quickLocationChip,
+                      birthLat === String(loc.lat) && birthLon === String(loc.lon) && styles.quickLocationChipSelected
+                    ]}
+                    onPress={() => {
+                      setBirthLat(String(loc.lat));
+                      setBirthLon(String(loc.lon));
+                    }}
+                  >
+                    <Text style={[
+                      styles.quickLocationChipText,
+                      birthLat === String(loc.lat) && birthLon === String(loc.lon) && styles.quickLocationChipTextSelected
+                    ]}>{loc.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Manual Coordinates */}
+            <View style={styles.birthDetailsRow}>
+              <View style={[styles.birthDetailsField, { flex: 1, marginRight: SPACING.sm }]}>
+                <Text style={styles.birthDetailsLabel}>Latitude</Text>
+                <TextInput
+                  style={styles.birthDetailsTextInput}
+                  value={birthLat}
+                  onChangeText={setBirthLat}
+                  placeholder="40.7128"
+                  placeholderTextColor="#999"
+                  keyboardType="decimal-pad"
+                />
+              </View>
+              <View style={[styles.birthDetailsField, { flex: 1, marginLeft: SPACING.sm }]}>
+                <Text style={styles.birthDetailsLabel}>Longitude</Text>
+                <TextInput
+                  style={styles.birthDetailsTextInput}
+                  value={birthLon}
+                  onChangeText={setBirthLon}
+                  placeholder="-74.0060"
+                  placeholderTextColor="#999"
+                  keyboardType="decimal-pad"
+                />
+              </View>
+            </View>
+
+            {/* Current Status */}
+            {userBirthData && (
+              <View style={styles.currentBirthDataBox}>
+                <Text style={styles.currentBirthDataTitle}>Currently Saved:</Text>
+                <Text style={styles.currentBirthDataText}>
+                  {new Date(userBirthData.birth_datetime_local).toLocaleString()}
+                </Text>
+                <Text style={styles.currentBirthDataText}>
+                  Lat: {userBirthData.latitude}, Lon: {userBirthData.longitude}
+                </Text>
+              </View>
+            )}
+
+            {/* Save Button */}
+            <TouchableOpacity
+              style={[styles.birthDetailsSaveButton, savingBirthDetails && styles.birthDetailsSaveButtonDisabled]}
+              onPress={saveBirthDetailsAndCompute}
+              disabled={savingBirthDetails}
+            >
+              {savingBirthDetails ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <>
+                  <Ionicons name="calculator-outline" size={20} color={COLORS.white} />
+                  <Text style={styles.birthDetailsSaveButtonText}>Save & Compute Sidereal Profile</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </ScrollView>
+
+          {/* Date/Time Pickers */}
+          {showBirthDatePicker && (
+            <DateTimePicker
+              value={birthDate}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selectedDate) => {
+                setShowBirthDatePicker(false);
+                if (selectedDate) {
+                  const newDate = new Date(birthDate);
+                  newDate.setFullYear(selectedDate.getFullYear());
+                  newDate.setMonth(selectedDate.getMonth());
+                  newDate.setDate(selectedDate.getDate());
+                  setBirthDate(newDate);
+                }
+              }}
+              maximumDate={new Date()}
+              minimumDate={new Date(1900, 0, 1)}
+            />
+          )}
+          {showBirthTimePicker && (
+            <DateTimePicker
+              value={birthDate}
+              mode="time"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selectedTime) => {
+                setShowBirthTimePicker(false);
+                if (selectedTime) {
+                  const newDate = new Date(birthDate);
+                  newDate.setHours(selectedTime.getHours());
+                  newDate.setMinutes(selectedTime.getMinutes());
+                  setBirthDate(newDate);
+                }
+              }}
+            />
+          )}
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
