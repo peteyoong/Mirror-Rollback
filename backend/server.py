@@ -2787,6 +2787,7 @@ async def send_lens_chat_message(lens_id: str, chat_input: ChatMessageInput, use
                         lens_context.append("\n=== USER'S COMPUTED ASTROLOGY PROFILE (DETERMINISTIC) ===")
                         lens_context.append(f"Ayanamsa System: {ayanamsa.replace('_', '-')}")
                         lens_context.append(f"Computation Type: True Sidereal (NOT Tropical)")
+                        lens_context.append("BIRTH DATA STATUS: AVAILABLE - User has computed their sidereal chart")
                         lens_context.append("")
                         lens_context.append("PLACEMENTS:")
                         if positions.get("ascendant"):
@@ -2800,6 +2801,7 @@ async def send_lens_chat_message(lens_id: str, chat_input: ChatMessageInput, use
                             lens_context.append(f"  Moon: {moon.get('formatted', moon.get('sign', 'Unknown'))}")
                         lens_context.append("")
                         lens_context.append("IMPORTANT: These are ACTUAL computed values. Use them when answering questions about the user's placements.")
+                        lens_context.append("CRITICAL: Birth data IS available. Do NOT say birth data is missing or needs to be entered.")
                         lens_context.append("When discussing these placements, always note they are True Sidereal positions.")
                         lens_context.append("Tropical positions would typically be ~24° ahead (roughly one sign).")
                         lens_context.append("=== END COMPUTED ASTROLOGY PROFILE ===")
@@ -2812,6 +2814,76 @@ async def send_lens_chat_message(lens_id: str, chat_input: ChatMessageInput, use
                 except Exception as e:
                     logger.error(f"Failed to fetch astrology profile for chat: {e}")
                     lens_context.append("\nCOMPUTED ASTROLOGY PROFILE: Unable to retrieve")
+            
+            # 2.6. COMPUTED HUMAN DESIGN PROFILE (for Human Design lens only)
+            if lens_key == "human_design":
+                try:
+                    hd_profile = await db.computed_profiles_hd.find_one({
+                        "user_id": user["id"]
+                    })
+                    if hd_profile and hd_profile.get("type"):
+                        lens_context.append("\n=== USER'S HUMAN DESIGN PROFILE ===")
+                        lens_context.append("PROFILE STATUS: AVAILABLE - User has entered their Human Design data")
+                        lens_context.append("")
+                        lens_context.append("HD ELEMENTS:")
+                        lens_context.append(f"  Type: {hd_profile.get('type', 'Unknown')}")
+                        lens_context.append(f"  Strategy: {hd_profile.get('strategy', 'Unknown')}")
+                        lens_context.append(f"  Authority: {hd_profile.get('authority', 'Unknown')}")
+                        if hd_profile.get("profile"):
+                            lens_context.append(f"  Profile: {hd_profile.get('profile')}")
+                        if hd_profile.get("definition"):
+                            lens_context.append(f"  Definition: {hd_profile.get('definition')}")
+                        if hd_profile.get("not_self_theme"):
+                            lens_context.append(f"  Not-Self Theme: {hd_profile.get('not_self_theme')}")
+                        if hd_profile.get("signature"):
+                            lens_context.append(f"  Signature: {hd_profile.get('signature')}")
+                        lens_context.append("")
+                        lens_context.append("IMPORTANT: These are the user's ACTUAL HD elements. Reference them when answering questions.")
+                        lens_context.append("CRITICAL: HD profile IS available. Do NOT say profile data is missing or needs to be entered.")
+                        lens_context.append("=== END HUMAN DESIGN PROFILE ===")
+                    else:
+                        lens_context.append("\n=== USER'S HUMAN DESIGN PROFILE ===")
+                        lens_context.append("STATUS: No Human Design data entered yet")
+                        lens_context.append("If user asks about their specific type/strategy/authority, explain they need to enter their HD data first.")
+                        lens_context.append("You can still discuss general Human Design concepts and experiments.")
+                        lens_context.append("=== END HUMAN DESIGN PROFILE ===")
+                except Exception as e:
+                    logger.error(f"Failed to fetch HD profile for chat: {e}")
+                    lens_context.append("\nHUMAN DESIGN PROFILE: Unable to retrieve")
+            
+            # 2.7. COMPUTED NUMEROLOGY PROFILE (for Numerology lens only)
+            if lens_key == "numerology":
+                try:
+                    num_profile = await db.computed_profiles_numerology.find_one({
+                        "user_id": user["id"]
+                    })
+                    if num_profile and num_profile.get("life_path"):
+                        lens_context.append("\n=== USER'S NUMEROLOGY PROFILE ===")
+                        lens_context.append("PROFILE STATUS: AVAILABLE - User has entered their numerology data")
+                        lens_context.append("")
+                        lens_context.append("NUMEROLOGY ELEMENTS:")
+                        lens_context.append(f"  Life Path: {num_profile.get('life_path')}")
+                        if num_profile.get("expression"):
+                            lens_context.append(f"  Expression/Destiny: {num_profile.get('expression')}")
+                        if num_profile.get("soul_urge"):
+                            lens_context.append(f"  Soul Urge: {num_profile.get('soul_urge')}")
+                        if num_profile.get("personality"):
+                            lens_context.append(f"  Personality: {num_profile.get('personality')}")
+                        if num_profile.get("personal_year"):
+                            lens_context.append(f"  Personal Year: {num_profile.get('personal_year')}")
+                        lens_context.append("")
+                        lens_context.append("IMPORTANT: These are the user's ACTUAL numerology numbers. Reference them when answering questions.")
+                        lens_context.append("CRITICAL: Numerology profile IS available. Do NOT say numbers are missing or need to be calculated.")
+                        lens_context.append("=== END NUMEROLOGY PROFILE ===")
+                    else:
+                        lens_context.append("\n=== USER'S NUMEROLOGY PROFILE ===")
+                        lens_context.append("STATUS: No numerology data entered yet")
+                        lens_context.append("If user asks about their specific numbers, explain they need to enter their numerology data first.")
+                        lens_context.append("You can still discuss general numerology concepts and themes.")
+                        lens_context.append("=== END NUMEROLOGY PROFILE ===")
+                except Exception as e:
+                    logger.error(f"Failed to fetch numerology profile for chat: {e}")
+                    lens_context.append("\nNUMEROLOGY PROFILE: Unable to retrieve")
             
             # 3. Onboarding answers
             onboarding = user.get("onboarding_answers", {})
