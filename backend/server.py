@@ -45,6 +45,298 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# ============== Dynamic Depth Adaptation System ==============
+# Internal layer inspired by Levels of Consciousness
+# Infers user's interaction depth without labeling or displaying to user
+# Values: "grounding" | "reflective" | "expansive"
+
+from typing import Literal
+
+InteractionDepth = Literal["grounding", "reflective", "expansive"]
+
+class DepthInferenceResult:
+    """Internal result of depth inference - never exposed to user"""
+    def __init__(self, depth: InteractionDepth, signals: dict):
+        self.depth = depth
+        self.signals = signals  # For logging/debugging only
+    
+    def get_adaptation_instructions(self) -> str:
+        """Returns prompt instructions based on inferred depth"""
+        if self.depth == "grounding":
+            return """
+DEPTH ADAPTATION (GROUNDING MODE):
+- Use simple, concrete language
+- Offer ONE perspective at a time
+- Start with validation and emotional acknowledgment
+- Avoid abstract concepts until they feel settled
+- Keep explanations short (2-3 sentences per point)
+- Prioritize safety and reassurance
+- Do NOT introduce advanced material
+- Pace: Ground first, then gently invite reflection"""
+        
+        elif self.depth == "reflective":
+            return """
+DEPTH ADAPTATION (REFLECTIVE MODE):
+- Use moderate complexity with clear explanations
+- Offer 2 perspectives when relevant
+- Balance insight with practical application
+- Include some nuance but stay accessible
+- Can introduce intermediate concepts
+- Pace: Brief grounding, then explore together
+- Invite deeper questions if they seem curious"""
+        
+        else:  # expansive
+            return """
+DEPTH ADAPTATION (EXPANSIVE MODE):
+- Embrace complexity and nuance
+- Offer multiple perspectives freely
+- Use paradox and both/and thinking when appropriate
+- Can introduce advanced framework material
+- Longer, more layered responses are welcome
+- Explore interconnections between concepts
+- Pace: Can dive deep quickly
+- Challenge assumptions gently when helpful"""
+
+def analyze_onboarding_depth(onboarding_answers: dict) -> tuple[float, dict]:
+    """
+    Analyze onboarding answers to infer depth tendency.
+    Returns a score (-1 to 1) and signal details.
+    -1 = needs grounding, 0 = reflective, 1 = expansive
+    """
+    if not onboarding_answers:
+        return 0, {"reason": "no_onboarding"}
+    
+    score = 0.0
+    signals = {}
+    
+    # Analyze relationship_with_self
+    rel_self = onboarding_answers.get("relationship_with_self", "").lower()
+    if any(word in rel_self for word in ["struggling", "difficult", "hard", "lost", "confused"]):
+        score -= 0.3
+        signals["relationship_self"] = "struggling"
+    elif any(word in rel_self for word in ["curious", "exploring", "growing", "learning"]):
+        score += 0.1
+        signals["relationship_self"] = "curious"
+    elif any(word in rel_self for word in ["grounded", "peaceful", "connected", "clear"]):
+        score += 0.3
+        signals["relationship_self"] = "grounded"
+    
+    # Analyze desired_depth preference
+    depth_pref = onboarding_answers.get("desired_depth", "moderate").lower()
+    if depth_pref == "surface" or "light" in depth_pref:
+        score -= 0.3
+        signals["depth_preference"] = "surface"
+    elif depth_pref == "deep" or "profound" in depth_pref:
+        score += 0.3
+        signals["depth_preference"] = "deep"
+    else:
+        signals["depth_preference"] = "moderate"
+    
+    # Analyze uncertainty_relationship
+    uncertainty = onboarding_answers.get("uncertainty_relationship", "").lower()
+    if any(word in uncertainty for word in ["challenging", "difficult", "scary", "anxious", "uncomfortable"]):
+        score -= 0.2
+        signals["uncertainty"] = "challenged"
+    elif any(word in uncertainty for word in ["comfortable", "curious", "exciting", "open", "embracing"]):
+        score += 0.2
+        signals["uncertainty"] = "comfortable"
+    
+    # Analyze reflection_style
+    style = onboarding_answers.get("reflection_style", "").lower()
+    if any(word in style for word in ["simple", "quick", "practical", "action"]):
+        score -= 0.1
+        signals["style"] = "practical"
+    elif any(word in style for word in ["patterns", "meaning", "connections", "deep"]):
+        score += 0.2
+        signals["style"] = "pattern-seeking"
+    
+    return max(-1, min(1, score)), signals
+
+def analyze_journal_sentiment(journal_entries: list) -> tuple[float, dict]:
+    """
+    Analyze recent journal entries for emotional tone.
+    Returns a score (-1 to 1) and signal details.
+    -1 = distressed/urgent, 0 = neutral/mixed, 1 = reflective/expansive
+    """
+    if not journal_entries:
+        return 0, {"reason": "no_journals"}
+    
+    # Combine recent entries (max 3)
+    combined_text = " ".join([
+        entry.get("content", "")[:500] 
+        for entry in journal_entries[:3]
+    ]).lower()
+    
+    if not combined_text.strip():
+        return 0, {"reason": "empty_journals"}
+    
+    score = 0.0
+    signals = {}
+    
+    # Distress/urgency markers (need grounding)
+    distress_words = ["overwhelmed", "anxious", "scared", "panic", "help", "can't", 
+                      "desperate", "stuck", "hopeless", "crying", "breakdown", "crisis"]
+    distress_count = sum(1 for word in distress_words if word in combined_text)
+    if distress_count >= 3:
+        score -= 0.5
+        signals["distress"] = "high"
+    elif distress_count >= 1:
+        score -= 0.2
+        signals["distress"] = "present"
+    
+    # Reflective markers
+    reflective_words = ["notice", "wonder", "curious", "interesting", "realize", 
+                        "understand", "learning", "growing", "insight", "perhaps"]
+    reflective_count = sum(1 for word in reflective_words if word in combined_text)
+    if reflective_count >= 3:
+        score += 0.3
+        signals["reflective"] = "high"
+    elif reflective_count >= 1:
+        score += 0.1
+        signals["reflective"] = "present"
+    
+    # Expansive markers
+    expansive_words = ["paradox", "both", "perspective", "complexity", "nuance",
+                       "transcend", "integrate", "wholeness", "interconnected", "pattern"]
+    expansive_count = sum(1 for word in expansive_words if word in combined_text)
+    if expansive_count >= 2:
+        score += 0.3
+        signals["expansive"] = "present"
+    
+    # Entry length as signal (very short = urgent, longer = reflective)
+    avg_length = len(combined_text) / max(len(journal_entries[:3]), 1)
+    if avg_length < 100:
+        score -= 0.1
+        signals["length"] = "short"
+    elif avg_length > 500:
+        score += 0.1
+        signals["length"] = "substantial"
+    
+    return max(-1, min(1, score)), signals
+
+def analyze_chat_tone(message: str) -> tuple[float, dict]:
+    """
+    Analyze the current chat message tone.
+    Returns a score (-1 to 1) and signal details.
+    """
+    if not message:
+        return 0, {"reason": "no_message"}
+    
+    message_lower = message.lower()
+    score = 0.0
+    signals = {}
+    
+    # Length analysis
+    word_count = len(message.split())
+    if word_count <= 5:
+        score -= 0.2
+        signals["length"] = "very_short"
+    elif word_count <= 15:
+        signals["length"] = "short"
+    elif word_count >= 50:
+        score += 0.2
+        signals["length"] = "substantial"
+    
+    # Urgency markers
+    urgency_markers = ["?!", "help", "please", "urgent", "now", "immediately", "asap"]
+    if any(marker in message_lower for marker in urgency_markers):
+        score -= 0.2
+        signals["urgency"] = "present"
+    
+    # Question marks (curiosity)
+    if message.count("?") >= 2:
+        score += 0.1
+        signals["curiosity"] = "high"
+    
+    # Reflective language
+    reflective_phrases = ["i wonder", "i'm curious", "what if", "how might", 
+                          "i've been thinking", "i notice", "it seems like"]
+    if any(phrase in message_lower for phrase in reflective_phrases):
+        score += 0.2
+        signals["tone"] = "reflective"
+    
+    # Direct/demanding language
+    demanding_phrases = ["tell me", "just give me", "i need to know", "what is my"]
+    if any(phrase in message_lower for phrase in demanding_phrases):
+        score -= 0.1
+        signals["tone"] = "direct"
+    
+    # Complexity-seeking
+    complexity_phrases = ["nuance", "deeper", "more complex", "both and", "paradox", 
+                          "how does this connect", "what's the relationship"]
+    if any(phrase in message_lower for phrase in complexity_phrases):
+        score += 0.3
+        signals["seeking"] = "complexity"
+    
+    return max(-1, min(1, score)), signals
+
+async def infer_interaction_depth(
+    user: dict,
+    current_message: str = None,
+    recent_journals: list = None
+) -> DepthInferenceResult:
+    """
+    Main function to infer user's interaction depth.
+    Combines signals from onboarding, journals, and current message.
+    Returns DepthInferenceResult with depth and adaptation instructions.
+    """
+    all_signals = {}
+    weights = {"onboarding": 0.3, "journal": 0.4, "chat": 0.3}
+    
+    # Get onboarding score
+    onboarding_answers = user.get("onboarding_answers", {})
+    onboarding_score, onboarding_signals = analyze_onboarding_depth(onboarding_answers)
+    all_signals["onboarding"] = onboarding_signals
+    
+    # Get journal score
+    if recent_journals is None:
+        recent_journals = []
+    journal_score, journal_signals = analyze_journal_sentiment(recent_journals)
+    all_signals["journal"] = journal_signals
+    
+    # Get chat tone score
+    chat_score, chat_signals = analyze_chat_tone(current_message or "")
+    all_signals["chat"] = chat_signals
+    
+    # Weighted combination
+    # If no journals, redistribute weight
+    if not recent_journals:
+        weights = {"onboarding": 0.5, "journal": 0.0, "chat": 0.5}
+    
+    # If no current message, redistribute weight
+    if not current_message:
+        if recent_journals:
+            weights = {"onboarding": 0.4, "journal": 0.6, "chat": 0.0}
+        else:
+            weights = {"onboarding": 1.0, "journal": 0.0, "chat": 0.0}
+    
+    final_score = (
+        onboarding_score * weights["onboarding"] +
+        journal_score * weights["journal"] +
+        chat_score * weights["chat"]
+    )
+    
+    all_signals["scores"] = {
+        "onboarding": round(onboarding_score, 2),
+        "journal": round(journal_score, 2),
+        "chat": round(chat_score, 2),
+        "final": round(final_score, 2)
+    }
+    
+    # Map score to depth
+    if final_score <= -0.2:
+        depth = "grounding"
+    elif final_score >= 0.2:
+        depth = "expansive"
+    else:
+        depth = "reflective"
+    
+    all_signals["inferred_depth"] = depth
+    
+    logger.info(f"Depth inference: {depth} (score: {final_score:.2f})")
+    
+    return DepthInferenceResult(depth=depth, signals=all_signals)
+
 # ============== Models ==============
 
 class UserRegister(BaseModel):
