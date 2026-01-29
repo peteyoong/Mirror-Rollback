@@ -367,6 +367,7 @@ class User(BaseModel):
     password_hash: str
     onboarding_completed: bool = False
     onboarding_answers: Optional[dict] = None
+    computed_profile: Optional[dict] = None  # Stores computed profiles (astrology, etc.)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class UserResponse(BaseModel):
@@ -375,6 +376,7 @@ class UserResponse(BaseModel):
     name: str
     onboarding_completed: bool
     onboarding_answers: Optional[dict] = None
+    computed_profile: Optional[dict] = None  # Stores computed profiles (astrology, etc.)
 
 class JournalEntry(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
