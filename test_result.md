@@ -209,15 +209,18 @@ backend:
 
   - task: "Lens Chat APIs"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented GET/POST/DELETE /api/lenses/{lens_id}/chat endpoints. Includes: (1) Lens context header with snapshot, onboarding, journals. (2) Strict non-deterministic guardrails. (3) Structured response format. Ready for testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: All Lens Chat APIs working perfectly. Comprehensive testing completed for all 4 valid lens IDs (true-sidereal-astrology, human-design, numerology, levels-of-consciousness). GET: Returns empty chat history initially, then shows messages after conversation. POST: Successfully sends messages and receives substantive AI responses with proper structure (id, lens_key, role, message_text, created_at). DELETE: Successfully clears chat history. Authentication properly required for all endpoints. Invalid lens IDs correctly return 404. AI responses are substantive (>50 chars) and not error messages. All 109 test assertions passed."
 
 frontend:
   - task: "Welcome Screen"
