@@ -1468,4 +1468,71 @@ const styles = StyleSheet.create({
     color: '#888',
     fontStyle: 'italic',
   },
+  // Your Details Section Styles (Astrology)
+  yourDetailsContainer: {
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.md,
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  yourDetailsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.primary,
+    marginBottom: SPACING.md,
+  },
+  yourDetailsContent: {
+    gap: SPACING.md,
+  },
+  yourDetailsRow: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+  },
+  yourDetailsItem: {
+    flex: 1,
+    backgroundColor: '#F9F9F7',
+    borderRadius: BORDER_RADIUS.sm,
+    padding: SPACING.md,
+  },
+  yourDetailsLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  yourDetailsValue: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: COLORS.primary,
+  },
+  yourDetailsAyanamsa: {
+    marginTop: SPACING.sm,
+    alignItems: 'center',
+  },
+  yourDetailsAyanamsaLabel: {
+    fontSize: 12,
+    color: COLORS.secondary,
+    fontStyle: 'italic',
+  },
+  yourDetailsEmpty: {
+    alignItems: 'center',
+    paddingVertical: SPACING.lg,
+  },
+  yourDetailsEmptyText: {
+    fontSize: 16,
+    color: COLORS.secondary,
+    marginTop: SPACING.sm,
+  },
+  yourDetailsEmptySubtext: {
+    fontSize: 14,
+    color: COLORS.secondary,
+    textAlign: 'center',
+    marginTop: SPACING.xs,
+    opacity: 0.7,
+  },
 });
