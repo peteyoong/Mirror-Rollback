@@ -3380,7 +3380,52 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#9CA3AF',
     fontStyle: 'italic',
+  },
+  debugSection: {
+    marginBottom: SPACING.md,
+    paddingBottom: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  debugSectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: SPACING.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  debugCodeMuted: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  debugFullStatus: {
     marginTop: SPACING.xs,
+  },
+  debugErrorBlock: {
+    marginTop: SPACING.sm,
+    backgroundColor: '#FEF2F2',
+    borderRadius: BORDER_RADIUS.sm,
+    padding: SPACING.sm,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  debugErrorLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#991B1B',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  debugErrorScroll: {
+    maxHeight: 120,
+  },
+  debugErrorText: {
+    fontSize: 10,
+    color: '#7F1D1D',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    lineHeight: 14,
   },
   debugButton: {
     backgroundColor: '#2563EB',
