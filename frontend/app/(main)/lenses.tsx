@@ -1048,7 +1048,7 @@ export default function Lenses() {
                           : selectedLens?.id === 'human-design'
                           ? "Ask about your Human Design, or how it shows up in your life…"
                           : selectedLens?.id === 'numerology'
-                          ? "Ask about your numbers, or how they show up in your life…"
+                          ? "Ask about your numerology profile, or how it shows up in your life…"
                           : selectedLens?.id === 'levels-of-consciousness'
                           ? "Ask about a stage, or how it shows up in your experience…"
                           : "Ask a question…"
