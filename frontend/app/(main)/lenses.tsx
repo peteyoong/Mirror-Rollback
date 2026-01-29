@@ -3915,6 +3915,109 @@ const styles = StyleSheet.create({
     color: '#065F46',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
+  // Country/City Picker Styles
+  pickerDropdown: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: BORDER_RADIUS.md,
+    marginTop: SPACING.xs,
+    maxHeight: 200,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      },
+    }),
+  },
+  pickerScrollView: {
+    maxHeight: 200,
+  },
+  pickerOption: {
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  pickerOptionSelected: {
+    backgroundColor: '#EBF5FF',
+  },
+  pickerOptionText: {
+    fontSize: 14,
+    color: COLORS.primary,
+  },
+  pickerOptionTextSelected: {
+    color: COLORS.accent,
+    fontWeight: '600',
+  },
+  pickerCityOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  pickerCityTz: {
+    fontSize: 12,
+    color: COLORS.secondary,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  autoTimezoneBox: {
+    backgroundColor: '#ECFDF5',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  autoTimezoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    marginBottom: 4,
+  },
+  autoTimezoneLabel: {
+    fontSize: 12,
+    color: '#065F46',
+    fontWeight: '500',
+  },
+  autoTimezoneValue: {
+    fontSize: 18,
+    color: '#059669',
+    fontWeight: '700',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  autoTimezoneHint: {
+    fontSize: 11,
+    color: '#10B981',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  coordinatesDisplay: {
+    backgroundColor: '#F3F4F6',
+    padding: SPACING.sm,
+    borderRadius: BORDER_RADIUS.sm,
+    marginBottom: SPACING.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  coordinatesLabel: {
+    fontSize: 11,
+    color: COLORS.secondary,
+  },
+  coordinatesValue: {
+    fontSize: 12,
+    color: COLORS.primary,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontWeight: '500',
+  },
   // Debug Section Styles (POC)
   debugContainer: {
     backgroundColor: '#FEF3C7',
