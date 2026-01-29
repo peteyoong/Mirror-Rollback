@@ -1339,11 +1339,15 @@ async def get_or_create_daily_reflection(date_input: DateKeyInput = None, user =
         {"user_id": user_id}
     ).sort("created_at", -1).limit(3).to_list(3)
     
+    # Get user themes from Integrate conversations (for feedback loop)
+    user_themes = await db.user_themes.find_one({"user_id": user_id})
+    
     # Generate new personalized reflection using ChatGPT
     reflection_content = await generate_random_reflection(
         onboarding_answers, 
         recent_journals,
-        date_key
+        date_key,
+        user_themes
     )
     
     reflection = DailyReflection(
@@ -1374,11 +1378,15 @@ async def regenerate_daily_reflection(date_input: DateKeyInput = None, user = De
         {"user_id": user_id}
     ).sort("created_at", -1).limit(3).to_list(3)
     
+    # Get user themes from Integrate conversations (for feedback loop)
+    user_themes = await db.user_themes.find_one({"user_id": user_id})
+    
     # Generate new personalized reflection content using ChatGPT
     reflection_content = await generate_random_reflection(
         onboarding_answers,
         recent_journals,
-        date_key
+        date_key,
+        user_themes
     )
     
     # Check if reflection exists
