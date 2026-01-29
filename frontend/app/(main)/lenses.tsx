@@ -339,6 +339,69 @@ export default function Lenses() {
     </View>
   );
 
+  const renderModule = (module: LearnModule) => {
+    const isExpanded = expandedModuleId === module.id;
+    
+    return (
+      <View key={module.id} style={styles.moduleCard}>
+        <TouchableOpacity
+          style={styles.moduleHeader}
+          onPress={() => setExpandedModuleId(isExpanded ? null : module.id)}
+        >
+          <View style={styles.moduleNumber}>
+            <Text style={styles.moduleNumberText}>{module.id}</Text>
+          </View>
+          <View style={styles.moduleTitleContainer}>
+            <Text style={styles.moduleTitle}>{module.title}</Text>
+            <Text style={styles.moduleSubtitle}>{module.subtitle}</Text>
+          </View>
+          <Ionicons
+            name={isExpanded ? 'chevron-up' : 'chevron-down'}
+            size={20}
+            color={COLORS.secondary}
+          />
+        </TouchableOpacity>
+        
+        {isExpanded && (
+          <View style={styles.moduleContent}>
+            <Text style={styles.moduleNarrative}>{module.narrative}</Text>
+            
+            <View style={styles.moduleExamples}>
+              <Text style={styles.moduleExamplesLabel}>Examples</Text>
+              {module.examples.map((example, idx) => (
+                <View key={idx} style={styles.moduleExampleItem}>
+                  <View style={styles.moduleExampleBullet} />
+                  <Text style={styles.moduleExampleText}>{example}</Text>
+                </View>
+              ))}
+            </View>
+            
+            <View style={styles.moduleReflection}>
+              <Ionicons name="help-circle-outline" size={18} color={COLORS.accent} />
+              <Text style={styles.moduleReflectionText}>{module.reflective_question}</Text>
+            </View>
+            
+            <View style={styles.moduleExperiment}>
+              <Ionicons name="flask-outline" size={18} color="#8B7355" />
+              <View style={styles.moduleExperimentContent}>
+                <Text style={styles.moduleExperimentLabel}>Optional Experiment</Text>
+                <Text style={styles.moduleExperimentText}>{module.experiment}</Text>
+              </View>
+            </View>
+            
+            <TouchableOpacity
+              style={styles.askModuleButton}
+              onPress={() => askAboutModule(module.title, module.id)}
+            >
+              <Ionicons name="chatbubble-outline" size={18} color={COLORS.white} />
+              <Text style={styles.askModuleButtonText}>Ask about this module</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
