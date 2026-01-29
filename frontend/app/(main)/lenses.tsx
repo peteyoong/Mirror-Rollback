@@ -213,8 +213,22 @@ export default function Lenses() {
   // Module expansion state
   const [expandedModuleId, setExpandedModuleId] = useState<number | null>(null);
   
+  // Debug state (POC)
+  const [debugExpanded, setDebugExpanded] = useState(false);
+  const [computeStatus, setComputeStatus] = useState<{ success: boolean; message: string } | null>(null);
+  const [runningCompute, setRunningCompute] = useState(false);
+  const [showBirthDataForm, setShowBirthDataForm] = useState(false);
+  const [birthFormData, setBirthFormData] = useState({
+    birth_datetime_local: '',
+    tz_offset_minutes: '-300',
+    latitude: '',
+    longitude: '',
+  });
+  const [savingBirthData, setSavingBirthData] = useState(false);
+  
   // Computed profile from user context (primary source)
   const userAstrologyProfile = user?.computed_profile?.astrology;
+  const userBirthData = user?.birth_data;
   
   // Astrology computed profile state (fallback for separate fetch if needed)
   const [astrologyProfile, setAstrologyProfile] = useState<AstrologyProfile | null>(null);
@@ -227,6 +241,88 @@ export default function Lenses() {
   // Numerology profile state
   const [numerologyProfile, setNumerologyProfile] = useState<NumerologyProfile | null>(null);
   const [loadingNumerologyProfile, setLoadingNumerologyProfile] = useState(false);
+
+  // Run sidereal compute and update user context
+  const runSiderealCompute = async () => {
+    if (!userBirthData) {
+      setComputeStatus({ success: false, message: 'Birth fields missing from user record' });
+      return;
+    }
+    
+    setRunningCompute(true);
+    setComputeStatus(null);
+    
+    try {
+      const response = await api.post('/computed-profile/astrology', {
+        birth_datetime_local: userBirthData.birth_datetime_local,
+        tz_offset_minutes: userBirthData.tz_offset_minutes,
+        latitude: userBirthData.latitude,
+        longitude: userBirthData.longitude,
+        ayanamsa: 'FAGAN_BRADLEY',
+      });
+      
+      if (response.data.has_profile && response.data.profile) {
+        // Update user context with new computed profile
+        if (user) {
+          const updatedUser = {
+            ...user,
+            computed_profile: {
+              ...user.computed_profile,
+              astrology: {
+                ayanamsa: response.data.profile.ayanamsa,
+                positions: response.data.profile.positions,
+                birth_datetime_local: userBirthData.birth_datetime_local,
+                latitude: userBirthData.latitude,
+                longitude: userBirthData.longitude,
+                computed_at: new Date().toISOString(),
+              },
+            },
+          };
+          updateUser(updatedUser);
+        }
+        setComputeStatus({ success: true, message: 'Compute successful! Profile updated.' });
+      } else {
+        setComputeStatus({ success: false, message: 'Compute returned no profile data' });
+      }
+    } catch (error: any) {
+      const errMsg = error.response?.data?.detail || error.message || 'Unknown error';
+      setComputeStatus({ success: false, message: `Compute failed: ${errMsg}` });
+    } finally {
+      setRunningCompute(false);
+    }
+  };
+
+  // Save birth data to user record
+  const saveBirthData = async () => {
+    if (!birthFormData.birth_datetime_local || !birthFormData.latitude || !birthFormData.longitude) {
+      Alert.alert('Missing Fields', 'Please fill in all birth data fields.');
+      return;
+    }
+    
+    setSavingBirthData(true);
+    try {
+      const response = await api.post('/user/birth-data', {
+        birth_datetime_local: birthFormData.birth_datetime_local,
+        tz_offset_minutes: parseInt(birthFormData.tz_offset_minutes, 10),
+        latitude: parseFloat(birthFormData.latitude),
+        longitude: parseFloat(birthFormData.longitude),
+      });
+      
+      if (response.data.success && user) {
+        const updatedUser = {
+          ...user,
+          birth_data: response.data.birth_data,
+        };
+        updateUser(updatedUser);
+        setShowBirthDataForm(false);
+        Alert.alert('Success', 'Birth data saved! You can now run compute.');
+      }
+    } catch (error: any) {
+      Alert.alert('Error', 'Failed to save birth data.');
+    } finally {
+      setSavingBirthData(false);
+    }
+  };
 
   const fetchLenses = useCallback(async () => {
     try {
