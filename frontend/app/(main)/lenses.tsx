@@ -877,7 +877,17 @@ export default function Lenses() {
                       style={styles.chatInput}
                       value={chatInput}
                       onChangeText={setChatInput}
-                      placeholder="Ask a question..."
+                      placeholder={
+                        selectedLens?.id === 'true-sidereal-astrology'
+                          ? "Ask about your sidereal profile, or how it shows up in your life…"
+                          : selectedLens?.id === 'human-design'
+                          ? "Ask about a concept, or explore how it applies to you…"
+                          : selectedLens?.id === 'numerology'
+                          ? "Ask about number themes, or how they might show up for you…"
+                          : selectedLens?.id === 'levels-of-consciousness'
+                          ? "Ask about a stage, or explore your own experience…"
+                          : "Ask a question…"
+                      }
                       placeholderTextColor={COLORS.secondary}
                       multiline
                       maxLength={500}
