@@ -2649,6 +2649,132 @@ async def compute_sidereal_positions(data: SiderealComputeInput):
         logger.error(f"Sidereal compute error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Computation failed: {str(e)}")
 
+@api_router.post("/computed-profile/astrology", response_model=ComputedAstrologyResponse)
+async def save_computed_astrology_profile(data: ComputedProfileInput, user = Depends(get_current_user)):
+    """
+    Compute and save user's sidereal astrology profile.
+    This performs the Swiss Ephemeris calculation and stores the results.
+    """
+    try:
+        # Validate ayanamsa
+        ayanamsa_key = data.ayanamsa.upper()
+        if ayanamsa_key not in AYANAMSA_MAP:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid ayanamsa. Valid options: {list(AYANAMSA_MAP.keys())}"
+            )
+        
+        # Parse the birth datetime
+        try:
+            birth_dt_local = dateutil_parser.parse(data.birth_datetime_local)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid datetime format: {str(e)}")
+        
+        # Convert to UTC
+        utc_offset = timedelta(minutes=data.tz_offset_minutes)
+        birth_dt_utc = birth_dt_local - utc_offset
+        
+        # Calculate Julian Day
+        jd_ut = datetime_to_julian_day(birth_dt_utc)
+        
+        # Set sidereal mode
+        swe.set_sid_mode(AYANAMSA_MAP[ayanamsa_key])
+        ayanamsa_value = swe.get_ayanamsa(jd_ut)
+        
+        # Calculate positions
+        positions = {}
+        
+        # Sun
+        sun_result = swe.calc_ut(jd_ut, swe.SUN, swe.FLG_SIDEREAL)
+        sun_lon = sun_result[0][0]
+        sun_sign, sun_deg_in_sign, sun_deg, sun_min, sun_sec = longitude_to_sign_position(sun_lon)
+        positions["sun"] = {
+            "name": "Sun",
+            "sign": sun_sign,
+            "degree": sun_deg,
+            "minutes": sun_min,
+            "formatted": f"{sun_sign} {sun_deg}°{sun_min}'"
+        }
+        
+        # Moon
+        moon_result = swe.calc_ut(jd_ut, swe.MOON, swe.FLG_SIDEREAL)
+        moon_lon = moon_result[0][0]
+        moon_sign, moon_deg_in_sign, moon_deg, moon_min, moon_sec = longitude_to_sign_position(moon_lon)
+        positions["moon"] = {
+            "name": "Moon",
+            "sign": moon_sign,
+            "degree": moon_deg,
+            "minutes": moon_min,
+            "formatted": f"{moon_sign} {moon_deg}°{moon_min}'"
+        }
+        
+        # Ascendant
+        houses_result = swe.houses(jd_ut, data.latitude, data.longitude, b'P')
+        asc_tropical = houses_result[0][0]
+        asc_sidereal = (asc_tropical - ayanamsa_value) % 360
+        asc_sign, asc_deg_in_sign, asc_deg, asc_min, asc_sec = longitude_to_sign_position(asc_sidereal)
+        positions["ascendant"] = {
+            "name": "Ascendant",
+            "sign": asc_sign,
+            "degree": asc_deg,
+            "minutes": asc_min,
+            "formatted": f"{asc_sign} {asc_deg}°{asc_min}'"
+        }
+        
+        swe.close()
+        
+        # Save to database
+        profile_data = {
+            "user_id": user["id"],
+            "birth_datetime_local": data.birth_datetime_local,
+            "tz_offset_minutes": data.tz_offset_minutes,
+            "latitude": data.latitude,
+            "longitude": data.longitude,
+            "location_name": data.location_name,
+            "ayanamsa": ayanamsa_key,
+            "positions": positions,
+            "computed_at": datetime.utcnow()
+        }
+        
+        # Upsert - replace existing profile
+        await db.computed_profiles_astrology.update_one(
+            {"user_id": user["id"]},
+            {"$set": profile_data},
+            upsert=True
+        )
+        
+        return ComputedAstrologyResponse(
+            has_profile=True,
+            profile=profile_data
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to save astrology profile: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Computation failed: {str(e)}")
+
+@api_router.get("/computed-profile/astrology", response_model=ComputedAstrologyResponse)
+async def get_computed_astrology_profile(user = Depends(get_current_user)):
+    """
+    Get user's saved sidereal astrology profile.
+    Returns has_profile=false if no profile exists.
+    """
+    profile = await db.computed_profiles_astrology.find_one({"user_id": user["id"]})
+    
+    if profile:
+        # Remove MongoDB _id field
+        profile.pop("_id", None)
+        return ComputedAstrologyResponse(has_profile=True, profile=profile)
+    
+    return ComputedAstrologyResponse(has_profile=False, profile=None)
+
+@api_router.delete("/computed-profile/astrology")
+async def delete_computed_astrology_profile(user = Depends(get_current_user)):
+    """Delete user's saved astrology profile"""
+    result = await db.computed_profiles_astrology.delete_one({"user_id": user["id"]})
+    return {"deleted": result.deleted_count > 0}
+
 # Include the router in the main app
 app.include_router(api_router)
 
