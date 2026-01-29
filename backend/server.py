@@ -1282,7 +1282,8 @@ async def get_me(user = Depends(get_current_user)):
         email=user["email"],
         name=user["name"],
         onboarding_completed=user["onboarding_completed"],
-        onboarding_answers=user.get("onboarding_answers")
+        onboarding_answers=user.get("onboarding_answers"),
+        computed_profile=user.get("computed_profile")
     )
 
 # Onboarding Routes
