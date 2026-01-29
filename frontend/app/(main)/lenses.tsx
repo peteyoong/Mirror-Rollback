@@ -1753,70 +1753,53 @@ export default function Lenses() {
                 {viewMode === 'deepdive' && (
                   <>
                     {/* Computed Profile Block - Above Chat for Astrology */}
-                    {/* Reads directly from user.computed_profile.astrology */}
+                    {/* SINGLE SOURCE OF TRUTH: Reads directly from user.computed_profile.astrology */}
                     {selectedLens?.id === 'true-sidereal-astrology' && (
                       <View style={styles.computedProfileBlock}>
                         <Text style={styles.computedProfileBlockTitle}>Your Sidereal Profile (Computed)</Text>
-                        {userAstrologyProfile ? (
+                        {userAstrologyProfile?.positions ? (
                           <View style={styles.computedProfileBlockContent}>
                             <View style={styles.computedProfileRow}>
                               <Text style={styles.computedProfileLabel}>Sun:</Text>
                               <Text style={styles.computedProfileValue}>
-                                {userAstrologyProfile.positions?.sun?.formatted || 'N/A'}
+                                {userAstrologyProfile.positions.sun?.formatted || `${userAstrologyProfile.positions.sun?.sign} ${userAstrologyProfile.positions.sun?.degree}°${userAstrologyProfile.positions.sun?.minutes}'`}
                               </Text>
                             </View>
                             <View style={styles.computedProfileRow}>
                               <Text style={styles.computedProfileLabel}>Moon:</Text>
                               <Text style={styles.computedProfileValue}>
-                                {userAstrologyProfile.positions?.moon?.formatted || 'N/A'}
+                                {userAstrologyProfile.positions.moon?.formatted || `${userAstrologyProfile.positions.moon?.sign} ${userAstrologyProfile.positions.moon?.degree}°${userAstrologyProfile.positions.moon?.minutes}'`}
                               </Text>
                             </View>
                             <View style={styles.computedProfileRow}>
                               <Text style={styles.computedProfileLabel}>Ascendant:</Text>
                               <Text style={styles.computedProfileValue}>
-                                {userAstrologyProfile.positions?.ascendant?.formatted || 'N/A'}
+                                {userAstrologyProfile.positions.ascendant?.formatted || `${userAstrologyProfile.positions.ascendant?.sign} ${userAstrologyProfile.positions.ascendant?.degree}°${userAstrologyProfile.positions.ascendant?.minutes}'`}
                               </Text>
                             </View>
                             <View style={styles.computedProfileRow}>
                               <Text style={styles.computedProfileLabel}>Ayanamsa:</Text>
                               <Text style={styles.computedProfileValue}>
-                                {userAstrologyProfile.ayanamsa?.replace('_', '-') || 'N/A'}
+                                {userAstrologyProfile.ayanamsa?.replace('_', '-') || 'FAGAN-BRADLEY'}
                               </Text>
                             </View>
-                          </View>
-                        ) : loadingAstrologyProfile ? (
-                          <ActivityIndicator size="small" color={COLORS.accent} />
-                        ) : astrologyProfile?.has_profile && astrologyProfile.profile?.positions ? (
-                          <View style={styles.computedProfileBlockContent}>
-                            <View style={styles.computedProfileRow}>
-                              <Text style={styles.computedProfileLabel}>Sun:</Text>
-                              <Text style={styles.computedProfileValue}>
-                                {astrologyProfile.profile.positions.sun?.formatted || 'N/A'}
-                              </Text>
-                            </View>
-                            <View style={styles.computedProfileRow}>
-                              <Text style={styles.computedProfileLabel}>Moon:</Text>
-                              <Text style={styles.computedProfileValue}>
-                                {astrologyProfile.profile.positions.moon?.formatted || 'N/A'}
-                              </Text>
-                            </View>
-                            <View style={styles.computedProfileRow}>
-                              <Text style={styles.computedProfileLabel}>Ascendant:</Text>
-                              <Text style={styles.computedProfileValue}>
-                                {astrologyProfile.profile.positions.ascendant?.formatted || 'N/A'}
-                              </Text>
-                            </View>
-                            <View style={styles.computedProfileRow}>
-                              <Text style={styles.computedProfileLabel}>Ayanamsa:</Text>
-                              <Text style={styles.computedProfileValue}>
-                                {astrologyProfile.profile.ayanamsa?.replace('_', '-') || 'N/A'}
-                              </Text>
-                            </View>
+                            <Text style={styles.computedProfileSource}>Source: user.computed_profile.astrology</Text>
                           </View>
                         ) : (
-                          <Text style={styles.computedProfileBlockEmpty}>
-                            Sidereal profile not computed yet.
-                          </Text>
+                          <View style={styles.computedProfileBlockEmpty}>
+                            <Ionicons name="planet-outline" size={24} color={COLORS.secondary} />
+                            <Text style={styles.computedProfileEmptyText}>
+                              {userBirthData ? 'Birth data saved but not computed' : 'No profile computed yet'}
+                            </Text>
+                            <TouchableOpacity 
+                              style={styles.computedProfileCTA}
+                              onPress={openBirthDetailsModal}
+                            >
+                              <Text style={styles.computedProfileCTAText}>
+                                {userBirthData ? 'Run Compute' : 'Add Birth Details'}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
                         )}
                       </View>
                     )}
