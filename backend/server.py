@@ -2233,10 +2233,14 @@ class IntegrativeChatMessageResponse(BaseModel):
 
 @api_router.get("/journal/chat", response_model=List[IntegrativeChatMessageResponse])
 async def get_integrative_chat_history(user = Depends(get_current_user)):
-    """Get integrative chat history for the journal section"""
+    """Get the user's complete Integrate chat history.
+    Integrate is a single, continuous, lifelong thread per user."""
+    
+    # Load ALL messages - this is a lifelong thread, no pagination needed for V1
+    # Sort by created_at ascending to show oldest first
     messages = await db.integrative_chat_messages.find({
         "user_id": user["id"]
-    }).sort("created_at", 1).to_list(100)
+    }).sort("created_at", 1).to_list(None)  # None = no limit, load all
     
     return [IntegrativeChatMessageResponse(**msg) for msg in messages]
 
