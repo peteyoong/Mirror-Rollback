@@ -56,6 +56,20 @@ interface LearnOverTime {
   advanced_lens?: AdvancedLens;
 }
 
+interface PersonalizedAstrologyInsights {
+  has_personalization: boolean;
+  sun_insight?: string;
+  moon_insight?: string;
+  ascendant_insight?: string;
+  element_balance?: string;
+  integration_question?: string;
+  placements?: {
+    sun: string;
+    moon: string;
+    ascendant: string;
+  };
+}
+
 interface LensDetail extends Lens {
   deep_dive: {
     description: string;
