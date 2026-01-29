@@ -1200,6 +1200,207 @@ async def regenerate_lens_snapshot(lens_id: str, user = Depends(get_current_user
     # Generate new one
     return await get_lens_snapshot(lens_id, user)
 
+# ============== Lens Chat Routes ==============
+
+class LensChatMessage(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    lens_key: str  # "astrology", "human_design", "numerology", "consciousness"
+    role: str  # "user" | "assistant"
+    message_text: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class LensChatMessageResponse(BaseModel):
+    id: str
+    lens_key: str
+    role: str
+    message_text: str
+    created_at: datetime
+
+class ChatMessageInput(BaseModel):
+    message: str
+
+# Map lens IDs to chat keys
+LENS_CHAT_KEYS = {
+    "true-sidereal-astrology": "astrology",
+    "human-design": "human_design",
+    "numerology": "numerology",
+    "levels-of-consciousness": "consciousness"
+}
+
+# Lens chat system prompts
+LENS_CHAT_PROMPTS = {
+    "astrology": """You are a knowledgeable guide for True Sidereal Astrology within Project Mirror.
+
+Your role is to help users understand sidereal astrology concepts, explore how celestial cycles might relate to their experiences, and answer questions about this perspective.
+
+RULES:
+1. Be warm, supportive, and educational
+2. Frame insights as perspectives to consider, not predictions or fixed truths
+3. Use language like "you might consider...", "one way to look at this...", "traditionally, this is associated with..."
+4. Never make specific predictions about the future
+5. Encourage self-reflection rather than dependency on the system
+6. Keep responses concise (2-4 paragraphs max)
+7. If asked about birth charts, explain you'd need their birth data to provide specifics
+
+You can discuss: constellations, planetary movements, moon phases, seasonal cycles, the difference between sidereal and tropical systems.""",
+
+    "human_design": """You are a knowledgeable guide for Human Design within Project Mirror.
+
+Your role is to help users understand Human Design concepts, explore how this system might offer insights into their natural tendencies, and answer questions about the framework.
+
+RULES:
+1. Be warm, supportive, and educational
+2. Frame everything as patterns to observe, not fixed identity
+3. Use language like "this might manifest as...", "you could experiment with...", "notice if..."
+4. Never tell users who they ARE - instead describe tendencies they might recognize
+5. Encourage experimentation and self-observation
+6. Keep responses concise (2-4 paragraphs max)
+7. If discussing specific chart elements, note that you'd need their birth data for personalized details
+
+You can discuss: Types, Strategy, Authority, Centers, Gates, Channels, Profiles, Variables, and how to experiment with the system.""",
+
+    "numerology": """You are a knowledgeable guide for Numerology within Project Mirror.
+
+Your role is to help users understand numerological concepts, explore number symbolism, and answer questions about this interpretive framework.
+
+RULES:
+1. Be warm, supportive, and educational
+2. Present numerology as a symbolic language for reflection, not prediction
+3. Use language like "in numerology, this number is associated with...", "you might reflect on..."
+4. Never make predictions about the future
+5. Encourage users to notice if themes resonate rather than accepting them as truth
+6. Keep responses concise (2-4 paragraphs max)
+7. You can help calculate Life Path numbers if given birth dates
+
+You can discuss: Life Path numbers, Expression numbers, Soul Urge numbers, Personal Year cycles, Master Numbers, and the symbolic meanings of 1-9.""",
+
+    "consciousness": """You are a knowledgeable guide for the Levels of Consciousness framework within Project Mirror.
+
+Your role is to help users understand developmental psychology concepts and how awareness expands, WITHOUT assigning them to any level.
+
+RULES:
+1. Be warm, supportive, and educational
+2. NEVER assign the user a level or stage
+3. Present all stages as valuable with their own gifts and limitations
+4. Use language like "at this stage, people often...", "growth might look like..."
+5. Emphasize that development is non-linear and context-dependent
+6. Keep responses concise (2-4 paragraphs max)
+7. If asked "what level am I?", explain that you don't assign levels and that people access different stages in different contexts
+
+You can discuss: developmental stages, how worldviews shift, what triggers growth, how to support your own development, and how Project Mirror uses this framework to adapt its communication."""
+}
+
+@api_router.get("/lenses/{lens_id}/chat", response_model=List[LensChatMessageResponse])
+async def get_lens_chat_history(lens_id: str, user = Depends(get_current_user)):
+    """Get chat history for a specific lens"""
+    lens_key = LENS_CHAT_KEYS.get(lens_id)
+    if not lens_key:
+        raise HTTPException(status_code=404, detail="Lens not found")
+    
+    messages = await db.lens_chat_messages.find({
+        "user_id": user["id"],
+        "lens_key": lens_key
+    }).sort("created_at", 1).to_list(100)
+    
+    return [LensChatMessageResponse(**msg) for msg in messages]
+
+@api_router.post("/lenses/{lens_id}/chat", response_model=List[LensChatMessageResponse])
+async def send_lens_chat_message(lens_id: str, chat_input: ChatMessageInput, user = Depends(get_current_user)):
+    """Send a message to the lens chatbot and get a response"""
+    lens_key = LENS_CHAT_KEYS.get(lens_id)
+    if not lens_key:
+        raise HTTPException(status_code=404, detail="Lens not found")
+    
+    lens = next((l for l in LENSES_CONTENT if l["id"] == lens_id), None)
+    if not lens:
+        raise HTTPException(status_code=404, detail="Lens not found")
+    
+    # Save user message
+    user_message = LensChatMessage(
+        user_id=user["id"],
+        lens_key=lens_key,
+        role="user",
+        message_text=chat_input.message
+    )
+    await db.lens_chat_messages.insert_one(user_message.dict())
+    
+    # Generate AI response
+    assistant_response_text = "I'm unable to respond right now. Please try again later."
+    
+    if EMERGENT_LLM_KEY:
+        try:
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            
+            # Get conversation history for context
+            history = await db.lens_chat_messages.find({
+                "user_id": user["id"],
+                "lens_key": lens_key
+            }).sort("created_at", 1).to_list(20)
+            
+            # Build conversation context
+            conversation = []
+            for msg in history[:-1]:  # Exclude the message we just added
+                conversation.append(f"{msg['role'].upper()}: {msg['message_text']}")
+            
+            # Get user's onboarding for context
+            onboarding = user.get("onboarding_answers", {})
+            
+            # Build system prompt with lens context
+            system_prompt = LENS_CHAT_PROMPTS.get(lens_key, "You are a helpful assistant.")
+            system_prompt += f"\n\nLens: {lens['title']}\nLens Summary: {lens['summary']}"
+            
+            if onboarding:
+                system_prompt += f"\n\nUser Context (for personalization):\n- Desired depth: {onboarding.get('desired_depth', 'moderate')}\n- Reflection style: {onboarding.get('reflection_style', 'contemplating')}"
+            
+            # Build user prompt with history
+            user_prompt = ""
+            if conversation:
+                user_prompt = "Previous conversation:\n" + "\n".join(conversation[-10:]) + "\n\n"
+            user_prompt += f"USER: {chat_input.message}\n\nRespond helpfully and concisely."
+            
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"lens-chat-{lens_key}-{user['id'][:8]}",
+                system_message=system_prompt
+            ).with_model("openai", "gpt-4o")
+            
+            response = await chat.send_message(UserMessage(text=user_prompt))
+            assistant_response_text = response.strip()
+            
+        except Exception as e:
+            logger.error(f"Lens chat AI error: {str(e)}")
+            assistant_response_text = "I encountered an issue generating a response. Please try again."
+    
+    # Save assistant message
+    assistant_message = LensChatMessage(
+        user_id=user["id"],
+        lens_key=lens_key,
+        role="assistant",
+        message_text=assistant_response_text
+    )
+    await db.lens_chat_messages.insert_one(assistant_message.dict())
+    
+    # Return the two new messages
+    return [
+        LensChatMessageResponse(**user_message.dict()),
+        LensChatMessageResponse(**assistant_message.dict())
+    ]
+
+@api_router.delete("/lenses/{lens_id}/chat")
+async def clear_lens_chat_history(lens_id: str, user = Depends(get_current_user)):
+    """Clear chat history for a specific lens"""
+    lens_key = LENS_CHAT_KEYS.get(lens_id)
+    if not lens_key:
+        raise HTTPException(status_code=404, detail="Lens not found")
+    
+    result = await db.lens_chat_messages.delete_many({
+        "user_id": user["id"],
+        "lens_key": lens_key
+    })
+    
+    return {"deleted_count": result.deleted_count}
+
 # Include the router in the main app
 app.include_router(api_router)
 
