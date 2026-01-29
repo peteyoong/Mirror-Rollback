@@ -1094,16 +1094,42 @@ export default function Lenses() {
                               <Text style={styles.debugSubtitle}>Compute Endpoint:</Text>
                               <Text style={styles.debugCode}>/api/computed-profile/astrology (POST)</Text>
                               
+                              {/* Last Save Status */}
+                              <Text style={styles.debugSubtitle}>Last Save Status:</Text>
+                              {saveStatus ? (
+                                <View style={styles.debugStatusContainer}>
+                                  <View style={[styles.debugStatusBadge, { backgroundColor: saveStatus.success ? '#D1FAE5' : '#FEE2E2' }]}>
+                                    <Text style={[styles.debugStatusText, { color: saveStatus.success ? '#065F46' : '#991B1B' }]}>
+                                      {saveStatus.success ? '✓ ' : '✗ '}{saveStatus.message}
+                                    </Text>
+                                  </View>
+                                  {saveStatus.response && (
+                                    <Text style={styles.debugResponseText} numberOfLines={3}>
+                                      {saveStatus.response}
+                                    </Text>
+                                  )}
+                                </View>
+                              ) : (
+                                <Text style={styles.debugNoStatus}>No save attempted yet</Text>
+                              )}
+                              
                               {/* Last Compute Status */}
-                              {computeStatus && (
-                                <>
-                                  <Text style={styles.debugSubtitle}>Last Compute Status:</Text>
+                              <Text style={styles.debugSubtitle}>Last Compute Status:</Text>
+                              {computeStatus ? (
+                                <View style={styles.debugStatusContainer}>
                                   <View style={[styles.debugStatusBadge, { backgroundColor: computeStatus.success ? '#D1FAE5' : '#FEE2E2' }]}>
                                     <Text style={[styles.debugStatusText, { color: computeStatus.success ? '#065F46' : '#991B1B' }]}>
                                       {computeStatus.success ? '✓ ' : '✗ '}{computeStatus.message}
                                     </Text>
                                   </View>
-                                </>
+                                  {computeStatus.response && (
+                                    <Text style={styles.debugResponseText} numberOfLines={3}>
+                                      {computeStatus.response}
+                                    </Text>
+                                  )}
+                                </View>
+                              ) : (
+                                <Text style={styles.debugNoStatus}>No compute attempted yet</Text>
                               )}
                               
                               {/* Run Compute Button */}
