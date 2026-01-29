@@ -4116,6 +4116,61 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     fontWeight: '500',
   },
+  // Can't find my city / Manual Entry Styles
+  cantFindCityButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.md,
+    gap: SPACING.xs,
+  },
+  cantFindCityText: {
+    fontSize: 14,
+    color: COLORS.accent,
+    fontWeight: '500',
+  },
+  manualEntrySection: {
+    backgroundColor: '#F9FAFB',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  manualEntryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  manualEntryTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  manualEntrySwitchBack: {
+    fontSize: 12,
+    color: COLORS.accent,
+  },
+  manualTzDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#EBF5FF',
+    padding: SPACING.sm,
+    borderRadius: BORDER_RADIUS.sm,
+    marginTop: SPACING.sm,
+  },
+  manualTzLabel: {
+    fontSize: 12,
+    color: COLORS.secondary,
+  },
+  manualTzValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.accent,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
   // Debug Section Styles (POC)
   debugContainer: {
     backgroundColor: '#FEF3C7',
