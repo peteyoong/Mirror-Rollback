@@ -2946,6 +2946,7 @@ async def send_lens_chat_message(lens_id: str, chat_input: ChatMessageInput, use
                 lens_context.append("\nUSER'S COMPUTED SNAPSHOT: Not available")
             
             # 2.5. COMPUTED ASTROLOGY PROFILE (SINGLE SOURCE OF TRUTH: user.computed_profile.astrology)
+            # This is passed as SIDEREAL_PROFILE to the chatbot - treat as AUTHORITATIVE
             if lens_key == "astrology":
                 try:
                     # Fetch user with computed_profile from single source of truth
@@ -2955,43 +2956,73 @@ async def send_lens_chat_message(lens_id: str, chat_input: ChatMessageInput, use
                     if astro_profile and astro_profile.get("positions"):
                         positions = astro_profile["positions"]
                         ayanamsa = astro_profile.get("ayanamsa", "FAGAN_BRADLEY")
-                        lens_context.append("\n=== USER'S COMPUTED ASTROLOGY PROFILE (DETERMINISTIC) ===")
-                        lens_context.append("SOURCE: user.computed_profile.astrology (persisted in user record)")
-                        lens_context.append(f"Ayanamsa System: {ayanamsa.replace('_', '-')}")
-                        lens_context.append(f"Computation Type: True Sidereal (NOT Tropical)")
-                        lens_context.append("BIRTH DATA STATUS: AVAILABLE - User has computed their sidereal chart")
+                        
+                        lens_context.append("\n" + "="*60)
+                        lens_context.append("SIDEREAL_PROFILE (AUTHORITATIVE - DO NOT CONTRADICT)")
+                        lens_context.append("="*60)
+                        lens_context.append("STATUS: COMPUTED AND AVAILABLE")
+                        lens_context.append(f"SOURCE: user.computed_profile.astrology (persisted)")
+                        lens_context.append(f"AYANAMSA: {ayanamsa.replace('_', '-')}")
+                        lens_context.append(f"SYSTEM: True Sidereal (NOT Tropical)")
                         lens_context.append("")
-                        lens_context.append("PLACEMENTS:")
-                        if positions.get("ascendant"):
-                            asc = positions["ascendant"]
-                            lens_context.append(f"  Ascendant (Rising): {asc.get('formatted', asc.get('sign', 'Unknown'))}")
+                        lens_context.append("PLACEMENTS (EXACT VALUES):")
+                        
                         if positions.get("sun"):
                             sun = positions["sun"]
-                            lens_context.append(f"  Sun: {sun.get('formatted', sun.get('sign', 'Unknown'))}")
+                            formatted = sun.get('formatted') or f"{sun.get('sign', 'Unknown')} {sun.get('degree', 0)}°{sun.get('minutes', 0)}'"
+                            lens_context.append(f"  ☉ Sun: {formatted}")
                         if positions.get("moon"):
                             moon = positions["moon"]
-                            lens_context.append(f"  Moon: {moon.get('formatted', moon.get('sign', 'Unknown'))}")
+                            formatted = moon.get('formatted') or f"{moon.get('sign', 'Unknown')} {moon.get('degree', 0)}°{moon.get('minutes', 0)}'"
+                            lens_context.append(f"  ☽ Moon: {formatted}")
+                        if positions.get("ascendant"):
+                            asc = positions["ascendant"]
+                            formatted = asc.get('formatted') or f"{asc.get('sign', 'Unknown')} {asc.get('degree', 0)}°{asc.get('minutes', 0)}'"
+                            lens_context.append(f"  ↑ Ascendant: {formatted}")
+                        
                         lens_context.append("")
-                        lens_context.append("IMPORTANT: These are ACTUAL computed values. Use them when answering questions about the user's placements.")
-                        lens_context.append("CRITICAL: Birth data IS available. Do NOT say birth data is missing or needs to be entered.")
-                        lens_context.append("When discussing these placements, always note they are True Sidereal positions.")
-                        lens_context.append("Tropical positions would typically be ~24° ahead (roughly one sign).")
-                        lens_context.append("=== END COMPUTED ASTROLOGY PROFILE ===")
+                        lens_context.append("INSTRUCTIONS FOR ASSISTANT:")
+                        lens_context.append("• These placements are COMPUTED from Swiss Ephemeris - they are ACCURATE")
+                        lens_context.append("• ALWAYS use these exact values when discussing user's chart")
+                        lens_context.append("• DO NOT ask for birth data - it is already computed")
+                        lens_context.append("• DO NOT say 'if you share your birth details' - you HAVE them")
+                        lens_context.append("• When user asks 'what's my sun sign?' answer with the value above")
+                        lens_context.append("• Tropical positions would be ~24° ahead (about one sign)")
+                        lens_context.append("="*60)
                     else:
                         # Check if birth data exists but compute hasn't run
                         birth_data = user_record.get("birth_data") if user_record else None
-                        lens_context.append("\n=== USER'S COMPUTED ASTROLOGY PROFILE ===")
+                        
+                        lens_context.append("\n" + "="*60)
+                        lens_context.append("SIDEREAL_PROFILE (NOT AVAILABLE)")
+                        lens_context.append("="*60)
+                        
                         if birth_data:
-                            lens_context.append("STATUS: Birth data saved but sidereal chart not yet computed")
-                            lens_context.append("If user asks about their placements, explain they need to run the compute first.")
+                            lens_context.append("STATUS: BIRTH DATA SAVED BUT NOT COMPUTED")
+                            lens_context.append("")
+                            lens_context.append("INSTRUCTIONS FOR ASSISTANT:")
+                            lens_context.append("• User has birth data saved but sidereal chart not yet computed")
+                            lens_context.append("• If user asks about their placements, tell them:")
+                            lens_context.append('  "I can see you\'ve saved your birth details, but the sidereal computation')
+                            lens_context.append('   hasn\'t been run yet. Please tap the \'Run Sidereal Compute Now\' button')
+                            lens_context.append('   in the Deep Dive section to calculate your True Sidereal placements."')
+                            lens_context.append("• You can still discuss general True Sidereal astrology concepts")
                         else:
-                            lens_context.append("STATUS: No birth data in user record")
-                            lens_context.append("If user asks about their placements, explain they need to enter birth data first.")
-                        lens_context.append("You can still discuss general True Sidereal astrology concepts.")
-                        lens_context.append("=== END COMPUTED ASTROLOGY PROFILE ===")
+                            lens_context.append("STATUS: NO BIRTH DATA IN USER RECORD")
+                            lens_context.append("")
+                            lens_context.append("INSTRUCTIONS FOR ASSISTANT:")
+                            lens_context.append("• User has NOT entered birth details yet")
+                            lens_context.append("• If user asks about their placements, tell them:")
+                            lens_context.append('  "I don\'t have your birth details yet. To see your True Sidereal')
+                            lens_context.append('   placements, please tap \'Add Birth Details\' in the Deep Dive section')
+                            lens_context.append('   and enter your birth date, time, and location."')
+                            lens_context.append("• You can still discuss general True Sidereal astrology concepts")
+                            lens_context.append("• Explain what True Sidereal means vs Tropical")
+                        
+                        lens_context.append("="*60)
                 except Exception as e:
                     logger.error(f"Failed to fetch astrology profile for chat: {e}")
-                    lens_context.append("\nCOMPUTED ASTROLOGY PROFILE: Unable to retrieve")
+                    lens_context.append("\nSIDEREAL_PROFILE: ERROR - Unable to retrieve from database")
             
             # 2.6. COMPUTED HUMAN DESIGN PROFILE (for Human Design lens only)
             if lens_key == "human_design":
