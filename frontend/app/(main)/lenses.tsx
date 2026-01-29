@@ -801,6 +801,12 @@ export default function Lenses() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Lenses</Text>
+        <TouchableOpacity 
+          style={styles.headerIconButton}
+          onPress={openBirthDetailsModal}
+        >
+          <Ionicons name="person-circle-outline" size={28} color={COLORS.primary} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.introContainer}>
