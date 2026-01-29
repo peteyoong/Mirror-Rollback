@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  TextInput,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,19 +17,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
 import { api } from '../../src/services/api';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../src/constants/theme';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const { width } = Dimensions.get('window');
 
 interface Question {
   id: string;
   question: string;
-  options: { value: string; label: string }[];
+  type: 'options' | 'birthdata';
+  options?: { value: string; label: string }[];
 }
 
 const QUESTIONS: Question[] = [
   {
     id: 'relationship_with_self',
     question: 'How would you describe your current relationship with yourself?',
+    type: 'options',
     options: [
       { value: 'curious', label: 'Curious and exploring' },
       { value: 'gentle', label: 'Learning to be gentle' },
@@ -38,6 +43,7 @@ const QUESTIONS: Question[] = [
   {
     id: 'reflection_style',
     question: 'When you reflect, what feels most natural to you?',
+    type: 'options',
     options: [
       { value: 'writing', label: 'Writing my thoughts down' },
       { value: 'contemplating', label: 'Sitting with a question' },
@@ -48,6 +54,7 @@ const QUESTIONS: Question[] = [
   {
     id: 'desired_depth',
     question: 'How deep do you want to go in your reflections?',
+    type: 'options',
     options: [
       { value: 'surface', label: 'Light and present-focused' },
       { value: 'moderate', label: 'Thoughtful but not heavy' },
@@ -58,6 +65,7 @@ const QUESTIONS: Question[] = [
   {
     id: 'uncertainty_relationship',
     question: 'How do you relate to not knowing?',
+    type: 'options',
     options: [
       { value: 'comfortable', label: 'I find comfort in mystery' },
       { value: 'learning', label: 'Learning to sit with it' },
@@ -68,12 +76,18 @@ const QUESTIONS: Question[] = [
   {
     id: 'intention',
     question: 'What brings you here today?',
+    type: 'options',
     options: [
       { value: 'self_understanding', label: 'To understand myself better' },
       { value: 'daily_practice', label: 'To build a daily practice' },
       { value: 'clarity', label: 'To find more clarity' },
       { value: 'presence', label: 'To be more present' },
     ],
+  },
+  {
+    id: 'birthdata',
+    question: 'To personalize your reflections, we can use your birth details (optional)',
+    type: 'birthdata',
   },
 ];
 
