@@ -70,6 +70,34 @@ interface PersonalizedAstrologyInsights {
   };
 }
 
+interface PersonalizedHDInsights {
+  has_personalization: boolean;
+  type_insight?: string;
+  strategy_insight?: string;
+  authority_insight?: string;
+  integration_reflection?: string;
+  not_self_awareness?: string;
+  elements?: {
+    type: string;
+    strategy: string;
+    authority: string;
+    profile?: string;
+  };
+}
+
+interface HumanDesignProfile {
+  has_profile: boolean;
+  profile?: {
+    type: string;
+    strategy: string;
+    authority: string;
+    profile?: string;
+    definition?: string;
+    not_self_theme?: string;
+    signature?: string;
+  };
+}
+
 interface LensDetail extends Lens {
   deep_dive: {
     description: string;
