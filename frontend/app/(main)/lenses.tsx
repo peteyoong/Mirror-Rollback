@@ -3562,6 +3562,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  birthDetailsValidationHint: {
+    fontSize: 12,
+    color: '#DC2626',
+    textAlign: 'center',
+    marginTop: SPACING.sm,
+  },
+  birthDetailsManualNote: {
+    fontSize: 11,
+    color: COLORS.accent,
+    marginTop: SPACING.xs,
+    fontStyle: 'italic',
+  },
+  birthDetailsSavedDebug: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SPACING.md,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    backgroundColor: '#ECFDF5',
+    borderRadius: BORDER_RADIUS.sm,
+    gap: SPACING.xs,
+  },
+  birthDetailsSavedDebugText: {
+    fontSize: 11,
+    color: '#065F46',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
   // Debug Section Styles (POC)
   debugContainer: {
     backgroundColor: '#FEF3C7',
