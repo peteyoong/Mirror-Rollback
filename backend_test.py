@@ -278,19 +278,234 @@ def test_registration_onboarding_astrology_flow():
     
     return results
 
+def test_birth_details_flow():
+    """Test the specific Add/Edit Birth Details flow as requested in the review"""
+    print("\n" + "="*80)
+    print("🎯 TESTING BIRTH DETAILS FLOW (Review Request)")
+    print("="*80)
+    
+    results = TestResults()
+    
+    # Test data as specified in the review request
+    test_email = "editbirth@test.com"
+    test_password = "Test123!"
+    test_name = "Birth Details Test User"
+    
+    birth_data = {
+        "birth_datetime_local": "1985-03-20T14:30:00",
+        "tz_offset_minutes": -300,
+        "latitude": 40.7128,
+        "longitude": -74.0060
+    }
+    
+    astrology_data = {
+        "birth_datetime_local": "1985-03-20T14:30:00",
+        "tz_offset_minutes": -300,
+        "latitude": 40.7128,
+        "longitude": -74.0060,
+        "ayanamsa": "FAGAN_BRADLEY"
+    }
+    
+    token = None
+    
+    try:
+        # Step 1: Register new user
+        print("\n1️⃣ REGISTERING NEW USER")
+        register_data = {
+            "email": test_email,
+            "password": test_password,
+            "name": test_name
+        }
+        
+        response = requests.post(f"{API_BASE}/auth/register", json=register_data)
+        results.assert_equal(response.status_code, 200, "User registration returns 200 status")
+        
+        if response.status_code == 200:
+            register_result = response.json()
+            results.assert_in("token", register_result, "Registration response contains token")
+            results.assert_in("user", register_result, "Registration response contains user object")
+            
+            if "user" in register_result:
+                user_data = register_result["user"]
+                results.assert_equal(user_data.get("email"), test_email, "Registration user email matches")
+        
+        # Step 2: Login to get token
+        print("\n2️⃣ LOGGING IN TO GET TOKEN")
+        login_data = {
+            "email": test_email,
+            "password": test_password
+        }
+        
+        response = requests.post(f"{API_BASE}/auth/login", json=login_data)
+        results.assert_equal(response.status_code, 200, "Login returns 200 status")
+        
+        if response.status_code == 200:
+            login_result = response.json()
+            results.assert_in("token", login_result, "Login response contains token")
+            if "token" in login_result:
+                token = login_result["token"]
+                print(f"   ✅ Token obtained: {token[:20]}...")
+        
+        if not token:
+            print("❌ Cannot proceed without authentication token")
+            return results
+        
+        headers = {"Authorization": f"Bearer {token}"}
+        
+        # Step 3: Save Birth Data (Test 1 from review request)
+        print("\n3️⃣ TEST 1 - SAVE BIRTH DATA")
+        print(f"   POST /api/user/birth-data")
+        print(f"   Data: {json.dumps(birth_data, indent=2)}")
+        
+        response = requests.post(f"{API_BASE}/user/birth-data", json=birth_data, headers=headers)
+        results.assert_equal(response.status_code, 200, "Save birth data returns 200 status")
+        
+        if response.status_code == 200:
+            birth_result = response.json()
+            results.assert_equal(birth_result.get("success"), True, "Birth data save returns success: true")
+            results.assert_in("birth_data", birth_result, "Birth data response contains birth_data object")
+            
+            if "birth_data" in birth_result:
+                saved_birth_data = birth_result["birth_data"]
+                results.assert_equal(
+                    saved_birth_data.get("birth_datetime_local"), 
+                    birth_data["birth_datetime_local"],
+                    "Birth datetime saved correctly"
+                )
+                results.assert_equal(
+                    saved_birth_data.get("latitude"), 
+                    birth_data["latitude"],
+                    "Birth latitude saved correctly"
+                )
+                results.assert_equal(
+                    saved_birth_data.get("longitude"), 
+                    birth_data["longitude"],
+                    "Birth longitude saved correctly"
+                )
+                print(f"   ✅ Birth data saved: {saved_birth_data.get('birth_datetime_local')} at ({saved_birth_data.get('latitude')}, {saved_birth_data.get('longitude')})")
+        else:
+            print(f"   ❌ Response: {response.text}")
+        
+        # Step 4: Compute Astrology (Test 2 from review request)
+        print("\n4️⃣ TEST 2 - COMPUTE ASTROLOGY")
+        print(f"   POST /api/computed-profile/astrology")
+        print(f"   Data: {json.dumps(astrology_data, indent=2)}")
+        
+        response = requests.post(f"{API_BASE}/computed-profile/astrology", json=astrology_data, headers=headers)
+        results.assert_equal(response.status_code, 200, "Compute astrology returns 200 status")
+        
+        if response.status_code == 200:
+            astrology_result = response.json()
+            results.assert_equal(astrology_result.get("has_profile"), True, "Astrology computation returns has_profile: true")
+            
+            if "profile" in astrology_result and astrology_result["profile"]:
+                profile = astrology_result["profile"]
+                results.assert_in("positions", profile, "Astrology profile contains positions")
+                
+                if "positions" in profile:
+                    positions = profile["positions"]
+                    
+                    # Check for required positions (sun, moon, ascendant)
+                    required_positions = ["sun", "moon", "ascendant"]
+                    for pos in required_positions:
+                        results.assert_in(pos, positions, f"Astrology profile contains {pos} position")
+                        
+                        if pos in positions:
+                            pos_data = positions[pos]
+                            results.assert_in("sign", pos_data, f"{pos.capitalize()} position has sign")
+                            results.assert_in("degree", pos_data, f"{pos.capitalize()} position has degree")
+                            results.assert_in("formatted", pos_data, f"{pos.capitalize()} position has formatted string")
+                            
+                            if "formatted" in pos_data:
+                                print(f"   ✅ {pos_data.get('name', pos.capitalize())}: {pos_data['formatted']}")
+        else:
+            print(f"   ❌ Response: {response.text}")
+        
+        # Step 5: Verify User Record (Test 3 from review request)
+        print("\n5️⃣ TEST 3 - VERIFY USER RECORD")
+        print(f"   GET /api/auth/me")
+        
+        response = requests.get(f"{API_BASE}/auth/me", headers=headers)
+        results.assert_equal(response.status_code, 200, "Get user profile returns 200 status")
+        
+        if response.status_code == 200:
+            user_profile = response.json()
+            
+            # Verify birth_data is saved
+            results.assert_in("birth_data", user_profile, "User profile contains birth_data")
+            
+            if "birth_data" in user_profile and user_profile["birth_data"]:
+                birth_data_in_profile = user_profile["birth_data"]
+                results.assert_equal(
+                    birth_data_in_profile.get("birth_datetime_local"), 
+                    birth_data["birth_datetime_local"],
+                    "Birth data persisted correctly in user profile"
+                )
+                print(f"   ✅ Birth data in user profile: {birth_data_in_profile.get('birth_datetime_local')}")
+            
+            # Verify computed_profile.astrology exists
+            results.assert_in("computed_profile", user_profile, "User profile contains computed_profile")
+            
+            if "computed_profile" in user_profile and user_profile["computed_profile"]:
+                computed_profile = user_profile["computed_profile"]
+                results.assert_in("astrology", computed_profile, "Computed profile contains astrology")
+                
+                if "astrology" in computed_profile and computed_profile["astrology"]:
+                    astrology_profile = computed_profile["astrology"]
+                    results.assert_in("positions", astrology_profile, "User astrology profile contains positions")
+                    
+                    if "positions" in astrology_profile:
+                        positions = astrology_profile["positions"]
+                        for pos in ["sun", "moon", "ascendant"]:
+                            results.assert_in(pos, positions, f"User astrology profile contains {pos}")
+                        print(f"   ✅ Astrology profile saved in user record with {len(positions)} positions")
+        else:
+            print(f"   ❌ Response: {response.text}")
+        
+        print("\n✅ Birth Details Flow Test Completed")
+        
+    except requests.exceptions.RequestException as e:
+        results.failed += 1
+        results.errors.append(f"Network error: {str(e)}")
+        print(f"❌ Network error: {str(e)}")
+    except Exception as e:
+        results.failed += 1
+        results.errors.append(f"Unexpected error: {str(e)}")
+        print(f"❌ Unexpected error: {str(e)}")
+    
+    return results
+
 def main():
     """Run all tests"""
     print("🚀 Starting Backend API Tests for Project Mirror")
     print(f"Timestamp: {datetime.now().isoformat()}")
     
-    # Run the main test flow
-    results = test_registration_onboarding_astrology_flow()
+    # Run the specific birth details flow test (as requested in review)
+    birth_results = test_birth_details_flow()
     
-    # Print final summary
-    results.print_summary()
+    # Run the main test flow
+    main_results = test_registration_onboarding_astrology_flow()
+    
+    # Combine results
+    total_passed = birth_results.passed + main_results.passed
+    total_failed = birth_results.failed + main_results.failed
+    all_errors = birth_results.errors + main_results.errors
+    
+    # Print combined summary
+    print("\n" + "="*80)
+    print("📊 COMBINED TEST SUMMARY")
+    print("="*80)
+    print(f"Total Tests Passed: {total_passed}")
+    print(f"Total Tests Failed: {total_failed}")
+    
+    if all_errors:
+        print(f"\nErrors ({len(all_errors)}):")
+        for i, error in enumerate(all_errors, 1):
+            print(f"  {i}. {error}")
     
     # Exit with appropriate code
-    if results.failed > 0:
+    if total_failed > 0:
+        print(f"\n💥 {total_failed} tests failed!")
         sys.exit(1)
     else:
         print("\n🎉 All tests passed!")
