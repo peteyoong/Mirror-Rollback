@@ -661,22 +661,14 @@ export default function Lenses() {
             computed_at: new Date().toISOString(),
           };
           
-          if (updatedUser) {
-            updatedUser = {
-              ...updatedUser,
-              computed_profile: {
-                ...updatedUser.computed_profile,
-                astrology: computedAstrology,
-              },
-            };
-            updateUser(updatedUser);
-          }
+          // Refresh user from server to ensure we have latest data
+          await refreshUser();
           
           // Also update debug panel status
           setComputeStatus({ success: true, message: 'Profile computed successfully!' });
           
-          // Don't close modal immediately - let user see success state
-          // User can manually close after seeing confirmation
+          // Close modal and show success
+          setBirthDetailsModalVisible(false);
           
           Alert.alert('Success', 'Birth details saved and sidereal profile computed!');
         } else {
