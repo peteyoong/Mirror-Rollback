@@ -2025,6 +2025,271 @@ async def clear_lens_chat_history(lens_id: str, user = Depends(get_current_user)
     
     return {"deleted_count": result.deleted_count}
 
+# ============== Integrative Chat (Journal-Anchored) ==============
+
+INTEGRATIVE_CHAT_PROMPT = """You are the Integrative Guide within Project Mirror, supporting holistic sense-making across the user's lived experience.
+
+=== PURPOSE ===
+Help users connect patterns across time, reflections, journals, and frameworks.
+You are NOT anchored to a single lens—you can draw from any framework when relevant.
+Prioritize NARRATIVE SYNTHESIS over explanation.
+
+=== CONTEXT AVAILABLE TO YOU ===
+- Recent journal entries (themes, emotions, what's alive)
+- Recent Mirror reflections (daily insights they've received)
+- Lens chat summaries (themes from their framework explorations)
+- Onboarding context (how they relate to self, their intentions)
+
+=== PROJECT MIRROR "EPIPHANY NARRATIVE" STYLE ===
+
+Your responses MUST follow this structure:
+
+1. START WITH THE LIVED EXPERIENCE
+   Begin with what's showing up in their journals or recent reflections.
+   "There's something threading through what you've been writing lately..."
+   "Reading your recent entries, I notice..."
+
+2. NAME THE PATTERN GENTLY
+   Connect threads across time and contexts without labeling.
+   "There seems to be a rhythm here..."
+   "Something keeps surfacing around..."
+
+3. OFFER A REFRAMING STORY OR SYNTHESIS
+   Weave together different pieces into a coherent (but open) narrative.
+   The goal is resonance and recognition—"yes, that's what I've been circling around."
+
+4. ASK 1-2 DEEP REFLECTIVE QUESTIONS
+   Questions that invite genuine inquiry, not leading questions.
+
+5. OPTIONALLY SUGGEST AN EXPERIMENT OR INQUIRY
+   Framed as invitation: "If you're curious, you might..."
+
+=== FRAMEWORK USAGE ===
+
+You may draw from ANY lens when relevant:
+- True Sidereal Astrology (cycles, rhythms, celestial patterns)
+- Human Design (energy types, decision-making, body wisdom)
+- Numerology (number themes, life cycles)
+- Levels of Consciousness (developmental stages, perspective shifts)
+
+RULES FOR FRAMEWORK USE:
+- Never overwhelm with multiple frameworks at once
+- Never equal-weight them—use what's genuinely relevant
+- Frame frameworks as perspectives, not truths: "Through the lens of..."
+- If a framework isn't relevant, don't force it
+- Prioritize the user's LIVED EXPERIENCE over framework explanations
+
+=== MEMORY & TIMELINE AWARENESS ===
+
+Treat their experience as a journey unfolding over time:
+- "Earlier you were exploring... and now there seems to be a shift toward..."
+- "Over the past few entries, something has been emerging..."
+- "This connects to what you reflected on recently about..."
+
+MEMORY RULES:
+- Never quote journal entries verbatim unless asked
+- Reference themes gently, not specifics
+- Allow evolution—don't box them into past statements
+- Memory deepens relevance, not constraints
+
+=== ABSOLUTE GUARDRAILS ===
+
+1. NO PREDICTION: Never predict outcomes or tell them what will happen
+2. NO LABELING: Never assign types, levels, numbers as identity
+3. NO "YOU ARE": Use "you might notice...", "there may be a pattern..."
+4. NO DETERMINISTIC CLAIMS: Everything is perspective, not truth
+5. NO ADVICE: Frame as experiments and invitations, not instructions
+6. MIRROR REMAINS FRAMEWORK-BLIND: If asked about the Mirror, clarify it doesn't use frameworks
+
+=== RESPONSE LENGTH ===
+
+Aim for depth, not breadth:
+- 3-5 sentences of narrative synthesis
+- 1-2 reflective questions
+- 1 optional experiment (if relevant)
+
+Keep it focused—this is a conversation, not an essay."""
+
+class IntegrativeChatMessage(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    role: str  # "user" | "assistant"
+    message_text: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class IntegrativeChatMessageResponse(BaseModel):
+    id: str
+    role: str
+    message_text: str
+    created_at: datetime
+
+@api_router.get("/journal/chat", response_model=List[IntegrativeChatMessageResponse])
+async def get_integrative_chat_history(user = Depends(get_current_user)):
+    """Get integrative chat history for the journal section"""
+    messages = await db.integrative_chat_messages.find({
+        "user_id": user["id"]
+    }).sort("created_at", 1).to_list(100)
+    
+    return [IntegrativeChatMessageResponse(**msg) for msg in messages]
+
+@api_router.post("/journal/chat", response_model=List[IntegrativeChatMessageResponse])
+async def send_integrative_chat_message(chat_input: ChatMessageInput, user = Depends(get_current_user)):
+    """Send a message to the integrative chatbot and get a response"""
+    
+    # Save user message
+    user_message = IntegrativeChatMessage(
+        user_id=user["id"],
+        role="user",
+        message_text=chat_input.message
+    )
+    await db.integrative_chat_messages.insert_one(user_message.dict())
+    
+    # Generate AI response
+    assistant_response_text = "I'm here to help you connect the threads. Let me reflect on what you've shared."
+    
+    if EMERGENT_LLM_KEY:
+        try:
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            
+            # ============== BUILD RICH CONTEXT ==============
+            
+            context_parts = ["=== USER CONTEXT FOR INTEGRATIVE CHAT ===\n"]
+            
+            # 1. Onboarding answers
+            onboarding = user.get("onboarding_answers", {})
+            if onboarding:
+                context_parts.append("ONBOARDING CONTEXT:")
+                context_parts.append(f"- Relationship with self: {onboarding.get('relationship_with_self', 'not specified')}")
+                context_parts.append(f"- Reflection style: {onboarding.get('reflection_style', 'not specified')}")
+                context_parts.append(f"- Desired depth: {onboarding.get('desired_depth', 'moderate')}")
+                context_parts.append(f"- Uncertainty tolerance: {onboarding.get('uncertainty_relationship', 'not specified')}")
+                context_parts.append(f"- Intention: {onboarding.get('intention', 'not specified')}")
+                context_parts.append("")
+            
+            # 2. Recent journal entries (last 5)
+            try:
+                recent_journals = await db.journal_entries.find(
+                    {"user_id": user["id"]}
+                ).sort("created_at", -1).limit(5).to_list(5)
+                
+                if recent_journals:
+                    context_parts.append("RECENT JOURNAL ENTRIES (themes and excerpts, most recent first):")
+                    for i, entry in enumerate(recent_journals):
+                        content = entry.get('content', '')[:400]
+                        if len(entry.get('content', '')) > 400:
+                            content += "..."
+                        date_str = entry.get('created_at', datetime.utcnow()).strftime('%B %d')
+                        context_parts.append(f"\nEntry from {date_str}:\n{content}")
+                    context_parts.append("")
+            except Exception as e:
+                logger.error(f"Failed to fetch journals for integrative chat: {e}")
+            
+            # 3. Recent Mirror reflections (last 3)
+            try:
+                recent_reflections = await db.daily_reflections.find(
+                    {"user_id": user["id"]}
+                ).sort("created_at", -1).limit(3).to_list(3)
+                
+                if recent_reflections:
+                    context_parts.append("RECENT MIRROR REFLECTIONS (daily insights they received):")
+                    for ref in recent_reflections:
+                        date_str = ref.get('date_key', 'recent')
+                        insight = ref.get('todays_insight', '')[:200]
+                        reflect_on = ref.get('reflect_on', '')
+                        context_parts.append(f"\n{date_str}:")
+                        context_parts.append(f"Insight: {insight}...")
+                        context_parts.append(f"Reflection prompt: {reflect_on}")
+                    context_parts.append("")
+            except Exception as e:
+                logger.error(f"Failed to fetch reflections for integrative chat: {e}")
+            
+            # 4. Lens chat summaries (recent themes from each lens)
+            try:
+                lens_summaries = []
+                for lens_key in ["astrology", "human_design", "numerology", "consciousness"]:
+                    lens_messages = await db.lens_chat_messages.find({
+                        "user_id": user["id"],
+                        "lens_key": lens_key
+                    }).sort("created_at", -1).limit(5).to_list(5)
+                    
+                    if lens_messages:
+                        # Extract user messages to understand themes
+                        user_msgs = [m['message_text'][:150] for m in lens_messages if m['role'] == 'user'][:3]
+                        if user_msgs:
+                            lens_name = {
+                                "astrology": "True Sidereal Astrology",
+                                "human_design": "Human Design",
+                                "numerology": "Numerology",
+                                "consciousness": "Levels of Consciousness"
+                            }.get(lens_key, lens_key)
+                            lens_summaries.append(f"{lens_name}: User has been exploring topics like: {'; '.join(user_msgs)}")
+                
+                if lens_summaries:
+                    context_parts.append("LENS EXPLORATION THEMES (what they've been curious about in each lens):")
+                    context_parts.extend(lens_summaries)
+                    context_parts.append("")
+            except Exception as e:
+                logger.error(f"Failed to fetch lens summaries for integrative chat: {e}")
+            
+            # 5. Integrative chat history
+            try:
+                chat_history = await db.integrative_chat_messages.find({
+                    "user_id": user["id"]
+                }).sort("created_at", 1).to_list(20)
+                
+                conversation = []
+                for msg in chat_history[:-1]:  # Exclude the message we just added
+                    conversation.append(f"{msg['role'].upper()}: {msg['message_text']}")
+                
+                if conversation:
+                    context_parts.append("CONVERSATION HISTORY:")
+                    context_parts.extend(conversation[-10:])
+                    context_parts.append("")
+            except Exception as e:
+                logger.error(f"Failed to fetch integrative chat history: {e}")
+            
+            context_parts.append("=== END USER CONTEXT ===\n")
+            context_parts.append(f"USER'S CURRENT MESSAGE: {chat_input.message}")
+            context_parts.append("")
+            context_parts.append("Generate your response following the Epiphany Narrative style in your instructions.")
+            
+            user_prompt = "\n".join(context_parts)
+            
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"integrative-chat-{user['id'][:8]}",
+                system_message=INTEGRATIVE_CHAT_PROMPT
+            ).with_model("openai", "gpt-4o")
+            
+            response = await chat.send_message(UserMessage(text=user_prompt))
+            assistant_response_text = response.strip()
+            
+        except Exception as e:
+            logger.error(f"Failed to generate integrative chat response: {str(e)}")
+            assistant_response_text = "I'm having trouble connecting right now. Could you share more about what's on your mind, and I'll do my best to help you see the patterns?"
+    
+    # Save assistant response
+    assistant_message = IntegrativeChatMessage(
+        user_id=user["id"],
+        role="assistant",
+        message_text=assistant_response_text
+    )
+    await db.integrative_chat_messages.insert_one(assistant_message.dict())
+    
+    # Return the new messages
+    return [
+        IntegrativeChatMessageResponse(**user_message.dict()),
+        IntegrativeChatMessageResponse(**assistant_message.dict())
+    ]
+
+@api_router.delete("/journal/chat")
+async def clear_integrative_chat_history(user = Depends(get_current_user)):
+    """Clear integrative chat history"""
+    result = await db.integrative_chat_messages.delete_many({
+        "user_id": user["id"]
+    })
+    return {"deleted_count": result.deleted_count}
+
 # Include the router in the main app
 app.include_router(api_router)
 
