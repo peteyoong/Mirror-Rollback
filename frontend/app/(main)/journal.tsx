@@ -687,6 +687,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  chatOptionsButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chatOptionsMenu: {
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+  },
+  chatOptionsItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: SPACING.sm,
+    gap: SPACING.sm,
+  },
+  chatOptionsItemText: {
+    fontSize: 14,
+    color: '#CC6666',
+  },
+  chatOptionsWarning: {
+    fontSize: 12,
+    color: COLORS.secondary,
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
   chatMessagesContainer: {
     flex: 1,
   },
