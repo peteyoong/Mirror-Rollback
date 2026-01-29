@@ -2174,27 +2174,32 @@ export default function Lenses() {
             {/* Quick Location Selection */}
             <View style={styles.birthDetailsField}>
               <Text style={styles.birthDetailsLabel}>Birth Location</Text>
-              <Text style={styles.birthDetailsHint}>Select a city or enter coordinates manually</Text>
+              <Text style={styles.birthDetailsHint}>
+                Select a city OR enter coordinates manually below
+              </Text>
               <View style={styles.quickLocationGrid}>
                 {QUICK_LOCATIONS.map((loc) => (
                   <TouchableOpacity
                     key={loc.name}
                     style={[
                       styles.quickLocationChip,
-                      birthLat === String(loc.lat) && birthLon === String(loc.lon) && styles.quickLocationChipSelected
+                      !locationManuallyEdited && birthLat === String(loc.lat) && birthLon === String(loc.lon) && styles.quickLocationChipSelected
                     ]}
-                    onPress={() => {
-                      setBirthLat(String(loc.lat));
-                      setBirthLon(String(loc.lon));
-                    }}
+                    onPress={() => handleCitySelect(loc.lat, loc.lon)}
+                    activeOpacity={0.7}
                   >
                     <Text style={[
                       styles.quickLocationChipText,
-                      birthLat === String(loc.lat) && birthLon === String(loc.lon) && styles.quickLocationChipTextSelected
+                      !locationManuallyEdited && birthLat === String(loc.lat) && birthLon === String(loc.lon) && styles.quickLocationChipTextSelected
                     ]}>{loc.name}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
+              {locationManuallyEdited && (
+                <Text style={styles.birthDetailsManualNote}>
+                  📍 Using manual coordinates (city chips disabled)
+                </Text>
+              )}
             </View>
 
             {/* Manual Coordinates */}
@@ -2204,7 +2209,7 @@ export default function Lenses() {
                 <TextInput
                   style={styles.birthDetailsTextInput}
                   value={birthLat}
-                  onChangeText={setBirthLat}
+                  onChangeText={handleLatChange}
                   placeholder="40.7128"
                   placeholderTextColor="#999"
                   keyboardType="decimal-pad"
@@ -2215,7 +2220,7 @@ export default function Lenses() {
                 <TextInput
                   style={styles.birthDetailsTextInput}
                   value={birthLon}
-                  onChangeText={setBirthLon}
+                  onChangeText={handleLonChange}
                   placeholder="-74.0060"
                   placeholderTextColor="#999"
                   keyboardType="decimal-pad"
