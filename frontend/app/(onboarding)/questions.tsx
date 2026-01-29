@@ -328,40 +328,47 @@ export default function OnboardingQuestions() {
       >
         <Text style={styles.question}>{currentQuestion.question}</Text>
 
-        <View style={styles.options}>
-          {currentQuestion.options.map((option) => (
-            <TouchableOpacity
-              key={option.value}
-              style={[
-                styles.option,
-                answers[currentQuestion.id] === option.value && styles.optionSelected,
-              ]}
-              onPress={() => handleSelect(option.value)}
-            >
-              <Text
+        {currentQuestion.type === 'options' && currentQuestion.options && (
+          <View style={styles.options}>
+            {currentQuestion.options.map((option) => (
+              <TouchableOpacity
+                key={option.value}
                 style={[
-                  styles.optionText,
-                  answers[currentQuestion.id] === option.value && styles.optionTextSelected,
+                  styles.option,
+                  answers[currentQuestion.id] === option.value && styles.optionSelected,
                 ]}
+                onPress={() => handleSelect(option.value)}
               >
-                {option.label}
-              </Text>
-              {answers[currentQuestion.id] === option.value && (
-                <Ionicons name="checkmark" size={20} color={COLORS.accent} />
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
+                <Text
+                  style={[
+                    styles.optionText,
+                    answers[currentQuestion.id] === option.value && styles.optionTextSelected,
+                  ]}
+                >
+                  {option.label}
+                </Text>
+                {answers[currentQuestion.id] === option.value && (
+                  <Ionicons name="checkmark" size={20} color={COLORS.accent} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {currentQuestion.type === 'birthdata' && renderBirthDataForm()}
       </ScrollView>
 
       <View style={styles.footer}>
         <TouchableOpacity
           style={[
             styles.continueButton,
-            !answers[currentQuestion.id] && styles.continueButtonDisabled,
+            (currentQuestion.type === 'options' && !answers[currentQuestion.id]) && styles.continueButtonDisabled,
+            (currentQuestion.type === 'birthdata' && !canProceedBirthData()) && styles.continueButtonDisabled,
           ]}
           onPress={handleNext}
-          disabled={!answers[currentQuestion.id] || loading}
+          disabled={(currentQuestion.type === 'options' && !answers[currentQuestion.id]) || 
+                    (currentQuestion.type === 'birthdata' && !canProceedBirthData()) || 
+                    loading}
         >
           {loading ? (
             <ActivityIndicator color={COLORS.white} />
