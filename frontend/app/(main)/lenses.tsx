@@ -455,6 +455,10 @@ export default function Lenses() {
     setBirthModalError(null);
     setSavedUserId(null);
     setLocationManuallyEdited(false);
+    setSelectedCountry('');
+    setSelectedCity('');
+    setShowCountryPicker(false);
+    setShowCityPicker(false);
     
     if (userBirthData) {
       // Pre-populate from existing data
@@ -467,6 +471,22 @@ export default function Lenses() {
       setBirthTzOffset(String(userBirthData.tz_offset_minutes || 480));
       setBirthLat(String(userBirthData.latitude || ''));
       setBirthLon(String(userBirthData.longitude || ''));
+      
+      // Try to find matching country/city from existing coordinates
+      const lat = userBirthData.latitude;
+      const lon = userBirthData.longitude;
+      if (lat && lon) {
+        for (const [country, cities] of Object.entries(CITY_DATABASE)) {
+          const matchingCity = cities.find(c => 
+            Math.abs(c.lat - lat) < 0.1 && Math.abs(c.lon - lon) < 0.1
+          );
+          if (matchingCity) {
+            setSelectedCountry(country);
+            setSelectedCity(matchingCity.city);
+            break;
+          }
+        }
+      }
     } else {
       // Reset to defaults
       setBirthDate(new Date(1990, 0, 1, 12, 0));
