@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Project Mirror
-Tests all backend APIs including auth, onboarding, mirror, journal, and lenses
+Backend API Testing for Project Mirror - Lens Chat APIs
+Focus: Testing the new Lens Chat functionality
 """
 
 import requests
 import json
 import uuid
 from datetime import datetime
+import os
+from dotenv import load_dotenv
 
-# Base URL from frontend .env
-BASE_URL = "https://mirror-insights.preview.emergentagent.com/api"
+# Load environment variables
+load_dotenv('/app/frontend/.env')
+
+# Get backend URL from frontend env
+BACKEND_URL = os.getenv('EXPO_PUBLIC_BACKEND_URL', 'http://localhost:8001')
+BASE_URL = f"{BACKEND_URL}/api"
 
 class ProjectMirrorTester:
     def __init__(self):
