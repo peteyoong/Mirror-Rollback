@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../src/services/api';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../src/constants/theme';
 import { useAuth } from '../../src/context/AuthContext';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface Lens {
   id: string;
