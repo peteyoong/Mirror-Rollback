@@ -2488,6 +2488,30 @@ class SiderealComputeResponse(BaseModel):
     positions: dict
     input_echo: dict
 
+class ComputedProfileInput(BaseModel):
+    birth_datetime_local: str
+    tz_offset_minutes: int
+    latitude: float
+    longitude: float
+    location_name: Optional[str] = None
+    ayanamsa: str = "FAGAN_BRADLEY"
+
+class ComputedAstrologyProfile(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    birth_datetime_local: str
+    tz_offset_minutes: int
+    latitude: float
+    longitude: float
+    location_name: Optional[str] = None
+    ayanamsa: str
+    positions: dict
+    computed_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ComputedAstrologyResponse(BaseModel):
+    has_profile: bool
+    profile: Optional[dict] = None
+
 def longitude_to_sign_position(longitude: float) -> tuple:
     """Convert absolute longitude to sign and degree within sign"""
     sign_index = int(longitude // 30)
