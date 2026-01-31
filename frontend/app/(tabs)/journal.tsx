@@ -235,6 +235,18 @@ const styles = StyleSheet.create({
     marginRight: 12,
     textAlignVertical: 'top',
   },
+  inputActions: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+  dismissButton: {
+    width: 48,
+    height: 48,
+    backgroundColor: Colors.surfaceLight,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   submitButton: {
     width: 48,
     height: 48,
