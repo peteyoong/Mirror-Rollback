@@ -27,6 +27,7 @@ export default function JournalScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     loadEntries();
@@ -49,6 +50,9 @@ export default function JournalScreen() {
   const handleSubmit = async () => {
     if (!user || !newEntry.trim() || isSubmitting) return;
 
+    // Dismiss keyboard
+    Keyboard.dismiss();
+
     setIsSubmitting(true);
     setError('');
 
@@ -62,6 +66,10 @@ export default function JournalScreen() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
   };
 
   if (!user) {
@@ -81,79 +89,96 @@ export default function JournalScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        <View style={styles.content}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Journal</Text>
-            <Text style={styles.subtitle}>
-              A private space for your thoughts and reflections.
-            </Text>
-          </View>
-
-          {/* New Entry Input */}
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              value={newEntry}
-              onChangeText={setNewEntry}
-              placeholder="What's on your mind?"
-              placeholderTextColor={Colors.textTertiary}
-              multiline
-              maxLength={2000}
-              editable={!isSubmitting}
-            />
-            <TouchableOpacity
-              style={[
-                styles.submitButton,
-                (!newEntry.trim() || isSubmitting) && styles.submitButtonDisabled,
-              ]}
-              onPress={handleSubmit}
-              disabled={!newEntry.trim() || isSubmitting}
-            >
-              {isSubmitting ? (
-                <ActivityIndicator size="small" color={Colors.background} />
-              ) : (
-                <Ionicons name="checkmark" size={20} color={Colors.background} />
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {error && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          )}
-
-          {/* Entries List */}
-          {isLoading ? (
-            <View style={styles.centered}>
-              <ActivityIndicator size="large" color={Colors.textSecondary} />
-            </View>
-          ) : journalEntries.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="book-outline" size={48} color={Colors.textTertiary} />
-              <Text style={styles.emptyText}>No entries yet</Text>
-              <Text style={styles.emptySubtext}>
-                Start journaling to track your reflections over time.
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
+          <View style={styles.content}>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.title}>Journal</Text>
+              <Text style={styles.subtitle}>
+                A private space for your thoughts and reflections.
               </Text>
             </View>
-          ) : (
-            <FlatList
-              data={journalEntries}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <JournalEntryItem
-                  content={item.content}
-                  created_at={item.created_at}
-                  themes={item.themes}
-                />
-              )}
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={false}
-            />
-          )}
-        </View>
+
+            {/* New Entry Input */}
+            <View style={styles.inputContainer}>
+              <TextInput
+                ref={inputRef}
+                style={styles.input}
+                value={newEntry}
+                onChangeText={setNewEntry}
+                placeholder="What's on your mind?"
+                placeholderTextColor={Colors.textTertiary}
+                multiline
+                maxLength={2000}
+                editable={!isSubmitting}
+                returnKeyType="default"
+                blurOnSubmit={false}
+              />
+              <View style={styles.inputActions}>
+                {newEntry.trim().length > 0 && (
+                  <TouchableOpacity
+                    style={styles.dismissButton}
+                    onPress={dismissKeyboard}
+                  >
+                    <Ionicons name="chevron-down" size={20} color={Colors.textSecondary} />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={[
+                    styles.submitButton,
+                    (!newEntry.trim() || isSubmitting) && styles.submitButtonDisabled,
+                  ]}
+                  onPress={handleSubmit}
+                  disabled={!newEntry.trim() || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator size="small" color={Colors.background} />
+                  ) : (
+                    <Ionicons name="checkmark" size={20} color={Colors.background} />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            {/* Entries List */}
+            {isLoading ? (
+              <View style={styles.centered}>
+                <ActivityIndicator size="large" color={Colors.textSecondary} />
+              </View>
+            ) : journalEntries.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="book-outline" size={48} color={Colors.textTertiary} />
+                <Text style={styles.emptyText}>No entries yet</Text>
+                <Text style={styles.emptySubtext}>
+                  Start journaling to track your reflections over time.
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={journalEntries}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <JournalEntryItem
+                    content={item.content}
+                    created_at={item.created_at}
+                    themes={item.themes}
+                  />
+                )}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+                keyboardDismissMode="on-drag"
+              />
+            )}
+          </View>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 
       {/* Persistent Chatbot */}
