@@ -55,14 +55,14 @@ export default function Onboarding() {
   const justSelectedRef = useRef(false);
 
   const handleSearchLocation = async (query: string) => {
-    setLocationQuery(query);
-    
     // If we just selected a location, don't search again
-    if (justSelected) {
-      setJustSelected(false);
+    if (justSelectedRef.current) {
+      justSelectedRef.current = false;
+      setLocationQuery(query);
       return;
     }
     
+    setLocationQuery(query);
     setSelectedLocation(null);
     setError('');
 
@@ -77,18 +77,17 @@ export default function Onboarding() {
       setLocations(results || []);
     } catch (err: any) {
       console.error('Location search error:', err);
-      // Don't show error if we have no query
-      if (query.length >= 3) {
-        setError('Unable to search locations. Please try again.');
+      // Only show error if we don't have a selected location
+      if (!selectedLocation) {
+        setLocations([]);
       }
-      setLocations([]);
     } finally {
       setIsSearching(false);
     }
   };
 
   const handleSelectLocation = (location: Location) => {
-    setJustSelected(true); // Prevent re-search
+    justSelectedRef.current = true; // Prevent re-search (synchronous)
     setSelectedLocation(location);
     setLocationQuery(`${location.city}, ${location.country}`);
     setLocations([]);
