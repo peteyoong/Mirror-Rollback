@@ -37,6 +37,16 @@ interface CachedReflection {
   textHash: string;
 }
 
+// Interface for timeline events
+interface TimelineEvent {
+  created_at_iso: string;
+  inferred_state: string;
+  confidence: number;
+  themes: string[];
+  tension: string | null;
+  event_type: string;
+}
+
 // Simple hash function for text comparison
 function hashText(text: string): string {
   const normalized = text.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -49,7 +59,36 @@ function hashText(text: string): string {
   return hash.toString();
 }
 
-type ViewMode = 'journal' | 'mirror';
+// Format relative time
+function formatRelativeTime(isoDate: string): string {
+  const date = new Date(isoDate);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+// Format state for display
+function formatState(state: string): string {
+  const labels: Record<string, string> = {
+    'grounding': 'Grounding',
+    'stabilizing': 'Stabilizing',
+    'exploring': 'Exploring',
+    'integrating': 'Integrating',
+    'unclear': 'In flux',
+  };
+  return labels[state] || state;
+}
+
+type ViewMode = 'journal' | 'mirror' | 'timeline';
 
 export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
