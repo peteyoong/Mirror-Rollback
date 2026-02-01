@@ -328,10 +328,9 @@ export default function LensDetail() {
   
   // Render personalized Astrology snapshot (compact version for summary)
   const renderAstrologySnapshotCompact = () => {
-    if (!chartDetails?.astrology) return null;
+    if (!hasAstrologyInResponse) return null;
     
-    const { sun, moon, rising } = chartDetails.astrology;
-    
+    // Use component-level sun, moon, asc variables (with hardened field mapping)
     return (
       <View style={styles.snapshotCard}>
         <View style={styles.snapshotHeader}>
@@ -339,31 +338,37 @@ export default function LensDetail() {
           <Text style={styles.snapshotTitle}>Your Sidereal Snapshot</Text>
         </View>
         
-        {/* Sun/Moon/Ascendant rows */}
+        {/* Sun/Moon/Ascendant rows - only render if data exists */}
         <View style={styles.snapshotRows}>
-          <View style={styles.snapshotRow}>
-            <View style={styles.snapshotRowIcon}>
-              <Ionicons name="sunny" size={18} color={Colors.text} />
+          {hasSun && (
+            <View style={styles.snapshotRow}>
+              <View style={styles.snapshotRowIcon}>
+                <Ionicons name="sunny" size={18} color={Colors.text} />
+              </View>
+              <Text style={styles.snapshotRowLabel}>Sun</Text>
+              <Text style={styles.snapshotRowValue}>{formatPlanetPosition(sun)}</Text>
             </View>
-            <Text style={styles.snapshotRowLabel}>Sun</Text>
-            <Text style={styles.snapshotRowValue}>{formatPlanetPosition(sun)}</Text>
-          </View>
+          )}
           
-          <View style={styles.snapshotRow}>
-            <View style={styles.snapshotRowIcon}>
-              <Ionicons name="moon" size={18} color={Colors.text} />
+          {hasMoon && (
+            <View style={styles.snapshotRow}>
+              <View style={styles.snapshotRowIcon}>
+                <Ionicons name="moon" size={18} color={Colors.text} />
+              </View>
+              <Text style={styles.snapshotRowLabel}>Moon</Text>
+              <Text style={styles.snapshotRowValue}>{formatPlanetPosition(moon)}</Text>
             </View>
-            <Text style={styles.snapshotRowLabel}>Moon</Text>
-            <Text style={styles.snapshotRowValue}>{formatPlanetPosition(moon)}</Text>
-          </View>
+          )}
           
-          <View style={styles.snapshotRow}>
-            <View style={styles.snapshotRowIcon}>
-              <Ionicons name="arrow-up-circle" size={18} color={Colors.text} />
+          {hasAscendant && (
+            <View style={styles.snapshotRow}>
+              <View style={styles.snapshotRowIcon}>
+                <Ionicons name="arrow-up-circle" size={18} color={Colors.text} />
+              </View>
+              <Text style={styles.snapshotRowLabel}>Ascendant</Text>
+              <Text style={styles.snapshotRowValue}>{formatPlanetPosition(asc)}</Text>
             </View>
-            <Text style={styles.snapshotRowLabel}>Ascendant</Text>
-            <Text style={styles.snapshotRowValue}>{formatPlanetPosition(rising)}</Text>
-          </View>
+          )}
         </View>
         
         {/* System label - neutral copy */}
