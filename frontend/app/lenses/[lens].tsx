@@ -573,13 +573,13 @@ export default function LensDetail() {
               </View>
             )}
             
-            {hasAscendant && (
+            {hasRising && (
               <View style={styles.snapshotRow}>
                 <View style={styles.snapshotRowIcon}>
                   <Ionicons name="arrow-up-circle" size={18} color={Colors.text} />
                 </View>
                 <Text style={styles.snapshotRowLabel}>Ascendant</Text>
-                <Text style={styles.snapshotRowValue}>{formatPlanetPosition(asc)}</Text>
+                <Text style={styles.snapshotRowValue}>{formatPlanetPosition(rising)}</Text>
               </View>
             )}
           </View>
@@ -593,19 +593,19 @@ export default function LensDetail() {
           </Text>
         </View>
 
-        {/* All Planets */}
+        {/* PROMPT 3: Planetary Positions from astrology.planets[] array */}
         {hasPlanets ? (
           <View style={styles.deepDiveSection}>
             <Text style={styles.deepDiveSectionTitle}>Planetary Positions</Text>
             
-            {planets.map((planet: any) => (
-              <View key={planet.name} style={styles.planetRow}>
-                <Text style={styles.planetName}>{planet.name}</Text>
+            {planets.map((planet: any, index: number) => (
+              <View key={planet.name || index} style={styles.planetRow}>
+                <Text style={styles.planetName}>{planet.name || '—'}</Text>
                 <View style={styles.planetDetails}>
-                  <Text style={styles.planetSign}>{planet.sign || 'Unknown'}</Text>
-                  {planet.degree != null && (
-                    <Text style={styles.planetDegree}>{formatDegreeMinutes(planet.degree)}</Text>
-                  )}
+                  {/* PROMPT 3: Use formatted if available, else sign+degree */}
+                  <Text style={styles.planetSign}>
+                    {planet.formatted || (planet.sign ? `${planet.sign} ${planet.degree != null ? formatDegreeMinutes(planet.degree) : ''}` : '—')}
+                  </Text>
                   {planet.house && (
                     <Text style={styles.planetHouse}>H{planet.house}</Text>
                   )}
@@ -620,16 +620,19 @@ export default function LensDetail() {
           </View>
         )}
 
-        {/* All Houses */}
+        {/* PROMPT 3: House Cusps from astrology.houses[] array */}
         {hasHouses ? (
           <View style={styles.deepDiveSection}>
             <Text style={styles.deepDiveSectionTitle}>House Cusps</Text>
             <Text style={styles.deepDiveSectionSubtitle}>Equal House System</Text>
             
-            {houses.map((house: any) => (
-              <View key={house.house} style={styles.houseRow}>
-                <Text style={styles.houseRowNumber}>House {house.house}</Text>
-                <Text style={styles.houseRowSign}>{house.formatted || `${house.sign} ${formatDegreeMinutes(house.degree)}`}</Text>
+            {houses.map((house: any, index: number) => (
+              <View key={house.house || index} style={styles.houseRow}>
+                <Text style={styles.houseRowNumber}>House {house.house || index + 1}</Text>
+                {/* PROMPT 3: Use formatted if available, else sign+degree */}
+                <Text style={styles.houseRowSign}>
+                  {house.formatted || (house.sign ? `${house.sign} ${house.degree != null ? formatDegreeMinutes(house.degree) : ''}` : '—')}
+                </Text>
               </View>
             ))}
           </View>
@@ -646,21 +649,29 @@ export default function LensDetail() {
           <Text style={styles.comingSoonText}>Aspects analysis coming soon</Text>
         </View>
 
-        {/* System metadata */}
-        <View style={styles.systemLabel}>
-          <Text style={styles.systemLabelText}>
-            Calculated using {getSiderealSystemLabel()}
-          </Text>
-        </View>
-        
-        {/* Debug/System metadata - computation version */}
-        {chartDetails.computation_version && (
-          <View style={styles.systemLabel}>
-            <Text style={styles.systemLabelText}>
-              Engine: {chartDetails.computation_version}
-            </Text>
+        {/* PROMPT 4: System metadata - neutral label + computation info */}
+        <View style={styles.deepDiveSystemSection}>
+          <Text style={styles.deepDiveSystemTitle}>System</Text>
+          
+          <View style={styles.systemMetaRow}>
+            <Text style={styles.systemMetaLabel}>Positions</Text>
+            <Text style={styles.systemMetaValue}>{getSiderealSystemLabel()}</Text>
           </View>
-        )}
+          
+          {chartDetails.computation_version && (
+            <View style={styles.systemMetaRow}>
+              <Text style={styles.systemMetaLabel}>Engine</Text>
+              <Text style={styles.systemMetaValue}>{chartDetails.computation_version}</Text>
+            </View>
+          )}
+          
+          {astrology?.chart_type && (
+            <View style={styles.systemMetaRow}>
+              <Text style={styles.systemMetaLabel}>Chart Type</Text>
+              <Text style={styles.systemMetaValue}>{astrology.chart_type}</Text>
+            </View>
+          )}
+        </View>
 
         {/* Navigation buttons */}
         <View style={styles.modeNavigation}>
