@@ -228,14 +228,40 @@ def calculate_centers(personality_gates: List[int], design_gates: List[int]) -> 
     
     return defined_centers
 
-def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float) -> Dict:
-    """Calculate complete Human Design bodygraph"""
-    # Get Personality (Conscious) chart at birth
-    personality_chart = get_full_natal_chart(birth_datetime, lat, lon)
+def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
+                           sidereal_settings: Dict = None) -> Dict:
+    """Calculate complete Human Design bodygraph
     
-    # Get Design (Unconscious) chart 88 days before birth
-    design_datetime = calculate_design_date(birth_datetime)
-    design_chart = get_full_natal_chart(design_datetime, lat, lon)
+    Args:
+        birth_datetime: UTC birth datetime
+        lat: Geographic latitude
+        lon: Geographic longitude  
+        sidereal_settings: Optional sidereal settings override
+    
+    Returns:
+        Dict with HD type, authority, profile, gates, design date info
+    """
+    # Default sidereal settings
+    if sidereal_settings is None:
+        sidereal_settings = {
+            "mode": "true_sidereal_user_defined",
+            "svp_degrees": 31.2836,
+            "reference_year": 2000,
+            "yearly_increment": 0.0
+        }
+    
+    svp_degrees = sidereal_settings.get("svp_degrees", 31.2836)
+    
+    # Get Personality (Conscious) chart at birth
+    personality_chart = get_full_natal_chart(birth_datetime, lat, lon, sidereal_settings)
+    
+    # Calculate Design date using numerical solver
+    design_datetime, design_offset_degrees, design_debug = calculate_design_date(
+        birth_datetime, lat, lon, svp_degrees
+    )
+    
+    # Get Design (Unconscious) chart at solved design date
+    design_chart = get_full_natal_chart(design_datetime, lat, lon, sidereal_settings)
     
     # Extract key planets for Human Design
     hd_planets = ['Sun', 'Earth', 'North Node', 'South Node', 'Moon']
