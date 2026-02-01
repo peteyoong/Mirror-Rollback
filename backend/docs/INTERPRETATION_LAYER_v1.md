@@ -1,6 +1,16 @@
+<!-- =======================================================================
+STATUS: APPROVED DESIGN DOCUMENT
+=======================================================================
+This document defines the contract for the Interpretation Layer.
+No implementation is allowed until a dedicated scope-locked session begins.
+
+Approved: 2025-06
+Computation Core Version: mirror-deterministic-v1
+======================================================================= -->
+
 # Interpretation Layer v1 (Non-deterministic)
 
-**Status:** PLANNING - NOT YET IMPLEMENTED  
+**Status:** ✅ APPROVED DESIGN - IMPLEMENTATION BLOCKED  
 **Document Created:** 2025-06  
 **Depends On:** Deterministic Computation Core (mirror-deterministic-v1)
 
