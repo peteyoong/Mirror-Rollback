@@ -1708,6 +1708,18 @@ async def mirror_chat(request: MirrorChatRequest):
     - lens="human_design": Constrained to Human Design lens
     - lens="numerology": Constrained to numerology lens
     """
+    is_lens = request.lens is not None
+    
+    # ===== RATE LIMITING =====
+    if not check_rate_limit(request.user_id, is_lens):
+        remaining = get_rate_limit_remaining(request.user_id, is_lens)
+        limit_type = "lens" if is_lens else "mirror"
+        logger.warning(f"Rate limit exceeded for user {request.user_id}, type={limit_type}")
+        raise HTTPException(
+            status_code=429, 
+            detail="Mirror needs a pause. Try again in a little while."
+        )
+    
     try:
         if not EMERGENT_LLM_KEY:
             raise HTTPException(status_code=500, detail="AI service not configured")
