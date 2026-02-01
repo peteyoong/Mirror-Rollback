@@ -402,6 +402,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     borderWidth: 1,
     borderColor: Colors.border,
+    minHeight: 52,
   },
   hint: {
     fontSize: 12,
