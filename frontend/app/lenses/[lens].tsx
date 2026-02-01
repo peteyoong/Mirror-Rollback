@@ -631,6 +631,17 @@ export default function LensDetail() {
 
           {/* Personalized Mirror Moment (Human Design only) */}
           {renderHDMirrorMoment()}
+
+          {/* Ask About This Lens Button (Astrology and Human Design only) */}
+          {(lens === 'astrology' || lens === 'human_design') && user && (
+            <TouchableOpacity 
+              style={styles.askLensButton}
+              onPress={() => setLensChatVisible(true)}
+            >
+              <Ionicons name="chatbubble-ellipses-outline" size={18} color={Colors.accent} />
+              <Text style={styles.askLensButtonText}>Ask about this lens</Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
 
         {/* Chat Input */}
