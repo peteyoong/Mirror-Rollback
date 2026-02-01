@@ -523,6 +523,7 @@ async def get_chart(user_id: str):
         
         # Convert ObjectId to string
         chart["_id"] = str(chart["_id"])
+        chart["computation_version"] = "mirror-deterministic-v1"
         return chart
     except Exception as e:
         logger.error(f"Get chart error: {e}")
