@@ -17,17 +17,21 @@ import { StatusBar } from 'expo-status-bar';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import JournalEntryItem from '../../components/JournalEntryItem';
-import ChatBot from '../../components/ChatBot';
+import MirrorReflectionModal from '../../components/MirrorReflectionModal';
 import { createJournalEntry, getJournalEntries } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function JournalScreen() {
-  const { user, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
+  const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
   const [newEntry, setNewEntry] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef<TextInput>(null);
+  
+  // Mirror Reflection Modal state
+  const [reflectionModalVisible, setReflectionModalVisible] = useState(false);
+  const [selectedJournalText, setSelectedJournalText] = useState('');
 
   useEffect(() => {
     loadEntries();
@@ -72,10 +76,24 @@ export default function JournalScreen() {
     Keyboard.dismiss();
   };
 
+  // Handle "Reflect with Mirror" tap
+  const handleReflect = (content: string) => {
+    setSelectedJournalText(content);
+    setReflectionModalVisible(true);
+  };
+
+  // Handle reflect on current input (before submitting)
+  const handleReflectCurrentEntry = () => {
+    if (newEntry.trim()) {
+      setSelectedJournalText(newEntry.trim());
+      setReflectionModalVisible(true);
+    }
+  };
+
   if (!user) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <View style={styles.centered}>
           <Text style={styles.errorText}>No user found</Text>
         </View>
@@ -85,7 +103,7 @@ export default function JournalScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -102,44 +120,57 @@ export default function JournalScreen() {
             </View>
 
             {/* New Entry Input */}
-            <View style={styles.inputContainer}>
-              <TextInput
-                ref={inputRef}
-                style={styles.input}
-                value={newEntry}
-                onChangeText={setNewEntry}
-                placeholder="What's on your mind?"
-                placeholderTextColor={Colors.textTertiary}
-                multiline
-                maxLength={2000}
-                editable={!isSubmitting}
-                returnKeyType="default"
-                blurOnSubmit={false}
-              />
-              <View style={styles.inputActions}>
-                {newEntry.trim().length > 0 && (
-                  <TouchableOpacity
-                    style={styles.dismissButton}
-                    onPress={dismissKeyboard}
-                  >
-                    <Ionicons name="chevron-down" size={20} color={Colors.textSecondary} />
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  style={[
-                    styles.submitButton,
-                    (!newEntry.trim() || isSubmitting) && styles.submitButtonDisabled,
-                  ]}
-                  onPress={handleSubmit}
-                  disabled={!newEntry.trim() || isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <ActivityIndicator size="small" color={Colors.background} />
-                  ) : (
-                    <Ionicons name="checkmark" size={20} color={Colors.background} />
+            <View style={styles.inputSection}>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  ref={inputRef}
+                  style={styles.input}
+                  value={newEntry}
+                  onChangeText={setNewEntry}
+                  placeholder="What's on your mind?"
+                  placeholderTextColor={Colors.textTertiary}
+                  multiline
+                  maxLength={2000}
+                  editable={!isSubmitting}
+                  returnKeyType="default"
+                  blurOnSubmit={false}
+                />
+                <View style={styles.inputActions}>
+                  {newEntry.trim().length > 0 && (
+                    <TouchableOpacity
+                      style={styles.dismissButton}
+                      onPress={dismissKeyboard}
+                    >
+                      <Ionicons name="chevron-down" size={20} color={Colors.textSecondary} />
+                    </TouchableOpacity>
                   )}
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.submitButton,
+                      (!newEntry.trim() || isSubmitting) && styles.submitButtonDisabled,
+                    ]}
+                    onPress={handleSubmit}
+                    disabled={!newEntry.trim() || isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <ActivityIndicator size="small" color={Colors.background} />
+                    ) : (
+                      <Ionicons name="checkmark" size={20} color={Colors.background} />
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
+              
+              {/* Reflect with Mirror button for current entry */}
+              {newEntry.trim().length > 20 && (
+                <TouchableOpacity 
+                  style={styles.reflectCurrentButton}
+                  onPress={handleReflectCurrentEntry}
+                >
+                  <Ionicons name="sparkles-outline" size={16} color={Colors.accent} />
+                  <Text style={styles.reflectCurrentText}>Reflect with Mirror</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {error && (
@@ -170,6 +201,7 @@ export default function JournalScreen() {
                     content={item.content}
                     created_at={item.created_at}
                     themes={item.themes}
+                    onReflect={handleReflect}
                   />
                 )}
                 contentContainerStyle={styles.listContent}
@@ -181,8 +213,13 @@ export default function JournalScreen() {
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 
-      {/* Persistent Chatbot */}
-      <ChatBot userId={user.id} />
+      {/* Mirror Reflection Modal */}
+      <MirrorReflectionModal
+        visible={reflectionModalVisible}
+        onClose={() => setReflectionModalVisible(false)}
+        journalText={selectedJournalText}
+        chart={chart}
+      />
     </SafeAreaView>
   );
 }
@@ -198,7 +235,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 24,
-    paddingBottom: 100,
+    paddingBottom: 24,
   },
   centered: {
     flex: 1,
@@ -218,10 +255,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textTertiary,
   },
+  inputSection: {
+    marginBottom: 24,
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginBottom: 24,
   },
   input: {
     flex: 1,
@@ -257,6 +296,23 @@ const styles = StyleSheet.create({
   },
   submitButtonDisabled: {
     opacity: 0.4,
+  },
+  reflectCurrentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingVertical: 10,
+    backgroundColor: Colors.accent + '12',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.accent + '30',
+  },
+  reflectCurrentText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.accent,
   },
   errorContainer: {
     backgroundColor: Colors.error + '20',
