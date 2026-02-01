@@ -181,6 +181,7 @@ export default function Onboarding() {
                   autoCapitalize="words"
                   autoCorrect={false}
                   returnKeyType="next"
+                  selectionColor={Colors.accent}
                 />
               </View>
 
@@ -195,6 +196,7 @@ export default function Onboarding() {
                   keyboardType="numbers-and-punctuation"
                   autoCorrect={false}
                   returnKeyType="next"
+                  selectionColor={Colors.accent}
                 />
               </View>
 
@@ -209,6 +211,7 @@ export default function Onboarding() {
                   keyboardType="numbers-and-punctuation"
                   autoCorrect={false}
                   returnKeyType="done"
+                  selectionColor={Colors.accent}
                 />
                 <Text style={styles.hint}>
                   If unknown, we'll use noon as a neutral time
