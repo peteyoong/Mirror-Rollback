@@ -1435,9 +1435,6 @@ async def get_lenses():
     }
 
 
-# Include the router in the main app
-app.include_router(api_router)
-
 # ============================================
 # Mirror Chat Endpoint - The Primary Intelligence
 # ============================================
