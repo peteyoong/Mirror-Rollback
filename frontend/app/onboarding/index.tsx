@@ -125,13 +125,14 @@ export default function Onboarding() {
 
     setIsSubmitting(true);
     try {
-      // Create user
+      // Create user with timezone
       const userData = await createUser({
         name: name || undefined,
         birth_date: birthDate,
         birth_time: birthTime,
         city: selectedLocation.city,
         country: selectedLocation.country,
+        timezone: selectedLocation.timezone || '+00:00',  // Default to UTC if not provided
       });
 
       setUser(userData);
@@ -148,7 +149,7 @@ export default function Onboarding() {
     } catch (err: any) {
       console.error('Onboarding error:', err);
       const errorMsg = err.response?.data?.detail || err.message || 'Something went wrong. Please try again.';
-      setError(errorMsg);
+      setError(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
     } finally {
       setIsSubmitting(false);
     }
