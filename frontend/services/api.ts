@@ -136,7 +136,10 @@ export interface ChartDetails {
   astrology: {
     sun: any | null;
     moon: any | null;
-    rising: any | null;
+    // Ascendant can be stored as any of these field names
+    rising?: any | null;
+    ascendant?: any | null;
+    asc?: any | null;
     mc: any | null;
     chart_type: string | null;
     sidereal_settings: any | null;
