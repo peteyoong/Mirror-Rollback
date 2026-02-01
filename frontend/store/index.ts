@@ -37,6 +37,7 @@ interface AppState {
   dailyReflection: DailyReflection | null;
   journalEntries: JournalEntry[];
   hasCompletedOnboarding: boolean;
+  hasSeenInterpretationNotice: boolean;
   
   // Actions
   setUser: (user: User) => void;
@@ -45,6 +46,7 @@ interface AppState {
   setJournalEntries: (entries: JournalEntry[]) => void;
   addJournalEntry: (entry: JournalEntry) => void;
   completeOnboarding: () => void;
+  acknowledgeInterpretationNotice: () => void;
   clearUser: () => void;
   loadPersistedData: () => Promise<void>;
 }
