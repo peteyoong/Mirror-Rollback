@@ -365,6 +365,24 @@ def get_full_natal_chart(
             'formatted': sign_info['formatted']
         })
     
+    # =========================================================================
+    # INTERPRETATION BOUNDARY - DO NOT CROSS
+    # =========================================================================
+    # This payload contains DETERMINISTIC FACTS only.
+    # - Positions (longitudes, degrees)
+    # - Classifications (signs, houses)
+    # - Timestamps and settings
+    #
+    # This layer must NEVER include:
+    # - Meanings or symbolism
+    # - Personality descriptions
+    # - Predictions or advice
+    # - "Good/bad" judgments
+    #
+    # Interpretation and narrative generation must occur DOWNSTREAM
+    # in a separate layer (e.g., AI prompt assembly, UI copy).
+    # =========================================================================
+    
     # Build result
     return {
         'planets': planets,
