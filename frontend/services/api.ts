@@ -100,6 +100,24 @@ export const getLenses = async () => {
 };
 
 // Chart Details API (for Lenses personalization)
+export interface PlanetPosition {
+  name: string;
+  sign: string | null;
+  degree: number | null;
+  longitude: number | null;
+  longitude_in_sign: number | null;
+  house: number | null;
+  formatted: string | null;
+}
+
+export interface HouseCusp {
+  house: number;
+  cusp: number;
+  sign: string;
+  degree: number;
+  formatted: string;
+}
+
 export interface ChartDetails {
   computation_version: string;
   human_design: {
@@ -119,8 +137,11 @@ export interface ChartDetails {
     sun: any | null;
     moon: any | null;
     rising: any | null;
+    mc: any | null;
     chart_type: string | null;
     sidereal_settings: any | null;
+    planets: PlanetPosition[];
+    houses: HouseCusp[];
   };
   numerology: {
     life_path: any | null;
