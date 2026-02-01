@@ -548,6 +548,34 @@ export default function LensDetail() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* UI Invariant Error Banner - shown when onboarded user can't see personalized content */}
+        {invariantViolation && renderInvariantErrorBanner()}
+
+        {/* Fetch Error Banner for onboarded users */}
+        {isOnboardedUser && error && !showOnboardingCTA && (
+          <View style={styles.invariantErrorBanner}>
+            <Ionicons name="warning-outline" size={18} color="#D97706" />
+            <Text style={styles.invariantErrorText}>
+              We couldn't load your snapshot. Try again.
+            </Text>
+            <TouchableOpacity 
+              style={styles.invariantRetryButton}
+              onPress={() => {
+                setError(null);
+                if (user?.id) {
+                  setIsLoading(true);
+                  getChartDetails(user.id)
+                    .then(setChartDetails)
+                    .catch((err) => setError(err?.response?.data?.detail || 'Failed to load'))
+                    .finally(() => setIsLoading(false));
+                }
+              }}
+            >
+              <Ionicons name="refresh" size={16} color="#D97706" />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Onboarding CTA for users without chart data */}
         {showOnboardingCTA && (
           <View style={styles.onboardingCTA}>
