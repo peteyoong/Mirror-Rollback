@@ -14,7 +14,6 @@ const api = axios.create({
 // User APIs
 export const createUser = async (data: {
   name?: string;
-  email?: string;
   birth_date: string;
   birth_time?: string;
   city: string;
@@ -22,6 +21,11 @@ export const createUser = async (data: {
   timezone: string;
 }) => {
   const response = await api.post('/users', data);
+  return response.data;
+};
+
+export const updateUserEmail = async (userId: string, email: string) => {
+  const response = await api.put(`/users/${userId}/email`, { email });
   return response.data;
 };
 
@@ -61,6 +65,19 @@ export const getJournalEntries = async (userId: string) => {
   return response.data;
 };
 
+export const integrateJournalEntry = async (
+  userId: string, 
+  entryId: string, 
+  question?: string
+) => {
+  const response = await api.post('/journal/integrate', {
+    user_id: userId,
+    entry_id: entryId,
+    question
+  });
+  return response.data;
+};
+
 // Reflection APIs
 export const getDailyReflection = async (userId: string) => {
   const response = await api.post('/reflections/daily', { user_id: userId });
@@ -79,6 +96,64 @@ export const sendChatMessage = async (userId: string, message: string) => {
 // Lenses APIs
 export const getLenses = async () => {
   const response = await api.get('/lenses');
+  return response.data;
+};
+
+// Chart Details API (for Lenses personalization)
+export interface PlanetPosition {
+  name: string;
+  sign: string | null;
+  degree: number | null;
+  longitude: number | null;
+  longitude_in_sign: number | null;
+  house: number | null;
+  formatted: string | null;
+}
+
+export interface HouseCusp {
+  house: number;
+  cusp: number;
+  sign: string;
+  degree: number;
+  formatted: string;
+}
+
+export interface ChartDetails {
+  computation_version: string;
+  human_design: {
+    type: string | null;
+    authority: string | null;
+    profile: string | null;
+    incarnation_cross: string | null;
+    strategy: string | null;
+    personality_sun: any | null;
+    design_sun: any | null;
+    defined_centers: string[];
+    defined_channels: string[];
+    definition: string | null;
+    design_datetime_utc_iso: string | null;
+  };
+  astrology: {
+    sun: any | null;
+    moon: any | null;
+    // Ascendant can be stored as any of these field names
+    rising?: any | null;
+    ascendant?: any | null;
+    asc?: any | null;
+    mc: any | null;
+    chart_type: string | null;
+    sidereal_settings: any | null;
+    planets: PlanetPosition[];
+    houses: HouseCusp[];
+  };
+  numerology: {
+    life_path: any | null;
+    expression: any | null;
+  };
+}
+
+export const getChartDetails = async (userId: string): Promise<ChartDetails> => {
+  const response = await api.get(`/charts/${userId}/details`);
   return response.data;
 };
 

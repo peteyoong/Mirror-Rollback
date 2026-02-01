@@ -1,241 +1,116 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  StyleSheet, 
-  TouchableOpacity, 
-  TextInput,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform 
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../../store';
+import { getChartDetails, ChartDetails } from '../../services/api';
 
-// Lens metadata
-const LENS_META: { [key: string]: { name: string; icon: string } } = {
-  astrology: { name: 'True Sidereal Astrology', icon: 'planet-outline' },
-  human_design: { name: 'Human Design', icon: 'body-outline' },
-  numerology: { name: 'Numerology', icon: 'calculator-outline' },
-  consciousness: { name: 'Consciousness', icon: 'eye-outline' },
-};
-
-// ============================================================================
-// MIRROR MOMENT CONTENT - All lenses, all modes
-// ============================================================================
-const MIRROR_CONTENT: { [lens: string]: { [mode: string]: any } } = {
-  // -------------------------------------------------------------------------
-  // ASTROLOGY
-  // -------------------------------------------------------------------------
+const LENS_CONTENT: { [key: string]: any } = {
   astrology: {
-    summary: {
-      title: "Today's Mirror Moment",
-      body: [
-        "Some days feel louder than others —",
-        "not because something is wrong,",
-        "but because attention is being called.",
-        "",
-        "What demands your presence today",
-        "may hold something worth noticing."
-      ],
-      reflection: "Where is your attention being pulled —\nand what might it reveal?",
-      footer: "Take what resonates; leave what doesn't."
-    },
-    snapshot: {
-      title: "Your Snapshot",
-      intro: "A quick look at your sidereal positions.",
-      body: [
-        "Your chart is a snapshot of the sky",
-        "at the moment you were born.",
-        "",
-        "It doesn't define you —",
-        "it describes the energetic context",
-        "you entered this world with."
-      ],
-      reflection: "What part of your chart feels most familiar?",
-      footer: "The sky doesn't command — it reflects."
-    },
-    deep_dive: {
-      title: "Mirror Moment",
-      intro: "\"Does astrology tell me what will happen — or how I meet what happens?\"",
-      body: [
-        "Astrology doesn't predict your life.",
-        "It describes the timing and tone of experience.",
-        "",
-        "Your chart reflects when certain themes are louder —",
-        "not what you must do with them.",
-        "",
-        "The same sky can be lived many ways.",
-        "Awareness changes the relationship.",
-        "Choice changes the outcome."
-      ],
-      reflection: "Where do you feel most free to respond —\nand where do you feel pulled into habit?",
-      footer: "Take what resonates; leave what doesn't.\nAstrology marks cycles — not commands."
+    name: 'True Sidereal Astrology',
+    summary: 'A lens for understanding cosmic rhythms and archetypal patterns. This shows where celestial bodies were at your birth, using the True Sidereal system (aligned with actual star positions, not seasons).',
+    howToUse: [
+      'Notice patterns in timing and cycles',
+      'Consider archetypal themes, not fixed traits'
+    ],
+    deepDive: {
+      intro: 'Your natal chart is calculated using True Sidereal positions aligned to star-based coordinates, which accounts for the precession of the equinoxes.',
+      sections: [
+        {
+          title: 'What This Shows',
+          content: 'Planet positions at your birth moment, showing energetic patterns and cycles. This is descriptive, not deterministic—it offers one way to see themes in your life.'
+        },
+        {
+          title: 'Key Points',
+          content: 'Sun, Moon, and Rising sign form the core. Planets represent different life areas. Houses show where these play out. Aspects reveal relationships between energies.'
+        },
+        {
+          title: 'What It Does NOT Do',
+          content: 'Does not predict events. Does not define who you are. Does not limit your choices. It\'s a map, not a mandate.'
+        }
+      ]
     }
   },
-  // -------------------------------------------------------------------------
-  // HUMAN DESIGN
-  // -------------------------------------------------------------------------
   human_design: {
-    summary: {
-      title: "Today's Mirror Moment",
-      body: [
-        "Your design is always present —",
-        "even when you're not thinking about it.",
-        "",
-        "Today might reveal patterns",
-        "you've been living unconsciously.",
-        "",
-        "Notice what flows.",
-        "Notice what resists."
-      ],
-      reflection: "Where does your energy want to go today?",
-      footer: "Take what resonates; leave what doesn't."
-    },
-    snapshot: {
-      title: "Your Snapshot",
-      intro: "A quick look at your Human Design profile.",
-      body: [
-        "Human Design combines astrology,",
-        "the I Ching, Kabbalah, and chakra system",
-        "into a map of your energetic makeup.",
-        "",
-        "Your Type, Strategy, and Authority",
-        "describe how you're designed to move through the world."
-      ],
-      reflection: "Does your Strategy feel natural or foreign?",
-      footer: "Design is descriptive, not prescriptive."
-    },
-    deep_dive: {
-      title: "Mirror Moment",
-      intro: "\"If this is my design, does that mean I can't be anything else?\"",
-      body: [
-        "Human Design doesn't describe who you must be.",
-        "It describes how energy is most available to you.",
-        "",
-        "Your design shows recurring patterns —",
-        "how you tend to initiate, respond, feel, and process experience.",
-        "",
-        "But awareness changes the pattern.",
-        "And practice changes how the pattern is lived.",
-        "",
-        "This isn't about fitting yourself into a type.",
-        "It's about noticing what feels natural —",
-        "and choosing how consciously you live it."
-      ],
-      reflection: "Where does following your design feel relieving —\nand where does it feel constraining?",
-      footer: "Take what resonates; leave what doesn't."
+    name: 'Human Design',
+    summary: 'A synthesis showing how you\'re designed to interact with the world. Combines aspects of astrology, I-Ching, Kabbalah, and the chakra system into a unique "bodygraph."',
+    howToUse: [
+      'Understand your natural decision-making process',
+      'Recognize your energy type and how you engage'
+    ],
+    deepDive: {
+      intro: 'Your Human Design is calculated from two charts: Personality (conscious, at birth) and Design (unconscious, ~88 days before birth).',
+      sections: [
+        {
+          title: 'What This Shows',
+          content: 'Your Type shows how you best interact with the world. Authority indicates your decision-making process. Profile reveals your role and learning style. Centers show consistent vs. variable energy.'
+        },
+        {
+          title: 'The 64 Gates',
+          content: 'Gates correspond to I-Ching hexagrams and are activated by planetary positions. When two gates connect, they form a channel, creating defined energy.'
+        },
+        {
+          title: 'V1 Note',
+          content: 'Current calculations use simplified gate-to-center mapping without full channel analysis. This may affect Type accuracy. Full channel logic coming in future updates.'
+        },
+        {
+          title: 'What It Does NOT Do',
+          content: 'Does not tell you who you should be. Does not predict your future. Does not limit your potential. It\'s information, not instruction.'
+        }
+      ]
     }
   },
-  // -------------------------------------------------------------------------
-  // NUMEROLOGY
-  // -------------------------------------------------------------------------
   numerology: {
-    summary: {
-      title: "Today's Mirror Moment",
-      body: [
-        "Numbers mark time differently.",
-        "They describe cycles within cycles —",
-        "years within lifetimes,",
-        "days within years.",
-        "",
-        "What cycle are you in?",
-        "What does it ask of you?"
-      ],
-      reflection: "What theme keeps appearing this year?",
-      footer: "Take what resonates; leave what doesn't."
-    },
-    snapshot: {
-      title: "Your Snapshot",
-      intro: "A quick look at your numerological cycles.",
-      body: [
-        "Your Life Path number describes",
-        "the overarching theme of your journey.",
-        "",
-        "Your Personal Year, Month, and Day",
-        "describe what energies are present now.",
-        "",
-        "These aren't predictions —",
-        "they're descriptions of timing."
-      ],
-      reflection: "What number keeps appearing in your life?",
-      footer: "Numbers illuminate — they don't dictate."
-    },
-    deep_dive: {
-      title: "Mirror Moment",
-      intro: "\"Do numbers actually mean something, or is this just pattern-matching?\"",
-      body: [
-        "Numerology is one of many ways",
-        "humans have tried to find meaning in cycles.",
-        "",
-        "Whether the meaning is inherent",
-        "or constructed through attention",
-        "may not matter.",
-        "",
-        "What matters is whether noticing",
-        "these patterns helps you live more consciously.",
-        "",
-        "If it does, use it.",
-        "If it doesn't, let it go."
-      ],
-      reflection: "What patterns do you notice\nwhen you pay attention to numbers?",
-      footer: "Take what resonates; leave what doesn't."
+    name: 'Numerology',
+    summary: 'A system revealing patterns in numbers and life paths. Uses your birth date and name to identify recurring themes and natural rhythms in your life journey.',
+    howToUse: [
+      'Recognize core themes in your experience',
+      'Notice when certain patterns repeat'
+    ],
+    deepDive: {
+      intro: 'Numerology reduces numbers to single digits (or master numbers 11, 22, 33), each carrying specific archetypal meaning.',
+      sections: [
+        {
+          title: 'Life Path Number',
+          content: 'Calculated from your full birth date. Represents the primary theme of your life journey—not your destiny, but a lens for understanding patterns.'
+        },
+        {
+          title: 'Expression Number',
+          content: 'Derived from your full name at birth. Shows natural talents and how you express yourself in the world.'
+        },
+        {
+          title: 'What It Does NOT Do',
+          content: 'Does not guarantee outcomes. Does not define your limits. Does not predict specific events. It highlights patterns, not prescriptions.'
+        }
+      ]
     }
   },
-  // -------------------------------------------------------------------------
-  // CONSCIOUSNESS
-  // -------------------------------------------------------------------------
   consciousness: {
-    summary: {
-      title: "Today's Mirror Moment",
-      body: [
-        "Consciousness isn't something to achieve.",
-        "It's something to notice.",
-        "",
-        "Right now, you're aware.",
-        "That's already enough."
-      ],
-      reflection: "What are you aware of right now?",
-      footer: "Take what resonates; leave what doesn't."
-    },
-    snapshot: {
-      title: "Your Snapshot",
-      intro: "A reflection on awareness itself.",
-      body: [
-        "Every framework in this app —",
-        "astrology, Human Design, numerology —",
-        "is a lens for seeing yourself.",
-        "",
-        "None of them are the truth.",
-        "All of them can point toward it."
-      ],
-      reflection: "Which lens helps you see most clearly?",
-      footer: "The map is not the territory."
-    },
-    deep_dive: {
-      title: "Mirror Moment",
-      intro: "\"What's the point of all these frameworks?\"",
-      body: [
-        "The goal isn't to understand yourself completely.",
-        "That's not possible.",
-        "",
-        "The goal is to stay curious",
-        "about what you find.",
-        "",
-        "These frameworks are tools —",
-        "not cages, not commandments.",
-        "",
-        "Use what helps.",
-        "Release what doesn't.",
-        "Stay open to what's next."
-      ],
-      reflection: "Where do you feel the most like yourself?",
-      footer: "Awareness is the practice."
+    name: 'Levels of Consciousness',
+    summary: 'A map of emotional and spiritual development based on Dr. David Hawkins\' research. Shows 17 levels from Shame (20) to Enlightenment (700-1000).',
+    howToUse: [
+      'Understand where you currently are, not where you "should" be',
+      'Notice what might shift as you move between levels'
+    ],
+    deepDive: {
+      intro: 'The Map of Consciousness calibrates emotions and viewpoints on a logarithmic scale from 1-1000, where 200 is the critical threshold of integrity.',
+      sections: [
+        {
+          title: 'Below 200: Force',
+          content: 'Levels like Shame, Guilt, Fear, and Anger. Take more energy than they give. Survival-based. Life feels like something happening TO you.'
+        },
+        {
+          title: 'Above 200: Power',
+          content: 'Levels like Courage, Acceptance, and Love. Generate more than they consume. Life feels like something you participate IN.'
+        },
+        {
+          title: 'What It Does NOT Do',
+          content: 'Does not rank people\'s worth. Does not mean "higher is better" morally. Does not guarantee you won\'t move between levels. It describes, not judges.'
+        }
+      ]
     }
   }
 };
@@ -244,428 +119,793 @@ export default function LensDetail() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { lens } = params;
-  const [activeTab, setActiveTab] = useState<'summary' | 'snapshot' | 'deep_dive'>('summary');
-  const [chatInput, setChatInput] = useState('');
-  const [isSending, setIsSending] = useState(false);
-  const { user, chart } = useAppStore();
+  // Support modes: "summary" | "snapshot" | "deep_dive"
+  const mode = (params.mode as string) || 'summary';
+  const { user, chartDetails: cachedChartDetails, cacheChartDetails, getChartDetailsCacheKey } = useAppStore();
   
-  const lensMeta = LENS_META[lens as string] || { name: 'Lens', icon: 'help-outline' };
-  const mirrorContent = MIRROR_CONTENT[lens as string]?.[activeTab] || MIRROR_CONTENT.astrology.summary;
-
-  // =========================================================================
-  // PROFILE DATA EXTRACTION
-  // =========================================================================
-  const getAstrologyProfile = () => {
-    if (!chart?.astrology?.planets) return null;
-    
-    const planets = chart.astrology.planets;
-    const houses = chart.astrology.houses;
-    
-    const sun = planets.Sun;
-    const moon = planets.Moon;
-    const ascendant = houses?.formatted_cusps?.[0];
-    
-    return {
-      sun: {
-        sign: sun?.sign || '—',
-        degree: sun?.formatted?.split(' ').slice(1).join(' ') || '',
-        formatted: sun?.formatted || '—'
-      },
-      moon: {
-        sign: moon?.sign || '—',
-        degree: moon?.formatted?.split(' ').slice(1).join(' ') || '',
-        formatted: moon?.formatted || '—'
-      },
-      ascendant: {
-        sign: ascendant?.sign || '—',
-        degree: ascendant?.formatted?.split(' ').slice(1).join(' ') || '',
-        formatted: ascendant?.formatted || '—'
-      },
-      system: 'True Sidereal — GM Anchor'
+  // Local state for chart details (uses cache if available)
+  const [chartDetails, setChartDetails] = useState<ChartDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const content = LENS_CONTENT[lens as string];
+  
+  // Fetch chart details on mount - use cache if valid
+  useEffect(() => {
+    const fetchChartDetails = async () => {
+      if (!user?.id) return;
+      
+      // Check if we have valid cached data
+      const currentCacheKey = getChartDetailsCacheKey();
+      if (cachedChartDetails && cachedChartDetails._userBirthDataHash === currentCacheKey) {
+        console.log('[LensDetail] Using cached chartDetails');
+        // [DEBUG] Log full response shape
+        console.log('[DEBUG] chartDetails response shape:', JSON.stringify(cachedChartDetails, null, 2));
+        setChartDetails(cachedChartDetails);
+        return;
+      }
+      
+      // No valid cache, fetch from API
+      console.log('[LensDetail] Fetching chartDetails from API');
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const details = await getChartDetails(user.id);
+        // [DEBUG] Log full response shape from API
+        console.log('[DEBUG] chartDetails response shape:', JSON.stringify(details, null, 2));
+        setChartDetails(details);
+        // Cache the fetched details
+        cacheChartDetails(details);
+      } catch (err: any) {
+        console.error('Failed to fetch chart details:', err);
+        setError(err?.response?.data?.detail || 'Failed to load your chart data');
+      } finally {
+        setIsLoading(false);
+      }
     };
+    
+    fetchChartDetails();
+  }, [user?.id, cachedChartDetails, getChartDetailsCacheKey, cacheChartDetails]);
+  
+  // Zodiac signs for longitude to sign conversion
+  const ZODIAC_SIGNS = [
+    'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+    'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
+  ];
+
+  // Convert longitude to sign
+  const getSignFromLongitude = (longitude: number): string => {
+    const signIndex = Math.floor(longitude / 30) % 12;
+    return ZODIAC_SIGNS[signIndex];
   };
 
-  const getHumanDesignProfile = () => {
-    if (!chart?.human_design) return null;
-    
-    const hd = chart.human_design;
-    return {
-      type: hd.type || '—',
-      strategy: hd.strategy || '—',
-      authority: hd.authority || '—',
-      profile: hd.profile || '—',
-      definition: hd.definition || '—',
-      incarnation_cross: hd.incarnation_cross || '—'
-    };
+  // Format degrees and minutes (19°37' style)
+  const formatDegreeMinutes = (decimalDegree: number): string => {
+    const degrees = Math.floor(decimalDegree);
+    const minutes = Math.floor((decimalDegree - degrees) * 60);
+    return minutes > 0 ? `${degrees}°${minutes}'` : `${degrees}°`;
   };
 
-  const getNumerologyProfile = () => {
-    if (!chart?.numerology) return null;
+  // =========================================================================
+  // PROMPT 1: Format planet position with formatted-first priority
+  // =========================================================================
+  // Priority: formatted > sign+degree > longitude-computed > "—"
+  // =========================================================================
+  const formatPlanetPosition = (obj: any): string => {
+    if (!obj) return '—';
     
-    const num = chart.numerology;
-    return {
-      life_path: num.life_path?.number || '—',
-      life_path_name: num.life_path?.name || '',
-      expression: num.expression?.number || '—',
-      personal_year: num.personal_year || '—',
-      personal_month: num.personal_month || '—',
-      personal_day: num.personal_day || '—'
-    };
+    // Priority 1: Use formatted string if exists
+    if (obj.formatted) {
+      return obj.formatted;
+    }
+    
+    // Priority 2: Use sign + degree if both exist
+    if (obj.sign && obj.degree != null) {
+      return `${obj.sign} ${formatDegreeMinutes(obj.degree)}`;
+    }
+    
+    // Priority 3: Compute from longitude if available
+    if (typeof obj.longitude === 'number') {
+      const sign = getSignFromLongitude(obj.longitude);
+      const degreeInSign = obj.longitude % 30;
+      return `${sign} ${formatDegreeMinutes(degreeInSign)}`;
+    }
+    
+    // Priority 4: Just sign if available
+    if (obj.sign) {
+      return obj.sign;
+    }
+    
+    // Fallback
+    return '—';
+  };
+  
+  // Get sidereal system label - neutral copy only (PROMPT 4)
+  const getSiderealSystemLabel = (): string => {
+    // Always return neutral copy - do not expose internal settings
+    // NO ayanamsa names, NO SVP numbers
+    return 'True Sidereal positions';
   };
 
-  const astrologyProfile = getAstrologyProfile();
-  const humanDesignProfile = getHumanDesignProfile();
-  const numerologyProfile = getNumerologyProfile();
+  // Navigate to different modes
+  const navigateToMode = (targetMode: string) => {
+    router.push(`/lenses/${lens}?mode=${targetMode}` as any);
+  };
 
   // =========================================================================
-  // RENDER FUNCTIONS
+  // PROMPT 2: UI INVARIANT with partial rising safety
   // =========================================================================
-  const renderTabs = () => (
-    <View style={styles.tabBar}>
-      <TouchableOpacity 
-        style={[styles.tab, activeTab === 'summary' && styles.tabActive]}
-        onPress={() => setActiveTab('summary')}
-      >
-        <Text style={[styles.tabText, activeTab === 'summary' && styles.tabTextActive]}>Summary</Text>
-      </TouchableOpacity>
-      <TouchableOpacity 
-        style={[styles.tab, activeTab === 'snapshot' && styles.tabActive]}
-        onPress={() => setActiveTab('snapshot')}
-      >
-        <Text style={[styles.tabText, activeTab === 'snapshot' && styles.tabTextActive]}>Your Snapshot</Text>
-      </TouchableOpacity>
-      <TouchableOpacity 
-        style={[styles.tab, activeTab === 'deep_dive' && styles.tabActive]}
-        onPress={() => setActiveTab('deep_dive')}
-      >
-        <Text style={[styles.tabText, activeTab === 'deep_dive' && styles.tabTextActive]}>Deep Dive</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderMirrorMoment = () => (
-    <View style={styles.mirrorCard}>
-      {mirrorContent.intro && (
-        <Text style={styles.mirrorIntro}>{mirrorContent.intro}</Text>
-      )}
-      
-      <View style={styles.mirrorTitleRow}>
-        <View style={styles.mirrorIcon}>
-          <Ionicons name="radio-button-on-outline" size={16} color={Colors.textSecondary} />
-        </View>
-        <Text style={styles.mirrorTitle}>{mirrorContent.title}</Text>
-      </View>
-      
-      <View style={styles.mirrorBody}>
-        {mirrorContent.body.map((line: string, index: number) => (
-          <Text key={index} style={[styles.mirrorBodyText, line === '' && { height: 12 }]}>
-            {line}
-          </Text>
-        ))}
-      </View>
-      
-      <View style={styles.mirrorDivider} />
-      
-      <Text style={styles.reflectionLabel}>REFLECTION</Text>
-      <Text style={styles.reflectionText}>{mirrorContent.reflection}</Text>
-      
-      {mirrorContent.footer && (
-        <Text style={styles.mirrorFooter}>{mirrorContent.footer}</Text>
-      )}
-    </View>
-  );
-
-  // Astrology Profile Cards
-  const renderAstrologyProfile = () => {
-    if (!astrologyProfile) {
-      return (
-        <View style={styles.emptyProfileCard}>
-          <Text style={styles.emptyProfileText}>Complete onboarding to see your sidereal profile</Text>
-        </View>
+  // sun/moon should always exist post-compute
+  // rising may be present but partially null - handle gracefully
+  // =========================================================================
+  const isOnboardedUser = !!user?.id;
+  const fetchSucceeded = !isLoading && !error;
+  const isAstrologyLens = lens === 'astrology';
+  
+  // Astrology object from response
+  const astrology = chartDetails?.astrology;
+  const hasAstrologyInResponse = !!astrology;
+  
+  // Core placements - use rising (the actual backend field name)
+  const sun = astrology?.sun;
+  const moon = astrology?.moon;
+  const rising = astrology?.rising; // Backend uses "rising" for Ascendant
+  
+  // PROMPT 2: Check if placement has ANY usable data (not just existence)
+  const hasSun = !!sun?.formatted || !!sun?.sign || typeof sun?.longitude === 'number';
+  const hasMoon = !!moon?.formatted || !!moon?.sign || typeof moon?.longitude === 'number';
+  const hasRising = !!rising?.formatted || !!rising?.sign || typeof rising?.longitude === 'number';
+  
+  // Count how many of the 3 core placements have usable data
+  const corePlacementsCount = [hasSun, hasMoon, hasRising].filter(Boolean).length;
+  
+  // Can render personalized if at least 1 core placement exists
+  const hasAnyCorePlacement = corePlacementsCount >= 1;
+  
+  // PROMPT 2: Invariant violation ONLY if astrology object exists but NONE of sun/moon/rising have data
+  // Partial null fields in rising are OK if Sun/Moon are present
+  const invariantViolation = isOnboardedUser && 
+    fetchSucceeded && 
+    isAstrologyLens &&
+    hasAstrologyInResponse && 
+    !hasAnyCorePlacement;
+  
+  // For rendering: show personalized section if we have ANY core placement
+  const hasAstrologyData = hasAnyCorePlacement;
+  
+  // Log warning in development when invariant fails
+  useEffect(() => {
+    if (invariantViolation) {
+      console.warn(
+        '[UI INVARIANT VIOLATION] LensDetail: Onboarded user with astrology object but NO usable core placements.',
+        {
+          userId: user?.id,
+          hasChartDetails: !!chartDetails,
+          hasAstrology: hasAstrologyInResponse,
+          hasSun,
+          hasMoon,
+          hasRising,
+          corePlacementsCount,
+          sunData: sun,
+          moonData: moon,
+          risingData: rising,
+        }
       );
     }
+  }, [invariantViolation, user?.id, chartDetails, hasAstrologyInResponse, hasSun, hasMoon, hasRising, corePlacementsCount]);
 
-    return (
-      <>
-        {/* Large Profile Card */}
-        <View style={styles.profileCard}>
-          <Text style={styles.profileCardTitle}>YOUR SIDEREAL PROFILE</Text>
-          <View style={styles.profileGrid}>
-            <View style={styles.profileGridItem}>
-              <Text style={styles.profileLabel}>SUN</Text>
-              <Text style={styles.profileValue}>{astrologyProfile.sun.sign}</Text>
-              <Text style={styles.profileDegree}>{astrologyProfile.sun.degree}</Text>
-            </View>
-            <View style={styles.profileGridItem}>
-              <Text style={styles.profileLabel}>MOON</Text>
-              <Text style={styles.profileValue}>{astrologyProfile.moon.sign}</Text>
-              <Text style={styles.profileDegree}>{astrologyProfile.moon.degree}</Text>
-            </View>
-            <View style={styles.profileGridItem}>
-              <Text style={styles.profileLabel}>ASCENDANT</Text>
-              <Text style={styles.profileValue}>{astrologyProfile.ascendant.sign}</Text>
-              <Text style={styles.profileDegree}>{astrologyProfile.ascendant.degree}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Computed Details */}
-        <View style={styles.computedSection}>
-          <Text style={styles.computedTitle}>YOUR SIDEREAL PROFILE (COMPUTED)</Text>
-          <View style={styles.computedRow}>
-            <Text style={styles.computedLabel}>Sun:</Text>
-            <Text style={styles.computedValue}>{astrologyProfile.sun.formatted}</Text>
-          </View>
-          <View style={styles.computedRow}>
-            <Text style={styles.computedLabel}>Moon:</Text>
-            <Text style={styles.computedValue}>{astrologyProfile.moon.formatted}</Text>
-          </View>
-          <View style={styles.computedRow}>
-            <Text style={styles.computedLabel}>Ascendant:</Text>
-            <Text style={styles.computedValue}>{astrologyProfile.ascendant.formatted}</Text>
-          </View>
-          <View style={styles.computedRow}>
-            <Text style={styles.computedLabel}>System:</Text>
-            <Text style={styles.computedValue}>{astrologyProfile.system}</Text>
-          </View>
-          <Text style={styles.sourceText}>Source: computed_blueprint_v2.astrology</Text>
-        </View>
-      </>
-    );
+  // Shared retry handler for both error banners
+  const handleRetry = () => {
+    if (!user?.id) return;
+    
+    setError(null);
+    setChartDetails(null);
+    setIsLoading(true);
+    
+    getChartDetails(user.id)
+      .then((details) => {
+        setChartDetails(details);
+        cacheChartDetails(details);
+        console.log('[LensDetail] Retry successful, data cached');
+      })
+      .catch((err) => {
+        console.error('[LensDetail] Retry failed:', err);
+        setError(err?.response?.data?.detail || 'Failed to load your chart data');
+      })
+      .finally(() => setIsLoading(false));
   };
 
-  // Human Design Profile Cards
-  const renderHumanDesignProfile = () => {
-    if (!humanDesignProfile) {
-      return (
-        <View style={styles.emptyProfileCard}>
-          <Text style={styles.emptyProfileText}>Complete onboarding to see your Human Design profile</Text>
-        </View>
-      );
-    }
-
-    return (
-      <>
-        {/* Profile Card */}
-        <View style={styles.profileCard}>
-          <Text style={styles.profileCardTitle}>YOUR HUMAN DESIGN PROFILE</Text>
-          <View style={styles.hdProfileGrid}>
-            <View style={styles.hdProfileItem}>
-              <Text style={styles.profileLabel}>TYPE</Text>
-              <Text style={styles.hdProfileValue}>{humanDesignProfile.type}</Text>
-            </View>
-            <View style={styles.hdProfileItem}>
-              <Text style={styles.profileLabel}>STRATEGY</Text>
-              <Text style={styles.hdProfileValue}>{humanDesignProfile.strategy}</Text>
-            </View>
-            <View style={styles.hdProfileItem}>
-              <Text style={styles.profileLabel}>AUTHORITY</Text>
-              <Text style={styles.hdProfileValue}>{humanDesignProfile.authority}</Text>
-            </View>
-            <View style={styles.hdProfileItem}>
-              <Text style={styles.profileLabel}>PROFILE</Text>
-              <Text style={styles.hdProfileValue}>{humanDesignProfile.profile}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Computed Details */}
-        <View style={styles.computedSection}>
-          <Text style={styles.computedTitle}>YOUR HUMAN DESIGN (COMPUTED)</Text>
-          <View style={styles.computedRow}>
-            <Text style={styles.computedLabel}>Type:</Text>
-            <Text style={styles.computedValue}>{humanDesignProfile.type}</Text>
-          </View>
-          <View style={styles.computedRow}>
-            <Text style={styles.computedLabel}>Strategy:</Text>
-            <Text style={styles.computedValue}>{humanDesignProfile.strategy}</Text>
-          </View>
-          <View style={styles.computedRow}>
-            <Text style={styles.computedLabel}>Authority:</Text>
-            <Text style={styles.computedValue}>{humanDesignProfile.authority}</Text>
-          </View>
-          <View style={styles.computedRow}>
-            <Text style={styles.computedLabel}>Profile:</Text>
-            <Text style={styles.computedValue}>{humanDesignProfile.profile}</Text>
-          </View>
-          <View style={styles.computedRow}>
-            <Text style={styles.computedLabel}>Definition:</Text>
-            <Text style={styles.computedValue}>{humanDesignProfile.definition}</Text>
-          </View>
-          <Text style={styles.sourceText}>Source: computed_blueprint_v2.human_design</Text>
-        </View>
-      </>
-    );
-  };
-
-  // Numerology Profile Cards
-  const renderNumerologyProfile = () => {
-    if (!numerologyProfile) {
-      return (
-        <View style={styles.emptyProfileCard}>
-          <Text style={styles.emptyProfileText}>Complete onboarding to see your numerology profile</Text>
-        </View>
-      );
-    }
-
-    return (
-      <>
-        {/* Cycles Card */}
-        <View style={styles.profileCard}>
-          <Text style={styles.profileCardTitle}>TODAY'S CYCLES</Text>
-          <View style={styles.cyclesGrid}>
-            <View style={styles.cycleItem}>
-              <Text style={styles.cycleNumber}>{numerologyProfile.personal_year}</Text>
-              <Text style={styles.cycleLabel}>Personal Year</Text>
-            </View>
-            <View style={styles.cycleItem}>
-              <Text style={styles.cycleNumber}>{numerologyProfile.personal_month}</Text>
-              <Text style={styles.cycleLabel}>Personal Month</Text>
-            </View>
-            <View style={styles.cycleItem}>
-              <Text style={styles.cycleNumber}>{numerologyProfile.personal_day}</Text>
-              <Text style={styles.cycleLabel}>Personal Day</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Life Path */}
-        <View style={styles.computedSection}>
-          <Text style={styles.computedTitle}>YOUR NUMEROLOGY (COMPUTED)</Text>
-          <View style={styles.computedRow}>
-            <Text style={styles.computedLabel}>Life Path:</Text>
-            <Text style={styles.computedValue}>{numerologyProfile.life_path} {numerologyProfile.life_path_name && `(${numerologyProfile.life_path_name})`}</Text>
-          </View>
-          <View style={styles.computedRow}>
-            <Text style={styles.computedLabel}>Expression:</Text>
-            <Text style={styles.computedValue}>{numerologyProfile.expression}</Text>
-          </View>
-          <Text style={styles.sourceText}>Source: computed_blueprint_v2.numerology</Text>
-        </View>
-      </>
-    );
-  };
-
-  // Consciousness Profile
-  const renderConsciousnessProfile = () => (
-    <View style={styles.computedSection}>
-      <Text style={styles.computedTitle}>AWARENESS PRACTICE</Text>
-      <Text style={styles.consciousnessText}>
-        Consciousness isn't computed — it's practiced.
-        {'\n\n'}
-        Use the frameworks in this app as mirrors,
-        not as definitions of who you are.
-        {'\n\n'}
-        The goal is presence, not perfection.
+  // Render error banner for invariant violation
+  const renderInvariantErrorBanner = () => (
+    <View style={styles.invariantErrorBanner}>
+      <Ionicons name="warning-outline" size={18} color="#D97706" />
+      <Text style={styles.invariantErrorText}>
+        We couldn't load your snapshot. Try again.
       </Text>
-    </View>
-  );
-
-  // Select which profile to render based on lens
-  const renderProfile = () => {
-    switch (lens) {
-      case 'astrology':
-        return renderAstrologyProfile();
-      case 'human_design':
-        return renderHumanDesignProfile();
-      case 'numerology':
-        return renderNumerologyProfile();
-      case 'consciousness':
-        return renderConsciousnessProfile();
-      default:
-        return null;
-    }
-  };
-
-  // Chat placeholder text per lens
-  const getChatPlaceholder = () => {
-    switch (lens) {
-      case 'astrology':
-        return 'Ask about your sidereal profile...';
-      case 'human_design':
-        return 'Ask about your Human Design...';
-      case 'numerology':
-        return 'Ask about your cycles...';
-      case 'consciousness':
-        return 'Ask a question...';
-      default:
-        return 'Ask a question...';
-    }
-  };
-
-  const renderChatInput = () => (
-    <View style={styles.chatContainer}>
-      <View style={styles.chatInputWrapper}>
-        <TextInput
-          style={styles.chatInput}
-          placeholder={getChatPlaceholder()}
-          placeholderTextColor={Colors.textTertiary}
-          value={chatInput}
-          onChangeText={setChatInput}
-          multiline={false}
-        />
-        <TouchableOpacity 
-          style={[styles.chatSendButton, !chatInput.trim() && styles.chatSendButtonDisabled]}
-          disabled={!chatInput.trim() || isSending}
-        >
-          {isSending ? (
-            <ActivityIndicator size="small" color={Colors.success} />
-          ) : (
-            <Ionicons name="send" size={20} color={chatInput.trim() ? Colors.success : Colors.textTertiary} />
-          )}
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  // =========================================================================
-  // MAIN RENDER
-  // =========================================================================
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar style="dark" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-          <Ionicons name="close" size={24} color={Colors.text} />
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
-          <Ionicons name={lensMeta.icon as any} size={20} color={Colors.text} />
-          <Text style={styles.headerTitle}>{lensMeta.name}</Text>
-        </View>
-        <View style={styles.headerSpacer} />
-      </View>
-
-      {/* Tabs */}
-      {renderTabs()}
-
-      <KeyboardAvoidingView 
-        style={styles.flex1}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
+      <TouchableOpacity 
+        style={styles.invariantRetryButton}
+        onPress={handleRetry}
       >
-        <ScrollView 
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Mode Label */}
-          <Text style={styles.modeLabel}>
-            {activeTab === 'summary' ? 'SUMMARY' : activeTab === 'snapshot' ? 'YOUR SNAPSHOT' : 'DEEP DIVE'}
+        <Ionicons name="refresh" size={16} color="#D97706" />
+      </TouchableOpacity>
+    </View>
+  );
+  
+  // Render personalized Astrology snapshot (compact version for summary)
+  const renderAstrologySnapshotCompact = () => {
+    if (!hasAstrologyInResponse) return null;
+    
+    // Use component-level sun, moon, asc variables (with hardened field mapping)
+    return (
+      <View style={styles.snapshotCard}>
+        <View style={styles.snapshotHeader}>
+          <Ionicons name="sparkles" size={20} color={Colors.text} />
+          <Text style={styles.snapshotTitle}>Your Sidereal Snapshot</Text>
+        </View>
+        
+        {/* Sun/Moon/Rising rows - only render if data exists */}
+        <View style={styles.snapshotRows}>
+          {hasSun && (
+            <View style={styles.snapshotRow}>
+              <View style={styles.snapshotRowIcon}>
+                <Ionicons name="sunny" size={18} color={Colors.text} />
+              </View>
+              <Text style={styles.snapshotRowLabel}>Sun</Text>
+              <Text style={styles.snapshotRowValue}>{formatPlanetPosition(sun)}</Text>
+            </View>
+          )}
+          
+          {hasMoon && (
+            <View style={styles.snapshotRow}>
+              <View style={styles.snapshotRowIcon}>
+                <Ionicons name="moon" size={18} color={Colors.text} />
+              </View>
+              <Text style={styles.snapshotRowLabel}>Moon</Text>
+              <Text style={styles.snapshotRowValue}>{formatPlanetPosition(moon)}</Text>
+            </View>
+          )}
+          
+          {hasRising && (
+            <View style={styles.snapshotRow}>
+              <View style={styles.snapshotRowIcon}>
+                <Ionicons name="arrow-up-circle" size={18} color={Colors.text} />
+              </View>
+              <Text style={styles.snapshotRowLabel}>Ascendant</Text>
+              <Text style={styles.snapshotRowValue}>{formatPlanetPosition(rising)}</Text>
+            </View>
+          )}
+        </View>
+        
+        {/* System label - neutral copy (PROMPT 4) */}
+        <View style={styles.systemLabel}>
+          <Text style={styles.systemLabelText}>
+            Calculated using {getSiderealSystemLabel()}.
           </Text>
+        </View>
 
-          {/* Mirror Moment Card */}
-          {renderMirrorMoment()}
+        {/* Navigation buttons */}
+        <View style={styles.snapshotButtons}>
+          <TouchableOpacity 
+            style={styles.snapshotButtonPrimary}
+            onPress={() => navigateToMode('snapshot')}
+          >
+            <Text style={styles.snapshotButtonPrimaryText}>Full Snapshot</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.snapshotButtonSecondary}
+            onPress={() => navigateToMode('deep_dive')}
+          >
+            <Text style={styles.snapshotButtonSecondaryText}>Go Deeper</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
 
-          {/* Profile Data - show in snapshot and deep_dive modes */}
-          {(activeTab === 'snapshot' || activeTab === 'deep_dive') && renderProfile()}
-        </ScrollView>
+  // Render full snapshot view (Sun/Moon/Rising + houses summary)
+  const renderSnapshotView = () => {
+    if (!chartDetails?.astrology) {
+      return (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>Chart data not available</Text>
+        </View>
+      );
+    }
+    
+    // PROMPT 3: Use astrology.houses array for house data
+    const houses = astrology?.houses;
+    const hasHouses = Array.isArray(houses) && houses.length > 0;
+    
+    return (
+      <>
+        {/* Main Placements */}
+        <View style={styles.snapshotCard}>
+          <View style={styles.snapshotHeader}>
+            <Ionicons name="sparkles" size={20} color={Colors.text} />
+            <Text style={styles.snapshotTitle}>Your Core Placements</Text>
+          </View>
+          
+          <View style={styles.placementsList}>
+            {hasSun && (
+              <View style={styles.placementRow}>
+                <View style={styles.placementIcon}>
+                  <Ionicons name="sunny" size={20} color={Colors.text} />
+                </View>
+                <View style={styles.placementInfo}>
+                  <Text style={styles.placementLabel}>Sun</Text>
+                  <Text style={styles.placementValue}>{formatPlanetPosition(sun)}</Text>
+                  {sun?.house && <Text style={styles.placementHouse}>House {sun.house}</Text>}
+                </View>
+              </View>
+            )}
+            
+            {hasMoon && (
+              <View style={styles.placementRow}>
+                <View style={styles.placementIcon}>
+                  <Ionicons name="moon" size={20} color={Colors.text} />
+                </View>
+                <View style={styles.placementInfo}>
+                  <Text style={styles.placementLabel}>Moon</Text>
+                  <Text style={styles.placementValue}>{formatPlanetPosition(moon)}</Text>
+                  {moon?.house && <Text style={styles.placementHouse}>House {moon.house}</Text>}
+                </View>
+              </View>
+            )}
+            
+            {hasRising && (
+              <View style={styles.placementRow}>
+                <View style={styles.placementIcon}>
+                  <Ionicons name="arrow-up-circle" size={20} color={Colors.text} />
+                </View>
+                <View style={styles.placementInfo}>
+                  <Text style={styles.placementLabel}>Ascendant (Rising)</Text>
+                  <Text style={styles.placementValue}>{formatPlanetPosition(rising)}</Text>
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
 
-        {/* Chat Input */}
-        {renderChatInput()}
-      </KeyboardAvoidingView>
+        {/* Houses Summary - PROMPT 3: render from astrology.houses[] */}
+        {hasHouses ? (
+          <View style={styles.housesCard}>
+            <Text style={styles.cardTitle}>Houses Overview</Text>
+            <Text style={styles.cardSubtitle}>Equal House System</Text>
+            
+            <View style={styles.housesGrid}>
+              {houses.slice(0, 6).map((house: any) => (
+                <View key={house.house} style={styles.houseItem}>
+                  <Text style={styles.houseNumber}>{house.house}</Text>
+                  <Text style={styles.houseSign}>{house.sign || '—'}</Text>
+                </View>
+              ))}
+            </View>
+            <View style={styles.housesGrid}>
+              {houses.slice(6, 12).map((house: any) => (
+                <View key={house.house} style={styles.houseItem}>
+                  <Text style={styles.houseNumber}>{house.house}</Text>
+                  <Text style={styles.houseSign}>{house.sign || '—'}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : (
+          <View style={styles.comingSoonCard}>
+            <Ionicons name="home-outline" size={20} color={Colors.textTertiary} />
+            <Text style={styles.comingSoonText}>Houses data coming soon</Text>
+          </View>
+        )}
+        
+        {/* System label - PROMPT 4: neutral copy only */}
+        <View style={styles.systemLabel}>
+          <Text style={styles.systemLabelText}>
+            Calculated using {getSiderealSystemLabel()}.
+          </Text>
+        </View>
+
+        {/* Navigation buttons */}
+        <View style={styles.modeNavigation}>
+          <TouchableOpacity 
+            style={styles.modeNavButton}
+            onPress={() => navigateToMode('summary')}
+          >
+            <Ionicons name="book-outline" size={18} color={Colors.text} />
+            <Text style={styles.modeNavButtonText}>About This Lens</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.modeNavButton, styles.modeNavButtonPrimary]}
+            onPress={() => navigateToMode('deep_dive')}
+          >
+            <Ionicons name="telescope-outline" size={18} color={Colors.background} />
+            <Text style={styles.modeNavButtonTextPrimary}>Full Chart</Text>
+          </TouchableOpacity>
+        </View>
+      </>
+    );
+  };
+
+  // PROMPT 3 & 4: Render deep dive view from astrology.planets[] and astrology.houses[]
+  const renderDeepDiveView = () => {
+    if (!chartDetails?.astrology) {
+      return (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>Chart data not available</Text>
+        </View>
+      );
+    }
+    
+    // PROMPT 3: Use astrology.planets[] and astrology.houses[] arrays
+    const planets = Array.isArray(astrology?.planets) ? astrology.planets : [];
+    const houses = Array.isArray(astrology?.houses) ? astrology.houses : [];
+    const hasPlanets = planets.length > 0;
+    const hasHouses = houses.length > 0;
+    
+    return (
+      <>
+        {/* Always show compact snapshot at top of deep dive */}
+        <View style={styles.snapshotCard}>
+          <View style={styles.snapshotHeader}>
+            <Ionicons name="sparkles" size={20} color={Colors.text} />
+            <Text style={styles.snapshotTitle}>Your Sidereal Snapshot</Text>
+          </View>
+          
+          <View style={styles.snapshotRows}>
+            {hasSun && (
+              <View style={styles.snapshotRow}>
+                <View style={styles.snapshotRowIcon}>
+                  <Ionicons name="sunny" size={18} color={Colors.text} />
+                </View>
+                <Text style={styles.snapshotRowLabel}>Sun</Text>
+                <Text style={styles.snapshotRowValue}>{formatPlanetPosition(sun)}</Text>
+              </View>
+            )}
+            
+            {hasMoon && (
+              <View style={styles.snapshotRow}>
+                <View style={styles.snapshotRowIcon}>
+                  <Ionicons name="moon" size={18} color={Colors.text} />
+                </View>
+                <Text style={styles.snapshotRowLabel}>Moon</Text>
+                <Text style={styles.snapshotRowValue}>{formatPlanetPosition(moon)}</Text>
+              </View>
+            )}
+            
+            {hasRising && (
+              <View style={styles.snapshotRow}>
+                <View style={styles.snapshotRowIcon}>
+                  <Ionicons name="arrow-up-circle" size={18} color={Colors.text} />
+                </View>
+                <Text style={styles.snapshotRowLabel}>Ascendant</Text>
+                <Text style={styles.snapshotRowValue}>{formatPlanetPosition(rising)}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Disclaimer */}
+        <View style={styles.disclaimerCard}>
+          <Ionicons name="information-circle-outline" size={20} color={Colors.textSecondary} />
+          <Text style={styles.disclaimerText}>
+            Descriptive, not deterministic. These positions are factual data—interpretation is up to you.
+          </Text>
+        </View>
+
+        {/* PROMPT 3: Planetary Positions from astrology.planets[] array */}
+        {hasPlanets ? (
+          <View style={styles.deepDiveSection}>
+            <Text style={styles.deepDiveSectionTitle}>Planetary Positions</Text>
+            
+            {planets.map((planet: any, index: number) => (
+              <View key={planet.name || index} style={styles.planetRow}>
+                <Text style={styles.planetName}>{planet.name || '—'}</Text>
+                <View style={styles.planetDetails}>
+                  {/* PROMPT 3: Use formatted if available, else sign+degree */}
+                  <Text style={styles.planetSign}>
+                    {planet.formatted || (planet.sign ? `${planet.sign} ${planet.degree != null ? formatDegreeMinutes(planet.degree) : ''}` : '—')}
+                  </Text>
+                  {planet.house && (
+                    <Text style={styles.planetHouse}>H{planet.house}</Text>
+                  )}
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.comingSoonCard}>
+            <Ionicons name="planet-outline" size={20} color={Colors.textTertiary} />
+            <Text style={styles.comingSoonText}>More depth will appear here as your lenses expand.</Text>
+          </View>
+        )}
+
+        {/* PROMPT 3: House Cusps from astrology.houses[] array */}
+        {hasHouses ? (
+          <View style={styles.deepDiveSection}>
+            <Text style={styles.deepDiveSectionTitle}>House Cusps</Text>
+            <Text style={styles.deepDiveSectionSubtitle}>Equal House System</Text>
+            
+            {houses.map((house: any, index: number) => (
+              <View key={house.house || index} style={styles.houseRow}>
+                <Text style={styles.houseRowNumber}>House {house.house || index + 1}</Text>
+                {/* PROMPT 3: Use formatted if available, else sign+degree */}
+                <Text style={styles.houseRowSign}>
+                  {house.formatted || (house.sign ? `${house.sign} ${house.degree != null ? formatDegreeMinutes(house.degree) : ''}` : '—')}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.comingSoonCard}>
+            <Ionicons name="home-outline" size={20} color={Colors.textTertiary} />
+            <Text style={styles.comingSoonText}>House data coming soon</Text>
+          </View>
+        )}
+
+        {/* Aspects - Coming Soon */}
+        <View style={styles.comingSoonCard}>
+          <Ionicons name="git-network-outline" size={20} color={Colors.textTertiary} />
+          <Text style={styles.comingSoonText}>Aspects analysis coming soon</Text>
+        </View>
+
+        {/* PROMPT 4: System metadata - neutral label + computation info */}
+        <View style={styles.deepDiveSystemSection}>
+          <Text style={styles.deepDiveSystemTitle}>System</Text>
+          
+          <View style={styles.systemMetaRow}>
+            <Text style={styles.systemMetaLabel}>Positions</Text>
+            <Text style={styles.systemMetaValue}>{getSiderealSystemLabel()}</Text>
+          </View>
+          
+          {chartDetails.computation_version && (
+            <View style={styles.systemMetaRow}>
+              <Text style={styles.systemMetaLabel}>Engine</Text>
+              <Text style={styles.systemMetaValue}>{chartDetails.computation_version}</Text>
+            </View>
+          )}
+          
+          {astrology?.chart_type && (
+            <View style={styles.systemMetaRow}>
+              <Text style={styles.systemMetaLabel}>Chart Type</Text>
+              <Text style={styles.systemMetaValue}>{astrology.chart_type}</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Navigation buttons */}
+        <View style={styles.modeNavigation}>
+          <TouchableOpacity 
+            style={styles.modeNavButton}
+            onPress={() => navigateToMode('summary')}
+          >
+            <Ionicons name="book-outline" size={18} color={Colors.text} />
+            <Text style={styles.modeNavButtonText}>About This Lens</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.modeNavButton}
+            onPress={() => navigateToMode('snapshot')}
+          >
+            <Ionicons name="sparkles-outline" size={18} color={Colors.text} />
+            <Text style={styles.modeNavButtonText}>Full Snapshot</Text>
+          </TouchableOpacity>
+        </View>
+      </>
+    );
+  };
+  
+  if (!content) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>Lens not found</Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Text style={styles.backButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.headerBackButton}>
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{content.name}</Text>
+        </View>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={Colors.textSecondary} />
+          <Text style={styles.loadingText}>Loading your chart...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Check if user needs to complete onboarding (no user or no chart)
+  const showOnboardingCTA = !user?.id || (error && error.includes('not found'));
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
+      
+      {/* Header with back button */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.headerBackButton}>
+          <Ionicons name="arrow-back" size={24} color={Colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{content.name}</Text>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* UI Invariant Error Banner - shown when onboarded user can't see personalized content */}
+        {invariantViolation && renderInvariantErrorBanner()}
+
+        {/* Fetch Error Banner for onboarded users */}
+        {isOnboardedUser && error && !showOnboardingCTA && (
+          <View style={styles.invariantErrorBanner}>
+            <Ionicons name="warning-outline" size={18} color="#D97706" />
+            <Text style={styles.invariantErrorText}>
+              We couldn't load your snapshot. Try again.
+            </Text>
+            <TouchableOpacity 
+              style={styles.invariantRetryButton}
+              onPress={handleRetry}
+            >
+              <Ionicons name="refresh" size={16} color="#D97706" />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Onboarding CTA for users without chart data */}
+        {showOnboardingCTA && (
+          <View style={styles.onboardingCTA}>
+            <Ionicons name="person-add-outline" size={24} color={Colors.textSecondary} />
+            <Text style={styles.onboardingCTATitle}>Complete Your Profile</Text>
+            <Text style={styles.onboardingCTAText}>
+              Add your birth details to see your personalized {content.name} snapshot.
+            </Text>
+            <TouchableOpacity 
+              style={styles.onboardingCTAButton}
+              onPress={() => router.push('/onboarding')}
+            >
+              <Text style={styles.onboardingCTAButtonText}>Get Started</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* MODE: SUMMARY - Short snapshot + explainer */}
+        {mode === 'summary' && (
+          <>
+            {/* Personalized Astrology Snapshot (only for astrology lens with data) */}
+            {isAstrologyLens && hasAstrologyData && !showOnboardingCTA && renderAstrologySnapshotCompact()}
+
+            {/* About This Lens Section */}
+            <View style={styles.aboutSection}>
+              <Text style={styles.aboutSectionTitle}>About This Lens</Text>
+            </View>
+            
+            {/* Summary View */}
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryText}>{content.summary}</Text>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>How to use this lens</Text>
+              {content.howToUse.map((item: string, index: number) => (
+                <View key={index} style={styles.bulletPoint}>
+                  <Text style={styles.bullet}>•</Text>
+                  <Text style={styles.bulletText}>{item}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Navigation buttons for Astrology lens */}
+            {isAstrologyLens && hasAstrologyData && !showOnboardingCTA && (
+              <View style={styles.modeNavigation}>
+                <TouchableOpacity 
+                  style={[styles.modeNavButton, styles.modeNavButtonPrimary]}
+                  onPress={() => navigateToMode('snapshot')}
+                >
+                  <Ionicons name="sparkles" size={18} color={Colors.background} />
+                  <Text style={styles.modeNavButtonTextPrimary}>Full Snapshot</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.modeNavButton}
+                  onPress={() => navigateToMode('deep_dive')}
+                >
+                  <Ionicons name="telescope-outline" size={18} color={Colors.text} />
+                  <Text style={styles.modeNavButtonText}>Go Deeper</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Static deep dive button for non-astrology or no data */}
+            {(!isAstrologyLens || !hasAstrologyData || showOnboardingCTA) && (
+              <TouchableOpacity
+                style={styles.deepDiveButton}
+                onPress={() => navigateToMode('deep_dive')}
+              >
+                <Text style={styles.deepDiveButtonText}>Go Deeper</Text>
+                <Ionicons name="arrow-forward" size={20} color={Colors.background} />
+              </TouchableOpacity>
+            )}
+          </>
+        )}
+
+        {/* MODE: SNAPSHOT - Personalized chart overview */}
+        {mode === 'snapshot' && isAstrologyLens && (
+          <>
+            {hasAstrologyData && !showOnboardingCTA ? (
+              renderSnapshotView()
+            ) : (
+              <>
+                <View style={styles.emptyState}>
+                  <Ionicons name="telescope-outline" size={32} color={Colors.textTertiary} />
+                  <Text style={styles.emptyStateText}>No chart data available</Text>
+                  <Text style={styles.emptyStateSubtext}>Complete onboarding to see your snapshot</Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.modeNavButton}
+                  onPress={() => navigateToMode('summary')}
+                >
+                  <Ionicons name="arrow-back" size={18} color={Colors.text} />
+                  <Text style={styles.modeNavButtonText}>Back to Summary</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </>
+        )}
+
+        {/* MODE: DEEP_DIVE - Full chart details */}
+        {mode === 'deep_dive' && (
+          <>
+            {isAstrologyLens && hasAstrologyData && !showOnboardingCTA ? (
+              renderDeepDiveView()
+            ) : (
+              <>
+                {/* Static deep dive content for non-astrology lenses */}
+                <View style={styles.disclaimerCard}>
+                  <Ionicons name="information-circle-outline" size={20} color={Colors.textSecondary} />
+                  <Text style={styles.disclaimerText}>
+                    Descriptive, not deterministic. Not predictive. Offers perspective, not prescription.
+                  </Text>
+                </View>
+
+                <Text style={styles.intro}>{content.deepDive.intro}</Text>
+
+                {content.deepDive.sections.map((section: any, index: number) => (
+                  <View key={index} style={styles.deepSection}>
+                    <Text style={styles.deepSectionTitle}>{section.title}</Text>
+                    <Text style={styles.deepSectionContent}>{section.content}</Text>
+                  </View>
+                ))}
+
+                <View style={styles.footerNote}>
+                  <Text style={styles.footerNoteText}>
+                    Remember: These frameworks work best when held lightly. They're tools for reflection, not rigid definitions.
+                  </Text>
+                </View>
+
+                <TouchableOpacity 
+                  style={[styles.modeNavButton, { marginTop: 24 }]}
+                  onPress={() => navigateToMode('summary')}
+                >
+                  <Ionicons name="arrow-back" size={18} color={Colors.text} />
+                  <Text style={styles.modeNavButtonText}>Back to Summary</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -675,312 +915,581 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  flex1: {
+  centered: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 15,
+    color: Colors.textSecondary,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
-  closeButton: {
-    padding: 4,
-    width: 32,
-  },
-  headerCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  headerBackButton: {
+    padding: 8,
+    marginRight: 12,
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.text,
-  },
-  headerSpacer: {
-    width: 32,
-  },
-  // Tabs
-  tabBar: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderRadius: 20,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-  },
-  tabActive: {
-    backgroundColor: Colors.surface,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  tabText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    fontWeight: '500',
-  },
-  tabTextActive: {
-    color: Colors.text,
-    fontWeight: '600',
-  },
-  // Scroll
-  scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 20,
+    padding: 24,
+    paddingBottom: 60,
   },
-  // Mode Label
-  modeLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-    letterSpacing: 1.5,
-    marginBottom: 12,
-  },
-  // Mirror Card
-  mirrorCard: {
+  // Onboarding CTA styles
+  onboardingCTA: {
     backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 24,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  mirrorIntro: {
-    fontSize: 15,
-    fontStyle: 'italic',
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 22,
-  },
-  mirrorTitleRow: {
-    flexDirection: 'row',
+    marginBottom: 24,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginBottom: 16,
   },
-  mirrorIcon: {
-    opacity: 0.6,
-  },
-  mirrorTitle: {
-    fontSize: 16,
+  onboardingCTATitle: {
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.text,
-  },
-  mirrorBody: {
-    marginBottom: 20,
-  },
-  mirrorBodyText: {
-    fontSize: 15,
-    color: Colors.text,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  mirrorDivider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginVertical: 20,
-  },
-  reflectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-    letterSpacing: 1.5,
-    textAlign: 'center',
+    marginTop: 12,
     marginBottom: 8,
   },
-  reflectionText: {
-    fontSize: 15,
-    fontStyle: 'italic',
-    color: Colors.text,
+  onboardingCTAText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 24,
     marginBottom: 16,
   },
-  mirrorFooter: {
-    fontSize: 13,
-    color: Colors.textTertiary,
-    textAlign: 'center',
-    fontStyle: 'italic',
-    lineHeight: 20,
+  onboardingCTAButton: {
+    backgroundColor: Colors.text,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
   },
-  // Profile Cards
-  profileCard: {
+  onboardingCTAButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  // Personalized Snapshot styles
+  snapshotCard: {
     backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 20,
-    marginBottom: 16,
+    marginBottom: 24,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  profileCardTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-    letterSpacing: 1.5,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  profileGrid: {
+  snapshotHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  profileGridItem: {
     alignItems: 'center',
-    flex: 1,
+    marginBottom: 20,
+    gap: 10,
   },
-  profileLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: Colors.textTertiary,
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  profileValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  profileDegree: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  // HD Profile Grid
-  hdProfileGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  hdProfileItem: {
-    width: '50%',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  hdProfileValue: {
-    fontSize: 16,
+  snapshotTitle: {
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.text,
-    textAlign: 'center',
   },
-  // Cycles Grid (Numerology)
-  cyclesGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  cycleItem: {
-    alignItems: 'center',
-  },
-  cycleNumber: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  cycleLabel: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-  // Computed Section
-  computedSection: {
-    paddingHorizontal: 4,
-    marginBottom: 16,
-  },
-  computedTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.text,
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  computedRow: {
+  snapshotGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 6,
+    marginBottom: 16,
   },
-  computedLabel: {
+  snapshotItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  snapshotLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  snapshotValue: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  // Row-based snapshot layout
+  snapshotRows: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  snapshotRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  snapshotRowIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  snapshotRowLabel: {
     fontSize: 14,
+    fontWeight: '500',
     color: Colors.textSecondary,
+    width: 80,
   },
-  computedValue: {
-    fontSize: 14,
+  snapshotRowValue: {
+    flex: 1,
+    fontSize: 15,
     fontWeight: '600',
     color: Colors.text,
     textAlign: 'right',
+  },
+  // Snapshot navigation buttons
+  snapshotButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  snapshotButtonPrimary: {
     flex: 1,
-    marginLeft: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.text,
+    borderRadius: 10,
+    paddingVertical: 12,
   },
-  sourceText: {
+  snapshotButtonPrimaryText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  snapshotButtonSecondary: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 10,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  snapshotButtonSecondaryText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  systemLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  systemLabelText: {
     fontSize: 12,
-    color: Colors.success,
-    marginTop: 12,
+    color: Colors.textTertiary,
   },
-  // Empty Profile
-  emptyProfileCard: {
+  // About section
+  aboutSection: {
+    marginBottom: 8,
+  },
+  aboutSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  summaryCard: {
     backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 24,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
+    marginBottom: 24,
   },
-  emptyProfileText: {
+  summaryText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: Colors.text,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
     fontSize: 14,
+    fontWeight: '600',
     color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 16,
+  },
+  bulletPoint: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    paddingLeft: 8,
+  },
+  bullet: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginRight: 12,
+    marginTop: 2,
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+  },
+  deepDiveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.text,
+    borderRadius: 12,
+    padding: 16,
+    gap: 8,
+  },
+  deepDiveButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  disclaimerCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    gap: 12,
+  },
+  disclaimerText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 20,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+  },
+  intro: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: Colors.textSecondary,
+    marginBottom: 32,
+  },
+  deepSection: {
+    marginBottom: 32,
+  },
+  deepSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 12,
+  },
+  deepSectionContent: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: Colors.textSecondary,
+  },
+  footerNote: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 20,
+    marginTop: 16,
+  },
+  footerNoteText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
     textAlign: 'center',
   },
-  // Consciousness
-  consciousnessText: {
-    fontSize: 15,
-    color: Colors.text,
-    lineHeight: 24,
+  errorText: {
+    fontSize: 16,
+    color: Colors.error,
+    marginBottom: 24,
   },
-  // Chat
-  chatContainer: {
-    paddingHorizontal: 16,
+  backButton: {
+    backgroundColor: Colors.surface,
+    paddingHorizontal: 24,
     paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.background,
+    borderRadius: 8,
   },
-  chatInputWrapper: {
+  backButtonText: {
+    fontSize: 16,
+    color: Colors.text,
+  },
+  // Mode Navigation styles
+  modeNavigation: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  modeNavButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 14,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modeNavButtonPrimary: {
+    backgroundColor: Colors.text,
+    borderColor: Colors.text,
+  },
+  modeNavButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  modeNavButtonTextPrimary: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  // Snapshot view styles
+  placementsList: {
+    gap: 16,
+  },
+  placementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  placementIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placementInfo: {
+    flex: 1,
+  },
+  placementLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  placementValue: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  placementHouse: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  // Houses card styles
+  housesCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  cardSubtitle: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    marginBottom: 16,
+  },
+  housesGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  houseItem: {
+    alignItems: 'center',
+    width: '16%',
+  },
+  houseNumber: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    marginBottom: 2,
+  },
+  houseSign: {
+    fontSize: 12,
+    color: Colors.text,
+  },
+  // Deep dive styles
+  deepDiveSection: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+  },
+  deepDiveSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 16,
+  },
+  deepDiveSectionSubtitle: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    marginTop: -12,
+    marginBottom: 16,
+  },
+  planetRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  planetName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  planetDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  planetSign: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  planetDegree: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    minWidth: 30,
+  },
+  planetHouse: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    backgroundColor: Colors.background,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  houseRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  houseRowNumber: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  houseRowSign: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  // Coming soon & empty state styles
+  comingSoonCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface,
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 4,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    gap: 12,
+  },
+  comingSoonText: {
+    fontSize: 14,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    gap: 12,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: Colors.textTertiary,
+  },
+  // UI Invariant Error Banner styles
+  invariantErrorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    gap: 10,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: '#FCD34D',
   },
-  chatInput: {
+  invariantErrorText: {
     flex: 1,
-    fontSize: 15,
-    color: Colors.text,
-    paddingVertical: 10,
+    fontSize: 14,
+    color: '#92400E',
+    fontWeight: '500',
   },
-  chatSendButton: {
+  invariantRetryButton: {
     padding: 8,
-    marginLeft: 8,
+    borderRadius: 8,
+    backgroundColor: '#FDE68A',
   },
-  chatSendButtonDisabled: {
-    opacity: 0.5,
+  // Deep dive system section styles (PROMPT 4)
+  deepDiveSystemSection: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+  },
+  deepDiveSystemTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  systemMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  systemMetaLabel: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  systemMetaValue: {
+    fontSize: 13,
+    color: Colors.text,
   },
 });
