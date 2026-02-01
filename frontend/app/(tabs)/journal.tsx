@@ -18,6 +18,7 @@ import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import JournalEntryItem from '../../components/JournalEntryItem';
 import MirrorReflectionModal from '../../components/MirrorReflectionModal';
+import MirrorChat from '../../components/MirrorChat';
 import { createJournalEntry, getJournalEntries } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -30,20 +31,21 @@ interface CachedReflection {
 
 // Simple hash function for text comparison
 function hashText(text: string): string {
-  // Normalize: trim, lowercase, remove extra whitespace
   const normalized = text.trim().toLowerCase().replace(/\s+/g, ' ');
-  // Simple hash based on length and character codes
   let hash = 0;
   for (let i = 0; i < normalized.length; i++) {
     const char = normalized.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
   return hash.toString();
 }
 
+type ViewMode = 'journal' | 'mirror';
+
 export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
+  const [viewMode, setViewMode] = useState<ViewMode>('journal');
   const [newEntry, setNewEntry] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +57,7 @@ export default function JournalScreen() {
   const [selectedJournalText, setSelectedJournalText] = useState('');
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   
-  // Cache of reflections per entry (keyed by entry ID)
+  // Cache of reflections per entry
   const [reflectionCache, setReflectionCache] = useState<Map<string, CachedReflection>>(new Map());
 
   useEffect(() => {
@@ -79,9 +81,7 @@ export default function JournalScreen() {
   const handleSubmit = async () => {
     if (!user || !newEntry.trim() || isSubmitting) return;
 
-    // Dismiss keyboard
     Keyboard.dismiss();
-
     setIsSubmitting(true);
     setError('');
 
@@ -101,17 +101,13 @@ export default function JournalScreen() {
     Keyboard.dismiss();
   };
 
-  // Handle "Reflect with Mirror" tap for an existing entry
   const handleReflect = useCallback((entryId: string, content: string) => {
-    // Check if we have a cached reflection for this entry
     const cached = reflectionCache.get(entryId);
     const currentHash = hashText(content);
     
     if (cached && cached.textHash === currentHash) {
-      // Use cached reflection - text hasn't changed meaningfully
       setSelectedJournalText(cached.journalText);
     } else {
-      // New reflection or text changed - update cache
       const newCache = new Map(reflectionCache);
       newCache.set(entryId, {
         entryId,
@@ -126,16 +122,14 @@ export default function JournalScreen() {
     setReflectionModalVisible(true);
   }, [reflectionCache]);
 
-  // Handle reflect on current input (before submitting) - always regenerates since not saved
   const handleReflectCurrentEntry = useCallback(() => {
     if (newEntry.trim()) {
-      setSelectedEntryId(null); // No entry ID for unsaved text
+      setSelectedEntryId(null);
       setSelectedJournalText(newEntry.trim());
       setReflectionModalVisible(true);
     }
   }, [newEntry]);
 
-  // Close modal handler
   const handleCloseModal = useCallback(() => {
     setReflectionModalVisible(false);
   }, []);
@@ -151,6 +145,52 @@ export default function JournalScreen() {
     );
   }
 
+  // Mirror Chat View
+  if (viewMode === 'mirror') {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar style="dark" />
+        {/* Mode Toggle */}
+        <View style={styles.modeToggleContainer}>
+          <TouchableOpacity
+            style={[styles.modeButton, viewMode === 'journal' && styles.modeButtonActive]}
+            onPress={() => setViewMode('journal')}
+          >
+            <Ionicons 
+              name="book-outline" 
+              size={18} 
+              color={viewMode === 'journal' ? Colors.accent : Colors.textSecondary} 
+            />
+            <Text style={[styles.modeButtonText, viewMode === 'journal' && styles.modeButtonTextActive]}>
+              Journal
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.modeButton, viewMode === 'mirror' && styles.modeButtonActive]}
+            onPress={() => setViewMode('mirror')}
+          >
+            <Ionicons 
+              name="sparkles" 
+              size={18} 
+              color={viewMode === 'mirror' ? Colors.accent : Colors.textSecondary} 
+            />
+            <Text style={[styles.modeButtonText, viewMode === 'mirror' && styles.modeButtonTextActive]}>
+              Mirror Chat
+            </Text>
+          </TouchableOpacity>
+        </View>
+        
+        <MirrorChat
+          userId={user.id}
+          lens={null}
+          placeholder="Share what's on your mind..."
+          headerTitle="Mirror"
+        />
+      </SafeAreaView>
+    );
+  }
+
+  // Journal View
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
@@ -161,6 +201,36 @@ export default function JournalScreen() {
       >
         <TouchableWithoutFeedback onPress={dismissKeyboard}>
           <View style={styles.content}>
+            {/* Mode Toggle */}
+            <View style={styles.modeToggleContainer}>
+              <TouchableOpacity
+                style={[styles.modeButton, viewMode === 'journal' && styles.modeButtonActive]}
+                onPress={() => setViewMode('journal')}
+              >
+                <Ionicons 
+                  name="book-outline" 
+                  size={18} 
+                  color={viewMode === 'journal' ? Colors.accent : Colors.textSecondary} 
+                />
+                <Text style={[styles.modeButtonText, viewMode === 'journal' && styles.modeButtonTextActive]}>
+                  Journal
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modeButton, viewMode === 'mirror' && styles.modeButtonActive]}
+                onPress={() => setViewMode('mirror')}
+              >
+                <Ionicons 
+                  name="sparkles" 
+                  size={18} 
+                  color={viewMode === 'mirror' ? Colors.accent : Colors.textSecondary} 
+                />
+                <Text style={[styles.modeButtonText, viewMode === 'mirror' && styles.modeButtonTextActive]}>
+                  Mirror Chat
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Header */}
             <View style={styles.header}>
               <Text style={styles.title}>Journal</Text>
@@ -225,7 +295,7 @@ export default function JournalScreen() {
                   <Text style={[
                     styles.reflectCurrentText,
                     reflectionModalVisible && styles.reflectTextDisabled
-                  ]}>Reflect with Mirror</Text>
+                  ]}>Quick Reflect</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -271,7 +341,7 @@ export default function JournalScreen() {
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 
-      {/* Mirror Reflection Modal */}
+      {/* Mirror Reflection Modal (Quick Template-based) */}
       <MirrorReflectionModal
         visible={reflectionModalVisible}
         onClose={handleCloseModal}
@@ -293,12 +363,44 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 24,
+    paddingTop: 0,
     paddingBottom: 24,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // Mode Toggle
+  modeToggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 4,
+    marginHorizontal: 24,
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  modeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 10,
+    gap: 6,
+  },
+  modeButtonActive: {
+    backgroundColor: Colors.accent + '15',
+  },
+  modeButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  modeButtonTextActive: {
+    color: Colors.accent,
+    fontWeight: '600',
   },
   header: {
     marginBottom: 24,
