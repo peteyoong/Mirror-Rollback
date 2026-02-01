@@ -439,9 +439,165 @@ def test_mel_design_date():
 
 
 # =============================================================================
+# SANITY TESTS (Lightweight stability checks)
+# =============================================================================
+# These tests verify basic functionality without deep astrology assertions.
+# They ensure the computation pipeline completes without errors.
+
+SANITY_TEST_A = {
+    "name": "Sanity_Malaysia_2000",
+    "birth_local": "2000-01-01",
+    "birth_time": "00:00",
+    "timezone": "+08:00",
+    "lat": 3.1390,  # Kuala Lumpur
+    "lon": 101.6869,
+    "expected_utc": "1999-12-31T16:00:00Z",
+    "expected_tz_minutes": 480
+}
+
+SANITY_TEST_B = {
+    "name": "Sanity_NewYork_1990",
+    "birth_local": "1990-06-15",
+    "birth_time": "12:00",
+    "timezone": "-05:00",
+    "lat": 40.7128,  # New York
+    "lon": -74.0060,
+    "expected_utc": "1990-06-15T17:00:00Z",
+    "expected_tz_minutes": -300
+}
+
+
+def run_sanity_test(test_config: Dict[str, Any]) -> Dict[str, Any]:
+    """Run a single sanity test"""
+    result = {
+        "name": test_config["name"],
+        "passed": False,
+        "details": []
+    }
+    
+    sidereal_settings = {
+        "mode": "true_sidereal_user_defined",
+        "svp_degrees": 31.2836,
+        "reference_year": 2000,
+        "yearly_increment": 0.0
+    }
+    
+    try:
+        # Test 1: UTC Resolution
+        birth_utc, resolved_iso, tz_minutes, _ = resolve_birth_utc(
+            birth_date_str=test_config["birth_local"],
+            birth_time_str=test_config["birth_time"],
+            timezone_str=test_config["timezone"]
+        )
+        
+        # Assert UTC
+        if resolved_iso == test_config["expected_utc"]:
+            result["details"].append(f"✅ resolved_birth_utc_iso: {resolved_iso}")
+        else:
+            result["details"].append(f"❌ resolved_birth_utc_iso: {resolved_iso} (expected {test_config['expected_utc']})")
+            return result
+        
+        # Assert timezone minutes
+        if tz_minutes == test_config["expected_tz_minutes"]:
+            result["details"].append(f"✅ parsed_timezone_minutes: {tz_minutes}")
+        else:
+            result["details"].append(f"❌ parsed_timezone_minutes: {tz_minutes} (expected {test_config['expected_tz_minutes']})")
+            return result
+        
+        # Test 2: Astrology computation completes
+        astro_chart = get_full_natal_chart(
+            birth_utc,
+            test_config["lat"],
+            test_config["lon"],
+            sidereal_settings=sidereal_settings,
+            house_system="Equal"
+        )
+        
+        if astro_chart and "planets" in astro_chart:
+            result["details"].append("✅ Astrology computation completed")
+        else:
+            result["details"].append("❌ Astrology computation failed")
+            return result
+        
+        # Test 3: Human Design computation completes
+        hd_chart = get_human_design_chart(
+            birth_utc,
+            test_config["lat"],
+            test_config["lon"],
+            sidereal_settings=sidereal_settings
+        )
+        
+        if hd_chart and "type" in hd_chart:
+            result["details"].append("✅ Human Design computation completed")
+        else:
+            result["details"].append("❌ Human Design computation failed")
+            return result
+        
+        result["passed"] = True
+        
+    except Exception as e:
+        result["details"].append(f"❌ Exception: {e}")
+    
+    return result
+
+
+def test_sanity_malaysia_2000():
+    """pytest: Sanity test - Malaysia 2000"""
+    result = run_sanity_test(SANITY_TEST_A)
+    assert result["passed"], f"Sanity test A failed: {result['details']}"
+
+
+def test_sanity_newyork_1990():
+    """pytest: Sanity test - New York 1990"""
+    result = run_sanity_test(SANITY_TEST_B)
+    assert result["passed"], f"Sanity test B failed: {result['details']}"
+
+
+def run_all_sanity_tests() -> bool:
+    """Run all sanity tests. Returns True if all pass."""
+    print()
+    print("=" * 70)
+    print("  SANITY TESTS (Stability Checks)")
+    print("=" * 70)
+    print()
+    
+    all_passed = True
+    
+    for test_config in [SANITY_TEST_A, SANITY_TEST_B]:
+        print(f"SANITY: {test_config['name']}")
+        print("-" * 70)
+        result = run_sanity_test(test_config)
+        
+        for detail in result["details"]:
+            print(f"  {detail}")
+        
+        if result["passed"]:
+            print(f"  ✅ {test_config['name']}: PASSED")
+        else:
+            print(f"  ❌ {test_config['name']}: FAILED")
+            all_passed = False
+        print()
+    
+    return all_passed
+
+
+# =============================================================================
 # DIRECT EXECUTION
 # =============================================================================
 
 if __name__ == "__main__":
-    success = run_mel_regression_test()
-    sys.exit(0 if success else 1)
+    # Run Mel regression test
+    mel_success = run_mel_regression_test()
+    
+    # Run sanity tests
+    sanity_success = run_all_sanity_tests()
+    
+    # Final status
+    print("=" * 70)
+    if mel_success and sanity_success:
+        print("  🎯 ALL TESTS PASSED (Regression + Sanity)")
+    else:
+        print("  ❌ SOME TESTS FAILED")
+    print("=" * 70)
+    
+    sys.exit(0 if (mel_success and sanity_success) else 1)
