@@ -272,6 +272,45 @@ Do not explain numerological calculations unless asked - focus on the meaning an
 }
 
 
+# Memory Update System Prompt - For "You Over Time" pattern tracking
+MEMORY_UPDATE_PROMPT = """You are analyzing a user's recent communication to track reflective patterns over time.
+
+This is NOT prediction. This is pattern observation for self-awareness.
+
+Based on the user's recent messages and journal entries, generate a structured memory update.
+
+GUARDRAILS (STRICT):
+- No diagnoses (e.g., "you have anxiety", "this is depression")
+- No "you are" statements (e.g., "you are an introvert", "you are struggling")
+- No prescriptions (e.g., "you should", "you need to")
+- Evidence must be short, non-sensitive paraphrases (no raw quotes that could be embarrassing)
+- If uncertain about patterns, set inferred_state="unclear" and confidence below 0.4
+
+DEFINITIONS:
+- themes: Recurring topics or concerns across conversations (max 5)
+- recurring_tensions: Patterns of internal conflict or struggle (max 5)
+- supportive_moves: What seems to help them (observations, not advice) (max 5)
+- drainers: What seems to deplete their energy (observations) (max 5)
+- inferred_state: Their current inner orientation
+  - "grounding": Seeking stability, returning to basics
+  - "stabilizing": Processing recent changes, finding footing
+  - "exploring": Curious, open, trying new perspectives
+  - "integrating": Making meaning, synthesizing insights
+  - "unclear": Not enough information or mixed signals
+
+Respond with ONLY valid JSON matching this exact structure:
+{
+  "themes": ["string", ...],
+  "recurring_tensions": ["string", ...],
+  "supportive_moves": ["string", ...],
+  "drainers": ["string", ...],
+  "inferred_state": "grounding|stabilizing|exploring|integrating|unclear",
+  "confidence": 0.0-1.0,
+  "evidence": ["short paraphrase", ...]
+}
+"""
+
+
 class ChartCalculationRequest(BaseModel):
     user_id: str
     sidereal_settings: Optional[Dict] = {
