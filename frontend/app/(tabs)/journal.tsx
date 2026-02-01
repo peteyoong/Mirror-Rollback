@@ -223,40 +223,143 @@ export default function JournalScreen() {
     );
   }
 
+  // Render the mode toggle (shared across views)
+  const renderModeToggle = () => (
+    <View style={styles.modeToggleContainer}>
+      <TouchableOpacity
+        style={[styles.modeButton, viewMode === 'journal' && styles.modeButtonActive]}
+        onPress={() => setViewMode('journal')}
+      >
+        <Ionicons 
+          name="book-outline" 
+          size={16} 
+          color={viewMode === 'journal' ? Colors.accent : Colors.textSecondary} 
+        />
+        <Text style={[styles.modeButtonText, viewMode === 'journal' && styles.modeButtonTextActive]}>
+          Journal
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.modeButton, viewMode === 'mirror' && styles.modeButtonActive]}
+        onPress={() => setViewMode('mirror')}
+      >
+        <Ionicons 
+          name="sparkles" 
+          size={16} 
+          color={viewMode === 'mirror' ? Colors.accent : Colors.textSecondary} 
+        />
+        <Text style={[styles.modeButtonText, viewMode === 'mirror' && styles.modeButtonTextActive]}>
+          Mirror
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.modeButton, viewMode === 'timeline' && styles.modeButtonActive]}
+        onPress={() => setViewMode('timeline')}
+      >
+        <Ionicons 
+          name="time-outline" 
+          size={16} 
+          color={viewMode === 'timeline' ? Colors.accent : Colors.textSecondary} 
+        />
+        <Text style={[styles.modeButtonText, viewMode === 'timeline' && styles.modeButtonTextActive]}>
+          Timeline
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Render timeline event row
+  const renderTimelineEvent = ({ item, index }: { item: TimelineEvent; index: number }) => {
+    const eventId = `${item.created_at_iso}-${index}`;
+    const isExpanded = expandedEventId === eventId;
+    const firstTheme = item.themes[0] || 'Reflection';
+    
+    return (
+      <TouchableOpacity 
+        style={styles.timelineRow}
+        onPress={() => toggleEventExpanded(eventId)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.timelineHeader}>
+          <Text style={styles.timelineTime}>{formatRelativeTime(item.created_at_iso)}</Text>
+          <View style={styles.stateChip}>
+            <Text style={styles.stateChipText}>{formatState(item.inferred_state)}</Text>
+          </View>
+          <Ionicons 
+            name={isExpanded ? "chevron-up" : "chevron-down"} 
+            size={16} 
+            color={Colors.textTertiary} 
+          />
+        </View>
+        <Text style={styles.timelineTheme} numberOfLines={isExpanded ? undefined : 1}>
+          {firstTheme}
+        </Text>
+        
+        {isExpanded && (
+          <View style={styles.timelineDetails}>
+            {item.themes[1] && (
+              <Text style={styles.timelineSecondTheme}>• {item.themes[1]}</Text>
+            )}
+            {item.tension && (
+              <View style={styles.tensionContainer}>
+                <Text style={styles.tensionLabel}>Tension:</Text>
+                <Text style={styles.tensionText}>{item.tension}</Text>
+              </View>
+            )}
+            <Text style={styles.confidenceText}>
+              Confidence: {Math.round(item.confidence * 100)}%
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  // Timeline View
+  if (viewMode === 'timeline') {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar style="dark" />
+        {renderModeToggle()}
+        
+        <View style={styles.timelineContainer}>
+          <View style={styles.timelineHeaderSection}>
+            <Text style={styles.timelineTitle}>Last 7 Days</Text>
+            <Text style={styles.timelineSubtitle}>Your inner patterns over time</Text>
+          </View>
+          
+          {isLoadingTimeline ? (
+            <View style={styles.centered}>
+              <ActivityIndicator color={Colors.accent} />
+            </View>
+          ) : timelineEvents.length === 0 ? (
+            <View style={styles.emptyTimeline}>
+              <Ionicons name="time-outline" size={48} color={Colors.border} />
+              <Text style={styles.emptyTimelineText}>No timeline yet</Text>
+              <Text style={styles.emptyTimelineSubtext}>
+                Start chatting with Mirror to build your pattern history
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={timelineEvents}
+              keyExtractor={(item, index) => `${item.created_at_iso}-${index}`}
+              renderItem={renderTimelineEvent}
+              contentContainerStyle={styles.timelineList}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   // Mirror Chat View
   if (viewMode === 'mirror') {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <StatusBar style="dark" />
-        {/* Mode Toggle */}
-        <View style={styles.modeToggleContainer}>
-          <TouchableOpacity
-            style={[styles.modeButton, viewMode === 'journal' && styles.modeButtonActive]}
-            onPress={() => setViewMode('journal')}
-          >
-            <Ionicons 
-              name="book-outline" 
-              size={18} 
-              color={viewMode === 'journal' ? Colors.accent : Colors.textSecondary} 
-            />
-            <Text style={[styles.modeButtonText, viewMode === 'journal' && styles.modeButtonTextActive]}>
-              Journal
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.modeButton, viewMode === 'mirror' && styles.modeButtonActive]}
-            onPress={() => setViewMode('mirror')}
-          >
-            <Ionicons 
-              name="sparkles" 
-              size={18} 
-              color={viewMode === 'mirror' ? Colors.accent : Colors.textSecondary} 
-            />
-            <Text style={[styles.modeButtonText, viewMode === 'mirror' && styles.modeButtonTextActive]}>
-              Mirror Chat
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {renderModeToggle()}
         
         <MirrorChat
           userId={user.id}
