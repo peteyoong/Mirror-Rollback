@@ -582,19 +582,7 @@ export default function LensDetail() {
             </Text>
             <TouchableOpacity 
               style={styles.invariantRetryButton}
-              onPress={() => {
-                setError(null);
-                if (user?.id) {
-                  setIsLoading(true);
-                  getChartDetails(user.id)
-                    .then((details) => {
-                      setChartDetails(details);
-                      cacheChartDetails(details);
-                    })
-                    .catch((err) => setError(err?.response?.data?.detail || 'Failed to load'))
-                    .finally(() => setIsLoading(false));
-                }
-              }}
+              onPress={handleRetry}
             >
               <Ionicons name="refresh" size={16} color="#D97706" />
             </TouchableOpacity>
