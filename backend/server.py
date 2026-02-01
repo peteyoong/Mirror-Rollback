@@ -1594,6 +1594,10 @@ async def clear_chat_session(session_id: str):
     return {"message": "Session cleared"}
 
 
+# Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
+app.include_router(api_router)
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
