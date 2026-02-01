@@ -580,7 +580,10 @@ export default function LensDetail() {
                 if (user?.id) {
                   setIsLoading(true);
                   getChartDetails(user.id)
-                    .then(setChartDetails)
+                    .then((details) => {
+                      setChartDetails(details);
+                      cacheChartDetails(details);
+                    })
                     .catch((err) => setError(err?.response?.data?.detail || 'Failed to load'))
                     .finally(() => setIsLoading(false));
                 }
