@@ -14,10 +14,12 @@ const api = axios.create({
 // User APIs
 export const createUser = async (data: {
   name?: string;
+  email?: string;
   birth_date: string;
   birth_time?: string;
   city: string;
   country: string;
+  timezone: string;
 }) => {
   const response = await api.post('/users', data);
   return response.data;
