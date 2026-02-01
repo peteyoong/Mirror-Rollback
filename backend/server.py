@@ -496,7 +496,13 @@ async def calculate_chart(request: ChartCalculationRequest):
         
         # Calculate all frameworks
         logger.info(f"Calculating astrology chart for user {request.user_id}")
-        astrology_chart = get_full_natal_chart(birth_datetime, lat, lon)
+        astrology_chart = get_full_natal_chart(
+            birth_datetime, 
+            lat, 
+            lon, 
+            sidereal_settings=sidereal_settings_used,
+            house_system=house_system_used
+        )
         
         logger.info(f"Calculating human design for user {request.user_id}")
         human_design = get_human_design_chart(birth_datetime, lat, lon)
