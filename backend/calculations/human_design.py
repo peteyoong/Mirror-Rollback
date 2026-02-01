@@ -5,35 +5,164 @@ from .astrology import get_full_natal_chart, normalize_degrees
 import swisseph as swe
 import math
 
-# I-Ching Hexagram Gate mapping (64 gates)
-# Each gate corresponds to 5.625 degrees (360/64)
-GATE_MAPPING = {
-    # Format: (start_degree, end_degree, gate_number, hexagram_name)
+# =============================================================================
+# HUMAN DESIGN RAVE MANDALA GATE WHEEL
+# =============================================================================
+# The HD gates are NOT evenly distributed around the zodiac.
+# They follow the I-Ching sequence mapped to specific zodiac positions.
+# Format: (gate_number, start_degree, end_degree) in absolute zodiac degrees
+# where Aries 0° = 0, Taurus 0° = 30, etc.
+
+HD_GATE_WHEEL = [
+    # Gate, Start Degree, End Degree (absolute zodiac 0-360)
+    
     # Aries (0-30°)
-    0: [(0, 5.625, 25, 'Innocence'), (5.625, 11.25, 51, 'Shock'), (11.25, 16.875, 21, 'Biting Through'),
-        (16.875, 22.5, 17, 'Following'), (22.5, 28.125, 27, 'Nourishment')],
+    (25, 358.25, 363.867),  # 28°15′ Pisces to 3°52′ Aries (wraps around)
+    (17, 3.867, 9.5),       # 3°52′ to 9°30′ Aries
+    (21, 9.5, 15.117),      # 9°30′ to 15°07′ Aries
+    (51, 15.117, 20.75),    # 15°07′ to 20°45′ Aries
+    (42, 20.75, 26.367),    # 20°45′ to 26°22′ Aries
+    (3, 26.367, 32.0),      # 26°22′ Aries to 2°00′ Taurus
+    
     # Taurus (30-60°)
-    30: [(28.125, 30, 27, 'Nourishment'), (30, 33.75, 42, 'Increase'), (33.75, 39.375, 3, 'Difficulty'),
-         (39.375, 45, 51, 'Shock'), (45, 50.625, 27, 'Nourishment'), (50.625, 56.25, 24, 'Return')],
-    # ... (simplified for V1 - full mapping would include all 64 gates)
-}
+    (27, 32.0, 37.617),     # 2°00′ to 7°37′ Taurus
+    (24, 37.617, 43.25),    # 7°37′ to 13°15′ Taurus
+    (2, 43.25, 48.867),     # 13°15′ to 18°52′ Taurus
+    (23, 48.867, 54.5),     # 18°52′ to 24°30′ Taurus
+    (8, 54.5, 60.117),      # 24°30′ Taurus to 0°07′ Gemini
+    
+    # Gemini (60-90°)
+    (20, 60.117, 65.75),    # 0°07′ to 5°45′ Gemini
+    (16, 65.75, 71.367),    # 5°45′ to 11°22′ Gemini
+    (35, 71.367, 77.0),     # 11°22′ to 17°00′ Gemini
+    (45, 77.0, 82.617),     # 17°00′ to 22°37′ Gemini
+    (12, 82.617, 88.25),    # 22°37′ to 28°15′ Gemini
+    (15, 88.25, 93.867),    # 28°15′ Gemini to 3°52′ Cancer
+    
+    # Cancer (90-120°)
+    (52, 93.867, 99.5),     # 3°52′ to 9°30′ Cancer
+    (39, 99.5, 105.117),    # 9°30′ to 15°07′ Cancer
+    (53, 105.117, 110.75),  # 15°07′ to 20°45′ Cancer
+    (62, 110.75, 116.367),  # 20°45′ to 26°22′ Cancer
+    (56, 116.367, 122.0),   # 26°22′ Cancer to 2°00′ Leo
+    
+    # Leo (120-150°)
+    (31, 122.0, 127.617),   # 2°00′ to 7°37′ Leo
+    (33, 127.617, 133.25),  # 7°37′ to 13°15′ Leo
+    (7, 133.25, 138.867),   # 13°15′ to 18°52′ Leo
+    (4, 138.867, 144.5),    # 18°52′ to 24°30′ Leo
+    (29, 144.5, 150.117),   # 24°30′ Leo to 0°07′ Virgo
+    
+    # Virgo (150-180°)
+    (59, 150.117, 155.75),  # 0°07′ to 5°45′ Virgo
+    (40, 155.75, 161.367),  # 5°45′ to 11°22′ Virgo
+    (64, 161.367, 167.0),   # 11°22′ to 17°00′ Virgo
+    (47, 167.0, 172.617),   # 17°00′ to 22°37′ Virgo
+    (6, 172.617, 178.25),   # 22°37′ to 28°15′ Virgo
+    (46, 178.25, 183.867),  # 28°15′ Virgo to 3°52′ Libra
+    
+    # Libra (180-210°)
+    (18, 183.867, 189.5),   # 3°52′ to 9°30′ Libra
+    (48, 189.5, 195.117),   # 9°30′ to 15°07′ Libra
+    (57, 195.117, 200.75),  # 15°07′ to 20°45′ Libra
+    (32, 200.75, 206.367),  # 20°45′ to 26°22′ Libra
+    (50, 206.367, 212.0),   # 26°22′ Libra to 2°00′ Scorpio
+    
+    # Scorpio (210-240°)
+    (28, 212.0, 217.617),   # 2°00′ to 7°37′ Scorpio
+    (44, 217.617, 223.25),  # 7°37′ to 13°15′ Scorpio
+    (1, 223.25, 228.867),   # 13°15′ to 18°52′ Scorpio
+    (43, 228.867, 234.5),   # 18°52′ to 24°30′ Scorpio
+    (14, 234.5, 240.117),   # 24°30′ Scorpio to 0°07′ Sagittarius
+    
+    # Sagittarius (240-270°)
+    (34, 240.117, 245.75),  # 0°07′ to 5°45′ Sagittarius
+    (9, 245.75, 251.367),   # 5°45′ to 11°22′ Sagittarius
+    (5, 251.367, 257.0),    # 11°22′ to 17°00′ Sagittarius
+    (26, 257.0, 262.617),   # 17°00′ to 22°37′ Sagittarius
+    (11, 262.617, 268.25),  # 22°37′ to 28°15′ Sagittarius
+    (10, 268.25, 273.867),  # 28°15′ Sagittarius to 3°52′ Capricorn
+    
+    # Capricorn (270-300°)
+    (58, 273.867, 279.5),   # 3°52′ to 9°30′ Capricorn
+    (38, 279.5, 285.117),   # 9°30′ to 15°07′ Capricorn
+    (54, 285.117, 290.75),  # 15°07′ to 20°45′ Capricorn
+    (61, 290.75, 296.367),  # 20°45′ to 26°22′ Capricorn
+    (60, 296.367, 302.0),   # 26°22′ Capricorn to 2°00′ Aquarius
+    
+    # Aquarius (300-330°)
+    (41, 302.0, 307.617),   # 2°00′ to 7°37′ Aquarius
+    (19, 307.617, 313.25),  # 7°37′ to 13°15′ Aquarius
+    (13, 313.25, 318.867),  # 13°15′ to 18°52′ Aquarius
+    (49, 318.867, 324.5),   # 18°52′ to 24°30′ Aquarius
+    (30, 324.5, 330.117),   # 24°30′ Aquarius to 0°07′ Pisces
+    
+    # Pisces (330-360°)
+    (55, 330.117, 335.75),  # 0°07′ to 5°45′ Pisces
+    (37, 335.75, 341.367),  # 5°45′ to 11°22′ Pisces
+    (63, 341.367, 347.0),   # 11°22′ to 17°00′ Pisces
+    (22, 347.0, 352.617),   # 17°00′ to 22°37′ Pisces
+    (36, 352.617, 358.25),  # 22°37′ to 28°15′ Pisces
+    # Gate 25 wraps from Pisces to Aries (handled specially)
+]
+
 
 def longitude_to_gate(longitude: float) -> Dict:
-    """Convert longitude to I-Ching gate"""
-    gate_degree = 360 / 64
-    gate_number = int(longitude / gate_degree) + 1
-    line = int(((longitude % gate_degree) / gate_degree) * 6) + 1
+    """Convert sidereal longitude to I-Ching gate using HD Rave Mandala wheel
     
-    # Wrap gate number to 1-64
-    if gate_number > 64:
-        gate_number = gate_number % 64
-    if gate_number == 0:
-        gate_number = 64
+    The HD gate wheel is NOT a simple 360/64 division.
+    Each gate has specific zodiac degree boundaries following I-Ching order.
+    
+    Args:
+        longitude: Sidereal longitude (0-360)
+    
+    Returns:
+        Dict with gate number, line (1-6), and formatted string
+    """
+    # Normalize to 0-360
+    longitude = longitude % 360
+    
+    # Special handling for Gate 25 which wraps around 0°
+    if longitude >= 358.25 or longitude < 3.867:
+        gate = 25
+        if longitude >= 358.25:
+            pos_in_gate = longitude - 358.25
+        else:
+            pos_in_gate = (360 - 358.25) + longitude
+        gate_size = (360 - 358.25) + 3.867  # ~5.617°
+    else:
+        # Search through gate wheel
+        gate = None
+        pos_in_gate = 0
+        gate_size = 5.625  # Default
+        
+        for g, start, end in HD_GATE_WHEEL:
+            if g == 25:  # Skip, handled above
+                continue
+            if start <= longitude < end:
+                gate = g
+                pos_in_gate = longitude - start
+                gate_size = end - start
+                break
+        
+        # Fallback if not found (shouldn't happen)
+        if gate is None:
+            gate = 1
+            pos_in_gate = 0
+            gate_size = 5.625
+    
+    # Calculate line (1-6) within gate
+    # Each gate has 6 lines, evenly distributed
+    line = int((pos_in_gate / gate_size) * 6) + 1
+    if line > 6:
+        line = 6
+    if line < 1:
+        line = 1
     
     return {
-        'gate': gate_number,
+        'gate': gate,
         'line': line,
-        'formatted': f"{gate_number}.{line}"
+        'formatted': f"{gate}.{line}"
     }
 
 def calculate_design_date(birth_datetime: datetime, lat: float = 0, lon: float = 0, 
