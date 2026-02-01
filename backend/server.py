@@ -1596,7 +1596,7 @@ async def mirror_chat(request: MirrorChatRequest):
         
         history = chat_sessions[session_id]
         
-        # Call LLM
+        # Call LLM for reflective reply
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
             session_id=session_id,
@@ -1616,10 +1616,97 @@ async def mirror_chat(request: MirrorChatRequest):
         if len(history) > 50:
             chat_sessions[session_id] = history[-50:]
         
+        # Generate Memory Update (asynchronously, in parallel with response)
+        memory_update = None
+        try:
+            # Build context for memory analysis
+            memory_context_parts = []
+            
+            # Add recent conversation history
+            memory_context_parts.append("--- RECENT CONVERSATION ---")
+            for msg in history[-10:]:  # Last 10 messages
+                role = "User" if msg['role'] == 'user' else "Mirror"
+                memory_context_parts.append(f"{role}: {msg['content'][:500]}")
+            
+            # Add journal entries if available
+            if request.include_journal:
+                journal_entries = await db.journal.find(
+                    {"user_id": request.user_id}
+                ).sort("timestamp", -1).limit(10).to_list(10)
+                
+                if journal_entries:
+                    memory_context_parts.append("\n--- RECENT JOURNAL ENTRIES ---")
+                    for entry in reversed(journal_entries):
+                        content = entry.get('content', '')[:300]
+                        memory_context_parts.append(f"- {content}")
+            
+            # Build memory analysis prompt
+            memory_prompt = MEMORY_UPDATE_PROMPT + "\n\n" + "\n".join(memory_context_parts)
+            
+            # Create separate LLM call for memory update
+            memory_chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"memory_{session_id}",
+                system_message=memory_prompt
+            )
+            memory_chat.with_model("openai", "gpt-5.2")
+            
+            # Request structured memory update
+            memory_message = UserMessage(text="Analyze the above and generate a memory_update JSON object.")
+            memory_response = await memory_chat.send_message(memory_message)
+            
+            # Parse JSON response
+            import json
+            import re
+            
+            # Extract JSON from response (handle markdown code blocks)
+            json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', memory_response)
+            if json_match:
+                json_str = json_match.group(1)
+            else:
+                json_str = memory_response.strip()
+            
+            memory_data = json.loads(json_str)
+            
+            # Validate and sanitize
+            memory_update = MemoryUpdate(
+                themes=memory_data.get('themes', [])[:5],
+                recurring_tensions=memory_data.get('recurring_tensions', [])[:5],
+                supportive_moves=memory_data.get('supportive_moves', [])[:5],
+                drainers=memory_data.get('drainers', [])[:5],
+                inferred_state=memory_data.get('inferred_state', 'unclear'),
+                confidence=min(1.0, max(0.0, float(memory_data.get('confidence', 0.5)))),
+                evidence=memory_data.get('evidence', [])[:3],
+                updated_at_iso=datetime.now(timezone.utc).isoformat()
+            )
+            
+            # Validate inferred_state
+            valid_states = ['grounding', 'stabilizing', 'exploring', 'integrating', 'unclear']
+            if memory_update.inferred_state not in valid_states:
+                memory_update.inferred_state = 'unclear'
+            
+            # Store memory update in database (overwrite previous)
+            await db.user_memory.update_one(
+                {"user_id": request.user_id},
+                {"$set": {
+                    "user_id": request.user_id,
+                    "memory_update": memory_update.dict(),
+                    "updated_at": datetime.now(timezone.utc)
+                }},
+                upsert=True
+            )
+            
+            logger.info(f"Memory update stored for user {request.user_id}: state={memory_update.inferred_state}, confidence={memory_update.confidence}")
+            
+        except Exception as mem_error:
+            logger.warning(f"Memory update generation failed: {mem_error}")
+            # Continue without memory update - don't fail the whole request
+        
         return MirrorChatResponse(
             response=response_text,
             session_id=session_id,
-            timestamp=datetime.now(timezone.utc).isoformat()
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            memory_update=memory_update
         )
         
     except Exception as e:
