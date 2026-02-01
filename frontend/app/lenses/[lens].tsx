@@ -896,4 +896,211 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
   },
+  // Mode Navigation styles
+  modeNavigation: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  modeNavButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 14,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modeNavButtonPrimary: {
+    backgroundColor: Colors.text,
+    borderColor: Colors.text,
+  },
+  modeNavButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  modeNavButtonTextPrimary: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  // Snapshot view styles
+  placementsList: {
+    gap: 16,
+  },
+  placementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  placementIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placementInfo: {
+    flex: 1,
+  },
+  placementLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  placementValue: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  placementHouse: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  // Houses card styles
+  housesCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  cardSubtitle: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    marginBottom: 16,
+  },
+  housesGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  houseItem: {
+    alignItems: 'center',
+    width: '16%',
+  },
+  houseNumber: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    marginBottom: 2,
+  },
+  houseSign: {
+    fontSize: 12,
+    color: Colors.text,
+  },
+  // Deep dive styles
+  deepDiveSection: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+  },
+  deepDiveSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 16,
+  },
+  deepDiveSectionSubtitle: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    marginTop: -12,
+    marginBottom: 16,
+  },
+  planetRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  planetName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  planetDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  planetSign: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  planetDegree: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    minWidth: 30,
+  },
+  planetHouse: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    backgroundColor: Colors.background,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  houseRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  houseRowNumber: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  houseRowSign: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  // Coming soon & empty state styles
+  comingSoonCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    gap: 12,
+  },
+  comingSoonText: {
+    fontSize: 14,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    gap: 12,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: Colors.textTertiary,
+  },
 });
