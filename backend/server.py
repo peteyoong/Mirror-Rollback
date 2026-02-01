@@ -1561,12 +1561,14 @@ async def mirror_chat(request: MirrorChatRequest):
         # Call LLM
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
-            model="gpt-5.2",
+            session_id=session_id,
             system_message=system_prompt
         )
+        chat.with_model("openai", "gpt-5.2")
         
-        response = await chat.send_async(llm_messages)
-        response_text = response.content if hasattr(response, 'content') else str(response)
+        # Send user message
+        message = UserMessage(text=request.message)
+        response_text = await chat.send_message(message)
         
         # Store in history
         history.append({"role": "user", "content": request.message})
