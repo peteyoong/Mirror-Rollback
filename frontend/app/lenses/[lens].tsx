@@ -350,8 +350,35 @@ export default function LensDetail() {
     };
   };
 
+  // Get personalized Mirror Moment content for Human Design lens
+  const getHDMirrorMoment = () => {
+    if (lens !== 'human_design' || !chart?.human_design) {
+      return null;
+    }
+    
+    const hd = chart.human_design;
+    const hdType = hd.type;
+    const authority = hd.authority;
+    const profile = hd.profile;
+    
+    // Get content with fallbacks
+    const energy = hdType ? HD_ENERGY_TEMPLATES[hdType] : HD_FALLBACK_ENERGY;
+    const decisionMaking = authority ? HD_AUTHORITY_TEMPLATES[authority] : HD_FALLBACK_AUTHORITY;
+    const question = profile ? HD_PROFILE_QUESTIONS[profile] : HD_FALLBACK_QUESTION;
+    
+    return {
+      energy: energy || HD_FALLBACK_ENERGY,
+      decisionMaking: decisionMaking || HD_FALLBACK_AUTHORITY,
+      question: question || HD_FALLBACK_QUESTION,
+      hdType,
+      authority,
+      profile,
+    };
+  };
+
   const profileData = getProfileData();
   const personalizedMirror = getPersonalizedMirrorMoment();
+  const hdMirror = getHDMirrorMoment();
 
   const renderTabs = () => (
     <View style={styles.tabBar}>
