@@ -164,7 +164,6 @@ export default function Questionnaire() {
           duration: 300,
           useNativeDriver: true,
         }).start();
-        }, 3000);
       });
     } catch (err: any) {
       console.error('Save email error:', err);
@@ -175,9 +174,52 @@ export default function Questionnaire() {
     }
   };
 
+  const handleContinueToApp = () => {
+    // Fade to brief transition, then navigate
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setScreenState('transition');
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      // Navigate after brief pause
+      setTimeout(() => {
+        router.replace('/(tabs)');
+      }, 1500);
+    });
+  };
+
   if (!user) {
     router.replace('/onboarding');
     return null;
+  }
+
+  // "Your space is ready" confirmation screen
+  if (screenState === 'ready') {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
+        <Animated.View style={[styles.readyContainer, { opacity: fadeAnim }]}>
+          <Text style={styles.readyTitle}>Your space is ready</Text>
+          <Text style={styles.readyDescription}>
+            This is a private place to reflect, notice patterns, and explore perspectives at your own pace.
+          </Text>
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={handleContinueToApp}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.continueButtonText}>Continue</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </SafeAreaView>
+    );
   }
 
   // Email capture screen
