@@ -494,6 +494,9 @@ export default function LensDetail() {
 
           {/* Profile Data */}
           {renderSiderealProfile()}
+
+          {/* Personalized Mirror Moment (Astrology only) */}
+          {renderPersonalizedMirrorMoment()}
         </ScrollView>
 
         {/* Chat Input */}
