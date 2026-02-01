@@ -387,6 +387,7 @@ async def get_user(user_id: str):
         return UserProfileResponse(
             id=str(user["_id"]),
             name=user.get("name"),
+            email=user.get("email"),
             birth_date=user["birth_date"].strftime("%Y-%m-%d"),
             birth_time=user.get("birth_time"),
             birth_location=Location(**user["birth_location"]),
@@ -394,6 +395,34 @@ async def get_user(user_id: str):
         )
     except Exception as e:
         logger.error(f"Get user error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.put("/users/{user_id}/email")
+async def update_user_email(user_id: str, request: EmailUpdateRequest):
+    """Update user email - used to save their reflection space"""
+    try:
+        # Basic email validation
+        email = request.email.strip().lower()
+        if not email or '@' not in email or '.' not in email.split('@')[-1]:
+            raise HTTPException(status_code=400, detail="Please enter a valid email address")
+        
+        # Check if user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Update email
+        await db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"email": email, "email_updated_at": datetime.now(timezone.utc)}}
+        )
+        
+        return {"success": True, "message": "Email saved successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update email error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
