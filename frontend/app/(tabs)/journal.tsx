@@ -383,34 +383,7 @@ export default function JournalScreen() {
         <TouchableWithoutFeedback onPress={dismissKeyboard}>
           <View style={styles.content}>
             {/* Mode Toggle */}
-            <View style={styles.modeToggleContainer}>
-              <TouchableOpacity
-                style={[styles.modeButton, viewMode === 'journal' && styles.modeButtonActive]}
-                onPress={() => setViewMode('journal')}
-              >
-                <Ionicons 
-                  name="book-outline" 
-                  size={18} 
-                  color={viewMode === 'journal' ? Colors.accent : Colors.textSecondary} 
-                />
-                <Text style={[styles.modeButtonText, viewMode === 'journal' && styles.modeButtonTextActive]}>
-                  Journal
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modeButton, viewMode === 'mirror' && styles.modeButtonActive]}
-                onPress={() => setViewMode('mirror')}
-              >
-                <Ionicons 
-                  name="sparkles" 
-                  size={18} 
-                  color={viewMode === 'mirror' ? Colors.accent : Colors.textSecondary} 
-                />
-                <Text style={[styles.modeButtonText, viewMode === 'mirror' && styles.modeButtonTextActive]}>
-                  Mirror Chat
-                </Text>
-              </TouchableOpacity>
-            </View>
+            {renderModeToggle()}
 
             {/* Header */}
             <View style={styles.header}>
