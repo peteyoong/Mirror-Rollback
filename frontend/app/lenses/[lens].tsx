@@ -363,6 +363,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
   },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 15,
+    color: Colors.textSecondary,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -384,6 +389,106 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 24,
     paddingBottom: 60,
+  },
+  // Onboarding CTA styles
+  onboardingCTA: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 24,
+    alignItems: 'center',
+  },
+  onboardingCTATitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  onboardingCTAText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  onboardingCTAButton: {
+    backgroundColor: Colors.text,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  onboardingCTAButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  // Personalized Snapshot styles
+  snapshotCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  snapshotHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 10,
+  },
+  snapshotTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  snapshotGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  snapshotItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  snapshotLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  snapshotValue: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  systemLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  systemLabelText: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+  },
+  // About section
+  aboutSection: {
+    marginBottom: 8,
+  },
+  aboutSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   summaryCard: {
     backgroundColor: Colors.surface,
