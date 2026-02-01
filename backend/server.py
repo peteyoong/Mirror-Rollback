@@ -505,7 +505,12 @@ async def calculate_chart(request: ChartCalculationRequest):
         )
         
         logger.info(f"Calculating human design for user {request.user_id}")
-        human_design = get_human_design_chart(birth_datetime, lat, lon)
+        human_design = get_human_design_chart(
+            birth_datetime, 
+            lat, 
+            lon,
+            sidereal_settings=sidereal_settings_used
+        )
         
         logger.info(f"Calculating numerology for user {request.user_id}")
         numerology = get_full_numerology(birth_date, user.get("name"))
