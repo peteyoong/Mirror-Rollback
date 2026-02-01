@@ -511,11 +511,12 @@ export default function LensDetail() {
           </View>
         )}
 
-        {/* Personalized Astrology Snapshot (only for astrology lens with data) */}
-        {isAstrologyLens && hasAstrologyData && !showOnboardingCTA && renderAstrologySnapshot()}
-
+        {/* MODE: SUMMARY - Short snapshot + explainer */}
         {mode === 'summary' && (
           <>
+            {/* Personalized Astrology Snapshot (only for astrology lens with data) */}
+            {isAstrologyLens && hasAstrologyData && !showOnboardingCTA && renderAstrologySnapshotCompact()}
+
             {/* About This Lens Section */}
             <View style={styles.aboutSection}>
               <Text style={styles.aboutSectionTitle}>About This Lens</Text>
@@ -536,43 +537,103 @@ export default function LensDetail() {
               ))}
             </View>
 
-            <TouchableOpacity
-              style={styles.deepDiveButton}
-              onPress={() => router.push(`/lenses/${lens}?mode=deep` as any)}
-            >
-              <Text style={styles.deepDiveButtonText}>Go Deeper</Text>
-              <Ionicons name="arrow-forward" size={20} color={Colors.background} />
-            </TouchableOpacity>
+            {/* Navigation buttons for Astrology lens */}
+            {isAstrologyLens && hasAstrologyData && !showOnboardingCTA && (
+              <View style={styles.modeNavigation}>
+                <TouchableOpacity 
+                  style={[styles.modeNavButton, styles.modeNavButtonPrimary]}
+                  onPress={() => navigateToMode('snapshot')}
+                >
+                  <Ionicons name="sparkles" size={18} color={Colors.background} />
+                  <Text style={styles.modeNavButtonTextPrimary}>View Summary</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.modeNavButton}
+                  onPress={() => navigateToMode('deep_dive')}
+                >
+                  <Ionicons name="telescope-outline" size={18} color={Colors.text} />
+                  <Text style={styles.modeNavButtonText}>Go Deeper</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Static deep dive button for non-astrology or no data */}
+            {(!isAstrologyLens || !hasAstrologyData || showOnboardingCTA) && (
+              <TouchableOpacity
+                style={styles.deepDiveButton}
+                onPress={() => navigateToMode('deep_dive')}
+              >
+                <Text style={styles.deepDiveButtonText}>Go Deeper</Text>
+                <Ionicons name="arrow-forward" size={20} color={Colors.background} />
+              </TouchableOpacity>
+            )}
           </>
         )}
 
-        {mode === 'deep' && (
+        {/* MODE: SNAPSHOT - Personalized chart overview */}
+        {mode === 'snapshot' && isAstrologyLens && (
           <>
-            {/* Personalized Astrology Snapshot also in deep mode */}
-            {isAstrologyLens && hasAstrologyData && !showOnboardingCTA && renderAstrologySnapshot()}
-            
-            {/* Deep Dive View */}
-            <View style={styles.disclaimerCard}>
-              <Ionicons name="information-circle-outline" size={20} color={Colors.textSecondary} />
-              <Text style={styles.disclaimerText}>
-                Descriptive, not deterministic. Not predictive. Offers perspective, not prescription.
-              </Text>
-            </View>
+            {hasAstrologyData && !showOnboardingCTA ? (
+              renderSnapshotView()
+            ) : (
+              <>
+                <View style={styles.emptyState}>
+                  <Ionicons name="telescope-outline" size={32} color={Colors.textTertiary} />
+                  <Text style={styles.emptyStateText}>No chart data available</Text>
+                  <Text style={styles.emptyStateSubtext}>Complete onboarding to see your snapshot</Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.modeNavButton}
+                  onPress={() => navigateToMode('summary')}
+                >
+                  <Ionicons name="arrow-back" size={18} color={Colors.text} />
+                  <Text style={styles.modeNavButtonText}>Back to Summary</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </>
+        )}
 
-            <Text style={styles.intro}>{content.deepDive.intro}</Text>
+        {/* MODE: DEEP_DIVE - Full chart details */}
+        {mode === 'deep_dive' && (
+          <>
+            {isAstrologyLens && hasAstrologyData && !showOnboardingCTA ? (
+              renderDeepDiveView()
+            ) : (
+              <>
+                {/* Static deep dive content for non-astrology lenses */}
+                <View style={styles.disclaimerCard}>
+                  <Ionicons name="information-circle-outline" size={20} color={Colors.textSecondary} />
+                  <Text style={styles.disclaimerText}>
+                    Descriptive, not deterministic. Not predictive. Offers perspective, not prescription.
+                  </Text>
+                </View>
 
-            {content.deepDive.sections.map((section: any, index: number) => (
-              <View key={index} style={styles.deepSection}>
-                <Text style={styles.deepSectionTitle}>{section.title}</Text>
-                <Text style={styles.deepSectionContent}>{section.content}</Text>
-              </View>
-            ))}
+                <Text style={styles.intro}>{content.deepDive.intro}</Text>
 
-            <View style={styles.footerNote}>
-              <Text style={styles.footerNoteText}>
-                Remember: These frameworks work best when held lightly. They're tools for reflection, not rigid definitions.
-              </Text>
-            </View>
+                {content.deepDive.sections.map((section: any, index: number) => (
+                  <View key={index} style={styles.deepSection}>
+                    <Text style={styles.deepSectionTitle}>{section.title}</Text>
+                    <Text style={styles.deepSectionContent}>{section.content}</Text>
+                  </View>
+                ))}
+
+                <View style={styles.footerNote}>
+                  <Text style={styles.footerNoteText}>
+                    Remember: These frameworks work best when held lightly. They're tools for reflection, not rigid definitions.
+                  </Text>
+                </View>
+
+                <TouchableOpacity 
+                  style={[styles.modeNavButton, { marginTop: 24 }]}
+                  onPress={() => navigateToMode('summary')}
+                >
+                  <Ionicons name="arrow-back" size={18} color={Colors.text} />
+                  <Text style={styles.modeNavButtonText}>Back to Summary</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </>
         )}
       </ScrollView>
