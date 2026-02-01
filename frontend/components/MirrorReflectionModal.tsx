@@ -284,8 +284,7 @@ export default function MirrorReflectionModal({
             
             {/* Footer */}
             <Text style={styles.footer}>
-              This reflection is generated from templates based on your chart data.
-              {'\n'}Take what resonates; leave what doesn't.
+              Take what resonates; leave what doesn't.
             </Text>
           </ScrollView>
           
