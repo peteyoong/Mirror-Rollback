@@ -456,6 +456,76 @@ class ChartCalculationRequest(BaseModel):
     house_system: Optional[str] = "Equal"
 
 
+# ============================================
+# Rate Limiting & Cost Control
+# ============================================
+
+# Rate limit configuration
+RATE_LIMITS = {
+    "mirror": {"max_requests": 30, "window_seconds": 3600},  # 30 per hour for generalist
+    "lens": {"max_requests": 20, "window_seconds": 3600},     # 20 per hour for all lens chats combined
+}
+
+# Token limits
+MAX_RESPONSE_TOKENS = 800
+MAX_CHAT_HISTORY = 10
+MAX_JOURNAL_ENTRIES = 5
+
+# In-memory rate limiter storage: {user_id: {"mirror": [timestamps], "lens": [timestamps]}}
+rate_limit_store: Dict[str, Dict[str, List[float]]] = {}
+
+# Fallback response for failures
+FALLBACK_RESPONSE = "Let's slow this down for a moment. Try again shortly."
+
+
+def check_rate_limit(user_id: str, is_lens: bool) -> bool:
+    """
+    Check if user is within rate limits.
+    Returns True if allowed, False if rate limited.
+    """
+    now = time.time()
+    limit_type = "lens" if is_lens else "mirror"
+    config = RATE_LIMITS[limit_type]
+    
+    # Initialize user storage if needed
+    if user_id not in rate_limit_store:
+        rate_limit_store[user_id] = {"mirror": [], "lens": []}
+    
+    # Clean old timestamps outside the window
+    cutoff = now - config["window_seconds"]
+    rate_limit_store[user_id][limit_type] = [
+        ts for ts in rate_limit_store[user_id][limit_type] if ts > cutoff
+    ]
+    
+    # Check if under limit
+    if len(rate_limit_store[user_id][limit_type]) >= config["max_requests"]:
+        return False
+    
+    # Add current request timestamp
+    rate_limit_store[user_id][limit_type].append(now)
+    return True
+
+
+def get_rate_limit_remaining(user_id: str, is_lens: bool) -> int:
+    """Get remaining requests for user."""
+    limit_type = "lens" if is_lens else "mirror"
+    config = RATE_LIMITS[limit_type]
+    
+    if user_id not in rate_limit_store:
+        return config["max_requests"]
+    
+    now = time.time()
+    cutoff = now - config["window_seconds"]
+    active_requests = len([
+        ts for ts in rate_limit_store[user_id].get(limit_type, []) if ts > cutoff
+    ])
+    
+    return max(0, config["max_requests"] - active_requests)
+
+
+import time
+
+
 class LocationSearchRequest(BaseModel):
     query: str
 
