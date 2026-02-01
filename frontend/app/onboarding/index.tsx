@@ -173,7 +173,7 @@ export default function Onboarding() {
       const birthDate = getFormattedDate();
       const birthTime = get24HourTime();
       
-      // Create user
+      // Create user - include latitude/longitude if available (from fallback cities)
       const userData = await createUser({
         name: name || undefined,
         birth_date: birthDate,
@@ -181,6 +181,8 @@ export default function Onboarding() {
         city: selectedLocation.city,
         country: selectedLocation.country,
         timezone: timezoneStr,
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude,
       });
 
       // Persist user data (wait for storage to complete)
