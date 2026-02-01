@@ -623,6 +623,9 @@ export default function LensDetail() {
 
           {/* Personalized Mirror Moment (Astrology only) */}
           {renderPersonalizedMirrorMoment()}
+
+          {/* Personalized Mirror Moment (Human Design only) */}
+          {renderHDMirrorMoment()}
         </ScrollView>
 
         {/* Chat Input */}
