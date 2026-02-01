@@ -456,6 +456,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  // "Your space is ready" styles
+  readyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  readyTitle: {
+    fontSize: 28,
+    fontWeight: '500',
+    color: Colors.text,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  readyDescription: {
+    fontSize: 16,
+    lineHeight: 26,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 48,
+    maxWidth: 300,
+  },
+  continueButton: {
+    backgroundColor: Colors.text,
+    borderRadius: 12,
+    paddingVertical: 18,
+    paddingHorizontal: 48,
+    minWidth: 200,
+    alignItems: 'center',
+  },
+  continueButtonText: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: '600',
+  },
   // Transition styles
   transitionContainer: {
     flex: 1,
