@@ -11,6 +11,8 @@ import logging
 from pathlib import Path
 from geopy.geocoders import Nominatim
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+import hashlib
+import uuid
 
 # Import calculation engines
 from calculations.astrology import get_full_natal_chart, close_ephemeris
