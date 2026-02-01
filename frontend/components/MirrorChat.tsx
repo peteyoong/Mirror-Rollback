@@ -110,7 +110,7 @@ export default function MirrorChat({
   }, [lens]);
 
   const handleSend = async () => {
-    if (!inputText.trim() || isLoading) return;
+    if (!inputText.trim() || isLoading || !sessionId) return;
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
