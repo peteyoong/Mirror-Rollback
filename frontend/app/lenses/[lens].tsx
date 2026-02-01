@@ -232,11 +232,19 @@ export default function LensDetail() {
   const fetchSucceeded = !isLoading && !error;
   const isAstrologyLens = lens === 'astrology';
   
-  // Astrology-specific checks
-  const hasAstrologyInResponse = !!chartDetails?.astrology;
-  const hasSun = !!chartDetails?.astrology?.sun;
-  const hasMoon = !!chartDetails?.astrology?.moon;
-  const hasAscendant = !!chartDetails?.astrology?.rising;
+  // Astrology-specific checks with hardened field mapping
+  const astrology = chartDetails?.astrology;
+  const hasAstrologyInResponse = !!astrology;
+  
+  // Core placements with field compatibility
+  const sun = astrology?.sun;
+  const moon = astrology?.moon;
+  // Ascendant can be stored as: ascendant, rising, or asc
+  const asc = astrology?.ascendant ?? astrology?.rising ?? astrology?.asc;
+  
+  const hasSun = !!sun;
+  const hasMoon = !!moon;
+  const hasAscendant = !!asc;
   
   // Count how many of the 3 core placements exist
   const corePlacementsCount = [hasSun, hasMoon, hasAscendant].filter(Boolean).length;
