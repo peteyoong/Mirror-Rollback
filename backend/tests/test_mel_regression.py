@@ -553,6 +553,149 @@ def test_sanity_newyork_1990():
     assert result["passed"], f"Sanity test B failed: {result['details']}"
 
 
+# =============================================================================
+# INTERPRETIVE LANGUAGE GUARDRAIL TEST
+# =============================================================================
+# This test ensures the deterministic compute output contains no interpretive
+# language that should only exist in the downstream interpretation layer.
+
+FORBIDDEN_WORDS = [
+    # Addressing user directly
+    "you", "your", "yourself",
+    # Prescriptive language
+    "should", "must", "need to", "have to",
+    # Future predictions
+    "will", "going to",
+    # Interpretive language
+    "means", "represents", "symbolizes", "signifies",
+    # Inferential language
+    "invites", "suggests", "indicates", "implies",
+    # Advice language
+    "try", "consider", "remember",
+]
+
+# Allowed exceptions (field names, technical terms)
+ALLOWED_EXCEPTIONS = [
+    "your_lenses",  # API field name
+    "chart_type",   # Descriptive field
+    "julian_day",   # Technical term
+]
+
+
+def scan_for_forbidden_words(obj: Any, path: str = "") -> List[str]:
+    """Recursively scan object for forbidden interpretive words"""
+    violations = []
+    
+    if isinstance(obj, str):
+        # Skip if it's a known exception
+        if any(exc in path.lower() for exc in ALLOWED_EXCEPTIONS):
+            return violations
+        
+        # Check for forbidden words (case-insensitive, whole word)
+        lower_str = obj.lower()
+        for word in FORBIDDEN_WORDS:
+            # Check for whole word match
+            import re
+            if re.search(r'\b' + re.escape(word) + r'\b', lower_str):
+                violations.append(f"'{word}' found at {path}: \"{obj[:50]}...\"" if len(obj) > 50 else f"'{word}' found at {path}: \"{obj}\"")
+    
+    elif isinstance(obj, dict):
+        for key, value in obj.items():
+            new_path = f"{path}.{key}" if path else key
+            violations.extend(scan_for_forbidden_words(value, new_path))
+    
+    elif isinstance(obj, list):
+        for i, item in enumerate(obj):
+            violations.extend(scan_for_forbidden_words(item, f"{path}[{i}]"))
+    
+    return violations
+
+
+def test_no_interpretive_language():
+    """pytest: Verify compute output contains no interpretive language"""
+    # Get a sample computation
+    utc_result = test_utc_resolution()
+    if not utc_result["passed"]:
+        assert False, "Cannot run interpretive language test without valid UTC"
+    
+    birth_utc = utc_result["birth_utc"]
+    
+    # Get astrology output
+    astro_chart = get_full_natal_chart(
+        birth_utc,
+        MEL_INPUT["lat"],
+        MEL_INPUT["lon"],
+        sidereal_settings=MEL_INPUT["sidereal_settings"],
+        house_system=MEL_INPUT["house_system"]
+    )
+    
+    # Get HD output
+    hd_chart = get_human_design_chart(
+        birth_utc,
+        MEL_INPUT["lat"],
+        MEL_INPUT["lon"],
+        sidereal_settings=MEL_INPUT["sidereal_settings"]
+    )
+    
+    # Scan for violations
+    astro_violations = scan_for_forbidden_words(astro_chart, "astrology")
+    hd_violations = scan_for_forbidden_words(hd_chart, "human_design")
+    
+    all_violations = astro_violations + hd_violations
+    
+    if all_violations:
+        violation_msg = "\n".join(all_violations[:10])  # Show first 10
+        assert False, f"Interpretive language found in compute output:\n{violation_msg}"
+
+
+def run_interpretive_language_test() -> Dict[str, Any]:
+    """Run interpretive language guardrail test"""
+    result = {"name": "Interpretive Language Guardrail", "passed": False, "details": []}
+    
+    try:
+        # Get a sample computation
+        birth_utc, _, _, _ = resolve_birth_utc(
+            MEL_INPUT["birth_local"],
+            MEL_INPUT["birth_time"],
+            MEL_INPUT["timezone"]
+        )
+        
+        astro_chart = get_full_natal_chart(
+            birth_utc,
+            MEL_INPUT["lat"],
+            MEL_INPUT["lon"],
+            sidereal_settings=MEL_INPUT["sidereal_settings"],
+            house_system=MEL_INPUT["house_system"]
+        )
+        
+        hd_chart = get_human_design_chart(
+            birth_utc,
+            MEL_INPUT["lat"],
+            MEL_INPUT["lon"],
+            sidereal_settings=MEL_INPUT["sidereal_settings"]
+        )
+        
+        astro_violations = scan_for_forbidden_words(astro_chart, "astrology")
+        hd_violations = scan_for_forbidden_words(hd_chart, "human_design")
+        
+        all_violations = astro_violations + hd_violations
+        
+        if all_violations:
+            result["details"].append(f"❌ Found {len(all_violations)} violation(s):")
+            for v in all_violations[:5]:
+                result["details"].append(f"   - {v}")
+            if len(all_violations) > 5:
+                result["details"].append(f"   ... and {len(all_violations) - 5} more")
+        else:
+            result["details"].append("✅ No interpretive language found in compute output")
+            result["passed"] = True
+        
+    except Exception as e:
+        result["details"].append(f"❌ Exception: {e}")
+    
+    return result
+
+
 def run_all_sanity_tests() -> bool:
     """Run all sanity tests. Returns True if all pass."""
     print()
