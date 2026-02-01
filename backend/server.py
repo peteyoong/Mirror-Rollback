@@ -171,10 +171,23 @@ class MirrorChatRequest(BaseModel):
     include_history: bool = True  # Include chat history
 
 
+# Memory Update - "You Over Time" structured tracking
+class MemoryUpdate(BaseModel):
+    themes: List[str] = []  # max 5 recurring themes
+    recurring_tensions: List[str] = []  # max 5 patterns of struggle
+    supportive_moves: List[str] = []  # max 5 observations (not advice)
+    drainers: List[str] = []  # max 5 energy drains observed
+    inferred_state: str = "unclear"  # grounding|stabilizing|exploring|integrating|unclear
+    confidence: float = 0.5  # 0.0-1.0
+    evidence: List[str] = []  # max 3 short quotes/paraphrases
+    updated_at_iso: str = ""
+
+
 class MirrorChatResponse(BaseModel):
     response: str
     session_id: str
     timestamp: str
+    memory_update: Optional[MemoryUpdate] = None
 
 
 # Mirror System Prompt - The Core Identity
