@@ -1438,6 +1438,163 @@ async def get_lenses():
 # Include the router in the main app
 app.include_router(api_router)
 
+# ============================================
+# Mirror Chat Endpoint - The Primary Intelligence
+# ============================================
+
+# In-memory chat sessions (in production, store in MongoDB)
+chat_sessions: Dict[str, List[Dict]] = {}
+
+@api_router.post("/mirror/chat", response_model=MirrorChatResponse)
+async def mirror_chat(request: MirrorChatRequest):
+    """
+    Mirror Chat - The reflective companion AI.
+    
+    - lens=None: Generalist mode (integrates all lenses)
+    - lens="astrology": Constrained to astrology lens
+    - lens="human_design": Constrained to Human Design lens
+    - lens="numerology": Constrained to numerology lens
+    """
+    try:
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        # Generate or use existing session ID
+        session_id = request.session_id or str(uuid.uuid4())
+        
+        # Get user's chart data for context
+        user = await db.users.find_one({"_id": ObjectId(request.user_id)})
+        chart = await db.charts.find_one({"user_id": request.user_id})
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Build context from chart data
+        context_parts = []
+        
+        # User basics
+        context_parts.append(f"User's name: {user.get('name', 'Unknown')}")
+        context_parts.append(f"Birth date: {user.get('birth_date')}")
+        
+        if chart:
+            # Astrology context
+            astro = chart.get('astrology', {})
+            if astro and (request.lens is None or request.lens == "astrology"):
+                planets = astro.get('planets', {})
+                sun = planets.get('Sun', {})
+                moon = planets.get('Moon', {})
+                houses = astro.get('houses', {})
+                rising = houses.get('formatted_cusps', [{}])[0] if houses.get('formatted_cusps') else {}
+                
+                context_parts.append("\n--- ASTROLOGY (True Sidereal) ---")
+                context_parts.append(f"Sun: {sun.get('formatted', 'Unknown')} ({sun.get('sign', 'Unknown')})")
+                context_parts.append(f"Moon: {moon.get('formatted', 'Unknown')} ({moon.get('sign', 'Unknown')})")
+                context_parts.append(f"Rising: {rising.get('formatted', 'Unknown')} ({rising.get('sign', 'Unknown')})")
+                
+                # Add other planets if in astrology lens
+                if request.lens == "astrology":
+                    for planet_name in ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto']:
+                        planet = planets.get(planet_name, {})
+                        if planet:
+                            context_parts.append(f"{planet_name}: {planet.get('formatted', 'Unknown')}")
+            
+            # Human Design context
+            hd = chart.get('human_design', {})
+            if hd and (request.lens is None or request.lens == "human_design"):
+                context_parts.append("\n--- HUMAN DESIGN ---")
+                context_parts.append(f"Type: {hd.get('type', 'Unknown')}")
+                context_parts.append(f"Strategy: {hd.get('strategy', 'Unknown')}")
+                context_parts.append(f"Authority: {hd.get('authority', 'Unknown')}")
+                context_parts.append(f"Profile: {hd.get('profile', 'Unknown')}")
+            
+            # Numerology context
+            numerology = chart.get('numerology', {})
+            if numerology and (request.lens is None or request.lens == "numerology"):
+                context_parts.append("\n--- NUMEROLOGY ---")
+                context_parts.append(f"Life Path: {numerology.get('life_path', 'Unknown')}")
+                context_parts.append(f"Expression: {numerology.get('expression', 'Unknown')}")
+                context_parts.append(f"Soul Urge: {numerology.get('soul_urge', 'Unknown')}")
+        
+        # Get recent journal entries for context
+        if request.include_journal:
+            journal_entries = await db.journal.find(
+                {"user_id": request.user_id}
+            ).sort("timestamp", -1).limit(5).to_list(5)
+            
+            if journal_entries:
+                context_parts.append("\n--- RECENT JOURNAL ENTRIES ---")
+                for entry in reversed(journal_entries):  # Show oldest first
+                    timestamp = entry.get('timestamp', datetime.now())
+                    if isinstance(timestamp, str):
+                        timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                    date_str = timestamp.strftime("%Y-%m-%d %H:%M")
+                    content = entry.get('content', '')[:300]  # Truncate long entries
+                    context_parts.append(f"[{date_str}] {content}")
+        
+        # Build system prompt
+        system_prompt = MIRROR_SYSTEM_PROMPT
+        
+        # Add lens-specific prompt if constrained
+        if request.lens and request.lens in LENS_PROMPTS:
+            system_prompt += "\n" + LENS_PROMPTS[request.lens]
+        
+        # Add context
+        system_prompt += "\n\n--- USER CONTEXT ---\n" + "\n".join(context_parts)
+        
+        # Get or create chat history for session
+        if session_id not in chat_sessions:
+            chat_sessions[session_id] = []
+        
+        history = chat_sessions[session_id]
+        
+        # Build messages for LLM
+        llm_messages = []
+        
+        # Add history if requested
+        if request.include_history:
+            for msg in history[-10:]:  # Last 10 messages for context
+                llm_messages.append(UserMessage(content=msg['content']) if msg['role'] == 'user' else msg)
+        
+        # Add current message
+        llm_messages.append(UserMessage(content=request.message))
+        
+        # Call LLM
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            model="gpt-5.2",
+            system_message=system_prompt
+        )
+        
+        response = await chat.send_async(llm_messages)
+        response_text = response.content if hasattr(response, 'content') else str(response)
+        
+        # Store in history
+        history.append({"role": "user", "content": request.message})
+        history.append({"role": "assistant", "content": response_text})
+        
+        # Limit history size
+        if len(history) > 50:
+            chat_sessions[session_id] = history[-50:]
+        
+        return MirrorChatResponse(
+            response=response_text,
+            session_id=session_id,
+            timestamp=datetime.now(timezone.utc).isoformat()
+        )
+        
+    except Exception as e:
+        logger.error(f"Mirror chat error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.delete("/mirror/chat/{session_id}")
+async def clear_chat_session(session_id: str):
+    """Clear a chat session history"""
+    if session_id in chat_sessions:
+        del chat_sessions[session_id]
+    return {"message": "Session cleared"}
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
