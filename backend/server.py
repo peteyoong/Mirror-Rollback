@@ -1698,6 +1698,28 @@ async def mirror_chat(request: MirrorChatRequest):
             
             logger.info(f"Memory update stored for user {request.user_id}: state={memory_update.inferred_state}, confidence={memory_update.confidence}")
             
+            # Write timeline event for consciousness tracking (privacy-safe, no raw text)
+            try:
+                timeline_event = {
+                    "user_id": request.user_id,
+                    "session_id": session_id,
+                    "created_at_iso": datetime.now(timezone.utc).isoformat(),
+                    "event_type": "mirror_chat_turn",
+                    "inferred_state": memory_update.inferred_state,
+                    "confidence": memory_update.confidence,
+                    "themes": memory_update.themes[:2],  # max 2 themes
+                    "tension": memory_update.recurring_tensions[0] if memory_update.recurring_tensions else None,
+                    "source": "mirror_chat",
+                    "version": "v1"
+                }
+                
+                await db.user_timeline.insert_one(timeline_event)
+                logger.info(f"Timeline event recorded for user {request.user_id}: state={memory_update.inferred_state}")
+                
+            except Exception as timeline_error:
+                logger.warning(f"Timeline event write failed: {timeline_error}")
+                # Continue without timeline - don't fail the request
+            
         except Exception as mem_error:
             logger.warning(f"Memory update generation failed: {mem_error}")
             # Continue without memory update - don't fail the whole request
