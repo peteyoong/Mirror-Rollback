@@ -978,4 +978,28 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 8,
   },
+  // Ask about this lens button
+  askLensButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.accent + '12',
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginTop: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.accent + '30',
+  },
+  askLensButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.accent,
+  },
+  // Modal container
+  modalContainer: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
 });
