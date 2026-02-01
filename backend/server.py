@@ -860,6 +860,7 @@ async def get_chart_details(user_id: str):
         
         # Return formatted chart data for Lenses
         return {
+            "computation_version": "mirror-deterministic-v1",
             "human_design": {
                 "type": chart.get("human_design", {}).get("type"),
                 "authority": chart.get("human_design", {}).get("authority"),
@@ -868,13 +869,17 @@ async def get_chart_details(user_id: str):
                 "strategy": chart.get("human_design", {}).get("strategy"),
                 "personality_sun": chart.get("human_design", {}).get("personality", {}).get("Sun"),
                 "design_sun": chart.get("human_design", {}).get("design", {}).get("Sun"),
-                "note": "V1 calculations use simplified gate-to-center mapping. Full channel analysis coming in future updates."
+                "defined_centers": chart.get("human_design", {}).get("defined_centers", []),
+                "defined_channels": chart.get("human_design", {}).get("defined_channels", []),
+                "definition": chart.get("human_design", {}).get("definition"),
+                "design_datetime_utc_iso": chart.get("human_design", {}).get("design_datetime_utc_iso")
             },
             "astrology": {
                 "sun": chart.get("astrology", {}).get("planets", {}).get("Sun"),
                 "moon": chart.get("astrology", {}).get("planets", {}).get("Moon"),
                 "rising": chart.get("astrology", {}).get("houses", {}).get("ascendant"),
-                "note": "True Sidereal (Lahiri Ayanamsa) positions"
+                "chart_type": chart.get("astrology", {}).get("chart_type"),
+                "sidereal_settings": chart.get("astrology", {}).get("sidereal_settings")
             },
             "numerology": {
                 "life_path": chart.get("numerology", {}).get("life_path"),
