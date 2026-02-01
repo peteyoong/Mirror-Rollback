@@ -558,21 +558,31 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
             'gate': longitude_to_gate(d_pos['longitude'])
         }
     
-    # Get all gates
+    # Get all gates (gate numbers only)
     personality_gates = [personality_data[p]['gate']['gate'] for p in hd_planets]
     design_gates = [design_data[p]['gate']['gate'] for p in hd_planets]
+    all_gates = set(personality_gates + design_gates)
     
-    # Calculate centers
-    defined_centers = calculate_centers(personality_gates, design_gates)
+    # NEW CORRECT LOGIC: Calculate channels first, then centers
+    # A channel is defined ONLY if BOTH gates are present
+    defined_channels = get_defined_channels(all_gates)
     
-    # Determine type and authority
-    hd_type = determine_type(defined_centers)
-    authority = determine_authority(defined_centers)
+    # A center is defined ONLY if it has at least one FULL channel
+    defined_centers = get_defined_centers(defined_channels)
     
-    # Calculate Profile (Sun and Earth lines)
+    # Determine type based on defined centers and channels
+    hd_type = determine_type(defined_centers, defined_channels)
+    
+    # Determine definition (None, Single, Split, etc.)
+    definition = determine_definition(defined_channels, defined_centers)
+    
+    # Determine authority based on type and defined centers
+    authority = determine_authority(hd_type, defined_centers)
+    
+    # Calculate Profile: personality Sun line / design Sun line
     personality_sun_line = personality_data['Sun']['gate']['line']
     design_sun_line = design_data['Sun']['gate']['line']
-    profile = f"{personality_sun_line}/{design_sun_line}"
+    profile = calculate_profile(personality_sun_line, design_sun_line)
     
     # Calculate Incarnation Cross (simplified)
     p_sun_gate = personality_data['Sun']['gate']['gate']
