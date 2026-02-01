@@ -1,10 +1,12 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppStore } from '../../store';
+import { getChartDetails, ChartDetails } from '../../services/api';
 
 const LENS_CONTENT: { [key: string]: any } = {
   astrology: {
