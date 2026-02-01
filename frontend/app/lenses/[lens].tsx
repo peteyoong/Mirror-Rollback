@@ -17,7 +17,7 @@ const LENS_CONTENT: { [key: string]: any } = {
       'Consider archetypal themes, not fixed traits'
     ],
     deepDive: {
-      intro: 'Your natal chart is calculated using True Sidereal positions (Lahiri Ayanamsa), which accounts for the precession of the equinoxes.',
+      intro: 'Your natal chart is calculated using True Sidereal positions aligned to star-based coordinates, which accounts for the precession of the equinoxes.',
       sections: [
         {
           title: 'What This Shows',
