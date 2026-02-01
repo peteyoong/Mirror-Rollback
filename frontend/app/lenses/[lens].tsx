@@ -1463,4 +1463,33 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#FDE68A',
   },
+  // Deep dive system section styles (PROMPT 4)
+  deepDiveSystemSection: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+  },
+  deepDiveSystemTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  systemMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  systemMetaLabel: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  systemMetaValue: {
+    fontSize: 13,
+    color: Colors.text,
+  },
 });
