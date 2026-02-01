@@ -307,28 +307,55 @@ export default function LensDetail() {
           <Text style={styles.snapshotTitle}>Your Sidereal Snapshot</Text>
         </View>
         
-        <View style={styles.snapshotGrid}>
-          <View style={styles.snapshotItem}>
-            <Text style={styles.snapshotLabel}>Sun</Text>
-            <Text style={styles.snapshotValue}>{formatPlanetPosition(sun)}</Text>
+        {/* Sun/Moon/Ascendant rows */}
+        <View style={styles.snapshotRows}>
+          <View style={styles.snapshotRow}>
+            <View style={styles.snapshotRowIcon}>
+              <Ionicons name="sunny" size={18} color={Colors.text} />
+            </View>
+            <Text style={styles.snapshotRowLabel}>Sun</Text>
+            <Text style={styles.snapshotRowValue}>{formatPlanetPosition(sun)}</Text>
           </View>
           
-          <View style={styles.snapshotItem}>
-            <Text style={styles.snapshotLabel}>Moon</Text>
-            <Text style={styles.snapshotValue}>{formatPlanetPosition(moon)}</Text>
+          <View style={styles.snapshotRow}>
+            <View style={styles.snapshotRowIcon}>
+              <Ionicons name="moon" size={18} color={Colors.text} />
+            </View>
+            <Text style={styles.snapshotRowLabel}>Moon</Text>
+            <Text style={styles.snapshotRowValue}>{formatPlanetPosition(moon)}</Text>
           </View>
           
-          <View style={styles.snapshotItem}>
-            <Text style={styles.snapshotLabel}>Ascendant</Text>
-            <Text style={styles.snapshotValue}>{formatPlanetPosition(rising)}</Text>
+          <View style={styles.snapshotRow}>
+            <View style={styles.snapshotRowIcon}>
+              <Ionicons name="arrow-up-circle" size={18} color={Colors.text} />
+            </View>
+            <Text style={styles.snapshotRowLabel}>Ascendant</Text>
+            <Text style={styles.snapshotRowValue}>{formatPlanetPosition(rising)}</Text>
           </View>
         </View>
         
+        {/* System label - neutral copy */}
         <View style={styles.systemLabel}>
-          <Ionicons name="information-circle-outline" size={14} color={Colors.textTertiary} />
           <Text style={styles.systemLabelText}>
             Calculated using {getSiderealSystemLabel()}
           </Text>
+        </View>
+
+        {/* Navigation buttons */}
+        <View style={styles.snapshotButtons}>
+          <TouchableOpacity 
+            style={styles.snapshotButtonPrimary}
+            onPress={() => navigateToMode('snapshot')}
+          >
+            <Text style={styles.snapshotButtonPrimaryText}>View Summary</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.snapshotButtonSecondary}
+            onPress={() => navigateToMode('deep_dive')}
+          >
+            <Text style={styles.snapshotButtonSecondaryText}>Go Deeper</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
