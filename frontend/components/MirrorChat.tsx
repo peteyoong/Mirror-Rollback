@@ -377,6 +377,12 @@ export default function MirrorChat({
 
       {/* Input Bar */}
       <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        {/* Transparency line (only in generalist Mirror Chat, not lens modals) */}
+        {!lens && (
+          <Text style={styles.transparencyLine}>
+            Mirror reflects patterns from what you share. Nothing here predicts your future.
+          </Text>
+        )}
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
