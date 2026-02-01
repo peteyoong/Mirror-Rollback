@@ -116,13 +116,13 @@ interface AppState {
   sessionRestoreError: string | null;
   
   // Actions
-  setUser: (user: User) => void;
-  setChart: (chart: any) => void;
+  setUser: (user: User) => Promise<void>;
+  setChart: (chart: any) => Promise<void>;
   setDailyReflection: (reflection: DailyReflection) => void;
   setJournalEntries: (entries: JournalEntry[]) => void;
   addJournalEntry: (entry: JournalEntry) => void;
-  completeOnboarding: () => void;
-  clearUser: () => void;
+  completeOnboarding: () => Promise<void>;
+  clearUser: () => Promise<void>;
   loadPersistedData: () => Promise<void>;
   
   // Session restore actions
