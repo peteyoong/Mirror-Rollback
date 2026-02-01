@@ -24,6 +24,11 @@ export const createUser = async (data: {
   return response.data;
 };
 
+export const updateUserEmail = async (userId: string, email: string) => {
+  const response = await api.put(`/users/${userId}/email`, { email });
+  return response.data;
+};
+
 export const getUser = async (userId: string) => {
   const response = await api.get(`/users/${userId}`);
   return response.data;
