@@ -169,64 +169,338 @@ def _angular_difference(a: float, b: float) -> float:
         diff = 360 - diff
     return diff
 
-def determine_type(defined_centers: Dict) -> str:
-    """Determine Human Design Type based on defined centers"""
-    sacral_defined = defined_centers.get('Sacral', False)
-    throat_defined = defined_centers.get('Throat', False)
-    solar_plexus_defined = defined_centers.get('Solar Plexus', False)
-    ego_defined = defined_centers.get('Ego', False)
+
+# =============================================================================
+# HUMAN DESIGN CHANNEL, CENTER, TYPE, AUTHORITY, PROFILE LOGIC
+# =============================================================================
+
+# Complete list of 36 Human Design channels
+# Format: (gate1, gate2, center1, center2)
+HD_CHANNELS = [
+    # Head to Ajna
+    (64, 47, 'Head', 'Ajna'),
+    (61, 24, 'Head', 'Ajna'),
+    (63, 4, 'Head', 'Ajna'),
+    # Ajna to Throat
+    (17, 62, 'Ajna', 'Throat'),
+    (43, 23, 'Ajna', 'Throat'),
+    (11, 56, 'Ajna', 'Throat'),
+    # Throat to G Center
+    (31, 7, 'Throat', 'G Center'),
+    (8, 1, 'Throat', 'G Center'),
+    (33, 13, 'Throat', 'G Center'),
+    # Throat to Sacral (Motor to Throat)
+    (20, 34, 'Throat', 'Sacral'),
+    # Throat to Solar Plexus (Motor to Throat)
+    (35, 36, 'Throat', 'Solar Plexus'),
+    (12, 22, 'Throat', 'Solar Plexus'),
+    # Throat to Ego/Heart (Motor to Throat)
+    (45, 21, 'Throat', 'Ego'),
+    # Throat to Spleen
+    (16, 48, 'Throat', 'Spleen'),
+    (20, 57, 'Throat', 'Spleen'),
+    # G Center to Sacral
+    (15, 5, 'G Center', 'Sacral'),
+    (2, 14, 'G Center', 'Sacral'),
+    (46, 29, 'G Center', 'Sacral'),
+    # G Center to Spleen
+    (10, 57, 'G Center', 'Spleen'),
+    # G Center to Ego
+    (25, 51, 'G Center', 'Ego'),
+    # Sacral to Spleen
+    (27, 50, 'Sacral', 'Spleen'),
+    (59, 6, 'Sacral', 'Solar Plexus'),
+    (3, 60, 'Sacral', 'Root'),
+    (9, 52, 'Sacral', 'Root'),
+    (42, 53, 'Sacral', 'Root'),
+    (34, 57, 'Sacral', 'Spleen'),
+    # Solar Plexus to Root
+    (49, 19, 'Solar Plexus', 'Root'),
+    (55, 39, 'Solar Plexus', 'Root'),
+    (30, 41, 'Solar Plexus', 'Root'),
+    (36, 35, 'Solar Plexus', 'Throat'),  # Already listed above
+    (37, 40, 'Solar Plexus', 'Ego'),
+    # Spleen to Root
+    (44, 26, 'Spleen', 'Ego'),
+    (28, 38, 'Spleen', 'Root'),
+    (18, 58, 'Spleen', 'Root'),
+    (32, 54, 'Spleen', 'Root'),
+    # Ego to Sacral
+    (26, 44, 'Ego', 'Spleen'),  # duplicate, already listed
+]
+
+# Clean channel list (remove duplicates, ensure consistent ordering)
+HD_CHANNELS_CLEAN = [
+    # Head to Ajna (3 channels)
+    (64, 47, 'Head', 'Ajna'),
+    (61, 24, 'Head', 'Ajna'),
+    (63, 4, 'Head', 'Ajna'),
+    # Ajna to Throat (3 channels)
+    (17, 62, 'Ajna', 'Throat'),
+    (43, 23, 'Ajna', 'Throat'),
+    (11, 56, 'Ajna', 'Throat'),
+    # Throat to G Center (3 channels)
+    (31, 7, 'Throat', 'G Center'),
+    (8, 1, 'Throat', 'G Center'),
+    (33, 13, 'Throat', 'G Center'),
+    # G Center to Sacral (3 channels)
+    (15, 5, 'G Center', 'Sacral'),
+    (2, 14, 'G Center', 'Sacral'),
+    (46, 29, 'G Center', 'Sacral'),
+    # G Center to Spleen (1 channel)
+    (10, 57, 'G Center', 'Spleen'),
+    # G Center to Ego (1 channel)
+    (25, 51, 'G Center', 'Ego'),
+    # Sacral to Throat (1 channel - Motor to Throat)
+    (20, 34, 'Sacral', 'Throat'),
+    # Sacral to Spleen (2 channels)
+    (27, 50, 'Sacral', 'Spleen'),
+    (34, 57, 'Sacral', 'Spleen'),
+    # Sacral to Solar Plexus (1 channel)
+    (59, 6, 'Sacral', 'Solar Plexus'),
+    # Sacral to Root (3 channels)
+    (3, 60, 'Sacral', 'Root'),
+    (9, 52, 'Sacral', 'Root'),
+    (42, 53, 'Sacral', 'Root'),
+    # Throat to Solar Plexus (2 channels - Motor to Throat)
+    (35, 36, 'Throat', 'Solar Plexus'),
+    (12, 22, 'Throat', 'Solar Plexus'),
+    # Throat to Ego (1 channel - Motor to Throat)
+    (45, 21, 'Throat', 'Ego'),
+    # Throat to Spleen (2 channels)
+    (16, 48, 'Throat', 'Spleen'),
+    (57, 20, 'Throat', 'Spleen'),  # 20-57 channel
+    # Solar Plexus to Ego (1 channel)
+    (37, 40, 'Solar Plexus', 'Ego'),
+    # Solar Plexus to Root (3 channels)
+    (49, 19, 'Solar Plexus', 'Root'),
+    (55, 39, 'Solar Plexus', 'Root'),
+    (30, 41, 'Solar Plexus', 'Root'),
+    # Spleen to Ego (1 channel)
+    (44, 26, 'Spleen', 'Ego'),
+    # Spleen to Root (3 channels)
+    (28, 38, 'Spleen', 'Root'),
+    (18, 58, 'Spleen', 'Root'),
+    (32, 54, 'Spleen', 'Root'),
+]
+
+# Motors are: Sacral, Solar Plexus, Ego (Heart), Root
+MOTOR_CENTERS = {'Sacral', 'Solar Plexus', 'Ego', 'Root'}
+
+
+def get_defined_channels(all_gates: set) -> List[Tuple]:
+    """Find all defined channels based on activated gates
     
-    # Simplified type determination for V1
-    if sacral_defined:
-        return 'Generator' if not throat_defined else 'Manifesting Generator'
-    elif throat_defined and (ego_defined or solar_plexus_defined):
-        return 'Manifestor'
-    elif not sacral_defined and not throat_defined:
-        return 'Reflector'
-    else:
-        return 'Projector'
-
-def determine_authority(defined_centers: Dict) -> str:
-    """Determine Inner Authority based on defined centers"""
-    if defined_centers.get('Solar Plexus', False):
-        return 'Emotional Authority'
-    elif defined_centers.get('Sacral', False):
-        return 'Sacral Authority'
-    elif defined_centers.get('Spleen', False):
-        return 'Splenic Authority'
-    elif defined_centers.get('Ego', False):
-        return 'Ego Authority'
-    elif defined_centers.get('G Center', False):
-        return 'Self-Projected Authority'
-    else:
-        return 'Mental/Outer Authority'
-
-def calculate_centers(personality_gates: List[int], design_gates: List[int]) -> Dict:
-    """Calculate which centers are defined based on gates
-    Simplified for V1 - full implementation would check channel connections
+    A channel is defined ONLY if BOTH gates are present.
+    
+    Args:
+        all_gates: Set of all activated gate numbers (personality + design)
+    
+    Returns:
+        List of tuples: (gate1, gate2, center1, center2) for each defined channel
     """
-    # Gate to Center mapping (simplified)
-    center_gates = {
-        'Head': [61, 63, 64],
-        'Ajna': [47, 24, 4, 17, 43, 11],
-        'Throat': [62, 23, 56, 35, 12, 45, 33, 8, 31, 20, 16],
-        'G Center': [7, 1, 13, 10, 15, 2, 46, 25],
-        'Sacral': [5, 14, 29, 59, 9, 3, 42, 27, 34],
-        'Solar Plexus': [6, 37, 22, 36, 30, 55, 49],
-        'Spleen': [48, 57, 44, 50, 32, 28, 18],
-        'Ego': [21, 40, 26, 51],
-        'Root': [53, 60, 52, 19, 39, 41, 58, 38, 54]
-    }
+    defined_channels = []
     
-    all_gates = set(personality_gates + design_gates)
-    defined_centers = {}
+    for gate1, gate2, center1, center2 in HD_CHANNELS_CLEAN:
+        if gate1 in all_gates and gate2 in all_gates:
+            defined_channels.append((gate1, gate2, center1, center2))
     
-    for center, gates in center_gates.items():
-        # Simplified: center is defined if any of its gates are activated
-        # Full implementation would check for complete channels
-        defined_centers[center] = any(gate in all_gates for gate in gates)
+    return defined_channels
+
+
+def get_defined_centers(defined_channels: List[Tuple]) -> List[str]:
+    """Get list of defined centers based on defined channels
     
-    return defined_centers
+    A center is defined ONLY if it has at least one FULL channel connected.
+    
+    Args:
+        defined_channels: List of defined channel tuples
+    
+    Returns:
+        List of defined center names
+    """
+    defined_centers = set()
+    
+    for gate1, gate2, center1, center2 in defined_channels:
+        defined_centers.add(center1)
+        defined_centers.add(center2)
+    
+    return list(defined_centers)
+
+
+def has_motor_to_throat(defined_channels: List[Tuple]) -> bool:
+    """Check if there's a motor connected to Throat
+    
+    Motors are: Sacral, Solar Plexus, Ego (Heart), Root
+    
+    This checks for DIRECT motor-to-throat channels only.
+    A more complete implementation would trace indirect connections.
+    
+    Args:
+        defined_channels: List of defined channel tuples
+    
+    Returns:
+        True if any motor center is directly connected to Throat
+    """
+    for gate1, gate2, center1, center2 in defined_channels:
+        centers = {center1, center2}
+        if 'Throat' in centers:
+            other_center = center1 if center2 == 'Throat' else center2
+            if other_center in MOTOR_CENTERS:
+                return True
+    return False
+
+
+def determine_type(defined_centers: List[str], defined_channels: List[Tuple]) -> str:
+    """Determine Human Design Type based on defined centers and channels
+    
+    Order matters:
+    1. Reflector: NO defined centers
+    2. Generator: Sacral defined AND no motor-to-throat
+    3. Manifesting Generator: Sacral defined AND motor-to-throat
+    4. Manifestor: motor-to-throat AND Sacral undefined
+    5. Projector: Sacral undefined AND not Reflector or Manifestor
+    
+    Args:
+        defined_centers: List of defined center names
+        defined_channels: List of defined channel tuples
+    
+    Returns:
+        HD Type string
+    """
+    # Convert to set for efficient lookup
+    centers_set = set(defined_centers)
+    
+    # 1. Reflector: NO defined centers
+    if len(defined_centers) == 0:
+        return 'Reflector'
+    
+    sacral_defined = 'Sacral' in centers_set
+    motor_to_throat = has_motor_to_throat(defined_channels)
+    
+    # 2. Generator: Sacral defined AND no motor-to-throat
+    if sacral_defined and not motor_to_throat:
+        return 'Generator'
+    
+    # 3. Manifesting Generator: Sacral defined AND motor-to-throat
+    if sacral_defined and motor_to_throat:
+        return 'Manifesting Generator'
+    
+    # 4. Manifestor: motor-to-throat AND Sacral undefined
+    if motor_to_throat and not sacral_defined:
+        return 'Manifestor'
+    
+    # 5. Projector: everything else (Sacral undefined, not Reflector/Manifestor)
+    return 'Projector'
+
+
+def determine_definition(defined_channels: List[Tuple], defined_centers: List[str]) -> str:
+    """Determine Definition type based on how centers are connected
+    
+    Args:
+        defined_channels: List of defined channel tuples
+        defined_centers: List of defined center names
+    
+    Returns:
+        Definition type: "None", "Single", "Split", "Triple Split", "Quadruple Split"
+    """
+    if len(defined_centers) == 0:
+        return "None"
+    
+    if len(defined_channels) == 0:
+        return "None"
+    
+    # Build adjacency graph
+    graph = {center: set() for center in defined_centers}
+    for gate1, gate2, center1, center2 in defined_channels:
+        if center1 in graph and center2 in graph:
+            graph[center1].add(center2)
+            graph[center2].add(center1)
+    
+    # Count connected components using BFS
+    visited = set()
+    components = 0
+    
+    for center in defined_centers:
+        if center not in visited:
+            components += 1
+            # BFS from this center
+            queue = [center]
+            while queue:
+                current = queue.pop(0)
+                if current not in visited:
+                    visited.add(current)
+                    for neighbor in graph.get(current, []):
+                        if neighbor not in visited:
+                            queue.append(neighbor)
+    
+    if components == 1:
+        return "Single"
+    elif components == 2:
+        return "Split"
+    elif components == 3:
+        return "Triple Split"
+    else:
+        return "Quadruple Split"
+
+
+def determine_authority(hd_type: str, defined_centers: List[str]) -> str:
+    """Determine Inner Authority based on type and defined centers
+    
+    Reflector → "None (Lunar)"
+    Otherwise follow hierarchy:
+    Emotional > Sacral > Splenic > Ego > G > Self-Projected > Mental/None
+    
+    Args:
+        hd_type: Human Design type
+        defined_centers: List of defined center names
+    
+    Returns:
+        Authority string
+    """
+    # Reflector special case
+    if hd_type == 'Reflector':
+        return 'None (Lunar)'
+    
+    centers_set = set(defined_centers)
+    
+    # Standard HD authority hierarchy
+    if 'Solar Plexus' in centers_set:
+        return 'Emotional'
+    if 'Sacral' in centers_set:
+        return 'Sacral'
+    if 'Spleen' in centers_set:
+        return 'Splenic'
+    if 'Ego' in centers_set:
+        return 'Ego Manifested' if 'Throat' in centers_set else 'Ego Projected'
+    if 'G Center' in centers_set:
+        return 'Self-Projected'
+    
+    # Mental/Environment authority (Projector with only Head/Ajna defined)
+    return 'Mental/Environment'
+
+
+def calculate_profile(personality_sun_line: int, design_sun_line: int) -> str:
+    """Calculate Human Design Profile
+    
+    Profile = personality Sun line / design Sun line
+    No inversion, no fallback.
+    
+    Args:
+        personality_sun_line: Line number (1-6) from personality Sun gate
+        design_sun_line: Line number (1-6) from design Sun gate
+    
+    Returns:
+        Profile string (e.g., "3/5")
+    """
+    return f"{personality_sun_line}/{design_sun_line}"
+
+
+def calculate_centers_old(personality_gates: List[int], design_gates: List[int]) -> Dict:
+    """DEPRECATED: Old center calculation (incorrect)
+    Kept for reference only - DO NOT USE
+    """
+    pass
 
 def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
                            sidereal_settings: Dict = None) -> Dict:
