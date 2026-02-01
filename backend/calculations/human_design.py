@@ -1,7 +1,8 @@
 """Human Design calculations using True Sidereal positions"""
-from datetime import datetime, timedelta
-from typing import Dict, List
-from .astrology import get_full_natal_chart
+from datetime import datetime, timedelta, timezone
+from typing import Dict, List, Tuple
+from .astrology import get_full_natal_chart, normalize_degrees
+import swisseph as swe
 import math
 
 # I-Ching Hexagram Gate mapping (64 gates)
