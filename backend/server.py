@@ -311,6 +311,140 @@ Respond with ONLY valid JSON matching this exact structure:
 """
 
 
+# ============================================
+# Guardrail Enforcement System
+# ============================================
+
+# Forbidden patterns in Mirror responses
+GUARDRAIL_PATTERNS = {
+    "prescription": [
+        r"\byou should\b",
+        r"\byou need to\b",
+        r"\byou must\b",
+        r"\byou have to\b",
+        r"\bi recommend\b",
+        r"\bi suggest you\b",
+        r"\btry to\b",
+        r"\bmake sure to\b",
+    ],
+    "prediction": [
+        r"\byou will\b",
+        r"\bthis will\b",
+        r"\bit will happen\b",
+        r"\byou're going to\b",
+        r"\bin the future you\b",
+        r"\bwhat will happen\b",
+    ],
+    "identity_claim": [
+        r"\byou are (?:a |an )?(?:introvert|extrovert|empath|narcissist|anxious person|depressed person)\b",
+        r"\byou are (?:clearly |obviously |definitely )\w+\b",
+        r"\byou are the type\b",
+        r"\byou're (?:a |an )?(?:introvert|extrovert|empath|narcissist)\b",
+    ],
+    "diagnosis": [
+        r"\byou have (?:depression|anxiety|adhd|add|ocd|ptsd|bipolar)\b",
+        r"\byou(?:'re| are) (?:depressed|anxious|bipolar|manic)\b",
+        r"\bthis is (?:depression|anxiety|a disorder)\b",
+        r"\byou suffer from\b",
+        r"\byou(?:'re| are) mentally\b",
+    ],
+}
+
+# Rewrite prompt for non-compliant responses
+GUARDRAIL_REWRITE_PROMPT = """You are a response editor for Mirror, a reflective AI companion.
+
+The following response contains language that violates Mirror's core principles:
+- No prescriptions (should/must/need to)
+- No predictions (will happen/you will)
+- No identity claims (you are X)
+- No diagnoses
+
+ORIGINAL RESPONSE:
+{original_response}
+
+VIOLATIONS DETECTED:
+{violations}
+
+Rewrite this response to:
+1. Keep the core meaning and insights
+2. Replace prescriptive language with reflective observations ("I notice..." / "It sounds like..." / "What if...")
+3. Remove predictions; use present-tense noticing instead
+4. Convert identity claims to pattern observations ("Sometimes you seem to..." / "There's a quality of...")
+5. Remove any diagnostic language entirely
+6. End with ONE gentle, open question
+7. Keep the calm, grounded Mirror tone
+
+Respond with ONLY the rewritten text, no explanations."""
+
+
+import re
+
+# Guardrail violation counter (in-memory for this session)
+guardrail_violation_counts: Dict[str, int] = {
+    "prescription": 0,
+    "prediction": 0,
+    "identity_claim": 0,
+    "diagnosis": 0,
+    "total_rewrites": 0,
+}
+
+
+def check_guardrail_violations(text: str) -> Dict[str, List[str]]:
+    """
+    Check response text for guardrail violations.
+    Returns dict of violation types and matched patterns.
+    Does NOT log the actual text content.
+    """
+    violations = {}
+    text_lower = text.lower()
+    
+    for violation_type, patterns in GUARDRAIL_PATTERNS.items():
+        matches = []
+        for pattern in patterns:
+            found = re.findall(pattern, text_lower, re.IGNORECASE)
+            if found:
+                matches.extend(found)
+        if matches:
+            violations[violation_type] = matches
+    
+    return violations
+
+
+async def rewrite_for_compliance(original_response: str, violations: Dict[str, List[str]]) -> str:
+    """
+    Rewrite a response to remove guardrail violations.
+    Uses LLM to maintain meaning while ensuring compliance.
+    """
+    try:
+        # Format violations for prompt
+        violation_summary = []
+        for vtype, matches in violations.items():
+            violation_summary.append(f"- {vtype}: {', '.join(matches[:3])}")
+        
+        rewrite_prompt = GUARDRAIL_REWRITE_PROMPT.format(
+            original_response=original_response,
+            violations="\n".join(violation_summary)
+        )
+        
+        # Create LLM call for rewrite
+        rewrite_chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"guardrail_rewrite_{datetime.now().timestamp()}",
+            system_message=rewrite_prompt
+        )
+        rewrite_chat.with_model("openai", "gpt-5.2")
+        
+        rewrite_message = UserMessage(text="Rewrite the response now.")
+        rewritten = await rewrite_chat.send_message(rewrite_message)
+        
+        return rewritten.strip()
+        
+    except Exception as e:
+        logger.error(f"Guardrail rewrite failed: {e}")
+        # Return original if rewrite fails
+        return original_response
+
+
 class ChartCalculationRequest(BaseModel):
     user_id: str
     sidereal_settings: Optional[Dict] = {
