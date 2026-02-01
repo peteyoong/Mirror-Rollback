@@ -647,6 +647,26 @@ export default function LensDetail() {
         {/* Chat Input */}
         {renderChatInput()}
       </KeyboardAvoidingView>
+
+      {/* Lens Chat Modal */}
+      <Modal
+        visible={lensChatVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setLensChatVisible(false)}
+      >
+        <SafeAreaView style={styles.modalContainer} edges={['top']}>
+          <MirrorChat
+            userId={user?.id || ''}
+            lens={lens as 'astrology' | 'human_design'}
+            placeholder={lens === 'astrology' 
+              ? "Ask about your sidereal chart..." 
+              : "Ask about your Human Design..."}
+            headerTitle={lens === 'astrology' ? 'Astrology Chat' : 'Human Design Chat'}
+            onClose={() => setLensChatVisible(false)}
+          />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
