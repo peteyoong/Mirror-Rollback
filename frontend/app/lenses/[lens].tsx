@@ -1185,4 +1185,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textTertiary,
   },
+  // UI Invariant Error Banner styles
+  invariantErrorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+  },
+  invariantErrorText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#92400E',
+    fontWeight: '500',
+  },
+  invariantRetryButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#FDE68A',
+  },
 });
