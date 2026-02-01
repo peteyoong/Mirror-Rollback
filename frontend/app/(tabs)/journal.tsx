@@ -167,6 +167,8 @@ export default function JournalScreen() {
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                   <JournalEntryItem
+                    id={item.id}
+                    userId={user.id}
                     content={item.content}
                     created_at={item.created_at}
                     themes={item.themes}
