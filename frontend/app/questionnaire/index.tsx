@@ -6,17 +6,12 @@ import {
   StyleSheet,
   ScrollView,
   Animated,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
-import { updateUserEmail } from '../../services/api';
 
 const QUESTIONS = [
   {
@@ -76,20 +71,13 @@ const QUESTIONS = [
   }
 ];
 
-type ScreenState = 'questions' | 'email' | 'ready' | 'transition';
-
 export default function Questionnaire() {
   const router = useRouter();
-  const { user, setUser } = useAppStore();
+  const { user } = useAppStore();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
-  const [screenState, setScreenState] = useState<ScreenState>('questions');
+  const [showTransition, setShowTransition] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(1));
-  
-  // Email capture state
-  const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSelectOption = (option: string) => {
     const newAnswers = [...answers, option];
@@ -111,87 +99,19 @@ export default function Questionnaire() {
           useNativeDriver: true,
         }).start();
       } else {
-        // Show email capture screen
-        setScreenState('email');
+        // Show transition screen
+        setShowTransition(true);
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 300,
           useNativeDriver: true,
         }).start();
+
+        // Navigate to main app after 3 seconds
+        setTimeout(() => {
+          router.replace('/(tabs)');
+        }, 3000);
       }
-    });
-  };
-
-  const validateEmail = (emailStr: string): boolean => {
-    const trimmed = emailStr.trim();
-    if (!trimmed) return false;
-    if (!trimmed.includes('@')) return false;
-    const parts = trimmed.split('@');
-    if (parts.length !== 2) return false;
-    if (!parts[1].includes('.')) return false;
-    return true;
-  };
-
-  const handleSaveEmail = async () => {
-    setEmailError('');
-    
-    if (!validateEmail(email)) {
-      setEmailError('Please enter a valid email address');
-      return;
-    }
-
-    if (!user?.id) {
-      setEmailError('Session error. Please try again.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await updateUserEmail(user.id, email.trim().toLowerCase());
-      
-      // Update local user state with email
-      setUser({ ...user, email: email.trim().toLowerCase() });
-      
-      // Fade to "Your space is ready" screen
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start(() => {
-        setScreenState('ready');
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }).start();
-      });
-    } catch (err: any) {
-      console.error('Save email error:', err);
-      const errorMsg = err.response?.data?.detail || 'Could not save email. Please try again.';
-      setEmailError(typeof errorMsg === 'string' ? errorMsg : 'Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleContinueToApp = () => {
-    // Fade to brief transition, then navigate
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => {
-      setScreenState('transition');
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-
-      // Navigate after brief pause
-      setTimeout(() => {
-        router.replace('/(tabs)');
-      }, 1500);
     });
   };
 
@@ -200,90 +120,7 @@ export default function Questionnaire() {
     return null;
   }
 
-  // "Your space is ready" confirmation screen
-  if (screenState === 'ready') {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
-        <Animated.View style={[styles.readyContainer, { opacity: fadeAnim }]}>
-          <Text style={styles.readyTitle}>Your space is ready</Text>
-          <Text style={styles.readyDescription}>
-            This is a private place to reflect, notice patterns, and explore perspectives at your own pace.
-          </Text>
-          <TouchableOpacity
-            style={styles.continueButton}
-            onPress={handleContinueToApp}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.continueButtonText}>Continue</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      </SafeAreaView>
-    );
-  }
-
-  // Email capture screen
-  if (screenState === 'email') {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardView}
-        >
-          <ScrollView 
-            contentContainerStyle={styles.emailScrollContent}
-            keyboardShouldPersistTaps="handled"
-          >
-            <Animated.View style={[styles.emailContainer, { opacity: fadeAnim }]}>
-              <Text style={styles.emailTitle}>Save your space</Text>
-              <Text style={styles.emailDescription}>
-                We use your email only to save your reflections and help you return to them.
-              </Text>
-
-              <View style={styles.emailInputContainer}>
-                <TextInput
-                  style={[styles.emailInput, emailError ? styles.emailInputError : null]}
-                  value={email}
-                  onChangeText={(text) => {
-                    setEmail(text);
-                    if (emailError) setEmailError('');
-                  }}
-                  placeholder="your@email.com"
-                  placeholderTextColor={Colors.textTertiary}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="email"
-                  selectionColor={Colors.accent}
-                  editable={!isSubmitting}
-                />
-                {emailError ? (
-                  <Text style={styles.emailErrorText}>{emailError}</Text>
-                ) : null}
-              </View>
-
-              <TouchableOpacity
-                style={[styles.saveButton, isSubmitting && styles.saveButtonDisabled]}
-                onPress={handleSaveEmail}
-                disabled={isSubmitting}
-                activeOpacity={0.8}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator color={Colors.background} size="small" />
-                ) : (
-                  <Text style={styles.saveButtonText}>Continue</Text>
-                )}
-              </TouchableOpacity>
-            </Animated.View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    );
-  }
-
-  // Transition screen
-  if (screenState === 'transition') {
+  if (showTransition) {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar style="light" />
@@ -297,7 +134,6 @@ export default function Questionnaire() {
     );
   }
 
-  // Questions screen
   const question = QUESTIONS[currentQuestion];
   const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
 
@@ -330,6 +166,14 @@ export default function Questionnaire() {
               </TouchableOpacity>
             ))}
           </View>
+
+          {/* Skip option */}
+          <TouchableOpacity
+            style={styles.skipButton}
+            onPress={() => router.replace('/(tabs)')}
+          >
+            <Text style={styles.skipText}>Skip for now</Text>
+          </TouchableOpacity>
         </Animated.View>
       </ScrollView>
     </SafeAreaView>
@@ -340,9 +184,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-  },
-  keyboardView: {
-    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
@@ -392,106 +233,16 @@ const styles = StyleSheet.create({
     color: Colors.text,
     textAlign: 'center',
   },
-  // Email capture styles
-  emailScrollContent: {
-    flexGrow: 1,
-    padding: 24,
-    justifyContent: 'center',
-  },
-  emailContainer: {
+  skipButton: {
+    marginTop: 40,
     alignItems: 'center',
-    paddingHorizontal: 16,
+    padding: 16,
   },
-  emailTitle: {
-    fontSize: 28,
-    fontWeight: '500',
-    color: Colors.text,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  emailDescription: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 40,
-    maxWidth: 300,
-  },
-  emailInputContainer: {
-    width: '100%',
-    marginBottom: 24,
-  },
-  emailInput: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 18,
-    fontSize: 16,
-    color: Colors.text,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    textAlign: 'center',
-  },
-  emailInputError: {
-    borderColor: Colors.error,
-  },
-  emailErrorText: {
-    color: Colors.error,
+  skipText: {
     fontSize: 14,
-    marginTop: 8,
-    textAlign: 'center',
+    color: Colors.textTertiary,
+    textDecorationLine: 'underline',
   },
-  saveButton: {
-    backgroundColor: Colors.text,
-    borderRadius: 12,
-    paddingVertical: 18,
-    paddingHorizontal: 48,
-    minWidth: 200,
-    alignItems: 'center',
-  },
-  saveButtonDisabled: {
-    opacity: 0.6,
-  },
-  saveButtonText: {
-    color: Colors.background,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  // "Your space is ready" styles
-  readyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  readyTitle: {
-    fontSize: 28,
-    fontWeight: '500',
-    color: Colors.text,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  readyDescription: {
-    fontSize: 16,
-    lineHeight: 26,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 48,
-    maxWidth: 300,
-  },
-  continueButton: {
-    backgroundColor: Colors.text,
-    borderRadius: 12,
-    paddingVertical: 18,
-    paddingHorizontal: 48,
-    minWidth: 200,
-    alignItems: 'center',
-  },
-  continueButtonText: {
-    color: Colors.background,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  // Transition styles
   transitionContainer: {
     flex: 1,
     justifyContent: 'center',
