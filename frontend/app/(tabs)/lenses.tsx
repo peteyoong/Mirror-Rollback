@@ -63,7 +63,7 @@ export default function LensesScreen() {
   if (!user) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <View style={styles.centered}>
           <Text style={styles.errorText}>No user found</Text>
         </View>
@@ -73,7 +73,7 @@ export default function LensesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>

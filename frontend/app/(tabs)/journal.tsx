@@ -75,7 +75,7 @@ export default function JournalScreen() {
   if (!user) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <View style={styles.centered}>
           <Text style={styles.errorText}>No user found</Text>
         </View>
@@ -85,7 +85,7 @@ export default function JournalScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
