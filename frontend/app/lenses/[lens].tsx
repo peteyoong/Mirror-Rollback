@@ -478,7 +478,7 @@ export default function LensDetail() {
               {houses.slice(0, 6).map((house: any) => (
                 <View key={house.house} style={styles.houseItem}>
                   <Text style={styles.houseNumber}>{house.house}</Text>
-                  <Text style={styles.houseSign}>{house.sign}</Text>
+                  <Text style={styles.houseSign}>{house.sign || '—'}</Text>
                 </View>
               ))}
             </View>
@@ -486,22 +486,22 @@ export default function LensDetail() {
               {houses.slice(6, 12).map((house: any) => (
                 <View key={house.house} style={styles.houseItem}>
                   <Text style={styles.houseNumber}>{house.house}</Text>
-                  <Text style={styles.houseSign}>{house.sign}</Text>
+                  <Text style={styles.houseSign}>{house.sign || '—'}</Text>
                 </View>
               ))}
             </View>
           </View>
         ) : (
           <View style={styles.comingSoonCard}>
-            <Ionicons name="time-outline" size={20} color={Colors.textTertiary} />
+            <Ionicons name="home-outline" size={20} color={Colors.textTertiary} />
             <Text style={styles.comingSoonText}>Houses data coming soon</Text>
           </View>
         )}
         
+        {/* System label - PROMPT 4: neutral copy only */}
         <View style={styles.systemLabel}>
-          <Ionicons name="information-circle-outline" size={14} color={Colors.textTertiary} />
           <Text style={styles.systemLabelText}>
-            Calculated using {getSiderealSystemLabel()}
+            Calculated using {getSiderealSystemLabel()}.
           </Text>
         </View>
 
@@ -527,7 +527,7 @@ export default function LensDetail() {
     );
   };
 
-  // Render deep dive view (all planets, houses, aspects)
+  // PROMPT 3 & 4: Render deep dive view from astrology.planets[] and astrology.houses[]
   const renderDeepDiveView = () => {
     if (!chartDetails?.astrology) {
       return (
@@ -537,9 +537,11 @@ export default function LensDetail() {
       );
     }
     
-    const { planets, houses } = chartDetails.astrology;
-    const hasPlanets = planets && planets.length > 0;
-    const hasHouses = houses && houses.length > 0;
+    // PROMPT 3: Use astrology.planets[] and astrology.houses[] arrays
+    const planets = Array.isArray(astrology?.planets) ? astrology.planets : [];
+    const houses = Array.isArray(astrology?.houses) ? astrology.houses : [];
+    const hasPlanets = planets.length > 0;
+    const hasHouses = houses.length > 0;
     
     return (
       <>
