@@ -470,7 +470,7 @@ async def calculate_chart(request: ChartCalculationRequest):
             "profile_id": request.user_id,
             "user_id": request.user_id,
             "input_birth_local": input_birth_local,
-            "input_birth_time": birth_time,
+            "input_birth_time": input_birth_time,
             "input_timezone_raw": input_timezone_raw,
             "parsed_timezone_minutes": parsed_timezone_minutes,
             "resolved_birth_utc_iso": resolved_birth_utc_iso,
