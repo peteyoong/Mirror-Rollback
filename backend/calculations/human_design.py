@@ -1,4 +1,15 @@
-"""Human Design calculations using True Sidereal positions"""
+"""Human Design calculations using True Sidereal positions
+
+===============================================================================
+DETERMINISTIC COMPUTATION CORE - FROZEN
+===============================================================================
+This file is part of Project Mirror's deterministic computation core.
+Outputs must remain stable across versions.
+Do NOT modify without updating regression tests and bumping computation_version.
+
+Current version: mirror-deterministic-v1
+===============================================================================
+"""
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Tuple
 from .astrology import get_full_natal_chart, normalize_degrees
