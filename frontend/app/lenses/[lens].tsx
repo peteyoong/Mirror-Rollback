@@ -268,6 +268,9 @@ export default function LensDetail() {
   const [chatInput, setChatInput] = useState('');
   const { user, chart } = useAppStore();
   
+  // Lens Chat Modal state
+  const [lensChatVisible, setLensChatVisible] = useState(false);
+  
   const lensMeta = LENS_META[lens as string] || { name: 'Lens', icon: 'help-outline' };
   const mirrorContent = MIRROR_CONTENT[lens as string]?.[activeTab === 'snapshot' ? 'summary' : activeTab] || MIRROR_CONTENT.astrology.summary;
 
