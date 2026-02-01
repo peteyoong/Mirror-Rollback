@@ -1544,17 +1544,6 @@ async def mirror_chat(request: MirrorChatRequest):
         
         history = chat_sessions[session_id]
         
-        # Build messages for LLM
-        llm_messages = []
-        
-        # Add history if requested
-        if request.include_history:
-            for msg in history[-10:]:  # Last 10 messages for context
-                llm_messages.append(UserMessage(content=msg['content']) if msg['role'] == 'user' else msg)
-        
-        # Add current message
-        llm_messages.append(UserMessage(content=request.message))
-        
         # Call LLM
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
