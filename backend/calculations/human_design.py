@@ -317,7 +317,11 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
         'design': design_data,
         'defined_centers': defined_centers,
         'strategy': get_strategy_for_type(hd_type),
-        'chart_type': 'True Sidereal Human Design'
+        'chart_type': 'True Sidereal Human Design',
+        # Design date solver outputs
+        'design_datetime_utc_iso': design_datetime.isoformat() if hasattr(design_datetime, 'isoformat') else str(design_datetime),
+        'design_offset_degrees': design_offset_degrees,
+        'design_solver_debug': design_debug
     }
 
 def get_strategy_for_type(hd_type: str) -> str:
