@@ -164,20 +164,57 @@ export default function LensDetail() {
     fetchChartDetails();
   }, [user?.id, cachedChartDetails, getChartDetailsCacheKey, cacheChartDetails]);
   
+  // Zodiac signs for longitude to sign conversion
+  const ZODIAC_SIGNS = [
+    'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+    'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
+  ];
+
+  // Convert longitude to sign
+  const getSignFromLongitude = (longitude: number): string => {
+    const signIndex = Math.floor(longitude / 30) % 12;
+    return ZODIAC_SIGNS[signIndex];
+  };
+
+  // Format degrees and minutes (19°37' style)
+  const formatDegreeMinutes = (decimalDegree: number): string => {
+    const degrees = Math.floor(decimalDegree);
+    const minutes = Math.floor((decimalDegree - degrees) * 60);
+    return minutes > 0 ? `${degrees}°${minutes}'` : `${degrees}°`;
+  };
+
   // Helper to format planet position for display
   const formatPlanetPosition = (planet: any): string => {
     if (!planet) return 'Not available';
-    const sign = planet.sign || 'Unknown';
-    const degree = planet.longitude_in_sign != null 
-      ? `${Math.floor(planet.longitude_in_sign)}°` 
-      : (planet.degree != null ? `${Math.floor(planet.degree)}°` : '');
-    return degree ? `${sign} ${degree}` : sign;
+    
+    // Determine sign - use provided sign or compute from longitude
+    let sign = planet.sign;
+    if (!sign && planet.longitude != null) {
+      sign = getSignFromLongitude(planet.longitude);
+    }
+    if (!sign) return 'Unknown';
+    
+    // Determine degree in sign
+    let degreeInSign: number | null = null;
+    if (planet.longitude_in_sign != null) {
+      degreeInSign = planet.longitude_in_sign;
+    } else if (planet.degree != null) {
+      degreeInSign = planet.degree;
+    } else if (planet.longitude != null) {
+      degreeInSign = planet.longitude % 30;
+    }
+    
+    // Format output
+    if (degreeInSign != null) {
+      return `${sign} ${formatDegreeMinutes(degreeInSign)}`;
+    }
+    return sign;
   };
   
   // Get sidereal system label - neutral copy only
   const getSiderealSystemLabel = (): string => {
     // Always return neutral copy - do not expose internal settings
-    return 'True Sidereal positions aligned to star-based coordinates';
+    return 'True Sidereal positions';
   };
 
   // Navigate to different modes
