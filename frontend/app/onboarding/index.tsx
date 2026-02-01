@@ -118,11 +118,14 @@ export default function Onboarding() {
         timezone: timezoneStr,
       });
 
-      setUser(userData);
+      // Persist user data (wait for storage to complete)
+      await setUser(userData);
 
       // Calculate chart
       const chartData = await calculateChart(userData.id);
-      setChart(chartData.data);
+      
+      // Persist chart data (wait for storage to complete)
+      await setChart(chartData.data);
 
       // Complete onboarding
       await completeOnboarding();
