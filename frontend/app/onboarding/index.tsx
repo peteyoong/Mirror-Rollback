@@ -75,30 +75,45 @@ export default function Onboarding() {
     setLocations([]);
   };
 
-  const validateTime = (time: string): boolean => {
-    if (!time) return true; // Optional field
-    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    return timeRegex.test(time);
+  // Validate and format date components
+  const getFormattedDate = (): string | null => {
+    const day = parseInt(birthDay, 10);
+    const month = parseInt(birthMonth, 10);
+    const year = parseInt(birthYear, 10);
+    
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+    if (day < 1 || day > 31) return null;
+    if (month < 1 || month > 12) return null;
+    if (year < 1900 || year > new Date().getFullYear()) return null;
+    
+    // Format as YYYY-MM-DD
+    return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+  };
+
+  // Validate and format time components
+  const getFormattedTime = (): string | null => {
+    const hour = parseInt(birthHour, 10);
+    const minute = parseInt(birthMinute, 10);
+    
+    if (isNaN(hour) || isNaN(minute)) return null;
+    if (hour < 0 || hour > 23) return null;
+    if (minute < 0 || minute > 59) return null;
+    
+    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
   };
 
   const handleSubmit = async () => {
     setError('');
 
-    // Validate birth date format
+    const birthDate = getFormattedDate();
     if (!birthDate) {
-      setError('Please enter your birth date');
-      return;
-    }
-    
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(birthDate)) {
-      setError('Please enter birth date in YYYY-MM-DD format (e.g., 1990-05-15)');
+      setError('Please enter a valid birth date');
       return;
     }
 
-    // Validate birth time if provided
-    if (birthTime && !validateTime(birthTime)) {
-      setError('Please enter birth time in HH:MM format (e.g., 14:30)');
+    const birthTime = getFormattedTime();
+    if (!birthTime) {
+      setError('Please enter a valid birth time');
       return;
     }
 
@@ -113,7 +128,7 @@ export default function Onboarding() {
       const userData = await createUser({
         name: name || undefined,
         birth_date: birthDate,
-        birth_time: birthTime || undefined,
+        birth_time: birthTime,
         city: selectedLocation.city,
         country: selectedLocation.country,
       });
@@ -139,7 +154,10 @@ export default function Onboarding() {
   };
 
   const canProceed = () => {
-    if (step === 1) return birthDate.length > 0;
+    if (step === 1) {
+      // Need valid date and time
+      return getFormattedDate() !== null && getFormattedTime() !== null;
+    }
     if (step === 2) return selectedLocation !== null;
     return false;
   };
