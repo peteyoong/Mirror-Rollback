@@ -566,10 +566,10 @@ async def get_user_context(user_id: str) -> Dict:
         # Get chart
         chart = await db.charts.find_one({"user_id": user_id})
         
-        # Get recent journal entries
+        # Get recent journal entries (LIMITED to MAX_JOURNAL_ENTRIES)
         journal_entries = await db.journal.find(
             {"user_id": user_id}
-        ).sort("created_at", -1).limit(5).to_list(5)
+        ).sort("created_at", -1).limit(MAX_JOURNAL_ENTRIES).to_list(MAX_JOURNAL_ENTRIES)
         
         context = {
             "name": user.get("name", ""),
