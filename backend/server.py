@@ -1836,19 +1836,19 @@ async def mirror_chat(request: MirrorChatRequest):
         
         # ===== GUARDRAIL ENFORCEMENT (only if not fallback) =====
         if response_text != FALLBACK_RESPONSE:
-        violations = check_guardrail_violations(response_text)
-        if violations:
-            # Log violations (types and counts only, no user text)
-            violation_types = list(violations.keys())
-            for vtype in violation_types:
-                guardrail_violation_counts[vtype] += 1
-            guardrail_violation_counts["total_rewrites"] += 1
-            
-            logger.warning(f"Guardrail violations detected: {violation_types}. Total rewrites: {guardrail_violation_counts['total_rewrites']}")
-            
-            # Rewrite for compliance
-            response_text = await rewrite_for_compliance(response_text, violations)
-            logger.info(f"Response rewritten for compliance. Violation types: {violation_types}")
+            violations = check_guardrail_violations(response_text)
+            if violations:
+                # Log violations (types and counts only, no user text)
+                violation_types = list(violations.keys())
+                for vtype in violation_types:
+                    guardrail_violation_counts[vtype] += 1
+                guardrail_violation_counts["total_rewrites"] += 1
+                
+                logger.warning(f"Guardrail violations detected: {violation_types}. Total rewrites: {guardrail_violation_counts['total_rewrites']}")
+                
+                # Rewrite for compliance
+                response_text = await rewrite_for_compliance(response_text, violations)
+                logger.info(f"Response rewritten for compliance. Violation types: {violation_types}")
         # ===== END GUARDRAIL ENFORCEMENT =====
         
         # Store in history
