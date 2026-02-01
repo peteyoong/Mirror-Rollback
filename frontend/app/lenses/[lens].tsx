@@ -392,6 +392,53 @@ export default function LensDetail() {
     );
   };
 
+  // Render personalized Mirror Moment card (Astrology lens only)
+  const renderPersonalizedMirrorMoment = () => {
+    if (!personalizedMirror) return null;
+    
+    return (
+      <View style={styles.personalizedMirrorCard}>
+        <View style={styles.personalizedMirrorHeader}>
+          <Ionicons name="sparkles-outline" size={18} color={Colors.accent} />
+          <Text style={styles.personalizedMirrorTitle}>Mirror Moment</Text>
+        </View>
+        
+        {/* Theme (Sun sign) */}
+        <View style={styles.mirrorBlock}>
+          <Text style={styles.mirrorBlockLabel}>A theme you might notice</Text>
+          <Text style={styles.mirrorBlockText}>{personalizedMirror.theme}</Text>
+          {personalizedMirror.sunSign && (
+            <Text style={styles.mirrorBlockSource}>Based on Sun in {personalizedMirror.sunSign}</Text>
+          )}
+        </View>
+        
+        {/* Watch for (Moon sign) */}
+        <View style={styles.mirrorBlock}>
+          <Text style={styles.mirrorBlockLabel}>What to watch for</Text>
+          <Text style={styles.mirrorBlockText}>{personalizedMirror.watchFor}</Text>
+          {personalizedMirror.moonSign && (
+            <Text style={styles.mirrorBlockSource}>Based on Moon in {personalizedMirror.moonSign}</Text>
+          )}
+        </View>
+        
+        {/* Question (Rising sign) */}
+        <View style={[styles.mirrorBlock, styles.mirrorBlockLast]}>
+          <Text style={styles.mirrorBlockLabel}>A gentle question</Text>
+          <Text style={styles.mirrorBlockQuestion}>{personalizedMirror.question}</Text>
+          {(personalizedMirror.risingSign || personalizedMirror.sunSign) && (
+            <Text style={styles.mirrorBlockSource}>
+              Based on {personalizedMirror.risingSign ? `Rising in ${personalizedMirror.risingSign}` : `Sun in ${personalizedMirror.sunSign}`}
+            </Text>
+          )}
+        </View>
+        
+        <Text style={styles.personalizedMirrorFooter}>
+          Take what resonates; leave what doesn't.
+        </Text>
+      </View>
+    );
+  };
+
   const renderChatInput = () => (
     <View style={styles.chatContainer}>
       <View style={styles.chatInputWrapper}>
