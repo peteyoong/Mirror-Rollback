@@ -18,6 +18,7 @@ export const createUser = async (data: {
   birth_time?: string;
   city: string;
   country: string;
+  timezone: string;
 }) => {
   const response = await api.post('/users', data);
   return response.data;
