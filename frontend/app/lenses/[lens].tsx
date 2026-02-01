@@ -408,7 +408,8 @@ export default function LensDetail() {
       );
     }
     
-    const { sun, moon, rising, houses } = chartDetails.astrology;
+    // Use component-level variables for houses (astrology, sun, moon, asc already defined)
+    const houses = astrology?.houses;
     const hasHouses = houses && houses.length > 0;
     
     return (
@@ -421,37 +422,43 @@ export default function LensDetail() {
           </View>
           
           <View style={styles.placementsList}>
-            <View style={styles.placementRow}>
-              <View style={styles.placementIcon}>
-                <Ionicons name="sunny" size={20} color={Colors.text} />
+            {hasSun && (
+              <View style={styles.placementRow}>
+                <View style={styles.placementIcon}>
+                  <Ionicons name="sunny" size={20} color={Colors.text} />
+                </View>
+                <View style={styles.placementInfo}>
+                  <Text style={styles.placementLabel}>Sun</Text>
+                  <Text style={styles.placementValue}>{formatPlanetPosition(sun)}</Text>
+                  {sun?.house && <Text style={styles.placementHouse}>House {sun.house}</Text>}
+                </View>
               </View>
-              <View style={styles.placementInfo}>
-                <Text style={styles.placementLabel}>Sun</Text>
-                <Text style={styles.placementValue}>{formatPlanetPosition(sun)}</Text>
-                {sun?.house && <Text style={styles.placementHouse}>House {sun.house}</Text>}
-              </View>
-            </View>
+            )}
             
-            <View style={styles.placementRow}>
-              <View style={styles.placementIcon}>
-                <Ionicons name="moon" size={20} color={Colors.text} />
+            {hasMoon && (
+              <View style={styles.placementRow}>
+                <View style={styles.placementIcon}>
+                  <Ionicons name="moon" size={20} color={Colors.text} />
+                </View>
+                <View style={styles.placementInfo}>
+                  <Text style={styles.placementLabel}>Moon</Text>
+                  <Text style={styles.placementValue}>{formatPlanetPosition(moon)}</Text>
+                  {moon?.house && <Text style={styles.placementHouse}>House {moon.house}</Text>}
+                </View>
               </View>
-              <View style={styles.placementInfo}>
-                <Text style={styles.placementLabel}>Moon</Text>
-                <Text style={styles.placementValue}>{formatPlanetPosition(moon)}</Text>
-                {moon?.house && <Text style={styles.placementHouse}>House {moon.house}</Text>}
-              </View>
-            </View>
+            )}
             
-            <View style={styles.placementRow}>
-              <View style={styles.placementIcon}>
-                <Ionicons name="arrow-up-circle" size={20} color={Colors.text} />
+            {hasAscendant && (
+              <View style={styles.placementRow}>
+                <View style={styles.placementIcon}>
+                  <Ionicons name="arrow-up-circle" size={20} color={Colors.text} />
+                </View>
+                <View style={styles.placementInfo}>
+                  <Text style={styles.placementLabel}>Ascendant (Rising)</Text>
+                  <Text style={styles.placementValue}>{formatPlanetPosition(asc)}</Text>
+                </View>
               </View>
-              <View style={styles.placementInfo}>
-                <Text style={styles.placementLabel}>Ascendant (Rising)</Text>
-                <Text style={styles.placementValue}>{formatPlanetPosition(rising)}</Text>
-              </View>
-            </View>
+            )}
           </View>
         </View>
 
