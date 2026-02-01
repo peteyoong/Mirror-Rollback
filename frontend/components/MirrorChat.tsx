@@ -14,6 +14,7 @@ import {
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import { storage, CHAT_SESSION_KEYS } from '../store';
 
 interface Message {
   id: string;
@@ -30,6 +31,24 @@ interface MirrorChatProps {
   onClose?: () => void;
 }
 
+// Helper to get storage key for a lens context
+function getSessionStorageKey(lens: string | null): string {
+  if (lens === 'astrology') return CHAT_SESSION_KEYS.astrology;
+  if (lens === 'human_design') return CHAT_SESSION_KEYS.human_design;
+  return CHAT_SESSION_KEYS.mirror;
+}
+
+// Generate a stable session ID (uuid-like)
+function generateSessionId(lens: string | null): string {
+  const prefix = lens || 'mirror';
+  const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+  return `${prefix}_${uuid}`;
+}
+
 export default function MirrorChat({
   userId,
   lens = null,
@@ -40,14 +59,41 @@ export default function MirrorChat({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  // Initialize session ID with lens prefix for separation
-  const [sessionId, setSessionId] = useState<string | null>(() => {
-    // Generate a new session ID when component mounts
-    // Prefix with lens type to separate conversations
-    const prefix = lens ? `${lens}_` : 'mirror_';
-    return `${prefix}${Date.now()}`;
-  });
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [isLoadingSession, setIsLoadingSession] = useState(true);
   const flatListRef = useRef<FlatList>(null);
+
+  // Load or create persistent session ID
+  useEffect(() => {
+    async function loadOrCreateSessionId() {
+      const storageKey = getSessionStorageKey(lens);
+      
+      try {
+        // Try to load existing session ID
+        const existingSessionId = await storage.getItem(storageKey);
+        
+        if (existingSessionId) {
+          console.log(`[MirrorChat] Loaded existing session: ${existingSessionId}`);
+          setSessionId(existingSessionId);
+        } else {
+          // Create new session ID and persist it
+          const newSessionId = generateSessionId(lens);
+          await storage.setItem(storageKey, newSessionId);
+          console.log(`[MirrorChat] Created new session: ${newSessionId}`);
+          setSessionId(newSessionId);
+        }
+      } catch (error) {
+        console.error('[MirrorChat] Error loading session:', error);
+        // Fallback to in-memory session
+        const fallbackId = generateSessionId(lens);
+        setSessionId(fallbackId);
+      } finally {
+        setIsLoadingSession(false);
+      }
+    }
+    
+    loadOrCreateSessionId();
+  }, [lens]);
 
   // Add initial greeting
   useEffect(() => {
