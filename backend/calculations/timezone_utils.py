@@ -1,5 +1,15 @@
 """Timezone utilities for proper UTC conversion
 
+===============================================================================
+DETERMINISTIC COMPUTATION CORE - FROZEN
+===============================================================================
+This file is part of Project Mirror's deterministic computation core.
+Outputs must remain stable across versions.
+Do NOT modify without updating regression tests and bumping computation_version.
+
+Current version: mirror-deterministic-v1
+===============================================================================
+
 Project Mirror requires accurate timezone handling for birth datetime inputs.
 This module provides parsing and conversion utilities.
 """
