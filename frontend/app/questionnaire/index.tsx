@@ -76,7 +76,7 @@ const QUESTIONS = [
   }
 ];
 
-type ScreenState = 'questions' | 'email' | 'transition';
+type ScreenState = 'questions' | 'email' | 'ready' | 'transition';
 
 export default function Questionnaire() {
   const router = useRouter();
