@@ -13,8 +13,9 @@ Or:     python tests/test_mel_regression.py
 """
 import sys
 import os
+import re
 from datetime import datetime, timezone
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
