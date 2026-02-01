@@ -187,37 +187,44 @@ export default function LensDetail() {
     return minutes > 0 ? `${degrees}°${minutes}'` : `${degrees}°`;
   };
 
-  // Helper to format planet position for display
-  const formatPlanetPosition = (planet: any): string => {
-    if (!planet) return 'Not available';
+  // =========================================================================
+  // PROMPT 1: Format planet position with formatted-first priority
+  // =========================================================================
+  // Priority: formatted > sign+degree > longitude-computed > "—"
+  // =========================================================================
+  const formatPlanetPosition = (obj: any): string => {
+    if (!obj) return '—';
     
-    // Determine sign - use provided sign or compute from longitude
-    let sign = planet.sign;
-    if (!sign && planet.longitude != null) {
-      sign = getSignFromLongitude(planet.longitude);
-    }
-    if (!sign) return 'Unknown';
-    
-    // Determine degree in sign
-    let degreeInSign: number | null = null;
-    if (planet.longitude_in_sign != null) {
-      degreeInSign = planet.longitude_in_sign;
-    } else if (planet.degree != null) {
-      degreeInSign = planet.degree;
-    } else if (planet.longitude != null) {
-      degreeInSign = planet.longitude % 30;
+    // Priority 1: Use formatted string if exists
+    if (obj.formatted) {
+      return obj.formatted;
     }
     
-    // Format output
-    if (degreeInSign != null) {
+    // Priority 2: Use sign + degree if both exist
+    if (obj.sign && obj.degree != null) {
+      return `${obj.sign} ${formatDegreeMinutes(obj.degree)}`;
+    }
+    
+    // Priority 3: Compute from longitude if available
+    if (typeof obj.longitude === 'number') {
+      const sign = getSignFromLongitude(obj.longitude);
+      const degreeInSign = obj.longitude % 30;
       return `${sign} ${formatDegreeMinutes(degreeInSign)}`;
     }
-    return sign;
+    
+    // Priority 4: Just sign if available
+    if (obj.sign) {
+      return obj.sign;
+    }
+    
+    // Fallback
+    return '—';
   };
   
-  // Get sidereal system label - neutral copy only
+  // Get sidereal system label - neutral copy only (PROMPT 4)
   const getSiderealSystemLabel = (): string => {
     // Always return neutral copy - do not expose internal settings
+    // NO ayanamsa names, NO SVP numbers
     return 'True Sidereal positions';
   };
 
@@ -227,27 +234,28 @@ export default function LensDetail() {
   };
 
   // =========================================================================
-  // UI INVARIANT: Prevent silent degradation for onboarded users
+  // PROMPT 2: UI INVARIANT with partial rising safety
   // =========================================================================
-  // For astrology lens: If user is onboarded and fetch succeeded, we MUST 
-  // show personalized content. Static-only fallback is NOT acceptable.
+  // sun/moon should always exist post-compute
+  // rising may be present but partially null - handle gracefully
   // =========================================================================
   const isOnboardedUser = !!user?.id;
   const fetchSucceeded = !isLoading && !error;
   const isAstrologyLens = lens === 'astrology';
   
-  // Astrology-specific checks with hardened field mapping
+  // Astrology object from response
   const astrology = chartDetails?.astrology;
   const hasAstrologyInResponse = !!astrology;
   
-  // Core placements with field compatibility
+  // Core placements - use rising (the actual backend field name)
   const sun = astrology?.sun;
   const moon = astrology?.moon;
-  // Ascendant can be stored as: ascendant, rising, or asc
-  const asc = astrology?.ascendant ?? astrology?.rising ?? astrology?.asc;
+  const rising = astrology?.rising; // Backend uses "rising" for Ascendant
   
-  const hasSun = !!sun;
-  const hasMoon = !!moon;
+  // PROMPT 2: Check if placement has ANY usable data (not just existence)
+  const hasSun = !!sun?.formatted || !!sun?.sign || typeof sun?.longitude === 'number';
+  const hasMoon = !!moon?.formatted || !!moon?.sign || typeof moon?.longitude === 'number';
+  const hasRising = !!rising?.formatted || !!rising?.sign || typeof rising?.longitude === 'number';
   const hasAscendant = !!asc;
   
   // Count how many of the 3 core placements exist
