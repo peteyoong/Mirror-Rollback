@@ -179,6 +179,8 @@ export default function Onboarding() {
                   placeholder="What should we call you?"
                   placeholderTextColor={Colors.textTertiary}
                   autoCapitalize="words"
+                  autoCorrect={false}
+                  returnKeyType="next"
                 />
               </View>
 
@@ -191,6 +193,8 @@ export default function Onboarding() {
                   placeholder="YYYY-MM-DD"
                   placeholderTextColor={Colors.textTertiary}
                   keyboardType="numbers-and-punctuation"
+                  autoCorrect={false}
+                  returnKeyType="next"
                 />
               </View>
 
@@ -203,6 +207,8 @@ export default function Onboarding() {
                   placeholder="HH:MM (24-hour format)"
                   placeholderTextColor={Colors.textTertiary}
                   keyboardType="numbers-and-punctuation"
+                  autoCorrect={false}
+                  returnKeyType="done"
                 />
                 <Text style={styles.hint}>
                   If unknown, we'll use noon as a neutral time
