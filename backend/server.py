@@ -1812,19 +1812,30 @@ async def mirror_chat(request: MirrorChatRequest):
         
         history = chat_sessions[session_id]
         
-        # Call LLM for reflective reply
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=session_id,
-            system_message=system_prompt
-        )
-        chat.with_model("openai", "gpt-5.2")
+        # ===== LLM CALL WITH FALLBACK =====
+        response_text = None
+        try:
+            # Call LLM for reflective reply
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=session_id,
+                system_message=system_prompt
+            )
+            chat.with_model("openai", "gpt-5.2")
+            
+            # Send user message
+            message = UserMessage(text=request.message)
+            response_text = await chat.send_message(message)
+            
+            # Log request (no user text)
+            logger.info(f"Mirror chat: user={request.user_id}, lens={request.lens or 'generalist'}")
+            
+        except Exception as llm_error:
+            logger.error(f"LLM call failed for user {request.user_id}: {type(llm_error).__name__}")
+            response_text = FALLBACK_RESPONSE
         
-        # Send user message
-        message = UserMessage(text=request.message)
-        response_text = await chat.send_message(message)
-        
-        # ===== GUARDRAIL ENFORCEMENT =====
+        # ===== GUARDRAIL ENFORCEMENT (only if not fallback) =====
+        if response_text != FALLBACK_RESPONSE:
         violations = check_guardrail_violations(response_text)
         if violations:
             # Log violations (types and counts only, no user text)
