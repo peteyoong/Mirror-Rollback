@@ -335,6 +335,12 @@ async def search_locations(request: LocationSearchRequest):
 async def create_user(profile: UserProfileCreate):
     """Create user profile"""
     try:
+        # Parse and validate timezone
+        try:
+            timezone_raw, parsed_timezone_minutes = parse_timezone(profile.timezone)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid timezone: {str(e)}")
+        
         # Geocode location
         location_data = await geocode_location(profile.city, profile.country)
         if not location_data:
@@ -348,6 +354,8 @@ async def create_user(profile: UserProfileCreate):
             "birth_date": birth_date,
             "birth_time": profile.birth_time,
             "birth_location": location_data,
+            "timezone": timezone_raw,
+            "timezone_minutes": parsed_timezone_minutes,
             "created_at": datetime.now(timezone.utc)
         }
         
