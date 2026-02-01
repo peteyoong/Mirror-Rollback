@@ -28,6 +28,7 @@ interface MirrorChatProps {
   lens?: 'astrology' | 'human_design' | 'numerology' | null;
   placeholder?: string;
   headerTitle?: string;
+  headerSubtitle?: string;
   onClose?: () => void;
 }
 
