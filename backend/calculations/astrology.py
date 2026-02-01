@@ -1,4 +1,4 @@
-"""True Sidereal Astrology calculations using Swiss Ephemeris"""
+"""True Sidereal Astrology calculations using Swiss Ephemeris - Project Mirror Spec"""
 import swisseph as swe
 from datetime import datetime
 from typing import Dict, List, Tuple
@@ -29,25 +29,40 @@ ZODIAC_SIGNS = [
     'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
 ]
 
-# Lahiri Ayanamsa (True Sidereal)
-AYANAMSA = swe.SIDM_LAHIRI
-
 def get_julian_day(year: int, month: int, day: int, hour: int, minute: int) -> float:
     """Convert datetime to Julian Day"""
     return swe.julday(year, month, day, hour + minute / 60.0)
 
-def get_ayanamsa(jd: float) -> float:
-    """Get ayanamsa value for given Julian Day"""
-    swe.set_sid_mode(AYANAMSA)
-    return swe.get_ayanamsa_ut(jd)
+def normalize_degrees(degrees: float) -> float:
+    """Normalize degrees to 0-360 range"""
+    while degrees < 0:
+        degrees += 360
+    while degrees >= 360:
+        degrees -= 360
+    return degrees
 
-def calculate_planet_position(planet_id: int, jd: float, sidereal: bool = True) -> Dict:
-    """Calculate position of a planet"""
-    if sidereal:
-        swe.set_sid_mode(AYANAMSA)
-        result = swe.calc_ut(jd, planet_id, swe.FLG_SIDEREAL)
-    else:
-        result = swe.calc_ut(jd, planet_id)
+def calculate_planet_position(planet_id: int, jd: float, sidereal_settings: Dict) -> Dict:
+    """Calculate position of a planet using user-defined sidereal mode
+    
+    Args:
+        planet_id: Swiss Ephemeris planet constant
+        jd: Julian day
+        sidereal_settings: Dict with svp_degrees, reference_year, yearly_increment
+    
+    Returns:
+        Dict with longitude, latitude, sign, degree, formatted
+    """
+    # Set user-defined sidereal mode - APPLY EXACTLY ONCE
+    svp_degrees = sidereal_settings.get('svp_degrees', 31.2836)
+    
+    # Use SIDM_USER for user-defined ayanamsa
+    # Parameters: (ayanamsa_t0, ayan_t0)
+    # ayanamsa_t0 = ayanamsa value at t0 (J2000.0)
+    # We set the SVP directly
+    swe.set_sid_mode(swe.SIDM_USER, svp_degrees, 0)
+    
+    # Calculate with sidereal flag
+    result = swe.calc_ut(jd, planet_id, swe.FLG_SIDEREAL)
     
     longitude = result[0][0]
     latitude = result[0][1]
@@ -64,25 +79,99 @@ def calculate_planet_position(planet_id: int, jd: float, sidereal: bool = True) 
         'formatted': f"{int(degree_in_sign)}°{ZODIAC_SIGNS[sign_num]}"
     }
 
-def calculate_houses(jd: float, lat: float, lon: float, house_system: str = 'P') -> Dict:
-    """Calculate house cusps
-    house_system: 'P' = Placidus (default), 'K' = Koch, 'W' = Whole Sign, etc.
-    """
-    swe.set_sid_mode(AYANAMSA)
-    houses, ascmc = swe.houses_ex(jd, lat, lon, house_system.encode(), swe.FLG_SIDEREAL)
+def calculate_ascendant(jd: float, lat: float, lon: float, sidereal_settings: Dict) -> float:
+    """Calculate Ascendant using user-defined sidereal mode
     
-    return {
-        'houses': list(houses),
-        'ascendant': ascmc[0],
-        'mc': ascmc[1],
-        'armc': ascmc[2],
-        'vertex': ascmc[3],
-        'equatorial_ascendant': ascmc[4],
-        'co_ascendant_koch': ascmc[5] if len(ascmc) > 5 else None,
-    }
+    Args:
+        jd: Julian day
+        lat: Latitude
+        lon: Longitude
+        sidereal_settings: Sidereal configuration
+    
+    Returns:
+        Ascendant longitude in degrees
+    """
+    # Set user-defined sidereal mode
+    svp_degrees = sidereal_settings.get('svp_degrees', 31.2836)
+    swe.set_sid_mode(swe.SIDM_USER, svp_degrees, 0)
+    
+    # Calculate houses with Placidus just to get Ascendant
+    # (We'll recalculate Equal houses separately)
+    houses, ascmc = swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)
+    
+    ascendant = ascmc[0]  # First element is Ascendant
+    return ascendant
 
-def get_full_natal_chart(birth_datetime: datetime, lat: float, lon: float) -> Dict:
-    """Calculate complete True Sidereal natal chart"""
+def calculate_equal_houses(ascendant: float) -> List[float]:
+    """Calculate Equal house cusps
+    
+    Args:
+        ascendant: Ascendant longitude (house 1 cusp)
+    
+    Returns:
+        List of 12 house cusps
+    """
+    house_cusps = []
+    for i in range(12):
+        cusp = normalize_degrees(ascendant + (i * 30))
+        house_cusps.append(cusp)
+    return house_cusps
+
+def get_house_for_planet(planet_longitude: float, house_cusps: List[float]) -> int:
+    """Determine which house a planet is in
+    
+    Args:
+        planet_longitude: Planet's longitude
+        house_cusps: List of 12 house cusps
+    
+    Returns:
+        House number (1-12)
+    """
+    planet_long = normalize_degrees(planet_longitude)
+    
+    for i in range(12):
+        cusp_current = house_cusps[i]
+        cusp_next = house_cusps[(i + 1) % 12]
+        
+        # Handle wrap around 0°
+        if cusp_next < cusp_current:
+            # House crosses 0° Aries
+            if planet_long >= cusp_current or planet_long < cusp_next:
+                return i + 1
+        else:
+            # Normal case
+            if cusp_current <= planet_long < cusp_next:
+                return i + 1
+    
+    # Fallback (shouldn't reach here)
+    return 1
+
+def get_full_natal_chart(birth_datetime: datetime, lat: float, lon: float, sidereal_settings: Dict = None, house_system: str = "Equal") -> Dict:
+    """Calculate complete True Sidereal natal chart with Project Mirror spec
+    
+    Args:
+        birth_datetime: UTC birth datetime
+        lat: Latitude
+        lon: Longitude
+        sidereal_settings: Dict with mode, svp_degrees, reference_year, yearly_increment
+        house_system: House system (only "Equal" supported)
+    
+    Returns:
+        Dict with planets, houses, sidereal info
+    """
+    # Default sidereal settings (Project Mirror spec)
+    if sidereal_settings is None:
+        sidereal_settings = {
+            "mode": "true_sidereal_user_defined",
+            "svp_degrees": 31.2836,
+            "reference_year": 2000,
+            "yearly_increment": 0.0
+        }
+    
+    # Only Equal houses supported
+    if house_system != "Equal":
+        raise ValueError(f"House system '{house_system}' not supported. Only 'Equal' is supported.")
+    
     jd = get_julian_day(
         birth_datetime.year,
         birth_datetime.month,
@@ -91,7 +180,11 @@ def get_full_natal_chart(birth_datetime: datetime, lat: float, lon: float) -> Di
         birth_datetime.minute
     )
     
-    ayanamsa_value = get_ayanamsa(jd)
+    # Calculate Ascendant first
+    ascendant = calculate_ascendant(jd, lat, lon, sidereal_settings)
+    
+    # Calculate Equal house cusps
+    house_cusps = calculate_equal_houses(ascendant)
     
     # Calculate all planets
     planets = {}
@@ -99,41 +192,51 @@ def get_full_natal_chart(birth_datetime: datetime, lat: float, lon: float) -> Di
         if name == 'South Node':
             # Calculate South Node as opposite of North Node
             north_node = planets['North Node']
-            south_node_long = (north_node['longitude'] + 180) % 360
+            south_node_long = normalize_degrees(north_node['longitude'] + 180)
             sign_num = int(south_node_long / 30)
             degree_in_sign = south_node_long % 30
+            
             planets[name] = {
                 'longitude': south_node_long,
                 'latitude': -north_node['latitude'],
                 'sign': ZODIAC_SIGNS[sign_num],
                 'degree': degree_in_sign,
-                'formatted': f"{int(degree_in_sign)}°{ZODIAC_SIGNS[sign_num]}"
+                'formatted': f"{int(degree_in_sign)}°{ZODIAC_SIGNS[sign_num]}",
+                'house': get_house_for_planet(south_node_long, house_cusps)
             }
         else:
-            planets[name] = calculate_planet_position(planet_id, jd, sidereal=True)
+            planet_pos = calculate_planet_position(planet_id, jd, sidereal_settings)
+            planet_pos['house'] = get_house_for_planet(planet_pos['longitude'], house_cusps)
+            planets[name] = planet_pos
     
     # Calculate Earth as opposite of Sun (for Human Design)
     sun_long = planets['Sun']['longitude']
-    earth_long = (sun_long + 180) % 360
+    earth_long = normalize_degrees(sun_long + 180)
     sign_num = int(earth_long / 30)
     degree_in_sign = earth_long % 30
     planets['Earth'] = {
         'longitude': earth_long,
-        'latitude': 0,  # Earth's latitude is always 0 from Sun's perspective
+        'latitude': 0,
         'sign': ZODIAC_SIGNS[sign_num],
         'degree': degree_in_sign,
-        'formatted': f"{int(degree_in_sign)}°{ZODIAC_SIGNS[sign_num]}"
+        'formatted': f"{int(degree_in_sign)}°{ZODIAC_SIGNS[sign_num]}",
+        'house': get_house_for_planet(earth_long, house_cusps)
     }
     
-    # Calculate houses
-    house_data = calculate_houses(jd, lat, lon)
+    # Get current ayanamsa value for reference
+    ayanamsa_value = swe.get_ayanamsa_ut(jd)
     
     return {
         'planets': planets,
-        'houses': house_data,
+        'houses': {
+            'system': house_system,
+            'cusps': house_cusps,
+            'ascendant': ascendant,
+        },
+        'sidereal_settings': sidereal_settings,
         'ayanamsa': ayanamsa_value,
         'julian_day': jd,
-        'chart_type': 'True Sidereal (Lahiri)'
+        'chart_type': f'True Sidereal User-Defined (SVP {sidereal_settings.get("svp_degrees")})'
     }
 
 def close_ephemeris():
