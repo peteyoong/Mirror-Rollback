@@ -504,6 +504,7 @@ async def calculate_chart(request: ChartCalculationRequest):
         return {
             "success": True,
             "message": "Chart calculated successfully",
+            "computation_version": "mirror-deterministic-v1",
             "data": chart_data,
             "debug_stamp": debug_stamp  # Include in API response
         }
