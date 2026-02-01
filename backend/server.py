@@ -1121,6 +1121,30 @@ async def get_chart_details(user_id: str):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
+        # Extract astrology data
+        astro = chart.get("astrology", {})
+        planets_data = astro.get("planets", {})
+        houses_data = astro.get("houses", {})
+        
+        # Build planets list for deep dive
+        planets_list = []
+        planet_order = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "North Node", "South Node"]
+        for planet_name in planet_order:
+            planet = planets_data.get(planet_name)
+            if planet:
+                planets_list.append({
+                    "name": planet_name,
+                    "sign": planet.get("sign"),
+                    "degree": planet.get("degree"),
+                    "longitude": planet.get("longitude"),
+                    "longitude_in_sign": planet.get("degree"),  # Same as degree
+                    "house": planet.get("house"),
+                    "formatted": planet.get("formatted")
+                })
+        
+        # Build houses list for snapshot/deep dive
+        houses_list = houses_data.get("formatted_cusps", [])
+        
         # Return formatted chart data for Lenses
         return {
             "computation_version": "mirror-deterministic-v1",
@@ -1138,11 +1162,24 @@ async def get_chart_details(user_id: str):
                 "design_datetime_utc_iso": chart.get("human_design", {}).get("design_datetime_utc_iso")
             },
             "astrology": {
-                "sun": chart.get("astrology", {}).get("planets", {}).get("Sun"),
-                "moon": chart.get("astrology", {}).get("planets", {}).get("Moon"),
-                "rising": chart.get("astrology", {}).get("houses", {}).get("ascendant"),
-                "chart_type": chart.get("astrology", {}).get("chart_type"),
-                "sidereal_settings": chart.get("astrology", {}).get("sidereal_settings")
+                "sun": planets_data.get("Sun"),
+                "moon": planets_data.get("Moon"),
+                "rising": {
+                    "sign": houses_data.get("formatted_cusps", [{}])[0].get("sign") if houses_data.get("formatted_cusps") else None,
+                    "degree": houses_data.get("formatted_cusps", [{}])[0].get("degree") if houses_data.get("formatted_cusps") else None,
+                    "longitude": houses_data.get("ascendant"),
+                    "longitude_in_sign": houses_data.get("formatted_cusps", [{}])[0].get("degree") if houses_data.get("formatted_cusps") else None,
+                    "formatted": houses_data.get("formatted_cusps", [{}])[0].get("formatted") if houses_data.get("formatted_cusps") else None
+                },
+                "mc": {
+                    "longitude": houses_data.get("mc"),
+                    "sign": None,  # Would need to calculate from mc longitude
+                    "degree": None
+                },
+                "chart_type": astro.get("chart_type"),
+                "sidereal_settings": astro.get("sidereal_settings"),
+                "planets": planets_list,
+                "houses": houses_list
             },
             "numerology": {
                 "life_path": chart.get("numerology", {}).get("life_path"),
