@@ -271,7 +271,7 @@ export default function Onboarding() {
                       style={styles.timeInput}
                       value={birthHour}
                       onChangeText={(text) => setBirthHour(text.replace(/[^0-9]/g, '').slice(0, 2))}
-                      placeholder="HH"
+                      placeholder="00"
                       placeholderTextColor={Colors.textTertiary}
                       keyboardType="number-pad"
                       maxLength={2}
@@ -286,7 +286,7 @@ export default function Onboarding() {
                       style={styles.timeInput}
                       value={birthMinute}
                       onChangeText={(text) => setBirthMinute(text.replace(/[^0-9]/g, '').slice(0, 2))}
-                      placeholder="MM"
+                      placeholder="00"
                       placeholderTextColor={Colors.textTertiary}
                       keyboardType="number-pad"
                       maxLength={2}
