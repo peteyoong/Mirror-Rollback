@@ -404,7 +404,7 @@ export default function LensDetail() {
     );
   };
 
-  // Render full snapshot view (Sun/Moon/Asc + houses summary)
+  // Render full snapshot view (Sun/Moon/Rising + houses summary)
   const renderSnapshotView = () => {
     if (!chartDetails?.astrology) {
       return (
@@ -414,9 +414,9 @@ export default function LensDetail() {
       );
     }
     
-    // Use component-level variables for houses (astrology, sun, moon, asc already defined)
+    // PROMPT 3: Use astrology.houses array for house data
     const houses = astrology?.houses;
-    const hasHouses = houses && houses.length > 0;
+    const hasHouses = Array.isArray(houses) && houses.length > 0;
     
     return (
       <>
@@ -454,21 +454,21 @@ export default function LensDetail() {
               </View>
             )}
             
-            {hasAscendant && (
+            {hasRising && (
               <View style={styles.placementRow}>
                 <View style={styles.placementIcon}>
                   <Ionicons name="arrow-up-circle" size={20} color={Colors.text} />
                 </View>
                 <View style={styles.placementInfo}>
                   <Text style={styles.placementLabel}>Ascendant (Rising)</Text>
-                  <Text style={styles.placementValue}>{formatPlanetPosition(asc)}</Text>
+                  <Text style={styles.placementValue}>{formatPlanetPosition(rising)}</Text>
                 </View>
               </View>
             )}
           </View>
         </View>
 
-        {/* Houses Summary */}
+        {/* Houses Summary - PROMPT 3: render from astrology.houses[] */}
         {hasHouses ? (
           <View style={styles.housesCard}>
             <Text style={styles.cardTitle}>Houses Overview</Text>
