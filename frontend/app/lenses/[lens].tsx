@@ -118,7 +118,9 @@ const LENS_CONTENT: { [key: string]: any } = {
 export default function LensDetail() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { lens, mode = 'summary' } = params;
+  const { lens } = params;
+  // Support modes: "summary" | "snapshot" | "deep_dive"
+  const mode = (params.mode as string) || 'summary';
   const { user } = useAppStore();
   
   // State for chart details
@@ -156,7 +158,7 @@ export default function LensDetail() {
     const sign = planet.sign || 'Unknown';
     const degree = planet.longitude_in_sign != null 
       ? `${Math.floor(planet.longitude_in_sign)}°` 
-      : '';
+      : (planet.degree != null ? `${Math.floor(planet.degree)}°` : '');
     return degree ? `${sign} ${degree}` : sign;
   };
   
@@ -165,7 +167,6 @@ export default function LensDetail() {
     const settings = chartDetails?.astrology?.sidereal_settings;
     if (!settings) return 'True Sidereal';
     
-    // Use ayanamsa name if available, otherwise show SVP info
     if (settings.ayanamsa_name) {
       return settings.ayanamsa_name;
     }
@@ -174,9 +175,14 @@ export default function LensDetail() {
     }
     return 'True Sidereal';
   };
+
+  // Navigate to different modes
+  const navigateToMode = (targetMode: string) => {
+    router.push(`/lenses/${lens}?mode=${targetMode}` as any);
+  };
   
-  // Render personalized Astrology snapshot
-  const renderAstrologySnapshot = () => {
+  // Render personalized Astrology snapshot (compact version for summary)
+  const renderAstrologySnapshotCompact = () => {
     if (!chartDetails?.astrology) return null;
     
     const { sun, moon, rising } = chartDetails.astrology;
@@ -212,6 +218,228 @@ export default function LensDetail() {
           </Text>
         </View>
       </View>
+    );
+  };
+
+  // Render full snapshot view (Sun/Moon/Asc + houses summary)
+  const renderSnapshotView = () => {
+    if (!chartDetails?.astrology) {
+      return (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>Chart data not available</Text>
+        </View>
+      );
+    }
+    
+    const { sun, moon, rising, houses } = chartDetails.astrology;
+    const hasHouses = houses && houses.length > 0;
+    
+    return (
+      <>
+        {/* Main Placements */}
+        <View style={styles.snapshotCard}>
+          <View style={styles.snapshotHeader}>
+            <Ionicons name="sparkles" size={20} color={Colors.text} />
+            <Text style={styles.snapshotTitle}>Your Core Placements</Text>
+          </View>
+          
+          <View style={styles.placementsList}>
+            <View style={styles.placementRow}>
+              <View style={styles.placementIcon}>
+                <Ionicons name="sunny" size={20} color={Colors.text} />
+              </View>
+              <View style={styles.placementInfo}>
+                <Text style={styles.placementLabel}>Sun</Text>
+                <Text style={styles.placementValue}>{formatPlanetPosition(sun)}</Text>
+                {sun?.house && <Text style={styles.placementHouse}>House {sun.house}</Text>}
+              </View>
+            </View>
+            
+            <View style={styles.placementRow}>
+              <View style={styles.placementIcon}>
+                <Ionicons name="moon" size={20} color={Colors.text} />
+              </View>
+              <View style={styles.placementInfo}>
+                <Text style={styles.placementLabel}>Moon</Text>
+                <Text style={styles.placementValue}>{formatPlanetPosition(moon)}</Text>
+                {moon?.house && <Text style={styles.placementHouse}>House {moon.house}</Text>}
+              </View>
+            </View>
+            
+            <View style={styles.placementRow}>
+              <View style={styles.placementIcon}>
+                <Ionicons name="arrow-up-circle" size={20} color={Colors.text} />
+              </View>
+              <View style={styles.placementInfo}>
+                <Text style={styles.placementLabel}>Ascendant (Rising)</Text>
+                <Text style={styles.placementValue}>{formatPlanetPosition(rising)}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Houses Summary */}
+        {hasHouses ? (
+          <View style={styles.housesCard}>
+            <Text style={styles.cardTitle}>Houses Overview</Text>
+            <Text style={styles.cardSubtitle}>Equal House System</Text>
+            
+            <View style={styles.housesGrid}>
+              {houses.slice(0, 6).map((house: any) => (
+                <View key={house.house} style={styles.houseItem}>
+                  <Text style={styles.houseNumber}>{house.house}</Text>
+                  <Text style={styles.houseSign}>{house.sign}</Text>
+                </View>
+              ))}
+            </View>
+            <View style={styles.housesGrid}>
+              {houses.slice(6, 12).map((house: any) => (
+                <View key={house.house} style={styles.houseItem}>
+                  <Text style={styles.houseNumber}>{house.house}</Text>
+                  <Text style={styles.houseSign}>{house.sign}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : (
+          <View style={styles.comingSoonCard}>
+            <Ionicons name="time-outline" size={20} color={Colors.textTertiary} />
+            <Text style={styles.comingSoonText}>Houses data coming soon</Text>
+          </View>
+        )}
+        
+        <View style={styles.systemLabel}>
+          <Ionicons name="information-circle-outline" size={14} color={Colors.textTertiary} />
+          <Text style={styles.systemLabelText}>
+            Calculated using {getSiderealSystemLabel()}
+          </Text>
+        </View>
+
+        {/* Navigation buttons */}
+        <View style={styles.modeNavigation}>
+          <TouchableOpacity 
+            style={styles.modeNavButton}
+            onPress={() => navigateToMode('summary')}
+          >
+            <Ionicons name="book-outline" size={18} color={Colors.text} />
+            <Text style={styles.modeNavButtonText}>About This Lens</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.modeNavButton, styles.modeNavButtonPrimary]}
+            onPress={() => navigateToMode('deep_dive')}
+          >
+            <Ionicons name="telescope-outline" size={18} color={Colors.background} />
+            <Text style={styles.modeNavButtonTextPrimary}>Full Chart</Text>
+          </TouchableOpacity>
+        </View>
+      </>
+    );
+  };
+
+  // Render deep dive view (all planets, houses, aspects)
+  const renderDeepDiveView = () => {
+    if (!chartDetails?.astrology) {
+      return (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>Chart data not available</Text>
+        </View>
+      );
+    }
+    
+    const { planets, houses } = chartDetails.astrology;
+    const hasPlanets = planets && planets.length > 0;
+    const hasHouses = houses && houses.length > 0;
+    
+    return (
+      <>
+        {/* Disclaimer */}
+        <View style={styles.disclaimerCard}>
+          <Ionicons name="information-circle-outline" size={20} color={Colors.textSecondary} />
+          <Text style={styles.disclaimerText}>
+            Descriptive, not deterministic. These positions are factual data—interpretation is up to you.
+          </Text>
+        </View>
+
+        {/* All Planets */}
+        {hasPlanets ? (
+          <View style={styles.deepDiveSection}>
+            <Text style={styles.deepDiveSectionTitle}>Planetary Positions</Text>
+            
+            {planets.map((planet: any) => (
+              <View key={planet.name} style={styles.planetRow}>
+                <Text style={styles.planetName}>{planet.name}</Text>
+                <View style={styles.planetDetails}>
+                  <Text style={styles.planetSign}>{planet.sign || 'Unknown'}</Text>
+                  {planet.degree != null && (
+                    <Text style={styles.planetDegree}>{Math.floor(planet.degree)}°</Text>
+                  )}
+                  {planet.house && (
+                    <Text style={styles.planetHouse}>H{planet.house}</Text>
+                  )}
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.comingSoonCard}>
+            <Ionicons name="time-outline" size={20} color={Colors.textTertiary} />
+            <Text style={styles.comingSoonText}>Planets data coming soon</Text>
+          </View>
+        )}
+
+        {/* All Houses */}
+        {hasHouses ? (
+          <View style={styles.deepDiveSection}>
+            <Text style={styles.deepDiveSectionTitle}>House Cusps</Text>
+            <Text style={styles.deepDiveSectionSubtitle}>Equal House System</Text>
+            
+            {houses.map((house: any) => (
+              <View key={house.house} style={styles.houseRow}>
+                <Text style={styles.houseRowNumber}>House {house.house}</Text>
+                <Text style={styles.houseRowSign}>{house.formatted || `${house.sign} ${Math.floor(house.degree)}°`}</Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.comingSoonCard}>
+            <Ionicons name="time-outline" size={20} color={Colors.textTertiary} />
+            <Text style={styles.comingSoonText}>Houses data coming soon</Text>
+          </View>
+        )}
+
+        {/* Aspects - Coming Soon */}
+        <View style={styles.comingSoonCard}>
+          <Ionicons name="git-network-outline" size={20} color={Colors.textTertiary} />
+          <Text style={styles.comingSoonText}>Aspects analysis coming soon</Text>
+        </View>
+
+        <View style={styles.systemLabel}>
+          <Ionicons name="information-circle-outline" size={14} color={Colors.textTertiary} />
+          <Text style={styles.systemLabelText}>
+            Calculated using {getSiderealSystemLabel()}
+          </Text>
+        </View>
+
+        {/* Navigation buttons */}
+        <View style={styles.modeNavigation}>
+          <TouchableOpacity 
+            style={styles.modeNavButton}
+            onPress={() => navigateToMode('summary')}
+          >
+            <Ionicons name="book-outline" size={18} color={Colors.text} />
+            <Text style={styles.modeNavButtonText}>About This Lens</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.modeNavButton}
+            onPress={() => navigateToMode('snapshot')}
+          >
+            <Ionicons name="sparkles-outline" size={18} color={Colors.text} />
+            <Text style={styles.modeNavButtonText}>Snapshot</Text>
+          </TouchableOpacity>
+        </View>
+      </>
     );
   };
   
