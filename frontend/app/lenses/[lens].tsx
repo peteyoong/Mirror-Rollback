@@ -150,6 +150,60 @@ const MIRROR_CONTENT: { [key: string]: { [mode: string]: { title: string; intro?
   }
 };
 
+// Personalized Mirror Moment Templates
+// Theme keyed by Sun sign - "A theme you might notice"
+const SUN_THEMES: { [sign: string]: string } = {
+  'Aries': "A sense of urgency might be present today. You may notice a pull toward action, even before clarity arrives.",
+  'Taurus': "Stability may feel like a priority right now. You might notice a desire to slow down and ground before deciding.",
+  'Gemini': "Multiple ideas might be competing for attention. You may notice a restlessness that wants to explore all options.",
+  'Cancer': "Emotional undercurrents might be stronger than usual. You may notice a need for safety before opening up.",
+  'Leo': "A desire to be seen might be surfacing. You may notice attention moving toward what feels meaningful to express.",
+  'Virgo': "Details might feel more important than usual. You may notice an urge to organize before moving forward.",
+  'Libra': "Balance might be calling for attention. You may notice a pull toward harmony, even in small decisions.",
+  'Scorpio': "Depth might be preferred over surface right now. You may notice an interest in what lies beneath the obvious.",
+  'Sagittarius': "Expansion might feel natural today. You may notice a pull toward meaning, perspective, or new horizons.",
+  'Capricorn': "Structure might feel reassuring right now. You may notice a desire to build something lasting.",
+  'Aquarius': "Unconventional thinking might come easily today. You may notice ideas that don't fit familiar patterns.",
+  'Pisces': "Boundaries might feel more fluid than usual. You may notice sensitivity to atmosphere and unspoken things.",
+};
+
+// Watch-for keyed by Moon sign - "What to watch for"
+const MOON_WATCHFOR: { [sign: string]: string } = {
+  'Aries': "Quick emotional reactions might arise. It may help to pause before responding to strong feelings.",
+  'Taurus': "Comfort-seeking might show up under stress. It may help to notice what feels like genuine need versus habit.",
+  'Gemini': "Emotions might shift quickly today. It may help to observe without needing to fix or explain each feeling.",
+  'Cancer': "Protective instincts might be heightened. It may help to notice when walls go up and what triggered them.",
+  'Leo': "Recognition might feel emotionally important. It may help to notice when approval-seeking shapes your choices.",
+  'Virgo': "Self-criticism might surface more easily. It may help to notice when analysis becomes anxious rather than helpful.",
+  'Libra': "People-pleasing might show up today. It may help to check if your yes is genuine or reflexive.",
+  'Scorpio': "Intensity might color emotional responses. It may help to notice when depth becomes fixation.",
+  'Sagittarius': "Restlessness might mask deeper feelings. It may help to slow down before seeking escape or distraction.",
+  'Capricorn': "Emotional suppression might seem easier. It may help to notice what gets pushed aside for productivity.",
+  'Aquarius': "Detachment might feel safer than feeling. It may help to notice when distance is protective versus avoidant.",
+  'Pisces': "Absorption of others' emotions might happen. It may help to check which feelings are actually yours.",
+};
+
+// Question keyed by Rising sign - "A gentle question"
+const RISING_QUESTIONS: { [sign: string]: string } = {
+  'Aries': "What might happen if you let yourself pause before acting on the first impulse?",
+  'Taurus': "Where might flexibility serve you better than holding your ground today?",
+  'Gemini': "What would it feel like to choose depth over breadth, just for today?",
+  'Cancer': "Where might you be protecting something that no longer needs defending?",
+  'Leo': "What parts of yourself might be waiting for permission to be seen?",
+  'Virgo': "What might you notice if you released the need for things to be perfect first?",
+  'Libra': "What might your own opinion be, separate from what would please others?",
+  'Scorpio': "Where might trust be possible, even if certainty isn't?",
+  'Sagittarius': "What might be asking for your attention right here, rather than somewhere else?",
+  'Capricorn': "What might rest look like if it didn't have to be earned first?",
+  'Aquarius': "Where might connection be available if you moved closer rather than observing?",
+  'Pisces': "What boundaries might help you stay present without absorbing everything around you?",
+};
+
+// Neutral fallbacks when sign data is missing
+const FALLBACK_THEME = "Something might be asking for your attention today. You may notice a quiet pull toward reflection.";
+const FALLBACK_WATCHFOR = "Automatic patterns might be running in the background. It may help to notice without needing to change anything yet.";
+const FALLBACK_QUESTION = "What might become clearer if you simply observed without judging what you find?";
+
 export default function LensDetail() {
   const router = useRouter();
   const params = useLocalSearchParams();
