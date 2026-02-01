@@ -77,9 +77,11 @@ class Location(BaseModel):
 
 class UserProfile(BaseModel):
     name: Optional[str] = None
+    email: Optional[str] = None
     birth_date: datetime
     birth_time: Optional[str] = None  # HH:MM format
     birth_location: Location
+    timezone: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -95,10 +97,15 @@ class UserProfileCreate(BaseModel):
 class UserProfileResponse(BaseModel):
     id: str
     name: Optional[str]
+    email: Optional[str] = None
     birth_date: str
     birth_time: Optional[str]
     birth_location: Location
     has_chart: bool = False
+
+
+class EmailUpdateRequest(BaseModel):
+    email: str
 
 
 class JournalEntry(BaseModel):
