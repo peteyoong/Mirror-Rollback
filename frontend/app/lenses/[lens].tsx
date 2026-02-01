@@ -121,26 +121,38 @@ export default function LensDetail() {
   const { lens } = params;
   // Support modes: "summary" | "snapshot" | "deep_dive"
   const mode = (params.mode as string) || 'summary';
-  const { user } = useAppStore();
+  const { user, chartDetails: cachedChartDetails, cacheChartDetails, getChartDetailsCacheKey } = useAppStore();
   
-  // State for chart details
+  // Local state for chart details (uses cache if available)
   const [chartDetails, setChartDetails] = useState<ChartDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const content = LENS_CONTENT[lens as string];
   
-  // Fetch chart details on mount
+  // Fetch chart details on mount - use cache if valid
   useEffect(() => {
     const fetchChartDetails = async () => {
       if (!user?.id) return;
       
+      // Check if we have valid cached data
+      const currentCacheKey = getChartDetailsCacheKey();
+      if (cachedChartDetails && cachedChartDetails._userBirthDataHash === currentCacheKey) {
+        console.log('[LensDetail] Using cached chartDetails');
+        setChartDetails(cachedChartDetails);
+        return;
+      }
+      
+      // No valid cache, fetch from API
+      console.log('[LensDetail] Fetching chartDetails from API');
       setIsLoading(true);
       setError(null);
       
       try {
         const details = await getChartDetails(user.id);
         setChartDetails(details);
+        // Cache the fetched details
+        cacheChartDetails(details);
       } catch (err: any) {
         console.error('Failed to fetch chart details:', err);
         setError(err?.response?.data?.detail || 'Failed to load your chart data');
@@ -150,7 +162,7 @@ export default function LensDetail() {
     };
     
     fetchChartDetails();
-  }, [user?.id]);
+  }, [user?.id, cachedChartDetails, getChartDetailsCacheKey, cacheChartDetails]);
   
   // Helper to format planet position for display
   const formatPlanetPosition = (planet: any): string => {
