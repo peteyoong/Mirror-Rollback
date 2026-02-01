@@ -274,11 +274,104 @@ async def root():
 @api_router.post("/locations/search")
 async def search_locations(request: LocationSearchRequest):
     """Search for locations with autocomplete"""
+    
+    # Fallback database of common cities (used when Nominatim is unavailable)
+    FALLBACK_CITIES = [
+        {"city": "New York", "country": "United States", "latitude": 40.7128, "longitude": -74.0060},
+        {"city": "Los Angeles", "country": "United States", "latitude": 34.0522, "longitude": -118.2437},
+        {"city": "Chicago", "country": "United States", "latitude": 41.8781, "longitude": -87.6298},
+        {"city": "Houston", "country": "United States", "latitude": 29.7604, "longitude": -95.3698},
+        {"city": "San Francisco", "country": "United States", "latitude": 37.7749, "longitude": -122.4194},
+        {"city": "Seattle", "country": "United States", "latitude": 47.6062, "longitude": -122.3321},
+        {"city": "Miami", "country": "United States", "latitude": 25.7617, "longitude": -80.1918},
+        {"city": "Boston", "country": "United States", "latitude": 42.3601, "longitude": -71.0589},
+        {"city": "London", "country": "United Kingdom", "latitude": 51.5074, "longitude": -0.1278},
+        {"city": "Manchester", "country": "United Kingdom", "latitude": 53.4808, "longitude": -2.2426},
+        {"city": "Paris", "country": "France", "latitude": 48.8566, "longitude": 2.3522},
+        {"city": "Berlin", "country": "Germany", "latitude": 52.5200, "longitude": 13.4050},
+        {"city": "Tokyo", "country": "Japan", "latitude": 35.6762, "longitude": 139.6503},
+        {"city": "Sydney", "country": "Australia", "latitude": -33.8688, "longitude": 151.2093},
+        {"city": "Melbourne", "country": "Australia", "latitude": -37.8136, "longitude": 144.9631},
+        {"city": "Toronto", "country": "Canada", "latitude": 43.6532, "longitude": -79.3832},
+        {"city": "Vancouver", "country": "Canada", "latitude": 49.2827, "longitude": -123.1207},
+        {"city": "Singapore", "country": "Singapore", "latitude": 1.3521, "longitude": 103.8198},
+        {"city": "Hong Kong", "country": "China", "latitude": 22.3193, "longitude": 114.1694},
+        {"city": "Shanghai", "country": "China", "latitude": 31.2304, "longitude": 121.4737},
+        {"city": "Beijing", "country": "China", "latitude": 39.9042, "longitude": 116.4074},
+        {"city": "Mumbai", "country": "India", "latitude": 19.0760, "longitude": 72.8777},
+        {"city": "Delhi", "country": "India", "latitude": 28.7041, "longitude": 77.1025},
+        {"city": "Bangalore", "country": "India", "latitude": 12.9716, "longitude": 77.5946},
+        {"city": "Dubai", "country": "United Arab Emirates", "latitude": 25.2048, "longitude": 55.2708},
+        {"city": "Kuala Lumpur", "country": "Malaysia", "latitude": 3.1390, "longitude": 101.6869},
+        {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067},
+        {"city": "Johor Bahru", "country": "Malaysia", "latitude": 1.4927, "longitude": 103.7414},
+        {"city": "Bangkok", "country": "Thailand", "latitude": 13.7563, "longitude": 100.5018},
+        {"city": "Jakarta", "country": "Indonesia", "latitude": -6.2088, "longitude": 106.8456},
+        {"city": "Manila", "country": "Philippines", "latitude": 14.5995, "longitude": 120.9842},
+        {"city": "Seoul", "country": "South Korea", "latitude": 37.5665, "longitude": 126.9780},
+        {"city": "Amsterdam", "country": "Netherlands", "latitude": 52.3676, "longitude": 4.9041},
+        {"city": "Rome", "country": "Italy", "latitude": 41.9028, "longitude": 12.4964},
+        {"city": "Madrid", "country": "Spain", "latitude": 40.4168, "longitude": -3.7038},
+        {"city": "Barcelona", "country": "Spain", "latitude": 41.3851, "longitude": 2.1734},
+        {"city": "Vienna", "country": "Austria", "latitude": 48.2082, "longitude": 16.3738},
+        {"city": "Zurich", "country": "Switzerland", "latitude": 47.3769, "longitude": 8.5417},
+        {"city": "Dublin", "country": "Ireland", "latitude": 53.3498, "longitude": -6.2603},
+        {"city": "Stockholm", "country": "Sweden", "latitude": 59.3293, "longitude": 18.0686},
+        {"city": "Oslo", "country": "Norway", "latitude": 59.9139, "longitude": 10.7522},
+        {"city": "Copenhagen", "country": "Denmark", "latitude": 55.6761, "longitude": 12.5683},
+        {"city": "Helsinki", "country": "Finland", "latitude": 60.1699, "longitude": 24.9384},
+        {"city": "Brussels", "country": "Belgium", "latitude": 50.8503, "longitude": 4.3517},
+        {"city": "Lisbon", "country": "Portugal", "latitude": 38.7223, "longitude": -9.1393},
+        {"city": "Athens", "country": "Greece", "latitude": 37.9838, "longitude": 23.7275},
+        {"city": "Prague", "country": "Czech Republic", "latitude": 50.0755, "longitude": 14.4378},
+        {"city": "Warsaw", "country": "Poland", "latitude": 52.2297, "longitude": 21.0122},
+        {"city": "Moscow", "country": "Russia", "latitude": 55.7558, "longitude": 37.6173},
+        {"city": "São Paulo", "country": "Brazil", "latitude": -23.5505, "longitude": -46.6333},
+        {"city": "Rio de Janeiro", "country": "Brazil", "latitude": -22.9068, "longitude": -43.1729},
+        {"city": "Buenos Aires", "country": "Argentina", "latitude": -34.6037, "longitude": -58.3816},
+        {"city": "Mexico City", "country": "Mexico", "latitude": 19.4326, "longitude": -99.1332},
+        {"city": "Cape Town", "country": "South Africa", "latitude": -33.9249, "longitude": 18.4241},
+        {"city": "Johannesburg", "country": "South Africa", "latitude": -26.2041, "longitude": 28.0473},
+        {"city": "Cairo", "country": "Egypt", "latitude": 30.0444, "longitude": 31.2357},
+        {"city": "Lagos", "country": "Nigeria", "latitude": 6.5244, "longitude": 3.3792},
+        {"city": "Nairobi", "country": "Kenya", "latitude": -1.2921, "longitude": 36.8219},
+        {"city": "Tel Aviv", "country": "Israel", "latitude": 32.0853, "longitude": 34.7818},
+        {"city": "Istanbul", "country": "Turkey", "latitude": 41.0082, "longitude": 28.9784},
+    ]
+    
+    def search_fallback(query: str):
+        """Search through fallback cities"""
+        query_lower = query.lower().strip()
+        results = []
+        for city_data in FALLBACK_CITIES:
+            city_lower = city_data["city"].lower()
+            country_lower = city_data["country"].lower()
+            if query_lower in city_lower or query_lower in country_lower:
+                # Estimate timezone from longitude
+                lng = city_data["longitude"]
+                tz_hours = round(lng / 15)
+                tz_sign = "+" if tz_hours >= 0 else "-"
+                tz_string = f"{tz_sign}{abs(tz_hours):02d}:00"
+                
+                results.append({
+                    "city": city_data["city"],
+                    "country": city_data["country"],
+                    "latitude": city_data["latitude"],
+                    "longitude": city_data["longitude"],
+                    "display_name": f"{city_data['city']}, {city_data['country']}",
+                    "timezone": tz_string
+                })
+        return results[:5]  # Limit to 5 results
+    
     try:
         geolocator = Nominatim(user_agent="project_mirror", timeout=10)
         locations = geolocator.geocode(request.query, exactly_one=False, limit=5, addressdetails=True)
         
         if not locations:
+            # Try fallback if no results from Nominatim
+            fallback_results = search_fallback(request.query)
+            if fallback_results:
+                return {"results": fallback_results}
             return {"results": []}
         
         results = []
@@ -326,7 +419,11 @@ async def search_locations(request: LocationSearchRequest):
         return {"results": results}
     except Exception as e:
         logger.error(f"Location search error: {e}")
-        # Return empty results instead of error to allow retry
+        # Try fallback when Nominatim fails
+        fallback_results = search_fallback(request.query)
+        if fallback_results:
+            logger.info(f"Using fallback cities for query: {request.query}")
+            return {"results": fallback_results}
         return {"results": []}
 
 
