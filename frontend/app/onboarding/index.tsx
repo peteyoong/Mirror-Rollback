@@ -24,6 +24,7 @@ interface Location {
   latitude: number;
   longitude: number;
   display_name: string;
+  timezone?: string;
 }
 
 export default function Onboarding() {
