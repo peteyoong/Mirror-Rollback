@@ -1744,6 +1744,61 @@ async def clear_chat_session(session_id: str):
     return {"message": "Session cleared"}
 
 
+# ============================================
+# Timeline Endpoint - "You Over Time" History
+# ============================================
+
+class TimelineEvent(BaseModel):
+    created_at_iso: str
+    inferred_state: str
+    confidence: float
+    themes: List[str]
+    tension: Optional[str] = None
+    event_type: str
+
+class TimelineResponse(BaseModel):
+    events: List[TimelineEvent]
+
+@api_router.get("/timeline/{user_id}", response_model=TimelineResponse)
+async def get_user_timeline(user_id: str, days: int = 7):
+    """
+    Get user's timeline events for the last N days.
+    Returns lightweight consciousness tracking data (no raw text).
+    """
+    try:
+        # Calculate date cutoff
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff_iso = cutoff_date.isoformat()
+        
+        # Query timeline events
+        events_cursor = db.user_timeline.find(
+            {
+                "user_id": user_id,
+                "created_at_iso": {"$gte": cutoff_iso}
+            }
+        ).sort("created_at_iso", -1).limit(50)
+        
+        events_raw = await events_cursor.to_list(50)
+        
+        # Transform to response format (strip internal fields)
+        events = []
+        for e in events_raw:
+            events.append(TimelineEvent(
+                created_at_iso=e.get("created_at_iso", ""),
+                inferred_state=e.get("inferred_state", "unclear"),
+                confidence=e.get("confidence", 0.0),
+                themes=e.get("themes", [])[:2],
+                tension=e.get("tension"),
+                event_type=e.get("event_type", "mirror_chat_turn")
+            ))
+        
+        return TimelineResponse(events=events)
+        
+    except Exception as e:
+        logger.error(f"Timeline fetch error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
