@@ -162,18 +162,10 @@ export default function LensDetail() {
     return degree ? `${sign} ${degree}` : sign;
   };
   
-  // Get sidereal system label from chart details
+  // Get sidereal system label - neutral copy only
   const getSiderealSystemLabel = (): string => {
-    const settings = chartDetails?.astrology?.sidereal_settings;
-    if (!settings) return 'True Sidereal';
-    
-    if (settings.ayanamsa_name) {
-      return settings.ayanamsa_name;
-    }
-    if (settings.svp_degrees != null) {
-      return `True Sidereal (SVP ${settings.svp_degrees}°)`;
-    }
-    return 'True Sidereal';
+    // Always return neutral copy - do not expose internal settings
+    return 'True Sidereal positions aligned to star-based coordinates';
   };
 
   // Navigate to different modes
