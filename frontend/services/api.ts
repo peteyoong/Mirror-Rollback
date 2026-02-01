@@ -19,6 +19,8 @@ export const createUser = async (data: {
   city: string;
   country: string;
   timezone: string;
+  latitude?: number;
+  longitude?: number;
 }) => {
   const response = await api.post('/users', data);
   return response.data;
