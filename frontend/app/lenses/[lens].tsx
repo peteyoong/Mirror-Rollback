@@ -256,24 +256,15 @@ export default function LensDetail() {
   const hasSun = !!sun?.formatted || !!sun?.sign || typeof sun?.longitude === 'number';
   const hasMoon = !!moon?.formatted || !!moon?.sign || typeof moon?.longitude === 'number';
   const hasRising = !!rising?.formatted || !!rising?.sign || typeof rising?.longitude === 'number';
-  const hasAscendant = !!asc;
   
-  // Count how many of the 3 core placements exist
-  const corePlacementsCount = [hasSun, hasMoon, hasAscendant].filter(Boolean).length;
+  // Count how many of the 3 core placements have usable data
+  const corePlacementsCount = [hasSun, hasMoon, hasRising].filter(Boolean).length;
   
-  // Can render personalized if at least 2 of 3 core placements exist
-  // (we'll render whatever exists, but need at least 2 to be meaningful)
-  const canRenderPersonalized = hasAstrologyInResponse && corePlacementsCount >= 2;
-  
-  // Also acceptable: at least 1 placement (render what exists)
+  // Can render personalized if at least 1 core placement exists
   const hasAnyCorePlacement = corePlacementsCount >= 1;
   
-  // INVARIANT VIOLATION for astrology lens:
-  // - User is onboarded
-  // - Fetch succeeded  
-  // - Astrology object exists in response
-  // - BUT none of sun/moon/ascendant are present
-  // This means the backend returned astrology data but it's empty/malformed
+  // PROMPT 2: Invariant violation ONLY if astrology object exists but NONE of sun/moon/rising have data
+  // Partial null fields in rising are OK if Sun/Moon are present
   const invariantViolation = isOnboardedUser && 
     fetchSucceeded && 
     isAstrologyLens &&
@@ -287,19 +278,22 @@ export default function LensDetail() {
   useEffect(() => {
     if (invariantViolation) {
       console.warn(
-        '[UI INVARIANT VIOLATION] LensDetail: Onboarded user with astrology object but NO core placements (sun/moon/asc).',
+        '[UI INVARIANT VIOLATION] LensDetail: Onboarded user with astrology object but NO usable core placements.',
         {
           userId: user?.id,
           hasChartDetails: !!chartDetails,
           hasAstrology: hasAstrologyInResponse,
           hasSun,
           hasMoon,
-          hasAscendant,
+          hasRising,
           corePlacementsCount,
+          sunData: sun,
+          moonData: moon,
+          risingData: rising,
         }
       );
     }
-  }, [invariantViolation, user?.id, chartDetails, hasAstrologyInResponse, hasSun, hasMoon, hasAscendant, corePlacementsCount]);
+  }, [invariantViolation, user?.id, chartDetails, hasAstrologyInResponse, hasSun, hasMoon, hasRising, corePlacementsCount]);
 
   // Shared retry handler for both error banners
   const handleRetry = () => {
