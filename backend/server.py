@@ -1844,9 +1844,9 @@ async def mirror_chat(request: MirrorChatRequest):
         history.append({"role": "user", "content": request.message})
         history.append({"role": "assistant", "content": response_text})
         
-        # Limit history size
-        if len(history) > 50:
-            chat_sessions[session_id] = history[-50:]
+        # Limit history size to MAX_CHAT_HISTORY messages
+        if len(history) > MAX_CHAT_HISTORY * 2:  # *2 for user+assistant pairs
+            chat_sessions[session_id] = history[-(MAX_CHAT_HISTORY * 2):]
         
         # Generate Memory Update (asynchronously, in parallel with response)
         memory_update = None
