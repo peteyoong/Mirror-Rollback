@@ -485,10 +485,10 @@ async def calculate_chart(request: ChartCalculationRequest):
         # Log debug stamp at INFO level
         logger.info(f"CHART_CALCULATION [request_id={request_id}] debug_stamp={debug_stamp}")
         
-        # Calculate all frameworks
+        # Calculate all frameworks using UTC datetime
         logger.info(f"Calculating astrology chart for user {request.user_id}")
         astrology_chart = get_full_natal_chart(
-            birth_datetime, 
+            birth_datetime_utc, 
             lat, 
             lon, 
             sidereal_settings=sidereal_settings_used,
@@ -497,7 +497,7 @@ async def calculate_chart(request: ChartCalculationRequest):
         
         logger.info(f"Calculating human design for user {request.user_id}")
         human_design = get_human_design_chart(
-            birth_datetime, 
+            birth_datetime_utc, 
             lat, 
             lon,
             sidereal_settings=sidereal_settings_used
