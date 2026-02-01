@@ -99,4 +99,38 @@ export const getLenses = async () => {
   return response.data;
 };
 
+// Chart Details API (for Lenses personalization)
+export interface ChartDetails {
+  computation_version: string;
+  human_design: {
+    type: string | null;
+    authority: string | null;
+    profile: string | null;
+    incarnation_cross: string | null;
+    strategy: string | null;
+    personality_sun: any | null;
+    design_sun: any | null;
+    defined_centers: string[];
+    defined_channels: string[];
+    definition: string | null;
+    design_datetime_utc_iso: string | null;
+  };
+  astrology: {
+    sun: any | null;
+    moon: any | null;
+    rising: any | null;
+    chart_type: string | null;
+    sidereal_settings: any | null;
+  };
+  numerology: {
+    life_path: any | null;
+    expression: any | null;
+  };
+}
+
+export const getChartDetails = async (userId: string): Promise<ChartDetails> => {
+  const response = await api.get(`/charts/${userId}/details`);
+  return response.data;
+};
+
 export default api;
