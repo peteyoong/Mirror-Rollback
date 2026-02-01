@@ -187,7 +187,16 @@ export const useAppStore = create<AppState>((set, get) => ({
       hasCompletedOnboarding: false,
       sessionRestoreError: null,
     });
-    await storage.multiRemove([SESSION_USER_ID_KEY, 'user', 'chart', 'hasCompletedOnboarding']);
+    // Clear user data and all chat session IDs
+    await storage.multiRemove([
+      SESSION_USER_ID_KEY, 
+      'user', 
+      'chart', 
+      'hasCompletedOnboarding',
+      CHAT_SESSION_KEYS.mirror,
+      CHAT_SESSION_KEYS.astrology,
+      CHAT_SESSION_KEYS.human_design,
+    ]);
   },
   
   loadPersistedData: async () => {
