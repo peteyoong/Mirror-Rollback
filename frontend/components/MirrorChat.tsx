@@ -40,7 +40,13 @@ export default function MirrorChat({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  // Initialize session ID with lens prefix for separation
+  const [sessionId, setSessionId] = useState<string | null>(() => {
+    // Generate a new session ID when component mounts
+    // Prefix with lens type to separate conversations
+    const prefix = lens ? `${lens}_` : 'mirror_';
+    return `${prefix}${Date.now()}`;
+  });
   const flatListRef = useRef<FlatList>(null);
 
   // Add initial greeting
