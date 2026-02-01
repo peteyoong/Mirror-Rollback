@@ -9,6 +9,7 @@ interface JournalEntryItemProps {
   created_at: string;
   themes?: string[];
   onReflect?: (content: string) => void;
+  isReflectDisabled?: boolean;
 }
 
 export default function JournalEntryItem({
@@ -16,6 +17,7 @@ export default function JournalEntryItem({
   created_at,
   themes = [],
   onReflect,
+  isReflectDisabled = false,
 }: JournalEntryItemProps) {
   const formattedDate = format(new Date(created_at), 'MMM d, yyyy');
 
@@ -25,11 +27,22 @@ export default function JournalEntryItem({
         <Text style={styles.date}>{formattedDate}</Text>
         {onReflect && (
           <TouchableOpacity 
-            style={styles.reflectButton}
+            style={[
+              styles.reflectButton,
+              isReflectDisabled && styles.reflectButtonDisabled
+            ]}
             onPress={() => onReflect(content)}
+            disabled={isReflectDisabled}
           >
-            <Ionicons name="sparkles-outline" size={14} color={Colors.accent} />
-            <Text style={styles.reflectButtonText}>Reflect with Mirror</Text>
+            <Ionicons 
+              name="sparkles-outline" 
+              size={14} 
+              color={isReflectDisabled ? Colors.textTertiary : Colors.accent} 
+            />
+            <Text style={[
+              styles.reflectButtonText,
+              isReflectDisabled && styles.reflectButtonTextDisabled
+            ]}>Reflect with Mirror</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -75,10 +88,18 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 12,
   },
+  reflectButtonDisabled: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
   reflectButtonText: {
     fontSize: 11,
     fontWeight: '600',
     color: Colors.accent,
+  },
+  reflectButtonTextDisabled: {
+    color: Colors.textTertiary,
   },
   content: {
     fontSize: 15,
