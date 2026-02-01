@@ -119,8 +119,101 @@ export default function LensDetail() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { lens, mode = 'summary' } = params;
+  const { user } = useAppStore();
+  
+  // State for chart details
+  const [chartDetails, setChartDetails] = useState<ChartDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const content = LENS_CONTENT[lens as string];
+  
+  // Fetch chart details on mount
+  useEffect(() => {
+    const fetchChartDetails = async () => {
+      if (!user?.id) return;
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const details = await getChartDetails(user.id);
+        setChartDetails(details);
+      } catch (err: any) {
+        console.error('Failed to fetch chart details:', err);
+        setError(err?.response?.data?.detail || 'Failed to load your chart data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchChartDetails();
+  }, [user?.id]);
+  
+  // Helper to format planet position for display
+  const formatPlanetPosition = (planet: any): string => {
+    if (!planet) return 'Not available';
+    const sign = planet.sign || 'Unknown';
+    const degree = planet.longitude_in_sign != null 
+      ? `${Math.floor(planet.longitude_in_sign)}°` 
+      : '';
+    return degree ? `${sign} ${degree}` : sign;
+  };
+  
+  // Get sidereal system label from chart details
+  const getSiderealSystemLabel = (): string => {
+    const settings = chartDetails?.astrology?.sidereal_settings;
+    if (!settings) return 'True Sidereal';
+    
+    // Use ayanamsa name if available, otherwise show SVP info
+    if (settings.ayanamsa_name) {
+      return settings.ayanamsa_name;
+    }
+    if (settings.svp_degrees != null) {
+      return `True Sidereal (SVP ${settings.svp_degrees}°)`;
+    }
+    return 'True Sidereal';
+  };
+  
+  // Render personalized Astrology snapshot
+  const renderAstrologySnapshot = () => {
+    if (!chartDetails?.astrology) return null;
+    
+    const { sun, moon, rising } = chartDetails.astrology;
+    
+    return (
+      <View style={styles.snapshotCard}>
+        <View style={styles.snapshotHeader}>
+          <Ionicons name="sparkles" size={20} color={Colors.text} />
+          <Text style={styles.snapshotTitle}>Your Sidereal Snapshot</Text>
+        </View>
+        
+        <View style={styles.snapshotGrid}>
+          <View style={styles.snapshotItem}>
+            <Text style={styles.snapshotLabel}>Sun</Text>
+            <Text style={styles.snapshotValue}>{formatPlanetPosition(sun)}</Text>
+          </View>
+          
+          <View style={styles.snapshotItem}>
+            <Text style={styles.snapshotLabel}>Moon</Text>
+            <Text style={styles.snapshotValue}>{formatPlanetPosition(moon)}</Text>
+          </View>
+          
+          <View style={styles.snapshotItem}>
+            <Text style={styles.snapshotLabel}>Ascendant</Text>
+            <Text style={styles.snapshotValue}>{formatPlanetPosition(rising)}</Text>
+          </View>
+        </View>
+        
+        <View style={styles.systemLabel}>
+          <Ionicons name="information-circle-outline" size={14} color={Colors.textTertiary} />
+          <Text style={styles.systemLabelText}>
+            Calculated using {getSiderealSystemLabel()}
+          </Text>
+        </View>
+      </View>
+    );
+  };
   
   if (!content) {
     return (
