@@ -681,4 +681,13 @@ const styles = StyleSheet.create({
   sendButtonDisabled: {
     backgroundColor: Colors.border,
   },
+  // Transparency line
+  transparencyLine: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    marginBottom: 10,
+    opacity: 0.6,
+    fontStyle: 'italic',
+  },
 });
