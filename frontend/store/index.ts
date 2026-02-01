@@ -57,6 +57,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   dailyReflection: null,
   journalEntries: [],
   hasCompletedOnboarding: false,
+  hasSeenInterpretationNotice: false,
   
   setUser: async (user) => {
     set({ user });
@@ -87,6 +88,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
   },
   
+  acknowledgeInterpretationNotice: async () => {
+    set({ hasSeenInterpretationNotice: true });
+    await AsyncStorage.setItem('hasSeenInterpretationNotice', 'true');
+  },
+  
   clearUser: async () => {
     set({
       user: null,
@@ -94,16 +100,18 @@ export const useAppStore = create<AppState>((set, get) => ({
       dailyReflection: null,
       journalEntries: [],
       hasCompletedOnboarding: false,
+      hasSeenInterpretationNotice: false,
     });
-    await AsyncStorage.multiRemove(['user', 'chart', 'hasCompletedOnboarding']);
+    await AsyncStorage.multiRemove(['user', 'chart', 'hasCompletedOnboarding', 'hasSeenInterpretationNotice']);
   },
   
   loadPersistedData: async () => {
     try {
-      const [userStr, chartStr, onboardingStr] = await AsyncStorage.multiGet([
+      const [userStr, chartStr, onboardingStr, interpretationStr] = await AsyncStorage.multiGet([
         'user',
         'chart',
         'hasCompletedOnboarding',
+        'hasSeenInterpretationNotice',
       ]);
       
       if (userStr[1]) {
@@ -114,6 +122,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
       if (onboardingStr[1]) {
         set({ hasCompletedOnboarding: onboardingStr[1] === 'true' });
+      }
+      if (interpretationStr[1]) {
+        set({ hasSeenInterpretationNotice: interpretationStr[1] === 'true' });
       }
     } catch (error) {
       console.error('Error loading persisted data:', error);
