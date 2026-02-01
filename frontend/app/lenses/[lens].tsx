@@ -267,7 +267,37 @@ export default function LensDetail() {
     return null;
   };
 
+  // Get personalized Mirror Moment content for Astrology lens
+  const getPersonalizedMirrorMoment = () => {
+    if (lens !== 'astrology' || !chart?.astrology) {
+      return null;
+    }
+    
+    const astro = chart.astrology;
+    const sunSign = astro.planets?.Sun?.sign;
+    const moonSign = astro.planets?.Moon?.sign;
+    const risingSign = astro.houses?.formatted_cusps?.[0]?.sign;
+    
+    // Get content with fallbacks
+    const theme = sunSign ? SUN_THEMES[sunSign] : FALLBACK_THEME;
+    const watchFor = moonSign ? MOON_WATCHFOR[moonSign] : FALLBACK_WATCHFOR;
+    // Rising falls back to Sun sign, then to neutral fallback
+    const question = risingSign 
+      ? RISING_QUESTIONS[risingSign] 
+      : (sunSign ? RISING_QUESTIONS[sunSign] : FALLBACK_QUESTION);
+    
+    return {
+      theme: theme || FALLBACK_THEME,
+      watchFor: watchFor || FALLBACK_WATCHFOR,
+      question: question || FALLBACK_QUESTION,
+      sunSign,
+      moonSign,
+      risingSign,
+    };
+  };
+
   const profileData = getProfileData();
+  const personalizedMirror = getPersonalizedMirrorMoment();
 
   const renderTabs = () => (
     <View style={styles.tabBar}>
