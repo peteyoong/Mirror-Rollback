@@ -6,8 +6,15 @@ import { getChart, getUser } from '../services/api';
 // Storage key for session persistence
 const SESSION_USER_ID_KEY = 'mirror_last_user_id';
 
+// Chat session keys
+export const CHAT_SESSION_KEYS = {
+  mirror: 'mirror_session_id',
+  astrology: 'astrology_session_id',
+  human_design: 'human_design_session_id',
+} as const;
+
 // Cross-platform storage helper (AsyncStorage + localStorage fallback for web)
-const storage = {
+export const storage = {
   async getItem(key: string): Promise<string | null> {
     try {
       // Try AsyncStorage first
