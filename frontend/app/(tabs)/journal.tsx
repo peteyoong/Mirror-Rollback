@@ -183,7 +183,7 @@ export default function JournalScreen() {
         <MirrorChat
           userId={user.id}
           lens={null}
-          placeholder="Share what's on your mind..."
+          placeholder="Say what's real right now…"
           headerTitle="Mirror"
         />
       </SafeAreaView>
