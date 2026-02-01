@@ -353,6 +353,9 @@ async def get_user(user_id: str):
 @api_router.post("/charts/calculate")
 async def calculate_chart(request: ChartCalculationRequest):
     """Calculate all frameworks for user"""
+    # Generate unique request ID for tracking
+    request_id = str(uuid.uuid4())
+    
     try:
         # Get user
         user = await db.users.find_one({"_id": ObjectId(request.user_id)})
@@ -362,6 +365,10 @@ async def calculate_chart(request: ChartCalculationRequest):
         # Prepare datetime
         birth_date = user["birth_date"]
         birth_time = user.get("birth_time", "12:00")
+        
+        # Store original inputs for debug stamp
+        input_birth_local = birth_date.strftime("%Y-%m-%d")
+        input_timezone_raw = "UTC"  # V1: assuming UTC, should be enhanced with timezone
         
         # Parse and validate birth time
         try:
@@ -398,6 +405,47 @@ async def calculate_chart(request: ChartCalculationRequest):
         lat = location["latitude"]
         lon = location["longitude"]
         
+        # Prepare debug stamp data
+        resolved_birth_utc_iso = birth_datetime.isoformat()
+        parsed_timezone_minutes = 0  # V1: assuming UTC
+        lat_used = lat
+        lon_used = lon
+        
+        # Sidereal settings (from astrology.py)
+        sidereal_settings_used = {
+            "ayanamsa_key": "SIDM_LAHIRI",
+            "svp_degrees": None,  # Not using SVP
+            "reference_year": None,  # Lahiri handles this internally
+            "yearly_increment": None
+        }
+        
+        house_system_used = "Placidus"  # Default from astrology.py
+        
+        # Calculate input hash for debugging
+        input_string = f"{resolved_birth_utc_iso}|{lat_used}|{lon_used}|{sidereal_settings_used}|{house_system_used}"
+        input_hash = hashlib.sha256(input_string.encode()).hexdigest()
+        
+        # Create debug stamp
+        debug_stamp = {
+            "request_id": request_id,
+            "profile_id": request.user_id,
+            "user_id": request.user_id,
+            "input_birth_local": input_birth_local,
+            "input_birth_time": birth_time,
+            "input_timezone_raw": input_timezone_raw,
+            "parsed_timezone_minutes": parsed_timezone_minutes,
+            "resolved_birth_utc_iso": resolved_birth_utc_iso,
+            "lat_used": lat_used,
+            "lon_used": lon_used,
+            "sidereal_settings_used": sidereal_settings_used,
+            "house_system_used": house_system_used,
+            "input_hash": input_hash,
+            "computed_at_iso": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Log debug stamp at INFO level
+        logger.info(f"CHART_CALCULATION [request_id={request_id}] debug_stamp={debug_stamp}")
+        
         # Calculate all frameworks
         logger.info(f"Calculating astrology chart for user {request.user_id}")
         astrology_chart = get_full_natal_chart(birth_datetime, lat, lon)
@@ -418,7 +466,8 @@ async def calculate_chart(request: ChartCalculationRequest):
             "human_design": human_design,
             "numerology": numerology,
             "consciousness_levels": consciousness,
-            "calculated_at": datetime.now(timezone.utc)
+            "calculated_at": datetime.now(timezone.utc),
+            "debug_stamp": debug_stamp  # Store debug stamp in database too
         }
         
         # Upsert chart
@@ -431,7 +480,8 @@ async def calculate_chart(request: ChartCalculationRequest):
         return {
             "success": True,
             "message": "Chart calculated successfully",
-            "data": chart_data
+            "data": chart_data,
+            "debug_stamp": debug_stamp  # Include in API response
         }
     except Exception as e:
         logger.error(f"Calculate chart error: {e}")
