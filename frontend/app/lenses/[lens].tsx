@@ -537,6 +537,46 @@ export default function LensDetail() {
     
     return (
       <>
+        {/* Always show compact snapshot at top of deep dive */}
+        <View style={styles.snapshotCard}>
+          <View style={styles.snapshotHeader}>
+            <Ionicons name="sparkles" size={20} color={Colors.text} />
+            <Text style={styles.snapshotTitle}>Your Sidereal Snapshot</Text>
+          </View>
+          
+          <View style={styles.snapshotRows}>
+            {hasSun && (
+              <View style={styles.snapshotRow}>
+                <View style={styles.snapshotRowIcon}>
+                  <Ionicons name="sunny" size={18} color={Colors.text} />
+                </View>
+                <Text style={styles.snapshotRowLabel}>Sun</Text>
+                <Text style={styles.snapshotRowValue}>{formatPlanetPosition(sun)}</Text>
+              </View>
+            )}
+            
+            {hasMoon && (
+              <View style={styles.snapshotRow}>
+                <View style={styles.snapshotRowIcon}>
+                  <Ionicons name="moon" size={18} color={Colors.text} />
+                </View>
+                <Text style={styles.snapshotRowLabel}>Moon</Text>
+                <Text style={styles.snapshotRowValue}>{formatPlanetPosition(moon)}</Text>
+              </View>
+            )}
+            
+            {hasAscendant && (
+              <View style={styles.snapshotRow}>
+                <View style={styles.snapshotRowIcon}>
+                  <Ionicons name="arrow-up-circle" size={18} color={Colors.text} />
+                </View>
+                <Text style={styles.snapshotRowLabel}>Ascendant</Text>
+                <Text style={styles.snapshotRowValue}>{formatPlanetPosition(asc)}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
         {/* Disclaimer */}
         <View style={styles.disclaimerCard}>
           <Ionicons name="information-circle-outline" size={20} color={Colors.textSecondary} />
@@ -556,7 +596,7 @@ export default function LensDetail() {
                 <View style={styles.planetDetails}>
                   <Text style={styles.planetSign}>{planet.sign || 'Unknown'}</Text>
                   {planet.degree != null && (
-                    <Text style={styles.planetDegree}>{Math.floor(planet.degree)}°</Text>
+                    <Text style={styles.planetDegree}>{formatDegreeMinutes(planet.degree)}</Text>
                   )}
                   {planet.house && (
                     <Text style={styles.planetHouse}>H{planet.house}</Text>
@@ -567,8 +607,8 @@ export default function LensDetail() {
           </View>
         ) : (
           <View style={styles.comingSoonCard}>
-            <Ionicons name="time-outline" size={20} color={Colors.textTertiary} />
-            <Text style={styles.comingSoonText}>Planets data coming soon</Text>
+            <Ionicons name="planets-outline" size={20} color={Colors.textTertiary} />
+            <Text style={styles.comingSoonText}>More depth will appear here as your lenses expand.</Text>
           </View>
         )}
 
@@ -581,14 +621,14 @@ export default function LensDetail() {
             {houses.map((house: any) => (
               <View key={house.house} style={styles.houseRow}>
                 <Text style={styles.houseRowNumber}>House {house.house}</Text>
-                <Text style={styles.houseRowSign}>{house.formatted || `${house.sign} ${Math.floor(house.degree)}°`}</Text>
+                <Text style={styles.houseRowSign}>{house.formatted || `${house.sign} ${formatDegreeMinutes(house.degree)}`}</Text>
               </View>
             ))}
           </View>
         ) : (
           <View style={styles.comingSoonCard}>
-            <Ionicons name="time-outline" size={20} color={Colors.textTertiary} />
-            <Text style={styles.comingSoonText}>Houses data coming soon</Text>
+            <Ionicons name="home-outline" size={20} color={Colors.textTertiary} />
+            <Text style={styles.comingSoonText}>House data coming soon</Text>
           </View>
         )}
 
@@ -598,12 +638,21 @@ export default function LensDetail() {
           <Text style={styles.comingSoonText}>Aspects analysis coming soon</Text>
         </View>
 
+        {/* System metadata */}
         <View style={styles.systemLabel}>
-          <Ionicons name="information-circle-outline" size={14} color={Colors.textTertiary} />
           <Text style={styles.systemLabelText}>
             Calculated using {getSiderealSystemLabel()}
           </Text>
         </View>
+        
+        {/* Debug/System metadata - computation version */}
+        {chartDetails.computation_version && (
+          <View style={styles.systemLabel}>
+            <Text style={styles.systemLabelText}>
+              Engine: {chartDetails.computation_version}
+            </Text>
+          </View>
+        )}
 
         {/* Navigation buttons */}
         <View style={styles.modeNavigation}>
@@ -620,7 +669,7 @@ export default function LensDetail() {
             onPress={() => navigateToMode('snapshot')}
           >
             <Ionicons name="sparkles-outline" size={18} color={Colors.text} />
-            <Text style={styles.modeNavButtonText}>Snapshot</Text>
+            <Text style={styles.modeNavButtonText}>Full Snapshot</Text>
           </TouchableOpacity>
         </View>
       </>
