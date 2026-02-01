@@ -592,14 +592,25 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     
     incarnation_cross = f"Right Angle Cross of {p_sun_gate}/{p_earth_gate}"
     
+    # Format channels for output
+    defined_channels_formatted = [
+        {"gate1": g1, "gate2": g2, "centers": [c1, c2]} 
+        for g1, g2, c1, c2 in defined_channels
+    ]
+    
     return {
         'type': hd_type,
+        'definition': definition,
         'authority': authority,
         'profile': profile,
         'incarnation_cross': incarnation_cross,
         'personality': personality_data,
         'design': design_data,
         'defined_centers': defined_centers,
+        'defined_channels': defined_channels_formatted,
+        'all_gates': list(all_gates),
+        'personality_gates': personality_gates,
+        'design_gates': design_gates,
         'strategy': get_strategy_for_type(hd_type),
         'chart_type': 'True Sidereal Human Design',
         # Design date solver outputs
