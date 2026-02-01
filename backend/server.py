@@ -85,6 +85,7 @@ class UserProfileCreate(BaseModel):
     birth_time: Optional[str] = None  # HH:MM
     city: str
     country: str
+    timezone: str  # "+07:30" or "Asia/Kuala_Lumpur"
 
 
 class UserProfileResponse(BaseModel):
@@ -150,6 +151,13 @@ class ChatResponse(BaseModel):
 
 class ChartCalculationRequest(BaseModel):
     user_id: str
+    sidereal_settings: Optional[Dict] = {
+        "mode": "true_sidereal_user_defined",
+        "svp_degrees": 31.2836,
+        "reference_year": 2000,
+        "yearly_increment": 0.0
+    }
+    house_system: Optional[str] = "Equal"
 
 
 class LocationSearchRequest(BaseModel):
