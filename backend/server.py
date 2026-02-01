@@ -13,6 +13,9 @@ from geopy.geocoders import Nominatim
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 import hashlib
 import uuid
+from typing import Tuple
+import re
+from datetime import timedelta
 
 # Import calculation engines
 from calculations.astrology import get_full_natal_chart, close_ephemeris
