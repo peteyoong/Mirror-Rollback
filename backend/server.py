@@ -92,6 +92,8 @@ class UserProfileCreate(BaseModel):
     city: str
     country: str
     timezone: str  # "+07:30" or "Asia/Kuala_Lumpur"
+    latitude: Optional[float] = None  # Optional: skip geocoding if provided
+    longitude: Optional[float] = None  # Optional: skip geocoding if provided
 
 
 class UserProfileResponse(BaseModel):
