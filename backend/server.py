@@ -1860,11 +1860,11 @@ async def mirror_chat(request: MirrorChatRequest):
                 role = "User" if msg['role'] == 'user' else "Mirror"
                 memory_context_parts.append(f"{role}: {msg['content'][:500]}")
             
-            # Add journal entries if available
+            # Add journal entries if available (LIMITED to MAX_JOURNAL_ENTRIES)
             if request.include_journal:
                 journal_entries = await db.journal.find(
                     {"user_id": request.user_id}
-                ).sort("timestamp", -1).limit(10).to_list(10)
+                ).sort("timestamp", -1).limit(MAX_JOURNAL_ENTRIES).to_list(MAX_JOURNAL_ENTRIES)
                 
                 if journal_entries:
                     memory_context_parts.append("\n--- RECENT JOURNAL ENTRIES ---")
