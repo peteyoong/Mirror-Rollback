@@ -123,7 +123,7 @@ export default function Questionnaire() {
   if (showTransition) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <Animated.View style={[styles.transitionContainer, { opacity: fadeAnim }]}>
           <Text style={styles.transitionText}>Thank you.</Text>
           <Text style={styles.transitionSubtext}>
@@ -139,7 +139,7 @@ export default function Questionnaire() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Progress bar */}
         <View style={styles.progressContainer}>

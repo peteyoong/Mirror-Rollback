@@ -56,7 +56,7 @@ export default function MirrorScreen() {
   if (!user) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <View style={styles.centered}>
           <Text style={styles.errorText}>No user found</Text>
         </View>
@@ -68,7 +68,7 @@ export default function MirrorScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
