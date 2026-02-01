@@ -225,37 +225,61 @@ export default function LensDetail() {
   // =========================================================================
   // UI INVARIANT: Prevent silent degradation for onboarded users
   // =========================================================================
-  // If user is onboarded (has userId) and fetch succeeded but we can't show
-  // personalized content, this is a bug - not a graceful fallback.
+  // For astrology lens: If user is onboarded and fetch succeeded, we MUST 
+  // show personalized content. Static-only fallback is NOT acceptable.
   // =========================================================================
   const isOnboardedUser = !!user?.id;
   const fetchSucceeded = !isLoading && !error;
-  const hasAstrologyInResponse = !!chartDetails?.astrology;
-  const canRenderPersonalized = hasAstrologyInResponse && 
-    (chartDetails?.astrology?.sun || chartDetails?.astrology?.moon);
+  const isAstrologyLens = lens === 'astrology';
   
-  // Invariant: Onboarded user + successful fetch + astrology data exists = MUST show personalized
+  // Astrology-specific checks
+  const hasAstrologyInResponse = !!chartDetails?.astrology;
+  const hasSun = !!chartDetails?.astrology?.sun;
+  const hasMoon = !!chartDetails?.astrology?.moon;
+  const hasAscendant = !!chartDetails?.astrology?.rising;
+  
+  // Count how many of the 3 core placements exist
+  const corePlacementsCount = [hasSun, hasMoon, hasAscendant].filter(Boolean).length;
+  
+  // Can render personalized if at least 2 of 3 core placements exist
+  // (we'll render whatever exists, but need at least 2 to be meaningful)
+  const canRenderPersonalized = hasAstrologyInResponse && corePlacementsCount >= 2;
+  
+  // Also acceptable: at least 1 placement (render what exists)
+  const hasAnyCorePlacement = corePlacementsCount >= 1;
+  
+  // INVARIANT VIOLATION for astrology lens:
+  // - User is onboarded
+  // - Fetch succeeded  
+  // - Astrology object exists in response
+  // - BUT none of sun/moon/ascendant are present
+  // This means the backend returned astrology data but it's empty/malformed
   const invariantViolation = isOnboardedUser && 
     fetchSucceeded && 
+    isAstrologyLens &&
     hasAstrologyInResponse && 
-    !canRenderPersonalized &&
-    lens === 'astrology';
+    !hasAnyCorePlacement;
+  
+  // For rendering: show personalized section if we have ANY core placement
+  const hasAstrologyData = hasAnyCorePlacement;
   
   // Log warning in development when invariant fails
   useEffect(() => {
     if (invariantViolation) {
       console.warn(
-        '[UI INVARIANT VIOLATION] LensDetail: Onboarded user with astrology data but cannot render personalized content.',
+        '[UI INVARIANT VIOLATION] LensDetail: Onboarded user with astrology object but NO core placements (sun/moon/asc).',
         {
           userId: user?.id,
           hasChartDetails: !!chartDetails,
           hasAstrology: hasAstrologyInResponse,
-          hasSun: !!chartDetails?.astrology?.sun,
-          hasMoon: !!chartDetails?.astrology?.moon,
+          hasSun,
+          hasMoon,
+          hasAscendant,
+          corePlacementsCount,
         }
       );
     }
-  }, [invariantViolation, user?.id, chartDetails, hasAstrologyInResponse]);
+  }, [invariantViolation, user?.id, chartDetails, hasAstrologyInResponse, hasSun, hasMoon, hasAscendant, corePlacementsCount]);
 
   // Shared retry handler for both error banners
   const handleRetry = () => {
