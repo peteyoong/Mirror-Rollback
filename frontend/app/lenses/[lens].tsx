@@ -139,6 +139,8 @@ export default function LensDetail() {
       const currentCacheKey = getChartDetailsCacheKey();
       if (cachedChartDetails && cachedChartDetails._userBirthDataHash === currentCacheKey) {
         console.log('[LensDetail] Using cached chartDetails');
+        // [DEBUG] Log full response shape
+        console.log('[DEBUG] chartDetails response shape:', JSON.stringify(cachedChartDetails, null, 2));
         setChartDetails(cachedChartDetails);
         return;
       }
@@ -150,6 +152,8 @@ export default function LensDetail() {
       
       try {
         const details = await getChartDetails(user.id);
+        // [DEBUG] Log full response shape from API
+        console.log('[DEBUG] chartDetails response shape:', JSON.stringify(details, null, 2));
         setChartDetails(details);
         // Cache the fetched details
         cacheChartDetails(details);
