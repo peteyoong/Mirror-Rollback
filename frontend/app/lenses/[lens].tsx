@@ -655,14 +655,15 @@ export default function LensDetail() {
         presentationStyle="pageSheet"
         onRequestClose={() => setLensChatVisible(false)}
       >
-        <SafeAreaView style={styles.modalContainer} edges={['top']}>
+        <SafeAreaView style={styles.modalContainer} edges={['top', 'bottom']}>
           <MirrorChat
             userId={user?.id || ''}
             lens={lens as 'astrology' | 'human_design'}
             placeholder={lens === 'astrology' 
-              ? "Ask about your sidereal chart..." 
-              : "Ask about your Human Design..."}
+              ? "Ask about your sidereal chart…" 
+              : "Ask about your Human Design…"}
             headerTitle={lens === 'astrology' ? 'Astrology Chat' : 'Human Design Chat'}
+            headerSubtitle="Lens-focused reflection"
             onClose={() => setLensChatVisible(false)}
           />
         </SafeAreaView>
