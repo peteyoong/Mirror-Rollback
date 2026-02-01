@@ -220,6 +220,27 @@ export default function LensDetail() {
     }
   }, [invariantViolation, user?.id, chartDetails, hasAstrologyInResponse]);
 
+  // Shared retry handler for both error banners
+  const handleRetry = () => {
+    if (!user?.id) return;
+    
+    setError(null);
+    setChartDetails(null);
+    setIsLoading(true);
+    
+    getChartDetails(user.id)
+      .then((details) => {
+        setChartDetails(details);
+        cacheChartDetails(details);
+        console.log('[LensDetail] Retry successful, data cached');
+      })
+      .catch((err) => {
+        console.error('[LensDetail] Retry failed:', err);
+        setError(err?.response?.data?.detail || 'Failed to load your chart data');
+      })
+      .finally(() => setIsLoading(false));
+  };
+
   // Render error banner for invariant violation
   const renderInvariantErrorBanner = () => (
     <View style={styles.invariantErrorBanner}>
@@ -229,21 +250,7 @@ export default function LensDetail() {
       </Text>
       <TouchableOpacity 
         style={styles.invariantRetryButton}
-        onPress={() => {
-          setError(null);
-          setChartDetails(null);
-          // Re-trigger fetch and cache
-          if (user?.id) {
-            setIsLoading(true);
-            getChartDetails(user.id)
-              .then((details) => {
-                setChartDetails(details);
-                cacheChartDetails(details);
-              })
-              .catch((err) => setError(err?.response?.data?.detail || 'Failed to load'))
-              .finally(() => setIsLoading(false));
-          }
-        }}
+        onPress={handleRetry}
       >
         <Ionicons name="refresh" size={16} color="#D97706" />
       </TouchableOpacity>
