@@ -204,6 +204,60 @@ const FALLBACK_THEME = "Something might be asking for your attention today. You 
 const FALLBACK_WATCHFOR = "Automatic patterns might be running in the background. It may help to notice without needing to change anything yet.";
 const FALLBACK_QUESTION = "What might become clearer if you simply observed without judging what you find?";
 
+// ============================================
+// Human Design Mirror Moment Templates
+// ============================================
+
+// Energy templates keyed by Type - "How your energy may show up"
+const HD_ENERGY_TEMPLATES: { [type: string]: string } = {
+  'Generator': "This configuration may express itself as a consistent, available energy that responds to what life presents. You might notice momentum building when something genuinely engages you.",
+  'Manifesting Generator': "This configuration may express itself as a multi-directional energy that responds quickly and moves between interests. You might notice efficiency when following what feels alive.",
+  'Projector': "This configuration may express itself as a focused, penetrating awareness that sees deeply into systems and others. You might notice clarity when given space to observe before engaging.",
+  'Manifestor': "This configuration may express itself as an initiating energy that moves independently. You might notice flow when there's room to act without waiting for external permission.",
+  'Reflector': "This configuration may express itself as a receptive, sampling awareness that reflects the environment. You might notice shifts as surroundings and company change.",
+};
+
+// Authority templates keyed by Authority - "Decision-making to notice"
+const HD_AUTHORITY_TEMPLATES: { [authority: string]: string } = {
+  'Sacral': "You might notice decisions feel clearer when there's a gut-level response — a pull toward or away from something. It could be worth noticing what generates energy versus what drains it.",
+  'Emotional': "You might notice decisions feel clearer after riding an emotional wave rather than acting in the heat of the moment. It could be worth allowing time before committing.",
+  'Splenic': "You might notice decisions feel clearer as quick, in-the-moment intuitions — a subtle knowing that doesn't repeat. It could be worth trusting first instincts.",
+  'Ego': "You might notice decisions feel clearer when there's willpower and personal investment behind them. It could be worth asking what you genuinely want to commit to.",
+  'Self-Projected': "You might notice decisions feel clearer when you hear yourself talk them through with others. It could be worth speaking your process aloud.",
+  'Mental': "You might notice decisions feel clearer when discussed in different environments with trusted others. It could be worth changing context before deciding.",
+  'Environment': "You might notice decisions feel clearer when discussed in different environments with trusted others. It could be worth changing context before deciding.",
+  'Lunar': "You might notice decisions feel clearer after a full cycle of reflection, allowing different perspectives to arise. It could be worth giving major choices time.",
+  'None': "You might notice decisions feel clearer when you allow time and space rather than rushing. It could be worth pausing before committing.",
+  'Sacral Authority': "You might notice decisions feel clearer when there's a gut-level response — a pull toward or away from something. It could be worth noticing what generates energy versus what drains it.",
+  'Emotional Authority': "You might notice decisions feel clearer after riding an emotional wave rather than acting in the heat of the moment. It could be worth allowing time before committing.",
+  'Splenic Authority': "You might notice decisions feel clearer as quick, in-the-moment intuitions — a subtle knowing that doesn't repeat. It could be worth trusting first instincts.",
+  'Ego Authority': "You might notice decisions feel clearer when there's willpower and personal investment behind them. It could be worth asking what you genuinely want to commit to.",
+  'Self-Projected Authority': "You might notice decisions feel clearer when you hear yourself talk them through with others. It could be worth speaking your process aloud.",
+  'To Respond': "You might notice decisions feel clearer when there's a gut-level response — a pull toward or away from something. It could be worth noticing what generates energy versus what drains it.",
+  'To Respond and Inform': "You might notice decisions feel clearer when there's a gut-level response — a pull toward or away from something. It could be worth noticing what generates energy versus what drains it.",
+};
+
+// Profile questions keyed by Profile - "A gentle question"
+const HD_PROFILE_QUESTIONS: { [profile: string]: string } = {
+  '1/3': "What might you discover if you gave yourself permission to investigate deeply and learn through direct experience?",
+  '1/4': "What might shift if you allowed your natural need to understand things thoroughly before sharing with those close to you?",
+  '2/4': "What might emerge if you trusted your natural talents to surface when called upon by those who know you?",
+  '2/5': "What might change if you allowed others to see your gifts without needing to prove them first?",
+  '3/5': "What might you learn if you saw each experiment — successful or not — as valuable information rather than failure?",
+  '3/6': "What might become possible if you honored both your need to experiment now and your growing perspective over time?",
+  '4/1': "What might deepen if you allowed your close relationships to be the foundation from which you explore new understanding?",
+  '4/6': "What might unfold if you trusted your network to support the wisdom you're developing through observation?",
+  '5/1': "What might happen if you focused less on meeting expectations and more on building genuine expertise?",
+  '5/2': "What might arise if you allowed your natural abilities to speak for themselves rather than performing for others?",
+  '6/2': "What might you notice if you gave yourself permission to observe life from a distance before engaging?",
+  '6/3': "What might become clear if you trusted that your varied experiences are building toward something meaningful?",
+};
+
+// Human Design fallbacks
+const HD_FALLBACK_ENERGY = "This configuration may express itself in ways that become clearer through observation over time. You might notice patterns in how your energy naturally moves.";
+const HD_FALLBACK_AUTHORITY = "You might notice decisions feel clearer when you allow your natural process to unfold rather than forcing quick conclusions.";
+const HD_FALLBACK_QUESTION = "What might you notice if you simply observed how you naturally move through decisions without judgment?";
+
 export default function LensDetail() {
   const router = useRouter();
   const params = useLocalSearchParams();
