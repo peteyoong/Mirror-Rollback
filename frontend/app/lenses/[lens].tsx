@@ -642,8 +642,6 @@ export default function LensDetail() {
 
   // Check if user needs to complete onboarding (no user or no chart)
   const showOnboardingCTA = !user?.id || (error && error.includes('not found'));
-  const isAstrologyLens = lens === 'astrology';
-  const hasAstrologyData = chartDetails?.astrology?.sun || chartDetails?.astrology?.moon;
 
   return (
     <SafeAreaView style={styles.container}>
