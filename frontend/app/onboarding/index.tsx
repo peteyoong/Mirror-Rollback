@@ -51,8 +51,18 @@ export default function Onboarding() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Track if we just selected a location (to prevent re-search)
+  const [justSelected, setJustSelected] = useState(false);
+
   const handleSearchLocation = async (query: string) => {
     setLocationQuery(query);
+    
+    // If we just selected a location, don't search again
+    if (justSelected) {
+      setJustSelected(false);
+      return;
+    }
+    
     setSelectedLocation(null);
     setError('');
 
@@ -67,7 +77,10 @@ export default function Onboarding() {
       setLocations(results || []);
     } catch (err: any) {
       console.error('Location search error:', err);
-      setError('Unable to search locations. Please try again.');
+      // Don't show error if we have no query
+      if (query.length >= 3) {
+        setError('Unable to search locations. Please try again.');
+      }
       setLocations([]);
     } finally {
       setIsSearching(false);
@@ -75,9 +88,11 @@ export default function Onboarding() {
   };
 
   const handleSelectLocation = (location: Location) => {
+    setJustSelected(true); // Prevent re-search
     setSelectedLocation(location);
     setLocationQuery(`${location.city}, ${location.country}`);
     setLocations([]);
+    setError(''); // Clear any previous errors
   };
 
   // Convert 12-hour to 24-hour format
