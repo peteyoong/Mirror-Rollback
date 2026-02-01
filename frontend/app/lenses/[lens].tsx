@@ -172,6 +172,68 @@ export default function LensDetail() {
   const navigateToMode = (targetMode: string) => {
     router.push(`/lenses/${lens}?mode=${targetMode}` as any);
   };
+
+  // =========================================================================
+  // UI INVARIANT: Prevent silent degradation for onboarded users
+  // =========================================================================
+  // If user is onboarded (has userId) and fetch succeeded but we can't show
+  // personalized content, this is a bug - not a graceful fallback.
+  // =========================================================================
+  const isOnboardedUser = !!user?.id;
+  const fetchSucceeded = !isLoading && !error;
+  const hasAstrologyInResponse = !!chartDetails?.astrology;
+  const canRenderPersonalized = hasAstrologyInResponse && 
+    (chartDetails?.astrology?.sun || chartDetails?.astrology?.moon);
+  
+  // Invariant: Onboarded user + successful fetch + astrology data exists = MUST show personalized
+  const invariantViolation = isOnboardedUser && 
+    fetchSucceeded && 
+    hasAstrologyInResponse && 
+    !canRenderPersonalized &&
+    lens === 'astrology';
+  
+  // Log warning in development when invariant fails
+  useEffect(() => {
+    if (invariantViolation) {
+      console.warn(
+        '[UI INVARIANT VIOLATION] LensDetail: Onboarded user with astrology data but cannot render personalized content.',
+        {
+          userId: user?.id,
+          hasChartDetails: !!chartDetails,
+          hasAstrology: hasAstrologyInResponse,
+          hasSun: !!chartDetails?.astrology?.sun,
+          hasMoon: !!chartDetails?.astrology?.moon,
+        }
+      );
+    }
+  }, [invariantViolation, user?.id, chartDetails, hasAstrologyInResponse]);
+
+  // Render error banner for invariant violation
+  const renderInvariantErrorBanner = () => (
+    <View style={styles.invariantErrorBanner}>
+      <Ionicons name="warning-outline" size={18} color="#D97706" />
+      <Text style={styles.invariantErrorText}>
+        We couldn't load your snapshot. Try again.
+      </Text>
+      <TouchableOpacity 
+        style={styles.invariantRetryButton}
+        onPress={() => {
+          setError(null);
+          setChartDetails(null);
+          // Re-trigger fetch
+          if (user?.id) {
+            setIsLoading(true);
+            getChartDetails(user.id)
+              .then(setChartDetails)
+              .catch((err) => setError(err?.response?.data?.detail || 'Failed to load'))
+              .finally(() => setIsLoading(false));
+          }
+        }}
+      >
+        <Ionicons name="refresh" size={16} color="#D97706" />
+      </TouchableOpacity>
+    </View>
+  );
   
   // Render personalized Astrology snapshot (compact version for summary)
   const renderAstrologySnapshotCompact = () => {
