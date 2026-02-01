@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,27 @@ import MirrorReflectionModal from '../../components/MirrorReflectionModal';
 import { createJournalEntry, getJournalEntries } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
 
+// Interface for cached reflections
+interface CachedReflection {
+  entryId: string;
+  journalText: string;
+  textHash: string;
+}
+
+// Simple hash function for text comparison
+function hashText(text: string): string {
+  // Normalize: trim, lowercase, remove extra whitespace
+  const normalized = text.trim().toLowerCase().replace(/\s+/g, ' ');
+  // Simple hash based on length and character codes
+  let hash = 0;
+  for (let i = 0; i < normalized.length; i++) {
+    const char = normalized.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash.toString();
+}
+
 export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
   const [newEntry, setNewEntry] = useState('');
@@ -32,6 +53,10 @@ export default function JournalScreen() {
   // Mirror Reflection Modal state
   const [reflectionModalVisible, setReflectionModalVisible] = useState(false);
   const [selectedJournalText, setSelectedJournalText] = useState('');
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  
+  // Cache of reflections per entry (keyed by entry ID)
+  const [reflectionCache, setReflectionCache] = useState<Map<string, CachedReflection>>(new Map());
 
   useEffect(() => {
     loadEntries();
@@ -76,19 +101,44 @@ export default function JournalScreen() {
     Keyboard.dismiss();
   };
 
-  // Handle "Reflect with Mirror" tap
-  const handleReflect = (content: string) => {
-    setSelectedJournalText(content);
+  // Handle "Reflect with Mirror" tap for an existing entry
+  const handleReflect = useCallback((entryId: string, content: string) => {
+    // Check if we have a cached reflection for this entry
+    const cached = reflectionCache.get(entryId);
+    const currentHash = hashText(content);
+    
+    if (cached && cached.textHash === currentHash) {
+      // Use cached reflection - text hasn't changed meaningfully
+      setSelectedJournalText(cached.journalText);
+    } else {
+      // New reflection or text changed - update cache
+      const newCache = new Map(reflectionCache);
+      newCache.set(entryId, {
+        entryId,
+        journalText: content,
+        textHash: currentHash,
+      });
+      setReflectionCache(newCache);
+      setSelectedJournalText(content);
+    }
+    
+    setSelectedEntryId(entryId);
     setReflectionModalVisible(true);
-  };
+  }, [reflectionCache]);
 
-  // Handle reflect on current input (before submitting)
-  const handleReflectCurrentEntry = () => {
+  // Handle reflect on current input (before submitting) - always regenerates since not saved
+  const handleReflectCurrentEntry = useCallback(() => {
     if (newEntry.trim()) {
+      setSelectedEntryId(null); // No entry ID for unsaved text
       setSelectedJournalText(newEntry.trim());
       setReflectionModalVisible(true);
     }
-  };
+  }, [newEntry]);
+
+  // Close modal handler
+  const handleCloseModal = useCallback(() => {
+    setReflectionModalVisible(false);
+  }, []);
 
   if (!user) {
     return (
@@ -164,11 +214,18 @@ export default function JournalScreen() {
               {/* Reflect with Mirror button for current entry */}
               {newEntry.trim().length > 20 && (
                 <TouchableOpacity 
-                  style={styles.reflectCurrentButton}
+                  style={[
+                    styles.reflectCurrentButton,
+                    reflectionModalVisible && styles.reflectButtonDisabled
+                  ]}
                   onPress={handleReflectCurrentEntry}
+                  disabled={reflectionModalVisible}
                 >
-                  <Ionicons name="sparkles-outline" size={16} color={Colors.accent} />
-                  <Text style={styles.reflectCurrentText}>Reflect with Mirror</Text>
+                  <Ionicons name="sparkles-outline" size={16} color={reflectionModalVisible ? Colors.textTertiary : Colors.accent} />
+                  <Text style={[
+                    styles.reflectCurrentText,
+                    reflectionModalVisible && styles.reflectTextDisabled
+                  ]}>Reflect with Mirror</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -201,7 +258,8 @@ export default function JournalScreen() {
                     content={item.content}
                     created_at={item.created_at}
                     themes={item.themes}
-                    onReflect={handleReflect}
+                    onReflect={(content) => handleReflect(item.id, content)}
+                    isReflectDisabled={reflectionModalVisible}
                   />
                 )}
                 contentContainerStyle={styles.listContent}
@@ -216,7 +274,7 @@ export default function JournalScreen() {
       {/* Mirror Reflection Modal */}
       <MirrorReflectionModal
         visible={reflectionModalVisible}
-        onClose={() => setReflectionModalVisible(false)}
+        onClose={handleCloseModal}
         journalText={selectedJournalText}
         chart={chart}
       />
@@ -309,10 +367,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.accent + '30',
   },
+  reflectButtonDisabled: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+  },
   reflectCurrentText: {
     fontSize: 13,
     fontWeight: '600',
     color: Colors.accent,
+  },
+  reflectTextDisabled: {
+    color: Colors.textTertiary,
   },
   errorContainer: {
     backgroundColor: Colors.error + '20',
