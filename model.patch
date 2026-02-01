@@ -1,128 +1,214 @@
-diff --git a/frontend/services/api.ts b/frontend/services/api.ts
-index 90770b7..09c033b 100644
---- a/frontend/services/api.ts
-+++ b/frontend/services/api.ts
-@@ -65,6 +65,19 @@ export const getJournalEntries = async (userId: string) => {
-   return response.data;
- };
+diff --git a/backend/server.py b/backend/server.py
+index 1b83733..23dd3c3 100644
+--- a/backend/server.py
++++ b/backend/server.py
+@@ -456,6 +456,76 @@ class ChartCalculationRequest(BaseModel):
+     house_system: Optional[str] = "Equal"
  
-+export const integrateJournalEntry = async (
-+  userId: string, 
-+  entryId: string, 
-+  question?: string
-+) => {
-+  const response = await api.post('/journal/integrate', {
-+    user_id: userId,
-+    entry_id: entryId,
-+    question
-+  });
-+  return response.data;
-+};
+ 
++# ============================================
++# Rate Limiting & Cost Control
++# ============================================
 +
- // Reflection APIs
- export const getDailyReflection = async (userId: string) => {
-   const response = await api.post('/reflections/daily', { user_id: userId });
++# Rate limit configuration
++RATE_LIMITS = {
++    "mirror": {"max_requests": 30, "window_seconds": 3600},  # 30 per hour for generalist
++    "lens": {"max_requests": 20, "window_seconds": 3600},     # 20 per hour for all lens chats combined
++}
++
++# Token limits
++MAX_RESPONSE_TOKENS = 800
++MAX_CHAT_HISTORY = 10
++MAX_JOURNAL_ENTRIES = 5
++
++# In-memory rate limiter storage: {user_id: {"mirror": [timestamps], "lens": [timestamps]}}
++rate_limit_store: Dict[str, Dict[str, List[float]]] = {}
++
++# Fallback response for failures
++FALLBACK_RESPONSE = "Let's slow this down for a moment. Try again shortly."
++
++
++def check_rate_limit(user_id: str, is_lens: bool) -> bool:
++    """
++    Check if user is within rate limits.
++    Returns True if allowed, False if rate limited.
++    """
++    now = time.time()
++    limit_type = "lens" if is_lens else "mirror"
++    config = RATE_LIMITS[limit_type]
++    
++    # Initialize user storage if needed
++    if user_id not in rate_limit_store:
++        rate_limit_store[user_id] = {"mirror": [], "lens": []}
++    
++    # Clean old timestamps outside the window
++    cutoff = now - config["window_seconds"]
++    rate_limit_store[user_id][limit_type] = [
++        ts for ts in rate_limit_store[user_id][limit_type] if ts > cutoff
++    ]
++    
++    # Check if under limit
++    if len(rate_limit_store[user_id][limit_type]) >= config["max_requests"]:
++        return False
++    
++    # Add current request timestamp
++    rate_limit_store[user_id][limit_type].append(now)
++    return True
++
++
++def get_rate_limit_remaining(user_id: str, is_lens: bool) -> int:
++    """Get remaining requests for user."""
++    limit_type = "lens" if is_lens else "mirror"
++    config = RATE_LIMITS[limit_type]
++    
++    if user_id not in rate_limit_store:
++        return config["max_requests"]
++    
++    now = time.time()
++    cutoff = now - config["window_seconds"]
++    active_requests = len([
++        ts for ts in rate_limit_store[user_id].get(limit_type, []) if ts > cutoff
++    ])
++    
++    return max(0, config["max_requests"] - active_requests)
++
++
++import time
++
++
+ class LocationSearchRequest(BaseModel):
+     query: str
+ 
 diff --git a/model.patch b/model.patch
-index 2cc43c6..e69de29 100644
+index 1a8cffd..e69de29 100644
 --- a/model.patch
 +++ b/model.patch
-@@ -1,99 +0,0 @@
--diff --git a/frontend/app/onboarding/index.tsx b/frontend/app/onboarding/index.tsx
--index 6ad85b3..90bc5ea 100644
----- a/frontend/app/onboarding/index.tsx
--+++ b/frontend/app/onboarding/index.tsx
--@@ -500,6 +500,63 @@ const styles = StyleSheet.create({
--     color: Colors.textTertiary,
--     marginTop: 6,
--   },
--+  // Date row styles
--+  dateRow: {
--+    flexDirection: 'row',
--+    gap: 12,
--+  },
--+  dateInputWrapper: {
--+    flex: 1,
--+  },
--+  yearInputWrapper: {
--+    flex: 1.5,
--+  },
--+  dateLabel: {
--+    fontSize: 11,
--+    color: Colors.textTertiary,
--+    marginBottom: 4,
--+    textTransform: 'uppercase',
--+    letterSpacing: 0.5,
--+  },
--+  dateInput: {
--+    backgroundColor: Colors.surface,
--+    borderRadius: 12,
--+    padding: 16,
--+    fontSize: 18,
--+    fontWeight: '500',
--+    color: Colors.text,
--+    borderWidth: 1,
--+    borderColor: Colors.border,
--+    minHeight: 52,
--+    textAlign: 'center',
--+  },
--+  // Time row styles
--+  timeRow: {
--+    flexDirection: 'row',
--+    alignItems: 'flex-end',
--+    gap: 8,
--+  },
--+  timeInputWrapper: {
--+    flex: 1,
--+  },
--+  timeInput: {
--+    backgroundColor: Colors.surface,
--+    borderRadius: 12,
--+    padding: 16,
--+    fontSize: 18,
--+    fontWeight: '500',
--+    color: Colors.text,
--+    borderWidth: 1,
--+    borderColor: Colors.border,
--+    minHeight: 52,
--+    textAlign: 'center',
--+  },
--+  timeSeparator: {
--+    fontSize: 24,
--+    fontWeight: '600',
--+    color: Colors.text,
--+    marginBottom: 14,
--+  },
--   searchLoader: {
--     marginTop: 12,
--   },
+@@ -1,128 +0,0 @@
+-diff --git a/frontend/services/api.ts b/frontend/services/api.ts
+-index 90770b7..09c033b 100644
+---- a/frontend/services/api.ts
+-+++ b/frontend/services/api.ts
+-@@ -65,6 +65,19 @@ export const getJournalEntries = async (userId: string) => {
+-   return response.data;
+- };
+- 
+-+export const integrateJournalEntry = async (
+-+  userId: string, 
+-+  entryId: string, 
+-+  question?: string
+-+) => {
+-+  const response = await api.post('/journal/integrate', {
+-+    user_id: userId,
+-+    entry_id: entryId,
+-+    question
+-+  });
+-+  return response.data;
+-+};
+-+
+- // Reflection APIs
+- export const getDailyReflection = async (userId: string) => {
+-   const response = await api.post('/reflections/daily', { user_id: userId });
 -diff --git a/model.patch b/model.patch
--index 03661c1..e69de29 100644
+-index 2cc43c6..e69de29 100644
 ---- a/model.patch
 -+++ b/model.patch
--@@ -1,26 +0,0 @@
---diff --git a/backend/server.py b/backend/server.py
---index 10968b5..03b0d23 100644
------ a/backend/server.py
---+++ b/backend/server.py
---@@ -85,6 +85,7 @@ class UserProfileCreate(BaseModel):
---     birth_time: Optional[str] = None  # HH:MM
---     city: str
---     country: str
---+    timezone: str  # "+07:30" or "Asia/Kuala_Lumpur"
--- 
--- 
--- class UserProfileResponse(BaseModel):
---@@ -150,6 +151,13 @@ class ChatResponse(BaseModel):
--- 
--- class ChartCalculationRequest(BaseModel):
---     user_id: str
---+    sidereal_settings: Optional[Dict] = {
---+        "mode": "true_sidereal_user_defined",
---+        "svp_degrees": 31.2836,
---+        "reference_year": 2000,
---+        "yearly_increment": 0.0
---+    }
---+    house_system: Optional[str] = "Equal"
--- 
--- 
--- class LocationSearchRequest(BaseModel):
+-@@ -1,99 +0,0 @@
+--diff --git a/frontend/app/onboarding/index.tsx b/frontend/app/onboarding/index.tsx
+--index 6ad85b3..90bc5ea 100644
+----- a/frontend/app/onboarding/index.tsx
+--+++ b/frontend/app/onboarding/index.tsx
+--@@ -500,6 +500,63 @@ const styles = StyleSheet.create({
+--     color: Colors.textTertiary,
+--     marginTop: 6,
+--   },
+--+  // Date row styles
+--+  dateRow: {
+--+    flexDirection: 'row',
+--+    gap: 12,
+--+  },
+--+  dateInputWrapper: {
+--+    flex: 1,
+--+  },
+--+  yearInputWrapper: {
+--+    flex: 1.5,
+--+  },
+--+  dateLabel: {
+--+    fontSize: 11,
+--+    color: Colors.textTertiary,
+--+    marginBottom: 4,
+--+    textTransform: 'uppercase',
+--+    letterSpacing: 0.5,
+--+  },
+--+  dateInput: {
+--+    backgroundColor: Colors.surface,
+--+    borderRadius: 12,
+--+    padding: 16,
+--+    fontSize: 18,
+--+    fontWeight: '500',
+--+    color: Colors.text,
+--+    borderWidth: 1,
+--+    borderColor: Colors.border,
+--+    minHeight: 52,
+--+    textAlign: 'center',
+--+  },
+--+  // Time row styles
+--+  timeRow: {
+--+    flexDirection: 'row',
+--+    alignItems: 'flex-end',
+--+    gap: 8,
+--+  },
+--+  timeInputWrapper: {
+--+    flex: 1,
+--+  },
+--+  timeInput: {
+--+    backgroundColor: Colors.surface,
+--+    borderRadius: 12,
+--+    padding: 16,
+--+    fontSize: 18,
+--+    fontWeight: '500',
+--+    color: Colors.text,
+--+    borderWidth: 1,
+--+    borderColor: Colors.border,
+--+    minHeight: 52,
+--+    textAlign: 'center',
+--+  },
+--+  timeSeparator: {
+--+    fontSize: 24,
+--+    fontWeight: '600',
+--+    color: Colors.text,
+--+    marginBottom: 14,
+--+  },
+--   searchLoader: {
+--     marginTop: 12,
+--   },
+--diff --git a/model.patch b/model.patch
+--index 03661c1..e69de29 100644
+----- a/model.patch
+--+++ b/model.patch
+--@@ -1,26 +0,0 @@
+---diff --git a/backend/server.py b/backend/server.py
+---index 10968b5..03b0d23 100644
+------ a/backend/server.py
+---+++ b/backend/server.py
+---@@ -85,6 +85,7 @@ class UserProfileCreate(BaseModel):
+---     birth_time: Optional[str] = None  # HH:MM
+---     city: str
+---     country: str
+---+    timezone: str  # "+07:30" or "Asia/Kuala_Lumpur"
+--- 
+--- 
+--- class UserProfileResponse(BaseModel):
+---@@ -150,6 +151,13 @@ class ChatResponse(BaseModel):
+--- 
+--- class ChartCalculationRequest(BaseModel):
+---     user_id: str
+---+    sidereal_settings: Optional[Dict] = {
+---+        "mode": "true_sidereal_user_defined",
+---+        "svp_degrees": 31.2836,
+---+        "reference_year": 2000,
+---+        "yearly_increment": 0.0
+---+    }
+---+    house_system: Optional[str] = "Equal"
+--- 
+--- 
+--- class LocationSearchRequest(BaseModel):
