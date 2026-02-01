@@ -205,7 +205,7 @@ export default function MirrorChat({
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>{headerTitle}</Text>
-          <Text style={styles.headerSubtitle}>A mirror, not a verdict.</Text>
+          <Text style={styles.headerSubtitle}>{headerSubtitle}</Text>
         </View>
         {lens && (
           <View style={styles.lensTag}>
