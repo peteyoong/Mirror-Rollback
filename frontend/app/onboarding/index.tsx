@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -51,8 +51,8 @@ export default function Onboarding() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Track if we just selected a location (to prevent re-search)
-  const [justSelected, setJustSelected] = useState(false);
+  // Use ref to track if we just selected a location (synchronous, not batched)
+  const justSelectedRef = useRef(false);
 
   const handleSearchLocation = async (query: string) => {
     setLocationQuery(query);
