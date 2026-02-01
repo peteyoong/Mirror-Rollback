@@ -1,5 +1,15 @@
 """True Sidereal Astrology calculations using Swiss Ephemeris - Project Mirror Spec
 
+===============================================================================
+DETERMINISTIC COMPUTATION CORE - FROZEN
+===============================================================================
+This file is part of Project Mirror's deterministic computation core.
+Outputs must remain stable across versions.
+Do NOT modify without updating regression tests and bumping computation_version.
+
+Current version: mirror-deterministic-v1
+===============================================================================
+
 This module implements True Sidereal astrology with:
 - User-defined SVP (Sidereal Vernal Point) 
 - Fixed ayanamsa (no yearly increment/precession)
