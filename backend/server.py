@@ -2042,6 +2042,217 @@ async def get_user_timeline(user_id: str, days: int = 7):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ============================================
+# Mirror Home Reflection - "Quiet Recognition"
+# ============================================
+
+# System prompt for generating the emotional keystone reflection
+MIRROR_HOME_PROMPT = """You are Mirror.
+
+Mirror is not a coach, teacher, guide, or advisor.
+Mirror is a reflective surface that helps the user recognize themselves more clearly.
+
+Your role is to create a moment of recognition — not instruction, not prediction, not insight delivery.
+
+This response appears on the Mirror home screen.
+This may be the user's first meaningful encounter with the app.
+
+Your goal: Make the user feel quietly seen.
+
+Tone:
+- Calm
+- Grounded
+- Precise
+- Human
+- Slightly poetic but never abstract
+- No spiritual jargon
+- No psychological labels
+
+ABSOLUTE CONSTRAINTS:
+- Do NOT give advice
+- Do NOT tell the user what to do
+- Do NOT predict the future
+- Do NOT say "you should", "you need", or "you will"
+- Do NOT explain astrology, Human Design, or numerology
+- Do NOT mention planets, charts, types, authorities, or systems by name
+- Do NOT use the words: lesson, purpose, destiny, meant to, here to
+
+LANGUAGE RULES:
+- Use present-tense descriptive language
+- Use "you" sparingly and gently
+- Never define the user's identity ("you are…")
+- Avoid certainty; favor noticing and sensing
+- Everything must feel observational, not interpretive
+
+LENGTH: 2-4 sentences. No more.
+
+USER CONTEXT (synthesize this WITHOUT naming any system):
+{context}
+
+Generate a quiet, grounded reflection that makes this specific person feel recognized.
+"""
+
+
+class MirrorHomeResponse(BaseModel):
+    reflection: str
+    generated_at: str
+    is_first_visit: bool = False
+
+
+@api_router.get("/mirror/home/{user_id}", response_model=MirrorHomeResponse)
+async def get_mirror_home_reflection(user_id: str):
+    """
+    Generate the Mirror home screen reflection.
+    Creates a moment of quiet recognition using all lenses without naming them.
+    """
+    try:
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        # Get user and chart data
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        chart = await db.charts.find_one({"user_id": user_id})
+        
+        # Check if first visit (no timeline events yet)
+        timeline_count = await db.user_timeline.count_documents({"user_id": user_id})
+        is_first_visit = timeline_count == 0
+        
+        # Build context from all lenses (without naming them)
+        context_parts = []
+        
+        user_name = user.get('name', 'this person')
+        context_parts.append(f"Name: {user_name}")
+        
+        if chart and chart.get('chart_data'):
+            chart_data = chart['chart_data']
+            
+            # Astrology context (describe qualities, not signs)
+            if 'astrology' in chart_data:
+                astro = chart_data['astrology']
+                sun_sign = astro.get('sun_sign', '')
+                moon_sign = astro.get('moon_sign', '')
+                rising_sign = astro.get('rising_sign', '')
+                
+                # Map signs to qualities (internal, not shown to user)
+                sign_qualities = {
+                    'Aries': 'initiating energy, directness, courage',
+                    'Taurus': 'steadiness, sensory awareness, patience',
+                    'Gemini': 'curiosity, adaptability, mental agility',
+                    'Cancer': 'emotional depth, nurturing instinct, sensitivity',
+                    'Leo': 'creative expression, warmth, presence',
+                    'Virgo': 'attention to detail, service orientation, discernment',
+                    'Libra': 'relational awareness, harmony-seeking, aesthetic sense',
+                    'Scorpio': 'intensity, depth-seeking, transformative capacity',
+                    'Sagittarius': 'expansiveness, truth-seeking, optimism',
+                    'Capricorn': 'structure, ambition, long-term thinking',
+                    'Aquarius': 'independence, humanitarian instinct, unconventionality',
+                    'Pisces': 'permeability, imagination, compassion'
+                }
+                
+                if sun_sign:
+                    context_parts.append(f"Core energy: {sign_qualities.get(sun_sign, 'grounded presence')}")
+                if moon_sign:
+                    context_parts.append(f"Emotional texture: {sign_qualities.get(moon_sign, 'inner sensitivity')}")
+                if rising_sign:
+                    context_parts.append(f"How they meet the world: {sign_qualities.get(rising_sign, 'natural approach')}")
+            
+            # Human Design context (describe essence, not types)
+            if 'human_design' in chart_data:
+                hd = chart_data['human_design']
+                hd_type = hd.get('type', '')
+                authority = hd.get('authority', '')
+                profile = hd.get('profile', '')
+                
+                type_qualities = {
+                    'Generator': 'responsive energy, sustained capacity, satisfaction-seeking',
+                    'Manifesting Generator': 'multi-passionate energy, efficiency, responsive action',
+                    'Projector': 'perceptive awareness, guiding capacity, recognition-sensitive',
+                    'Manifestor': 'initiating force, impact-making, independence',
+                    'Reflector': 'reflective awareness, environmental sensitivity, lunar rhythm'
+                }
+                
+                authority_qualities = {
+                    'Sacral': 'gut-level knowing, in-the-moment response',
+                    'Emotional': 'emotional wave, clarity over time',
+                    'Splenic': 'instinctive knowing, survival intelligence',
+                    'Ego': 'willpower, commitment-based clarity',
+                    'Self-Projected': 'identity-based clarity, hearing oneself speak',
+                    'Mental': 'environmental processing, sounding board needed',
+                    'Lunar': 'month-long clarity cycle, patience required'
+                }
+                
+                if hd_type:
+                    context_parts.append(f"Energy pattern: {type_qualities.get(hd_type, 'unique rhythm')}")
+                if authority:
+                    context_parts.append(f"Decision-making texture: {authority_qualities.get(authority, 'inner knowing')}")
+            
+            # Numerology context (describe themes, not numbers)
+            if 'numerology' in chart_data:
+                num = chart_data['numerology']
+                life_path = num.get('life_path', {}).get('number', 0)
+                
+                life_path_qualities = {
+                    1: 'pioneering independence, self-direction',
+                    2: 'partnership sensitivity, diplomatic nature',
+                    3: 'creative expression, joy-seeking',
+                    4: 'foundational building, practical mastery',
+                    5: 'freedom-seeking, change-embracing',
+                    6: 'nurturing responsibility, harmony-creating',
+                    7: 'inner searching, analytical depth',
+                    8: 'material mastery, power dynamics awareness',
+                    9: 'humanitarian breadth, completion themes',
+                    11: 'intuitive sensitivity, inspirational capacity',
+                    22: 'master building, large-scale vision',
+                    33: 'master teaching, compassionate service'
+                }
+                
+                if life_path:
+                    context_parts.append(f"Life theme: {life_path_qualities.get(life_path, 'unique path')}")
+        
+        # Build the prompt
+        context = "\n".join(context_parts)
+        system_prompt = MIRROR_HOME_PROMPT.format(context=context)
+        
+        # Generate reflection
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"mirror_home_{user_id}_{datetime.now().strftime('%Y%m%d')}",
+            system_message=system_prompt
+        )
+        chat.with_model("openai", "gpt-5.2")
+        
+        if is_first_visit:
+            prompt_text = "Generate a quiet, grounded reflection for someone arriving here for the first time."
+        else:
+            prompt_text = "Generate a quiet, grounded reflection for someone returning."
+        
+        message = UserMessage(text=prompt_text)
+        reflection = await chat.send_message(message)
+        
+        # Clean up the reflection
+        reflection = reflection.strip()
+        
+        return MirrorHomeResponse(
+            reflection=reflection,
+            generated_at=datetime.now(timezone.utc).isoformat(),
+            is_first_visit=is_first_visit
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Mirror home reflection error: {e}")
+        # Return a calm fallback
+        return MirrorHomeResponse(
+            reflection="Something in you brought you here today. That's worth noticing.",
+            generated_at=datetime.now(timezone.utc).isoformat(),
+            is_first_visit=False
+        )
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
