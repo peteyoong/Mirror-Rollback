@@ -384,7 +384,7 @@ export default function LensDetail() {
             style={styles.snapshotButtonPrimary}
             onPress={() => navigateToMode('snapshot')}
           >
-            <Text style={styles.snapshotButtonPrimaryText}>View Summary</Text>
+            <Text style={styles.snapshotButtonPrimaryText}>Full Snapshot</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
