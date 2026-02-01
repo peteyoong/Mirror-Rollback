@@ -333,6 +333,14 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
+  microcopy: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    fontStyle: 'italic',
+  },
   scrollView: {
     paddingHorizontal: 20,
   },
@@ -340,8 +348,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
-    marginTop: 16,
-    marginBottom: 20,
+    marginTop: 12,
+    marginBottom: 24,
   },
   excerptLabel: {
     fontSize: 11,
