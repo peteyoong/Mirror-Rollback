@@ -500,6 +500,63 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     marginTop: 6,
   },
+  // Date row styles
+  dateRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  dateInputWrapper: {
+    flex: 1,
+  },
+  yearInputWrapper: {
+    flex: 1.5,
+  },
+  dateLabel: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  dateInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 18,
+    fontWeight: '500',
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    minHeight: 52,
+    textAlign: 'center',
+  },
+  // Time row styles
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  timeInputWrapper: {
+    flex: 1,
+  },
+  timeInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 18,
+    fontWeight: '500',
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    minHeight: 52,
+    textAlign: 'center',
+  },
+  timeSeparator: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 14,
+  },
   searchLoader: {
     marginTop: 12,
   },
