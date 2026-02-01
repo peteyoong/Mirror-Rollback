@@ -32,8 +32,18 @@ export default function Onboarding() {
 
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
-  const [birthDate, setBirthDate] = useState('');
-  const [birthTime, setBirthTime] = useState('');
+  const [email, setEmail] = useState('');
+  
+  // Separate date fields
+  const [birthDay, setBirthDay] = useState('');
+  const [birthMonth, setBirthMonth] = useState('');
+  const [birthYear, setBirthYear] = useState('');
+  
+  // Separate time fields
+  const [birthHour, setBirthHour] = useState('');
+  const [birthMinute, setBirthMinute] = useState('');
+  const [amPm, setAmPm] = useState<'AM' | 'PM'>('AM');
+  
   const [locationQuery, setLocationQuery] = useState('');
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -43,6 +53,7 @@ export default function Onboarding() {
 
   const handleSearchLocation = async (query: string) => {
     setLocationQuery(query);
+    setSelectedLocation(null);
     setError('');
 
     if (query.length < 3) {
@@ -53,9 +64,11 @@ export default function Onboarding() {
     setIsSearching(true);
     try {
       const results = await searchLocations(query);
-      setLocations(results);
-    } catch (err) {
+      setLocations(results || []);
+    } catch (err: any) {
       console.error('Location search error:', err);
+      setError('Unable to search locations. Please try again.');
+      setLocations([]);
     } finally {
       setIsSearching(false);
     }
@@ -67,31 +80,65 @@ export default function Onboarding() {
     setLocations([]);
   };
 
-  const validateTime = (time: string): boolean => {
-    if (!time) return true; // Optional field
-    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    return timeRegex.test(time);
+  // Convert 12-hour to 24-hour format
+  const get24HourTime = (): string => {
+    if (!birthHour || !birthMinute) return '';
+    
+    let hour = parseInt(birthHour, 10);
+    if (amPm === 'PM' && hour !== 12) {
+      hour += 12;
+    } else if (amPm === 'AM' && hour === 12) {
+      hour = 0;
+    }
+    
+    return `${String(hour).padStart(2, '0')}:${birthMinute.padStart(2, '0')}`;
+  };
+
+  // Format date as YYYY-MM-DD
+  const getFormattedDate = (): string => {
+    if (!birthDay || !birthMonth || !birthYear) return '';
+    return `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`;
   };
 
   const handleSubmit = async () => {
     setError('');
 
-    // Validate birth date format
-    if (!birthDate) {
-      setError('Please enter your birth date');
-      return;
-    }
-    
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(birthDate)) {
-      setError('Please enter birth date in YYYY-MM-DD format (e.g., 1990-05-15)');
+    // Validate birth date
+    if (!birthDay || !birthMonth || !birthYear) {
+      setError('Please enter your complete birth date');
       return;
     }
 
-    // Validate birth time if provided
-    if (birthTime && !validateTime(birthTime)) {
-      setError('Please enter birth time in HH:MM format (e.g., 14:30)');
+    const day = parseInt(birthDay, 10);
+    const month = parseInt(birthMonth, 10);
+    const year = parseInt(birthYear, 10);
+
+    if (day < 1 || day > 31) {
+      setError('Please enter a valid day (1-31)');
       return;
+    }
+    if (month < 1 || month > 12) {
+      setError('Please enter a valid month (1-12)');
+      return;
+    }
+    if (year < 1900 || year > new Date().getFullYear()) {
+      setError('Please enter a valid year');
+      return;
+    }
+
+    // Validate time if provided
+    if (birthHour || birthMinute) {
+      const hour = parseInt(birthHour, 10);
+      const minute = parseInt(birthMinute, 10);
+      
+      if (hour < 1 || hour > 12) {
+        setError('Please enter a valid hour (1-12)');
+        return;
+      }
+      if (minute < 0 || minute > 59) {
+        setError('Please enter a valid minute (0-59)');
+        return;
+      }
     }
 
     if (!selectedLocation) {
@@ -107,6 +154,9 @@ export default function Onboarding() {
       const tzMins = Math.abs(tzOffsetMinutes) % 60;
       const tzSign = tzOffsetMinutes <= 0 ? '+' : '-';
       const timezoneStr = `${tzSign}${String(tzHours).padStart(2, '0')}:${String(tzMins).padStart(2, '0')}`;
+      
+      const birthDate = getFormattedDate();
+      const birthTime = get24HourTime();
       
       // Create user
       const userData = await createUser({
@@ -142,14 +192,14 @@ export default function Onboarding() {
   };
 
   const canProceed = () => {
-    if (step === 1) return birthDate.length > 0;
+    if (step === 1) return birthDay && birthMonth && birthYear;
     if (step === 2) return selectedLocation !== null;
     return false;
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -181,6 +231,7 @@ export default function Onboarding() {
                 We'll gather a few details to create your unique reflection space.
               </Text>
 
+              {/* Name Field */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Name (optional)</Text>
                 <TextInput
@@ -193,28 +244,109 @@ export default function Onboarding() {
                 />
               </View>
 
+              {/* Email Field - After Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Birth Date *</Text>
+                <Text style={styles.label}>Email (optional)</Text>
                 <TextInput
                   style={styles.input}
-                  value={birthDate}
-                  onChangeText={setBirthDate}
-                  placeholder="YYYY-MM-DD"
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="your@email.com"
                   placeholderTextColor={Colors.textTertiary}
-                  keyboardType="numbers-and-punctuation"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                 />
               </View>
 
+              {/* Birth Date - Separate DD/MM/YYYY boxes */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Birth Date *</Text>
+                <View style={styles.dateRow}>
+                  <View style={styles.dateInputContainer}>
+                    <TextInput
+                      style={styles.dateInput}
+                      value={birthDay}
+                      onChangeText={(text) => setBirthDay(text.replace(/[^0-9]/g, '').slice(0, 2))}
+                      placeholder="DD"
+                      placeholderTextColor={Colors.textTertiary}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                    />
+                    <Text style={styles.dateLabel}>Day</Text>
+                  </View>
+                  <Text style={styles.dateSeparator}>/</Text>
+                  <View style={styles.dateInputContainer}>
+                    <TextInput
+                      style={styles.dateInput}
+                      value={birthMonth}
+                      onChangeText={(text) => setBirthMonth(text.replace(/[^0-9]/g, '').slice(0, 2))}
+                      placeholder="MM"
+                      placeholderTextColor={Colors.textTertiary}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                    />
+                    <Text style={styles.dateLabel}>Month</Text>
+                  </View>
+                  <Text style={styles.dateSeparator}>/</Text>
+                  <View style={[styles.dateInputContainer, styles.yearInputContainer]}>
+                    <TextInput
+                      style={styles.dateInput}
+                      value={birthYear}
+                      onChangeText={(text) => setBirthYear(text.replace(/[^0-9]/g, '').slice(0, 4))}
+                      placeholder="YYYY"
+                      placeholderTextColor={Colors.textTertiary}
+                      keyboardType="number-pad"
+                      maxLength={4}
+                    />
+                    <Text style={styles.dateLabel}>Year</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Birth Time - Separate HH:MM with AM/PM */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Birth Time (optional)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={birthTime}
-                  onChangeText={setBirthTime}
-                  placeholder="HH:MM (24-hour format)"
-                  placeholderTextColor={Colors.textTertiary}
-                  keyboardType="numbers-and-punctuation"
-                />
+                <View style={styles.timeRow}>
+                  <View style={styles.timeInputContainer}>
+                    <TextInput
+                      style={styles.timeInput}
+                      value={birthHour}
+                      onChangeText={(text) => setBirthHour(text.replace(/[^0-9]/g, '').slice(0, 2))}
+                      placeholder="HH"
+                      placeholderTextColor={Colors.textTertiary}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                    />
+                    <Text style={styles.dateLabel}>Hour</Text>
+                  </View>
+                  <Text style={styles.timeSeparator}>:</Text>
+                  <View style={styles.timeInputContainer}>
+                    <TextInput
+                      style={styles.timeInput}
+                      value={birthMinute}
+                      onChangeText={(text) => setBirthMinute(text.replace(/[^0-9]/g, '').slice(0, 2))}
+                      placeholder="MM"
+                      placeholderTextColor={Colors.textTertiary}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                    />
+                    <Text style={styles.dateLabel}>Min</Text>
+                  </View>
+                  <View style={styles.amPmContainer}>
+                    <TouchableOpacity
+                      style={[styles.amPmButton, amPm === 'AM' && styles.amPmButtonActive]}
+                      onPress={() => setAmPm('AM')}
+                    >
+                      <Text style={[styles.amPmText, amPm === 'AM' && styles.amPmTextActive]}>AM</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.amPmButton, amPm === 'PM' && styles.amPmButtonActive]}
+                      onPress={() => setAmPm('PM')}
+                    >
+                      <Text style={[styles.amPmText, amPm === 'PM' && styles.amPmTextActive]}>PM</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
                 <Text style={styles.hint}>
                   If unknown, we'll use noon as a neutral time
                 </Text>
@@ -236,24 +368,26 @@ export default function Onboarding() {
                   style={styles.input}
                   value={locationQuery}
                   onChangeText={handleSearchLocation}
-                  placeholder="Start typing..."
+                  placeholder="Start typing a city name..."
                   placeholderTextColor={Colors.textTertiary}
                   autoCapitalize="words"
                 />
 
                 {isSearching && (
-                  <ActivityIndicator
-                    size="small"
-                    color={Colors.textSecondary}
-                    style={styles.searchLoader}
-                  />
+                  <View style={styles.searchLoaderContainer}>
+                    <ActivityIndicator
+                      size="small"
+                      color={Colors.accent}
+                    />
+                    <Text style={styles.searchingText}>Searching...</Text>
+                  </View>
                 )}
 
                 {locations.length > 0 && (
                   <View style={styles.locationsList}>
                     <FlatList
                       data={locations}
-                      keyExtractor={(item, index) => `${item.city}-${index}`}
+                      keyExtractor={(item, index) => `${item.city}-${item.country}-${index}`}
                       renderItem={({ item }) => (
                         <TouchableOpacity
                           style={styles.locationItem}
@@ -271,8 +405,17 @@ export default function Onboarding() {
 
                 {selectedLocation && (
                   <View style={styles.selectedLocation}>
+                    <Text style={styles.selectedLocationLabel}>Selected:</Text>
                     <Text style={styles.selectedLocationText}>
-                      Selected: {selectedLocation.city}, {selectedLocation.country}
+                      {selectedLocation.city}, {selectedLocation.country}
+                    </Text>
+                  </View>
+                )}
+
+                {!isSearching && !selectedLocation && locationQuery.length >= 3 && locations.length === 0 && (
+                  <View style={styles.noResultsContainer}>
+                    <Text style={styles.noResultsText}>
+                      No locations found. Try a different search term.
                     </Text>
                   </View>
                 )}
@@ -348,61 +491,62 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 15,
     color: Colors.textSecondary,
+    lineHeight: 22,
   },
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 40,
+    justifyContent: 'center',
+    marginBottom: 32,
   },
   progressDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: Colors.surfaceLight,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.border,
   },
   progressDotActive: {
-    backgroundColor: Colors.text,
+    backgroundColor: Colors.accent,
   },
   progressLine: {
-    flex: 1,
+    width: 60,
     height: 2,
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: Colors.border,
     marginHorizontal: 8,
   },
   progressLineActive: {
-    backgroundColor: Colors.text,
+    backgroundColor: Colors.accent,
   },
   stepContainer: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   stepTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '600',
     color: Colors.text,
     marginBottom: 8,
   },
   stepDescription: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14,
     color: Colors.textSecondary,
-    marginBottom: 32,
+    marginBottom: 24,
+    lineHeight: 20,
   },
   inputGroup: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
+    fontWeight: '500',
+    color: Colors.text,
     marginBottom: 8,
   },
   input: {
@@ -419,17 +563,108 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     marginTop: 6,
   },
-  searchLoader: {
+  // Date fields
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  dateInputContainer: {
+    flex: 1,
+  },
+  yearInputContainer: {
+    flex: 1.5,
+  },
+  dateInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 18,
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    textAlign: 'center',
+  },
+  dateLabel: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  dateSeparator: {
+    fontSize: 24,
+    color: Colors.textTertiary,
+    marginHorizontal: 8,
+    marginTop: 14,
+  },
+  // Time fields
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  timeInputContainer: {
+    width: 70,
+  },
+  timeInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 18,
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    textAlign: 'center',
+  },
+  timeSeparator: {
+    fontSize: 24,
+    color: Colors.textTertiary,
+    marginHorizontal: 6,
+    marginTop: 14,
+  },
+  amPmContainer: {
+    flexDirection: 'row',
+    marginLeft: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+  },
+  amPmButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+  },
+  amPmButtonActive: {
+    backgroundColor: Colors.accent,
+  },
+  amPmText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  amPmTextActive: {
+    color: Colors.surface,
+  },
+  // Location
+  searchLoaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 12,
+    gap: 8,
+  },
+  searchingText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
   },
   locationsList: {
     backgroundColor: Colors.surface,
     borderRadius: 12,
     marginTop: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
     maxHeight: 200,
   },
   locationItem: {
-    padding: 16,
+    padding: 14,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
@@ -439,27 +674,51 @@ const styles = StyleSheet.create({
   },
   selectedLocation: {
     marginTop: 12,
-    padding: 12,
-    backgroundColor: Colors.surfaceLight,
-    borderRadius: 8,
+    padding: 14,
+    backgroundColor: Colors.accent + '15',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.accent + '30',
+  },
+  selectedLocationLabel: {
+    fontSize: 11,
+    color: Colors.accent,
+    fontWeight: '600',
+    marginBottom: 4,
   },
   selectedLocationText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
+    fontSize: 15,
+    color: Colors.text,
+    fontWeight: '500',
   },
+  noResultsContainer: {
+    marginTop: 12,
+    padding: 14,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+  },
+  noResultsText: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+  },
+  // Error
   errorContainer: {
     backgroundColor: Colors.error + '20',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
+    padding: 14,
+    marginBottom: 16,
   },
   errorText: {
     fontSize: 14,
     color: Colors.error,
+    textAlign: 'center',
   },
+  // Buttons
   buttonContainer: {
     flexDirection: 'row',
     gap: 12,
+    marginTop: 8,
   },
   button: {
     flex: 1,
@@ -468,7 +727,6 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 52,
   },
   buttonSecondary: {
     backgroundColor: 'transparent',
@@ -476,7 +734,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   buttonDisabled: {
-    opacity: 0.4,
+    opacity: 0.5,
   },
   buttonText: {
     fontSize: 16,
