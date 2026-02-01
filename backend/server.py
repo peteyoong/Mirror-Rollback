@@ -411,52 +411,42 @@ async def calculate_chart(request: ChartCalculationRequest):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Prepare datetime
+        # Get user data
         birth_date = user["birth_date"]
-        birth_time = user.get("birth_time", "12:00")
+        birth_time = user.get("birth_time")
+        user_timezone = user.get("timezone")
         
         # Store original inputs for debug stamp
         input_birth_local = birth_date.strftime("%Y-%m-%d")
-        input_timezone_raw = "UTC"  # V1: assuming UTC, should be enhanced with timezone
+        input_birth_time = birth_time if birth_time else None
+        input_timezone_raw = user_timezone if user_timezone else None
         
-        # Parse and validate birth time
+        # STRICT TIMEZONE VALIDATION - No silent defaults
+        if not user_timezone:
+            raise HTTPException(
+                status_code=400, 
+                detail="Timezone is required. Please update user profile with timezone (e.g., '+07:30')."
+            )
+        
+        if not birth_time:
+            raise HTTPException(
+                status_code=400,
+                detail="Birth time is required. Please update user profile with birth time (e.g., '07:25')."
+            )
+        
+        # Resolve birth datetime to UTC using proper timezone handling
         try:
-            if birth_time:
-                # Clean the time string
-                birth_time = birth_time.strip()
-                # Validate format
-                if ':' not in birth_time:
-                    birth_time = "12:00"
-                else:
-                    parts = birth_time.split(":")
-                    if len(parts) != 2:
-                        birth_time = "12:00"
-                    else:
-                        # Validate hour and minute are integers
-                        hour = int(parts[0])
-                        minute = int(parts[1])
-                        if hour < 0 or hour > 23 or minute < 0 or minute > 59:
-                            birth_time = "12:00"
-                            hour, minute = 12, 0
-            else:
-                birth_time = "12:00"
-                hour, minute = 12, 0
-            
-            if birth_time != "12:00" or 'hour' not in locals():
-                hour, minute = map(int, birth_time.split(":"))
-            
-            birth_datetime = birth_date.replace(hour=hour, minute=minute)
-        except (ValueError, AttributeError) as e:
-            logger.warning(f"Invalid birth time format: {birth_time}, using noon as default. Error: {e}")
-            birth_datetime = birth_date.replace(hour=12, minute=0)
+            birth_datetime_utc, resolved_birth_utc_iso, parsed_timezone_minutes, _ = resolve_birth_utc(
+                birth_date_str=input_birth_local,
+                birth_time_str=birth_time,
+                timezone_str=user_timezone
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         
         location = user["birth_location"]
         lat = location["latitude"]
         lon = location["longitude"]
-        
-        # Prepare debug stamp data
-        resolved_birth_utc_iso = birth_datetime.isoformat()
-        parsed_timezone_minutes = 0  # V1: assuming UTC
         lat_used = lat
         lon_used = lon
         
