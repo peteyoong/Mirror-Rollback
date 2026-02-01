@@ -607,7 +607,7 @@ export default function LensDetail() {
           </View>
         ) : (
           <View style={styles.comingSoonCard}>
-            <Ionicons name="planets-outline" size={20} color={Colors.textTertiary} />
+            <Ionicons name="planet-outline" size={20} color={Colors.textTertiary} />
             <Text style={styles.comingSoonText}>More depth will appear here as your lenses expand.</Text>
           </View>
         )}
