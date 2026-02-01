@@ -196,8 +196,9 @@ export default function Onboarding() {
                 We'll gather a few details to create your unique reflection space.
               </Text>
 
+              {/* Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Name (optional)</Text>
+                <Text style={styles.label}>Name</Text>
                 <TextInput
                   style={styles.input}
                   value={name}
@@ -211,36 +212,91 @@ export default function Onboarding() {
                 />
               </View>
 
+              {/* Date of Birth - Separate boxes */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Birth Date *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={birthDate}
-                  onChangeText={setBirthDate}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={Colors.textTertiary}
-                  keyboardType="numbers-and-punctuation"
-                  autoCorrect={false}
-                  returnKeyType="next"
-                  selectionColor={Colors.accent}
-                />
+                <Text style={styles.label}>Date of Birth</Text>
+                <View style={styles.dateRow}>
+                  <View style={styles.dateInputWrapper}>
+                    <Text style={styles.dateLabel}>Day</Text>
+                    <TextInput
+                      style={styles.dateInput}
+                      value={birthDay}
+                      onChangeText={(text) => setBirthDay(text.replace(/[^0-9]/g, '').slice(0, 2))}
+                      placeholder="DD"
+                      placeholderTextColor={Colors.textTertiary}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                      autoCorrect={false}
+                      selectionColor={Colors.accent}
+                    />
+                  </View>
+                  <View style={styles.dateInputWrapper}>
+                    <Text style={styles.dateLabel}>Month</Text>
+                    <TextInput
+                      style={styles.dateInput}
+                      value={birthMonth}
+                      onChangeText={(text) => setBirthMonth(text.replace(/[^0-9]/g, '').slice(0, 2))}
+                      placeholder="MM"
+                      placeholderTextColor={Colors.textTertiary}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                      autoCorrect={false}
+                      selectionColor={Colors.accent}
+                    />
+                  </View>
+                  <View style={[styles.dateInputWrapper, styles.yearInputWrapper]}>
+                    <Text style={styles.dateLabel}>Year</Text>
+                    <TextInput
+                      style={styles.dateInput}
+                      value={birthYear}
+                      onChangeText={(text) => setBirthYear(text.replace(/[^0-9]/g, '').slice(0, 4))}
+                      placeholder="YYYY"
+                      placeholderTextColor={Colors.textTertiary}
+                      keyboardType="number-pad"
+                      maxLength={4}
+                      autoCorrect={false}
+                      selectionColor={Colors.accent}
+                    />
+                  </View>
+                </View>
               </View>
 
+              {/* Time of Birth - Separate boxes */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Birth Time (optional)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={birthTime}
-                  onChangeText={setBirthTime}
-                  placeholder="HH:MM (24-hour format)"
-                  placeholderTextColor={Colors.textTertiary}
-                  keyboardType="numbers-and-punctuation"
-                  autoCorrect={false}
-                  returnKeyType="done"
-                  selectionColor={Colors.accent}
-                />
+                <Text style={styles.label}>Time of Birth</Text>
+                <View style={styles.timeRow}>
+                  <View style={styles.timeInputWrapper}>
+                    <Text style={styles.dateLabel}>Hour</Text>
+                    <TextInput
+                      style={styles.timeInput}
+                      value={birthHour}
+                      onChangeText={(text) => setBirthHour(text.replace(/[^0-9]/g, '').slice(0, 2))}
+                      placeholder="HH"
+                      placeholderTextColor={Colors.textTertiary}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                      autoCorrect={false}
+                      selectionColor={Colors.accent}
+                    />
+                  </View>
+                  <Text style={styles.timeSeparator}>:</Text>
+                  <View style={styles.timeInputWrapper}>
+                    <Text style={styles.dateLabel}>Min</Text>
+                    <TextInput
+                      style={styles.timeInput}
+                      value={birthMinute}
+                      onChangeText={(text) => setBirthMinute(text.replace(/[^0-9]/g, '').slice(0, 2))}
+                      placeholder="MM"
+                      placeholderTextColor={Colors.textTertiary}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                      autoCorrect={false}
+                      selectionColor={Colors.accent}
+                    />
+                  </View>
+                </View>
                 <Text style={styles.hint}>
-                  If unknown, we'll use noon as a neutral time
+                  24-hour format (e.g., 14:30 for 2:30 PM)
                 </Text>
               </View>
             </View>
