@@ -232,6 +232,11 @@ export default function MirrorReflectionModal({
             </TouchableOpacity>
           </View>
           
+          {/* Micro-copy disclaimer */}
+          <Text style={styles.microcopy}>
+            This reflection is generated from patterns, not predictions.
+          </Text>
+          
           <ScrollView 
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
