@@ -483,6 +483,21 @@ async def calculate_chart(request: ChartCalculationRequest):
         logger.info(f"Getting consciousness framework for user {request.user_id}")
         consciousness = get_consciousness_framework()
         
+        # =====================================================================
+        # INTERPRETATION BOUNDARY - DO NOT CROSS
+        # =====================================================================
+        # This payload contains DETERMINISTIC FACTS only.
+        # Interpretation and narrative generation must occur DOWNSTREAM.
+        #
+        # The data below is raw computational output:
+        # - Astrology: positions, signs, houses (no meanings)
+        # - Human Design: type, gates, channels (no personality descriptions)
+        # - Numerology: numbers and patterns (no life path interpretations)
+        #
+        # AI prompts, UI copy, and user-facing narratives must be generated
+        # in a SEPARATE interpretation layer, NOT in this computation core.
+        # =====================================================================
+        
         # Store chart data
         chart_data = {
             "user_id": request.user_id,
