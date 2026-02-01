@@ -266,8 +266,33 @@ export default function LensDetail() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Onboarding CTA for users without chart data */}
+        {showOnboardingCTA && (
+          <View style={styles.onboardingCTA}>
+            <Ionicons name="person-add-outline" size={24} color={Colors.textSecondary} />
+            <Text style={styles.onboardingCTATitle}>Complete Your Profile</Text>
+            <Text style={styles.onboardingCTAText}>
+              Add your birth details to see your personalized {content.name} snapshot.
+            </Text>
+            <TouchableOpacity 
+              style={styles.onboardingCTAButton}
+              onPress={() => router.push('/onboarding')}
+            >
+              <Text style={styles.onboardingCTAButtonText}>Get Started</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Personalized Astrology Snapshot (only for astrology lens with data) */}
+        {isAstrologyLens && hasAstrologyData && !showOnboardingCTA && renderAstrologySnapshot()}
+
         {mode === 'summary' && (
           <>
+            {/* About This Lens Section */}
+            <View style={styles.aboutSection}>
+              <Text style={styles.aboutSectionTitle}>About This Lens</Text>
+            </View>
+            
             {/* Summary View */}
             <View style={styles.summaryCard}>
               <Text style={styles.summaryText}>{content.summary}</Text>
@@ -295,6 +320,9 @@ export default function LensDetail() {
 
         {mode === 'deep' && (
           <>
+            {/* Personalized Astrology Snapshot also in deep mode */}
+            {isAstrologyLens && hasAstrologyData && !showOnboardingCTA && renderAstrologySnapshot()}
+            
             {/* Deep Dive View */}
             <View style={styles.disclaimerCard}>
               <Ionicons name="information-circle-outline" size={20} color={Colors.textSecondary} />
