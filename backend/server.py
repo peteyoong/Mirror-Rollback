@@ -1780,11 +1780,11 @@ async def mirror_chat(request: MirrorChatRequest):
                 context_parts.append(f"Expression: {numerology.get('expression', 'Unknown')}")
                 context_parts.append(f"Soul Urge: {numerology.get('soul_urge', 'Unknown')}")
         
-        # Get recent journal entries for context
+        # Add recent journal entries if requested (LIMITED to MAX_JOURNAL_ENTRIES)
         if request.include_journal:
             journal_entries = await db.journal.find(
                 {"user_id": request.user_id}
-            ).sort("timestamp", -1).limit(5).to_list(5)
+            ).sort("timestamp", -1).limit(MAX_JOURNAL_ENTRIES).to_list(MAX_JOURNAL_ENTRIES)
             
             if journal_entries:
                 context_parts.append("\n--- RECENT JOURNAL ENTRIES ---")
