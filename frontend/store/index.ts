@@ -1,5 +1,79 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+import { getChart, getUser } from '../services/api';
+
+// Storage key for session persistence
+const SESSION_USER_ID_KEY = 'mirror_last_user_id';
+
+// Cross-platform storage helper (AsyncStorage + localStorage fallback for web)
+const storage = {
+  async getItem(key: string): Promise<string | null> {
+    try {
+      // Try AsyncStorage first
+      const value = await AsyncStorage.getItem(key);
+      if (value !== null) return value;
+      
+      // Fallback to localStorage on web
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
+      return null;
+    } catch (error) {
+      // If AsyncStorage fails on web, try localStorage
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
+      console.error('Storage getItem error:', error);
+      return null;
+    }
+  },
+  
+  async setItem(key: string, value: string): Promise<void> {
+    try {
+      await AsyncStorage.setItem(key, value);
+      // Also set in localStorage on web for redundancy
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, value);
+      }
+    } catch (error) {
+      // If AsyncStorage fails on web, try localStorage
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, value);
+      } else {
+        console.error('Storage setItem error:', error);
+      }
+    }
+  },
+  
+  async removeItem(key: string): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(key);
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(key);
+      }
+    } catch (error) {
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(key);
+      }
+      console.error('Storage removeItem error:', error);
+    }
+  },
+  
+  async multiRemove(keys: string[]): Promise<void> {
+    try {
+      await AsyncStorage.multiRemove(keys);
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
+        keys.forEach(key => window.localStorage.removeItem(key));
+      }
+    } catch (error) {
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
+        keys.forEach(key => window.localStorage.removeItem(key));
+      }
+      console.error('Storage multiRemove error:', error);
+    }
+  }
+};
 
 interface User {
   id: string;
@@ -37,6 +111,10 @@ interface AppState {
   journalEntries: JournalEntry[];
   hasCompletedOnboarding: boolean;
   
+  // Session restore state
+  isRestoringSession: boolean;
+  sessionRestoreError: string | null;
+  
   // Actions
   setUser: (user: User) => void;
   setChart: (chart: any) => void;
@@ -46,6 +124,11 @@ interface AppState {
   completeOnboarding: () => void;
   clearUser: () => void;
   loadPersistedData: () => Promise<void>;
+  
+  // Session restore actions
+  restoreSession: () => Promise<boolean>;
+  retrySessionRestore: () => Promise<boolean>;
+  clearSessionRestoreError: () => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -54,15 +137,19 @@ export const useAppStore = create<AppState>((set, get) => ({
   dailyReflection: null,
   journalEntries: [],
   hasCompletedOnboarding: false,
+  isRestoringSession: false,
+  sessionRestoreError: null,
   
   setUser: async (user) => {
     set({ user });
-    await AsyncStorage.setItem('user', JSON.stringify(user));
+    // Persist user ID for session restore
+    await storage.setItem(SESSION_USER_ID_KEY, user.id);
+    await storage.setItem('user', JSON.stringify(user));
   },
   
   setChart: async (chart) => {
     set({ chart });
-    await AsyncStorage.setItem('chart', JSON.stringify(chart));
+    await storage.setItem('chart', JSON.stringify(chart));
   },
   
   setDailyReflection: (reflection) => {
@@ -81,7 +168,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   
   completeOnboarding: async () => {
     set({ hasCompletedOnboarding: true });
-    await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+    await storage.setItem('hasCompletedOnboarding', 'true');
   },
   
   clearUser: async () => {
@@ -91,29 +178,124 @@ export const useAppStore = create<AppState>((set, get) => ({
       dailyReflection: null,
       journalEntries: [],
       hasCompletedOnboarding: false,
+      sessionRestoreError: null,
     });
-    await AsyncStorage.multiRemove(['user', 'chart', 'hasCompletedOnboarding']);
+    await storage.multiRemove([SESSION_USER_ID_KEY, 'user', 'chart', 'hasCompletedOnboarding']);
   },
   
   loadPersistedData: async () => {
     try {
-      const [userStr, chartStr, onboardingStr] = await AsyncStorage.multiGet([
-        'user',
-        'chart',
-        'hasCompletedOnboarding',
+      const [userStr, chartStr, onboardingStr] = await Promise.all([
+        storage.getItem('user'),
+        storage.getItem('chart'),
+        storage.getItem('hasCompletedOnboarding'),
       ]);
       
-      if (userStr[1]) {
-        set({ user: JSON.parse(userStr[1]) });
+      if (userStr) {
+        set({ user: JSON.parse(userStr) });
       }
-      if (chartStr[1]) {
-        set({ chart: JSON.parse(chartStr[1]) });
+      if (chartStr) {
+        set({ chart: JSON.parse(chartStr) });
       }
-      if (onboardingStr[1]) {
-        set({ hasCompletedOnboarding: onboardingStr[1] === 'true' });
+      if (onboardingStr) {
+        set({ hasCompletedOnboarding: onboardingStr === 'true' });
       }
     } catch (error) {
       console.error('Error loading persisted data:', error);
     }
+  },
+  
+  // Session restore: fetch user/chart from API using persisted userId
+  restoreSession: async () => {
+    const { user, chart } = get();
+    
+    // If already have user and chart, no need to restore
+    if (user && chart) {
+      console.log('[SessionRestore] Already have user and chart, skipping restore');
+      return true;
+    }
+    
+    set({ isRestoringSession: true, sessionRestoreError: null });
+    
+    try {
+      // First try to load from local storage
+      await get().loadPersistedData();
+      
+      // Check if we loaded data from storage
+      const stateAfterLoad = get();
+      if (stateAfterLoad.user && stateAfterLoad.chart) {
+        console.log('[SessionRestore] Restored from local storage');
+        set({ isRestoringSession: false });
+        return true;
+      }
+      
+      // If no local data, try to fetch from API using persisted user ID
+      const userId = await storage.getItem(SESSION_USER_ID_KEY);
+      
+      if (!userId) {
+        console.log('[SessionRestore] No persisted userId found');
+        set({ isRestoringSession: false });
+        return false;
+      }
+      
+      console.log('[SessionRestore] Found persisted userId:', userId);
+      
+      // Fetch user data
+      let userData: User | null = null;
+      try {
+        userData = await getUser(userId);
+        console.log('[SessionRestore] Fetched user:', userData?.name);
+      } catch (error) {
+        console.warn('[SessionRestore] Could not fetch user data:', error);
+        // Continue anyway - we can still get chart data
+      }
+      
+      // Fetch chart data
+      const chartData = await getChart(userId);
+      console.log('[SessionRestore] Fetched chart, computation_version:', chartData?.computation_version);
+      
+      // Create minimal user object if we couldn't fetch user data
+      if (!userData && chartData) {
+        userData = {
+          id: userId,
+          birth_date: '',
+          birth_location: { city: '', country: '', latitude: 0, longitude: 0 },
+          has_chart: true,
+        };
+      }
+      
+      // Update store
+      if (userData) {
+        set({ user: userData });
+        await storage.setItem('user', JSON.stringify(userData));
+      }
+      
+      if (chartData) {
+        set({ chart: chartData, hasCompletedOnboarding: true });
+        await storage.setItem('chart', JSON.stringify(chartData));
+        await storage.setItem('hasCompletedOnboarding', 'true');
+      }
+      
+      set({ isRestoringSession: false });
+      console.log('[SessionRestore] Session restored successfully');
+      return true;
+      
+    } catch (error: any) {
+      console.error('[SessionRestore] Failed to restore session:', error);
+      set({ 
+        isRestoringSession: false, 
+        sessionRestoreError: error?.message || 'Failed to restore session' 
+      });
+      return false;
+    }
+  },
+  
+  retrySessionRestore: async () => {
+    set({ sessionRestoreError: null });
+    return get().restoreSession();
+  },
+  
+  clearSessionRestoreError: () => {
+    set({ sessionRestoreError: null });
   },
 }));
