@@ -1,9 +1,11 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import SessionRestoreWrapper from '../../components/SessionRestoreWrapper';
 
 export default function TabLayout() {
   return (
+    <SessionRestoreWrapper>
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors.text,
