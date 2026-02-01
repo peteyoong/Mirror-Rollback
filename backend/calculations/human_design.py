@@ -738,6 +738,24 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
         for g1, g2, c1, c2 in defined_channels
     ]
     
+    # =========================================================================
+    # INTERPRETATION BOUNDARY - DO NOT CROSS
+    # =========================================================================
+    # This payload contains DETERMINISTIC FACTS only.
+    # - Type, Profile, Authority (classifications)
+    # - Gates, Channels, Centers (structural data)
+    # - Design date calculations
+    #
+    # This layer must NEVER include:
+    # - Personality descriptions ("you are...")
+    # - Life advice or strategies explained
+    # - Predictions about relationships or career
+    # - Value judgments about types
+    #
+    # Interpretation and narrative generation must occur DOWNSTREAM
+    # in a separate layer (e.g., AI prompt assembly, UI copy).
+    # =========================================================================
+    
     return {
         'type': hd_type,
         'definition': definition,
