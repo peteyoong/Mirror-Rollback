@@ -171,6 +171,35 @@ class LocationSearchRequest(BaseModel):
 # HELPER FUNCTIONS
 # ===========================
 
+def parse_timezone(tz_string: str) -> Tuple[str, int]:
+    """Parse timezone string to (raw_string, minutes_offset)
+    
+    Accepts:
+    - Offset format: "+07:30", "-05:00"
+    - IANA format: "Asia/Kuala_Lumpur" (will attempt to resolve)
+    
+    Returns:
+    - (timezone_raw, parsed_timezone_minutes)
+    
+    Raises:
+    - ValueError if timezone is not parseable
+    """
+    # Try offset format first: +HH:MM or -HH:MM
+    offset_pattern = r'^([+-])(\d{2}):(\d{2})$'
+    match = re.match(offset_pattern, tz_string)
+    
+    if match:
+        sign, hours, minutes = match.groups()
+        total_minutes = int(hours) * 60 + int(minutes)
+        if sign == '-':
+            total_minutes = -total_minutes
+        return (tz_string, total_minutes)
+    
+    # Try IANA timezone (basic support - would need pytz for full support)
+    # For V1, we'll reject IANA and require offset format
+    raise ValueError(f"Timezone '{tz_string}' not parseable. Please use offset format like '+07:30' or '-05:00'")
+
+
 async def geocode_location(city: str, country: str) -> Optional[Dict]:
     """Geocode location to get lat/lon"""
     try:
