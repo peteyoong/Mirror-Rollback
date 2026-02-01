@@ -24,7 +24,6 @@ interface Location {
   latitude: number;
   longitude: number;
   display_name: string;
-  timezone?: string;
 }
 
 export default function Onboarding() {
@@ -33,16 +32,8 @@ export default function Onboarding() {
 
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
-  
-  // Separate date fields for clarity
-  const [birthDay, setBirthDay] = useState('');
-  const [birthMonth, setBirthMonth] = useState('');
-  const [birthYear, setBirthYear] = useState('');
-  
-  // Separate time fields
-  const [birthHour, setBirthHour] = useState('');
-  const [birthMinute, setBirthMinute] = useState('');
-  
+  const [birthDate, setBirthDate] = useState('');
+  const [birthTime, setBirthTime] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -76,45 +67,30 @@ export default function Onboarding() {
     setLocations([]);
   };
 
-  // Validate and format date components
-  const getFormattedDate = (): string | null => {
-    const day = parseInt(birthDay, 10);
-    const month = parseInt(birthMonth, 10);
-    const year = parseInt(birthYear, 10);
-    
-    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
-    if (day < 1 || day > 31) return null;
-    if (month < 1 || month > 12) return null;
-    if (year < 1900 || year > new Date().getFullYear()) return null;
-    
-    // Format as YYYY-MM-DD
-    return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-  };
-
-  // Validate and format time components
-  const getFormattedTime = (): string | null => {
-    const hour = parseInt(birthHour, 10);
-    const minute = parseInt(birthMinute, 10);
-    
-    if (isNaN(hour) || isNaN(minute)) return null;
-    if (hour < 0 || hour > 23) return null;
-    if (minute < 0 || minute > 59) return null;
-    
-    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+  const validateTime = (time: string): boolean => {
+    if (!time) return true; // Optional field
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return timeRegex.test(time);
   };
 
   const handleSubmit = async () => {
     setError('');
 
-    const birthDate = getFormattedDate();
+    // Validate birth date format
     if (!birthDate) {
-      setError('Please enter a valid birth date');
+      setError('Please enter your birth date');
+      return;
+    }
+    
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(birthDate)) {
+      setError('Please enter birth date in YYYY-MM-DD format (e.g., 1990-05-15)');
       return;
     }
 
-    const birthTime = getFormattedTime();
-    if (!birthTime) {
-      setError('Please enter a valid birth time');
+    // Validate birth time if provided
+    if (birthTime && !validateTime(birthTime)) {
+      setError('Please enter birth time in HH:MM format (e.g., 14:30)');
       return;
     }
 
@@ -125,14 +101,13 @@ export default function Onboarding() {
 
     setIsSubmitting(true);
     try {
-      // Create user with timezone
+      // Create user
       const userData = await createUser({
         name: name || undefined,
         birth_date: birthDate,
-        birth_time: birthTime,
+        birth_time: birthTime || undefined,
         city: selectedLocation.city,
         country: selectedLocation.country,
-        timezone: selectedLocation.timezone || '+00:00',  // Default to UTC if not provided
       });
 
       setUser(userData);
@@ -149,17 +124,14 @@ export default function Onboarding() {
     } catch (err: any) {
       console.error('Onboarding error:', err);
       const errorMsg = err.response?.data?.detail || err.message || 'Something went wrong. Please try again.';
-      setError(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
+      setError(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const canProceed = () => {
-    if (step === 1) {
-      // Need valid date and time
-      return getFormattedDate() !== null && getFormattedTime() !== null;
-    }
+    if (step === 1) return birthDate.length > 0;
     if (step === 2) return selectedLocation !== null;
     return false;
   };
@@ -198,9 +170,8 @@ export default function Onboarding() {
                 We'll gather a few details to create your unique reflection space.
               </Text>
 
-              {/* Name */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Name</Text>
+                <Text style={styles.label}>Name (optional)</Text>
                 <TextInput
                   style={styles.input}
                   value={name}
@@ -208,97 +179,33 @@ export default function Onboarding() {
                   placeholder="What should we call you?"
                   placeholderTextColor={Colors.textTertiary}
                   autoCapitalize="words"
-                  autoCorrect={false}
-                  returnKeyType="next"
-                  selectionColor={Colors.accent}
                 />
               </View>
 
-              {/* Date of Birth - Separate boxes */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Date of Birth</Text>
-                <View style={styles.dateRow}>
-                  <View style={styles.dateInputWrapper}>
-                    <Text style={styles.dateLabel}>Day</Text>
-                    <TextInput
-                      style={styles.dateInput}
-                      value={birthDay}
-                      onChangeText={(text) => setBirthDay(text.replace(/[^0-9]/g, '').slice(0, 2))}
-                      placeholder="DD"
-                      placeholderTextColor={Colors.textTertiary}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                      autoCorrect={false}
-                      selectionColor={Colors.accent}
-                    />
-                  </View>
-                  <View style={styles.dateInputWrapper}>
-                    <Text style={styles.dateLabel}>Month</Text>
-                    <TextInput
-                      style={styles.dateInput}
-                      value={birthMonth}
-                      onChangeText={(text) => setBirthMonth(text.replace(/[^0-9]/g, '').slice(0, 2))}
-                      placeholder="MM"
-                      placeholderTextColor={Colors.textTertiary}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                      autoCorrect={false}
-                      selectionColor={Colors.accent}
-                    />
-                  </View>
-                  <View style={[styles.dateInputWrapper, styles.yearInputWrapper]}>
-                    <Text style={styles.dateLabel}>Year</Text>
-                    <TextInput
-                      style={styles.dateInput}
-                      value={birthYear}
-                      onChangeText={(text) => setBirthYear(text.replace(/[^0-9]/g, '').slice(0, 4))}
-                      placeholder="YYYY"
-                      placeholderTextColor={Colors.textTertiary}
-                      keyboardType="number-pad"
-                      maxLength={4}
-                      autoCorrect={false}
-                      selectionColor={Colors.accent}
-                    />
-                  </View>
-                </View>
+                <Text style={styles.label}>Birth Date *</Text>
+                <TextInput
+                  style={styles.input}
+                  value={birthDate}
+                  onChangeText={setBirthDate}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor={Colors.textTertiary}
+                  keyboardType="numbers-and-punctuation"
+                />
               </View>
 
-              {/* Time of Birth - Separate boxes */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Time of Birth</Text>
-                <View style={styles.timeRow}>
-                  <View style={styles.timeInputWrapper}>
-                    <Text style={styles.dateLabel}>Hour</Text>
-                    <TextInput
-                      style={styles.timeInput}
-                      value={birthHour}
-                      onChangeText={(text) => setBirthHour(text.replace(/[^0-9]/g, '').slice(0, 2))}
-                      placeholder="00"
-                      placeholderTextColor={Colors.textTertiary}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                      autoCorrect={false}
-                      selectionColor={Colors.accent}
-                    />
-                  </View>
-                  <Text style={styles.timeSeparator}>:</Text>
-                  <View style={styles.timeInputWrapper}>
-                    <Text style={styles.dateLabel}>Min</Text>
-                    <TextInput
-                      style={styles.timeInput}
-                      value={birthMinute}
-                      onChangeText={(text) => setBirthMinute(text.replace(/[^0-9]/g, '').slice(0, 2))}
-                      placeholder="00"
-                      placeholderTextColor={Colors.textTertiary}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                      autoCorrect={false}
-                      selectionColor={Colors.accent}
-                    />
-                  </View>
-                </View>
+                <Text style={styles.label}>Birth Time (optional)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={birthTime}
+                  onChangeText={setBirthTime}
+                  placeholder="HH:MM (24-hour format)"
+                  placeholderTextColor={Colors.textTertiary}
+                  keyboardType="numbers-and-punctuation"
+                />
                 <Text style={styles.hint}>
-                  24-hour format (e.g., 14:30 for 2:30 PM)
+                  If unknown, we'll use noon as a neutral time
                 </Text>
               </View>
             </View>
@@ -495,69 +402,11 @@ const styles = StyleSheet.create({
     color: Colors.text,
     borderWidth: 1,
     borderColor: Colors.border,
-    minHeight: 52,
   },
   hint: {
     fontSize: 12,
     color: Colors.textTertiary,
     marginTop: 6,
-  },
-  // Date row styles
-  dateRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  dateInputWrapper: {
-    flex: 1,
-  },
-  yearInputWrapper: {
-    flex: 1.5,
-  },
-  dateLabel: {
-    fontSize: 11,
-    color: Colors.textTertiary,
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  dateInput: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 18,
-    fontWeight: '500',
-    color: Colors.text,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    minHeight: 52,
-    textAlign: 'center',
-  },
-  // Time row styles
-  timeRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  timeInputWrapper: {
-    flex: 1,
-  },
-  timeInput: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 18,
-    fontWeight: '500',
-    color: Colors.text,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    minHeight: 52,
-    textAlign: 'center',
-  },
-  timeSeparator: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 14,
   },
   searchLoader: {
     marginTop: 12,
