@@ -107,9 +107,40 @@ export default function JournalScreen() {
   // Cache of reflections per entry
   const [reflectionCache, setReflectionCache] = useState<Map<string, CachedReflection>>(new Map());
 
+  // Timeline state
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
+  const [isLoadingTimeline, setIsLoadingTimeline] = useState(false);
+  const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
+
   useEffect(() => {
     loadEntries();
   }, []);
+
+  // Load timeline when switching to timeline view
+  useEffect(() => {
+    if (viewMode === 'timeline' && user) {
+      loadTimeline();
+    }
+  }, [viewMode, user]);
+
+  const loadTimeline = async () => {
+    if (!user) return;
+    
+    setIsLoadingTimeline(true);
+    try {
+      const response = await api.get(`/timeline/${user.id}?days=7`);
+      setTimelineEvents(response.data.events || []);
+    } catch (err) {
+      console.error('Load timeline error:', err);
+    } finally {
+      setIsLoadingTimeline(false);
+    }
+  };
+
+  const toggleEventExpanded = (eventId: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedEventId(expandedEventId === eventId ? null : eventId);
+  };
 
   const loadEntries = async () => {
     if (!user) return;
