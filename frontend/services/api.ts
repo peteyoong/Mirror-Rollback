@@ -65,6 +65,19 @@ export const getJournalEntries = async (userId: string) => {
   return response.data;
 };
 
+export const integrateJournalEntry = async (
+  userId: string, 
+  entryId: string, 
+  question?: string
+) => {
+  const response = await api.post('/journal/integrate', {
+    user_id: userId,
+    entry_id: entryId,
+    question
+  });
+  return response.data;
+};
+
 // Reflection APIs
 export const getDailyReflection = async (userId: string) => {
   const response = await api.post('/reflections/daily', { user_id: userId });
