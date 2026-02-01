@@ -366,14 +366,15 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   section: {
-    marginBottom: 24,
-    paddingBottom: 20,
+    marginBottom: 28,
+    paddingBottom: 24,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
   sectionLast: {
     borderBottomWidth: 0,
-    marginBottom: 16,
+    marginBottom: 20,
+    paddingBottom: 0,
   },
   sectionLabel: {
     fontSize: 11,
@@ -381,23 +382,23 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   sectionText: {
     fontSize: 15,
-    lineHeight: 23,
+    lineHeight: 24,
     color: Colors.text,
   },
   questionText: {
     fontSize: 15,
-    lineHeight: 23,
+    lineHeight: 24,
     color: Colors.text,
     fontStyle: 'italic',
   },
   sourceText: {
     fontSize: 11,
     color: Colors.textTertiary,
-    marginTop: 10,
+    marginTop: 12,
     fontStyle: 'italic',
   },
   footer: {
