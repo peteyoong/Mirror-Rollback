@@ -721,6 +721,19 @@ def run_all_sanity_tests() -> bool:
             all_passed = False
         print()
     
+    # Run interpretive language guardrail
+    print("GUARDRAIL: Interpretive Language Check")
+    print("-" * 70)
+    lang_result = run_interpretive_language_test()
+    for detail in lang_result["details"]:
+        print(f"  {detail}")
+    if lang_result["passed"]:
+        print("  ✅ Interpretive Language Guardrail: PASSED")
+    else:
+        print("  ❌ Interpretive Language Guardrail: FAILED")
+        all_passed = False
+    print()
+    
     return all_passed
 
 
@@ -732,13 +745,13 @@ if __name__ == "__main__":
     # Run Mel regression test
     mel_success = run_mel_regression_test()
     
-    # Run sanity tests
+    # Run sanity tests (includes interpretive language guardrail)
     sanity_success = run_all_sanity_tests()
     
     # Final status
     print("=" * 70)
     if mel_success and sanity_success:
-        print("  🎯 ALL TESTS PASSED (Regression + Sanity)")
+        print("  🎯 ALL TESTS PASSED (Regression + Sanity + Guardrails)")
     else:
         print("  ❌ SOME TESTS FAILED")
     print("=" * 70)
