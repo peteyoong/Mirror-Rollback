@@ -662,6 +662,186 @@ async def get_journal_entries(user_id: str, limit: int = 20):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class JournalIntegrationRequest(BaseModel):
+    user_id: str
+    entry_id: str
+    question: Optional[str] = None  # User's optional question about the entry
+
+
+class JournalIntegrationResponse(BaseModel):
+    reflection: str
+    perspective: Optional[str] = None
+
+
+@api_router.post("/journal/integrate", response_model=JournalIntegrationResponse)
+async def integrate_journal_entry(request: JournalIntegrationRequest):
+    """
+    Integrate a journal entry with available lenses.
+    
+    This is the core "Reflect with Mirror" feature that gently draws from
+    all available frameworks (Astrology, Human Design, etc.) while maintaining
+    Interpretation Layer v1 rules:
+    - No prescriptive language
+    - No identity statements  
+    - Reflective, invitational tone
+    - User sovereignty preserved
+    """
+    try:
+        # Get the journal entry
+        entry = await db.journal.find_one({"_id": ObjectId(request.entry_id)})
+        if not entry:
+            raise HTTPException(status_code=404, detail="Journal entry not found")
+        
+        # Verify ownership
+        if entry.get("user_id") != request.user_id:
+            raise HTTPException(status_code=403, detail="Not authorized")
+        
+        # Get user's chart data (read-only, for context)
+        chart = await db.charts.find_one({"user_id": request.user_id})
+        
+        # Get user context (onboarding preferences)
+        user_context = await get_user_context(request.user_id)
+        
+        # Build lens context (factual only, no interpretations)
+        lens_context = ""
+        if chart:
+            # Human Design - factual only
+            hd = chart.get("human_design", {})
+            if hd:
+                lens_context += f"\nHuman Design context (factual): Type is {hd.get('type', 'unknown')}, Profile is {hd.get('profile', 'unknown')}, Authority is {hd.get('authority', 'unknown')}."
+            
+            # Astrology - factual only
+            astro = chart.get("astrology", {})
+            if astro and astro.get("planets"):
+                sun = astro.get("planets", {}).get("Sun", {})
+                moon = astro.get("planets", {}).get("Moon", {})
+                if sun:
+                    lens_context += f"\nAstrology context (factual): Sun in {sun.get('sign', 'unknown')}, Moon in {moon.get('sign', 'unknown')}."
+            
+            # Numerology - factual only
+            numerology = chart.get("numerology", {})
+            if numerology:
+                lens_context += f"\nNumerology context (factual): Life Path {numerology.get('life_path', {}).get('number', 'unknown')}."
+        
+        # Build the integration prompt
+        system_prompt = """PROJECT MIRROR — JOURNAL INTEGRATION (Interpretation Layer v1)
+
+You are a gentle reflection companion, not an advisor or interpreter.
+
+Your role is to help the user explore their journal entry through multiple lenses,
+WITHOUT telling them what it means or what they should do.
+
+=== INTERPRETATION LAYER RULES (MANDATORY) ===
+
+FORBIDDEN:
+- "You ARE a [type]" — use "Your chart shows [type]" or "This pattern..."
+- "You WILL experience..." — use "This pattern may invite..."
+- "You SHOULD..." — use "You might explore..." or "Some find..."
+- "This MEANS..." — use "One lens sees this as..."
+- Direct advice or prescriptions
+- Definitive predictions
+- Identity statements ("you are")
+
+ENCOURAGED:
+- Questions that invite self-reflection
+- "Some people with this pattern notice..."
+- "This is one way to look at..."
+- "What resonates for you?"
+- "I'm curious about..."
+- Spacious, invitational language
+
+=== YOUR TASK ===
+
+1. Acknowledge the journal entry with presence (not analysis)
+2. Gently offer 1-2 reflective perspectives that DRAW FROM the available lenses
+3. Do NOT explain the frameworks — just let them inform your reflection
+4. End with an inviting question that opens further exploration
+5. Keep the tone warm, spacious, and non-prescriptive
+
+The user is the authority on their own experience.
+Frameworks are LENSES, not TRUTH.
+Always leave room for "this doesn't fit me."
+
+=== OUTPUT FORMAT ===
+
+Respond with a JSON object:
+{
+  "reflection": "Your main reflective response (2-3 paragraphs max)",
+  "perspective": "An optional additional lens or question to consider"
+}
+
+Keep it concise. This should feel like a gentle conversation, not a lecture."""
+
+        # Build user message
+        user_message = f"""JOURNAL ENTRY:
+\"\"\"{entry.get('content', '')[:1500]}\"\"\"
+
+{f'USER QUESTION: {request.question}' if request.question else 'USER REQUEST: Help me reflect on this entry through available lenses.'}
+
+{lens_context if lens_context else '(No chart data available — respond with general reflective presence)'}
+
+{f"USER TONE PREFERENCE: {user_context.get('consciousness_level', 'reflective')}" if user_context else ''}
+
+Generate a gentle, lens-informed reflection that honors the user's sovereignty."""
+
+        # Generate response
+        response = completion(
+            model="gpt-5.2",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            api_key=emergent_api_key,
+            temperature=0.7,
+            max_tokens=800
+        )
+        
+        response_text = response.choices[0].message.content.strip()
+        
+        # Parse JSON response
+        try:
+            # Clean up response if needed
+            if response_text.startswith("```"):
+                response_text = response_text.split("```")[1]
+                if response_text.startswith("json"):
+                    response_text = response_text[4:]
+            
+            result = json.loads(response_text)
+            
+            # Validate against interpretation layer rules
+            forbidden_patterns = [
+                "you are a", "you're a", "you will", "you should", "you must",
+                "this means", "this indicates that you"
+            ]
+            
+            reflection = result.get("reflection", "")
+            for pattern in forbidden_patterns:
+                if pattern in reflection.lower():
+                    # Soften the language
+                    reflection = reflection.replace(
+                        pattern.capitalize(), 
+                        "This pattern may suggest that you"
+                    )
+            
+            return JournalIntegrationResponse(
+                reflection=reflection or "Thank you for sharing. What feels most alive in this reflection for you?",
+                perspective=result.get("perspective")
+            )
+            
+        except json.JSONDecodeError:
+            # Return the raw text as reflection
+            return JournalIntegrationResponse(
+                reflection=response_text[:1000] if response_text else "Thank you for sharing this. What aspect would you like to explore further?",
+                perspective=None
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Journal integration error: {e}")
+        raise HTTPException(status_code=500, detail="Unable to generate reflection. Please try again.")
+
+
 @api_router.post("/reflections/daily", response_model=DailyReflectionResponse)
 async def generate_daily_reflection(request: ChartCalculationRequest):
     """Generate personalized daily reflection"""
