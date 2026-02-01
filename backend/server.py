@@ -459,15 +459,15 @@ async def calculate_chart(request: ChartCalculationRequest):
         lat_used = lat
         lon_used = lon
         
-        # Sidereal settings (from astrology.py)
+        # Sidereal settings (Project Mirror Spec - True Sidereal with fixed SVP)
         sidereal_settings_used = {
-            "ayanamsa_key": "SIDM_LAHIRI",
-            "svp_degrees": None,  # Not using SVP
-            "reference_year": None,  # Lahiri handles this internally
-            "yearly_increment": None
+            "mode": "true_sidereal_user_defined",
+            "svp_degrees": 31.2836,
+            "reference_year": 2000,
+            "yearly_increment": 0.0
         }
         
-        house_system_used = "Placidus"  # Default from astrology.py
+        house_system_used = "Equal"  # Project Mirror requires Equal houses ONLY
         
         # Calculate input hash for debugging
         input_string = f"{resolved_birth_utc_iso}|{lat_used}|{lon_used}|{sidereal_settings_used}|{house_system_used}"
