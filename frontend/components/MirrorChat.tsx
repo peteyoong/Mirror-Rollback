@@ -9,6 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  LayoutAnimation,
+  UIManager,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
@@ -16,11 +18,27 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
 import { storage, CHAT_SESSION_KEYS } from '../store';
 
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+}
+
+interface MemoryUpdate {
+  themes: string[];
+  recurring_tensions: string[];
+  supportive_moves: string[];
+  drainers: string[];
+  inferred_state: string;
+  confidence: number;
+  evidence: string[];
+  updated_at_iso: string;
 }
 
 interface MirrorChatProps {
@@ -55,6 +73,18 @@ function formatTime(date: Date): string {
   return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 }
 
+// Format inferred state for display
+function formatState(state: string): string {
+  const labels: Record<string, string> = {
+    'grounding': 'grounding',
+    'stabilizing': 'stabilizing',
+    'exploring': 'exploring',
+    'integrating': 'integrating',
+    'unclear': 'in flux',
+  };
+  return labels[state] || state;
+}
+
 export default function MirrorChat({
   userId,
   lens = null,
@@ -68,6 +98,9 @@ export default function MirrorChat({
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
+  const [memoryUpdate, setMemoryUpdate] = useState<MemoryUpdate | null>(null);
+  const [isMemoryExpanded, setIsMemoryExpanded] = useState(false);
+  const [showEvidence, setShowEvidence] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
 
@@ -114,6 +147,19 @@ export default function MirrorChat({
     }]);
   }, [lens]);
 
+  const toggleMemoryExpanded = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsMemoryExpanded(!isMemoryExpanded);
+    if (isMemoryExpanded) {
+      setShowEvidence(false); // Reset evidence when collapsing
+    }
+  };
+
+  const toggleEvidence = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowEvidence(!showEvidence);
+  };
+
   const handleSend = async () => {
     if (!inputText.trim() || isLoading || !sessionId) return;
 
@@ -148,6 +194,11 @@ export default function MirrorChat({
 
       setMessages(prev => [...prev, assistantMessage]);
       setSessionId(response.data.session_id);
+      
+      // Store memory update if present
+      if (response.data.memory_update) {
+        setMemoryUpdate(response.data.memory_update);
+      }
     } catch (error: any) {
       console.error('Mirror chat error:', error);
       const errorMessage: Message = {
@@ -193,6 +244,85 @@ export default function MirrorChat({
     );
   };
 
+  // Memory Card Component
+  const renderMemoryCard = () => {
+    if (!memoryUpdate || lens !== null) return null; // Only show in generalist Mirror Chat
+    
+    return (
+      <View style={styles.memoryCard}>
+        <TouchableOpacity 
+          style={styles.memoryHeader} 
+          onPress={toggleMemoryExpanded}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.memoryTitle}>What Mirror is noticing lately</Text>
+          <Ionicons 
+            name={isMemoryExpanded ? "chevron-up" : "chevron-down"} 
+            size={18} 
+            color={Colors.textTertiary} 
+          />
+        </TouchableOpacity>
+        
+        {isMemoryExpanded && (
+          <View style={styles.memoryContent}>
+            {/* Themes (max 2) */}
+            {memoryUpdate.themes.length > 0 && (
+              <View style={styles.memorySection}>
+                <Text style={styles.memorySectionLabel}>Themes surfacing</Text>
+                {memoryUpdate.themes.slice(0, 2).map((theme, i) => (
+                  <Text key={i} style={styles.memoryItem}>• {theme}</Text>
+                ))}
+              </View>
+            )}
+            
+            {/* Recurring tension (max 1) */}
+            {memoryUpdate.recurring_tensions.length > 0 && (
+              <View style={styles.memorySection}>
+                <Text style={styles.memorySectionLabel}>A tension present</Text>
+                <Text style={styles.memoryItem}>• {memoryUpdate.recurring_tensions[0]}</Text>
+              </View>
+            )}
+            
+            {/* Inferred state */}
+            {memoryUpdate.inferred_state && memoryUpdate.inferred_state !== 'unclear' && (
+              <View style={styles.stateContainer}>
+                <Text style={styles.stateLabel}>
+                  Current tone: <Text style={styles.stateValue}>{formatState(memoryUpdate.inferred_state)}</Text>
+                </Text>
+              </View>
+            )}
+            
+            {/* Show details toggle */}
+            <TouchableOpacity 
+              style={styles.detailsToggle} 
+              onPress={toggleEvidence}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.detailsToggleText}>
+                {showEvidence ? 'Hide details' : 'Show details'}
+              </Text>
+            </TouchableOpacity>
+            
+            {/* Evidence (hidden by default) */}
+            {showEvidence && memoryUpdate.evidence.length > 0 && (
+              <View style={styles.evidenceSection}>
+                <Text style={styles.evidenceLabel}>Based on</Text>
+                {memoryUpdate.evidence.slice(0, 3).map((ev, i) => (
+                  <Text key={i} style={styles.evidenceItem}>"{ev}"</Text>
+                ))}
+              </View>
+            )}
+            
+            {/* Footer */}
+            <Text style={styles.memoryFooter}>
+              Take what resonates; leave what doesn't.
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   const canSend = inputText.trim().length > 0 && !isLoading && sessionId;
 
   return (
@@ -220,6 +350,9 @@ export default function MirrorChat({
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Memory Card (above messages) */}
+      {renderMemoryCard()}
 
       {/* Messages */}
       <FlatList
@@ -321,6 +454,110 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceLight,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  // Memory Card
+  memoryCard: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+    backgroundColor: '#FDFCFA',
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  memoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  memoryTitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    letterSpacing: -0.2,
+  },
+  memoryContent: {
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  memorySection: {
+    marginTop: 12,
+  },
+  memorySectionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  memoryItem: {
+    fontSize: 13,
+    color: Colors.text,
+    lineHeight: 19,
+    marginBottom: 2,
+  },
+  stateContainer: {
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  stateLabel: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+  },
+  stateValue: {
+    fontStyle: 'italic',
+    color: Colors.textSecondary,
+  },
+  detailsToggle: {
+    marginTop: 12,
+    paddingVertical: 4,
+  },
+  detailsToggleText: {
+    fontSize: 12,
+    color: Colors.accent,
+    fontWeight: '500',
+  },
+  evidenceSection: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  evidenceLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    opacity: 0.7,
+  },
+  evidenceItem: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+    lineHeight: 17,
+    marginBottom: 4,
+    opacity: 0.8,
+  },
+  memoryFooter: {
+    marginTop: 14,
+    fontSize: 11,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    opacity: 0.7,
   },
 
   // Messages
