@@ -229,6 +229,30 @@ export default function LensDetail() {
     );
   }
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.headerBackButton}>
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{content.name}</Text>
+        </View>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={Colors.textSecondary} />
+          <Text style={styles.loadingText}>Loading your chart...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Check if user needs to complete onboarding (no user or no chart)
+  const showOnboardingCTA = !user?.id || (error && error.includes('not found'));
+  const isAstrologyLens = lens === 'astrology';
+  const hasAstrologyData = chartDetails?.astrology?.sun || chartDetails?.astrology?.moon;
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
