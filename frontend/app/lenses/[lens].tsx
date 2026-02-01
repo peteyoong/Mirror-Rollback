@@ -8,7 +8,8 @@ import {
   TextInput,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform 
+  Platform,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -16,6 +17,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../../store';
+import MirrorChat from '../../components/MirrorChat';
 
 // Lens metadata
 const LENS_META: { [key: string]: { name: string; icon: string } } = {
