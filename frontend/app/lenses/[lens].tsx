@@ -746,7 +746,7 @@ export default function LensDetail() {
                   onPress={() => navigateToMode('snapshot')}
                 >
                   <Ionicons name="sparkles" size={18} color={Colors.background} />
-                  <Text style={styles.modeNavButtonTextPrimary}>View Summary</Text>
+                  <Text style={styles.modeNavButtonTextPrimary}>Full Snapshot</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
