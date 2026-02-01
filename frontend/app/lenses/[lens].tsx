@@ -520,6 +520,51 @@ export default function LensDetail() {
     );
   };
 
+  // Render personalized Mirror Moment card (Human Design lens only)
+  const renderHDMirrorMoment = () => {
+    if (!hdMirror) return null;
+    
+    return (
+      <View style={styles.personalizedMirrorCard}>
+        <View style={styles.personalizedMirrorHeader}>
+          <Ionicons name="sparkles-outline" size={18} color={Colors.accent} />
+          <Text style={styles.personalizedMirrorTitle}>Mirror Moment</Text>
+        </View>
+        
+        {/* Energy (Type) */}
+        <View style={styles.mirrorBlock}>
+          <Text style={styles.mirrorBlockLabel}>How your energy may show up</Text>
+          <Text style={styles.mirrorBlockText}>{hdMirror.energy}</Text>
+          {hdMirror.hdType && (
+            <Text style={styles.mirrorBlockSource}>Based on {hdMirror.hdType} configuration</Text>
+          )}
+        </View>
+        
+        {/* Decision-making (Authority) */}
+        <View style={styles.mirrorBlock}>
+          <Text style={styles.mirrorBlockLabel}>Decision-making to notice</Text>
+          <Text style={styles.mirrorBlockText}>{hdMirror.decisionMaking}</Text>
+          {hdMirror.authority && (
+            <Text style={styles.mirrorBlockSource}>Based on {hdMirror.authority} process</Text>
+          )}
+        </View>
+        
+        {/* Question (Profile) */}
+        <View style={[styles.mirrorBlock, styles.mirrorBlockLast]}>
+          <Text style={styles.mirrorBlockLabel}>A gentle question</Text>
+          <Text style={styles.mirrorBlockQuestion}>{hdMirror.question}</Text>
+          {hdMirror.profile && (
+            <Text style={styles.mirrorBlockSource}>Based on {hdMirror.profile} profile</Text>
+          )}
+        </View>
+        
+        <Text style={styles.personalizedMirrorFooter}>
+          Take what resonates; leave what doesn't.
+        </Text>
+      </View>
+    );
+  };
+
   const renderChatInput = () => (
     <View style={styles.chatContainer}>
       <View style={styles.chatInputWrapper}>
