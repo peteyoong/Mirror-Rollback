@@ -204,18 +204,15 @@ export default function Onboarding() {
     setIsSubmitting(true);
 
     try {
-      // Create user
+      // Create user with correct API fields
       const userData = await createUser({
         name: name.trim() || undefined,
-        email: email.trim(),
+        email: email.trim() || undefined,
         birth_date: birthDate,
         birth_time: birthTime || undefined,
-        birth_location: {
-          city: selectedLocation.city,
-          country: selectedLocation.country,
-          latitude: selectedLocation.latitude,
-          longitude: selectedLocation.longitude,
-        },
+        city: selectedLocation.city,
+        country: selectedLocation.country,
+        timezone: '+00:00', // Default timezone - will be geocoded by backend
       });
 
       await setUser(userData);
