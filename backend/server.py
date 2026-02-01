@@ -278,25 +278,42 @@ async def search_locations(request: LocationSearchRequest):
         for loc in locations:
             address = loc.raw.get('address', {})
             
-            # Try multiple fields for city name
+            # Extract city name - prefer the most specific locality
             city = (
                 address.get('city') or 
                 address.get('town') or 
-                address.get('village') or 
-                address.get('county') or
-                address.get('state') or
+                address.get('village') or
+                address.get('suburb') or  # Added suburb for places like Petaling Jaya
                 address.get('municipality') or
+                address.get('county') or
+                address.get('state_district') or
+                address.get('state') or
                 loc.address.split(',')[0].strip()
             )
             
+            # If search query looks like a specific place and result starts with it, use it
+            query_lower = request.query.lower().strip()
+            display_parts = loc.address.split(',')
+            first_part = display_parts[0].strip()
+            if query_lower in first_part.lower() and len(first_part) < 50:
+                city = first_part
+            
             country = address.get('country', 'Unknown')
+            
+            # Estimate timezone from longitude (rough approximation)
+            # Each 15° of longitude = 1 hour offset from UTC
+            lng = loc.longitude
+            tz_hours = round(lng / 15)
+            tz_sign = "+" if tz_hours >= 0 else "-"
+            tz_string = f"{tz_sign}{abs(tz_hours):02d}:00"
             
             results.append({
                 "city": city,
                 "country": country,
                 "latitude": loc.latitude,
                 "longitude": loc.longitude,
-                "display_name": loc.address
+                "display_name": loc.address,
+                "timezone": tz_string
             })
         
         return {"results": results}
