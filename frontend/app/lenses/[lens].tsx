@@ -1,114 +1,151 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  ScrollView, 
+  StyleSheet, 
+  TouchableOpacity, 
+  TextInput,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform 
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppStore } from '../../store';
 
-const LENS_CONTENT: { [key: string]: any } = {
+// Lens metadata
+const LENS_META: { [key: string]: { name: string; icon: string } } = {
+  astrology: { name: 'True Sidereal Astrology', icon: 'planet-outline' },
+  human_design: { name: 'Human Design', icon: 'body-outline' },
+  numerology: { name: 'Numerology', icon: 'calculator-outline' },
+  consciousness: { name: 'Consciousness', icon: 'eye-outline' },
+};
+
+// Mirror Moment content per lens and mode
+const MIRROR_CONTENT: { [key: string]: { [mode: string]: { title: string; intro?: string; body: string[]; reflection: string; footer?: string } } } = {
   astrology: {
-    name: 'True Sidereal Astrology',
-    summary: 'A lens for understanding cosmic rhythms and archetypal patterns. This shows where celestial bodies were at your birth, using the True Sidereal system (aligned with actual star positions, not seasons).',
-    howToUse: [
-      'Notice patterns in timing and cycles',
-      'Consider archetypal themes, not fixed traits'
-    ],
-    deepDive: {
-      intro: 'Your natal chart is calculated using True Sidereal positions (Lahiri Ayanamsa), which accounts for the precession of the equinoxes.',
-      sections: [
-        {
-          title: 'What This Shows',
-          content: 'Planet positions at your birth moment, showing energetic patterns and cycles. This is descriptive, not deterministic—it offers one way to see themes in your life.'
-        },
-        {
-          title: 'Key Points',
-          content: 'Sun, Moon, and Rising sign form the core. Planets represent different life areas. Houses show where these play out. Aspects reveal relationships between energies.'
-        },
-        {
-          title: 'What It Does NOT Do',
-          content: 'Does not predict events. Does not define who you are. Does not limit your choices. It\'s a map, not a mandate.'
-        }
-      ]
+    summary: {
+      title: "Today's Mirror Moment",
+      body: [
+        "Some days feel louder than others —",
+        "not because something is wrong,",
+        "but because attention is being called.",
+        "",
+        "What demands your presence today",
+        "may hold something worth noticing."
+      ],
+      reflection: "Where is your attention being pulled —\nand what might it reveal?",
+      footer: "Take what resonates; leave what doesn't."
+    },
+    deep_dive: {
+      title: "Mirror Moment",
+      intro: "\"Does astrology tell me what will happen — or how I meet what happens?\"",
+      body: [
+        "Astrology doesn't predict your life.",
+        "It describes the timing and tone of experience.",
+        "",
+        "Your chart reflects when certain themes are louder —",
+        "not what you must do with them.",
+        "",
+        "The same sky can be lived many ways.",
+        "Awareness changes the relationship.",
+        "Choice changes the outcome."
+      ],
+      reflection: "Where do you feel most free to respond —\nand where do you feel pulled into habit?",
+      footer: "Take what resonates; leave what doesn't.\nAstrology marks cycles — not commands."
     }
   },
   human_design: {
-    name: 'Human Design',
-    summary: 'A synthesis showing how you\'re designed to interact with the world. Combines aspects of astrology, I-Ching, Kabbalah, and the chakra system into a unique "bodygraph."',
-    howToUse: [
-      'Understand your natural decision-making process',
-      'Recognize your energy type and how you engage'
-    ],
-    deepDive: {
-      intro: 'Your Human Design is calculated from two charts: Personality (conscious, at birth) and Design (unconscious, ~88 days before birth).',
-      sections: [
-        {
-          title: 'What This Shows',
-          content: 'Your Type shows how you best interact with the world. Authority indicates your decision-making process. Profile reveals your role and learning style. Centers show consistent vs. variable energy.'
-        },
-        {
-          title: 'The 64 Gates',
-          content: 'Gates correspond to I-Ching hexagrams and are activated by planetary positions. When two gates connect, they form a channel, creating defined energy.'
-        },
-        {
-          title: 'V1 Note',
-          content: 'Current calculations use simplified gate-to-center mapping without full channel analysis. This may affect Type accuracy. Full channel logic coming in future updates.'
-        },
-        {
-          title: 'What It Does NOT Do',
-          content: 'Does not tell you who you should be. Does not predict your future. Does not limit your potential. It\'s information, not instruction.'
-        }
-      ]
+    summary: {
+      title: "Mirror Moment",
+      intro: "\"If this is my design, does that mean I can't be anything else?\"",
+      body: [
+        "Human Design doesn't describe who you must be.",
+        "It describes how energy is most available to you.",
+        "",
+        "Your design shows recurring patterns —",
+        "how you tend to initiate, respond, feel, and process experience.",
+        "",
+        "But awareness changes the pattern.",
+        "And practice changes how the pattern is lived.",
+        "",
+        "This isn't about fitting yourself into a type.",
+        "It's about noticing what feels natural —",
+        "and choosing how consciously you live it."
+      ],
+      reflection: "Where does following your design feel relieving —\nand where does it feel constraining?",
+      footer: "Take what resonates; leave what doesn't."
+    },
+    deep_dive: {
+      title: "Mirror Moment",
+      body: [
+        "Your design is a map of energy flow —",
+        "not a limitation on who you can become.",
+        "",
+        "Notice where you feel resistance.",
+        "Notice where you feel alignment.",
+        "Both are information."
+      ],
+      reflection: "What patterns in your design do you recognize in your daily life?",
+      footer: "Design is descriptive, not prescriptive."
     }
   },
   numerology: {
-    name: 'Numerology',
-    summary: 'A system revealing patterns in numbers and life paths. Uses your birth date and name to identify recurring themes and natural rhythms in your life journey.',
-    howToUse: [
-      'Recognize core themes in your experience',
-      'Notice when certain patterns repeat'
-    ],
-    deepDive: {
-      intro: 'Numerology reduces numbers to single digits (or master numbers 11, 22, 33), each carrying specific archetypal meaning.',
-      sections: [
-        {
-          title: 'Life Path Number',
-          content: 'Calculated from your full birth date. Represents the primary theme of your life journey—not your destiny, but a lens for understanding patterns.'
-        },
-        {
-          title: 'Expression Number',
-          content: 'Derived from your full name at birth. Shows natural talents and how you express yourself in the world.'
-        },
-        {
-          title: 'What It Does NOT Do',
-          content: 'Does not guarantee outcomes. Does not define your limits. Does not predict specific events. It highlights patterns, not prescriptions.'
-        }
-      ]
+    summary: {
+      title: "Mirror Moment",
+      body: [
+        "Numbers describe cycles and themes —",
+        "the rhythm beneath the surface.",
+        "",
+        "Your personal year, month, and day",
+        "suggest what energies are present.",
+        "",
+        "Not what will happen —",
+        "but what wants attention."
+      ],
+      reflection: "What themes keep appearing in your life right now?",
+      footer: "Take what resonates; leave what doesn't."
+    },
+    deep_dive: {
+      title: "Mirror Moment",
+      body: [
+        "Numerology marks cycles.",
+        "It doesn't create them.",
+        "",
+        "The numbers in your chart",
+        "are one way to see patterns",
+        "you're already living."
+      ],
+      reflection: "What cycle does it feel like you're in?",
+      footer: "Numbers illuminate — they don't dictate."
     }
   },
   consciousness: {
-    name: 'Levels of Consciousness',
-    summary: 'A map of emotional and spiritual development based on Dr. David Hawkins\' research. Shows 17 levels from Shame (20) to Enlightenment (700-1000).',
-    howToUse: [
-      'Understand where you currently are, not where you "should" be',
-      'Notice what might shift as you move between levels'
-    ],
-    deepDive: {
-      intro: 'The Map of Consciousness calibrates emotions and viewpoints on a logarithmic scale from 1-1000, where 200 is the critical threshold of integrity.',
-      sections: [
-        {
-          title: 'Below 200: Force',
-          content: 'Levels like Shame, Guilt, Fear, and Anger. Take more energy than they give. Survival-based. Life feels like something happening TO you.'
-        },
-        {
-          title: 'Above 200: Power',
-          content: 'Levels like Courage, Acceptance, and Love. Generate more than they consume. Life feels like something you participate IN.'
-        },
-        {
-          title: 'What It Does NOT Do',
-          content: 'Does not rank people\'s worth. Does not mean "higher is better" morally. Does not guarantee you won\'t move between levels. It describes, not judges.'
-        }
-      ]
+    summary: {
+      title: "Mirror Moment",
+      body: [
+        "Consciousness isn't something to achieve.",
+        "It's something to notice.",
+        "",
+        "Every framework in this app",
+        "is a lens for seeing yourself —",
+        "not a box to fit into."
+      ],
+      reflection: "What are you aware of right now\nthat you weren't aware of yesterday?",
+      footer: "Take what resonates; leave what doesn't."
+    },
+    deep_dive: {
+      title: "Mirror Moment",
+      body: [
+        "The goal isn't to understand yourself completely.",
+        "It's to stay curious about what you find."
+      ],
+      reflection: "Where do you feel the most like yourself?",
+      footer: "Awareness is the practice."
     }
   }
 };
@@ -116,91 +153,221 @@ const LENS_CONTENT: { [key: string]: any } = {
 export default function LensDetail() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { lens, mode = 'summary' } = params;
+  const { lens } = params;
+  const [activeTab, setActiveTab] = useState<'summary' | 'snapshot' | 'deep_dive'>('deep_dive');
+  const [chatInput, setChatInput] = useState('');
+  const { user, chart } = useAppStore();
   
-  const content = LENS_CONTENT[lens as string];
-  
-  if (!content) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>Lens not found</Text>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>Go Back</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const lensMeta = LENS_META[lens as string] || { name: 'Lens', icon: 'help-outline' };
+  const mirrorContent = MIRROR_CONTENT[lens as string]?.[activeTab === 'snapshot' ? 'summary' : activeTab] || MIRROR_CONTENT.astrology.summary;
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
+  // Get profile data based on lens type
+  const getProfileData = () => {
+    if (!chart) return null;
+    
+    if (lens === 'astrology') {
+      const astro = chart.astrology;
+      if (!astro?.planets) return null;
       
-      {/* Header with back button */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBackButton}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{content.name}</Text>
+      const sun = astro.planets.Sun;
+      const moon = astro.planets.Moon;
+      const houses = astro.houses;
+      const ascendant = houses?.formatted_cusps?.[0];
+      
+      return {
+        title: 'YOUR SIDEREAL PROFILE',
+        computed_title: 'YOUR SIDEREAL PROFILE (COMPUTED)',
+        items: [
+          { label: 'SUN', value: sun?.sign || '—', degree: sun?.formatted?.split(' ')[1] || '' },
+          { label: 'MOON', value: moon?.sign || '—', degree: moon?.formatted?.split(' ')[1] || '' },
+          { label: 'ASCENDANT', value: ascendant?.sign || '—', degree: ascendant?.formatted?.split(' ')[1] || '' },
+        ],
+        computed: [
+          { label: 'Sun:', value: sun?.formatted || '—' },
+          { label: 'Moon:', value: moon?.formatted || '—' },
+          { label: 'Ascendant:', value: ascendant?.formatted || '—' },
+          { label: 'System:', value: 'True Sidereal — GM Anchor' },
+        ],
+        source: 'computed_blueprint_v2.astrology',
+        chatPlaceholder: 'Ask about your sidereal profile, or ho'
+      };
+    }
+    
+    if (lens === 'human_design') {
+      const hd = chart.human_design;
+      if (!hd) return null;
+      
+      return {
+        title: 'YOUR HUMAN DESIGN PROFILE',
+        items: [],
+        computed: [
+          { label: 'Type:', value: hd.type || '—' },
+          { label: 'Strategy:', value: hd.strategy || '—' },
+          { label: 'Authority:', value: hd.authority || '—' },
+          { label: 'Profile:', value: hd.profile || '—' },
+        ],
+        chatPlaceholder: 'Ask about your Human Design, or ho'
+      };
+    }
+    
+    return null;
+  };
+
+  const profileData = getProfileData();
+
+  const renderTabs = () => (
+    <View style={styles.tabBar}>
+      <TouchableOpacity 
+        style={[styles.tab, activeTab === 'summary' && styles.tabActive]}
+        onPress={() => setActiveTab('summary')}
+      >
+        <Text style={[styles.tabText, activeTab === 'summary' && styles.tabTextActive]}>Summary</Text>
+      </TouchableOpacity>
+      <TouchableOpacity 
+        style={[styles.tab, activeTab === 'snapshot' && styles.tabActive]}
+        onPress={() => setActiveTab('snapshot')}
+      >
+        <Text style={[styles.tabText, activeTab === 'snapshot' && styles.tabTextActive]}>Your Snapshot</Text>
+      </TouchableOpacity>
+      <TouchableOpacity 
+        style={[styles.tab, activeTab === 'deep_dive' && styles.tabActive]}
+        onPress={() => setActiveTab('deep_dive')}
+      >
+        <Text style={[styles.tabText, activeTab === 'deep_dive' && styles.tabTextActive]}>Deep Dive</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderMirrorMoment = () => (
+    <View style={styles.mirrorCard}>
+      {mirrorContent.intro && (
+        <Text style={styles.mirrorIntro}>{mirrorContent.intro}</Text>
+      )}
+      
+      <View style={styles.mirrorTitleRow}>
+        <View style={styles.mirrorIcon}>
+          <Ionicons name="radio-button-on-outline" size={16} color={Colors.textSecondary} />
+        </View>
+        <Text style={styles.mirrorTitle}>{mirrorContent.title}</Text>
       </View>
+      
+      <View style={styles.mirrorBody}>
+        {mirrorContent.body.map((line, index) => (
+          <Text key={index} style={[styles.mirrorBodyText, line === '' && { height: 12 }]}>
+            {line}
+          </Text>
+        ))}
+      </View>
+      
+      <View style={styles.mirrorDivider} />
+      
+      <Text style={styles.reflectionLabel}>REFLECTION</Text>
+      <Text style={styles.reflectionText}>{mirrorContent.reflection}</Text>
+      
+      {mirrorContent.footer && (
+        <Text style={styles.mirrorFooter}>{mirrorContent.footer}</Text>
+      )}
+    </View>
+  );
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {mode === 'summary' && (
-          <>
-            {/* Summary View */}
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryText}>{content.summary}</Text>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>How to use this lens</Text>
-              {content.howToUse.map((item: string, index: number) => (
-                <View key={index} style={styles.bulletPoint}>
-                  <Text style={styles.bullet}>•</Text>
-                  <Text style={styles.bulletText}>{item}</Text>
+  const renderSiderealProfile = () => {
+    if (!profileData) return null;
+    
+    return (
+      <>
+        {/* Large Profile Card (for astrology) */}
+        {profileData.items.length > 0 && (
+          <View style={styles.profileCard}>
+            <Text style={styles.profileTitle}>{profileData.title}</Text>
+            <View style={styles.profileGrid}>
+              {profileData.items.map((item, index) => (
+                <View key={index} style={styles.profileGridItem}>
+                  <Text style={styles.profileLabel}>{item.label}</Text>
+                  <Text style={styles.profileValue}>{item.value}</Text>
+                  {item.degree && <Text style={styles.profileDegree}>{item.degree}</Text>}
                 </View>
               ))}
             </View>
-
-            <TouchableOpacity
-              style={styles.deepDiveButton}
-              onPress={() => router.push(`/lenses/${lens}?mode=deep` as any)}
-            >
-              <Text style={styles.deepDiveButtonText}>Go Deeper</Text>
-              <Ionicons name="arrow-forward" size={20} color={Colors.background} />
-            </TouchableOpacity>
-          </>
+          </View>
         )}
-
-        {mode === 'deep' && (
-          <>
-            {/* Deep Dive View */}
-            <View style={styles.disclaimerCard}>
-              <Ionicons name="information-circle-outline" size={20} color={Colors.textSecondary} />
-              <Text style={styles.disclaimerText}>
-                Descriptive, not deterministic. Not predictive. Offers perspective, not prescription.
-              </Text>
+        
+        {/* Computed Profile List */}
+        <View style={styles.computedSection}>
+          <Text style={styles.computedTitle}>{profileData.computed_title || profileData.title}</Text>
+          {profileData.computed.map((item, index) => (
+            <View key={index} style={styles.computedRow}>
+              <Text style={styles.computedLabel}>{item.label}</Text>
+              <Text style={styles.computedValue}>{item.value}</Text>
             </View>
+          ))}
+          {profileData.source && (
+            <Text style={styles.sourceText}>Source: {profileData.source}</Text>
+          )}
+        </View>
+      </>
+    );
+  };
 
-            <Text style={styles.intro}>{content.deepDive.intro}</Text>
+  const renderChatInput = () => (
+    <View style={styles.chatContainer}>
+      <View style={styles.chatInputWrapper}>
+        <TextInput
+          style={styles.chatInput}
+          placeholder={profileData?.chatPlaceholder || `Ask about your ${lensMeta.name}...`}
+          placeholderTextColor={Colors.textTertiary}
+          value={chatInput}
+          onChangeText={setChatInput}
+        />
+        <TouchableOpacity style={styles.chatSendButton}>
+          <Ionicons name="send" size={20} color={Colors.success} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
-            {content.deepDive.sections.map((section: any, index: number) => (
-              <View key={index} style={styles.deepSection}>
-                <Text style={styles.deepSectionTitle}>{section.title}</Text>
-                <Text style={styles.deepSectionContent}>{section.content}</Text>
-              </View>
-            ))}
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar style="dark" />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
+          <Ionicons name="close" size={24} color={Colors.text} />
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
+          <Ionicons name={lensMeta.icon as any} size={20} color={Colors.text} />
+          <Text style={styles.headerTitle}>{lensMeta.name}</Text>
+        </View>
+        <View style={styles.headerSpacer} />
+      </View>
 
-            <View style={styles.footerNote}>
-              <Text style={styles.footerNoteText}>
-                Remember: These frameworks work best when held lightly. They're tools for reflection, not rigid definitions.
-              </Text>
-            </View>
-          </>
-        )}
-      </ScrollView>
+      {/* Tabs */}
+      {renderTabs()}
+
+      <KeyboardAvoidingView 
+        style={styles.flex1}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Mode Label */}
+          {activeTab === 'deep_dive' && (
+            <Text style={styles.modeLabel}>DEEP DIVE</Text>
+          )}
+
+          {/* Mirror Moment Card */}
+          {renderMirrorMoment()}
+
+          {/* Profile Data */}
+          {renderSiderealProfile()}
+        </ScrollView>
+
+        {/* Chat Input */}
+        {renderChatInput()}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -210,149 +377,241 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  centered: {
+  flex1: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
-  headerBackButton: {
-    padding: 8,
-    marginRight: 12,
+  closeButton: {
+    padding: 4,
+  },
+  headerCenter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
     color: Colors.text,
+  },
+  headerSpacer: {
+    width: 32,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+  },
+  tabActive: {
+    backgroundColor: Colors.surface,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  tabText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  tabTextActive: {
+    color: Colors.text,
+    fontWeight: '600',
+  },
+  scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: 24,
-    paddingBottom: 60,
+    padding: 16,
+    paddingBottom: 20,
   },
-  summaryCard: {
+  modeLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  mirrorCard: {
     backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 24,
-    marginBottom: 24,
-  },
-  summaryText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: Colors.text,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  bulletPoint: {
-    flexDirection: 'row',
-    marginBottom: 12,
-    paddingLeft: 8,
-  },
-  bullet: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    marginRight: 12,
-    marginTop: 2,
-  },
-  bulletText: {
-    flex: 1,
+  mirrorIntro: {
     fontSize: 15,
-    lineHeight: 22,
+    fontStyle: 'italic',
     color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 22,
   },
-  deepDiveButton: {
+  mirrorTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.text,
-    borderRadius: 12,
-    padding: 16,
     gap: 8,
+    marginBottom: 16,
   },
-  deepDiveButtonText: {
+  mirrorIcon: {
+    opacity: 0.6,
+  },
+  mirrorTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.background,
+    color: Colors.text,
   },
-  disclaimerCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    gap: 12,
+  mirrorBody: {
+    marginBottom: 20,
   },
-  disclaimerText: {
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 20,
-    color: Colors.textSecondary,
-    fontStyle: 'italic',
-  },
-  intro: {
+  mirrorBodyText: {
     fontSize: 15,
+    color: Colors.text,
+    textAlign: 'center',
     lineHeight: 24,
+  },
+  mirrorDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: 20,
+  },
+  reflectionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
     color: Colors.textSecondary,
-    marginBottom: 32,
+    letterSpacing: 1.5,
+    textAlign: 'center',
+    marginBottom: 8,
   },
-  deepSection: {
-    marginBottom: 32,
+  reflectionText: {
+    fontSize: 15,
+    fontStyle: 'italic',
+    color: Colors.text,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 16,
   },
-  deepSectionTitle: {
+  mirrorFooter: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    lineHeight: 20,
+  },
+  profileCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  profileTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    letterSpacing: 1,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  profileGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  profileGridItem: {
+    alignItems: 'center',
+  },
+  profileLabel: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  profileValue: {
     fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  profileDegree: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  computedSection: {
+    paddingHorizontal: 4,
+    marginBottom: 16,
+  },
+  computedTitle: {
+    fontSize: 12,
     fontWeight: '600',
     color: Colors.text,
+    letterSpacing: 0.5,
     marginBottom: 12,
   },
-  deepSectionContent: {
-    fontSize: 15,
-    lineHeight: 24,
+  computedRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  computedLabel: {
+    fontSize: 14,
     color: Colors.textSecondary,
   },
-  footerNote: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 20,
-    marginTop: 16,
-  },
-  footerNoteText: {
+  computedValue: {
     fontSize: 14,
-    lineHeight: 22,
-    color: Colors.textTertiary,
-    fontStyle: 'italic',
-    textAlign: 'center',
-  },
-  errorText: {
-    fontSize: 16,
-    color: Colors.error,
-    marginBottom: 24,
-  },
-  backButton: {
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  backButtonText: {
-    fontSize: 16,
+    fontWeight: '600',
     color: Colors.text,
+  },
+  sourceText: {
+    fontSize: 12,
+    color: Colors.success,
+    marginTop: 8,
+  },
+  chatContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  chatInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  chatInput: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.text,
+    paddingVertical: 10,
+  },
+  chatSendButton: {
+    padding: 8,
+    marginLeft: 8,
   },
 });
