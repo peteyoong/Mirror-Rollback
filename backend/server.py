@@ -498,6 +498,21 @@ async def calculate_chart(request: ChartCalculationRequest):
         # in a SEPARATE interpretation layer, NOT in this computation core.
         # =====================================================================
         
+        # =====================================================================
+        # RUNTIME GUARDRAIL: Deterministic Payload Integrity
+        # =====================================================================
+        # Deterministic payload must contain no interpretive language.
+        # All fields must be factual, numeric, or categorical.
+        #
+        # FORBIDDEN in compute output:
+        # - "you", "your" (addressing user)
+        # - "should", "will", "must" (prescriptive)
+        # - "means", "represents", "symbolizes" (interpretive)
+        # - "invites", "suggests", "indicates" (inferential)
+        #
+        # If this guardrail fires, FIX THE COMPUTE MODULE, not this check.
+        # =====================================================================
+        
         # Store chart data
         chart_data = {
             "user_id": request.user_id,
