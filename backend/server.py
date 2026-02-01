@@ -439,10 +439,21 @@ async def create_user(profile: UserProfileCreate):
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"Invalid timezone: {str(e)}")
         
-        # Geocode location
-        location_data = await geocode_location(profile.city, profile.country)
-        if not location_data:
-            raise HTTPException(status_code=400, detail="Could not geocode location")
+        # Use provided lat/long if available, otherwise geocode
+        if profile.latitude is not None and profile.longitude is not None:
+            # Use provided coordinates (from fallback city database)
+            location_data = {
+                "city": profile.city,
+                "country": profile.country,
+                "latitude": profile.latitude,
+                "longitude": profile.longitude
+            }
+            logger.info(f"Using provided coordinates: {profile.city}, {profile.country} ({profile.latitude}, {profile.longitude})")
+        else:
+            # Geocode location
+            location_data = await geocode_location(profile.city, profile.country)
+            if not location_data:
+                raise HTTPException(status_code=400, detail="Could not geocode location")
         
         # Parse birth date
         birth_date = datetime.strptime(profile.birth_date, "%Y-%m-%d")
