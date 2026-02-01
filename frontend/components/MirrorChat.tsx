@@ -60,6 +60,7 @@ export default function MirrorChat({
   lens = null,
   placeholder = "Say what's real right now…",
   headerTitle = "Mirror",
+  headerSubtitle = "A mirror, not a verdict.",
   onClose,
 }: MirrorChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
