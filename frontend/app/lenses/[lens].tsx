@@ -344,7 +344,7 @@ export default function LensDetail() {
           <Text style={styles.snapshotTitle}>Your Sidereal Snapshot</Text>
         </View>
         
-        {/* Sun/Moon/Ascendant rows - only render if data exists */}
+        {/* Sun/Moon/Rising rows - only render if data exists */}
         <View style={styles.snapshotRows}>
           {hasSun && (
             <View style={styles.snapshotRow}>
@@ -366,21 +366,21 @@ export default function LensDetail() {
             </View>
           )}
           
-          {hasAscendant && (
+          {hasRising && (
             <View style={styles.snapshotRow}>
               <View style={styles.snapshotRowIcon}>
                 <Ionicons name="arrow-up-circle" size={18} color={Colors.text} />
               </View>
               <Text style={styles.snapshotRowLabel}>Ascendant</Text>
-              <Text style={styles.snapshotRowValue}>{formatPlanetPosition(asc)}</Text>
+              <Text style={styles.snapshotRowValue}>{formatPlanetPosition(rising)}</Text>
             </View>
           )}
         </View>
         
-        {/* System label - neutral copy */}
+        {/* System label - neutral copy (PROMPT 4) */}
         <View style={styles.systemLabel}>
           <Text style={styles.systemLabelText}>
-            Calculated using {getSiderealSystemLabel()}
+            Calculated using {getSiderealSystemLabel()}.
           </Text>
         </View>
 
