@@ -101,6 +101,13 @@ export default function Onboarding() {
 
     setIsSubmitting(true);
     try {
+      // Get device timezone offset and convert to string format
+      const tzOffsetMinutes = new Date().getTimezoneOffset();
+      const tzHours = Math.floor(Math.abs(tzOffsetMinutes) / 60);
+      const tzMins = Math.abs(tzOffsetMinutes) % 60;
+      const tzSign = tzOffsetMinutes <= 0 ? '+' : '-';
+      const timezoneStr = `${tzSign}${String(tzHours).padStart(2, '0')}:${String(tzMins).padStart(2, '0')}`;
+      
       // Create user
       const userData = await createUser({
         name: name || undefined,
@@ -108,6 +115,7 @@ export default function Onboarding() {
         birth_time: birthTime || undefined,
         city: selectedLocation.city,
         country: selectedLocation.country,
+        timezone: timezoneStr,
       });
 
       setUser(userData);
