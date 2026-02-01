@@ -152,22 +152,18 @@ export default function Questionnaire() {
       // Update local user state with email
       setUser({ ...user, email: email.trim().toLowerCase() });
       
-      // Fade to transition
+      // Fade to "Your space is ready" screen
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 200,
         useNativeDriver: true,
       }).start(() => {
-        setScreenState('transition');
+        setScreenState('ready');
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 300,
           useNativeDriver: true,
         }).start();
-
-        // Navigate to main app after 3 seconds
-        setTimeout(() => {
-          router.replace('/(tabs)');
         }, 3000);
       });
     } catch (err: any) {
