@@ -596,7 +596,6 @@ def scan_for_forbidden_words(obj: Any, path: str = "") -> List[str]:
         lower_str = obj.lower()
         for word in FORBIDDEN_WORDS:
             # Check for whole word match
-            import re
             if re.search(r'\b' + re.escape(word) + r'\b', lower_str):
                 violations.append(f"'{word}' found at {path}: \"{obj[:50]}...\"" if len(obj) > 50 else f"'{word}' found at {path}: \"{obj}\"")
     
