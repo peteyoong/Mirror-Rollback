@@ -4562,11 +4562,16 @@ async def get_human_design_deep_dive(user_id: str):
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse HD deep dive JSON: {e}")
             return {
+                "success": True,  # Data is valid, just LLM parsing failed
                 "title": "Your Core Mechanics",
                 "core_mechanics": {
                     "type": hd_data['type'],
                     "strategy": strategy_desc,
-                    "authority": hd_data['authority']
+                    "authority": hd_data['authority'],
+                    "profile": hd_data['profile'],
+                    "definition": hd_data['definition'],
+                    "incarnation_cross": hd_data['incarnation_cross'],
+                    "channels": hd_data['channels']
                 },
                 "sections": [
                     {"label": "Type: Your Energy Architecture", "body": f"As a {hd_data['type']}, there's a particular way energy tends to move through you."},
