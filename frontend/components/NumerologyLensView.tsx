@@ -393,17 +393,13 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
               <View style={styles.modalIconContainer}>
                 <Ionicons name="person-outline" size={32} color={Colors.accent} />
               </View>
-              <Text style={styles.modalTitle}>Your Full Birth Name</Text>
-              <Text style={styles.modalSubtitle}>As given at birth</Text>
+              <Text style={styles.modalTitle}>Full Birth Name</Text>
+              <Text style={styles.modalSubtitle}>As written on your birth certificate</Text>
               
               <View style={styles.modalBody}>
-                <Text style={styles.modalText}>
-                  Please enter your name exactly as it appears on your birth certificate.
-                </Text>
-                
                 <TextInput
                   style={styles.nameInput}
-                  placeholder="Full birth name"
+                  placeholder="e.g. John Michael Smith"
                   placeholderTextColor={Colors.textTertiary}
                   value={fullBirthName}
                   onChangeText={setFullBirthName}
@@ -416,7 +412,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                 )}
                 
                 <Text style={styles.privacyNote}>
-                  Your name is stored securely and used only for these calculations.
+                  Your name is stored securely and used only for these calculations. You can change or remove it anytime from settings.
                 </Text>
               </View>
 
@@ -435,7 +431,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                   {isUnlocking ? (
                     <ActivityIndicator size="small" color={Colors.surface} />
                   ) : (
-                    <Text style={styles.modalPrimaryButtonText}>Unlock</Text>
+                    <Text style={styles.modalPrimaryButtonText}>Compute my name numbers</Text>
                   )}
                 </TouchableOpacity>
               </View>
