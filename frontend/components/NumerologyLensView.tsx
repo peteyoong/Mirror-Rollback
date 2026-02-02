@@ -129,13 +129,16 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
       soul_urge: 'locked'
     };
 
-    const formatNumber = (value: number | string) => {
+    // Safe formatter that handles null/undefined values
+    const formatNumber = (value: number | string | null | undefined): string => {
+      if (value === null || value === undefined) return '—';
       if (value === 'locked') return '🔒';
       if (value === 'Unknown') return '—';
-      return value.toString();
+      return String(value);
     };
 
-    const isLocked = (value: number | string) => value === 'locked';
+    const isLocked = (value: number | string | null | undefined): boolean => 
+      value === 'locked' || value === null || value === undefined;
 
     return (
       <View style={styles.coreNumbersCard}>
