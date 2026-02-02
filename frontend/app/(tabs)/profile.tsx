@@ -174,7 +174,7 @@ export default function ProfileScreen() {
         </View>
       </ScrollView>
 
-      {/* Logout Confirmation Modal (Web) */}
+      {/* Logout Confirmation Modal */}
       <ConfirmModal
         visible={showLogoutModal}
         title="Log Out"
@@ -184,7 +184,7 @@ export default function ProfileScreen() {
         onCancel={() => setShowLogoutModal(false)}
       />
 
-      {/* Reset Session Confirmation Modal (Web) */}
+      {/* Reset Session Confirmation Modal */}
       <ConfirmModal
         visible={showResetModal}
         title="Reset Session"
