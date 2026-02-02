@@ -149,6 +149,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   journalEntries: [],
   hasCompletedOnboarding: false,
   isRestoringSession: false,
+  hasTriedSessionRestore: false,  // NEW: Auth hydration gate
   sessionRestoreError: null,
   
   setUser: async (user) => {
