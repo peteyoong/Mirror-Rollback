@@ -257,7 +257,11 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 28,
+    paddingHorizontal: 32,
+    // Constrain text width for readability
+    maxWidth: 440,
+    alignSelf: 'center',
+    width: '100%',
   },
   centered: {
     flex: 1,
@@ -271,16 +275,18 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   topSpacer: {
-    height: 60,
+    // More breathing room at top
+    height: 80,
   },
   greetingContainer: {
-    marginBottom: 32,
+    marginBottom: 40,
   },
   greeting: {
-    fontSize: 26,
-    fontWeight: '500',
-    color: Colors.text,
-    letterSpacing: -0.3,
+    // Visually lighter - anchor, not headline
+    fontSize: 18,
+    fontWeight: '400',
+    color: Colors.textSecondary,
+    letterSpacing: 0.2,
   },
   loadingContainer: {
     paddingVertical: 60,
@@ -294,26 +300,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textTertiary,
     letterSpacing: 1.5,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   keystoneText: {
     fontSize: 20,
-    lineHeight: 34,
+    // Increased line-height for breathing
+    lineHeight: 36,
     color: Colors.text,
     fontWeight: '400',
-    letterSpacing: 0.1,
-    marginBottom: 24,
+    letterSpacing: 0.2,
+    marginBottom: 28,
   },
   microAffirmation: {
     fontSize: 15,
-    lineHeight: 24,
+    // Increased line-height
+    lineHeight: 26,
     color: Colors.textSecondary,
     fontStyle: 'italic',
-    marginBottom: 40,
+    marginBottom: 48,
   },
   reflectContainer: {
-    paddingTop: 24,
-    paddingBottom: 16,
+    paddingTop: 28,
+    paddingBottom: 20,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.border,
   },
@@ -323,18 +331,19 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   reflectQuestion: {
     fontSize: 17,
-    lineHeight: 28,
+    // Increased line-height
+    lineHeight: 30,
     color: Colors.text,
     fontWeight: '400',
   },
   continueButton: {
-    marginTop: 32,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    marginTop: 36,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
     backgroundColor: Colors.surface,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
@@ -354,16 +363,16 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: 'auto',
-    paddingTop: 40,
-    paddingBottom: 20,
+    paddingTop: 48,
+    paddingBottom: 24,
   },
   footerText: {
     fontSize: 12,
     color: Colors.textTertiary,
     textAlign: 'center',
-    opacity: 0.5,
+    opacity: 0.4,
   },
   bottomSpacer: {
-    height: 40,
+    height: 48,
   },
 });
