@@ -658,6 +658,32 @@ export default function LensDetail() {
             </SafeAreaView>
           </Modal>
         </>
+      ) : lens === 'numerology' && user?.id ? (
+        <>
+          <NumerologyLensView
+            userId={user.id}
+            onOpenChat={() => setLensChatVisible(true)}
+          />
+          
+          {/* Lens Chat Modal */}
+          <Modal
+            visible={lensChatVisible}
+            animationType="slide"
+            presentationStyle="pageSheet"
+            onRequestClose={() => setLensChatVisible(false)}
+          >
+            <SafeAreaView style={styles.modalContainer} edges={['top', 'bottom']}>
+              <MirrorChat
+                userId={user.id}
+                lens="numerology"
+                placeholder="Ask about your numerology…"
+                headerTitle="Numerology Chat"
+                headerSubtitle="Lens-focused reflection"
+                onClose={() => setLensChatVisible(false)}
+              />
+            </SafeAreaView>
+          </Modal>
+        </>
       ) : (
         // OTHER LENSES: Keep original implementation
         <>
