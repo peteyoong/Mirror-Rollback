@@ -11,6 +11,7 @@ import {
   Keyboard,
   LayoutAnimation,
   UIManager,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
