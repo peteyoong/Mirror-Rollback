@@ -5230,17 +5230,22 @@ async def get_numerology_deep_dive(user_id: str):
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse numerology deep dive JSON: {e}")
             return {
+                "success": True,  # Data is valid, just LLM parsing failed
                 "title": "Your Core Numbers",
                 "core_numbers": {
                     "life_path": data["life_path_number"],
-                    "expression": data["expression_number"] if data["has_name_numbers"] else "locked",
-                    "soul_urge": data["soul_urge_number"] if data["has_name_numbers"] else "locked"
+                    "expression": data["expression_number"],  # null if locked
+                    "soul_urge": data["soul_urge_number"],    # null if locked
+                    "personality": data["personality_number"]  # null if locked
                 },
                 "sections": [
                     {"label": "Life Path: Your Learning Theme", "body": f"Life Path {data['life_path_number']} often describes a recurring theme of learning and growth. This isn't about who you are, but about what tends to show up as territory for exploration."},
                     {"label": "Birthday: Your Secondary Flavour", "body": f"Birthday number {data['birthday_number'] or 'unknown'} adds a secondary emphasis — a flavour that colours how you approach things."}
                 ],
-                "unlock_prompt": None if data["has_name_numbers"] else "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality).",
+                "unlock_required": data["unlock_required"],
+                "numerology_full_name_present": data["numerology_full_name_present"],
+                "lock_reason": data["lock_reason"],
+                "unlock_prompt": "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality)." if data["unlock_required"] else None,
                 "mirror_prompt": "What recurring themes do you notice in your own journey?"
             }
     
