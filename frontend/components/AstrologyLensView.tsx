@@ -126,8 +126,9 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
     };
 
     // Helper to format unknown gracefully
-    const formatPlacement = (value: string) => {
-      return value === 'Unknown' ? '—' : value;
+    const formatPlacement = (value: string | null) => {
+      if (!value || value === 'Unknown') return '—';
+      return value;
     };
 
     return (
@@ -149,6 +150,37 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
             <Text style={styles.placementSign}>{formatPlacement(placements.ascendant)}</Text>
           </View>
         </View>
+      </View>
+    );
+  };
+
+  // Render error card when ascendant computation failed
+  const renderComputeErrorCard = () => {
+    if (data?.success !== false) return null;
+    
+    return (
+      <View style={styles.computeErrorCard}>
+        <Ionicons name="alert-circle-outline" size={32} color={Colors.textTertiary} />
+        <Text style={styles.computeErrorTitle}>
+          We couldn't compute your Ascendant right now.
+        </Text>
+        <Text style={styles.computeErrorMessage}>
+          {data?.message || 'Your chart may need to be recalculated.'}
+        </Text>
+        <TouchableOpacity
+          style={[styles.recomputeButton, isRecomputing && styles.disabledButton]}
+          onPress={handleRecomputeChart}
+          disabled={isRecomputing}
+        >
+          {isRecomputing ? (
+            <ActivityIndicator size="small" color={Colors.surface} />
+          ) : (
+            <>
+              <Ionicons name="refresh-outline" size={18} color={Colors.surface} />
+              <Text style={styles.recomputeButtonText}>Recompute chart</Text>
+            </>
+          )}
+        </TouchableOpacity>
       </View>
     );
   };
