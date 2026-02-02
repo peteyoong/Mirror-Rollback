@@ -659,4 +659,47 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
+  // Compute Error Card styles
+  computeErrorCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 24,
+    marginVertical: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  computeErrorTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  computeErrorMessage: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  recomputeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: Colors.text,
+    borderRadius: 8,
+  },
+  recomputeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.surface,
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
 });
