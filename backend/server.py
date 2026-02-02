@@ -4768,6 +4768,8 @@ async def get_human_design_deep_dive(user_id: str):
                     "profile": hd_data['profile'],
                     "definition": hd_data['definition'],
                     "incarnation_cross": hd_data['incarnation_cross'],
+                    "incarnation_cross_label": hd_data['incarnation_cross_label'],
+                    "incarnation_cross_gates": hd_data['incarnation_cross_gates'],
                     "channels": hd_data['channels']
                 }
             else:
@@ -4778,6 +4780,8 @@ async def get_human_design_deep_dive(user_id: str):
                 result["core_mechanics"]["profile"] = result["core_mechanics"].get("profile") or hd_data['profile']
                 result["core_mechanics"]["definition"] = result["core_mechanics"].get("definition") or hd_data['definition']
                 result["core_mechanics"]["incarnation_cross"] = result["core_mechanics"].get("incarnation_cross") or hd_data['incarnation_cross']
+                result["core_mechanics"]["incarnation_cross_label"] = hd_data['incarnation_cross_label']
+                result["core_mechanics"]["incarnation_cross_gates"] = hd_data['incarnation_cross_gates']
                 result["core_mechanics"]["channels"] = result["core_mechanics"].get("channels") or hd_data['channels']
             
             # Add success flag
@@ -4797,6 +4801,8 @@ async def get_human_design_deep_dive(user_id: str):
                     "profile": hd_data['profile'],
                     "definition": hd_data['definition'],
                     "incarnation_cross": hd_data['incarnation_cross'],
+                    "incarnation_cross_label": hd_data['incarnation_cross_label'],
+                    "incarnation_cross_gates": hd_data['incarnation_cross_gates'],
                     "channels": hd_data['channels']
                 },
                 "sections": [
