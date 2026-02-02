@@ -20,19 +20,20 @@ interface MirrorReflection {
 }
 
 export default function MirrorScreen() {
-  const { user } = useAppStore();
+  const { user, hasTriedSessionRestore, isRestoringSession } = useAppStore();
   const [reflection, setReflection] = useState<MirrorReflection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    // Only fetch reflection after session restore is complete AND we have a user
+    if (hasTriedSessionRestore && !isRestoringSession && user?.id) {
       loadReflection();
     }
-  }, [user]);
+  }, [user, hasTriedSessionRestore, isRestoringSession]);
 
   const loadReflection = async (forceRefresh = false) => {
-    if (!user) return;
+    if (!user?.id) return;
 
     if (forceRefresh) {
       setIsRefreshing(true);
@@ -61,6 +62,20 @@ export default function MirrorScreen() {
     loadReflection(true);
   };
 
+  // Show loading while session is being restored
+  if (!hasTriedSessionRestore || isRestoringSession) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="dark" />
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={Colors.textTertiary} />
+          <Text style={styles.restoringText}>Restoring your profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show loading if no user (shouldn't happen if routing is correct, but be safe)
   if (!user) {
     return (
       <SafeAreaView style={styles.container}>
@@ -138,6 +153,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 12,
+  },
+  restoringText: {
+    fontSize: 14,
+    color: Colors.textTertiary,
+    marginTop: 8,
   },
   topSpacer: {
     height: 80,
