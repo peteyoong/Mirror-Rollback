@@ -6,6 +6,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
