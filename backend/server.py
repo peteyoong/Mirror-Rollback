@@ -4482,6 +4482,90 @@ async def get_numerology_deep_dive(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =====================================================================
+# NUMEROLOGY NAME UNLOCK ENDPOINT
+# =====================================================================
+
+class NumerologyUnlockRequest(BaseModel):
+    full_birth_name: str
+
+
+@api_router.post("/numerology/unlock-name/{user_id}")
+async def unlock_numerology_name(user_id: str, request: NumerologyUnlockRequest):
+    """
+    Optional endpoint to unlock name-based numerology numbers.
+    Calculates Expression, Soul Urge, and Personality from the full birth name.
+    
+    This is consent-based and entirely optional.
+    """
+    from calculations.numerology import (
+        calculate_expression_number,
+        calculate_soul_urge,
+        calculate_personality_number
+    )
+    
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        chart = await db.charts.find_one({"user_id": user_id})
+        if not chart:
+            raise HTTPException(status_code=404, detail="Chart not found")
+        
+        full_name = request.full_birth_name.strip()
+        if not full_name or len(full_name) < 2:
+            raise HTTPException(status_code=400, detail="Please provide a valid name")
+        
+        # Calculate name-based numbers
+        expression = calculate_expression_number(full_name)
+        soul_urge = calculate_soul_urge(full_name)
+        personality = calculate_personality_number(full_name)
+        
+        # Update chart with new numerology data
+        numerology_update = {
+            "numerology.expression": expression,
+            "numerology.soul_urge": soul_urge,
+            "numerology.personality": personality,
+            "numerology.has_name_numbers": True,
+            "numerology.name_unlocked_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.charts.update_one(
+            {"user_id": user_id},
+            {"$set": numerology_update}
+        )
+        
+        logger.info(f"[Numerology] Name-based numbers unlocked for user {user_id}")
+        
+        # Return the new numbers (without echoing the name back)
+        return {
+            "success": True,
+            "message": "Deeper numerology has been unlocked.",
+            "unlocked_numbers": {
+                "expression": {
+                    "number": expression["number"],
+                    "description": expression["description"]
+                },
+                "soul_urge": {
+                    "number": soul_urge["number"],
+                    "description": soul_urge["description"]
+                },
+                "personality": {
+                    "number": personality["number"],
+                    "description": personality["description"]
+                }
+            }
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Numerology unlock error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
