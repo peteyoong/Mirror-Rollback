@@ -789,6 +789,104 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
 
+  // Thread Pill
+  threadPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+    marginBottom: 8,
+    gap: 6,
+  },
+  threadPillText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  threadPillDate: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+  },
+
+  // Thread Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  threadModalContent: {
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 340,
+    position: 'relative',
+  },
+  threadModalClose: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 1,
+    padding: 4,
+  },
+  threadModalTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 1.5,
+    marginBottom: 16,
+    marginRight: 30,
+  },
+  threadModalKeystone: {
+    fontSize: 16,
+    lineHeight: 26,
+    color: Colors.text,
+    marginBottom: 16,
+  },
+  threadModalAffirmation: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+    marginBottom: 20,
+  },
+  threadModalReflect: {
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  threadModalReflectLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 1.2,
+    marginBottom: 8,
+  },
+  threadModalReflectQuestion: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: Colors.text,
+  },
+  threadModalFooter: {
+    marginTop: 20,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  threadModalFooterText: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+
   // Messages
   messagesContainer: {
     paddingHorizontal: 16,
