@@ -203,6 +203,26 @@ export default function ProfileScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Logout Confirmation Modal (Web) */}
+      <ConfirmModal
+        visible={showLogoutModal}
+        title="Log Out"
+        message="This will clear your session and return you to the welcome screen. Your data on the server will be preserved."
+        confirmText="Log Out"
+        onConfirm={performLogout}
+        onCancel={() => setShowLogoutModal(false)}
+      />
+
+      {/* Reset Session Confirmation Modal (Web) */}
+      <ConfirmModal
+        visible={showResetModal}
+        title="Reset Session"
+        message="This will completely clear your local session, allowing you to register as a new user or log in with different details. Your existing data on the server will NOT be deleted."
+        confirmText="Reset & Start Fresh"
+        onConfirm={performLogout}
+        onCancel={() => setShowResetModal(false)}
+      />
     </SafeAreaView>
   );
 }
