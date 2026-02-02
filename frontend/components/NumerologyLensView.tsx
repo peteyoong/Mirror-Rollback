@@ -516,6 +516,9 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
           </>
         ) : null}
       </ScrollView>
+      
+      {/* Unlock Name Modal */}
+      {renderUnlockModal()}
     </View>
   );
 }
