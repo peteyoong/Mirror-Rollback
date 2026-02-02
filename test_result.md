@@ -160,6 +160,18 @@ backend:
         agent: "main"
         comment: "Calculates astrology, human design, and numerology charts."
 
+  - task: "Astrology Chart Auto-Migration"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Auto-migration for old-format astrology charts implemented. When any astrology endpoint is called, the system checks if the chart is in legacy format (missing planets/houses) and automatically recomputes it using stored birth data (timezone, birth_time, birth_date, location). Migration metadata is stored. Manually tested: simulated old format, called /api/astrology/deep-dive, verified chart was upgraded to full format with planets, houses, ascendant."
+
 frontend:
   - task: "Mirror Chat Component"
     implemented: true
