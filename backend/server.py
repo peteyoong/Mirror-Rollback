@@ -4083,44 +4083,43 @@ def extract_numerology_data(chart: dict, user: dict) -> dict:
     """Extract and structure numerology data from chart."""
     numerology = chart.get("numerology", {})
     
-    # Handle both old format (just number) and new format (dict with number and description)
-    life_path = numerology.get("life_path", {})
-    if isinstance(life_path, int):
-        # Old format - just the number
-        life_path = {"number": life_path, "description": ""}
+    # Helper to safely extract number
+    def get_number(data, default=None):
+        if data is None:
+            return default
+        if isinstance(data, int):
+            return data
+        if isinstance(data, dict):
+            return data.get("number", default)
+        return default
     
-    birthday = numerology.get("birthday", {})
-    if isinstance(birthday, int):
-        birthday = {"number": birthday, "description": ""}
-    elif birthday is None:
-        birthday = {}
+    # Helper to safely extract description
+    def get_desc(data, default=""):
+        if isinstance(data, dict):
+            return data.get("description", default)
+        return default
+    
+    # Always available
+    life_path = numerology.get("life_path")
+    birthday = numerology.get("birthday")
     
     # Name-based (optional)
     expression = numerology.get("expression")
-    if isinstance(expression, int):
-        expression = {"number": expression, "description": ""}
-    
     soul_urge = numerology.get("soul_urge")
-    if isinstance(soul_urge, int):
-        soul_urge = {"number": soul_urge, "description": ""}
-    
     personality = numerology.get("personality")
-    if isinstance(personality, int):
-        personality = {"number": personality, "description": ""}
-    
     has_name_numbers = numerology.get("has_name_numbers", bool(expression or soul_urge or personality))
     
     return {
-        "life_path_number": life_path.get("number", "Unknown") if isinstance(life_path, dict) else life_path,
-        "life_path_description": life_path.get("description", "") if isinstance(life_path, dict) else "",
-        "birthday_number": birthday.get("number") if birthday else None,
-        "birthday_description": birthday.get("description", "") if birthday else "",
-        "expression_number": expression.get("number") if expression and isinstance(expression, dict) else (expression if expression else None),
-        "expression_description": expression.get("description", "") if expression and isinstance(expression, dict) else "",
-        "soul_urge_number": soul_urge.get("number") if soul_urge and isinstance(soul_urge, dict) else (soul_urge if soul_urge else None),
-        "soul_urge_description": soul_urge.get("description", "") if soul_urge and isinstance(soul_urge, dict) else "",
-        "personality_number": personality.get("number") if personality and isinstance(personality, dict) else (personality if personality else None),
-        "personality_description": personality.get("description", "") if personality and isinstance(personality, dict) else "",
+        "life_path_number": get_number(life_path, "Unknown"),
+        "life_path_description": get_desc(life_path),
+        "birthday_number": get_number(birthday),
+        "birthday_description": get_desc(birthday),
+        "expression_number": get_number(expression),
+        "expression_description": get_desc(expression),
+        "soul_urge_number": get_number(soul_urge),
+        "soul_urge_description": get_desc(soul_urge),
+        "personality_number": get_number(personality),
+        "personality_description": get_desc(personality),
         "has_name_numbers": has_name_numbers,
         "user_birth_date": user.get("birth_date")
     }
