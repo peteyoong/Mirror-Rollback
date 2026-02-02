@@ -219,8 +219,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Astrology Chart Auto-Migration"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -230,3 +229,5 @@ agent_communication:
     message: "Implemented P0 task: Astrology Chart Auto-Migration. The get_user_astrology_data() helper now automatically checks if the user's chart is in legacy format and triggers migration if needed. Migration cases handled: 1) legacy_string_format (old sun_sign/moon_sign only), 2) missing_houses, 3) missing_ascendant, 4) incomplete_houses (cusps != 12), 5) empty_astrology. Testing should verify: a) calling /api/astrology/deep-dive with a user that has old-format chart triggers migration, b) migration_info is saved to the chart, c) the chart now has planets, houses with 12 cusps, and valid ascendant."
   - agent: "main"
     message: "Mirror Chat feature implementation complete. Backend API at /api/mirror/chat working with EMERGENT_LLM_KEY. Frontend MirrorChat.tsx integrated into Journal tab with toggle. Full conversation flow tested via Playwright screenshots - AI responds with reflective, non-prescriptive messages."
+  - agent: "testing"
+    message: "ASTROLOGY CHART AUTO-MIGRATION TESTING COMPLETE: Created comprehensive backend_test.py and executed full test scenario. All test criteria passed: ✅ User 6971c81f2b40fd5ef501d375 verified with valid timezone and birth_time, ✅ Successfully simulated old-format chart (legacy string format), ✅ API call to /api/astrology/deep-dive triggered auto-migration, ✅ Chart upgraded from 3 keys to full format with 13 planets and 12 house cusps, ✅ Migration metadata recorded with correct migration_reason, ✅ API response returned success:true with valid ascendant (Sagittarius, no longer Unknown). Auto-migration feature is working perfectly. Task removed from current_focus."
