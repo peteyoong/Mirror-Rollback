@@ -10,6 +10,7 @@ import {
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import IncompleteBirthDataCard from './IncompleteBirthDataCard';
 
 interface HumanDesignSection {
   label: string;
@@ -26,6 +27,9 @@ interface HumanDesignData {
     authority: string;
   };
   date?: string;
+  success?: boolean;
+  error?: string;
+  missing_fields?: string[];
 }
 
 interface Props {
