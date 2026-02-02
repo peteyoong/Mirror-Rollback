@@ -18,18 +18,25 @@ interface HumanDesignSection {
   body: string;
 }
 
+interface CoreMechanics {
+  type: string;
+  strategy: string;
+  authority: string;
+  profile?: string;
+  definition?: string;
+  incarnation_cross?: string;
+  channels?: string[];
+}
+
 interface HumanDesignData {
   title: string;
   sections: HumanDesignSection[];
   mirror_prompt: string;
-  core_mechanics?: {
-    type: string;
-    strategy: string;
-    authority: string;
-  };
+  core_mechanics?: CoreMechanics;
   date?: string;
   success?: boolean;
   error?: string;
+  message?: string;
   missing_fields?: string[];
 }
 
