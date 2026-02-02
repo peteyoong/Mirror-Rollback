@@ -484,9 +484,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  mechanicItem: {
+  mechanicsRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    justifyContent: 'center',
+  },
+  mechanicItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 8,
     gap: 4,
   },
   mechanicLabel: {
@@ -505,6 +511,28 @@ const styles = StyleSheet.create({
     width: 1,
     height: 40,
     backgroundColor: Colors.border,
+  },
+  fullWidthRow: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  fullWidthLabel: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    fontWeight: '500',
+  },
+  fullWidthValue: {
+    fontSize: 13,
+    color: Colors.text,
+    fontWeight: '500',
+    textAlign: 'right',
+    flex: 1,
+    marginLeft: 12,
   },
   expandButton: {
     flexDirection: 'row',
