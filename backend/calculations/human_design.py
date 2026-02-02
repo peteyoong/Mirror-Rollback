@@ -728,13 +728,26 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     design_sun_line = design_data['Sun']['gate']['line']
     profile = calculate_profile(personality_sun_line, design_sun_line)
     
-    # Calculate Incarnation Cross (simplified)
+    # Calculate Incarnation Cross
+    # Cross type depends on personality Sun line:
+    # Lines 1, 2, 3, 4 = Right Angle (RAX) - Personal Destiny
+    # Lines 5, 6 with matching design = Juxtaposition (JX) - Fixed Fate
+    # Lines 5, 6 with different = Left Angle (LAX) - Transpersonal Karma
     p_sun_gate = personality_data['Sun']['gate']['gate']
     p_earth_gate = personality_data['Earth']['gate']['gate']
     d_sun_gate = design_data['Sun']['gate']['gate']
     d_earth_gate = design_data['Earth']['gate']['gate']
     
-    incarnation_cross = f"Right Angle Cross of {p_sun_gate}/{p_earth_gate}"
+    # Determine cross type
+    if personality_sun_line <= 4:
+        cross_type = "Right Angle Cross"
+    elif personality_sun_line == design_sun_line:
+        cross_type = "Juxtaposition Cross"
+    else:
+        cross_type = "Left Angle Cross"
+    
+    # Format: Type of Gate1/Gate2 | Gate3/Gate4
+    incarnation_cross = f"{cross_type} of {p_sun_gate}/{d_sun_gate} | {p_earth_gate}/{d_earth_gate}"
     
     # Format channels for output
     defined_channels_formatted = [
