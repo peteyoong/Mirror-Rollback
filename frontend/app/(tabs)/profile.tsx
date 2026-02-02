@@ -135,7 +135,7 @@ export default function ProfileScreen() {
         <View style={styles.actionsCard}>
           <Text style={styles.cardTitle}>Session</Text>
           
-          <TouchableOpacity 
+          <Pressable 
             style={styles.actionButton}
             onPress={handleLogout}
             disabled={isLoggingOut}
@@ -152,11 +152,11 @@ export default function ProfileScreen() {
             ) : (
               <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
             )}
-          </TouchableOpacity>
+          </Pressable>
 
           <View style={styles.separator} />
 
-          <TouchableOpacity 
+          <Pressable 
             style={styles.actionButton}
             onPress={handleResetSession}
             disabled={isLoggingOut}
@@ -171,7 +171,7 @@ export default function ProfileScreen() {
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Dev Info */}
