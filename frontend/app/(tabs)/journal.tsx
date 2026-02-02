@@ -89,10 +89,22 @@ function formatState(state: string): string {
   return labels[state] || state;
 }
 
+// Interface for keystone context (for chat continuation)
+interface KeystoneContext {
+  date: string;
+  title: string;
+  keystone: string;
+  reflect_question: string;
+  micro_affirmation: string;
+  tone: string;
+  daily_seed: string;
+}
+
 type ViewMode = 'journal' | 'mirror' | 'timeline';
 
 export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
+  const params = useLocalSearchParams<{ view?: string; fromKeystone?: string }>();
   const [viewMode, setViewMode] = useState<ViewMode>('journal');
   const [newEntry, setNewEntry] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -112,6 +124,36 @@ export default function JournalScreen() {
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
   const [isLoadingTimeline, setIsLoadingTimeline] = useState(false);
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
+
+  // Keystone context for Mirror Chat continuation
+  const [keystoneContext, setKeystoneContext] = useState<KeystoneContext | null>(null);
+
+  // Handle deep link from Mirror home (fromKeystone=true)
+  useEffect(() => {
+    async function loadKeystoneContext() {
+      if (params.fromKeystone === 'true' && params.view === 'mirror') {
+        // Switch to mirror view
+        setViewMode('mirror');
+        
+        // Load keystone context from storage
+        try {
+          const stored = await storage.getItem('pending_keystone_context');
+          if (stored) {
+            const ctx = JSON.parse(stored) as KeystoneContext;
+            setKeystoneContext(ctx);
+            console.log('[JournalScreen] Loaded keystone context for continuation');
+            
+            // Clear the pending context after reading
+            await storage.removeItem('pending_keystone_context');
+          }
+        } catch (e) {
+          console.error('[JournalScreen] Failed to load keystone context:', e);
+        }
+      }
+    }
+    
+    loadKeystoneContext();
+  }, [params.fromKeystone, params.view]);
 
   useEffect(() => {
     loadEntries();
