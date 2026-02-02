@@ -4251,13 +4251,21 @@ def extract_human_design_data(chart: dict) -> dict:
     # Sort channels by first gate number
     formatted_channels.sort(key=lambda x: int(x.split('–')[0]) if x.split('–')[0].isdigit() else 0)
     
+    # Parse incarnation cross into label and gates
+    raw_cross = hd.get('incarnation_cross', 'Unknown')
+    cross_label, cross_gates = parse_incarnation_cross(raw_cross)
+    
     return {
         "type": hd.get('type', 'Unknown'),
         "strategy": hd.get('strategy', 'Unknown'),
         "authority": hd.get('authority', 'Unknown'),
         "profile": hd.get('profile', 'Unknown'),
         "definition": hd.get('definition', 'Unknown'),
-        "incarnation_cross": hd.get('incarnation_cross', 'Unknown'),
+        # Keep original for backwards compatibility
+        "incarnation_cross": raw_cross,
+        # New split fields
+        "incarnation_cross_label": cross_label,
+        "incarnation_cross_gates": cross_gates,
         "channels": formatted_channels,
         "defined_centers": hd.get('defined_centers', []),
         "gates": hd.get('gates', [])
