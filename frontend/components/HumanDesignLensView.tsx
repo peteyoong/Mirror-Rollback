@@ -543,6 +543,16 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
   },
+  crossValueContainer: {
+    flex: 1,
+    marginLeft: 12,
+    alignItems: 'flex-end',
+  },
+  crossGatesText: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    marginTop: 2,
+  },
   expandButton: {
     flexDirection: 'row',
     alignItems: 'center',
