@@ -130,13 +130,17 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   const renderCoreNumbers = () => {
     const numbers = data?.core_numbers || {
       life_path: 'Unknown',
-      expression: 'locked',
-      soul_urge: 'locked'
+      expression: null,
+      soul_urge: null,
+      personality: null
     };
 
     // Safe formatter that handles null/undefined values
-    const formatNumber = (value: number | string | null | undefined): string => {
-      if (value === null || value === undefined) return '—';
+    // When unlock_required, show 🔒 instead of "—"
+    const formatNumber = (value: number | string | null | undefined, isNameBased: boolean = false): string => {
+      if (value === null || value === undefined) {
+        return data?.unlock_required && isNameBased ? '🔒' : '—';
+      }
       if (value === 'locked') return '🔒';
       if (value === 'Unknown') return '—';
       return String(value);
@@ -151,7 +155,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
         <View style={styles.coreNumbersRow}>
           <View style={styles.numberItem}>
             <Text style={styles.numberLabel}>Life Path</Text>
-            <Text style={styles.numberValue}>{formatNumber(numbers.life_path)}</Text>
+            <Text style={styles.numberValue}>{formatNumber(numbers.life_path, false)}</Text>
           </View>
           <View style={styles.numberDivider} />
           <View style={styles.numberItem}>
@@ -160,7 +164,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
               styles.numberValue, 
               isLocked(numbers.expression) && styles.lockedNumber
             ]}>
-              {formatNumber(numbers.expression)}
+              {formatNumber(numbers.expression, true)}
             </Text>
           </View>
           <View style={styles.numberDivider} />
@@ -170,9 +174,37 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
               styles.numberValue, 
               isLocked(numbers.soul_urge) && styles.lockedNumber
             ]}>
-              {formatNumber(numbers.soul_urge)}
+              {formatNumber(numbers.soul_urge, true)}
             </Text>
           </View>
+        </View>
+      </View>
+    );
+  };
+
+  // Unlock Banner - shown when unlock_required === true
+  const renderUnlockBanner = () => {
+    if (!data?.unlock_required) return null;
+
+    return (
+      <View style={styles.unlockBanner}>
+        <View style={styles.unlockBannerIcon}>
+          <Ionicons name="lock-open-outline" size={24} color={Colors.accent} />
+        </View>
+        <View style={styles.unlockBannerContent}>
+          <Text style={styles.unlockBannerTitle}>Unlock your full Numerology profile</Text>
+          <Text style={styles.unlockBannerBody}>
+            Expression, Soul Urge, and Personality numbers use your full birth name. This is optional — add it only if you want deeper detail.
+          </Text>
+          <TouchableOpacity 
+            style={styles.unlockBannerButton}
+            onPress={() => {
+              setUnlockStep('consent');
+              setUnlockModalVisible(true);
+            }}
+          >
+            <Text style={styles.unlockBannerButtonText}>Add full name</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
