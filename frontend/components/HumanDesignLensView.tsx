@@ -331,6 +331,25 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     fontWeight: '500',
   },
+  incompleteDataContainer: {
+    paddingVertical: 20,
+    alignItems: 'stretch',
+  },
+  incompleteTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+    paddingHorizontal: 16,
+  },
+  incompleteHint: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    paddingHorizontal: 32,
+    marginTop: 12,
+    lineHeight: 18,
+  },
   title: {
     fontSize: 20,
     fontWeight: '600',
