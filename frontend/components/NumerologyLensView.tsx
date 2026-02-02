@@ -754,6 +754,15 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 20,
   },
+  unlockTextContainer: {
+    flex: 1,
+  },
+  unlockCta: {
+    fontSize: 12,
+    color: Colors.accent,
+    marginTop: 4,
+    fontWeight: '500',
+  },
   // Ask Mirror Button
   askMirrorButton: {
     flexDirection: 'row',
@@ -776,6 +785,123 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     textAlign: 'center',
     marginTop: 20,
+    fontStyle: 'italic',
+  },
+  // Unlock Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  unlockModalContainer: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+    maxHeight: '85%',
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    zIndex: 1,
+    padding: 8,
+  },
+  modalIconContainer: {
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalBody: {
+    marginBottom: 24,
+  },
+  modalText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+    marginBottom: 16,
+  },
+  bulletList: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  bulletItem: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  modalNote: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalSecondaryButton: {
+    flex: 1,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: Colors.surface,
+  },
+  modalSecondaryButtonText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  modalPrimaryButton: {
+    flex: 1,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: Colors.text,
+  },
+  modalPrimaryButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.surface,
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  nameInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: Colors.text,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.surfaceLight,
+  },
+  errorText: {
+    fontSize: 13,
+    color: '#e74c3c',
+    marginBottom: 12,
+  },
+  privacyNote: {
+    fontSize: 12,
+    color: Colors.textTertiary,
     fontStyle: 'italic',
   },
 });
