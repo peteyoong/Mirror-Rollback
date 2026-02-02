@@ -2166,12 +2166,24 @@ class MirrorHomeResponse(BaseModel):
     is_first_visit: bool = False
 
 
-@api_router.get("/mirror/home/{user_id}", response_model=MirrorHomeResponse)
-async def get_mirror_home_reflection(user_id: str):
+@api_router.get("/mirror/home/{user_id}")
+async def get_daily_keystone(user_id: str, date: Optional[str] = None):
     """
-    Generate the Mirror home screen reflection.
-    Creates a moment of quiet recognition using all lenses without naming them.
+    Generate the Daily Emotional Keystone.
+    Deterministic per day + deeply personalized using lenses + lived data.
+    
+    Args:
+        user_id: The user's ID
+        date: Optional date in YYYY-MM-DD format. If not provided, uses UTC date.
+    
+    Returns:
+        DailyKeystoneResponse with title, keystone, reflect_question, micro_affirmation
     """
+    import hashlib
+    import json as json_module
+    
+    COMPUTATION_VERSION = "keystone-v1"
+    
     try:
         if not EMERGENT_LLM_KEY:
             raise HTTPException(status_code=500, detail="AI service not configured")
@@ -2183,141 +2195,318 @@ async def get_mirror_home_reflection(user_id: str):
         
         chart = await db.charts.find_one({"user_id": user_id})
         
-        # Check if first visit (no timeline events yet)
-        timeline_count = await db.user_timeline.count_documents({"user_id": user_id})
-        is_first_visit = timeline_count == 0
+        # Determine the date to use
+        if date:
+            try:
+                target_date = datetime.strptime(date, "%Y-%m-%d").date()
+            except ValueError:
+                target_date = datetime.now(timezone.utc).date()
+        else:
+            # Use UTC date as fallback
+            target_date = datetime.now(timezone.utc).date()
         
-        # Build context from all lenses (without naming them)
-        context_parts = []
+        date_str = target_date.strftime("%Y-%m-%d")
         
+        # Create deterministic daily seed
+        seed_input = f"{user_id}:{date_str}:{COMPUTATION_VERSION}"
+        daily_seed = hashlib.sha256(seed_input.encode()).hexdigest()[:12]
+        
+        # Select variant template using seed (deterministic)
+        variant_index = int(daily_seed[:2], 16) % len(KEYSTONE_VARIANT_TEMPLATES)
+        variant = KEYSTONE_VARIANT_TEMPLATES[variant_index]
+        
+        # =====================================================================
+        # BUILD LENS CONTEXT (without naming systems)
+        # =====================================================================
+        lens_parts = []
         user_name = user.get('name', 'this person')
-        context_parts.append(f"Name: {user_name}")
         
-        if chart and chart.get('chart_data'):
-            chart_data = chart['chart_data']
-            
-            # Astrology context (describe qualities, not signs)
-            if 'astrology' in chart_data:
-                astro = chart_data['astrology']
-                sun_sign = astro.get('sun_sign', '')
-                moon_sign = astro.get('moon_sign', '')
-                rising_sign = astro.get('rising_sign', '')
-                
-                # Map signs to qualities (internal, not shown to user)
-                sign_qualities = {
-                    'Aries': 'initiating energy, directness, courage',
-                    'Taurus': 'steadiness, sensory awareness, patience',
-                    'Gemini': 'curiosity, adaptability, mental agility',
-                    'Cancer': 'emotional depth, nurturing instinct, sensitivity',
-                    'Leo': 'creative expression, warmth, presence',
-                    'Virgo': 'attention to detail, service orientation, discernment',
-                    'Libra': 'relational awareness, harmony-seeking, aesthetic sense',
-                    'Scorpio': 'intensity, depth-seeking, transformative capacity',
-                    'Sagittarius': 'expansiveness, truth-seeking, optimism',
-                    'Capricorn': 'structure, ambition, long-term thinking',
-                    'Aquarius': 'independence, humanitarian instinct, unconventionality',
-                    'Pisces': 'permeability, imagination, compassion'
-                }
-                
-                if sun_sign:
-                    context_parts.append(f"Core energy: {sign_qualities.get(sun_sign, 'grounded presence')}")
-                if moon_sign:
-                    context_parts.append(f"Emotional texture: {sign_qualities.get(moon_sign, 'inner sensitivity')}")
-                if rising_sign:
-                    context_parts.append(f"How they meet the world: {sign_qualities.get(rising_sign, 'natural approach')}")
-            
-            # Human Design context (describe essence, not types)
-            if 'human_design' in chart_data:
-                hd = chart_data['human_design']
-                hd_type = hd.get('type', '')
-                authority = hd.get('authority', '')
-                profile = hd.get('profile', '')
-                
-                type_qualities = {
-                    'Generator': 'responsive energy, sustained capacity, satisfaction-seeking',
-                    'Manifesting Generator': 'multi-passionate energy, efficiency, responsive action',
-                    'Projector': 'perceptive awareness, guiding capacity, recognition-sensitive',
-                    'Manifestor': 'initiating force, impact-making, independence',
-                    'Reflector': 'reflective awareness, environmental sensitivity, lunar rhythm'
-                }
-                
-                authority_qualities = {
-                    'Sacral': 'gut-level knowing, in-the-moment response',
-                    'Emotional': 'emotional wave, clarity over time',
-                    'Splenic': 'instinctive knowing, survival intelligence',
-                    'Ego': 'willpower, commitment-based clarity',
-                    'Self-Projected': 'identity-based clarity, hearing oneself speak',
-                    'Mental': 'environmental processing, sounding board needed',
-                    'Lunar': 'month-long clarity cycle, patience required'
-                }
-                
-                if hd_type:
-                    context_parts.append(f"Energy pattern: {type_qualities.get(hd_type, 'unique rhythm')}")
-                if authority:
-                    context_parts.append(f"Decision-making texture: {authority_qualities.get(authority, 'inner knowing')}")
-            
-            # Numerology context (describe themes, not numbers)
-            if 'numerology' in chart_data:
-                num = chart_data['numerology']
-                life_path = num.get('life_path', {}).get('number', 0)
-                
-                life_path_qualities = {
-                    1: 'pioneering independence, self-direction',
-                    2: 'partnership sensitivity, diplomatic nature',
-                    3: 'creative expression, joy-seeking',
-                    4: 'foundational building, practical mastery',
-                    5: 'freedom-seeking, change-embracing',
-                    6: 'nurturing responsibility, harmony-creating',
-                    7: 'inner searching, analytical depth',
-                    8: 'material mastery, power dynamics awareness',
-                    9: 'humanitarian breadth, completion themes',
-                    11: 'intuitive sensitivity, inspirational capacity',
-                    22: 'master building, large-scale vision',
-                    33: 'master teaching, compassionate service'
-                }
-                
-                if life_path:
-                    context_parts.append(f"Life theme: {life_path_qualities.get(life_path, 'unique path')}")
+        # Sign qualities mapping (internal use only)
+        sign_qualities = {
+            'Aries': 'initiating energy, directness, a part that moves first',
+            'Taurus': 'steadiness, sensory awareness, a part that builds slowly',
+            'Gemini': 'curiosity, adaptability, a part that explores many paths',
+            'Cancer': 'emotional depth, nurturing instinct, a part that protects what matters',
+            'Leo': 'creative expression, warmth, a part that seeks to be seen',
+            'Virgo': 'attention to detail, discernment, a part that refines',
+            'Libra': 'relational awareness, harmony-seeking, a part that weighs and balances',
+            'Scorpio': 'intensity, depth-seeking, a part that goes underneath',
+            'Sagittarius': 'expansiveness, truth-seeking, a part that seeks wide horizons',
+            'Capricorn': 'structure, long-term thinking, a part that climbs steadily',
+            'Aquarius': 'independence, unconventionality, a part that stands apart',
+            'Pisces': 'permeability, imagination, a part that dissolves boundaries'
+        }
         
-        # Build the prompt
-        context = "\n".join(context_parts)
-        system_prompt = MIRROR_HOME_PROMPT.format(context=context)
+        type_qualities = {
+            'Generator': 'sustained energy that responds to life, satisfaction-seeking',
+            'Manifesting Generator': 'multi-passionate energy, efficiency in action',
+            'Projector': 'perceptive awareness, sensitivity to being recognized',
+            'Manifestor': 'initiating force, impact-making independence',
+            'Reflector': 'reflective awareness, sensitivity to environment'
+        }
         
-        # Generate reflection
+        authority_qualities = {
+            'Sacral': 'gut-level knowing, responses arise in the moment',
+            'Emotional': 'clarity comes over time, waves of feeling',
+            'Splenic': 'instinctive knowing, quiet inner alerts',
+            'Ego': 'willpower-based clarity, commitment matters',
+            'Self-Projected': 'hearing oneself speak brings clarity',
+            'Mental': 'processing through others, environment matters',
+            'Lunar': 'patience with long cycles, month-long rhythms'
+        }
+        
+        life_path_qualities = {
+            1: 'pioneering independence, self-direction themes',
+            2: 'partnership sensitivity, diplomatic currents',
+            3: 'creative expression, joy-seeking undertones',
+            4: 'foundational building, practical mastery',
+            5: 'freedom-seeking, change-embracing rhythms',
+            6: 'nurturing responsibility, harmony-creating',
+            7: 'inner searching, analytical depth',
+            8: 'material mastery, power dynamics awareness',
+            9: 'humanitarian breadth, completion themes',
+            11: 'intuitive sensitivity, inspirational capacity',
+            22: 'master building, large-scale vision',
+            33: 'master teaching, compassionate service'
+        }
+        
+        if chart:
+            # Astrology synthesis
+            astro = chart.get('astrology', {})
+            
+            # Get sun, moon, rising signs
+            sun_sign = None
+            moon_sign = None
+            rising_sign = None
+            mercury_sign = None
+            mars_sign = None
+            
+            # Handle different data structures
+            if 'sun_sign' in astro:
+                sun_sign = astro.get('sun_sign')
+                moon_sign = astro.get('moon_sign')
+                rising_sign = astro.get('rising_sign')
+            elif 'planets' in astro:
+                planets = astro.get('planets', {})
+                sun_data = planets.get('Sun', {})
+                moon_data = planets.get('Moon', {})
+                mercury_data = planets.get('Mercury', {})
+                mars_data = planets.get('Mars', {})
+                sun_sign = sun_data.get('sign') if isinstance(sun_data, dict) else None
+                moon_sign = moon_data.get('sign') if isinstance(moon_data, dict) else None
+                mercury_sign = mercury_data.get('sign') if isinstance(mercury_data, dict) else None
+                mars_sign = mars_data.get('sign') if isinstance(mars_data, dict) else None
+                # Rising might be in ascendant
+                asc_data = astro.get('ascendant', astro.get('Ascendant', {}))
+                rising_sign = asc_data.get('sign') if isinstance(asc_data, dict) else None
+            
+            if sun_sign and sun_sign in sign_qualities:
+                lens_parts.append(f"Core presence: {sign_qualities[sun_sign]}")
+            if moon_sign and moon_sign in sign_qualities:
+                lens_parts.append(f"Emotional texture: {sign_qualities[moon_sign]}")
+            if rising_sign and rising_sign in sign_qualities:
+                lens_parts.append(f"How they meet the world: {sign_qualities[rising_sign]}")
+            
+            # Add supporting placements if available
+            if mercury_sign and mercury_sign in sign_qualities:
+                lens_parts.append(f"Mind pattern: {sign_qualities[mercury_sign]}")
+            elif mars_sign and mars_sign in sign_qualities:
+                lens_parts.append(f"Action style: {sign_qualities[mars_sign]}")
+            
+            # Human Design synthesis
+            hd = chart.get('human_design', {})
+            hd_type = hd.get('type', '')
+            authority = hd.get('authority', '')
+            profile = hd.get('profile', '')
+            
+            if hd_type and hd_type in type_qualities:
+                lens_parts.append(f"Energy pattern: {type_qualities[hd_type]}")
+            if authority and authority in authority_qualities:
+                lens_parts.append(f"Decision texture: {authority_qualities[authority]}")
+            if profile:
+                # Interpret profile archetypally
+                profile_meanings = {
+                    '1/3': 'investigative experimentation, learning through doing',
+                    '1/4': 'deep research shared through close connections',
+                    '2/4': 'natural gifts emerging through relationships',
+                    '2/5': 'hermit-like tendencies with practical influence',
+                    '3/5': 'trial-and-error wisdom, problem-solving capacity',
+                    '3/6': 'experimental becoming, eventual perspective',
+                    '4/6': 'influential relationships, role model potential',
+                    '4/1': 'networked foundation, investigative depth',
+                    '5/1': 'practical solutions grounded in research',
+                    '5/2': 'universal offerings, natural talents',
+                    '6/2': 'role model becoming, hermit wisdom',
+                    '6/3': 'perspective-gathering through experience'
+                }
+                if profile in profile_meanings:
+                    lens_parts.append(f"Life approach: {profile_meanings[profile]}")
+            
+            # Numerology synthesis
+            num = chart.get('numerology', {})
+            life_path = num.get('life_path', {})
+            if isinstance(life_path, dict):
+                lp_num = life_path.get('number', 0)
+            else:
+                lp_num = life_path if isinstance(life_path, int) else 0
+            
+            if lp_num and lp_num in life_path_qualities:
+                lens_parts.append(f"Life theme: {life_path_qualities[lp_num]}")
+        
+        lens_context = "\n".join(lens_parts) if lens_parts else "No lens data available — generate from presence alone."
+        
+        # =====================================================================
+        # BUILD LIVED CONTEXT (recent timeline, journal, memory)
+        # =====================================================================
+        lived_parts = []
+        source_signals_used = ["lens_core"]
+        
+        # Get last 3 timeline events
+        timeline_events = await db.user_timeline.find(
+            {"user_id": user_id}
+        ).sort("created_at_iso", -1).limit(3).to_list(3)
+        
+        if timeline_events:
+            source_signals_used.append("timeline")
+            for evt in timeline_events:
+                state = evt.get('inferred_state', 'present')
+                themes = evt.get('themes', [])
+                tension = evt.get('tension', '')
+                if themes or tension:
+                    lived_parts.append(f"Recent signal: state={state}, themes={themes[:2] if themes else []}, tension hint={tension[:50] if tension else 'none'}")
+        
+        # Get last 3 journal entries
+        journal_entries = await db.journal_entries.find(
+            {"user_id": user_id}
+        ).sort("timestamp", -1).limit(3).to_list(3)
+        
+        if journal_entries:
+            source_signals_used.append("journal")
+            for entry in journal_entries:
+                content = entry.get('content', '')[:100]
+                themes = entry.get('themes', [])
+                if content or themes:
+                    lived_parts.append(f"Journal signal: themes={themes[:2] if themes else []}, tone hint from content length={len(content)}")
+        
+        # Get memory_update if present
+        memory_update = user.get('memory_update', {})
+        if memory_update:
+            source_signals_used.append("memory")
+            themes = memory_update.get('recurring_themes', [])
+            tensions = memory_update.get('active_tensions', [])
+            state = memory_update.get('inferred_state', '')
+            if themes or tensions or state:
+                lived_parts.append(f"Memory synthesis: themes={themes[:3] if themes else []}, tensions={tensions[:2] if tensions else []}, state={state}")
+        
+        lived_context = "\n".join(lived_parts) if lived_parts else "No lived data yet — this is their first meaningful engagement."
+        
+        # =====================================================================
+        # DETERMINE TONE GUIDANCE
+        # =====================================================================
+        tone = "unclear"
+        if memory_update:
+            state = memory_update.get('inferred_state', '').lower()
+            if 'grounded' in state or 'stable' in state:
+                tone = "grounding"
+            elif 'processing' in state or 'integrating' in state:
+                tone = "integrating"
+            elif 'exploring' in state or 'curious' in state:
+                tone = "exploring"
+            elif 'unsettled' in state or 'searching' in state:
+                tone = "stabilizing"
+        elif timeline_events:
+            # Infer from recent timeline
+            recent_state = timeline_events[0].get('inferred_state', '').lower() if timeline_events else ''
+            if 'curious' in recent_state or 'exploring' in recent_state:
+                tone = "exploring"
+            elif 'grounded' in recent_state or 'settled' in recent_state:
+                tone = "grounding"
+            else:
+                tone = "stabilizing"
+        else:
+            tone = "grounding"  # Default for first visit
+        
+        # =====================================================================
+        # GENERATE KEYSTONE VIA LLM
+        # =====================================================================
+        system_prompt = DAILY_KEYSTONE_PROMPT.format(
+            variant_template=variant['opening'],
+            variant_structure=variant['structure'],
+            lens_context=lens_context,
+            lived_context=lived_context,
+            tone_guidance=tone
+        )
+        
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
-            session_id=f"mirror_home_{user_id}_{datetime.now().strftime('%Y%m%d')}",
+            session_id=f"keystone_{user_id}_{date_str}_{daily_seed}",
             system_message=system_prompt
         )
         chat.with_model("openai", "gpt-5.2")
         
-        if is_first_visit:
-            prompt_text = "Generate a quiet, grounded reflection for someone arriving here for the first time."
-        else:
-            prompt_text = "Generate a quiet, grounded reflection for someone returning."
+        user_prompt = f"Generate the Daily Keystone for {user_name} on {date_str}. Remember: return ONLY valid JSON, no markdown."
+        message = UserMessage(text=user_prompt)
+        response_text = await chat.send_message(message)
         
-        message = UserMessage(text=prompt_text)
-        reflection = await chat.send_message(message)
+        # Parse JSON response
+        try:
+            # Clean up response (remove markdown if present)
+            clean_response = response_text.strip()
+            if clean_response.startswith("```"):
+                # Remove markdown code blocks
+                lines = clean_response.split("\n")
+                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            
+            keystone_data = json_module.loads(clean_response)
+        except json_module.JSONDecodeError as e:
+            logger.error(f"Failed to parse keystone JSON: {e}, response: {response_text[:200]}")
+            # Generate fallback
+            keystone_data = {
+                "title": "A Quiet Arrival",
+                "keystone": f"Something in you brought you here today, {user_name}. That small act of pausing — even for a moment — is itself a form of attention.",
+                "reflect_question": "What feels most present right now, underneath the surface?",
+                "micro_affirmation": "You don't have to have it figured out to be here."
+            }
         
-        # Clean up the reflection
-        reflection = reflection.strip()
-        
-        return MirrorHomeResponse(
-            reflection=reflection,
-            generated_at=datetime.now(timezone.utc).isoformat(),
-            is_first_visit=is_first_visit
-        )
+        # Build response
+        return {
+            "date": date_str,
+            "title": keystone_data.get("title", "A Moment of Pause"),
+            "keystone": keystone_data.get("keystone", "Something in you brought you here today."),
+            "reflect_question": keystone_data.get("reflect_question", "What feels most present right now?"),
+            "micro_affirmation": keystone_data.get("micro_affirmation", "You are already here."),
+            "source_signals": {
+                "used": source_signals_used,
+                "tone": tone
+            },
+            "daily_seed": daily_seed,
+            # Backwards compatibility
+            "reflection": keystone_data.get("keystone", "Something in you brought you here today."),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "is_first_visit": len(timeline_events) == 0
+        }
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Mirror home reflection error: {e}")
-        # Return a calm fallback
-        return MirrorHomeResponse(
-            reflection="Something in you brought you here today. That's worth noticing.",
-            generated_at=datetime.now(timezone.utc).isoformat(),
-            is_first_visit=False
-        )
+        logger.error(f"Daily keystone error: {e}")
+        # Return calm fallback
+        fallback_date = date if date else datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        return {
+            "date": fallback_date,
+            "title": "A Quiet Arrival",
+            "keystone": "Something in you brought you here today. That's worth noticing.",
+            "reflect_question": "What feels most present right now?",
+            "micro_affirmation": "You don't have to have it figured out to be here.",
+            "source_signals": {
+                "used": ["fallback"],
+                "tone": "grounding"
+            },
+            "daily_seed": "fallback",
+            "reflection": "Something in you brought you here today. That's worth noticing.",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "is_first_visit": False
+        }
 
 
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
