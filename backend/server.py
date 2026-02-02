@@ -20,7 +20,7 @@ from datetime import timedelta
 # Import calculation engines
 from calculations.astrology import get_full_natal_chart, close_ephemeris
 from calculations.human_design import get_human_design_chart
-from calculations.numerology import get_full_numerology
+from calculations.numerology import get_full_numerology, get_numerology_cycles
 from calculations.consciousness import get_consciousness_framework, analyze_consciousness_indicators
 from calculations.timezone_utils import resolve_birth_utc, parse_timezone
 
