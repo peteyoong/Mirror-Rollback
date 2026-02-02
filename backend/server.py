@@ -3485,6 +3485,297 @@ async def get_astrology_deep_dive(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =====================================================================
+# HUMAN DESIGN LENS ENDPOINTS
+# =====================================================================
+
+def extract_human_design_data(chart: dict) -> dict:
+    """Extract Human Design data from chart."""
+    hd = chart.get('human_design', {})
+    
+    return {
+        "type": hd.get('type', 'Unknown'),
+        "strategy": hd.get('strategy', 'Unknown'),
+        "authority": hd.get('authority', 'Unknown'),
+        "profile": hd.get('profile', 'Unknown'),
+        "defined_centers": hd.get('defined_centers', []),
+        "gates": hd.get('gates', [])
+    }
+
+
+# Strategy descriptions for context
+HD_STRATEGY_DESCRIPTIONS = {
+    "Generator": "Wait to respond - let life bring things to you, then notice your gut response",
+    "Manifesting Generator": "Wait to respond, then inform before acting - your efficiency comes from responding, not initiating",
+    "Projector": "Wait for recognition and invitation - your guidance lands when it's truly received",
+    "Manifestor": "Inform before acting - this creates flow and reduces resistance",
+    "Reflector": "Wait a lunar cycle for major decisions - your clarity comes from consistent patterns over time"
+}
+
+# Authority descriptions for context  
+HD_AUTHORITY_DESCRIPTIONS = {
+    "Sacral": "Listen for gut sounds and sensations - the immediate 'uh-huh' or 'unh-unh'",
+    "Emotional": "Ride the emotional wave - clarity comes after the highs and lows settle",
+    "Splenic": "Trust spontaneous intuitive hits - they come once and don't repeat",
+    "Ego": "Ask 'Do I have the will/desire for this?' - commitment must feel real",
+    "Self-Projected": "Talk it out - hear your own voice to find clarity",
+    "Mental": "Discuss with trusted others - your clarity comes through processing externally",
+    "Lunar": "Wait 28+ days - notice what remains consistent across the whole cycle",
+    "None": "Environment matters - notice what feels right in different spaces"
+}
+
+
+@api_router.get("/human-design/summary/{user_id}")
+async def get_human_design_summary(user_id: str):
+    """
+    Generate Human Design summary - high-level mechanics synthesis.
+    NO gates, NO channels, NO mystical language.
+    """
+    import json as json_module
+    
+    try:
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        user, chart = await get_user_astrology_data(user_id)  # Reuse the same helper
+        hd_data = extract_human_design_data(chart)
+        
+        if hd_data['type'] == 'Unknown':
+            raise HTTPException(status_code=404, detail="Human Design data not found")
+        
+        # Build compact profile context
+        strategy_desc = HD_STRATEGY_DESCRIPTIONS.get(hd_data['type'], 'Unique engagement pattern')
+        authority_desc = HD_AUTHORITY_DESCRIPTIONS.get(hd_data['authority'], 'Unique clarity process')
+        
+        profile_context = f"""
+Type: {hd_data['type']} - {strategy_desc}
+Authority: {hd_data['authority']} - {authority_desc}
+Profile: {hd_data['profile']}
+"""
+        
+        # Build full prompt
+        system_prompt = HUMAN_DESIGN_GLOBAL_PROMPT + "\n\n" + HUMAN_DESIGN_SUMMARY_PROMPT.format(
+            profile_context=profile_context
+        )
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"hd_summary_{user_id}_{datetime.now().strftime('%Y%m%d')}",
+            system_message=system_prompt
+        )
+        chat.with_model("openai", "gpt-5.2")
+        
+        message = UserMessage(text="Generate the Human Design summary. Return ONLY valid JSON.")
+        response_text = await chat.send_message(message)
+        
+        # Parse JSON response
+        try:
+            clean_response = response_text.strip()
+            if clean_response.startswith("```"):
+                lines = clean_response.split("\n")
+                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            
+            result = json_module.loads(clean_response)
+            
+            # Apply guardrails
+            for section in result.get("sections", []):
+                section["body"] = apply_human_design_guardrails(section["body"])
+            
+            result["mirror_prompt"] = apply_human_design_guardrails(result.get("mirror_prompt", ""))
+            
+            return result
+            
+        except json_module.JSONDecodeError as e:
+            logger.error(f"Failed to parse HD summary JSON: {e}")
+            return {
+                "title": "Your Human Design Profile",
+                "sections": [
+                    {"label": "Your Energy Pattern", "body": f"As a {hd_data['type']}, your energy tends to operate in a particular rhythm that may feel natural once you recognise it."},
+                    {"label": "Engaging with Life", "body": f"Your design suggests a pattern of {strategy_desc.lower()}."},
+                    {"label": "Decision Texture", "body": f"With {hd_data['authority']} authority, {authority_desc.lower()}."}
+                ],
+                "mirror_prompt": "What in this description matches how you already experience yourself?"
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Human Design summary error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/human-design/today/{user_id}")
+async def get_human_design_today(user_id: str):
+    """
+    Generate Today's Experiment - practical, low-stakes noticing prompt.
+    ONE experiment, grounded in their mechanics.
+    """
+    import json as json_module
+    
+    try:
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        user, chart = await get_user_astrology_data(user_id)
+        hd_data = extract_human_design_data(chart)
+        
+        if hd_data['type'] == 'Unknown':
+            raise HTTPException(status_code=404, detail="Human Design data not found")
+        
+        today_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        
+        # Build mechanics context
+        strategy_desc = HD_STRATEGY_DESCRIPTIONS.get(hd_data['type'], 'Unique engagement pattern')
+        authority_desc = HD_AUTHORITY_DESCRIPTIONS.get(hd_data['authority'], 'Unique clarity process')
+        
+        mechanics_context = f"""
+Type: {hd_data['type']}
+Strategy: {strategy_desc}
+Authority: {hd_data['authority']} - {authority_desc}
+Profile: {hd_data['profile']}
+"""
+        
+        # Build full prompt
+        system_prompt = HUMAN_DESIGN_GLOBAL_PROMPT + "\n\n" + HUMAN_DESIGN_TODAY_PROMPT.format(
+            today_date=today_date,
+            mechanics_context=mechanics_context
+        )
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"hd_today_{user_id}_{today_date}",
+            system_message=system_prompt
+        )
+        chat.with_model("openai", "gpt-5.2")
+        
+        message = UserMessage(text="Generate Today's Experiment. Return ONLY valid JSON.")
+        response_text = await chat.send_message(message)
+        
+        # Parse JSON response
+        try:
+            clean_response = response_text.strip()
+            if clean_response.startswith("```"):
+                lines = clean_response.split("\n")
+                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            
+            result = json_module.loads(clean_response)
+            
+            # Apply guardrails
+            for section in result.get("sections", []):
+                section["body"] = apply_human_design_guardrails(section["body"])
+            
+            result["mirror_prompt"] = apply_human_design_guardrails(result.get("mirror_prompt", ""))
+            result["date"] = today_date
+            
+            return result
+            
+        except json_module.JSONDecodeError as e:
+            logger.error(f"Failed to parse HD today JSON: {e}")
+            return {
+                "title": "Today's Experiment",
+                "date": today_date,
+                "sections": [
+                    {"label": "Today's Focus", "body": f"Notice when decisions feel easy versus forced."},
+                    {"label": "A Small Experiment", "body": f"Before saying yes to something today, pause and notice what your body does."},
+                    {"label": "What to Notice", "body": "Is there an immediate pull toward or away? Does clarity come right away or need time?"}
+                ],
+                "mirror_prompt": "What did you notice about how decisions felt today?"
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Human Design today error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/human-design/deep-dive/{user_id}")
+async def get_human_design_deep_dive(user_id: str):
+    """
+    Generate Deep Dive - Type, Strategy, Authority only.
+    Mechanics, not mysticism. Experimentation, not prescription.
+    """
+    import json as json_module
+    
+    try:
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        user, chart = await get_user_astrology_data(user_id)
+        hd_data = extract_human_design_data(chart)
+        
+        if hd_data['type'] == 'Unknown':
+            raise HTTPException(status_code=404, detail="Human Design data not found")
+        
+        strategy_desc = HD_STRATEGY_DESCRIPTIONS.get(hd_data['type'], 'Unique engagement pattern')
+        
+        # Build full prompt
+        system_prompt = HUMAN_DESIGN_GLOBAL_PROMPT + "\n\n" + HUMAN_DESIGN_DEEP_DIVE_PROMPT.format(
+            hd_type=hd_data['type'],
+            strategy=strategy_desc,
+            authority=hd_data['authority'],
+            profile=hd_data['profile']
+        )
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"hd_deep_{user_id}_{datetime.now().strftime('%Y%m%d')}",
+            system_message=system_prompt
+        )
+        chat.with_model("openai", "gpt-5.2")
+        
+        message = UserMessage(text="Generate the Deep Dive for this user's Human Design mechanics. Return ONLY valid JSON.")
+        response_text = await chat.send_message(message)
+        
+        # Parse JSON response
+        try:
+            clean_response = response_text.strip()
+            if clean_response.startswith("```"):
+                lines = clean_response.split("\n")
+                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            
+            result = json_module.loads(clean_response)
+            
+            # Apply guardrails
+            for section in result.get("sections", []):
+                section["body"] = apply_human_design_guardrails(section["body"])
+            
+            result["mirror_prompt"] = apply_human_design_guardrails(result.get("mirror_prompt", ""))
+            
+            # Ensure core_mechanics is included
+            if "core_mechanics" not in result:
+                result["core_mechanics"] = {
+                    "type": hd_data['type'],
+                    "strategy": strategy_desc,
+                    "authority": hd_data['authority']
+                }
+            
+            return result
+            
+        except json_module.JSONDecodeError as e:
+            logger.error(f"Failed to parse HD deep dive JSON: {e}")
+            return {
+                "title": "Your Core Mechanics",
+                "core_mechanics": {
+                    "type": hd_data['type'],
+                    "strategy": strategy_desc,
+                    "authority": hd_data['authority']
+                },
+                "sections": [
+                    {"label": "Type: Your Energy Architecture", "body": f"As a {hd_data['type']}, there's a particular way energy tends to move through you."},
+                    {"label": "Strategy: Your Engagement Pattern", "body": f"Your design suggests {strategy_desc.lower()}."},
+                    {"label": "Authority: Your Clarity Process", "body": f"With {hd_data['authority']} authority, clarity tends to come in a specific way."}
+                ],
+                "mirror_prompt": "What would be a small, low-stakes way to experiment with this today?"
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Human Design deep dive error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
