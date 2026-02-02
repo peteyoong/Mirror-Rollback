@@ -44,7 +44,7 @@ export default function ProfileScreen() {
     setShowResetModal(true);
   };
 
-  // Confirmation Modal for Web
+  // Confirmation Modal Component - works on both web and native
   const ConfirmModal = ({ 
     visible, 
     title, 
@@ -59,14 +59,12 @@ export default function ProfileScreen() {
     confirmText: string;
     onConfirm: () => void;
     onCancel: () => void;
-  }) => (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onCancel}
-    >
+  }) => {
+    if (!visible) return null;
+    
+    return (
       <View style={styles.modalOverlay}>
+        <Pressable style={styles.modalBackdrop} onPress={onCancel} />
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>{title}</Text>
           <Text style={styles.modalMessage}>{message}</Text>
@@ -80,8 +78,8 @@ export default function ProfileScreen() {
           </View>
         </View>
       </View>
-    </Modal>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
