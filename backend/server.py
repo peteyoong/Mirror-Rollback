@@ -1740,31 +1740,46 @@ async def calculate_chart(request: ChartCalculationRequest):
         
         # Store original inputs for debug stamp
         input_birth_local = birth_date.strftime("%Y-%m-%d")
-        input_birth_time = birth_time if birth_time else None
+        input_birth_time_raw = birth_time if birth_time else None
         input_timezone_raw = user_timezone if user_timezone else None
         
         # STRICT TIMEZONE VALIDATION - No silent defaults
         if not user_timezone:
             raise HTTPException(
                 status_code=400, 
-                detail="Timezone is required. Please update user profile with timezone (e.g., '+07:30')."
+                detail="Timezone is required. Please update user profile with IANA timezone (e.g., 'Asia/Kuala_Lumpur')."
             )
         
         if not birth_time:
             raise HTTPException(
                 status_code=400,
-                detail="Birth time is required. Please update user profile with birth time (e.g., '07:25')."
+                detail="Birth time is required. Please update user profile with birth time (e.g., '07:25' or '7:25am')."
             )
         
-        # Resolve birth datetime to UTC using proper timezone handling
-        try:
-            birth_datetime_utc, resolved_birth_utc_iso, parsed_timezone_minutes, _ = resolve_birth_utc(
-                birth_date_str=input_birth_local,
-                birth_time_str=birth_time,
-                timezone_str=user_timezone
+        # Use enhanced birth UTC resolution with comprehensive debug
+        from calculations.timezone_utils import resolve_birth_utc_with_debug, normalize_birth_time
+        
+        resolution = resolve_birth_utc_with_debug(
+            birth_date_str=input_birth_local,
+            birth_time_str=birth_time,
+            timezone_str=user_timezone
+        )
+        
+        if not resolution["success"]:
+            error_code = resolution["error"]
+            error_msg = resolution.get("error_message", "Unknown error")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"{error_code}: {error_msg}"
             )
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+        
+        birth_datetime_utc = resolution["birth_utc"]
+        resolution_debug = resolution["debug_stamp"]
+        
+        # Extract resolved values
+        resolved_birth_utc_iso = resolution_debug["datetime_utc_iso"]
+        parsed_timezone_minutes = resolution_debug["resolved_offset_minutes"]
+        normalized_birth_time = resolution_debug["time_normalized"]
         
         location = user["birth_location"]
         lat = location["latitude"]
@@ -1786,16 +1801,19 @@ async def calculate_chart(request: ChartCalculationRequest):
         input_string = f"{resolved_birth_utc_iso}|{lat_used}|{lon_used}|{sidereal_settings_used}|{house_system_used}"
         input_hash = hashlib.sha256(input_string.encode()).hexdigest()
         
-        # Create debug stamp
+        # Create enhanced debug stamp with IANA support
         debug_stamp = {
             "request_id": request_id,
             "profile_id": request.user_id,
             "user_id": request.user_id,
             "input_birth_local": input_birth_local,
-            "input_birth_time": input_birth_time,
+            "input_birth_time_raw": input_birth_time_raw,
+            "input_birth_time_normalized": normalized_birth_time,
             "input_timezone_raw": input_timezone_raw,
-            "parsed_timezone_minutes": parsed_timezone_minutes,
-            "resolved_birth_utc_iso": resolved_birth_utc_iso,
+            "timezone_iana": resolution_debug.get("timezone_iana"),
+            "resolved_utc_offset_at_birth": resolution_debug.get("resolved_utc_offset_at_birth"),
+            "resolved_offset_minutes": parsed_timezone_minutes,
+            "datetime_utc_used": resolved_birth_utc_iso,
             "lat_used": lat_used,
             "lon_used": lon_used,
             "sidereal_settings_used": sidereal_settings_used,
