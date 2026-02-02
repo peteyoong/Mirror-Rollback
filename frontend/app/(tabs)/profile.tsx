@@ -30,8 +30,8 @@ export default function ProfileScreen() {
     try {
       console.log('[Profile] Calling clearUser...');
       await clearUser();
-      console.log('[Profile] clearUser complete, navigating to /onboarding...');
-      router.replace('/onboarding');
+      console.log('[Profile] clearUser complete, navigating to /threshold...');
+      router.replace('/threshold');
       console.log('[Profile] Navigation called');
     } catch (error) {
       console.error('[Profile] Logout error:', error);
