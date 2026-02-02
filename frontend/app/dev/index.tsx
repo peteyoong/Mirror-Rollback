@@ -111,6 +111,8 @@ const HD_PAYLOADS = {
         profile: '5/1',
         definition: 'Split',
         incarnation_cross: 'Left Angle Cross of 37/5 | 40/35',
+        incarnation_cross_label: 'LAX Migration',
+        incarnation_cross_gates: '37/5 • 40/35',
         channels: ['4–63', '35–36', '37–40'],
       },
       sections: [
@@ -132,6 +134,8 @@ const HD_PAYLOADS = {
         profile: '3/5',
         definition: 'None',
         incarnation_cross: 'Right Angle Cross of 45/22 | 26/47',
+        incarnation_cross_label: 'RAX Rulership',
+        incarnation_cross_gates: '45/22 • 26/47',
         channels: [],  // Reflectors have no defined channels
       },
       sections: [
