@@ -126,6 +126,11 @@ export default function MirrorChat({
   const [isMemoryExpanded, setIsMemoryExpanded] = useState(false);
   const [showEvidence, setShowEvidence] = useState(false);
   const [hasTriggeredKeystone, setHasTriggeredKeystone] = useState(false);
+  
+  // Thread state for "Today's thread" pill
+  const [threadState, setThreadState] = useState<ThreadState | null>(null);
+  const [showThreadModal, setShowThreadModal] = useState(false);
+  
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
 
