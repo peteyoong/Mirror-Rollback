@@ -5203,18 +5203,27 @@ async def get_numerology_deep_dive(user_id: str):
             
             result["mirror_prompt"] = apply_numerology_guardrails(result.get("mirror_prompt", ""))
             
-            # Ensure core numbers are present
+            # Ensure core numbers are present (use null for locked, not "locked" string)
             result["core_numbers"] = {
                 "life_path": data["life_path_number"],
-                "expression": data["expression_number"] if data["has_name_numbers"] else "locked",
-                "soul_urge": data["soul_urge_number"] if data["has_name_numbers"] else "locked"
+                "expression": data["expression_number"],  # null if locked
+                "soul_urge": data["soul_urge_number"],    # null if locked
+                "personality": data["personality_number"] # null if locked
             }
             
+            # Add unlock flow fields
+            result["unlock_required"] = data["unlock_required"]
+            result["numerology_full_name_present"] = data["numerology_full_name_present"]
+            result["lock_reason"] = data["lock_reason"]
+            
             # Add unlock prompt if needed
-            if not data["has_name_numbers"]:
+            if data["unlock_required"]:
                 result["unlock_prompt"] = "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality)."
             else:
                 result["unlock_prompt"] = None
+            
+            # Add success flag
+            result["success"] = True
             
             return result
             
