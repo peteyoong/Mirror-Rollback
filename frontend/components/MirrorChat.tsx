@@ -51,6 +51,18 @@ interface KeystoneContext {
   daily_seed: string;
 }
 
+interface ThreadState {
+  active: boolean;
+  thread_type: string;
+  thread_date: string;
+  remaining_turns: number;
+  title?: string;
+  keystone?: string;
+  reflect_question?: string;
+  micro_affirmation?: string;
+  tone?: string;
+}
+
 interface MirrorChatProps {
   userId: string;
   lens?: 'astrology' | 'human_design' | 'numerology' | null;
