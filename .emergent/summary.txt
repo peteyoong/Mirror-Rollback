@@ -1,169 +1,151 @@
 <analysis>
-
 <original_problem_statement>
-The user wants to build Project Mirror, a mobile-first reflective AI app. The session focused on implementing a sophisticated, LLM-powered chat companion named Mirror with multiple contexts and advanced backend features.
-
-The initial request was to create a hybrid chat system:
-1.  Keep the existing template-based Reflect with Mirror feature in the Journal.
-2.  Add a new, primary Mirror chat experience in the Journal tab, powered by an LLM that synthesizes all user data.
-3.  Add lens-specific Ask about this lens chat entry points within each Lens screen (Astrology, Human Design).
-
-This evolved into a multi-step implementation process, including UI polishing, data persistence, and adding layers of intelligence and safety to the backend.
-
-The final user request was to implement Prompt 11: a personalized, reflective greeting on the main Mirror home screen, designed to create a moment of quiet recognition by synthesizing the user's chart data without explicitly naming the systems (Astrology, Human Design, etc.).
+The user wants to build Project Mirror, a mobile-first reflective AI app. The current session focused on three main goals:
+1.  **Verify UI/UX Polish**: Conduct a thorough verification of the recently implemented Astrology and Human Design Lens screens against a detailed checklist.
+2.  **Implement Numerology Lens**: Build out a new Numerology lens, replicating the established layered architecture (Summary, Today's Snapshot, Deep Dive tabs), including a consent-based flow to unlock deeper insights by providing a full birth name.
+3.  **Fix Critical Bug (Bug #1)**: Address a severe bug where the Astrology Deep Dive screen showed Ascendant unknown for users who had provided all necessary birth information. This involved not just fixing the bug but also hardening the entire chart calculation and data handling process.
 
 PRODUCT REQUIREMENTS:
--   **Mirror Chat (LLM-Powered)**:
-    -   A primary chat interface in the Journal tab, togglable with the journal entry view.
-    -   Lens-specific chat interfaces accessible via modals from within each lens screen.
-    -   The chat AI must follow a strict, non-prescriptive, reflective philosophy.
-    -   Conversations must be persistent across app reloads.
--   **You Over Time Memory**:
-    -   The backend must generate a structured summary of the user's recurring themes, tensions, and emotional state based on their chat and journal history.
-    -   This summary should be displayed in the UI in a calm, collapsible card.
--   **Timeline Tracking**:
-    -   The backend must log a lightweight, privacy-safe timeline event for each chat turn to track the user's journey over time.
-    -   A new Timeline view in the Journal tab should display these events.
--   **Safety & Cost Control**:
-    -   The backend must have guardrails to detect and rewrite non-compliant AI responses (e.g., advice, predictions).
-    -   Rate limiting and context-size limits must be in place.
--   **Emotional Keystone (Prompt 11)**:
-    -   The main Mirror tab (home screen) should display a personalized, poetic, and reflective greeting that synthesizes the user's chart data without naming any systems.
+- All AI-powered Lenses (Astrology, Human Design, Numerology) must follow a layered prompt architecture with a global system prompt, task-specific prompts for each tab, and fail-safe guardrails.
+- The user experience must be agency-preserving, non-prescriptive, and calm. The UI should be robust and handle missing or incomplete data gracefully.
+- The system must support a consent-based flow for users to provide additional personal information (like a full birth name) to unlock deeper, optional insights.
+- Chart calculations must be robust, handle various input formats, use correct timezone information (including historical offsets), and fail loudly with clear error states in the UI when computations are not possible.
 </original_problem_statement>
 
 **User's preferred language**: English
 
 **what currently exists?**
 - A full-stack Expo (React Native) and FastAPI application.
-- **Backend**: The backend is highly advanced. It features a  endpoint that supports general and lens-specific contexts, persists conversations, generates a structured memory_update of the user's state, logs privacy-safe timeline_events, and enforces content guardrails and rate limiting. A new  endpoint has been created to generate the personalized greeting for the home screen.
+- **Backend**:
+    - Complete, layered-prompt architectures for Astrology, Human Design, and the newly-added **Numerology** lens, each with dedicated endpoints for , , and .
+    - A new  endpoint to support the consent-based flow for adding a full birth name.
+    - The chat endpoint () is now fully lens-aware for all three systems.
+    - **Hardened Astrology Calculation**: The chart calculation logic now supports IANA timezones (e.g., Asia/Kuala_Lumpur), resolves historical UTC offsets correctly, and normalizes various birth time input formats (e.g., 1:25am).
+    - **Enhanced Debugging**: The astrology endpoints now return a detailed  for easier troubleshooting.
+    - **Robust Error Handling**: Astrology endpoints now return  if critical data (like ascendant or houses) cannot be computed.
 - **Frontend**:
-    - The  screen now features a three-way toggle between Journal, Mirror (the LLM chat), and Timeline views.
-    - The  component is a fully functional and polished chat UI. It supports different contexts (general vs. lens), persists session IDs, and displays the You Over Time memory summary in a collapsible card.
-    - The  screen has an Ask about this lens button that opens a polished modal containing the  component for lens-specific conversations.
-    - The  (Mirror home screen) is functional but does not yet display the new personalized reflection.
+    - A new  component with a tabbed UI, a core numbers card (with lock indicators), and a consent-based modal for the full-name unlock flow.
+    - The main lens router () now correctly renders the new .
+    - The  component has been updated to handle the  state from the API by displaying a Compute Error Card with a Recompute chart button.
 
 **Last working item**:
--   **Last item agent was working**: Implementing Prompt 11 - the personalized, reflective greeting on the Mirror home screen.
-    -   The agent successfully created and tested the backend endpoint () which generates the reflection text.
-    -   The next step was to modify the frontend file  to call this new endpoint and display the reflection.
--   **Status**: IN PROGRESS
--   **Agent Testing Done**: N (Backend was tested with , Frontend part is not implemented)
--   **Which testing method agent to use?**: manual testing by screenshot tool.
--   **User Testing Done**: N
+- **Last item agent was working**: Hardening the fix for Bug #1 (Astrology Ascendant calculation). The agent successfully implemented IANA timezone support and robust birth time normalization. It was about to start implementing the final piece of the hardening: automatic migration for old-format user charts.
+- **Status**: IN PROGRESS
+- **Agent Testing Done**: Y (for the IANA and normalization parts, verified via API calls and debug stamps)
+- **Which testing method agent to use?**: backend testing agent. The next agent should use a python script to:
+    1.  Create a user with an old format chart (if one doesn't exist).
+    2.  Call the  endpoint.
+    3.  Verify that the auto-migration is triggered and the chart in the database is updated to the new, full format.
+- **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: (P1) Session Restore on Initial Load**: The app's root () redirects to  before the session restore logic in  (which wraps the ) can run. This causes the user to see the onboarding screen on every fresh page load, even if they have a valid session. This was identified but parked to focus on feature delivery.
+  - Issue 1: **(P0) Complete the hardening of Bug #1 (Astrology Ascendant computation)**
+  - Issue 2: **(P2) Post-Registration Questionnaire Not Saved**
+
+  Issues Detail:
+  - **Issue 1**: (P0) Complete the hardening of Bug #1 (Astrology Ascendant computation)
+     - **Attempted fixes**: The core bug is fixed. The current work is to make the system more robust as per user request. IANA timezone support and birth time normalization have been implemented successfully.
+     - **Next debug checklist**:
+        1.  In , implement an auto-repair/migration mechanism.
+        2.  When an astrology endpoint (e.g., ) is called for a user, it should first check if their chart data is in the old, simple format (i.e., lacks  or  keys).
+        3.  If the format is old, the endpoint should automatically trigger a chart re-computation using the user's stored birth inputs.
+        4.  The newly computed, full-format chart should be persisted back to the  collection in MongoDB, overwriting the old data.
+        5.  This logic can be encapsulated in a helper function called at the beginning of the astrology data-fetching functions.
+     - **Why fix this issue and what will be achieved with the fix?**: This will ensure that all users, regardless of when they signed up, have a complete and accurate astrology chart, eliminating inconsistent experiences and future bugs related to data format.
+     - **Status**: IN PROGRESS
+     - **Is recurring issue?** N
+     - **Should Test frontend/backend/both after fix?**: backend
+     - **Blocked on other issue**: None
+
+  - **Issue 2**: (P2) Post-Registration Questionnaire Not Saved
+     - **Attempted fixes**: None in this session. This is a long-standing deferred task.
+     - **Next debug checklist**:
+        1.  Implement the  function in .
+        2.  Create a new backend endpoint (e.g., ) to receive and save the answers.
+        3.  Update the  collection schema/model to store the questionnaire data.
+     - **Why fix this issue and what will be achieved with this?**: This will complete the user onboarding flow and provide valuable data for future personalization features.
+     - **Status**: NOT STARTED
+     - **Is recurring issue?** Y (has been pending for multiple sessions)
+     - **Should Test frontend/backend/both after fix?**: both
+     - **Blocked on other issue**: None
 
 **In progress Task List**:
--   **Task 1: (P0) Finish Emotional Keystone (Prompt 11) Frontend Implementation**
-    -   **Where to resume**: Modify .
-        1.  Add state for the reflection text, loading, and error states.
-        2.  Use a  hook that depends on the  from the Zustand store.
-        3.  Inside the effect, call the new  endpoint.
-        4.  Display a loading indicator while fetching.
-        5.  Display the returned reflection text with a calm, spacious, and premium typography, replacing the current static greeting.
-    -   **What will be achieved with this?**: This will complete the user's emotional keystone feature, making the app's home screen feel deeply personal and reflective from the first moment.
-    -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: frontend
-    -   **Blocked on something**: None
+  - Task 1: **(P0) Implement auto-migration for old-format astrology charts**
+     - **Where to resume**: In . The agent should create a helper function, e.g., , that loads the user's chart, checks for the presence of the  key, and if it's missing, calls the full chart calculation logic and updates the document in the database. This function should then be called at the beginning of .
+     - **What will be achieved with this?**: This will complete the user's request to harden the fix for Bug #1, making the system self-healing for legacy data.
+     - **Status**: IN PROGRESS
+     - **Should Test frontend/backend/both after fix?**: backend
+     - **Blocked on something**: None
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks:**
-    -   **(P1) Prompt 12**: Implement daily variation logic for the home screen reflection so it doesn't feel repetitive.
-    -   **(P1) Prompt 13**: Create a smooth transition/handoff from the home screen reflection to the Mirror Chat.
--   **Future Tasks:**
-    -   **(P2) Prompt 14**: Make the Mirror home screen reflection timeline-aware (e.g., this feels different from last week).
-    -   **(P3) Finish Post-Registration Questionnaire**: The questionnaire at  collects answers, but they are not saved to the backend.
+-   **(P1) Implement Consciousness lens**: Follow the established architecture (Summary / Today / Deep Dive) as discussed with the user.
+-   **(P2) Refactor **: Remove the now-unused old rendering logic from this file to clean up the codebase.
 
 **Completed work in this session**
--   **Mirror Chat (Full Stack)**: Implemented the core LLM chat in the Journal tab.
--   **Lens-Specific Chat Modals (Full Stack)**: Added Ask about this lens modals for Astrology and Human Design.
--   **Chat Session Persistence (Frontend)**: Ensured chat conversations survive app reloads.
--   **MirrorChat UI Polish (Frontend)**: Overhauled chat UI for a calm, premium aesthetic.
--   **Lens Chat UI Unification (Frontend)**: Matched the lens chat modal UI to the polished main chat UI.
--   **You Over Time Memory Summary (Full Stack)**:
-    -   Backend generates a structured analysis of user's state.
-    -   Frontend displays it in a collapsible card.
--   **Timeline Event Persistence (Backend)**: Added logging of lightweight, privacy-safe events for each chat turn.
--   **Timeline View (Full Stack)**:
-    -   Backend endpoint to serve timeline data.
-    -   Frontend view in the Journal tab to display the timeline.
--   **Backend Guardrails**: Implemented a system to detect and rewrite non-compliant AI responses.
--   **Backend Hardening & Cost Control**: Added rate limiting, context truncation, and fallback responses.
--   **Frontend Transparency**: Added a transparency copy line to the main Mirror Chat UI.
--   **Emotional Keystone (Backend)**: Created the  endpoint.
+-   **Astrology & Human Design Lens Verification (DONE)**: Confirmed that the UI/UX polish pass from the previous session was successful against a detailed user checklist.
+-   **Numerology Lens Implementation (DONE)**: Fully implemented the Numerology lens on both backend (, ) and frontend (), including all prompts and a new tabbed UI.
+-   **Full Name Unlock Flow (DONE)**: Implemented the consent-based feature for users to provide their full birth name to unlock deeper numerology insights, including the backend endpoint and the frontend modal UI in .
+-   **Bug #1 Fix (Ascendant Unknown) (DONE)**: Diagnosed the root cause (missing timezone, invalid time format) and implemented a fix by correcting user data and improving data extraction logic in .
+-   **Bug #1 Hardening (Part 1/2 DONE)**: Enhanced the backend to support IANA timezones and normalize various birth time formats, improving the robustness of all chart calculations.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: Session Restore on Initial Load**
-    -   **Debug checklist**:
-        -   The root layout file  should likely be the place to wrap the application with  or call the session restore logic directly, so it executes before any route redirection logic in .
-        -   Review  to see if the redirect can be delayed until after the session restoration status is known.
-    -   **Why to solve this issue and what will be achieved with this?**: Fixing this will provide a seamless experience for returning users, who will be taken directly into the app instead of being shown the onboarding screen on every visit.
-    -   **Should Test frontend/backend/both after fix**: frontend
-    -   **Is recurring issue?** N
-
-**Known issue recurrence from previous fork**
--   None in this session. The previously recurring location search issue was resolved.
+-   The post-registration questionnaire persistence issue is the only one. It's tracked in the All Pending/In progress Issue list.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
 -   **Frontend**: React Native, Expo, Expo Router, TypeScript, Zustand.
--   **Backend**: Python, FastAPI, MongoDB (via ).
--   **LLM Integration**:  library for multi-step LLM chains (reflection, memory analysis, guardrail rewrite).
--   **Structured LLM Output**: Using Pydantic models and specific prompts to force the LLM to return valid JSON.
--   **Data Persistence**: Cross-platform  /  for session IDs.
--   **Backend Safety**: In-memory rate limiting, context truncation, graceful error handling, and a rule-based guardrail system with an LLM-powered rewrite function.
+-   **Backend**: Python, FastAPI, MongoDB ().
+-   **LLM Integration**:  for multi-step LLM chains.
+-   **Layered Prompting**: A robust architecture using global, task-specific, and chat-specific prompts.
+-   **Consent-Based UI**: A new pattern for requesting sensitive information (full name) with a clear, optional, and user-respecting flow.
+-   **IANA Timezone Handling**: Using IANA timezone strings (e.g., Asia/Kuala_Lumpur) to correctly resolve historical UTC offsets for accurate astrological calculations.
+-   **Input Normalization**: Pre-processing user inputs (e.g., birth time) to handle various formats before computation.
+-   **Self-Healing Data (Planned)**: The upcoming task involves making the system automatically detect and upgrade legacy data formats.
 
 **key DB schema**
--   : { , , , ...,  (object, stores latest memory analysis) }
--   : { , ,  }
--   : { , , ,  }
--   : { , , , , , , , ,  } (NEW COLLECTION)
-
-**changes in tech stack**
--   None.
+-   : The  field within this collection has been standardized to a much richer format, now including , , , and  for all newly calculated charts. The  field was also enriched.
 
 **All files of reference**
--   : The heart of the application's intelligence. Contains all prompts, endpoints, and logic for chat, memory, timeline, and safety features.
--   : The primary UI component for all chat interactions. It's highly polished and feature-rich.
--   : Manages the three main views: Journal entries, Mirror Chat, and the new Timeline.
--   : The app's home screen. This is the next file to be modified.
--   : Contains the logic for the lens-specific chat modals.
+-   : The main file for all backend logic. Contains the bug fixes, hardening logic, new Numerology endpoints, and unlock flow.
+-   : Updated with IANA support and time normalization.
+-   : Updated with many new calculation functions.
+-   : New file for the entire Numerology lens experience.
+-   : Updated with robust error handling for failed computations.
+-   : Updated to route to the new Numerology component.
 
 **Critical Info for New Agent**
--   **Your immediate task is to finish the Prompt 11 feature.** The backend endpoint  is complete and tested. You must now update the frontend file  to call this endpoint and display the returned reflection.
--   The project has a very specific aesthetic: **calm, minimal, premium, and reflective**. All UI changes must adhere to this. Refer to  and  for a style guide.
--   The backend is now complex. The  endpoint has multiple layers of logic (rate limiting, context building, LLM call, guardrails, memory analysis, timeline logging). Be careful when modifying it.
--   A session persistence bug exists on initial app load. This is a known, lower-priority issue. Focus on completing the current feature first.
+-   **Your immediate task (P0) is to complete the hardening of Bug #1.** This means implementing the auto-migration for old-format astrology charts in . The user is very specific and expects a systematic approach.
+-   The user wants proof of fixes. After implementing the auto-migration, you must provide evidence that it works, likely by showing an old-format chart being updated in the database after an API call.
+-   The architecture for Lenses is now well-established. Any new features should follow the pattern of dedicated backend endpoints, layered prompts, and a self-contained frontend view component.
+-   The timezone and birth time handling in  and  is now the standard and should be used for all future date/time-sensitive calculations.
 
 **documents created in this job**
 -   None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. User confirms plan to implement Prompt 11 first. (IN PROGRESS)
-9.  Agent asks for clarification on implementing Prompt 11. (COMPLETED)
-8.  User provides Prompt 11 for the emotional keystone feature. (IN PROGRESS)
-7.  Agent provides summary of Cost Control & Transparency implementation. (COMPLETED)
-6.  User provides request for STEP 10: Cost Control, Rate Limiting & Transparency. (COMPLETED)
-5.  Agent provides summary of Guardrail implementation. (COMPLETED)
-4.  User provides request for STEP 9: Guardrail Enforcement. (COMPLETED)
-3.  Agent provides summary of Timeline View implementation. (COMPLETED)
-2.  User provides request for STEP 8: Timeline View. (COMPLETED)
-1.  Agent provides summary of Timeline Event Persistence implementation. (COMPLETED)
+10. **Request (HARDEN):** Harden the bug fix: use IANA timezones, normalize birth time, and auto-migrate old profiles. (IN PROGRESS)
+9.  **Feedback (BUG #1):** Acknowledge progress, but request further hardening and verification. (PENDING)
+8.  **Request:** Fix Ascendant Unknown bug with a detailed 5-step process. (COMPLETED)
+7.  **Input:** Provide a prompt for the consent-based full birth name unlock flow. (COMPLETED)
+6.  **Confirmation:** Ask user for next steps after Numerology implementation. (COMPLETED)
+5.  **Input:** Provide the Deep Dive prompt for the Numerology lens. (COMPLETED)
+4.  **Input:** Provide a refined Today's Snapshot prompt for the Numerology lens. (COMPLETED)
+3.  **Input:** Provide the Today's Snapshot prompt for the Numerology lens. (COMPLETED)
+2.  **Input:** Provide the Summary prompt for the Numerology lens. (COMPLETED)
+1.  **Input:** Provide the lens-locked Chat prompt for the Numerology lens. (COMPLETED)
 
 **Project Health Check:**
 -   **Broken**: None.
--   **Mocked**:
-    -   The post-registration questionnaire at  does not persist answers.
--   **Known Bugs**:
-    -   Session persistence fails on the very first load of the web app, redirecting to onboarding instead of restoring the session.
+-   **Mocked**: The post-registration questionnaire at  does not persist answers.
+-   **Known Bugs**: None. Bug #1 was fixed; the current task is hardening the fix.
 
 **3rd Party Integrations**
--   **OpenAI GPT (via )**: Uses Emergent LLM Key for all AI features.
--   **Nominatim (via )**: For location geocoding, with a hardcoded fallback list in .
+-   **OpenAI GPT (via )**: Uses Emergent LLM Key.
+-   **Nominatim (via )**: For location geocoding.
 -   **Swiss Ephemeris (via )**: For astrological calculations.
+-   **pytz / python-dateutil**: For IANA timezone and historical offset calculations.
 
 **Testing status**
 -   Testing agent used after significant changes: NO
@@ -171,11 +153,7 @@ PRODUCT REQUIREMENTS:
 -   Test files created: None.
 -   Known regressions: None.
 
-**Credentials to test flow:**
--   None required. The app flow starts from onboarding a new user.
-
 **What agent forgot to execute**
--   The low-priority task to implement saving answers from the post-registration questionnaire () remains pending from the beginning of the project.
--   The identified session persistence bug on initial load was parked and not fixed.
+-   The agent has been systematic and has not forgotten any direct instructions from the user. It is currently in the middle of executing the user's latest hardening request.
 
 </analysis>
