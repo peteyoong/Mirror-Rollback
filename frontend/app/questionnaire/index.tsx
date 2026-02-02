@@ -107,10 +107,10 @@ export default function Questionnaire() {
           useNativeDriver: true,
         }).start();
 
-        // Navigate to main app after 3 seconds
+        // Navigate to main app after 2 seconds (soft pause)
         setTimeout(() => {
           router.replace('/(tabs)');
-        }, 3000);
+        }, 2000);
       }
     });
   };
