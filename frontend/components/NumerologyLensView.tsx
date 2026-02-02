@@ -455,6 +455,18 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
             {/* Still show core numbers on Deep Dive even with error */}
             {activeTab === 'deep_dive' && renderCoreNumbers()}
           </View>
+        ) : data?.error === 'INCOMPLETE_BIRTH_DATA' ? (
+          // Show incomplete birth data card when precondition check fails
+          <View style={styles.incompleteDataContainer}>
+            <Text style={styles.incompleteTitle}>Numerology</Text>
+            <IncompleteBirthDataCard 
+              missingFields={data.missing_fields}
+              lensName="Numerology insights"
+            />
+            <Text style={styles.incompleteHint}>
+              Your numerology profile requires your birth date to calculate Life Path and personal cycles.
+            </Text>
+          </View>
         ) : data ? (
           <>
             {/* Title */}
