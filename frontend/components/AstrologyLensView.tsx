@@ -583,6 +583,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.text,
   },
+  placementMissing: {
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+  },
   placementDivider: {
     width: 1,
     height: 20,
