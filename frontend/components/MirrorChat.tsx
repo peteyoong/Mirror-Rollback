@@ -309,6 +309,13 @@ export default function MirrorChat({
       if (response.data.memory_update) {
         setMemoryUpdate(response.data.memory_update);
       }
+      
+      // Update thread state from response (only for generalist chat)
+      if (!lens && response.data.thread) {
+        setThreadState(response.data.thread);
+      } else if (!lens && !response.data.thread) {
+        setThreadState(null);
+      }
     } catch (error: any) {
       console.error('Mirror chat error:', error);
       const errorMessage: Message = {
