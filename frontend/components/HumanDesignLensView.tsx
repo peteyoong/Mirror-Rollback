@@ -199,10 +199,17 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         </View>
 
         {/* Row 4: Incarnation Cross */}
-        {mechanics.incarnation_cross && (
+        {(mechanics.incarnation_cross_label || mechanics.incarnation_cross) && (
           <View style={styles.fullWidthRow}>
             <Text style={styles.fullWidthLabel}>Incarnation Cross</Text>
-            <Text style={styles.fullWidthValue}>{mechanics.incarnation_cross}</Text>
+            <View style={styles.crossValueContainer}>
+              <Text style={styles.fullWidthValue}>
+                {mechanics.incarnation_cross_label || mechanics.incarnation_cross}
+              </Text>
+              {mechanics.incarnation_cross_gates && mechanics.incarnation_cross_gates !== '—' && (
+                <Text style={styles.crossGatesText}>{mechanics.incarnation_cross_gates}</Text>
+              )}
+            </View>
           </View>
         )}
 
