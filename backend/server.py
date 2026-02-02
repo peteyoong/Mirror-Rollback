@@ -3081,8 +3081,17 @@ async def mirror_chat(request: MirrorChatRequest):
             logger.warning(f"[Consciousness] State update failed: {consciousness_error}")
         # ===== END CONSCIOUSNESS STATE UPDATE =====
         
+        # ===== PREPEND REASSURANCE IF NEEDED =====
+        # "I'm keeping this simple today." - appears only when depth intentionally reduced
+        final_response = response_text
+        if needs_reassurance:
+            reassurance_line = "I'm keeping this simple today.\n\n"
+            final_response = reassurance_line + response_text
+            logger.info(f"[Mirror Chat] Reassurance prepended for user {request.user_id}")
+        # ===== END REASSURANCE =====
+        
         return MirrorChatResponse(
-            response=response_text,
+            response=final_response,
             session_id=session_id,
             timestamp=datetime.now(timezone.utc).isoformat(),
             memory_update=memory_update,
