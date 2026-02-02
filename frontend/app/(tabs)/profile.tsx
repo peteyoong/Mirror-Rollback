@@ -4,11 +4,10 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ScrollView,
   ActivityIndicator,
   Modal,
-  Platform,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,23 +31,16 @@ export default function ProfileScreen() {
       router.replace('/onboarding');
     } catch (error) {
       console.error('Logout error:', error);
-      if (Platform.OS === 'web') {
-        window.alert('Failed to log out. Please try again.');
-      } else {
-        Alert.alert('Error', 'Failed to log out. Please try again.');
-      }
     } finally {
       setIsLoggingOut(false);
     }
   };
 
   const handleLogout = () => {
-    // Always show modal on web and native
     setShowLogoutModal(true);
   };
 
   const handleResetSession = () => {
-    // Always show modal on web and native  
     setShowResetModal(true);
   };
 
