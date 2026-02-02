@@ -248,14 +248,16 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
             >
               <Text style={styles.retryText}>Try Again</Text>
             </TouchableOpacity>
+            {/* Still show core card on Deep Dive even with error */}
+            {activeTab === 'deep_dive' && renderCorePlacements()}
           </View>
         ) : data ? (
           <>
             {/* Title */}
             <Text style={styles.title}>{data.title}</Text>
 
-            {/* Date for Today tab */}
-            {data.date && (
+            {/* Date for Today's Snapshot tab only */}
+            {activeTab === 'today' && data.date && (
               <Text style={styles.dateLabel}>{data.date}</Text>
             )}
 
