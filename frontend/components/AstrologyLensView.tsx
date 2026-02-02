@@ -98,8 +98,19 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
     </View>
   );
 
+  // Always render core placements for deep dive, even with fallback values
   const renderCorePlacements = () => {
-    if (!data?.core_placements) return null;
+    // Default fallback if no data
+    const placements = data?.core_placements || {
+      sun: 'Unknown',
+      moon: 'Unknown',
+      ascendant: 'Unknown'
+    };
+
+    // Helper to format unknown gracefully
+    const formatPlacement = (value: string) => {
+      return value === 'Unknown' ? '—' : value;
+    };
 
     return (
       <View style={styles.corePlacementsCard}>
@@ -107,17 +118,17 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
         <View style={styles.corePlacementsRow}>
           <View style={styles.placementItem}>
             <Ionicons name="sunny-outline" size={16} color={Colors.accent} />
-            <Text style={styles.placementSign}>{data.core_placements.sun}</Text>
+            <Text style={styles.placementSign}>{formatPlacement(placements.sun)}</Text>
           </View>
           <View style={styles.placementDivider} />
           <View style={styles.placementItem}>
             <Ionicons name="moon-outline" size={16} color={Colors.accent} />
-            <Text style={styles.placementSign}>{data.core_placements.moon}</Text>
+            <Text style={styles.placementSign}>{formatPlacement(placements.moon)}</Text>
           </View>
           <View style={styles.placementDivider} />
           <View style={styles.placementItem}>
             <Ionicons name="arrow-up-outline" size={16} color={Colors.accent} />
-            <Text style={styles.placementSign}>{data.core_placements.ascendant}</Text>
+            <Text style={styles.placementSign}>{formatPlacement(placements.ascendant)}</Text>
           </View>
         </View>
       </View>
