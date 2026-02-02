@@ -3574,8 +3574,13 @@ class AstrologyResponse(BaseModel):
     date: Optional[str] = None
 
 
-async def get_user_astrology_data(user_id: str) -> Tuple[dict, dict]:
-    """Fetch user and their astrology chart data."""
+async def get_user_astrology_data(user_id: str, auto_migrate: bool = True) -> Tuple[dict, dict]:
+    """
+    Fetch user and their astrology chart data.
+    
+    If auto_migrate=True (default), automatically checks if the chart is in an old format
+    and triggers migration to the new, complete format with planets/houses.
+    """
     user = await db.users.find_one({"_id": ObjectId(user_id)})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -3583,6 +3588,17 @@ async def get_user_astrology_data(user_id: str) -> Tuple[dict, dict]:
     chart = await db.charts.find_one({"user_id": user_id})
     if not chart:
         raise HTTPException(status_code=404, detail="Chart not found. Complete onboarding first.")
+    
+    # =====================================================================
+    # AUTO-MIGRATION: Check and upgrade old-format charts automatically
+    # =====================================================================
+    if auto_migrate:
+        migrated, migration_msg, updated_chart = await check_and_migrate_astrology_chart(user_id)
+        if migrated:
+            logger.info(f"[AUTO-MIGRATE] Chart auto-migrated for user {user_id}: {migration_msg}")
+            chart = updated_chart
+        elif "Cannot migrate" in migration_msg or "failed" in migration_msg.lower():
+            logger.warning(f"[AUTO-MIGRATE] Migration issue for user {user_id}: {migration_msg}")
     
     return user, chart
 
