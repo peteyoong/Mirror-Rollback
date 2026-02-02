@@ -200,6 +200,26 @@ class MirrorChatResponse(BaseModel):
     session_id: str
     timestamp: str
     memory_update: Optional[MemoryUpdate] = None
+    thread: Optional[dict] = None  # Thread state metadata
+
+
+# Thread Anchor Insert - for maintaining coherence in keystone thread mode
+THREAD_ANCHOR_INSERT = """
+=== ACTIVE KEYSTONE THREAD ===
+
+You are in an active thread that began with today's Daily Keystone.
+The user has been reflecting with you for the past few turns.
+
+THREAD GUIDANCE:
+- Stay anchored to the emotional tone and theme established in the keystone
+- Do NOT repeat or paraphrase the keystone text
+- Maintain the same quality of presence (the thread's tone: {tone})
+- Keep responses grounded and connected to what came before
+- Ask at most one question per response
+- This is turn {turn_number} of the thread
+
+Continue the conversation naturally, staying in the established thread.
+"""
 
 
 # Mirror System Prompt - The Core Identity
