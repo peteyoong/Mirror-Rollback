@@ -2494,7 +2494,10 @@ async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_ref
             }
         
         # Build response
-        return {
+        generated_at = datetime.now(timezone.utc).isoformat()
+        is_first = len(timeline_events) == 0
+        
+        response_data = {
             "date": date_str,
             "title": keystone_data.get("title", "A Moment of Pause"),
             "keystone": keystone_data.get("keystone", "Something in you brought you here today."),
@@ -2507,9 +2510,36 @@ async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_ref
             "daily_seed": daily_seed,
             # Backwards compatibility
             "reflection": keystone_data.get("keystone", "Something in you brought you here today."),
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "is_first_visit": len(timeline_events) == 0
+            "generated_at": generated_at,
+            "is_first_visit": is_first
         }
+        
+        # =====================================================================
+        # CACHE THE RESPONSE FOR DETERMINISM
+        # =====================================================================
+        try:
+            await db.daily_keystones.update_one(
+                {"user_id": user_id, "date": date_str},
+                {"$set": {
+                    "user_id": user_id,
+                    "date": date_str,
+                    "daily_seed": daily_seed,
+                    "title": response_data["title"],
+                    "keystone": response_data["keystone"],
+                    "reflect_question": response_data["reflect_question"],
+                    "micro_affirmation": response_data["micro_affirmation"],
+                    "source_signals": response_data["source_signals"],
+                    "generated_at": generated_at,
+                    "is_first_visit": is_first,
+                    "cached_at": datetime.now(timezone.utc).isoformat()
+                }},
+                upsert=True
+            )
+            logger.info(f"[Keystone] Cached keystone for {user_id} on {date_str}")
+        except Exception as cache_err:
+            logger.warning(f"[Keystone] Failed to cache: {cache_err}")
+        
+        return response_data
         
     except HTTPException:
         raise
