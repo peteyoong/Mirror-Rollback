@@ -406,8 +406,10 @@ if __name__ == "__main__":
     print("COMPUTE INTEGRITY REGRESSION TESTS")
     print("=" * 70)
     
+    # Create test instance and set up event loop manually
     test_instance = TestComputeIntegrity()
-    test_instance.setup()
+    test_instance.loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(test_instance.loop)
     
     tests = [
         ("test_coordinates_match_reference", ["Pete", "Mel"]),
@@ -436,6 +438,8 @@ if __name__ == "__main__":
                 print(f"   {type(e).__name__}: {e}")
                 traceback.print_exc()
                 failed += 1
+    
+    test_instance.loop.close()
     
     print("\n" + "=" * 70)
     print(f"RESULTS: {passed} passed, {failed} failed")
