@@ -108,38 +108,109 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     </View>
   );
 
-  // Always render core mechanics for deep dive, even with fallback values
+  // Render Core Mechanics card for Deep Dive
+  // Shows Type, Strategy, Authority, Profile, Definition, Cross, Channels
   const renderCoreMechanics = () => {
-    // Default fallback if no data
-    const mechanics = data?.core_mechanics || {
-      type: 'Unknown',
-      strategy: 'Unknown',
-      authority: 'Unknown'
+    const mechanics = data?.core_mechanics;
+
+    // If no mechanics data, show placeholder
+    if (!mechanics) {
+      return (
+        <View style={styles.coreMechanicsCard}>
+          <Text style={styles.coreMechanicsTitle}>CORE MECHANICS</Text>
+          <View style={styles.mechanicsGrid}>
+            <View style={styles.mechanicItem}>
+              <Ionicons name="flash-outline" size={16} color={Colors.textTertiary} />
+              <Text style={styles.mechanicLabel}>Type</Text>
+              <Text style={styles.mechanicValue}>—</Text>
+            </View>
+            <View style={styles.mechanicDivider} />
+            <View style={styles.mechanicItem}>
+              <Ionicons name="compass-outline" size={16} color={Colors.textTertiary} />
+              <Text style={styles.mechanicLabel}>Authority</Text>
+              <Text style={styles.mechanicValue}>—</Text>
+            </View>
+          </View>
+        </View>
+      );
+    }
+
+    // Helper to format empty values
+    const formatValue = (value: string | undefined | null) => {
+      if (!value || value === 'Unknown' || value === 'None') return '—';
+      return value;
     };
 
-    // Helper to format unknown gracefully
-    const formatMechanic = (value: string) => {
-      if (!value || value === 'Unknown') return '—';
-      // For authority, take first part if it contains slash
-      return value.split('/')[0];
+    // Format channels with consistent dash and sort numerically
+    const formatChannels = (channels: string[] | undefined): string => {
+      if (!channels || channels.length === 0) return 'None defined';
+      
+      // Sort channels numerically by first gate number
+      const sorted = [...channels].sort((a, b) => {
+        const aFirst = parseInt(a.split(/[-–]/)[0]) || 0;
+        const bFirst = parseInt(b.split(/[-–]/)[0]) || 0;
+        return aFirst - bFirst;
+      });
+      
+      // Normalize dash format to en-dash
+      return sorted.map(ch => ch.replace(/-/g, '–')).join(', ');
     };
 
     return (
       <View style={styles.coreMechanicsCard}>
-        <Text style={styles.coreMechanicsTitle}>TYPE • STRATEGY • AUTHORITY</Text>
-        <View style={styles.mechanicsGrid}>
+        <Text style={styles.coreMechanicsTitle}>CORE MECHANICS</Text>
+        
+        {/* Row 1: Type • Strategy */}
+        <View style={styles.mechanicsRow}>
           <View style={styles.mechanicItem}>
             <Ionicons name="flash-outline" size={16} color={Colors.accent} />
             <Text style={styles.mechanicLabel}>Type</Text>
-            <Text style={styles.mechanicValue}>{formatMechanic(mechanics.type)}</Text>
+            <Text style={styles.mechanicValue}>{formatValue(mechanics.type)}</Text>
           </View>
           <View style={styles.mechanicDivider} />
           <View style={styles.mechanicItem}>
-            <Ionicons name="compass-outline" size={16} color={Colors.accent} />
-            <Text style={styles.mechanicLabel}>Authority</Text>
-            <Text style={styles.mechanicValue}>{formatMechanic(mechanics.authority)}</Text>
+            <Ionicons name="navigate-outline" size={16} color={Colors.accent} />
+            <Text style={styles.mechanicLabel}>Strategy</Text>
+            <Text style={styles.mechanicValue}>{formatValue(mechanics.strategy)}</Text>
           </View>
         </View>
+
+        {/* Row 2: Authority • Profile */}
+        <View style={[styles.mechanicsRow, { marginTop: 12 }]}>
+          <View style={styles.mechanicItem}>
+            <Ionicons name="compass-outline" size={16} color={Colors.accent} />
+            <Text style={styles.mechanicLabel}>Authority</Text>
+            <Text style={styles.mechanicValue}>{formatValue(mechanics.authority)}</Text>
+          </View>
+          <View style={styles.mechanicDivider} />
+          <View style={styles.mechanicItem}>
+            <Ionicons name="person-outline" size={16} color={Colors.accent} />
+            <Text style={styles.mechanicLabel}>Profile</Text>
+            <Text style={styles.mechanicValue}>{formatValue(mechanics.profile)}</Text>
+          </View>
+        </View>
+
+        {/* Row 3: Definition */}
+        <View style={styles.fullWidthRow}>
+          <Text style={styles.fullWidthLabel}>Definition</Text>
+          <Text style={styles.fullWidthValue}>{formatValue(mechanics.definition)}</Text>
+        </View>
+
+        {/* Row 4: Incarnation Cross */}
+        {mechanics.incarnation_cross && (
+          <View style={styles.fullWidthRow}>
+            <Text style={styles.fullWidthLabel}>Incarnation Cross</Text>
+            <Text style={styles.fullWidthValue}>{mechanics.incarnation_cross}</Text>
+          </View>
+        )}
+
+        {/* Row 5: Channels */}
+        {mechanics.channels && mechanics.channels.length > 0 && (
+          <View style={styles.fullWidthRow}>
+            <Text style={styles.fullWidthLabel}>Channels</Text>
+            <Text style={styles.fullWidthValue}>{formatChannels(mechanics.channels)}</Text>
+          </View>
+        )}
       </View>
     );
   };
