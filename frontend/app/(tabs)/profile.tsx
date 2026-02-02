@@ -43,33 +43,13 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = () => {
-    if (Platform.OS === 'web') {
-      setShowLogoutModal(true);
-    } else {
-      Alert.alert(
-        'Log Out',
-        'This will clear your session and return you to the welcome screen. Your data on the server will be preserved.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Log Out', style: 'destructive', onPress: performLogout },
-        ]
-      );
-    }
+    // Always show modal on web and native
+    setShowLogoutModal(true);
   };
 
   const handleResetSession = () => {
-    if (Platform.OS === 'web') {
-      setShowResetModal(true);
-    } else {
-      Alert.alert(
-        'Reset Session',
-        'This will completely clear your local session, allowing you to register as a new user or log in with different details.\n\nYour existing data on the server will NOT be deleted.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Reset & Start Fresh', style: 'destructive', onPress: performLogout },
-        ]
-      );
-    }
+    // Always show modal on web and native  
+    setShowResetModal(true);
   };
 
   // Confirmation Modal for Web
