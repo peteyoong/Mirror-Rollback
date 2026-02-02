@@ -4842,7 +4842,12 @@ async def get_user_numerology_data(user_id: str):
 
 
 def extract_numerology_data(chart: dict, user: dict) -> dict:
-    """Extract and structure numerology data from chart."""
+    """Extract and structure numerology data from chart.
+    
+    INVARIANTS:
+    1. If numerology_full_name is present -> Expression, Soul Urge, Personality MUST ALL be non-null
+    2. If numerology_full_name is missing -> ALL 3 must be null/locked consistently
+    """
     numerology = chart.get("numerology", {})
     
     # Helper to safely extract number
@@ -4865,25 +4870,54 @@ def extract_numerology_data(chart: dict, user: dict) -> dict:
     life_path = numerology.get("life_path")
     birthday = numerology.get("birthday")
     
-    # Name-based (optional)
+    # Check if user has provided their full birth name for numerology
+    numerology_full_name_present = bool(user.get("numerology_full_name"))
+    
+    # Name-based numbers (only valid if numerology_full_name was provided)
     expression = numerology.get("expression")
     soul_urge = numerology.get("soul_urge")
     personality = numerology.get("personality")
-    has_name_numbers = numerology.get("has_name_numbers", bool(expression or soul_urge or personality))
+    
+    # Enforce invariant: all 3 name-based numbers must be present together or none
+    expression_num = get_number(expression)
+    soul_urge_num = get_number(soul_urge)
+    personality_num = get_number(personality)
+    
+    # All three must be non-null for has_name_numbers to be true
+    all_name_numbers_present = (
+        expression_num is not None and 
+        soul_urge_num is not None and 
+        personality_num is not None
+    )
+    
+    # Determine if unlock is required
+    # unlock_required = True if user hasn't provided numerology_full_name
+    unlock_required = not numerology_full_name_present
+    
+    # If no full name provided, force all name-based numbers to null (locked)
+    if not numerology_full_name_present:
+        expression_num = None
+        soul_urge_num = None
+        personality_num = None
+        all_name_numbers_present = False
     
     return {
         "life_path_number": get_number(life_path, "Unknown"),
         "life_path_description": get_desc(life_path),
         "birthday_number": get_number(birthday),
         "birthday_description": get_desc(birthday),
-        "expression_number": get_number(expression),
-        "expression_description": get_desc(expression),
-        "soul_urge_number": get_number(soul_urge),
-        "soul_urge_description": get_desc(soul_urge),
-        "personality_number": get_number(personality),
-        "personality_description": get_desc(personality),
-        "has_name_numbers": has_name_numbers,
-        "user_birth_date": user.get("birth_date")
+        "expression_number": expression_num,
+        "expression_description": get_desc(expression) if expression_num else "",
+        "soul_urge_number": soul_urge_num,
+        "soul_urge_description": get_desc(soul_urge) if soul_urge_num else "",
+        "personality_number": personality_num,
+        "personality_description": get_desc(personality) if personality_num else "",
+        "has_name_numbers": all_name_numbers_present,
+        "user_birth_date": user.get("birth_date"),
+        # New fields for frontend unlock flow
+        "numerology_full_name_present": numerology_full_name_present,
+        "unlock_required": unlock_required,
+        "lock_reason": "FULL_NAME_REQUIRED" if unlock_required else None
     }
 
 
