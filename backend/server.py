@@ -2005,17 +2005,18 @@ async def mirror_chat(request: MirrorChatRequest):
                     "user_id": request.user_id,
                     "session_id": session_id,
                     "created_at_iso": datetime.now(timezone.utc).isoformat(),
-                    "event_type": "mirror_chat_turn",
+                    "event_type": "keystone_followup" if is_keystone_followup else "mirror_chat_turn",
                     "inferred_state": memory_update.inferred_state,
                     "confidence": memory_update.confidence,
                     "themes": memory_update.themes[:2],  # max 2 themes
                     "tension": memory_update.recurring_tensions[0] if memory_update.recurring_tensions else None,
-                    "source": "mirror_chat",
+                    "source": "keystone_continuation" if is_keystone_followup else "mirror_chat",
+                    "keystone_date": request.keystone_context.date if is_keystone_followup else None,
                     "version": "v1"
                 }
                 
                 await db.user_timeline.insert_one(timeline_event)
-                logger.info(f"Timeline event recorded for user {request.user_id}: state={memory_update.inferred_state}")
+                logger.info(f"Timeline event recorded for user {request.user_id}: type={timeline_event['event_type']}, state={memory_update.inferred_state}")
                 
             except Exception as timeline_error:
                 logger.warning(f"Timeline event write failed: {timeline_error}")
