@@ -3040,15 +3040,29 @@ async def mirror_chat(request: MirrorChatRequest):
         # ===== UPDATE CONSCIOUSNESS STATE =====
         # Asynchronously update the user's consciousness state based on their message
         # This keeps the adaptation fresh for future turns
+        # Uses smoothing to prevent rapid state switching
         try:
-            new_snapshot = infer_level_from_text(request.message)
+            # Get current snapshot for smoothing context
+            current_snapshot = user.get("consciousness_snapshot")
+            inference_history = []
+            if current_snapshot:
+                inference_history = current_snapshot.get("inference_history", [])
+            
+            # Infer with smoothing applied
+            new_snapshot = infer_level_from_text(
+                request.message,
+                current_snapshot=current_snapshot,
+                inference_history=inference_history
+            )
             new_snapshot["source_events"] = ["mirror_chat_message"]
             
             await db.users.update_one(
                 {"_id": ObjectId(request.user_id)},
                 {"$set": {"consciousness_snapshot": new_snapshot}}
             )
-            logger.debug(f"[Consciousness] Updated state for user {request.user_id}: {new_snapshot['inferred_level_id']} (confidence: {new_snapshot['confidence']})")
+            
+            smoothing_info = new_snapshot.get("smoothing", {})
+            logger.debug(f"[Consciousness] Updated state for user {request.user_id}: {new_snapshot['inferred_level_id']} (confidence: {new_snapshot['confidence']}, smoothing: {smoothing_info.get('applied', 'none')})")
         except Exception as consciousness_error:
             # Don't fail the chat if consciousness update fails
             logger.warning(f"[Consciousness] State update failed: {consciousness_error}")
