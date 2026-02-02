@@ -6,26 +6,30 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
-  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
-import ReflectionCard from '../../components/ReflectionCard';
-import ChatBot from '../../components/ChatBot';
-import { getDailyReflection } from '../../services/api';
-import { format } from 'date-fns';
+import api from '../../services/api';
+
+interface MirrorReflection {
+  reflection: string;
+  generated_at: string;
+  is_first_visit: boolean;
+}
 
 export default function MirrorScreen() {
-  const { user, dailyReflection, setDailyReflection } = useAppStore();
-  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAppStore();
+  const [reflection, setReflection] = useState<MirrorReflection | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
-    loadReflection();
-  }, []);
+    if (user) {
+      loadReflection();
+    }
+  }, [user]);
 
   const loadReflection = async (forceRefresh = false) => {
     if (!user) return;
@@ -35,14 +39,18 @@ export default function MirrorScreen() {
     } else {
       setIsLoading(true);
     }
-    setError('');
 
     try {
-      const reflection = await getDailyReflection(user.id);
-      setDailyReflection(reflection);
+      const response = await api.get(`/mirror/home/${user.id}`);
+      setReflection(response.data);
     } catch (err: any) {
       console.error('Load reflection error:', err);
-      setError('Unable to load today\'s reflection. Pull to try again.');
+      // Use fallback
+      setReflection({
+        reflection: "Something in you brought you here today. That's worth noticing.",
+        generated_at: new Date().toISOString(),
+        is_first_visit: false,
+      });
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -56,83 +64,63 @@ export default function MirrorScreen() {
   if (!user) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <View style={styles.centered}>
-          <Text style={styles.errorText}>No user found</Text>
+          <ActivityIndicator size="large" color={Colors.textTertiary} />
         </View>
       </SafeAreaView>
     );
   }
 
-  const today = format(new Date(), 'EEEE, MMMM d');
-
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor={Colors.textSecondary}
+            tintColor={Colors.textTertiary}
           />
         }
+        showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
+        {/* Spacer for breathing room */}
+        <View style={styles.topSpacer} />
+
+        {/* Greeting - minimal */}
+        <View style={styles.greetingContainer}>
           <Text style={styles.greeting}>
-            {user.name ? `${user.name}` : 'Welcome'}
-          </Text>
-          <Text style={styles.date}>{today}</Text>
-          <Text style={styles.subtitle}>
-            A quiet place to pause and look at your life from a slightly different angle.
+            {user.name || 'Welcome'}
           </Text>
         </View>
 
         {/* Loading State */}
         {isLoading && (
-          <View style={styles.centered}>
-            <ActivityIndicator size="large" color={Colors.textSecondary} />
-            <Text style={styles.loadingText}>Preparing your reflection...</Text>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color={Colors.textTertiary} />
           </View>
         )}
 
-        {/* Error State */}
-        {error && !isLoading && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity style={styles.retryButton} onPress={() => loadReflection()}>
-              <Text style={styles.retryText}>Try Again</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Reflection Card */}
-        {dailyReflection && !isLoading && (
+        {/* The Reflection - the emotional keystone */}
+        {reflection && !isLoading && (
           <View style={styles.reflectionContainer}>
-            <ReflectionCard
-              insight={dailyReflection.insight}
-              question={dailyReflection.question}
-              perspective={dailyReflection.perspective}
-            />
-          </View>
-        )}
-
-        {/* Optional Journaling Prompt */}
-        {dailyReflection && !isLoading && (
-          <View style={styles.journalPrompt}>
-            <Text style={styles.journalPromptText}>
-              If something surfaced, the journal is here for you.
+            <Text style={styles.reflectionText}>
+              {reflection.reflection}
             </Text>
           </View>
         )}
 
-        <View style={styles.spacer} />
-      </ScrollView>
+        {/* Gentle footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Pull down to receive a new reflection
+          </Text>
+        </View>
 
-      {/* Persistent Chatbot */}
-      <ChatBot userId={user.id} />
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -143,78 +131,52 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   scrollContent: {
-    padding: 24,
-    paddingBottom: 100,
+    flexGrow: 1,
+    paddingHorizontal: 28,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 60,
   },
-  header: {
-    marginBottom: 32,
+  topSpacer: {
+    height: 80,
+  },
+  greetingContainer: {
+    marginBottom: 48,
   },
   greeting: {
-    fontSize: 28,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: '500',
     color: Colors.text,
-    marginBottom: 4,
+    letterSpacing: -0.3,
   },
-  date: {
-    fontSize: 14,
-    color: Colors.textTertiary,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: Colors.textSecondary,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: 16,
-  },
-  errorContainer: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 24,
+  loadingContainer: {
+    paddingVertical: 60,
     alignItems: 'center',
   },
-  errorText: {
-    fontSize: 14,
-    color: Colors.error,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  retryButton: {
-    backgroundColor: Colors.surfaceLight,
-    borderRadius: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  retryText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-  },
   reflectionContainer: {
-    marginBottom: 24,
+    paddingVertical: 20,
   },
-  journalPrompt: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 20,
-    marginHorizontal: 16,
+  reflectionText: {
+    fontSize: 19,
+    lineHeight: 32,
+    color: Colors.text,
+    fontWeight: '400',
+    letterSpacing: 0.1,
   },
-  journalPromptText: {
-    fontSize: 14,
+  footer: {
+    marginTop: 'auto',
+    paddingTop: 40,
+    paddingBottom: 20,
+  },
+  footerText: {
+    fontSize: 12,
     color: Colors.textTertiary,
     textAlign: 'center',
-    fontStyle: 'italic',
+    opacity: 0.6,
   },
-  spacer: {
-    height: 60,
+  bottomSpacer: {
+    height: 40,
   },
 });
