@@ -194,7 +194,8 @@ export default function ProfileScreen() {
         onConfirm={performLogout}
         onCancel={() => setShowResetModal(false)}
       />
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
