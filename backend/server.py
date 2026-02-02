@@ -4234,11 +4234,31 @@ def extract_human_design_data(chart: dict) -> dict:
     """Extract Human Design data from chart."""
     hd = chart.get('human_design', {})
     
+    # Format channels consistently: sort by first gate, use en-dash
+    channels = hd.get('defined_channels', [])
+    formatted_channels = []
+    for ch in channels:
+        if isinstance(ch, dict):
+            g1, g2 = ch.get('gate1', 0), ch.get('gate2', 0)
+            # Ensure smaller gate comes first for consistency
+            if g1 > g2:
+                g1, g2 = g2, g1
+            formatted_channels.append(f"{g1}–{g2}")
+        elif isinstance(ch, str):
+            # Already formatted string
+            formatted_channels.append(ch.replace('-', '–'))
+    
+    # Sort channels by first gate number
+    formatted_channels.sort(key=lambda x: int(x.split('–')[0]) if x.split('–')[0].isdigit() else 0)
+    
     return {
         "type": hd.get('type', 'Unknown'),
         "strategy": hd.get('strategy', 'Unknown'),
         "authority": hd.get('authority', 'Unknown'),
         "profile": hd.get('profile', 'Unknown'),
+        "definition": hd.get('definition', 'Unknown'),
+        "incarnation_cross": hd.get('incarnation_cross', 'Unknown'),
+        "channels": formatted_channels,
         "defined_centers": hd.get('defined_centers', []),
         "gates": hd.get('gates', [])
     }
