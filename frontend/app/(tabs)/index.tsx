@@ -41,11 +41,38 @@ const getLocalDateString = (): string => {
 
 export default function MirrorScreen() {
   const { user, hasTriedSessionRestore, isRestoringSession } = useAppStore();
+  const router = useRouter();
   const [keystone, setKeystone] = useState<DailyKeystone | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentDate, setCurrentDate] = useState<string>(getLocalDateString());
   const lastLoadedDateRef = useRef<string | null>(null);
+
+  // Handler to continue with Mirror chat
+  const handleContinueWithMirror = async () => {
+    if (!keystone) return;
+    
+    // Store the keystone context in async storage for the journal tab to pick up
+    const keystoneContextForChat = {
+      date: keystone.date,
+      title: keystone.title,
+      keystone: keystone.keystone,
+      reflect_question: keystone.reflect_question,
+      micro_affirmation: keystone.micro_affirmation,
+      tone: keystone.source_signals?.tone || 'unclear',
+      daily_seed: keystone.daily_seed,
+    };
+    
+    try {
+      await storage.setItem('pending_keystone_context', JSON.stringify(keystoneContextForChat));
+      console.log('[MirrorHome] Stored keystone context for chat');
+    } catch (e) {
+      console.error('[MirrorHome] Failed to store keystone context:', e);
+    }
+    
+    // Navigate to Journal tab with Mirror Chat view
+    router.push('/(tabs)/journal?view=mirror&fromKeystone=true');
+  };
 
   // Check for date change on focus/visibility
   useEffect(() => {
