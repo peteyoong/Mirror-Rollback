@@ -263,9 +263,9 @@ def main():
     # Test Pete and Mel's deep dive APIs
     deep_dive_results = test_astrology_deep_dive()
     
-    # Test success=false case
+    # Test error handling cases
     print("\n" + "=" * 80)
-    print("TESTING SUCCESS=FALSE CASE")
+    print("TESTING ERROR HANDLING CASES")
     print("=" * 80)
     
     success_false_result = test_success_false_case()
