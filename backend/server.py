@@ -2742,6 +2742,8 @@ async def mirror_chat(request: MirrorChatRequest):
         
         # ===== CONSCIOUSNESS ADAPTATION =====
         # Fetch user's consciousness state and inject adaptation rules
+        needs_reassurance = False  # Track if we need "I'm keeping this simple today."
+        
         try:
             consciousness_snapshot = user.get("consciousness_snapshot")
             if not consciousness_snapshot:
@@ -2749,6 +2751,17 @@ async def mirror_chat(request: MirrorChatRequest):
             
             level_id = consciousness_snapshot.get("inferred_level_id", "coping")
             confidence = consciousness_snapshot.get("confidence", 0.45)
+            smoothing_info = consciousness_snapshot.get("smoothing", {})
+            
+            # Determine if reassurance is needed:
+            # 1. State is survival or stabilizing
+            # 2. OR smoothing blocked an upward transition (safety hold)
+            is_low_depth_state = level_id in ("survival", "stabilizing")
+            smoothing_blocked_upward = (
+                smoothing_info.get("transition") == "blocked" and
+                smoothing_info.get("blocked_to") in ("exploring", "integrating", "expanding")
+            )
+            needs_reassurance = is_low_depth_state or smoothing_blocked_upward
             
             # Get adaptation block
             adaptation = get_adaptation_block(level_id, confidence)
@@ -2767,7 +2780,7 @@ async def mirror_chat(request: MirrorChatRequest):
             )
             
             system_prompt += "\n" + consciousness_insert
-            logger.info(f"[Mirror Chat] Consciousness adaptation applied: level={level_id}, depth={adaptation.get('depth')}, mode={adaptation.get('mode')}")
+            logger.info(f"[Mirror Chat] Consciousness adaptation applied: level={level_id}, depth={adaptation.get('depth')}, mode={adaptation.get('mode')}, needs_reassurance={needs_reassurance}")
             
         except Exception as e:
             # If adaptation fails, continue without it - don't break the chat
