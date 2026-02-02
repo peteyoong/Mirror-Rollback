@@ -632,7 +632,7 @@ export default function LensDetail() {
           </Modal>
         </>
       ) : (
-        /* OTHER LENSES: Keep original implementation */
+        // OTHER LENSES: Keep original implementation
         <>
           {/* Tabs */}
           {renderTabs()}
