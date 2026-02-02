@@ -740,6 +740,49 @@ const styles = StyleSheet.create({
     height: 30,
     backgroundColor: Colors.surfaceLight,
   },
+  // Unlock Banner
+  unlockBanner: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.surfaceLight,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  unlockBannerIcon: {
+    marginRight: 12,
+    marginTop: 2,
+  },
+  unlockBannerContent: {
+    flex: 1,
+  },
+  unlockBannerTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  unlockBannerBody: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    lineHeight: 19,
+    marginBottom: 12,
+  },
+  unlockBannerButton: {
+    backgroundColor: Colors.accent,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  unlockBannerButtonText: {
+    color: Colors.surface,
+    fontSize: 14,
+    fontWeight: '600',
+  },
   // Cycles Card
   cyclesCard: {
     backgroundColor: Colors.surface,
