@@ -26,8 +26,8 @@ export default function ThresholdScreen() {
   };
 
   const handleContinueJourney = () => {
-    // Existing users → tabs (Mirror home)
-    router.replace('/(tabs)');
+    // Existing users → pre-landing page before Mirror
+    router.push('/prelanding');
   };
 
   // Show nothing while session is being restored
