@@ -31,6 +31,7 @@ interface CoreNumbers {
   life_path: number | string | null;
   expression: number | string | null;
   soul_urge: number | string | null;
+  personality?: number | string | null;
 }
 
 interface NumerologyData {
@@ -44,6 +45,10 @@ interface NumerologyData {
   success?: boolean;
   error?: string;
   missing_fields?: string[];
+  // New unlock flow fields
+  unlock_required?: boolean;
+  numerology_full_name_present?: boolean;
+  lock_reason?: string | null;
 }
 
 interface Props {
