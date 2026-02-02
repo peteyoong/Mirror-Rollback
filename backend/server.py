@@ -3037,6 +3037,23 @@ async def mirror_chat(request: MirrorChatRequest):
             if new_remaining == 0:
                 logger.info(f"[Thread] Thread completed for user {request.user_id}")
         
+        # ===== UPDATE CONSCIOUSNESS STATE =====
+        # Asynchronously update the user's consciousness state based on their message
+        # This keeps the adaptation fresh for future turns
+        try:
+            new_snapshot = infer_level_from_text(request.message)
+            new_snapshot["source_events"] = ["mirror_chat_message"]
+            
+            await db.users.update_one(
+                {"_id": ObjectId(request.user_id)},
+                {"$set": {"consciousness_snapshot": new_snapshot}}
+            )
+            logger.debug(f"[Consciousness] Updated state for user {request.user_id}: {new_snapshot['inferred_level_id']} (confidence: {new_snapshot['confidence']})")
+        except Exception as consciousness_error:
+            # Don't fail the chat if consciousness update fails
+            logger.warning(f"[Consciousness] State update failed: {consciousness_error}")
+        # ===== END CONSCIOUSNESS STATE UPDATE =====
+        
         return MirrorChatResponse(
             response=response_text,
             session_id=session_id,
