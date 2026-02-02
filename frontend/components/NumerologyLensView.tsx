@@ -179,22 +179,28 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
 
     const { personal_day, personal_month, personal_year } = data.cycles;
 
+    // Safe formatter for cycle values
+    const formatCycle = (value: number | null | undefined): string => {
+      if (value === null || value === undefined) return '—';
+      return String(value);
+    };
+
     return (
       <View style={styles.cyclesCard}>
         <View style={styles.cyclesRow}>
           <View style={styles.cycleItem}>
             <Text style={styles.cycleLabel}>Day</Text>
-            <Text style={styles.cycleNumber}>{personal_day}</Text>
+            <Text style={styles.cycleNumber}>{formatCycle(personal_day)}</Text>
           </View>
           <View style={styles.cycleDivider} />
           <View style={styles.cycleItem}>
             <Text style={styles.cycleLabel}>Month</Text>
-            <Text style={styles.cycleNumber}>{personal_month}</Text>
+            <Text style={styles.cycleNumber}>{formatCycle(personal_month)}</Text>
           </View>
           <View style={styles.cycleDivider} />
           <View style={styles.cycleItem}>
             <Text style={styles.cycleLabel}>Year</Text>
-            <Text style={styles.cycleNumber}>{personal_year}</Text>
+            <Text style={styles.cycleNumber}>{formatCycle(personal_year)}</Text>
           </View>
         </View>
       </View>
