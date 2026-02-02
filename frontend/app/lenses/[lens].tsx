@@ -604,7 +604,7 @@ export default function LensDetail() {
         <View style={styles.headerSpacer} />
       </View>
 
-      {/* ASTROLOGY: Use new tabbed view with API endpoints */}
+      {/* ASTROLOGY & HUMAN DESIGN: Use new tabbed views with API endpoints */}
       {lens === 'astrology' && user?.id ? (
         <>
           <AstrologyLensView
