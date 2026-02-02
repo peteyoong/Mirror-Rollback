@@ -118,8 +118,9 @@ interface AppState {
   journalEntries: JournalEntry[];
   hasCompletedOnboarding: boolean;
   
-  // Session restore state
+  // Session restore state - THE AUTH HYDRATION GATE
   isRestoringSession: boolean;
+  hasTriedSessionRestore: boolean;  // NEW: true once restore attempt completes (success or fail)
   sessionRestoreError: string | null;
   
   // Actions
@@ -136,6 +137,9 @@ interface AppState {
   restoreSession: () => Promise<boolean>;
   retrySessionRestore: () => Promise<boolean>;
   clearSessionRestoreError: () => void;
+  
+  // Helper to check if we should redirect to onboarding
+  shouldRedirectToOnboarding: () => boolean;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
