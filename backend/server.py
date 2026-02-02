@@ -162,6 +162,17 @@ class ChatResponse(BaseModel):
     timestamp: str
 
 
+class KeystoneContext(BaseModel):
+    """Context from the Daily Keystone for seamless chat continuation"""
+    date: str
+    title: str
+    keystone: str
+    reflect_question: str
+    micro_affirmation: str
+    tone: str = "unclear"  # grounding|stabilizing|exploring|integrating|unclear
+    daily_seed: str
+
+
 class MirrorChatRequest(BaseModel):
     user_id: str
     message: str
@@ -169,6 +180,7 @@ class MirrorChatRequest(BaseModel):
     session_id: Optional[str] = None  # For conversation continuity
     include_journal: bool = True  # Include recent journal entries
     include_history: bool = True  # Include chat history
+    keystone_context: Optional[KeystoneContext] = None  # For keystone continuation
 
 
 # Memory Update - "You Over Time" structured tracking
