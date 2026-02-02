@@ -5297,6 +5297,26 @@ async def unlock_numerology_name(user_id: str, request: NumerologyUnlockRequest)
         soul_urge = calculate_soul_urge(full_name)
         personality = calculate_personality_number(full_name)
         
+        # Verify all three were computed successfully
+        if not all([
+            expression and expression.get("number") is not None,
+            soul_urge and soul_urge.get("number") is not None,
+            personality and personality.get("number") is not None
+        ]):
+            logger.error(f"[Numerology] Name compute failed for user {user_id}: expr={expression}, soul={soul_urge}, pers={personality}")
+            return {
+                "success": False,
+                "error": "NUMEROLOGY_NAME_COMPUTE_FAILED",
+                "message": "Could not compute all name-based numbers. Please check the name format.",
+                "debug_stamp": datetime.now(timezone.utc).isoformat()
+            }
+        
+        # Save numerology_full_name to user profile
+        await db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"numerology_full_name": full_name}}
+        )
+        
         # Update chart with new numerology data
         numerology_update = {
             "numerology.expression": expression,
