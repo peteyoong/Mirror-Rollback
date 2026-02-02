@@ -19,6 +19,7 @@ import { useAppStore } from '../../store';
 import MirrorChat from '../../components/MirrorChat';
 import AstrologyLensView from '../../components/AstrologyLensView';
 import HumanDesignLensView from '../../components/HumanDesignLensView';
+import NumerologyLensView from '../../components/NumerologyLensView';
 
 // Lens metadata
 const LENS_META: { [key: string]: { name: string; icon: string } } = {
