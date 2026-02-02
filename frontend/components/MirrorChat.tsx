@@ -41,6 +41,16 @@ interface MemoryUpdate {
   updated_at_iso: string;
 }
 
+interface KeystoneContext {
+  date: string;
+  title: string;
+  keystone: string;
+  reflect_question: string;
+  micro_affirmation: string;
+  tone: string;
+  daily_seed: string;
+}
+
 interface MirrorChatProps {
   userId: string;
   lens?: 'astrology' | 'human_design' | 'numerology' | null;
@@ -48,6 +58,7 @@ interface MirrorChatProps {
   headerTitle?: string;
   headerSubtitle?: string;
   onClose?: () => void;
+  keystoneContext?: KeystoneContext | null;  // For keystone continuation
 }
 
 // Helper to get storage key for a lens context
