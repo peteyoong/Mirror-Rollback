@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,27 +13,67 @@ import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
 
-interface MirrorReflection {
-  reflection: string;
-  generated_at: string;
+interface DailyKeystone {
+  date: string;
+  title: string;
+  keystone: string;
+  reflect_question: string;
+  micro_affirmation: string;
+  source_signals: {
+    used: string[];
+    tone: string;
+  };
+  daily_seed: string;
   is_first_visit: boolean;
 }
 
+// Get local date in YYYY-MM-DD format
+const getLocalDateString = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function MirrorScreen() {
   const { user, hasTriedSessionRestore, isRestoringSession } = useAppStore();
-  const [reflection, setReflection] = useState<MirrorReflection | null>(null);
+  const [keystone, setKeystone] = useState<DailyKeystone | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentDate, setCurrentDate] = useState<string>(getLocalDateString());
+  const lastLoadedDateRef = useRef<string | null>(null);
+
+  // Check for date change on focus/visibility
+  useEffect(() => {
+    const checkDateChange = () => {
+      const newDate = getLocalDateString();
+      if (newDate !== currentDate) {
+        console.log(`[MirrorHome] Date changed: ${currentDate} -> ${newDate}`);
+        setCurrentDate(newDate);
+        lastLoadedDateRef.current = null; // Force reload
+      }
+    };
+
+    // Check every minute for date change
+    const interval = setInterval(checkDateChange, 60000);
+    return () => clearInterval(interval);
+  }, [currentDate]);
 
   useEffect(() => {
-    // Only fetch reflection after session restore is complete AND we have a user
+    // Only fetch after session restore is complete AND we have a user
     if (hasTriedSessionRestore && !isRestoringSession && user?.id) {
-      loadReflection();
+      // Only load if we haven't loaded for this date yet
+      if (lastLoadedDateRef.current !== currentDate) {
+        loadKeystone();
+      }
     }
-  }, [user, hasTriedSessionRestore, isRestoringSession]);
+  }, [user, hasTriedSessionRestore, isRestoringSession, currentDate]);
 
-  const loadReflection = async (forceRefresh = false) => {
+  const loadKeystone = async (forceRefresh = false) => {
     if (!user?.id) return;
+
+    const dateToLoad = getLocalDateString();
 
     if (forceRefresh) {
       setIsRefreshing(true);
@@ -42,16 +82,26 @@ export default function MirrorScreen() {
     }
 
     try {
-      const response = await api.get(`/mirror/home/${user.id}`);
-      setReflection(response.data);
+      const response = await api.get(`/mirror/home/${user.id}`, {
+        params: { date: dateToLoad }
+      });
+      setKeystone(response.data);
+      lastLoadedDateRef.current = dateToLoad;
+      setCurrentDate(dateToLoad);
     } catch (err: any) {
-      console.error('Load reflection error:', err);
+      console.error('Load keystone error:', err);
       // Use fallback
-      setReflection({
-        reflection: "Something in you brought you here today. That's worth noticing.",
-        generated_at: new Date().toISOString(),
+      setKeystone({
+        date: dateToLoad,
+        title: "A Quiet Arrival",
+        keystone: "Something in you brought you here today. That's worth noticing.",
+        reflect_question: "What feels most present right now?",
+        micro_affirmation: "You don't have to have it figured out to be here.",
+        source_signals: { used: ["fallback"], tone: "grounding" },
+        daily_seed: "fallback",
         is_first_visit: false,
       });
+      lastLoadedDateRef.current = dateToLoad;
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -59,7 +109,8 @@ export default function MirrorScreen() {
   };
 
   const handleRefresh = () => {
-    loadReflection(true);
+    // Pull-to-refresh re-fetches same date (cached, so same content)
+    loadKeystone(true);
   };
 
   // Show loading while session is being restored
@@ -75,7 +126,7 @@ export default function MirrorScreen() {
     );
   }
 
-  // Show loading if no user (shouldn't happen if routing is correct, but be safe)
+  // Show loading if no user
   if (!user) {
     return (
       <SafeAreaView style={styles.container}>
@@ -104,7 +155,7 @@ export default function MirrorScreen() {
         {/* Spacer for breathing room */}
         <View style={styles.topSpacer} />
 
-        {/* Greeting - minimal */}
+        {/* User greeting */}
         <View style={styles.greetingContainer}>
           <Text style={styles.greeting}>
             {user.name || 'Welcome'}
@@ -118,19 +169,38 @@ export default function MirrorScreen() {
           </View>
         )}
 
-        {/* The Reflection - the emotional keystone */}
-        {reflection && !isLoading && (
-          <View style={styles.reflectionContainer}>
-            <Text style={styles.reflectionText}>
-              {reflection.reflection}
+        {/* The Daily Keystone */}
+        {keystone && !isLoading && (
+          <View style={styles.keystoneContainer}>
+            {/* Title as section header */}
+            <Text style={styles.keystoneTitle}>
+              {keystone.title.toUpperCase()}
             </Text>
+
+            {/* Main keystone text - the emotional center */}
+            <Text style={styles.keystoneText}>
+              {keystone.keystone}
+            </Text>
+
+            {/* Micro-affirmation - soft grounding line */}
+            <Text style={styles.microAffirmation}>
+              {keystone.micro_affirmation}
+            </Text>
+
+            {/* Reflective question - separate section */}
+            <View style={styles.reflectContainer}>
+              <Text style={styles.reflectLabel}>Reflect</Text>
+              <Text style={styles.reflectQuestion}>
+                {keystone.reflect_question}
+              </Text>
+            </View>
           </View>
         )}
 
         {/* Gentle footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Pull down to receive a new reflection
+            Your reflection for today
           </Text>
         </View>
 
@@ -161,13 +231,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   topSpacer: {
-    height: 80,
+    height: 60,
   },
   greetingContainer: {
-    marginBottom: 48,
+    marginBottom: 32,
   },
   greeting: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '500',
     color: Colors.text,
     letterSpacing: -0.3,
@@ -176,15 +246,50 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
     alignItems: 'center',
   },
-  reflectionContainer: {
-    paddingVertical: 20,
+  keystoneContainer: {
+    paddingVertical: 8,
   },
-  reflectionText: {
-    fontSize: 19,
-    lineHeight: 32,
+  keystoneTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 1.5,
+    marginBottom: 20,
+  },
+  keystoneText: {
+    fontSize: 20,
+    lineHeight: 34,
     color: Colors.text,
     fontWeight: '400',
     letterSpacing: 0.1,
+    marginBottom: 24,
+  },
+  microAffirmation: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+    marginBottom: 40,
+  },
+  reflectContainer: {
+    paddingTop: 24,
+    paddingBottom: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  reflectLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 12,
+  },
+  reflectQuestion: {
+    fontSize: 17,
+    lineHeight: 28,
+    color: Colors.text,
+    fontWeight: '400',
   },
   footer: {
     marginTop: 'auto',
@@ -195,7 +300,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textTertiary,
     textAlign: 'center',
-    opacity: 0.6,
+    opacity: 0.5,
   },
   bottomSpacer: {
     height: 40,
