@@ -631,6 +631,32 @@ export default function LensDetail() {
             </SafeAreaView>
           </Modal>
         </>
+      ) : lens === 'human_design' && user?.id ? (
+        <>
+          <HumanDesignLensView
+            userId={user.id}
+            onOpenChat={() => setLensChatVisible(true)}
+          />
+          
+          {/* Lens Chat Modal */}
+          <Modal
+            visible={lensChatVisible}
+            animationType="slide"
+            presentationStyle="pageSheet"
+            onRequestClose={() => setLensChatVisible(false)}
+          >
+            <SafeAreaView style={styles.modalContainer} edges={['top', 'bottom']}>
+              <MirrorChat
+                userId={user.id}
+                lens="human_design"
+                placeholder="Ask about your Human Design…"
+                headerTitle="Human Design Chat"
+                headerSubtitle="Lens-focused reflection"
+                onClose={() => setLensChatVisible(false)}
+              />
+            </SafeAreaView>
+          </Modal>
+        </>
       ) : (
         // OTHER LENSES: Keep original implementation
         <>
