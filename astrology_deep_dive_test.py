@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from frontend .env
-BASE_URL = "https://astroinsight-5.preview.emergentagent.com/api"
+BASE_URL = "https://mirror-lens-fixes.preview.emergentagent.com/api"
 
 def test_astrology_deep_dive():
     """Test Astrology Deep Dive API for Pete and Mel"""
