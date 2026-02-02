@@ -287,11 +287,17 @@ def main():
         else:
             print(f"  ❌ {name}: Test failed")
     
-    print(f"\n📊 Success=False Test:")
+    print(f"\n📊 Error Handling Tests:")
     if success_false_result['success']:
-        print(f"  ✅ Success=false case: {success_false_result['message']}")
+        print(f"  ✅ Error handling: {success_false_result['message']}")
+        for result in success_false_result.get('results', []):
+            status = "✅" if result['success'] else "❌"
+            print(f"    {status} {result['name']}: {result['message']}")
     else:
-        print(f"  ❌ Success=false case: {success_false_result['message']}")
+        print(f"  ❌ Error handling: {success_false_result['message']}")
+        for result in success_false_result.get('results', []):
+            status = "✅" if result['success'] else "❌"
+            print(f"    {status} {result['name']}: {result['message']}")
     
     # Overall result
     all_deep_dive_pass = all(
