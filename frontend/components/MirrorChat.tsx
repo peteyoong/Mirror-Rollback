@@ -568,8 +568,14 @@ export default function MirrorChat({
         )}
       </View>
 
+      {/* Thread Pill (only for generalist chat with active thread) */}
+      {renderThreadPill()}
+
       {/* Memory Card (above messages) */}
       {renderMemoryCard()}
+
+      {/* Thread Modal */}
+      {renderThreadModal()}
 
       {/* Messages */}
       <FlatList
