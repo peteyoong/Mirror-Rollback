@@ -160,6 +160,86 @@ export default function MirrorChat({
     }]);
   }, [lens]);
 
+  // ===== KEYSTONE CONTINUATION AUTO-TRIGGER =====
+  // When keystoneContext is provided, automatically send continuation message
+  useEffect(() => {
+    async function triggerKeystoneContinuation() {
+      if (!keystoneContext || !sessionId || hasTriggeredKeystone || isLoading) return;
+      
+      // Check if we've already triggered for this date (once per day)
+      const KEYSTONE_FOLLOWUP_KEY = 'last_keystone_followup_date';
+      try {
+        const lastFollowupDate = await storage.getItem(KEYSTONE_FOLLOWUP_KEY);
+        if (lastFollowupDate === keystoneContext.date) {
+          console.log('[MirrorChat] Keystone continuation already triggered today');
+          setHasTriggeredKeystone(true);
+          return;
+        }
+      } catch (e) {
+        // Continue if storage read fails
+      }
+      
+      console.log('[MirrorChat] Triggering keystone continuation for date:', keystoneContext.date);
+      setHasTriggeredKeystone(true);
+      setIsLoading(true);
+      
+      // Add a user message indicating continuation
+      const userMessage: Message = {
+        id: `user-keystone-${Date.now()}`,
+        role: 'user',
+        content: "Continue from today's reflection…",
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, userMessage]);
+      
+      try {
+        const response = await api.post('/mirror/chat', {
+          user_id: userId,
+          message: "Continue from today's keystone.",
+          lens: null,
+          session_id: sessionId,
+          include_journal: true,
+          include_history: true,
+          keystone_context: keystoneContext,
+        });
+        
+        const assistantMessage: Message = {
+          id: `assistant-keystone-${Date.now()}`,
+          role: 'assistant',
+          content: response.data.response,
+          timestamp: new Date(response.data.timestamp),
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+        
+        if (response.data.memory_update) {
+          setMemoryUpdate(response.data.memory_update);
+        }
+        
+        // Mark this date as followed up
+        await storage.setItem(KEYSTONE_FOLLOWUP_KEY, keystoneContext.date);
+        console.log('[MirrorChat] Keystone continuation complete');
+        
+      } catch (error) {
+        console.error('[MirrorChat] Keystone continuation error:', error);
+        // Add a fallback message
+        const fallbackMessage: Message = {
+          id: `assistant-fallback-${Date.now()}`,
+          role: 'assistant',
+          content: "I'm here with you. What's present right now?",
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, fallbackMessage]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    if (keystoneContext && sessionId && !isLoadingSession && !hasTriggeredKeystone) {
+      triggerKeystoneContinuation();
+    }
+  }, [keystoneContext, sessionId, isLoadingSession, hasTriggeredKeystone, userId]);
+
   const toggleMemoryExpanded = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsMemoryExpanded(!isMemoryExpanded);
