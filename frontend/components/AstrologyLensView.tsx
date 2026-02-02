@@ -126,20 +126,47 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
     </View>
   );
 
-  // Always render core placements for deep dive, even with fallback values
+  // Always render core placements for deep dive
+  // Shows Sun/Moon/Ascendant with house numbers if available
   const renderCorePlacements = () => {
-    // Default fallback if no data
-    const placements = data?.core_placements || {
-      sun: 'Unknown',
-      moon: 'Unknown',
-      ascendant: 'Unknown'
+    const placements = data?.core_placements;
+    
+    // If no core_placements data at all, show minimal placeholder
+    if (!placements) {
+      return (
+        <View style={styles.corePlacementsCard}>
+          <Text style={styles.corePlacementsTitle}>SUN • MOON • ASCENDANT</Text>
+          <View style={styles.corePlacementsRow}>
+            <View style={styles.placementItem}>
+              <Ionicons name="sunny-outline" size={16} color={Colors.textTertiary} />
+              <Text style={styles.placementSign}>—</Text>
+            </View>
+            <View style={styles.placementDivider} />
+            <View style={styles.placementItem}>
+              <Ionicons name="moon-outline" size={16} color={Colors.textTertiary} />
+              <Text style={styles.placementSign}>—</Text>
+            </View>
+            <View style={styles.placementDivider} />
+            <View style={styles.placementItem}>
+              <Ionicons name="arrow-up-outline" size={16} color={Colors.textTertiary} />
+              <Text style={styles.placementSign}>—</Text>
+            </View>
+          </View>
+        </View>
+      );
+    }
+
+    // Helper to format placement with optional house
+    const formatWithHouse = (sign: string | null, house: number | string | null | undefined) => {
+      if (!sign || sign === 'Unknown') return '—';
+      // Only show house if houses were computed and house value exists
+      if (placements.houses_computed && house != null && house !== 'N/A') {
+        return `${sign} (H${house})`;
+      }
+      return sign;
     };
 
-    // Helper to format unknown gracefully
-    const formatPlacement = (value: string | null) => {
-      if (!value || value === 'Unknown') return '—';
-      return value;
-    };
+    const hasValidAscendant = placements.ascendant && placements.ascendant !== 'Unknown' && placements.ascendant !== '—';
 
     return (
       <View style={styles.corePlacementsCard}>
@@ -147,17 +174,23 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
         <View style={styles.corePlacementsRow}>
           <View style={styles.placementItem}>
             <Ionicons name="sunny-outline" size={16} color={Colors.accent} />
-            <Text style={styles.placementSign}>{formatPlacement(placements.sun)}</Text>
+            <Text style={styles.placementSign}>
+              {formatWithHouse(placements.sun, placements.sun_house)}
+            </Text>
           </View>
           <View style={styles.placementDivider} />
           <View style={styles.placementItem}>
             <Ionicons name="moon-outline" size={16} color={Colors.accent} />
-            <Text style={styles.placementSign}>{formatPlacement(placements.moon)}</Text>
+            <Text style={styles.placementSign}>
+              {formatWithHouse(placements.moon, placements.moon_house)}
+            </Text>
           </View>
           <View style={styles.placementDivider} />
           <View style={styles.placementItem}>
-            <Ionicons name="arrow-up-outline" size={16} color={Colors.accent} />
-            <Text style={styles.placementSign}>{formatPlacement(placements.ascendant)}</Text>
+            <Ionicons name="arrow-up-outline" size={16} color={hasValidAscendant ? Colors.accent : Colors.textTertiary} />
+            <Text style={[styles.placementSign, !hasValidAscendant && styles.placementMissing]}>
+              {hasValidAscendant ? placements.ascendant : '—'}
+            </Text>
           </View>
         </View>
       </View>
