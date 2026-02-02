@@ -2740,6 +2740,40 @@ async def mirror_chat(request: MirrorChatRequest):
         # Build system prompt
         system_prompt = MIRROR_SYSTEM_PROMPT
         
+        # ===== CONSCIOUSNESS ADAPTATION =====
+        # Fetch user's consciousness state and inject adaptation rules
+        try:
+            consciousness_snapshot = user.get("consciousness_snapshot")
+            if not consciousness_snapshot:
+                consciousness_snapshot = get_default_snapshot()
+            
+            level_id = consciousness_snapshot.get("inferred_level_id", "coping")
+            confidence = consciousness_snapshot.get("confidence", 0.45)
+            
+            # Get adaptation block
+            adaptation = get_adaptation_block(level_id, confidence)
+            
+            # Format the adaptation insert
+            consciousness_insert = CONSCIOUSNESS_ADAPTATION_INSERT.format(
+                mode=adaptation.get("mode", "cope"),
+                depth=adaptation.get("depth", "medium_low"),
+                tone_str=", ".join(adaptation.get("tone", ["grounded"])),
+                word_budget_max=adaptation.get("word_budget_max", 220),
+                structure_str="\n".join(f"- {s}" for s in adaptation.get("structure_template", [])),
+                avoid_str="\n".join(f"- {a}" for a in adaptation.get("avoid", [])[:10]),  # Limit to 10 most important
+                allowed_moves_str=", ".join(adaptation.get("allowed_moves", [])),
+                ai_interpretation_hint=adaptation.get("ai_interpretation_hint", ""),
+                exit_line=adaptation.get("exit_line", "Keep what helps; leave the rest.")
+            )
+            
+            system_prompt += "\n" + consciousness_insert
+            logger.info(f"[Mirror Chat] Consciousness adaptation applied: level={level_id}, depth={adaptation.get('depth')}, mode={adaptation.get('mode')}")
+            
+        except Exception as e:
+            # If adaptation fails, continue without it - don't break the chat
+            logger.warning(f"[Mirror Chat] Consciousness adaptation failed, using default: {e}")
+        # ===== END CONSCIOUSNESS ADAPTATION =====
+        
         # Add lens-specific prompt if constrained
         if request.lens and request.lens in LENS_PROMPTS:
             system_prompt += "\n" + LENS_PROMPTS[request.lens]
