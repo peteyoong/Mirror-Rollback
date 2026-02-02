@@ -331,6 +331,27 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontWeight: '400',
   },
+  continueButton: {
+    marginTop: 32,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+    alignItems: 'center',
+  },
+  continueButtonText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  continueButtonSubtext: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+  },
   footer: {
     marginTop: 'auto',
     paddingTop: 40,
