@@ -4181,11 +4181,14 @@ async def get_astrology_deep_dive(user_id: str):
             
             result["mirror_prompt"] = apply_astrology_guardrails(result.get("mirror_prompt", ""))
             
-            # Ensure core_placements is included
+            # Ensure core_placements is included with house info
             result["core_placements"] = {
                 "sun": placements['sun_sign'],
                 "moon": placements['moon_sign'],
-                "ascendant": placements['rising_sign']
+                "ascendant": placements['rising_sign'],
+                "sun_house": placements.get('sun_house'),
+                "moon_house": placements.get('moon_house'),
+                "houses_computed": placements['debug_stamp'].get('houses_computed', False)
             }
             
             # Add success flag and debug stamp
@@ -4202,7 +4205,10 @@ async def get_astrology_deep_dive(user_id: str):
                 "core_placements": {
                     "sun": placements['sun_sign'],
                     "moon": placements['moon_sign'],
-                    "ascendant": placements['rising_sign']
+                    "ascendant": placements['rising_sign'],
+                    "sun_house": placements.get('sun_house'),
+                    "moon_house": placements.get('moon_house'),
+                    "houses_computed": placements['debug_stamp'].get('houses_computed', False)
                 },
                 "sections": [
                     {"label": "Sun: Your Core Orientation", "body": f"With your Sun in {placements['sun_sign']}, there's a particular quality to how you express your sense of self and purpose."},
