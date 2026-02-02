@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../../store';
 import MirrorChat from '../../components/MirrorChat';
 import AstrologyLensView from '../../components/AstrologyLensView';
+import HumanDesignLensView from '../../components/HumanDesignLensView';
 
 // Lens metadata
 const LENS_META: { [key: string]: { name: string; icon: string } } = {
