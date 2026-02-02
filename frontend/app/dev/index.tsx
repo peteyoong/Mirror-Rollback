@@ -304,7 +304,14 @@ function MockHumanDesignView({ data }: { data: any }) {
         {/* Incarnation Cross */}
         <View style={styles.hdFullRow}>
           <Text style={styles.hdFullLabel}>Incarnation Cross</Text>
-          <Text style={styles.hdFullValue}>{mechanics?.incarnation_cross || '—'}</Text>
+          <View style={styles.hdCrossValue}>
+            <Text style={styles.hdFullValue}>
+              {mechanics?.incarnation_cross_label || mechanics?.incarnation_cross || '—'}
+            </Text>
+            {mechanics?.incarnation_cross_gates && mechanics.incarnation_cross_gates !== '—' && (
+              <Text style={styles.hdCrossGates}>{mechanics.incarnation_cross_gates}</Text>
+            )}
+          </View>
         </View>
         
         {/* Channels */}
