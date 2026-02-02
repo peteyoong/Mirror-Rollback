@@ -2095,11 +2095,43 @@ async def mirror_chat(request: MirrorChatRequest):
             logger.warning(f"Memory update generation failed: {mem_error}")
             # Continue without memory update - don't fail the whole request
         
+        # ===== THREAD STATE UPDATE =====
+        # Decrement remaining_turns after successful reply
+        thread_metadata = None
+        if thread_state and thread_state.get("remaining_turns", 0) > 0:
+            new_remaining = thread_state["remaining_turns"] - 1
+            
+            await db.user_thread_state.update_one(
+                {"user_id": request.user_id},
+                {"$set": {
+                    "remaining_turns": new_remaining,
+                    "updated_at_iso": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            thread_metadata = {
+                "active": new_remaining > 0,
+                "thread_type": thread_state.get("thread_type", "daily_keystone"),
+                "thread_date": thread_state.get("thread_date"),
+                "remaining_turns": new_remaining,
+                "title": thread_state.get("title"),
+                "keystone": thread_state.get("keystone"),
+                "reflect_question": thread_state.get("reflect_question"),
+                "micro_affirmation": thread_state.get("micro_affirmation"),
+                "tone": thread_state.get("tone")
+            }
+            
+            logger.info(f"[Thread] Decremented remaining_turns for user {request.user_id}: {thread_state['remaining_turns']} -> {new_remaining}")
+            
+            if new_remaining == 0:
+                logger.info(f"[Thread] Thread completed for user {request.user_id}")
+        
         return MirrorChatResponse(
             response=response_text,
             session_id=session_id,
             timestamp=datetime.now(timezone.utc).isoformat(),
-            memory_update=memory_update
+            memory_update=memory_update,
+            thread=thread_metadata
         )
         
     except Exception as e:
