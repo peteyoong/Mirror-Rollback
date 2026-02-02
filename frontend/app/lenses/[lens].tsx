@@ -689,8 +689,8 @@ export default function LensDetail() {
               {/* Personalized Mirror Moment (Human Design only) */}
               {renderHDMirrorMoment()}
 
-              {/* Ask About This Lens Button (Human Design only since astrology uses new view) */}
-              {lens === 'human_design' && user && (
+              {/* Ask About This Lens Button (Other lenses only since astrology and human design use new views) */}
+              {lens !== 'astrology' && lens !== 'human_design' && user && (
                 <TouchableOpacity 
                   style={styles.askLensButton}
                   onPress={() => setLensChatVisible(true)}
