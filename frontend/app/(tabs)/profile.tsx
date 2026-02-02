@@ -37,11 +37,13 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = () => {
-    setShowLogoutModal(true);
+    // Directly perform logout without confirmation modal
+    performLogout();
   };
 
   const handleResetSession = () => {
-    setShowResetModal(true);
+    // Directly perform reset without confirmation modal  
+    performLogout();
   };
 
   // Confirmation Modal Component - works on both web and native
