@@ -10,6 +10,7 @@ export const Colors = {
   border: '#E5E3DF',
   error: '#D32F2F',
   success: '#388E3C',
+  warning: '#F57C00',
   highlight: '#E8F4E8',
   cardShadow: 'rgba(0,0,0,0.05)',
 };
