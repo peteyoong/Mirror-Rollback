@@ -4533,13 +4533,29 @@ async def get_human_design_deep_dive(user_id: str):
             
             result["mirror_prompt"] = apply_human_design_guardrails(result.get("mirror_prompt", ""))
             
-            # Ensure core_mechanics is included
+            # Ensure core_mechanics is included with all fields
             if "core_mechanics" not in result:
                 result["core_mechanics"] = {
                     "type": hd_data['type'],
                     "strategy": strategy_desc,
-                    "authority": hd_data['authority']
+                    "authority": hd_data['authority'],
+                    "profile": hd_data['profile'],
+                    "definition": hd_data['definition'],
+                    "incarnation_cross": hd_data['incarnation_cross'],
+                    "channels": hd_data['channels']
                 }
+            else:
+                # Ensure all fields are present even if LLM returned partial
+                result["core_mechanics"]["type"] = result["core_mechanics"].get("type") or hd_data['type']
+                result["core_mechanics"]["strategy"] = result["core_mechanics"].get("strategy") or strategy_desc
+                result["core_mechanics"]["authority"] = result["core_mechanics"].get("authority") or hd_data['authority']
+                result["core_mechanics"]["profile"] = result["core_mechanics"].get("profile") or hd_data['profile']
+                result["core_mechanics"]["definition"] = result["core_mechanics"].get("definition") or hd_data['definition']
+                result["core_mechanics"]["incarnation_cross"] = result["core_mechanics"].get("incarnation_cross") or hd_data['incarnation_cross']
+                result["core_mechanics"]["channels"] = result["core_mechanics"].get("channels") or hd_data['channels']
+            
+            # Add success flag
+            result["success"] = True
             
             return result
             
