@@ -233,6 +233,11 @@ export default function MirrorChat({
           setMemoryUpdate(response.data.memory_update);
         }
         
+        // Capture thread state from keystone continuation
+        if (response.data.thread) {
+          setThreadState(response.data.thread);
+        }
+        
         // Mark this date as followed up
         await storage.setItem(KEYSTONE_FOLLOWUP_KEY, keystoneContext.date);
         console.log('[MirrorChat] Keystone continuation complete');
