@@ -14,7 +14,7 @@ Project Mirror requires accurate timezone handling for birth datetime inputs.
 This module provides parsing and conversion utilities.
 """
 import re
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict, Any
 from datetime import datetime, timedelta, timezone as dt_timezone
 
 # Optional: IANA timezone support (requires pytz)
@@ -23,6 +23,73 @@ try:
     HAS_PYTZ = True
 except ImportError:
     HAS_PYTZ = False
+
+
+def normalize_birth_time(time_str: str) -> Tuple[bool, str, str]:
+    """Normalize various birth time formats to HH:MM 24-hour format.
+    
+    Accepts:
+    - "1:25am", "1:25 am", "1:25AM", "1:25 AM"
+    - "1:25pm", "1:25 pm", "1:25PM", "1:25 PM"
+    - "01:25", "1:25" (assumed 24h format)
+    - "13:25" (24h format)
+    
+    Returns:
+        Tuple of (success, normalized_time, error_message)
+        - success: True if parsing succeeded
+        - normalized_time: "HH:MM" format or empty string if failed
+        - error_message: Error description or empty if success
+    """
+    if not time_str:
+        return (False, "", "Birth time is required")
+    
+    time_str = time_str.strip().lower()
+    
+    # Pattern 1: 12-hour format with AM/PM
+    # Matches: "1:25am", "1:25 am", "01:25am", "12:30pm"
+    ampm_pattern = r'^(\d{1,2}):(\d{2})\s*(am|pm)$'
+    ampm_match = re.match(ampm_pattern, time_str)
+    
+    if ampm_match:
+        hour = int(ampm_match.group(1))
+        minute = int(ampm_match.group(2))
+        period = ampm_match.group(3)
+        
+        # Validate 12-hour range
+        if hour < 1 or hour > 12:
+            return (False, "", f"Invalid hour for 12-hour format: {hour}. Must be 1-12.")
+        if minute > 59:
+            return (False, "", f"Invalid minute: {minute}. Must be 0-59.")
+        
+        # Convert to 24-hour
+        if period == 'am':
+            if hour == 12:
+                hour = 0  # 12:xx AM = 00:xx
+        else:  # pm
+            if hour != 12:
+                hour += 12  # 1:xx PM = 13:xx, but 12:xx PM stays 12:xx
+        
+        return (True, f"{hour:02d}:{minute:02d}", "")
+    
+    # Pattern 2: 24-hour format (or ambiguous)
+    # Matches: "01:25", "1:25", "13:25", "23:59"
+    h24_pattern = r'^(\d{1,2}):(\d{2})$'
+    h24_match = re.match(h24_pattern, time_str)
+    
+    if h24_match:
+        hour = int(h24_match.group(1))
+        minute = int(h24_match.group(2))
+        
+        # Validate 24-hour range
+        if hour > 23:
+            return (False, "", f"Invalid hour: {hour}. Must be 0-23.")
+        if minute > 59:
+            return (False, "", f"Invalid minute: {minute}. Must be 0-59.")
+        
+        return (True, f"{hour:02d}:{minute:02d}", "")
+    
+    # No pattern matched
+    return (False, "", f"Could not parse birth time: '{time_str}'. Expected formats: 'HH:MM', 'H:MMam', 'H:MM PM'")
 
 
 def parse_timezone_offset(tz_string: str) -> Tuple[str, int]:
@@ -70,6 +137,59 @@ def parse_timezone_offset(tz_string: str) -> Tuple[str, int]:
         total_minutes = -total_minutes
     
     return (tz_string.strip(), total_minutes)
+
+
+def resolve_iana_offset_at_datetime(tz_name: str, local_dt: datetime) -> Tuple[int, str]:
+    """Resolve IANA timezone to offset at a specific datetime.
+    
+    Handles historical timezone changes and DST automatically.
+    
+    Args:
+        tz_name: IANA timezone name (e.g., "Asia/Kuala_Lumpur")
+        local_dt: The local datetime for which to resolve the offset
+    
+    Returns:
+        Tuple of (offset_minutes, formatted_offset_string)
+        
+    Example:
+        - "Asia/Kuala_Lumpur" at 1968-04-01 -> (+07:30, "+07:30")
+        - "Asia/Kuala_Lumpur" at 1982-01-01 -> (+08:00, "+08:00")
+    """
+    if not HAS_PYTZ:
+        raise ValueError(
+            f"IANA timezone '{tz_name}' requires pytz library. "
+            f"Install pytz or use offset format (e.g., '+08:00')."
+        )
+    
+    try:
+        tz = pytz.timezone(tz_name)
+    except pytz.exceptions.UnknownTimeZoneError:
+        raise ValueError(f"Unknown IANA timezone: '{tz_name}'")
+    
+    # Localize the datetime to get the correct offset for that specific date
+    try:
+        localized_dt = tz.localize(local_dt, is_dst=None)
+    except pytz.exceptions.AmbiguousTimeError:
+        # DST transition - assume standard time
+        localized_dt = tz.localize(local_dt, is_dst=False)
+    except pytz.exceptions.NonExistentTimeError:
+        # Time doesn't exist (DST spring forward) - use next valid time
+        localized_dt = tz.localize(local_dt, is_dst=True)
+    
+    offset = localized_dt.utcoffset()
+    if offset is None:
+        raise ValueError(f"Could not determine offset for '{tz_name}' at {local_dt}")
+    
+    total_minutes = int(offset.total_seconds() / 60)
+    
+    # Format as +HH:MM or -HH:MM
+    sign = '+' if total_minutes >= 0 else '-'
+    abs_minutes = abs(total_minutes)
+    hours = abs_minutes // 60
+    mins = abs_minutes % 60
+    formatted = f"{sign}{hours:02d}:{mins:02d}"
+    
+    return (total_minutes, formatted)
 
 
 def parse_iana_timezone(tz_string: str) -> Tuple[str, int]:
@@ -201,7 +321,7 @@ def resolve_birth_utc(
     
     Args:
         birth_date_str: Date in "YYYY-MM-DD" format
-        birth_time_str: Time in "HH:MM" format
+        birth_time_str: Time in "HH:MM" format (or various formats - will be normalized)
         timezone_str: Timezone in offset ("+07:30") or IANA format
     
     Returns:
@@ -226,33 +346,38 @@ def resolve_birth_utc(
             f"Expected format: 'YYYY-MM-DD'"
         )
     
-    # Validate time
-    if not birth_time_str:
-        raise ValueError("Birth time is required.")
+    # Normalize birth time (handles various formats)
+    success, normalized_time, error_msg = normalize_birth_time(birth_time_str)
+    if not success:
+        raise ValueError(f"BIRTH_TIME_PARSE_FAILED: {error_msg}")
     
-    birth_time_str = birth_time_str.strip()
-    time_pattern = r'^(\d{1,2}):(\d{2})$'
-    time_match = re.match(time_pattern, birth_time_str)
-    
-    if not time_match:
-        raise ValueError(
-            f"Invalid birth time format: '{birth_time_str}'. "
-            f"Expected format: 'HH:MM'"
-        )
-    
-    hour = int(time_match.group(1))
-    minute = int(time_match.group(2))
-    
-    if hour < 0 or hour > 23:
-        raise ValueError(f"Invalid hour: {hour}. Must be 0-23.")
-    if minute < 0 or minute > 59:
-        raise ValueError(f"Invalid minute: {minute}. Must be 0-59.")
+    # Parse normalized time
+    hour, minute = map(int, normalized_time.split(':'))
     
     # Combine date and time
     local_dt = birth_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
     
-    # Parse timezone
-    input_timezone_raw, parsed_timezone_minutes = parse_timezone(timezone_str)
+    # Parse timezone - handle IANA with historical offset resolution
+    timezone_str = timezone_str.strip() if timezone_str else ""
+    
+    if not timezone_str:
+        raise ValueError(
+            "Timezone is required. Please provide a timezone offset "
+            "(e.g., '+07:30') or IANA timezone (e.g., 'Asia/Kuala_Lumpur')."
+        )
+    
+    # Check if IANA format
+    is_iana = '/' in timezone_str or timezone_str in ('UTC', 'GMT')
+    
+    if is_iana and timezone_str not in ('UTC', 'GMT'):
+        # Use historical offset resolution for IANA timezones
+        parsed_timezone_minutes, resolved_offset_str = resolve_iana_offset_at_datetime(
+            timezone_str, local_dt
+        )
+        input_timezone_raw = timezone_str  # Store IANA name
+    else:
+        # Use standard offset parsing
+        input_timezone_raw, parsed_timezone_minutes = parse_timezone(timezone_str)
     
     # Convert to UTC
     birth_utc = local_to_utc(local_dt, parsed_timezone_minutes)
@@ -261,3 +386,125 @@ def resolve_birth_utc(
     resolved_birth_utc_iso = format_utc_iso(birth_utc)
     
     return (birth_utc, resolved_birth_utc_iso, parsed_timezone_minutes, input_timezone_raw)
+
+
+def resolve_birth_utc_with_debug(
+    birth_date_str: str,
+    birth_time_str: str,
+    timezone_str: str
+) -> Dict[str, Any]:
+    """Resolve birth datetime to UTC with comprehensive debug stamp.
+    
+    Returns a dictionary with all resolution details for debugging.
+    
+    Args:
+        birth_date_str: Date in "YYYY-MM-DD" format
+        birth_time_str: Time in various formats (will be normalized)
+        timezone_str: Timezone in offset or IANA format
+    
+    Returns:
+        Dict with:
+        - success: bool
+        - error: str or None
+        - birth_utc: datetime (if success)
+        - debug_stamp: dict with all resolution details
+    """
+    debug_stamp = {
+        "input_date": birth_date_str,
+        "input_time_raw": birth_time_str,
+        "input_timezone_raw": timezone_str,
+    }
+    
+    # Step 1: Normalize birth time
+    success, normalized_time, error_msg = normalize_birth_time(birth_time_str)
+    debug_stamp["time_normalized"] = normalized_time if success else None
+    debug_stamp["time_parse_success"] = success
+    
+    if not success:
+        debug_stamp["time_parse_error"] = error_msg
+        return {
+            "success": False,
+            "error": "BIRTH_TIME_PARSE_FAILED",
+            "error_message": error_msg,
+            "birth_utc": None,
+            "debug_stamp": debug_stamp
+        }
+    
+    # Step 2: Parse date
+    try:
+        birth_date = datetime.strptime(birth_date_str.strip(), "%Y-%m-%d")
+        debug_stamp["date_parse_success"] = True
+    except (ValueError, AttributeError) as e:
+        debug_stamp["date_parse_success"] = False
+        debug_stamp["date_parse_error"] = str(e)
+        return {
+            "success": False,
+            "error": "BIRTH_DATE_PARSE_FAILED",
+            "error_message": str(e),
+            "birth_utc": None,
+            "debug_stamp": debug_stamp
+        }
+    
+    # Step 3: Build local datetime
+    hour, minute = map(int, normalized_time.split(':'))
+    local_dt = birth_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    debug_stamp["local_datetime"] = local_dt.isoformat()
+    
+    # Step 4: Resolve timezone
+    timezone_str = (timezone_str or "").strip()
+    if not timezone_str:
+        return {
+            "success": False,
+            "error": "TIMEZONE_MISSING",
+            "error_message": "Timezone is required",
+            "birth_utc": None,
+            "debug_stamp": debug_stamp
+        }
+    
+    is_iana = '/' in timezone_str or timezone_str in ('UTC', 'GMT')
+    debug_stamp["timezone_is_iana"] = is_iana
+    
+    try:
+        if is_iana and timezone_str not in ('UTC', 'GMT'):
+            # IANA timezone with historical resolution
+            offset_minutes, resolved_offset_str = resolve_iana_offset_at_datetime(
+                timezone_str, local_dt
+            )
+            debug_stamp["timezone_iana"] = timezone_str
+            debug_stamp["resolved_utc_offset_at_birth"] = resolved_offset_str
+            debug_stamp["resolved_offset_minutes"] = offset_minutes
+        else:
+            # Offset format or UTC/GMT
+            _, offset_minutes = parse_timezone(timezone_str)
+            debug_stamp["timezone_iana"] = None
+            # Format offset
+            sign = '+' if offset_minutes >= 0 else '-'
+            abs_min = abs(offset_minutes)
+            resolved_offset_str = f"{sign}{abs_min // 60:02d}:{abs_min % 60:02d}"
+            debug_stamp["resolved_utc_offset_at_birth"] = resolved_offset_str
+            debug_stamp["resolved_offset_minutes"] = offset_minutes
+        
+        debug_stamp["timezone_parse_success"] = True
+        
+    except ValueError as e:
+        debug_stamp["timezone_parse_success"] = False
+        debug_stamp["timezone_parse_error"] = str(e)
+        return {
+            "success": False,
+            "error": "TIMEZONE_PARSE_FAILED",
+            "error_message": str(e),
+            "birth_utc": None,
+            "debug_stamp": debug_stamp
+        }
+    
+    # Step 5: Convert to UTC
+    birth_utc = local_to_utc(local_dt, offset_minutes)
+    debug_stamp["datetime_utc"] = birth_utc.isoformat() + "Z"
+    debug_stamp["datetime_utc_iso"] = format_utc_iso(birth_utc)
+    
+    return {
+        "success": True,
+        "error": None,
+        "birth_utc": birth_utc,
+        "debug_stamp": debug_stamp
+    }
