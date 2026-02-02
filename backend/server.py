@@ -2584,6 +2584,16 @@ async def mirror_chat(request: MirrorChatRequest):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
+        # PRECONDITION CHECK: For numerology lens, we require birth_date
+        if request.lens == "numerology" and not user.get('birth_date'):
+            return MirrorChatResponse(
+                response="I'd love to explore numerology with you, but I need your birth date to calculate your numbers. You can add this in your profile settings.",
+                session_id=session_id,
+                timestamp=datetime.now(timezone.utc).isoformat(),
+                memory_update=None,
+                thread=None
+            )
+        
         # Build context from chart data
         context_parts = []
         
