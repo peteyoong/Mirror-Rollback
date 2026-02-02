@@ -1,0 +1,578 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
+import { Colors } from '../constants/colors';
+import { Ionicons } from '@expo/vector-icons';
+import api from '../services/api';
+
+interface NumerologySection {
+  label: string;
+  body: string;
+}
+
+interface NumerologyCycles {
+  personal_day: number;
+  personal_month: number;
+  personal_year: number;
+}
+
+interface CoreNumbers {
+  life_path: number | string;
+  expression: number | string;
+  soul_urge: number | string;
+}
+
+interface NumerologyData {
+  title: string;
+  sections: NumerologySection[];
+  mirror_prompt: string;
+  unlock_prompt?: string | null;
+  core_numbers?: CoreNumbers;
+  cycles?: NumerologyCycles;
+  date?: string;
+}
+
+interface Props {
+  userId: string;
+  onOpenChat: () => void;
+}
+
+type TabType = 'summary' | 'today' | 'deep_dive';
+
+export default function NumerologyLensView({ userId, onOpenChat }: Props) {
+  const [activeTab, setActiveTab] = useState<TabType>('summary');
+  const [data, setData] = useState<NumerologyData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadTabData(activeTab);
+  }, [activeTab, userId]);
+
+  const loadTabData = async (tab: TabType) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const endpoint = tab === 'today' 
+        ? `/numerology/today/${userId}`
+        : tab === 'deep_dive'
+        ? `/numerology/deep-dive/${userId}`
+        : `/numerology/summary/${userId}`;
+
+      const response = await api.get(endpoint);
+      setData(response.data);
+    } catch (err: any) {
+      console.error(`Numerology ${tab} error:`, err);
+      setError('Unable to load this view right now.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderTabs = () => (
+    <View style={styles.tabContainer}>
+      <TouchableOpacity
+        style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
+        onPress={() => setActiveTab('summary')}
+      >
+        <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>
+          Summary
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.tab, activeTab === 'today' && styles.activeTab]}
+        onPress={() => setActiveTab('today')}
+      >
+        <Text style={[styles.tabText, activeTab === 'today' && styles.activeTabText]}>
+          Today's Snapshot
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
+        onPress={() => setActiveTab('deep_dive')}
+      >
+        <Text style={[styles.tabText, activeTab === 'deep_dive' && styles.activeTabText]}>
+          Deep Dive
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Core Numbers Card (for Deep Dive)
+  const renderCoreNumbers = () => {
+    const numbers = data?.core_numbers || {
+      life_path: 'Unknown',
+      expression: 'locked',
+      soul_urge: 'locked'
+    };
+
+    const formatNumber = (value: number | string) => {
+      if (value === 'locked') return '🔒';
+      if (value === 'Unknown') return '—';
+      return value.toString();
+    };
+
+    const isLocked = (value: number | string) => value === 'locked';
+
+    return (
+      <View style={styles.coreNumbersCard}>
+        <Text style={styles.coreNumbersTitle}>LIFE PATH • EXPRESSION • SOUL URGE</Text>
+        <View style={styles.coreNumbersRow}>
+          <View style={styles.numberItem}>
+            <Text style={styles.numberLabel}>Life Path</Text>
+            <Text style={styles.numberValue}>{formatNumber(numbers.life_path)}</Text>
+          </View>
+          <View style={styles.numberDivider} />
+          <View style={styles.numberItem}>
+            <Text style={styles.numberLabel}>Expression</Text>
+            <Text style={[
+              styles.numberValue, 
+              isLocked(numbers.expression) && styles.lockedNumber
+            ]}>
+              {formatNumber(numbers.expression)}
+            </Text>
+          </View>
+          <View style={styles.numberDivider} />
+          <View style={styles.numberItem}>
+            <Text style={styles.numberLabel}>Soul Urge</Text>
+            <Text style={[
+              styles.numberValue, 
+              isLocked(numbers.soul_urge) && styles.lockedNumber
+            ]}>
+              {formatNumber(numbers.soul_urge)}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  // Cycles Display (for Today's Snapshot)
+  const renderCycles = () => {
+    if (activeTab !== 'today' || !data?.cycles) return null;
+
+    const { personal_day, personal_month, personal_year } = data.cycles;
+
+    return (
+      <View style={styles.cyclesCard}>
+        <View style={styles.cyclesRow}>
+          <View style={styles.cycleItem}>
+            <Text style={styles.cycleLabel}>Day</Text>
+            <Text style={styles.cycleNumber}>{personal_day}</Text>
+          </View>
+          <View style={styles.cycleDivider} />
+          <View style={styles.cycleItem}>
+            <Text style={styles.cycleLabel}>Month</Text>
+            <Text style={styles.cycleNumber}>{personal_month}</Text>
+          </View>
+          <View style={styles.cycleDivider} />
+          <View style={styles.cycleItem}>
+            <Text style={styles.cycleLabel}>Year</Text>
+            <Text style={styles.cycleNumber}>{personal_year}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderSection = (section: NumerologySection, index: number) => {
+    const isExpanded = expandedSection === section.label || activeTab !== 'deep_dive';
+
+    return (
+      <View key={index} style={styles.sectionCard}>
+        <TouchableOpacity
+          style={styles.sectionHeader}
+          onPress={() => {
+            if (activeTab === 'deep_dive') {
+              setExpandedSection(expandedSection === section.label ? null : section.label);
+            }
+          }}
+          activeOpacity={activeTab === 'deep_dive' ? 0.7 : 1}
+        >
+          <Text style={styles.sectionLabel}>{section.label}</Text>
+          {activeTab === 'deep_dive' && (
+            <Ionicons
+              name={isExpanded ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color={Colors.textTertiary}
+            />
+          )}
+        </TouchableOpacity>
+        {isExpanded && (
+          <Text style={styles.sectionBody}>{section.body}</Text>
+        )}
+      </View>
+    );
+  };
+
+  const renderUnlockPrompt = () => {
+    if (!data?.unlock_prompt) return null;
+
+    return (
+      <View style={styles.unlockCard}>
+        <Ionicons name="key-outline" size={20} color={Colors.accent} />
+        <Text style={styles.unlockText}>{data.unlock_prompt}</Text>
+      </View>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      {renderTabs()}
+
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.textTertiary} />
+            <Text style={styles.loadingText}>Loading...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Ionicons name="alert-circle-outline" size={32} color={Colors.textTertiary} />
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => loadTabData(activeTab)}
+            >
+              <Text style={styles.retryText}>Try Again</Text>
+            </TouchableOpacity>
+            {/* Still show core numbers on Deep Dive even with error */}
+            {activeTab === 'deep_dive' && renderCoreNumbers()}
+          </View>
+        ) : data ? (
+          <>
+            {/* Title */}
+            <Text style={styles.title}>{data.title}</Text>
+
+            {/* Date for Today's Snapshot tab only */}
+            {activeTab === 'today' && data.date && (
+              <Text style={styles.dateLabel}>{data.date}</Text>
+            )}
+
+            {/* Cycles Card (Today only) */}
+            {renderCycles()}
+
+            {/* Core Numbers Card (Deep Dive only) */}
+            {activeTab === 'deep_dive' && renderCoreNumbers()}
+
+            {/* Expand Button (Deep Dive only) */}
+            {activeTab === 'deep_dive' && (
+              <TouchableOpacity
+                style={styles.expandButton}
+                onPress={() => setExpandedSection(expandedSection ? null : 'all')}
+              >
+                <Text style={styles.expandButtonText}>
+                  {expandedSection ? 'Collapse sections' : 'Explore your numbers'}
+                </Text>
+                <Ionicons
+                  name={expandedSection ? 'contract-outline' : 'expand-outline'}
+                  size={16}
+                  color={Colors.accent}
+                />
+              </TouchableOpacity>
+            )}
+
+            {/* Sections */}
+            {data.sections.map((section, index) => renderSection(section, index))}
+
+            {/* Mirror Prompt */}
+            {data.mirror_prompt && (
+              <View style={styles.mirrorPromptCard}>
+                <Text style={styles.mirrorPromptLabel}>
+                  {activeTab === 'today' ? 'REFLECT' : activeTab === 'deep_dive' ? 'MIRROR MOMENT' : 'REFLECT'}
+                </Text>
+                <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
+              </View>
+            )}
+
+            {/* Unlock Prompt (if name-based numbers locked) */}
+            {renderUnlockPrompt()}
+
+            {/* Ask Mirror Button */}
+            <TouchableOpacity
+              style={styles.askMirrorButton}
+              onPress={onOpenChat}
+            >
+              <Ionicons name="chatbubble-outline" size={18} color={Colors.surface} />
+              <Text style={styles.askMirrorText}>Ask about this lens</Text>
+            </TouchableOpacity>
+
+            {/* Footer */}
+            <Text style={styles.footer}>
+              A lens for noticing patterns, not a prediction of outcomes.
+            </Text>
+          </>
+        ) : null}
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+  },
+  activeTab: {
+    backgroundColor: Colors.text,
+  },
+  tabText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  activeTabText: {
+    color: Colors.surface,
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  loadingContainer: {
+    paddingVertical: 60,
+    alignItems: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: Colors.textTertiary,
+  },
+  errorContainer: {
+    paddingVertical: 60,
+    alignItems: 'center',
+    gap: 12,
+  },
+  errorText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  retryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+  },
+  retryText: {
+    fontSize: 14,
+    color: Colors.accent,
+    fontWeight: '500',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  dateLabel: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    marginBottom: 16,
+  },
+  // Core Numbers Card
+  coreNumbersCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.surfaceLight,
+  },
+  coreNumbersTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 1,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  coreNumbersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  numberItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  numberLabel: {
+    fontSize: 10,
+    color: Colors.textTertiary,
+    marginBottom: 4,
+  },
+  numberValue: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  lockedNumber: {
+    opacity: 0.5,
+  },
+  numberDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: Colors.surfaceLight,
+  },
+  // Cycles Card
+  cyclesCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+  },
+  cyclesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  cycleItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  cycleLabel: {
+    fontSize: 10,
+    color: Colors.textTertiary,
+    marginBottom: 4,
+  },
+  cycleNumber: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.accent,
+  },
+  cycleDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: Colors.surfaceLight,
+  },
+  // Expand Button
+  expandButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    marginBottom: 16,
+  },
+  expandButtonText: {
+    fontSize: 14,
+    color: Colors.accent,
+    fontWeight: '500',
+  },
+  // Section Card
+  sectionCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sectionLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+    flex: 1,
+  },
+  sectionBody: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+    marginTop: 12,
+  },
+  // Mirror Prompt
+  mirrorPromptCard: {
+    backgroundColor: Colors.surfaceLight,
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  mirrorPromptLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.accent,
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  mirrorPromptText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.text,
+    fontStyle: 'italic',
+  },
+  // Unlock Prompt
+  unlockCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.accent,
+    borderStyle: 'dashed',
+  },
+  unlockText: {
+    flex: 1,
+    fontSize: 13,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+  // Ask Mirror Button
+  askMirrorButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.text,
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginTop: 8,
+  },
+  askMirrorText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.surface,
+  },
+  // Footer
+  footer: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    marginTop: 20,
+    fontStyle: 'italic',
+  },
+});
