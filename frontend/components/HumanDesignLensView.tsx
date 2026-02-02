@@ -350,6 +350,11 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     fontWeight: '500',
   },
+  errorCode: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
   incompleteDataContainer: {
     paddingVertical: 20,
     alignItems: 'stretch',
