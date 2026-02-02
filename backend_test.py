@@ -102,8 +102,6 @@ class AstrologyMigrationTester:
                     "test_setup_at": datetime.now(timezone.utc).isoformat()
                 },
                 "$unset": {
-                    "astrology.planets": "",
-                    "astrology.houses": "",
                     "migration_info": ""
                 }
             }
