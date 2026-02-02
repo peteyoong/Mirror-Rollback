@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
@@ -13,24 +13,22 @@ export default function SessionRestoreWrapper({ children }: SessionRestoreWrappe
     user, 
     chart, 
     isRestoringSession, 
+    hasTriedSessionRestore,
     sessionRestoreError, 
     restoreSession,
     retrySessionRestore 
   } = useAppStore();
   
-  const [hasAttemptedRestore, setHasAttemptedRestore] = useState(false);
-  
   useEffect(() => {
-    // Only attempt restore once on mount, and only if we don't have user/chart
-    if (!hasAttemptedRestore && (!user || !chart)) {
+    // Only attempt restore if we haven't tried yet and don't have user/chart
+    if (!hasTriedSessionRestore && !isRestoringSession && (!user || !chart)) {
       console.log('[SessionRestoreWrapper] Attempting session restore...');
-      setHasAttemptedRestore(true);
       restoreSession();
     }
-  }, [hasAttemptedRestore, user, chart, restoreSession]);
+  }, [hasTriedSessionRestore, isRestoringSession, user, chart, restoreSession]);
   
-  // Show loader while restoring
-  if (isRestoringSession) {
+  // Show loader while restoring or before first attempt
+  if (isRestoringSession || !hasTriedSessionRestore) {
     return (
       <View style={styles.container}>
         <View style={styles.content}>
@@ -42,7 +40,7 @@ export default function SessionRestoreWrapper({ children }: SessionRestoreWrappe
     );
   }
   
-  // Show error state with retry button
+  // Show error state with retry button (only if restore failed AND no user)
   if (sessionRestoreError && !user && !chart) {
     return (
       <View style={styles.container}>
