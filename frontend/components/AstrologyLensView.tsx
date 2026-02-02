@@ -462,6 +462,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
     textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  errorCode: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   retryButton: {
     paddingVertical: 10,
