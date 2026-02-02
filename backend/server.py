@@ -5360,6 +5360,195 @@ async def unlock_numerology_name(user_id: str, request: NumerologyUnlockRequest)
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =====================================================================
+# CONSCIOUSNESS LENS ENDPOINTS
+# =====================================================================
+from calculations.consciousness import (
+    get_consciousness_levels,
+    get_level_by_id,
+    get_default_snapshot,
+    get_adaptation_block,
+    infer_level_from_text
+)
+
+
+@api_router.get("/consciousness/levels")
+async def get_consciousness_levels_endpoint():
+    """
+    P0: Return the full consciousness lens configuration.
+    Includes version, defaults, and all 6 levels with their rules.
+    """
+    try:
+        config = get_consciousness_levels()
+        return {
+            "success": True,
+            "version": config.get("version", "1.0.0"),
+            "defaults": config.get("defaults", {}),
+            "levels": config.get("levels", [])
+        }
+    except Exception as e:
+        logger.error(f"Error loading consciousness levels: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/consciousness/{user_id}")
+async def get_consciousness_snapshot(user_id: str):
+    """
+    P1: Return the user's consciousness snapshot.
+    If none exists, returns the default (coping @ 0.45 confidence).
+    Always returns something safe and consistent.
+    """
+    try:
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get stored snapshot or default
+        snapshot = user.get("consciousness_snapshot")
+        
+        if not snapshot:
+            snapshot = get_default_snapshot()
+        
+        # Ensure snapshot always has required fields
+        if "inferred_level_id" not in snapshot:
+            snapshot = get_default_snapshot()
+        
+        # Get the full level details
+        level = get_level_by_id(snapshot.get("inferred_level_id", "coping"))
+        
+        return {
+            "success": True,
+            "snapshot": snapshot,
+            "level_details": {
+                "display_name": level.get("display_name", "Coping") if level else "Coping",
+                "primary_emotion": level.get("primary_emotion", "strain") if level else "strain",
+                "depth": level.get("depth", "medium_low") if level else "medium_low",
+                "tone": level.get("tone", ["grounded"]) if level else ["grounded"]
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting consciousness snapshot: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class InferConsciousnessRequest(BaseModel):
+    text: Optional[str] = None
+    source: Optional[str] = "manual"
+
+
+@api_router.post("/consciousness/infer/{user_id}")
+async def infer_consciousness_level(user_id: str, request: InferConsciousnessRequest = None):
+    """
+    P1: Compute and persist consciousness snapshot.
+    Uses language markers to infer level from provided text or recent journal entries.
+    Defaults to coping if confidence < 0.45 or signals conflict.
+    """
+    try:
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        text_to_analyze = ""
+        source_events = []
+        
+        # Use provided text if available
+        if request and request.text:
+            text_to_analyze = request.text
+            source_events.append(f"provided_text:{request.source or 'manual'}")
+        else:
+            # Try to get recent journal entries
+            recent_entries = await db.journals.find({
+                "user_id": user_id
+            }).sort("created_at", -1).limit(5).to_list(length=5)
+            
+            if recent_entries:
+                text_to_analyze = " ".join([
+                    entry.get("content", "") for entry in recent_entries
+                ])
+                source_events.append("recent_journal_entries")
+            else:
+                # Try to get recent chat messages
+                recent_chats = await db.chat_messages.find({
+                    "user_id": user_id,
+                    "role": "user"
+                }).sort("created_at", -1).limit(10).to_list(length=10)
+                
+                if recent_chats:
+                    text_to_analyze = " ".join([
+                        msg.get("content", "") for msg in recent_chats
+                    ])
+                    source_events.append("recent_chat_messages")
+        
+        # Infer level from text
+        if text_to_analyze:
+            snapshot = infer_level_from_text(text_to_analyze)
+            snapshot["source_events"] = source_events
+        else:
+            snapshot = get_default_snapshot()
+            snapshot["source_events"] = ["no_data_default"]
+        
+        # Persist to user profile
+        await db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"consciousness_snapshot": snapshot}}
+        )
+        
+        logger.info(f"[Consciousness] Inferred level {snapshot['inferred_level_id']} for user {user_id} (confidence: {snapshot['confidence']})")
+        
+        # Get full level details
+        level = get_level_by_id(snapshot.get("inferred_level_id", "coping"))
+        
+        return {
+            "success": True,
+            "snapshot": snapshot,
+            "level_details": {
+                "display_name": level.get("display_name", "Coping") if level else "Coping",
+                "primary_emotion": level.get("primary_emotion", "strain") if level else "strain",
+                "depth": level.get("depth", "medium_low") if level else "medium_low"
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error inferring consciousness level: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/consciousness/adaptation/{user_id}")
+async def get_consciousness_adaptation(user_id: str):
+    """
+    P1: Get the adaptation block for the interpret layer.
+    This shapes tone, depth, and constraints for LLM responses.
+    """
+    try:
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get stored snapshot or default
+        snapshot = user.get("consciousness_snapshot", get_default_snapshot())
+        
+        level_id = snapshot.get("inferred_level_id", "coping")
+        confidence = snapshot.get("confidence", 0.45)
+        
+        # Get adaptation block
+        adaptation = get_adaptation_block(level_id, confidence)
+        
+        return {
+            "success": True,
+            "level_id": level_id,
+            "confidence": confidence,
+            "adaptation": adaptation
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting consciousness adaptation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
