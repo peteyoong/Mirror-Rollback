@@ -3570,44 +3570,114 @@ async def get_user_astrology_data(user_id: str) -> Tuple[dict, dict]:
 
 
 def extract_astrology_placements(chart: dict) -> dict:
-    """Extract key astrology placements from chart data."""
-    astro = chart.get('astrology', {})
+    """Extract key astrology placements from chart data.
     
-    # Handle different data structures
+    Returns dict with:
+    - success: bool - True if all critical data present
+    - error: str or None - Error code if success=False
+    - sun_sign, sun_house, moon_sign, moon_house, rising_sign
+    - debug_stamp: dict with diagnostic info
+    """
+    astro = chart.get('astrology', {})
+    debug_stamp = {
+        "chart_id": str(chart.get('_id', 'unknown')),
+        "astro_keys": list(astro.keys()) if astro else [],
+        "has_planets": 'planets' in astro,
+        "has_houses": 'houses' in astro,
+        "data_format": "unknown"
+    }
+    
+    # Initialize
     sun_sign = None
     sun_house = None
     moon_sign = None
     moon_house = None
     rising_sign = None
+    ascendant_degrees = None
+    houses_computed = False
     
-    if 'sun_sign' in astro:
+    # Handle OLD format (just string signs)
+    if 'sun_sign' in astro and 'planets' not in astro:
+        debug_stamp["data_format"] = "legacy_strings"
         sun_sign = astro.get('sun_sign')
         moon_sign = astro.get('moon_sign')
         rising_sign = astro.get('rising_sign')
+        # Old format doesn't have houses, so we can't compute house placements
+        houses_computed = False
+    
+    # Handle NEW format (full planetary data)
     elif 'planets' in astro:
+        debug_stamp["data_format"] = "full_computed"
         planets = astro.get('planets', {})
+        houses = astro.get('houses', {})
         
+        # Extract Sun
         sun_data = planets.get('Sun', {})
         if isinstance(sun_data, dict):
             sun_sign = sun_data.get('sign')
             sun_house = sun_data.get('house')
+            debug_stamp["sun_longitude"] = sun_data.get('longitude')
         
+        # Extract Moon
         moon_data = planets.get('Moon', {})
         if isinstance(moon_data, dict):
             moon_sign = moon_data.get('sign')
             moon_house = moon_data.get('house')
+            debug_stamp["moon_longitude"] = moon_data.get('longitude')
         
-        asc_data = astro.get('ascendant', astro.get('Ascendant', {}))
-        if isinstance(asc_data, dict):
-            rising_sign = asc_data.get('sign')
+        # Extract Ascendant from houses structure
+        if houses:
+            ascendant_degrees = houses.get('ascendant')
+            debug_stamp["ascendant_degrees"] = ascendant_degrees
+            debug_stamp["house_system"] = houses.get('system')
+            debug_stamp["cusps_count"] = len(houses.get('cusps', []))
+            
+            # Get rising sign from formatted cusps (House 1)
+            formatted_cusps = houses.get('formatted_cusps', [])
+            if formatted_cusps and len(formatted_cusps) > 0:
+                rising_sign = formatted_cusps[0].get('sign')
+                debug_stamp["rising_from"] = "formatted_cusps[0]"
+            
+            houses_computed = len(houses.get('cusps', [])) == 12
     
-    return {
+    # Determine if we have valid data
+    has_critical_data = (
+        sun_sign is not None and 
+        moon_sign is not None and 
+        rising_sign is not None
+    )
+    
+    # For Deep Dive, we REQUIRE ascendant to be computed (not just a legacy string)
+    ascendant_valid = (
+        rising_sign is not None and 
+        (debug_stamp["data_format"] == "full_computed" and ascendant_degrees is not None)
+    )
+    
+    debug_stamp["has_critical_data"] = has_critical_data
+    debug_stamp["ascendant_valid"] = ascendant_valid
+    debug_stamp["houses_computed"] = houses_computed
+    
+    # Build result
+    result = {
+        "success": has_critical_data,
+        "error": None if has_critical_data else "ASTROLOGY_DATA_INCOMPLETE",
         "sun_sign": sun_sign or "Unknown",
-        "sun_house": sun_house or "Unknown",
-        "moon_sign": moon_sign or "Unknown", 
-        "moon_house": moon_house or "Unknown",
-        "rising_sign": rising_sign or "Unknown"
+        "sun_house": sun_house,
+        "moon_sign": moon_sign or "Unknown",
+        "moon_house": moon_house,
+        "rising_sign": rising_sign or "Unknown",
+        "ascendant_degrees": ascendant_degrees,
+        "houses_computed": houses_computed,
+        "debug_stamp": debug_stamp
     }
+    
+    # Special error codes
+    if not rising_sign or rising_sign == "Unknown":
+        result["error"] = "ASCENDANT_COMPUTE_FAILED"
+    elif not houses_computed and debug_stamp["data_format"] == "full_computed":
+        result["error"] = "HOUSES_COMPUTE_FAILED"
+    
+    return result
 
 
 @api_router.get("/astrology/summary/{user_id}")
