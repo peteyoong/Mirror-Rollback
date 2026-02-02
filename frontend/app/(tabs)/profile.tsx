@@ -7,6 +7,8 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
+  Modal,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,59 +20,96 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, clearUser } = useAppStore();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+
+  const performLogout = async () => {
+    setIsLoggingOut(true);
+    setShowLogoutModal(false);
+    setShowResetModal(false);
+    try {
+      await clearUser();
+      router.replace('/onboarding');
+    } catch (error) {
+      console.error('Logout error:', error);
+      if (Platform.OS === 'web') {
+        window.alert('Failed to log out. Please try again.');
+      } else {
+        Alert.alert('Error', 'Failed to log out. Please try again.');
+      }
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Log Out',
-      'This will clear your session and return you to the welcome screen. Your data on the server will be preserved.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Log Out',
-          style: 'destructive',
-          onPress: async () => {
-            setIsLoggingOut(true);
-            try {
-              await clearUser();
-              // Navigate to onboarding screen
-              router.replace('/onboarding');
-            } catch (error) {
-              console.error('Logout error:', error);
-              Alert.alert('Error', 'Failed to log out. Please try again.');
-            } finally {
-              setIsLoggingOut(false);
-            }
-          },
-        },
-      ]
-    );
+    if (Platform.OS === 'web') {
+      setShowLogoutModal(true);
+    } else {
+      Alert.alert(
+        'Log Out',
+        'This will clear your session and return you to the welcome screen. Your data on the server will be preserved.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Log Out', style: 'destructive', onPress: performLogout },
+        ]
+      );
+    }
   };
 
   const handleResetSession = () => {
-    Alert.alert(
-      'Reset Session',
-      'This will completely clear your local session, allowing you to register as a new user or log in with different details.\n\nYour existing data on the server will NOT be deleted.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset & Start Fresh',
-          style: 'destructive',
-          onPress: async () => {
-            setIsLoggingOut(true);
-            try {
-              await clearUser();
-              router.replace('/onboarding');
-            } catch (error) {
-              console.error('Reset error:', error);
-              Alert.alert('Error', 'Failed to reset session. Please try again.');
-            } finally {
-              setIsLoggingOut(false);
-            }
-          },
-        },
-      ]
-    );
+    if (Platform.OS === 'web') {
+      setShowResetModal(true);
+    } else {
+      Alert.alert(
+        'Reset Session',
+        'This will completely clear your local session, allowing you to register as a new user or log in with different details.\n\nYour existing data on the server will NOT be deleted.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Reset & Start Fresh', style: 'destructive', onPress: performLogout },
+        ]
+      );
+    }
   };
+
+  // Confirmation Modal for Web
+  const ConfirmModal = ({ 
+    visible, 
+    title, 
+    message, 
+    confirmText, 
+    onConfirm, 
+    onCancel 
+  }: {
+    visible: boolean;
+    title: string;
+    message: string;
+    confirmText: string;
+    onConfirm: () => void;
+    onCancel: () => void;
+  }) => (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onCancel}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>{title}</Text>
+          <Text style={styles.modalMessage}>{message}</Text>
+          <View style={styles.modalButtons}>
+            <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.confirmButton} onPress={onConfirm}>
+              <Text style={styles.confirmButtonText}>{confirmText}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
