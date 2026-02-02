@@ -4606,6 +4606,21 @@ async def get_numerology_summary(user_id: str):
         if not EMERGENT_LLM_KEY:
             raise HTTPException(status_code=500, detail="AI service not configured")
         
+        # Fetch user first to validate birth data (numerology needs birth_date)
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # PRECONDITION CHECK: For numerology, we only require birth_date
+        if not user.get('birth_date'):
+            return {
+                "success": False,
+                "error": "INCOMPLETE_BIRTH_DATA",
+                "missing_fields": ["birth_date"],
+                "message": "Birth date is required for numerology calculations.",
+                "required_fields": ["birth_date"]
+            }
+        
         user, chart = await get_user_numerology_data(user_id)
         data = extract_numerology_data(chart, user)
         
