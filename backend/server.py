@@ -4230,6 +4230,224 @@ async def get_astrology_deep_dive(user_id: str):
 # HUMAN DESIGN LENS ENDPOINTS
 # =====================================================================
 
+def parse_incarnation_cross(raw_cross: str) -> Tuple[str, str]:
+    """
+    Parse incarnation cross string into label and gates notation.
+    
+    Input formats:
+    - "Right Angle Cross of 37/5 | 40/35"
+    - "Left Angle Cross of 4/49 | 8/14"
+    - "Juxtaposition Cross of 51/57 | 25/46"
+    - "Unknown"
+    
+    Returns:
+    - (label, gates) tuple
+    - label: "RAX of Rulership 2" or "LAX Migration 1" (if known) or "Right Angle Cross" (type only)
+    - gates: "37/5 • 40/35" or "—" if unknown
+    """
+    if not raw_cross or raw_cross == 'Unknown':
+        return ("—", "—")
+    
+    # Parse the format: "Type of G1/G2 | G3/G4"
+    # Example: "Right Angle Cross of 37/5 | 40/35"
+    cross_match = re.match(
+        r'^(Right Angle Cross|Left Angle Cross|Juxtaposition Cross)\s+of\s+(\d+)/(\d+)\s*\|\s*(\d+)/(\d+)$',
+        raw_cross.strip()
+    )
+    
+    if not cross_match:
+        # Couldn't parse, return what we have
+        return (raw_cross, "—")
+    
+    cross_type = cross_match.group(1)
+    p_sun = int(cross_match.group(2))
+    d_sun = int(cross_match.group(3))
+    p_earth = int(cross_match.group(4))
+    d_earth = int(cross_match.group(5))
+    
+    # Format gates with bullet separator
+    gates_str = f"{p_sun}/{d_sun} • {p_earth}/{d_earth}"
+    
+    # Abbreviate cross type for label
+    type_abbrev = {
+        "Right Angle Cross": "RAX",
+        "Left Angle Cross": "LAX",
+        "Juxtaposition Cross": "JX"
+    }
+    abbrev = type_abbrev.get(cross_type, cross_type)
+    
+    # Look up cross name based on personality Sun gate
+    # Note: Full cross names depend on the 4-gate combination
+    # For simplicity, we use the personality Sun gate as the primary key
+    # A full implementation would map all 768 combinations
+    cross_name = get_cross_name(p_sun, d_sun, p_earth, d_earth, abbrev)
+    
+    if cross_name:
+        label = f"{abbrev} {cross_name}"
+    else:
+        # Fallback to type + gates if no name found
+        label = f"{abbrev} ({p_sun}/{d_sun})"
+    
+    return (label, gates_str)
+
+
+def get_cross_name(p_sun: int, d_sun: int, p_earth: int, d_earth: int, cross_type: str) -> Optional[str]:
+    """
+    Get the traditional name for an incarnation cross based on its gates.
+    
+    The cross name is primarily determined by the personality Sun gate.
+    Some crosses have numbered variants (1, 2, 3, 4) based on the quarter.
+    
+    This is a simplified mapping - full HD system has 768 named crosses.
+    """
+    # Partial cross name database keyed by personality Sun gate
+    # Format: {p_sun: {d_sun: name}} or {p_sun: name} for single variants
+    CROSS_NAMES = {
+        # Gate 1: Self-Expression
+        1: "Self-Expression",
+        # Gate 2: The Driver
+        2: "The Driver",
+        # Gate 3: Mutation
+        3: "Mutation",
+        # Gate 4: Explanation
+        4: {
+            49: "Explanation",
+            63: "Explanation 2"
+        },
+        # Gate 5: Universal Rhythms
+        5: "Universal Rhythms",
+        # Gate 6: Conflict (Intimacy)
+        6: "Intimacy",
+        # Gate 7: The Role of the Self
+        7: "The Sphinx",
+        # Gate 8: Contribution
+        8: "Contribution",
+        # Gate 9: Focus
+        9: "Focus",
+        # Gate 10: Behavior of the Self
+        10: "Behavior",
+        # Gate 11: Ideas
+        11: "Ideas",
+        # Gate 12: Caution
+        12: "Caution",
+        # Gate 13: The Listener
+        13: "The Listener",
+        # Gate 14: Power Skills
+        14: "Power Skills",
+        # Gate 15: Extremes
+        15: "Extremes",
+        # Gate 16: Skills (Experimentation)
+        16: "Experimentation",
+        # Gate 17: Opinions
+        17: "Opinions",
+        # Gate 18: Correction
+        18: "Correction",
+        # Gate 19: Wanting
+        19: "Approach",
+        # Gate 20: The Now
+        20: "The Now",
+        # Gate 21: Control
+        21: "Control",
+        # Gate 22: Openness
+        22: "Grace",
+        # Gate 23: Assimilation
+        23: "Assimilation",
+        # Gate 24: Rationalization
+        24: "Rationalization",
+        # Gate 25: Innocence
+        25: "Healing",
+        # Gate 26: The Trickster
+        26: "Confrontation",
+        # Gate 27: Caring
+        27: "Caring",
+        # Gate 28: The Game Player
+        28: "Game Playing",
+        # Gate 29: Saying Yes
+        29: "Commitment",
+        # Gate 30: Feelings (Recognition)
+        30: "Fates",
+        # Gate 31: Influence
+        31: "Influence",
+        # Gate 32: Duration
+        32: "Duration",
+        # Gate 33: Privacy
+        33: "Privacy",
+        # Gate 34: Power
+        34: "Power",
+        # Gate 35: Progress (Change)
+        35: "Change",
+        # Gate 36: Crisis
+        36: "Crisis",
+        # Gate 37: Friendship
+        37: "Migration",
+        # Gate 38: The Fighter
+        38: "Struggle",
+        # Gate 39: Provocation
+        39: "Provocation",
+        # Gate 40: Aloneness
+        40: "Aloneness",
+        # Gate 41: Decrease (Fantasy)
+        41: "Fantasy",
+        # Gate 42: Increase
+        42: "Completion",
+        # Gate 43: Insight
+        43: "Insight",
+        # Gate 44: Alertness
+        44: "Alertness",
+        # Gate 45: The King/Queen
+        45: "Rulership",
+        # Gate 46: Determination (Serendipity)
+        46: "Discovery",
+        # Gate 47: Realization
+        47: "Realization",
+        # Gate 48: Depth
+        48: "Depth",
+        # Gate 49: Principles (Revolution)
+        49: "Principles",
+        # Gate 50: Values
+        50: "Values",
+        # Gate 51: Shock
+        51: "Shock",
+        # Gate 52: Inaction
+        52: "Stillness",
+        # Gate 53: Beginnings
+        53: "Beginnings",
+        # Gate 54: Ambition
+        54: "Ambition",
+        # Gate 55: Spirit
+        55: "Spirit",
+        # Gate 56: Stimulation
+        56: "Stimulation",
+        # Gate 57: Intuition
+        57: "Intuition",
+        # Gate 58: Vitality (Joy)
+        58: "Vitality",
+        # Gate 59: Sexuality (Dispersion)
+        59: "Dispersion",
+        # Gate 60: Limitation
+        60: "Limitation",
+        # Gate 61: Mystery
+        61: "Mystery",
+        # Gate 62: Detail
+        62: "Detail",
+        # Gate 63: Doubt (After Completion)
+        63: "Doubt",
+        # Gate 64: Confusion (Before Completion)
+        64: "Confusion",
+    }
+    
+    name_entry = CROSS_NAMES.get(p_sun)
+    
+    if name_entry is None:
+        return None
+    
+    if isinstance(name_entry, dict):
+        # Has variants based on design Sun
+        return name_entry.get(d_sun, list(name_entry.values())[0])
+    
+    return name_entry
+
+
 def extract_human_design_data(chart: dict) -> dict:
     """Extract Human Design data from chart."""
     hd = chart.get('human_design', {})
