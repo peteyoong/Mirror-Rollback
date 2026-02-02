@@ -96,8 +96,21 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     </View>
   );
 
+  // Always render core mechanics for deep dive, even with fallback values
   const renderCoreMechanics = () => {
-    if (!data?.core_mechanics) return null;
+    // Default fallback if no data
+    const mechanics = data?.core_mechanics || {
+      type: 'Unknown',
+      strategy: 'Unknown',
+      authority: 'Unknown'
+    };
+
+    // Helper to format unknown gracefully
+    const formatMechanic = (value: string) => {
+      if (!value || value === 'Unknown') return '—';
+      // For authority, take first part if it contains slash
+      return value.split('/')[0];
+    };
 
     return (
       <View style={styles.coreMechanicsCard}>
@@ -106,15 +119,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <View style={styles.mechanicItem}>
             <Ionicons name="flash-outline" size={16} color={Colors.accent} />
             <Text style={styles.mechanicLabel}>Type</Text>
-            <Text style={styles.mechanicValue}>{data.core_mechanics.type}</Text>
+            <Text style={styles.mechanicValue}>{formatMechanic(mechanics.type)}</Text>
           </View>
           <View style={styles.mechanicDivider} />
           <View style={styles.mechanicItem}>
             <Ionicons name="compass-outline" size={16} color={Colors.accent} />
             <Text style={styles.mechanicLabel}>Authority</Text>
-            <Text style={styles.mechanicValue}>
-              {data.core_mechanics.authority.split('/')[0]}
-            </Text>
+            <Text style={styles.mechanicValue}>{formatMechanic(mechanics.authority)}</Text>
           </View>
         </View>
       </View>
