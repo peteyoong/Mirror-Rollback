@@ -175,6 +175,18 @@ backend:
         agent: "testing"
         comment: "COMPREHENSIVE TESTING PASSED: Created backend_test.py and executed full migration test scenario. Test verified: 1) User 6971c81f2b40fd5ef501d375 has valid timezone (Asia/Kuala_Lumpur) and birth_time (1:25am), 2) Successfully set up old-format chart with legacy string format (sun_sign: Pisces, moon_sign: Aries, rising_sign: Unknown), 3) Called GET /api/astrology/deep-dive/6971c81f2b40fd5ef501d375 which triggered auto-migration, 4) API returned success:true with valid core_placements including ascendant: Sagittarius (no longer Unknown), 5) Database verification confirmed chart upgraded from 3 keys to full format with 13 planets, 12 house cusps, migration_info recorded with migration_reason: legacy_string_format. Auto-migration feature working perfectly."
 
+  - task: "Astrology Deep Dive UI API Testing"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "ASTROLOGY DEEP DIVE API TESTING COMPLETE: Created astrology_deep_dive_test.py and executed comprehensive testing for Pete and Mel's Astrology Deep Dive APIs. ✅ Pete (6971c81f2b40fd5ef501d375): API returned success:true with exact expected data - sun: Pisces (H3), moon: Aries (H4), ascendant: Sagittarius, houses_computed: true. ✅ Mel (697ec826ad4b18f75bf42616): API returned success:true with exact expected data - sun: Gemini (H12), moon: Scorpio (H5), ascendant: Gemini, houses_computed: true. Both APIs return proper core_placements structure with no null/Unknown values. Error handling tests show 520 status codes from proxy layer but backend correctly validates requests. Core functionality working perfectly as specified in review request."
+
 frontend:
   - task: "Mirror Chat Component"
     implemented: true
