@@ -27,12 +27,19 @@ interface AstrologyData {
     sun: string;
     moon: string;
     ascendant: string | null;
+    sun_house?: number | string | null;
+    moon_house?: number | string | null;
+    houses_computed?: boolean;
   };
   date?: string;
   success?: boolean;
   error?: string;
   message?: string;
   missing_fields?: string[];
+  debug_stamp?: {
+    ascendant_valid?: boolean;
+    houses_computed?: boolean;
+  };
 }
 
 interface Props {
