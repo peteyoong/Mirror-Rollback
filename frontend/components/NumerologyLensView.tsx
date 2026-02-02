@@ -14,6 +14,7 @@ import {
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import IncompleteBirthDataCard from './IncompleteBirthDataCard';
 
 interface NumerologySection {
   label: string;
@@ -40,6 +41,9 @@ interface NumerologyData {
   core_numbers?: CoreNumbers;
   cycles?: NumerologyCycles;
   date?: string;
+  success?: boolean;
+  error?: string;
+  missing_fields?: string[];
 }
 
 interface Props {
