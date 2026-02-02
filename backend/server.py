@@ -4062,6 +4062,329 @@ async def get_human_design_deep_dive(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =====================================================================
+# NUMEROLOGY LENS ENDPOINTS
+# =====================================================================
+
+async def get_user_numerology_data(user_id: str):
+    """Helper to fetch user and chart numerology data."""
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    chart = await db.charts.find_one({"user_id": user_id})
+    if not chart:
+        raise HTTPException(status_code=404, detail="Chart not found. Please calculate chart first.")
+    
+    return user, chart
+
+
+def extract_numerology_data(chart: dict, user: dict) -> dict:
+    """Extract and structure numerology data from chart."""
+    numerology = chart.get("numerology", {})
+    
+    # Always available
+    life_path = numerology.get("life_path", {})
+    birthday = numerology.get("birthday", {})
+    
+    # Name-based (optional)
+    expression = numerology.get("expression")
+    soul_urge = numerology.get("soul_urge")
+    personality = numerology.get("personality")
+    has_name_numbers = numerology.get("has_name_numbers", False)
+    
+    return {
+        "life_path_number": life_path.get("number", "Unknown"),
+        "life_path_description": life_path.get("description", ""),
+        "birthday_number": birthday.get("number") if birthday else None,
+        "birthday_description": birthday.get("description", "") if birthday else "",
+        "expression_number": expression.get("number") if expression else None,
+        "expression_description": expression.get("description", "") if expression else "",
+        "soul_urge_number": soul_urge.get("number") if soul_urge else None,
+        "soul_urge_description": soul_urge.get("description", "") if soul_urge else "",
+        "personality_number": personality.get("number") if personality else None,
+        "personality_description": personality.get("description", "") if personality else "",
+        "has_name_numbers": has_name_numbers,
+        "user_birth_date": user.get("birth_date")
+    }
+
+
+@api_router.get("/numerology/summary/{user_id}")
+async def get_numerology_summary(user_id: str):
+    """
+    Generate numerology summary - high-level profile synthesis.
+    NO cycles, NO timing, NO dates.
+    """
+    import json as json_module
+    
+    try:
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        user, chart = await get_user_numerology_data(user_id)
+        data = extract_numerology_data(chart, user)
+        
+        # Build name numbers context
+        if data["has_name_numbers"]:
+            name_numbers_context = f"""- expression_number: {data['expression_number']} ({data['expression_description']})
+- soul_urge_number: {data['soul_urge_number']} ({data['soul_urge_description']})
+- personality_number: {data['personality_number']} ({data['personality_description']})"""
+        else:
+            name_numbers_context = "- Name-based numbers: NOT PROVIDED (Expression, Soul Urge, Personality unavailable)"
+        
+        # Build full prompt
+        system_prompt = NUMEROLOGY_GLOBAL_PROMPT + "\n\n" + NUMEROLOGY_SUMMARY_PROMPT.format(
+            life_path_number=data["life_path_number"],
+            birthday_number=data["birthday_number"] or "Not available",
+            name_numbers_context=name_numbers_context
+        )
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"numerology_summary_{user_id}_{datetime.now().strftime('%Y%m%d')}",
+            system_message=system_prompt
+        )
+        chat.with_model("openai", "gpt-5.2")
+        
+        message = UserMessage(text="Generate the numerology summary for this user. Return ONLY valid JSON.")
+        response_text = await chat.send_message(message)
+        
+        # Parse JSON response
+        try:
+            clean_response = response_text.strip()
+            if clean_response.startswith("```"):
+                lines = clean_response.split("\n")
+                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            
+            result = json_module.loads(clean_response)
+            
+            # Apply guardrails
+            for section in result.get("sections", []):
+                section["body"] = apply_numerology_guardrails(section["body"])
+            
+            result["mirror_prompt"] = apply_numerology_guardrails(result.get("mirror_prompt", ""))
+            
+            # Add unlock prompt if needed
+            if not data["has_name_numbers"]:
+                result["unlock_prompt"] = "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality)."
+            else:
+                result["unlock_prompt"] = None
+            
+            return result
+            
+        except json_module.JSONDecodeError as e:
+            logger.error(f"Failed to parse numerology summary JSON: {e}")
+            return {
+                "title": "Your Numerology Profile",
+                "sections": [
+                    {"label": "How Numerology Works (Here)", "body": "Numerology in Project Mirror is used as a lens for noticing patterns, not predicting outcomes. Numbers describe symbolic themes and rhythms — recurring emphases that may feel familiar, not fixed truths about who you are."},
+                    {"label": "Your Numerology Snapshot", "body": f"Your Life Path {data['life_path_number']} often correlates with a particular kind of learning journey — themes that tend to recur over time as opportunities for growth and awareness."}
+                ],
+                "unlock_prompt": None if data["has_name_numbers"] else "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality).",
+                "mirror_prompt": "What recurring themes do you notice in your own life?"
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Numerology summary error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/numerology/today/{user_id}")
+async def get_numerology_today(user_id: str):
+    """
+    Generate Today's Snapshot using numerology cycles.
+    Focus on Personal Day, with Month/Year as background.
+    """
+    import json as json_module
+    
+    try:
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        user, chart = await get_user_numerology_data(user_id)
+        data = extract_numerology_data(chart, user)
+        
+        # Calculate current cycles
+        birth_date = user.get("birth_date")
+        if not birth_date:
+            raise HTTPException(status_code=400, detail="Birth date not found")
+        
+        today = datetime.now()
+        cycles = get_numerology_cycles(birth_date, today)
+        
+        today_date = today.strftime("%Y-%m-%d")
+        
+        # Build full prompt
+        system_prompt = NUMEROLOGY_GLOBAL_PROMPT + "\n\n" + NUMEROLOGY_TODAY_PROMPT.format(
+            personal_day_number=cycles["personal_day"]["number"],
+            personal_month_number=cycles["personal_month"]["number"],
+            personal_year_number=cycles["personal_year"]["number"],
+            life_path_number=data["life_path_number"],
+            today_date=today_date
+        )
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"numerology_today_{user_id}_{today_date}",
+            system_message=system_prompt
+        )
+        chat.with_model("openai", "gpt-5.2")
+        
+        message = UserMessage(text="Generate Today's Snapshot for this user. Return ONLY valid JSON.")
+        response_text = await chat.send_message(message)
+        
+        # Parse JSON response
+        try:
+            clean_response = response_text.strip()
+            if clean_response.startswith("```"):
+                lines = clean_response.split("\n")
+                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            
+            result = json_module.loads(clean_response)
+            
+            # Apply guardrails
+            for section in result.get("sections", []):
+                section["body"] = apply_numerology_guardrails(section["body"])
+            
+            result["mirror_prompt"] = apply_numerology_guardrails(result.get("mirror_prompt", ""))
+            
+            # Ensure cycles are in response
+            result["cycles"] = {
+                "personal_day": cycles["personal_day"]["number"],
+                "personal_month": cycles["personal_month"]["number"],
+                "personal_year": cycles["personal_year"]["number"]
+            }
+            result["date"] = today_date
+            
+            return result
+            
+        except json_module.JSONDecodeError as e:
+            logger.error(f"Failed to parse numerology today JSON: {e}")
+            return {
+                "title": "Today's Snapshot",
+                "date": today_date,
+                "cycles": {
+                    "personal_day": cycles["personal_day"]["number"],
+                    "personal_month": cycles["personal_month"]["number"],
+                    "personal_year": cycles["personal_year"]["number"]
+                },
+                "sections": [
+                    {"label": "Today", "body": f"Personal Day {cycles['personal_day']['number']} often brings a particular quality of attention. Notice what themes feel present."},
+                    {"label": "Background tone", "body": f"This sits within a Personal Year {cycles['personal_year']['number']} and Month {cycles['personal_month']['number']}."},
+                    {"label": "2-minute experiment", "body": "At some point today, pause and notice what you're drawn toward. No action needed—just noticing."}
+                ],
+                "mirror_prompt": "What feels most present for you today?"
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Numerology today error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/numerology/deep-dive/{user_id}")
+async def get_numerology_deep_dive(user_id: str):
+    """
+    Generate Numerology Deep Dive - expanded exploration of core numbers.
+    NO cycles/timing. Focus on Life Path, Birthday, and name-based numbers if available.
+    """
+    import json as json_module
+    
+    try:
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        user, chart = await get_user_numerology_data(user_id)
+        data = extract_numerology_data(chart, user)
+        
+        # Build name numbers context
+        if data["has_name_numbers"]:
+            name_numbers_context = f"""- expression_number: {data['expression_number']} ({data['expression_description']})
+- soul_urge_number: {data['soul_urge_number']} ({data['soul_urge_description']})
+- personality_number: {data['personality_number']} ({data['personality_description']})"""
+            expression_for_prompt = data['expression_number']
+            soul_urge_for_prompt = data['soul_urge_number']
+        else:
+            name_numbers_context = "- Name-based numbers: NOT PROVIDED (Expression, Soul Urge, Personality unavailable)"
+            expression_for_prompt = '"locked"'
+            soul_urge_for_prompt = '"locked"'
+        
+        # Build full prompt
+        system_prompt = NUMEROLOGY_GLOBAL_PROMPT + "\n\n" + NUMEROLOGY_DEEP_DIVE_PROMPT.format(
+            life_path_number=data["life_path_number"],
+            birthday_number=data["birthday_number"] or "Not available",
+            expression_number=expression_for_prompt,
+            soul_urge_number=soul_urge_for_prompt,
+            name_numbers_context=name_numbers_context
+        )
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"numerology_deepdive_{user_id}_{datetime.now().strftime('%Y%m%d')}",
+            system_message=system_prompt
+        )
+        chat.with_model("openai", "gpt-5.2")
+        
+        message = UserMessage(text="Generate the Numerology Deep Dive for this user. Return ONLY valid JSON.")
+        response_text = await chat.send_message(message)
+        
+        # Parse JSON response
+        try:
+            clean_response = response_text.strip()
+            if clean_response.startswith("```"):
+                lines = clean_response.split("\n")
+                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            
+            result = json_module.loads(clean_response)
+            
+            # Apply guardrails
+            for section in result.get("sections", []):
+                section["body"] = apply_numerology_guardrails(section["body"])
+            
+            result["mirror_prompt"] = apply_numerology_guardrails(result.get("mirror_prompt", ""))
+            
+            # Ensure core numbers are present
+            result["core_numbers"] = {
+                "life_path": data["life_path_number"],
+                "expression": data["expression_number"] if data["has_name_numbers"] else "locked",
+                "soul_urge": data["soul_urge_number"] if data["has_name_numbers"] else "locked"
+            }
+            
+            # Add unlock prompt if needed
+            if not data["has_name_numbers"]:
+                result["unlock_prompt"] = "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality)."
+            else:
+                result["unlock_prompt"] = None
+            
+            return result
+            
+        except json_module.JSONDecodeError as e:
+            logger.error(f"Failed to parse numerology deep dive JSON: {e}")
+            return {
+                "title": "Your Core Numbers",
+                "core_numbers": {
+                    "life_path": data["life_path_number"],
+                    "expression": data["expression_number"] if data["has_name_numbers"] else "locked",
+                    "soul_urge": data["soul_urge_number"] if data["has_name_numbers"] else "locked"
+                },
+                "sections": [
+                    {"label": "Life Path: Your Learning Theme", "body": f"Life Path {data['life_path_number']} often describes a recurring theme of learning and growth. This isn't about who you are, but about what tends to show up as territory for exploration."},
+                    {"label": "Birthday: Your Secondary Flavour", "body": f"Birthday number {data['birthday_number'] or 'unknown'} adds a secondary emphasis — a flavour that colours how you approach things."}
+                ],
+                "unlock_prompt": None if data["has_name_numbers"] else "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality).",
+                "mirror_prompt": "What recurring themes do you notice in your own journey?"
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Numerology deep dive error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
