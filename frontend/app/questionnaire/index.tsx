@@ -123,12 +123,23 @@ export default function Questionnaire() {
   if (showTransition) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <Animated.View style={[styles.transitionContainer, { opacity: fadeAnim }]}>
-          <Text style={styles.transitionText}>Thank you.</Text>
-          <Text style={styles.transitionSubtext}>
-            This isn't about defining you — it's about meeting you where you are.
-          </Text>
+          {/* Title */}
+          <Text style={styles.transitionTitle}>Thank you.</Text>
+          
+          {/* Body - 2 lines */}
+          <View style={styles.transitionBody}>
+            <Text style={styles.transitionBodyText}>
+              There are no right answers here.
+            </Text>
+            <Text style={styles.transitionBodyText}>
+              What you shared simply helps shape the space.
+            </Text>
+          </View>
+          
+          {/* Footer - small, muted */}
+          <Text style={styles.transitionFooter}>Preparing your reflection…</Text>
         </Animated.View>
       </SafeAreaView>
     );
