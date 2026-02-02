@@ -224,6 +224,16 @@ export default function MirrorScreen() {
                 {keystone.reflect_question}
               </Text>
             </View>
+
+            {/* Continue with Mirror button */}
+            <TouchableOpacity
+              style={styles.continueButton}
+              onPress={handleContinueWithMirror}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.continueButtonText}>Continue with Mirror</Text>
+              <Text style={styles.continueButtonSubtext}>Stay with this for a moment.</Text>
+            </TouchableOpacity>
           </View>
         )}
 
