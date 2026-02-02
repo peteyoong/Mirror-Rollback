@@ -55,6 +55,13 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  
+  // Unlock flow state
+  const [unlockModalVisible, setUnlockModalVisible] = useState(false);
+  const [unlockStep, setUnlockStep] = useState<'consent' | 'input' | 'success'>('consent');
+  const [fullBirthName, setFullBirthName] = useState('');
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
 
   useEffect(() => {
     loadTabData(activeTab);
