@@ -2948,6 +2948,319 @@ async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_ref
         }
 
 
+# =====================================================================
+# ASTROLOGY LENS ENDPOINTS
+# =====================================================================
+
+class AstrologySection(BaseModel):
+    label: str
+    body: str
+
+
+class AstrologyResponse(BaseModel):
+    title: str
+    sections: List[AstrologySection]
+    mirror_prompt: str
+    core_placements: Optional[dict] = None
+    date: Optional[str] = None
+
+
+async def get_user_astrology_data(user_id: str) -> Tuple[dict, dict]:
+    """Fetch user and their astrology chart data."""
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    chart = await db.charts.find_one({"user_id": user_id})
+    if not chart:
+        raise HTTPException(status_code=404, detail="Chart not found. Complete onboarding first.")
+    
+    return user, chart
+
+
+def extract_astrology_placements(chart: dict) -> dict:
+    """Extract key astrology placements from chart data."""
+    astro = chart.get('astrology', {})
+    
+    # Handle different data structures
+    sun_sign = None
+    sun_house = None
+    moon_sign = None
+    moon_house = None
+    rising_sign = None
+    
+    if 'sun_sign' in astro:
+        sun_sign = astro.get('sun_sign')
+        moon_sign = astro.get('moon_sign')
+        rising_sign = astro.get('rising_sign')
+    elif 'planets' in astro:
+        planets = astro.get('planets', {})
+        
+        sun_data = planets.get('Sun', {})
+        if isinstance(sun_data, dict):
+            sun_sign = sun_data.get('sign')
+            sun_house = sun_data.get('house')
+        
+        moon_data = planets.get('Moon', {})
+        if isinstance(moon_data, dict):
+            moon_sign = moon_data.get('sign')
+            moon_house = moon_data.get('house')
+        
+        asc_data = astro.get('ascendant', astro.get('Ascendant', {}))
+        if isinstance(asc_data, dict):
+            rising_sign = asc_data.get('sign')
+    
+    return {
+        "sun_sign": sun_sign or "Unknown",
+        "sun_house": sun_house or "Unknown",
+        "moon_sign": moon_sign or "Unknown", 
+        "moon_house": moon_house or "Unknown",
+        "rising_sign": rising_sign or "Unknown"
+    }
+
+
+@api_router.get("/astrology/summary/{user_id}")
+async def get_astrology_summary(user_id: str):
+    """
+    Generate astrology summary - high-level profile synthesis.
+    NO transits, NO dates, NO planet/house/aspect lists.
+    """
+    import json as json_module
+    
+    try:
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        user, chart = await get_user_astrology_data(user_id)
+        placements = extract_astrology_placements(chart)
+        
+        # Build compact profile context (no raw lists)
+        profile_context = f"""
+Sun in {placements['sun_sign']}: Core identity orientation
+Moon in {placements['moon_sign']}: Emotional processing style
+Rising in {placements['rising_sign']}: Approach to new situations
+"""
+        
+        # Build full prompt
+        system_prompt = ASTROLOGY_GLOBAL_PROMPT + "\n\n" + ASTROLOGY_SUMMARY_PROMPT.format(
+            profile_context=profile_context
+        )
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"astro_summary_{user_id}_{datetime.now().strftime('%Y%m%d')}",
+            system_message=system_prompt
+        )
+        chat.with_model("openai", "gpt-5.2")
+        
+        message = UserMessage(text="Generate the astrology summary for this user. Return ONLY valid JSON.")
+        response_text = await chat.send_message(message)
+        
+        # Parse JSON response
+        try:
+            clean_response = response_text.strip()
+            if clean_response.startswith("```"):
+                lines = clean_response.split("\n")
+                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            
+            result = json_module.loads(clean_response)
+            
+            # Apply guardrails to each section
+            for section in result.get("sections", []):
+                section["body"] = apply_astrology_guardrails(section["body"])
+            
+            result["mirror_prompt"] = apply_astrology_guardrails(result.get("mirror_prompt", ""))
+            
+            return result
+            
+        except json_module.JSONDecodeError as e:
+            logger.error(f"Failed to parse astrology summary JSON: {e}")
+            return {
+                "title": "Your Astrology Profile",
+                "sections": [
+                    {"label": "Your Orientation", "body": f"With {placements['sun_sign']} as your core orientation, there's a particular quality to how you express your sense of self."},
+                    {"label": "How You Process", "body": f"Your {placements['moon_sign']} Moon suggests a specific way of moving through emotional experience."},
+                    {"label": "What Draws You", "body": f"The {placements['rising_sign']} rising lens shapes how you approach new situations."}
+                ],
+                "mirror_prompt": "What in this description feels recognisable to you?"
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Astrology summary error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/astrology/today/{user_id}")
+async def get_astrology_today(user_id: str):
+    """
+    Generate Today's Snapshot - daily-first astrology timing lens.
+    2-3 themes max, optional "On the horizon" if major alignment within 7 days.
+    """
+    import json as json_module
+    
+    try:
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        user, chart = await get_user_astrology_data(user_id)
+        placements = extract_astrology_placements(chart)
+        
+        today_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        
+        # Build natal context (compact)
+        natal_context = f"""
+Sun: {placements['sun_sign']} (house {placements['sun_house']})
+Moon: {placements['moon_sign']} (house {placements['moon_house']})
+Rising: {placements['rising_sign']}
+"""
+        
+        # Build transit context (simplified symbolic weather)
+        # In production, this would come from ephemeris calculations
+        transit_context = """
+Current planetary emphasis: general themes of reflection and recalibration.
+No major outer planet transits requiring special attention.
+General atmosphere: supportive of inward focus.
+"""
+        
+        # Build full prompt
+        system_prompt = ASTROLOGY_GLOBAL_PROMPT + "\n\n" + ASTROLOGY_TODAY_PROMPT.format(
+            today_date=today_date,
+            natal_context=natal_context,
+            transit_context=transit_context
+        )
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"astro_today_{user_id}_{today_date}",
+            system_message=system_prompt
+        )
+        chat.with_model("openai", "gpt-5.2")
+        
+        message = UserMessage(text="Generate Today's Snapshot. Return ONLY valid JSON.")
+        response_text = await chat.send_message(message)
+        
+        # Parse JSON response
+        try:
+            clean_response = response_text.strip()
+            if clean_response.startswith("```"):
+                lines = clean_response.split("\n")
+                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            
+            result = json_module.loads(clean_response)
+            
+            # Apply guardrails
+            for section in result.get("sections", []):
+                section["body"] = apply_astrology_guardrails(section["body"])
+            
+            result["mirror_prompt"] = apply_astrology_guardrails(result.get("mirror_prompt", ""))
+            result["date"] = today_date
+            
+            return result
+            
+        except json_module.JSONDecodeError as e:
+            logger.error(f"Failed to parse astrology today JSON: {e}")
+            return {
+                "title": "Today's Snapshot",
+                "date": today_date,
+                "sections": [
+                    {"label": "Today's Quality", "body": "A day that may invite quiet attention to what's already present."},
+                    {"label": "What You May Notice", "body": "Patterns of perception that feel familiar, moments that ask for patience."}
+                ],
+                "mirror_prompt": "What quality does today seem to carry for you?"
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Astrology today error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/astrology/deep-dive/{user_id}")
+async def get_astrology_deep_dive(user_id: str):
+    """
+    Generate Deep Dive - Sun, Moon, Ascendant only.
+    NO transits, NO timing, NO future implications.
+    """
+    import json as json_module
+    
+    try:
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        user, chart = await get_user_astrology_data(user_id)
+        placements = extract_astrology_placements(chart)
+        
+        # Build full prompt
+        system_prompt = ASTROLOGY_GLOBAL_PROMPT + "\n\n" + ASTROLOGY_DEEP_DIVE_PROMPT.format(
+            sun_sign=placements['sun_sign'],
+            sun_house=placements['sun_house'],
+            moon_sign=placements['moon_sign'],
+            moon_house=placements['moon_house'],
+            rising_sign=placements['rising_sign']
+        )
+        
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"astro_deep_{user_id}_{datetime.now().strftime('%Y%m%d')}",
+            system_message=system_prompt
+        )
+        chat.with_model("openai", "gpt-5.2")
+        
+        message = UserMessage(text="Generate the Deep Dive for this user's core structure. Return ONLY valid JSON.")
+        response_text = await chat.send_message(message)
+        
+        # Parse JSON response
+        try:
+            clean_response = response_text.strip()
+            if clean_response.startswith("```"):
+                lines = clean_response.split("\n")
+                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            
+            result = json_module.loads(clean_response)
+            
+            # Apply guardrails
+            for section in result.get("sections", []):
+                section["body"] = apply_astrology_guardrails(section["body"])
+            
+            result["mirror_prompt"] = apply_astrology_guardrails(result.get("mirror_prompt", ""))
+            
+            # Ensure core_placements is included
+            if "core_placements" not in result:
+                result["core_placements"] = {
+                    "sun": placements['sun_sign'],
+                    "moon": placements['moon_sign'],
+                    "ascendant": placements['rising_sign']
+                }
+            
+            return result
+            
+        except json_module.JSONDecodeError as e:
+            logger.error(f"Failed to parse astrology deep dive JSON: {e}")
+            return {
+                "title": "Your Core Structure",
+                "core_placements": {
+                    "sun": placements['sun_sign'],
+                    "moon": placements['moon_sign'],
+                    "ascendant": placements['rising_sign']
+                },
+                "sections": [
+                    {"label": "Sun: Your Core Orientation", "body": f"With your Sun in {placements['sun_sign']}, there's a particular quality to how you express your sense of self and purpose."},
+                    {"label": "Moon: Your Emotional Texture", "body": f"Your Moon in {placements['moon_sign']} shapes how you process feeling and what helps you feel emotionally at home."},
+                    {"label": "Ascendant: How You Meet the World", "body": f"{placements['rising_sign']} rising colours the lens through which you approach new situations and people."}
+                ],
+                "mirror_prompt": "What in these descriptions feels true to your lived experience?"
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Astrology deep dive error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
