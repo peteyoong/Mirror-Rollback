@@ -24,9 +24,12 @@ interface AstrologyData {
   core_placements?: {
     sun: string;
     moon: string;
-    ascendant: string;
+    ascendant: string | null;
   };
   date?: string;
+  success?: boolean;
+  error?: string;
+  message?: string;
 }
 
 interface Props {
@@ -43,6 +46,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showChartModal, setShowChartModal] = useState(false);
+  const [isRecomputing, setIsRecomputing] = useState(false);
 
   useEffect(() => {
     loadTabData(activeTab);
@@ -66,6 +70,20 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
       setError('Unable to load this view right now.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRecomputeChart = async () => {
+    setIsRecomputing(true);
+    try {
+      await api.post(`/charts/calculate`, { user_id: userId });
+      // Reload data after recompute
+      await loadTabData(activeTab);
+    } catch (err: any) {
+      console.error('Recompute error:', err);
+      setError('Failed to recompute chart. Please try again.');
+    } finally {
+      setIsRecomputing(false);
     }
   };
 
