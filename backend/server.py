@@ -3844,6 +3844,8 @@ async def get_astrology_deep_dive(user_id: str):
     """
     Generate Deep Dive - Sun, Moon, Ascendant only.
     NO transits, NO timing, NO future implications.
+    
+    Returns success:false with error code if critical data missing.
     """
     import json as json_module
     
@@ -3854,12 +3856,29 @@ async def get_astrology_deep_dive(user_id: str):
         user, chart = await get_user_astrology_data(user_id)
         placements = extract_astrology_placements(chart)
         
+        # =====================================================================
+        # FAIL LOUDLY IF CRITICAL DATA MISSING
+        # =====================================================================
+        if not placements["success"] or placements["rising_sign"] == "Unknown":
+            logger.warning(f"Astrology deep dive failed for user {user_id}: {placements['error']}")
+            return {
+                "success": False,
+                "error": placements["error"] or "ASCENDANT_COMPUTE_FAILED",
+                "message": "We couldn't compute your Ascendant. Your chart may need to be recalculated.",
+                "debug_stamp": placements["debug_stamp"],
+                "core_placements": {
+                    "sun": placements["sun_sign"],
+                    "moon": placements["moon_sign"],
+                    "ascendant": None  # Explicitly null to signal missing
+                }
+            }
+        
         # Build full prompt
         system_prompt = ASTROLOGY_GLOBAL_PROMPT + "\n\n" + ASTROLOGY_DEEP_DIVE_PROMPT.format(
             sun_sign=placements['sun_sign'],
-            sun_house=placements['sun_house'],
+            sun_house=placements['sun_house'] or "Unknown",
             moon_sign=placements['moon_sign'],
-            moon_house=placements['moon_house'],
+            moon_house=placements['moon_house'] or "Unknown",
             rising_sign=placements['rising_sign']
         )
         
@@ -3889,18 +3908,22 @@ async def get_astrology_deep_dive(user_id: str):
             result["mirror_prompt"] = apply_astrology_guardrails(result.get("mirror_prompt", ""))
             
             # Ensure core_placements is included
-            if "core_placements" not in result:
-                result["core_placements"] = {
-                    "sun": placements['sun_sign'],
-                    "moon": placements['moon_sign'],
-                    "ascendant": placements['rising_sign']
-                }
+            result["core_placements"] = {
+                "sun": placements['sun_sign'],
+                "moon": placements['moon_sign'],
+                "ascendant": placements['rising_sign']
+            }
+            
+            # Add success flag and debug stamp
+            result["success"] = True
+            result["debug_stamp"] = placements["debug_stamp"]
             
             return result
             
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse astrology deep dive JSON: {e}")
             return {
+                "success": True,  # Data is valid, just LLM parsing failed
                 "title": "Your Core Structure",
                 "core_placements": {
                     "sun": placements['sun_sign'],
@@ -3912,7 +3935,8 @@ async def get_astrology_deep_dive(user_id: str):
                     {"label": "Moon: Your Emotional Texture", "body": f"Your Moon in {placements['moon_sign']} shapes how you process feeling and what helps you feel emotionally at home."},
                     {"label": "Ascendant: How You Meet the World", "body": f"{placements['rising_sign']} rising colours the lens through which you approach new situations and people."}
                 ],
-                "mirror_prompt": "What in these descriptions feels true to your lived experience?"
+                "mirror_prompt": "What in these descriptions feels true to your lived experience?",
+                "debug_stamp": placements["debug_stamp"]
             }
     
     except HTTPException:
