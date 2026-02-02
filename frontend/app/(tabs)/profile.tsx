@@ -23,14 +23,18 @@ export default function ProfileScreen() {
   const [showResetModal, setShowResetModal] = useState(false);
 
   const performLogout = async () => {
+    console.log('[Profile] Starting logout...');
     setIsLoggingOut(true);
     setShowLogoutModal(false);
     setShowResetModal(false);
     try {
+      console.log('[Profile] Calling clearUser...');
       await clearUser();
+      console.log('[Profile] clearUser complete, navigating to /onboarding...');
       router.replace('/onboarding');
+      console.log('[Profile] Navigation called');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('[Profile] Logout error:', error);
     } finally {
       setIsLoggingOut(false);
     }
