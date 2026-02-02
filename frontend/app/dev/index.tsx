@@ -424,7 +424,7 @@ export default function LensTestPage() {
           <>
             <Text style={styles.checklistItem}>• Type, Strategy, Authority, Profile, Definition shown</Text>
             <Text style={styles.checklistItem}>• Channels sorted numerically (4–63, 35–36, 37–40)</Text>
-            <Text style={styles.checklistItem}>• Incarnation Cross in gate notation</Text>
+            <Text style={styles.checklistItem}>• Cross: Label (LAX Migration) + Gates (37/5 • 40/35)</Text>
             <Text style={styles.checklistItem}>• No identity/prescriptive text when compute fails</Text>
           </>
         )}
