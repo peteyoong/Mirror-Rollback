@@ -4446,6 +4446,16 @@ async def get_human_design_deep_dive(user_id: str):
         if not EMERGENT_LLM_KEY:
             raise HTTPException(status_code=500, detail="AI service not configured")
         
+        # Fetch user first to validate birth data
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # PRECONDITION CHECK: Validate birth data before computation
+        is_valid, missing_fields = validate_birth_data(user)
+        if not is_valid:
+            return get_incomplete_birth_data_response(missing_fields)
+        
         user, chart = await get_user_astrology_data(user_id)
         hd_data = extract_human_design_data(chart)
         
