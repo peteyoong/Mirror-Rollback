@@ -1,168 +1,181 @@
 <analysis>
+
 <original_problem_statement>
-The user wants to build Project Mirror, a mobile-first reflective AI app. The session began with a request to fix a broken UI where the Lenses screen (Astrology, Human Design) was not showing personalized data. The user then guided the agent through a series of complex rollback attempts to restore a previous UI from different project forks, which ultimately led to the agent pulling code from a separate GitHub repository () and adapting its UI style to the current application.
+The user wants to build Project Mirror, a mobile-first reflective AI app. The session focused on implementing a sophisticated, LLM-powered chat companion named Mirror with multiple contexts and advanced backend features.
 
-After stabilizing the UI and fixing several bugs in the onboarding flow, the user's requests shifted to new feature development. The user provided a detailed system prompt for an LLM-powered chat companion called Mirror and requested its implementation.
-
-The final user request was a hybrid approach:
+The initial request was to create a hybrid chat system:
 1.  Keep the existing template-based Reflect with Mirror feature in the Journal.
-2.  Add a new, primary Mirror chat experience in the Journal tab, powered by an LLM, that can synthesize all user data (journal, chart data, etc.).
+2.  Add a new, primary Mirror chat experience in the Journal tab, powered by an LLM that synthesizes all user data.
 3.  Add lens-specific Ask about this lens chat entry points within each Lens screen (Astrology, Human Design).
 
+This evolved into a multi-step implementation process, including UI polishing, data persistence, and adding layers of intelligence and safety to the backend.
+
+The final user request was to implement Prompt 11: a personalized, reflective greeting on the main Mirror home screen, designed to create a moment of quiet recognition by synthesizing the user's chart data without explicitly naming the systems (Astrology, Human Design, etc.).
+
 PRODUCT REQUIREMENTS:
--   **Onboarding**: A polished flow with separate inputs for Name, Email, DD/MM/YYYY, and HH:MM AM/PM. Location search must be functional.
--   **Session Persistence**: The user's session must be restored on app reload in the web preview.
--   **Lenses Screen**: Must display personalized data for Astrology and Human Design. It should include Mirror Moment reflection cards, which are template-based and deterministic.
--   **Journal**:
-    -   Must have a Reflect with Mirror button that opens a modal with a template-based reflection.
-    -   Reflections must be locked (cached) per entry and not regenerate on every view.
 -   **Mirror Chat (LLM-Powered)**:
-    -   A new primary chat interface, accessible from the Journal tab.
-    -   Lens-specific chat interfaces accessible from within each lens.
-    -   The chat AI must follow a strict, non-prescriptive, reflective philosophy as defined by the user's detailed system prompt.
+    -   A primary chat interface in the Journal tab, togglable with the journal entry view.
+    -   Lens-specific chat interfaces accessible via modals from within each lens screen.
+    -   The chat AI must follow a strict, non-prescriptive, reflective philosophy.
+    -   Conversations must be persistent across app reloads.
+-   **You Over Time Memory**:
+    -   The backend must generate a structured summary of the user's recurring themes, tensions, and emotional state based on their chat and journal history.
+    -   This summary should be displayed in the UI in a calm, collapsible card.
+-   **Timeline Tracking**:
+    -   The backend must log a lightweight, privacy-safe timeline event for each chat turn to track the user's journey over time.
+    -   A new Timeline view in the Journal tab should display these events.
+-   **Safety & Cost Control**:
+    -   The backend must have guardrails to detect and rewrite non-compliant AI responses (e.g., advice, predictions).
+    -   Rate limiting and context-size limits must be in place.
+-   **Emotional Keystone (Prompt 11)**:
+    -   The main Mirror tab (home screen) should display a personalized, poetic, and reflective greeting that synthesizes the user's chart data without naming any systems.
 </original_problem_statement>
 
 **User's preferred language**: English
 
 **what currently exists?**
 - A full-stack Expo (React Native) and FastAPI application.
-- **Backend**: The backend is stable. It includes a robust calculation engine, a working user/chart creation flow with a fallback for location search, and a new  endpoint that integrates with an LLM via the  library using the .
+- **Backend**: The backend is highly advanced. It features a  endpoint that supports general and lens-specific contexts, persists conversations, generates a structured memory_update of the user's state, logs privacy-safe timeline_events, and enforces content guardrails and rate limiting. A new  endpoint has been created to generate the personalized greeting for the home screen.
 - **Frontend**:
-    - The onboarding flow at  has been significantly overhauled with custom date/time inputs and a working location search.
-    - Session persistence is implemented via /, a custom store module (), and a  component.
-    - The Lenses screen () is functional and displays personalized data. It includes deterministic, template-based Mirror Moment cards for both the Astrology and Human Design lenses.
-    - The Journal tab () has a polished, template-based Reflect with Mirror feature with reflection caching.
-    - A new  component has been created, and the Journal tab now has a toggle to switch between the entry list and the chat interface.
+    - The  screen now features a three-way toggle between Journal, Mirror (the LLM chat), and Timeline views.
+    - The  component is a fully functional and polished chat UI. It supports different contexts (general vs. lens), persists session IDs, and displays the You Over Time memory summary in a collapsible card.
+    - The  screen has an Ask about this lens button that opens a polished modal containing the  component for lens-specific conversations.
+    - The  (Mirror home screen) is functional but does not yet display the new personalized reflection.
 
 **Last working item**:
--   **Last item agent was working**: Implementing the full Mirror Chat system as requested by the user. The agent had successfully created the backend endpoint (), created the frontend  component, and added a UI toggle on the Journal tab to show it. The work was stopped before implementing the lens-specific chat entry points and fleshing out the  component to make API calls.
+-   **Last item agent was working**: Implementing Prompt 11 - the personalized, reflective greeting on the Mirror home screen.
+    -   The agent successfully created and tested the backend endpoint () which generates the reflection text.
+    -   The next step was to modify the frontend file  to call this new endpoint and display the reflection.
 -   **Status**: IN PROGRESS
--   **Agent Testing Done**: N
--   **Which testing method agent to use?**: Frontend testing agent to check UI integration, and manual testing to verify the chat flow and LLM responses.
+-   **Agent Testing Done**: N (Backend was tested with , Frontend part is not implemented)
+-   **Which testing method agent to use?**: manual testing by screenshot tool.
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
-There are no outstanding user-reported bugs. All pending work relates to finishing the in-progress feature.
+-   **Issue 1: (P1) Session Restore on Initial Load**: The app's root () redirects to  before the session restore logic in  (which wraps the ) can run. This causes the user to see the onboarding screen on every fresh page load, even if they have a valid session. This was identified but parked to focus on feature delivery.
 
 **In progress Task List**:
--   **Task 1: (P0) Finish Mirror Chat Implementation**
-    -   **Where to resume**: The agent needs to continue building out the frontend chat functionality.
-        1.  Update  to manage conversation state (messages, input), call the new  backend endpoint, and display the conversation history.
-        2.  Modify  to add an Ask about this lens button. When clicked, this should navigate to the chat interface, passing the current lens context ( or ) to the chat component and the backend API.
-        3.  Update the  function in  to accept the  and prepend a lens-specific instruction to the system prompt if provided.
-        4.  Polish the chat UI to ensure it is clean, usable, and fits the app's aesthetic.
-    -   **What will be achieved with this?**: This will complete the user's primary feature request, introducing the core LLM-powered reflective intelligence to the app.
+-   **Task 1: (P0) Finish Emotional Keystone (Prompt 11) Frontend Implementation**
+    -   **Where to resume**: Modify .
+        1.  Add state for the reflection text, loading, and error states.
+        2.  Use a  hook that depends on the  from the Zustand store.
+        3.  Inside the effect, call the new  endpoint.
+        4.  Display a loading indicator while fetching.
+        5.  Display the returned reflection text with a calm, spacious, and premium typography, replacing the current static greeting.
+    -   **What will be achieved with this?**: This will complete the user's emotional keystone feature, making the app's home screen feel deeply personal and reflective from the first moment.
     -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Should Test frontend/backend/both after fix?**: frontend
     -   **Blocked on something**: None
 
 **Upcoming and Future Tasks**
--   **Future Task (P2): Finish Post-Registration Questionnaire**: The questionnaire at  collects answers, but the  function is not implemented to save them to the backend. This was a very early task that has been superseded by other priorities.
+-   **Upcoming Tasks:**
+    -   **(P1) Prompt 12**: Implement daily variation logic for the home screen reflection so it doesn't feel repetitive.
+    -   **(P1) Prompt 13**: Create a smooth transition/handoff from the home screen reflection to the Mirror Chat.
+-   **Future Tasks:**
+    -   **(P2) Prompt 14**: Make the Mirror home screen reflection timeline-aware (e.g., this feels different from last week).
+    -   **(P3) Finish Post-Registration Questionnaire**: The questionnaire at  collects answers, but they are not saved to the backend.
 
 **Completed work in this session**
--   **Onboarding Screen Overhaul (DONE)**
-    -   Moved Email field after Name.
-    -   Implemented separate input boxes for Day/Month/Year and Hour/Minute with an AM/PM toggle in .
--   **Location Search Full-Stack Fix (DONE)**
-    -   Added a fallback city database to  to handle network blocks on the Nominatim service.
-    -   Updated the backend  endpoint to accept pre-resolved latitude/longitude.
-    -   Updated the frontend ( and ) to send lat/long, fixing the Could not find location error on submission.
--   **Session Restore Feature (DONE)**
-    -   Implemented a cross-platform persistence mechanism in  using  and .
-    -   Created a  component to handle loading state and errors.
-    -   Wrapped the main tab layout () to enable automatic session restoration on app load/reload.
--   **Astrology Mirror Moment Card (DONE)**
-    -   Added a deterministic, template-based reflection card to the Astrology lens in .
--   **Human Design Mirror Moment Card (DONE)**
-    -   Added a similar deterministic reflection card to the Human Design lens in .
--   **Journal Reflect with Mirror Feature (DONE)**
-    -   Created a  component for template-based reflections.
-    -   Integrated the feature into  and .
--   **Journal Reflection Polish (DONE)**
-    -   Implemented reflection caching (locking) per journal entry in .
-    -   Added micro-copy and polished UI in .
--   **Mirror Chat Backend (DONE)**
-    -   Added the user's detailed system prompt and a new  endpoint to , integrating with an LLM via .
--   **Bug Fixes**: Addressed a recurring location search bug by using  in , and attempted to fix a mobile blank screen issue by updating dependencies and clearing caches.
+-   **Mirror Chat (Full Stack)**: Implemented the core LLM chat in the Journal tab.
+-   **Lens-Specific Chat Modals (Full Stack)**: Added Ask about this lens modals for Astrology and Human Design.
+-   **Chat Session Persistence (Frontend)**: Ensured chat conversations survive app reloads.
+-   **MirrorChat UI Polish (Frontend)**: Overhauled chat UI for a calm, premium aesthetic.
+-   **Lens Chat UI Unification (Frontend)**: Matched the lens chat modal UI to the polished main chat UI.
+-   **You Over Time Memory Summary (Full Stack)**:
+    -   Backend generates a structured analysis of user's state.
+    -   Frontend displays it in a collapsible card.
+-   **Timeline Event Persistence (Backend)**: Added logging of lightweight, privacy-safe events for each chat turn.
+-   **Timeline View (Full Stack)**:
+    -   Backend endpoint to serve timeline data.
+    -   Frontend view in the Journal tab to display the timeline.
+-   **Backend Guardrails**: Implemented a system to detect and rewrite non-compliant AI responses.
+-   **Backend Hardening & Cost Control**: Added rate limiting, context truncation, and fallback responses.
+-   **Frontend Transparency**: Added a transparency copy line to the main Mirror Chat UI.
+-   **Emotional Keystone (Backend)**: Created the  endpoint.
 
 **Earlier issues found/mentioned but not fixed**
--   None. The agent was diligent in addressing user-reported issues, even when the user's focus shifted rapidly.
+-   **Issue 1: Session Restore on Initial Load**
+    -   **Debug checklist**:
+        -   The root layout file  should likely be the place to wrap the application with  or call the session restore logic directly, so it executes before any route redirection logic in .
+        -   Review  to see if the redirect can be delayed until after the session restoration status is known.
+    -   **Why to solve this issue and what will be achieved with this?**: Fixing this will provide a seamless experience for returning users, who will be taken directly into the app instead of being shown the onboarding screen on every visit.
+    -   **Should Test frontend/backend/both after fix**: frontend
+    -   **Is recurring issue?** N
 
 **Known issue recurrence from previous fork**
--   **Issue**: The location search functionality failed multiple times.
-    -   **Recurrence count**: 3+
-    -   **Status**: RESOLVED
-    -   **Note**: The issue had different root causes at each stage: 1) external network block, 2) frontend state management bug on selection, 3) backend re-geocoding on user creation. The final full-stack fix, which includes a backend fallback and passing lat/long from the frontend, appears to have resolved it robustly.
+-   None in this session. The previously recurring location search issue was resolved.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Frontend**: React Native, Expo, Expo Router, TypeScript, Zustand for state management.
--   **Backend**: Python, FastAPI.
--   **Database**: MongoDB.
--   **Session Persistence**: Using  (native) and  (web) to store a user ID for session restoration.
--   **LLM Integration**: Using the  library on the backend to connect to an LLM with the provided .
+-   **Frontend**: React Native, Expo, Expo Router, TypeScript, Zustand.
+-   **Backend**: Python, FastAPI, MongoDB (via ).
+-   **LLM Integration**:  library for multi-step LLM chains (reflection, memory analysis, guardrail rewrite).
+-   **Structured LLM Output**: Using Pydantic models and specific prompts to force the LLM to return valid JSON.
+-   **Data Persistence**: Cross-platform  /  for session IDs.
+-   **Backend Safety**: In-memory rate limiting, context truncation, graceful error handling, and a rule-based guardrail system with an LLM-powered rewrite function.
 
 **key DB schema**
--   : { , , , , ,  (object with lat/long),  }
--   : { , ,  (object) }
--   : { , ,  } (schema is implicit, handled by the app)
+-   : { , , , ...,  (object, stores latest memory analysis) }
+-   : { , ,  }
+-   : { , , ,  }
+-   : { , , , , , , , ,  } (NEW COLLECTION)
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   : Contains the logic for the journal list, the template-based reflection modal, and the new toggle for the LLM chat.
--   : The new, in-progress component for the LLM chat UI.
--   : Contains the UI and logic for both Astrology and Human Design lenses, including the template-based Mirror Moment cards.
--   : The completely refactored onboarding screen.
--   : The core of the session persistence logic.
--   : Contains the location search fallback and the new  endpoint with the user's system prompt.
+-   : The heart of the application's intelligence. Contains all prompts, endpoints, and logic for chat, memory, timeline, and safety features.
+-   : The primary UI component for all chat interactions. It's highly polished and feature-rich.
+-   : Manages the three main views: Journal entries, Mirror Chat, and the new Timeline.
+-   : The app's home screen. This is the next file to be modified.
+-   : Contains the logic for the lens-specific chat modals.
 
 **Critical Info for New Agent**
--   **The highest priority is to complete the LLM chat feature.** The user has provided a very specific and detailed system prompt that defines the AI's personality. You must adhere to it.
--   **The location search on the backend has a fallback.** The external Nominatim service is unreliable in this environment. The fallback in  uses a hardcoded list of cities. Do not try to fix the Nominatim connection; rely on the fallback.
--   **Session persistence is now implemented.** The app should restore the last user's session on reload. This is managed by  and the logic in .
--   The user pivots frequently but provides clear, detailed instructions for new features. Pay close attention to their latest requests.
+-   **Your immediate task is to finish the Prompt 11 feature.** The backend endpoint  is complete and tested. You must now update the frontend file  to call this endpoint and display the returned reflection.
+-   The project has a very specific aesthetic: **calm, minimal, premium, and reflective**. All UI changes must adhere to this. Refer to  and  for a style guide.
+-   The backend is now complex. The  endpoint has multiple layers of logic (rate limiting, context building, LLM call, guardrails, memory analysis, timeline logging). Be careful when modifying it.
+-   A session persistence bug exists on initial app load. This is a known, lower-priority issue. Focus on completing the current feature first.
 
 **documents created in this job**
 -   None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. User provides a detailed system prompt for the Mirror AI. (COMPLETED - prompt integrated into backend)
-9.  User confirms the plan to add a new Mirror Chat experience alongside the existing template-based reflection. (COMPLETED - agent started implementation)
-8.  User reports the Unable to search locations error persists after submission. (COMPLETED - agent implemented a full-stack fix)
-7.  User reports a blank screen on their phone after scanning the QR code. (COMPLETED - agent updated dependencies and instructed user on clearing cache)
-6.  User reports location search is still not working. (COMPLETED - agent confirmed it is working with a screenshot and provided instructions)
-5.  User requests several fixes for the registration/onboarding screen UI and logic. (COMPLETED - agent implemented UI changes and backend fallback for location)
-4.  User requests polish for the Reflect with Mirror feature: locking reflections, adding micro-copy, and disabling buttons. (COMPLETED)
-3.  User requests a template-based Reflect with Mirror feature in the Journal tab. (COMPLETED)
-2.  User requests a Mirror Moment card for the Human Design lens. (COMPLETED)
-1.  User requests a Mirror Moment card for the Astrology lens. (COMPLETED)
+10. User confirms plan to implement Prompt 11 first. (IN PROGRESS)
+9.  Agent asks for clarification on implementing Prompt 11. (COMPLETED)
+8.  User provides Prompt 11 for the emotional keystone feature. (IN PROGRESS)
+7.  Agent provides summary of Cost Control & Transparency implementation. (COMPLETED)
+6.  User provides request for STEP 10: Cost Control, Rate Limiting & Transparency. (COMPLETED)
+5.  Agent provides summary of Guardrail implementation. (COMPLETED)
+4.  User provides request for STEP 9: Guardrail Enforcement. (COMPLETED)
+3.  Agent provides summary of Timeline View implementation. (COMPLETED)
+2.  User provides request for STEP 8: Timeline View. (COMPLETED)
+1.  Agent provides summary of Timeline Event Persistence implementation. (COMPLETED)
 
 **Project Health Check:**
 -   **Broken**: None.
 -   **Mocked**:
-    -   The  UI is present but not yet functional (doesn't call the API).
     -   The post-registration questionnaire at  does not persist answers.
+-   **Known Bugs**:
+    -   Session persistence fails on the very first load of the web app, redirecting to onboarding instead of restoring the session.
 
 **3rd Party Integrations**
--   **OpenAI GPT (via )**: Uses Emergent LLM Key for the new Mirror Chat feature.
--   **Nominatim (via )**: For location geocoding, with a hardcoded fallback list in  due to network issues.
+-   **OpenAI GPT (via )**: Uses Emergent LLM Key for all AI features.
+-   **Nominatim (via )**: For location geocoding, with a hardcoded fallback list in .
 -   **Swiss Ephemeris (via )**: For astrological calculations.
 
 **Testing status**
--   Testing agent used after significant changes: NO (Agent performed manual  and screenshot tests for recent changes).
+-   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: None in this session.
+-   Test files created: None.
 -   Known regressions: None.
 
 **Credentials to test flow:**
 -   None required. The app flow starts from onboarding a new user.
 
 **What agent forgot to execute**
--   The implementation of the LLM-powered Mirror Chat is incomplete. The backend is ready, but the frontend component needs to be finished and the lens-specific entry points need to be created.
--   The original  and  tasks from the beginning of the session were superseded by the user's numerous pivots and were not completed.
+-   The low-priority task to implement saving answers from the post-registration questionnaire () remains pending from the beginning of the project.
+-   The identified session persistence bug on initial load was parked and not fixed.
 
 </analysis>
