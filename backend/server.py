@@ -3574,6 +3574,64 @@ class AstrologyResponse(BaseModel):
     date: Optional[str] = None
 
 
+# =============================================================================
+# BIRTH DATA VALIDATION
+# =============================================================================
+
+def validate_birth_data(user: dict) -> Tuple[bool, List[str]]:
+    """
+    Validate that all required birth data fields are present for computation.
+    
+    Required fields:
+    - birth_date
+    - birth_time (birth_time_local)
+    - lat (from birth_location)
+    - lon (from birth_location)
+    - timezone (timezone_iana)
+    
+    Returns:
+        Tuple of (is_valid, list_of_missing_fields)
+    """
+    missing = []
+    
+    # Check birth_date
+    if not user.get('birth_date'):
+        missing.append('birth_date')
+    
+    # Check birth_time
+    if not user.get('birth_time'):
+        missing.append('birth_time_local')
+    
+    # Check location coordinates
+    location = user.get('birth_location', {})
+    lat = location.get('latitude') or location.get('lat')
+    lon = location.get('longitude') or location.get('lon')
+    
+    if lat is None:
+        missing.append('lat')
+    if lon is None:
+        missing.append('lon')
+    
+    # Check timezone
+    if not user.get('timezone'):
+        missing.append('timezone_iana')
+    
+    return (len(missing) == 0, missing)
+
+
+def get_incomplete_birth_data_response(missing_fields: List[str]) -> dict:
+    """
+    Generate a standardized error response for incomplete birth data.
+    """
+    return {
+        "success": False,
+        "error": "INCOMPLETE_BIRTH_DATA",
+        "missing_fields": missing_fields,
+        "message": "Birth data is incomplete. Please provide all required details to compute your chart.",
+        "required_fields": ["birth_date", "birth_time_local", "lat", "lon", "timezone_iana"]
+    }
+
+
 async def get_user_astrology_data(user_id: str, auto_migrate: bool = True) -> Tuple[dict, dict]:
     """
     Fetch user and their astrology chart data.
