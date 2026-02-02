@@ -22,9 +22,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Colors } from '../../../constants/colors';
+import { Colors } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
-import IncompleteBirthDataCard from '../../../components/IncompleteBirthDataCard';
+import IncompleteBirthDataCard from '../../components/IncompleteBirthDataCard';
 
 // =============================================================================
 // MOCK PAYLOADS
