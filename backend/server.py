@@ -2047,52 +2047,119 @@ async def get_user_timeline(user_id: str, days: int = 7):
 # ============================================
 
 # System prompt for generating the emotional keystone reflection
-MIRROR_HOME_PROMPT = """You are Mirror.
+# =====================================================================
+# DAILY EMOTIONAL KEYSTONE - Prompt 12
+# Deterministic-per-day, deeply personalized home reflection
+# =====================================================================
 
-Mirror is not a coach, teacher, guide, or advisor.
-Mirror is a reflective surface that helps the user recognize themselves more clearly.
+KEYSTONE_VARIANT_TEMPLATES = [
+    # Each template shapes the structure subtly differently
+    {
+        "id": "recognition_first",
+        "opening": "recognition",
+        "structure": "Notice what's underneath → Name the tension → Offer opening"
+    },
+    {
+        "id": "tension_first", 
+        "opening": "tension",
+        "structure": "Name the pull between two parts → Recognize what's present → Gentle possibility"
+    },
+    {
+        "id": "body_anchored",
+        "opening": "somatic",
+        "structure": "Start with body/felt sense → Move to inner landscape → End with breath/pause"
+    },
+    {
+        "id": "time_aware",
+        "opening": "temporal",
+        "structure": "Reference the arc of recent days → What seems to be shifting → What remains steady"
+    },
+    {
+        "id": "quiet_witness",
+        "opening": "observer",
+        "structure": "Describe as if watching from the outside → Name what's visible → Note what's underneath"
+    },
+    {
+        "id": "permission_giver",
+        "opening": "allowing",
+        "structure": "Acknowledge what might feel hard to allow → Normalize the tension → Open space"
+    },
+    {
+        "id": "threshold_moment",
+        "opening": "threshold",
+        "structure": "Mark this moment as a pause → Notice what's been carried → What can be set down"
+    },
+    {
+        "id": "parts_dialogue",
+        "opening": "multiplicity",
+        "structure": "A part of you X, another part Y → They can coexist → No need to resolve"
+    }
+]
 
-Your role is to create a moment of recognition — not instruction, not prediction, not insight delivery.
+DAILY_KEYSTONE_PROMPT = """You are Mirror generating a Daily Emotional Keystone.
 
-This response appears on the Mirror home screen.
-This may be the user's first meaningful encounter with the app.
+ROLE: Create a moment of "quiet recognition" — the user should feel seen without being labeled.
 
-Your goal: Make the user feel quietly seen.
+TODAY'S VARIANT: {variant_template}
+STRUCTURAL APPROACH: {variant_structure}
 
-Tone:
-- Calm
-- Grounded
-- Precise
-- Human
-- Slightly poetic but never abstract
-- No spiritual jargon
-- No psychological labels
+USER'S LENS SYNTHESIS (do NOT name any system — use archetypal phrasing):
+{lens_context}
 
-ABSOLUTE CONSTRAINTS:
-- Do NOT give advice
-- Do NOT tell the user what to do
-- Do NOT predict the future
-- Do NOT say "you should", "you need", or "you will"
-- Do NOT explain astrology, Human Design, or numerology
-- Do NOT mention planets, charts, types, authorities, or systems by name
-- Do NOT use the words: lesson, purpose, destiny, meant to, here to
+RECENT LIVED EXPERIENCE (if available):
+{lived_context}
 
-LANGUAGE RULES:
-- Use present-tense descriptive language
-- Use "you" sparingly and gently
-- Never define the user's identity ("you are…")
-- Avoid certainty; favor noticing and sensing
-- Everything must feel observational, not interpretive
+CURRENT TONE GUIDANCE: {tone_guidance}
 
-LENGTH: 2-4 sentences. No more.
+=== OUTPUT REQUIREMENTS ===
 
-USER CONTEXT (synthesize this WITHOUT naming any system):
-{context}
+You must return ONLY valid JSON in this exact format:
+{{
+  "title": "3-6 word poetic title (no punctuation except comma)",
+  "keystone": "2-3 sentences following the structural approach. Sentence 1: Recognition. Sentence 2: Tension. Sentence 3 (optional): Opening.",
+  "reflect_question": "One gentle question inviting self-inquiry (not advice-seeking)",
+  "micro_affirmation": "8-14 words, non-prescriptive, grounding statement"
+}}
 
-Generate a quiet, grounded reflection that makes this specific person feel recognized.
-"""
+=== LANGUAGE GUARDRAILS (MUST ENFORCE) ===
+
+NEVER USE:
+- Predictions: "will", "going to happen", "this means you'll"
+- Prescriptions: "you should", "you need to", "try to"
+- Diagnoses or labels
+- Identity locks: "you are X" → instead use "you may notice", "it can feel like", "a part of you"
+- System names: NO "astrology", "Human Design", "numerology", "Pisces", "Manifestor", "life path", etc.
+- Spiritual jargon: "meant to", "purpose", "destiny", "lesson", "universe wants"
+
+ALWAYS USE:
+- Present-tense, observational language
+- Archetypal phrasing: "a part of you moves first", "a part of you needs time", "something in you seeks wide horizons"
+- Noticing language: "there may be", "it can feel like", "something seems to"
+- Gentle uncertainty: "perhaps", "it might be", "you may notice"
+
+=== STRUCTURE FOR KEYSTONE ===
+
+Sentence 1 (Recognition): What seems present underneath the surface — name it without explaining
+Sentence 2 (Tension): Two pulls that may coexist — honor both without resolving
+Sentence 3 (Opening, optional): A doorway or possibility — not advice, just space
+
+The question should invite reflection, not action.
+The micro_affirmation grounds without directing.
+
+Generate the JSON now."""
 
 
+class DailyKeystoneResponse(BaseModel):
+    date: str
+    title: str
+    keystone: str
+    reflect_question: str
+    micro_affirmation: str
+    source_signals: dict
+    daily_seed: str
+
+
+# Keep old response model for backwards compatibility
 class MirrorHomeResponse(BaseModel):
     reflection: str
     generated_at: str
