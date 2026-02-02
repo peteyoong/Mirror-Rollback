@@ -355,14 +355,13 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
           {unlockStep === 'consent' && (
             <>
               <View style={styles.modalIconContainer}>
-                <Ionicons name="key-outline" size={32} color={Colors.accent} />
+                <Ionicons name="analytics-outline" size={32} color={Colors.accent} />
               </View>
-              <Text style={styles.modalTitle}>Deeper Numerology</Text>
-              <Text style={styles.modalSubtitle}>This is optional</Text>
+              <Text style={styles.modalTitle}>Your name tunes the numerology lens</Text>
               
               <View style={styles.modalBody}>
                 <Text style={styles.modalText}>
-                  If you'd like, you can add your full birth name to unlock additional symbolic themes:
+                  We use your full birth name to compute 3 extra numbers (Expression, Soul Urge, Personality). You can remove or change it anytime.
                 </Text>
                 
                 <View style={styles.bulletList}>
@@ -370,10 +369,6 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                   <Text style={styles.bulletItem}>• Soul Urge — your inner motivation</Text>
                   <Text style={styles.bulletItem}>• Personality — first impressions you tend to create</Text>
                 </View>
-                
-                <Text style={styles.modalNote}>
-                  Your name is used only for numerology calculations. You can continue without this — everything else remains fully available.
-                </Text>
               </View>
 
               <View style={styles.modalActions}>
@@ -381,7 +376,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                   style={styles.modalSecondaryButton}
                   onPress={closeUnlockModal}
                 >
-                  <Text style={styles.modalSecondaryButtonText}>Maybe later</Text>
+                  <Text style={styles.modalSecondaryButtonText}>Not now</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={styles.modalPrimaryButton}
