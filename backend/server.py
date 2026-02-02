@@ -1867,9 +1867,13 @@ async def mirror_chat(request: MirrorChatRequest):
         if request.lens and request.lens in LENS_PROMPTS:
             system_prompt += "\n" + LENS_PROMPTS[request.lens]
         
-        # ===== KEYSTONE CONTINUATION MODE =====
+        # ===== KEYSTONE THREAD MODE =====
         is_keystone_followup = request.keystone_context is not None
+        thread_state = None
+        current_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        
         if is_keystone_followup:
+            # Starting or restarting a keystone thread
             kc = request.keystone_context
             keystone_insert = KEYSTONE_CONTINUATION_INSERT.format(
                 title=kc.title,
@@ -1880,6 +1884,51 @@ async def mirror_chat(request: MirrorChatRequest):
             )
             system_prompt += "\n" + keystone_insert
             logger.info(f"[Mirror Chat] Keystone continuation mode for user {request.user_id}, date={kc.date}")
+            
+            # Create/overwrite thread state with remaining_turns=3
+            thread_state = {
+                "user_id": request.user_id,
+                "thread_type": "daily_keystone",
+                "thread_date": kc.date,
+                "daily_seed": kc.daily_seed,
+                "tone": kc.tone,
+                "title": kc.title,
+                "keystone": kc.keystone,
+                "reflect_question": kc.reflect_question,
+                "micro_affirmation": kc.micro_affirmation,
+                "remaining_turns": 3,  # Will be decremented after reply
+                "created_at_iso": datetime.now(timezone.utc).isoformat(),
+                "updated_at_iso": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.user_thread_state.update_one(
+                {"user_id": request.user_id},
+                {"$set": thread_state},
+                upsert=True
+            )
+            logger.info(f"[Thread] Created keystone thread for user {request.user_id}, remaining_turns=3")
+        
+        elif request.lens is None:
+            # Check for active thread state (only for generalist chat, not lens chats)
+            existing_thread = await db.user_thread_state.find_one({"user_id": request.user_id})
+            
+            if existing_thread and existing_thread.get("remaining_turns", 0) > 0:
+                # Verify it's for today's date
+                if existing_thread.get("thread_date") == current_date:
+                    thread_state = existing_thread
+                    turn_number = 4 - thread_state["remaining_turns"]  # 1, 2, or 3
+                    
+                    # Inject thread anchor prompt
+                    thread_anchor = THREAD_ANCHOR_INSERT.format(
+                        tone=thread_state.get("tone", "unclear"),
+                        turn_number=turn_number
+                    )
+                    system_prompt += "\n" + thread_anchor
+                    logger.info(f"[Thread] Active thread for user {request.user_id}, turn={turn_number}, remaining={thread_state['remaining_turns']}")
+                else:
+                    # Thread is from a different day, clear it
+                    await db.user_thread_state.delete_one({"user_id": request.user_id})
+                    logger.info(f"[Thread] Cleared stale thread for user {request.user_id} (date mismatch)")
         
         # Add context
         system_prompt += "\n\n--- USER CONTEXT ---\n" + "\n".join(context_parts)
