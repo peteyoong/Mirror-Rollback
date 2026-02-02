@@ -409,6 +409,7 @@ export default function JournalScreen() {
           lens={null}
           placeholder="Say what's real right now…"
           headerTitle="Mirror"
+          keystoneContext={keystoneContext}
         />
       </SafeAreaView>
     );
