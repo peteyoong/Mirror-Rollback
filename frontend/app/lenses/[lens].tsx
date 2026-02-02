@@ -604,71 +604,103 @@ export default function LensDetail() {
         <View style={styles.headerSpacer} />
       </View>
 
-      {/* Tabs */}
-      {renderTabs()}
-
-      <KeyboardAvoidingView 
-        style={styles.flex1}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView 
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Mode Label */}
-          {activeTab === 'deep_dive' && (
-            <Text style={styles.modeLabel}>DEEP DIVE</Text>
-          )}
-
-          {/* Mirror Moment Card */}
-          {renderMirrorMoment()}
-
-          {/* Profile Data */}
-          {renderSiderealProfile()}
-
-          {/* Personalized Mirror Moment (Astrology only) */}
-          {renderPersonalizedMirrorMoment()}
-
-          {/* Personalized Mirror Moment (Human Design only) */}
-          {renderHDMirrorMoment()}
-
-          {/* Ask About This Lens Button (Astrology and Human Design only) */}
-          {(lens === 'astrology' || lens === 'human_design') && user && (
-            <TouchableOpacity 
-              style={styles.askLensButton}
-              onPress={() => setLensChatVisible(true)}
-            >
-              <Ionicons name="chatbubble-ellipses-outline" size={18} color={Colors.accent} />
-              <Text style={styles.askLensButtonText}>Ask about this lens</Text>
-            </TouchableOpacity>
-          )}
-        </ScrollView>
-
-        {/* Chat Input */}
-        {renderChatInput()}
-      </KeyboardAvoidingView>
-
-      {/* Lens Chat Modal */}
-      <Modal
-        visible={lensChatVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setLensChatVisible(false)}
-      >
-        <SafeAreaView style={styles.modalContainer} edges={['top', 'bottom']}>
-          <MirrorChat
-            userId={user?.id || ''}
-            lens={lens as 'astrology' | 'human_design'}
-            placeholder={lens === 'astrology' 
-              ? "Ask about your sidereal chart…" 
-              : "Ask about your Human Design…"}
-            headerTitle={lens === 'astrology' ? 'Astrology Chat' : 'Human Design Chat'}
-            headerSubtitle="Lens-focused reflection"
-            onClose={() => setLensChatVisible(false)}
+      {/* ASTROLOGY: Use new tabbed view with API endpoints */}
+      {lens === 'astrology' && user?.id ? (
+        <>
+          <AstrologyLensView
+            userId={user.id}
+            onOpenChat={() => setLensChatVisible(true)}
           />
-        </SafeAreaView>
-      </Modal>
+          
+          {/* Lens Chat Modal */}
+          <Modal
+            visible={lensChatVisible}
+            animationType="slide"
+            presentationStyle="pageSheet"
+            onRequestClose={() => setLensChatVisible(false)}
+          >
+            <SafeAreaView style={styles.modalContainer} edges={['top', 'bottom']}>
+              <MirrorChat
+                userId={user.id}
+                lens="astrology"
+                placeholder="Ask about your sidereal chart…"
+                headerTitle="Astrology Chat"
+                headerSubtitle="Lens-focused reflection"
+                onClose={() => setLensChatVisible(false)}
+              />
+            </SafeAreaView>
+          </Modal>
+        </>
+      ) : (
+        /* OTHER LENSES: Keep original implementation */
+        <>
+          {/* Tabs */}
+          {renderTabs()}
+
+          <KeyboardAvoidingView 
+            style={styles.flex1}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            <ScrollView 
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Mode Label */}
+              {activeTab === 'deep_dive' && (
+                <Text style={styles.modeLabel}>DEEP DIVE</Text>
+              )}
+
+              {/* Mirror Moment Card */}
+              {renderMirrorMoment()}
+
+              {/* Profile Data */}
+              {renderSiderealProfile()}
+
+              {/* Personalized Mirror Moment (Astrology only) */}
+              {renderPersonalizedMirrorMoment()}
+
+              {/* Personalized Mirror Moment (Human Design only) */}
+              {renderHDMirrorMoment()}
+
+              {/* Ask About This Lens Button (Human Design only since astrology uses new view) */}
+              {lens === 'human_design' && user && (
+                <TouchableOpacity 
+                  style={styles.askLensButton}
+                  onPress={() => setLensChatVisible(true)}
+                >
+                  <Ionicons name="chatbubble-ellipses-outline" size={18} color={Colors.accent} />
+                  <Text style={styles.askLensButtonText}>Ask about this lens</Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
+
+            {/* Chat Input */}
+            {renderChatInput()}
+          </KeyboardAvoidingView>
+
+          {/* Lens Chat Modal */}
+          <Modal
+            visible={lensChatVisible}
+            animationType="slide"
+            presentationStyle="pageSheet"
+            onRequestClose={() => setLensChatVisible(false)}
+          >
+            <SafeAreaView style={styles.modalContainer} edges={['top', 'bottom']}>
+              <MirrorChat
+                userId={user?.id || ''}
+                lens={lens as 'astrology' | 'human_design'}
+                placeholder={lens === 'astrology' 
+                  ? "Ask about your sidereal chart…" 
+                  : "Ask about your Human Design…"}
+                headerTitle={lens === 'astrology' ? 'Astrology Chat' : 'Human Design Chat'}
+                headerSubtitle="Lens-focused reflection"
+                onClose={() => setLensChatVisible(false)}
+              />
+            </SafeAreaView>
+          </Modal>
+        </>
+      )}
     </SafeAreaView>
   );
 }
