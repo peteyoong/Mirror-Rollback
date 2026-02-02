@@ -22,15 +22,15 @@ interface NumerologySection {
 }
 
 interface NumerologyCycles {
-  personal_day: number;
-  personal_month: number;
-  personal_year: number;
+  personal_day: number | null;
+  personal_month: number | null;
+  personal_year: number | null;
 }
 
 interface CoreNumbers {
-  life_path: number | string;
-  expression: number | string;
-  soul_urge: number | string;
+  life_path: number | string | null;
+  expression: number | string | null;
+  soul_urge: number | string | null;
 }
 
 interface NumerologyData {
