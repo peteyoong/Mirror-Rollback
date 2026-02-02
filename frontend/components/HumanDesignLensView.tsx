@@ -82,7 +82,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         onPress={() => setActiveTab('today')}
       >
         <Text style={[styles.tabText, activeTab === 'today' && styles.activeTabText]}>
-          Today
+          Today's Snapshot
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
