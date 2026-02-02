@@ -2167,7 +2167,7 @@ class MirrorHomeResponse(BaseModel):
 
 
 @api_router.get("/mirror/home/{user_id}")
-async def get_daily_keystone(user_id: str, date: Optional[str] = None):
+async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_refresh: bool = False):
     """
     Generate the Daily Emotional Keystone.
     Deterministic per day + deeply personalized using lenses + lived data.
@@ -2175,6 +2175,7 @@ async def get_daily_keystone(user_id: str, date: Optional[str] = None):
     Args:
         user_id: The user's ID
         date: Optional date in YYYY-MM-DD format. If not provided, uses UTC date.
+        force_refresh: If true, regenerate even if cached.
     
     Returns:
         DailyKeystoneResponse with title, keystone, reflect_question, micro_affirmation
@@ -2210,6 +2211,30 @@ async def get_daily_keystone(user_id: str, date: Optional[str] = None):
         # Create deterministic daily seed
         seed_input = f"{user_id}:{date_str}:{COMPUTATION_VERSION}"
         daily_seed = hashlib.sha256(seed_input.encode()).hexdigest()[:12]
+        
+        # =====================================================================
+        # CHECK CACHE FOR DETERMINISTIC RESPONSE
+        # =====================================================================
+        if not force_refresh:
+            cached = await db.daily_keystones.find_one({
+                "user_id": user_id,
+                "date": date_str,
+                "daily_seed": daily_seed
+            })
+            if cached:
+                logger.info(f"[Keystone] Returning cached keystone for {user_id} on {date_str}")
+                return {
+                    "date": cached["date"],
+                    "title": cached["title"],
+                    "keystone": cached["keystone"],
+                    "reflect_question": cached["reflect_question"],
+                    "micro_affirmation": cached["micro_affirmation"],
+                    "source_signals": cached["source_signals"],
+                    "daily_seed": cached["daily_seed"],
+                    "reflection": cached["keystone"],
+                    "generated_at": cached["generated_at"],
+                    "is_first_visit": cached.get("is_first_visit", False)
+                }
         
         # Select variant template using seed (deterministic)
         variant_index = int(daily_seed[:2], 16) % len(KEYSTONE_VARIANT_TEMPLATES)
