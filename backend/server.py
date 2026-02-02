@@ -2607,10 +2607,57 @@ async def mirror_chat(request: MirrorChatRequest):
             # Numerology context
             numerology = chart.get('numerology', {})
             if numerology and (request.lens is None or request.lens == "numerology"):
+                # Extract life path (handle both old and new format)
+                life_path_data = numerology.get('life_path')
+                if isinstance(life_path_data, int):
+                    life_path = life_path_data
+                elif isinstance(life_path_data, dict):
+                    life_path = life_path_data.get('number', 'Unknown')
+                else:
+                    life_path = 'Unknown'
+                
                 context_parts.append("\n--- NUMEROLOGY ---")
-                context_parts.append(f"Life Path: {numerology.get('life_path', 'Unknown')}")
-                context_parts.append(f"Expression: {numerology.get('expression', 'Unknown')}")
-                context_parts.append(f"Soul Urge: {numerology.get('soul_urge', 'Unknown')}")
+                context_parts.append(f"Life Path: {life_path}")
+                
+                # Birthday number if available
+                birthday = numerology.get('birthday')
+                if birthday:
+                    if isinstance(birthday, dict):
+                        context_parts.append(f"Birthday Number: {birthday.get('number', 'Unknown')}")
+                    else:
+                        context_parts.append(f"Birthday Number: {birthday}")
+                
+                # Name-based numbers (only if available)
+                has_name_numbers = numerology.get('has_name_numbers', False)
+                if has_name_numbers:
+                    expression = numerology.get('expression')
+                    soul_urge = numerology.get('soul_urge')
+                    personality = numerology.get('personality')
+                    
+                    if expression:
+                        exp_num = expression.get('number') if isinstance(expression, dict) else expression
+                        context_parts.append(f"Expression: {exp_num}")
+                    if soul_urge:
+                        su_num = soul_urge.get('number') if isinstance(soul_urge, dict) else soul_urge
+                        context_parts.append(f"Soul Urge: {su_num}")
+                    if personality:
+                        pers_num = personality.get('number') if isinstance(personality, dict) else personality
+                        context_parts.append(f"Personality: {pers_num}")
+                else:
+                    context_parts.append("Expression/Soul Urge/Personality: Not provided (requires full birth name)")
+                
+                # Calculate current cycles for numerology lens
+                if request.lens == "numerology":
+                    birth_date = user.get('birth_date')
+                    if birth_date:
+                        from calculations.numerology import get_numerology_cycles
+                        today = datetime.now()
+                        cycles = get_numerology_cycles(birth_date, today)
+                        
+                        context_parts.append("\n--- CURRENT CYCLES ---")
+                        context_parts.append(f"Personal Year: {cycles['personal_year']['number']} ({cycles['personal_year']['description']})")
+                        context_parts.append(f"Personal Month: {cycles['personal_month']['number']} ({cycles['personal_month']['description']})")
+                        context_parts.append(f"Personal Day: {cycles['personal_day']['number']} ({cycles['personal_day']['description']})")
         
         # Add recent journal entries if requested (LIMITED to MAX_JOURNAL_ENTRIES)
         if request.include_journal:
