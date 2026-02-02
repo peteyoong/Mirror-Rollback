@@ -677,8 +677,12 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     # Get Design (Unconscious) chart at solved design date
     design_chart = get_full_natal_chart(design_datetime, lat, lon, sidereal_settings)
     
-    # Extract key planets for Human Design
-    hd_planets = ['Sun', 'Earth', 'North Node', 'South Node', 'Moon']
+    # Extract ALL 13 planets for Human Design (standard HD uses all celestial bodies)
+    # This matches Genetic Matrix and other professional HD software
+    hd_planets = [
+        'Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn',
+        'Uranus', 'Neptune', 'Pluto', 'North Node', 'Earth', 'South Node'
+    ]
     
     personality_data = {}
     design_data = {}
