@@ -246,65 +246,83 @@ export const useAppStore = create<AppState>((set, get) => ({
     // Set restoring=true immediately, hasTriedSessionRestore stays false until finally
     set({ isRestoringSession: true, sessionRestoreError: null });
     
+    // Add timeout to prevent hanging forever
+    const timeoutPromise = new Promise<'timeout'>((resolve) => 
+      setTimeout(() => resolve('timeout'), 10000) // 10 second timeout
+    );
+    
     try {
-      // First try to load from local storage
-      await get().loadPersistedData();
+      const restorePromise = (async () => {
+        // First try to load from local storage
+        await get().loadPersistedData();
+        
+        // Check if we loaded data from storage
+        const stateAfterLoad = get();
+        if (stateAfterLoad.user && stateAfterLoad.chart) {
+          console.log('[SessionRestore] Restored from local storage');
+          return true;
+        }
+        
+        // If no local data, try to fetch from API using persisted user ID
+        const userId = await storage.getItem(SESSION_USER_ID_KEY);
+        
+        if (!userId) {
+          console.log('[SessionRestore] No persisted userId found - fresh user');
+          return false;
+        }
+        
+        console.log('[SessionRestore] Found persisted userId:', userId);
+        
+        // Fetch user data
+        let userData: User | null = null;
+        try {
+          userData = await getUser(userId);
+          console.log('[SessionRestore] Fetched user:', userData?.name);
+        } catch (error) {
+          console.warn('[SessionRestore] Could not fetch user data:', error);
+          // Continue anyway - we can still get chart data
+        }
+        
+        // Fetch chart data
+        const chartData = await getChart(userId);
+        console.log('[SessionRestore] Fetched chart, computation_version:', chartData?.computation_version);
+        
+        // Create minimal user object if we couldn't fetch user data
+        if (!userData && chartData) {
+          userData = {
+            id: userId,
+            birth_date: '',
+            birth_location: { city: '', country: '', latitude: 0, longitude: 0 },
+            has_chart: true,
+          };
+        }
+        
+        // Update store
+        if (userData) {
+          set({ user: userData });
+          await storage.setItem('user', JSON.stringify(userData));
+        }
+        
+        if (chartData) {
+          set({ chart: chartData, hasCompletedOnboarding: true });
+          await storage.setItem('chart', JSON.stringify(chartData));
+          await storage.setItem('hasCompletedOnboarding', 'true');
+        }
+        
+        console.log('[SessionRestore] Session restored successfully');
+        return !!(userData && chartData);
+      })();
       
-      // Check if we loaded data from storage
-      const stateAfterLoad = get();
-      if (stateAfterLoad.user && stateAfterLoad.chart) {
-        console.log('[SessionRestore] Restored from local storage');
-        return true;
-      }
+      // Race between restore and timeout
+      const result = await Promise.race([restorePromise, timeoutPromise]);
       
-      // If no local data, try to fetch from API using persisted user ID
-      const userId = await storage.getItem(SESSION_USER_ID_KEY);
-      
-      if (!userId) {
-        console.log('[SessionRestore] No persisted userId found - fresh user');
+      if (result === 'timeout') {
+        console.warn('[SessionRestore] Timed out - proceeding as fresh user');
+        set({ sessionRestoreError: 'Session restore timed out' });
         return false;
       }
       
-      console.log('[SessionRestore] Found persisted userId:', userId);
-      
-      // Fetch user data
-      let userData: User | null = null;
-      try {
-        userData = await getUser(userId);
-        console.log('[SessionRestore] Fetched user:', userData?.name);
-      } catch (error) {
-        console.warn('[SessionRestore] Could not fetch user data:', error);
-        // Continue anyway - we can still get chart data
-      }
-      
-      // Fetch chart data
-      const chartData = await getChart(userId);
-      console.log('[SessionRestore] Fetched chart, computation_version:', chartData?.computation_version);
-      
-      // Create minimal user object if we couldn't fetch user data
-      if (!userData && chartData) {
-        userData = {
-          id: userId,
-          birth_date: '',
-          birth_location: { city: '', country: '', latitude: 0, longitude: 0 },
-          has_chart: true,
-        };
-      }
-      
-      // Update store
-      if (userData) {
-        set({ user: userData });
-        await storage.setItem('user', JSON.stringify(userData));
-      }
-      
-      if (chartData) {
-        set({ chart: chartData, hasCompletedOnboarding: true });
-        await storage.setItem('chart', JSON.stringify(chartData));
-        await storage.setItem('hasCompletedOnboarding', 'true');
-      }
-      
-      console.log('[SessionRestore] Session restored successfully');
-      return !!(userData && chartData);
+      return result;
       
     } catch (error: any) {
       console.error('[SessionRestore] Failed to restore session:', error);
