@@ -894,11 +894,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.surfaceLight,
   },
-  errorText: {
-    fontSize: 13,
-    color: '#e74c3c',
-    marginBottom: 12,
-  },
   unlockErrorText: {
     fontSize: 13,
     color: '#e74c3c',
