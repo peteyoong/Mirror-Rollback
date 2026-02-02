@@ -453,9 +453,11 @@ CURRENT TRANSITS (symbolic weather only):
 {transit_context}
 
 Generate a response with these sections:
-1. "Today's Quality" - The general felt quality of this day (1-2 sentences)
-2. "What You May Notice" - 2-3 themes that may be present today
-3. "On the Horizon" (ONLY if major alignment within 7 days, otherwise omit this section entirely)
+1. "Today's Quality" - The general felt quality of this day (1-2 sentences, max 40 words)
+2. "What You May Notice" - 2-3 themes that may be present today (max 80 words total)
+3. "On the Horizon" (ONLY if major alignment within 7 days, otherwise omit entirely, max 30 words)
+
+STRICT LENGTH: Total response must be under 150 words.
 
 Return ONLY valid JSON:
 {{
@@ -465,7 +467,7 @@ Return ONLY valid JSON:
     {{"label": "Today's Quality", "body": "..."}},
     {{"label": "What You May Notice", "body": "..."}}
   ],
-  "mirror_prompt": "A single reflective prompt that invites noticing"
+  "mirror_prompt": "A single reflective prompt that invites noticing (max 20 words)"
 }}
 """
 
