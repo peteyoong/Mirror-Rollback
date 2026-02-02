@@ -103,6 +103,7 @@ export default function MirrorChat({
   headerTitle = "Mirror",
   headerSubtitle = "A mirror, not a verdict.",
   onClose,
+  keystoneContext = null,
 }: MirrorChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -112,6 +113,7 @@ export default function MirrorChat({
   const [memoryUpdate, setMemoryUpdate] = useState<MemoryUpdate | null>(null);
   const [isMemoryExpanded, setIsMemoryExpanded] = useState(false);
   const [showEvidence, setShowEvidence] = useState(false);
+  const [hasTriggeredKeystone, setHasTriggeredKeystone] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
 
