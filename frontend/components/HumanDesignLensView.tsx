@@ -191,18 +191,36 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               <Text style={styles.retryText}>Try Again</Text>
             </TouchableOpacity>
           </View>
-        ) : data?.error === 'INCOMPLETE_BIRTH_DATA' ? (
-          // Show incomplete birth data card when precondition check fails
-          <View style={styles.incompleteDataContainer}>
-            <Text style={styles.incompleteTitle}>Human Design</Text>
-            <IncompleteBirthDataCard 
-              missingFields={data.missing_fields}
-              lensName="Human Design insights"
-            />
-            <Text style={styles.incompleteHint}>
-              Your chart requires precise birth details to calculate your Type, Strategy, and Authority.
-            </Text>
-          </View>
+        ) : data?.success === false ? (
+          // Handle API-level failures
+          data.error === 'INCOMPLETE_BIRTH_DATA' ? (
+            // Show incomplete birth data card when precondition check fails
+            <View style={styles.incompleteDataContainer}>
+              <Text style={styles.incompleteTitle}>Human Design</Text>
+              <IncompleteBirthDataCard 
+                missingFields={data.missing_fields}
+                lensName="Human Design insights"
+              />
+              <Text style={styles.incompleteHint}>
+                Your chart requires precise birth details to calculate your Type, Strategy, and Authority.
+              </Text>
+            </View>
+          ) : (
+            // Generic error card for other API failures
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle-outline" size={32} color={Colors.textTertiary} />
+              <Text style={styles.errorText}>
+                {data.message || 'Something went wrong'}
+              </Text>
+              <Text style={styles.errorCode}>Error: {data.error}</Text>
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={() => loadTabData(activeTab)}
+              >
+                <Text style={styles.retryText}>Try Again</Text>
+              </TouchableOpacity>
+            </View>
+          )
         ) : data ? (
           <>
             {/* Title */}
