@@ -1,0 +1,355 @@
+{
+  "consciousness_lens_v1": {
+    "version": "1.0.0",
+    "notes": [
+      "Capacity-oriented, non-hierarchical labels.",
+      "No fatalism. No identity pronouncements. Always optional language.",
+      "If confidence < 0.45, default to coping. If signals conflict, bias to lower depth."
+    ],
+    "defaults": {
+      "fallback_level_id": "coping",
+      "fallback_confidence_threshold": 0.45,
+      "conflict_policy": "bias_lower_depth",
+      "global_do_not": [
+        "fatalism_or_fixed_predictions",
+        "destiny_purpose_proclamations",
+        "diagnosis_or_medical_claims",
+        "guru_voice_or_teaching_tone",
+        "identity_as_fixed_labeling",
+        "shame_language",
+        "stacked_advice_lists_over_3_items"
+      ]
+    },
+    "levels": [
+      {
+        "level_id": "survival",
+        "display_name": "Survival",
+        "calibration_range_hint": null,
+        "primary_emotion": "fear",
+        "secondary_emotions": ["panic", "numbness", "helplessness"],
+        "core_motivation": "immediate safety and stability",
+        "worldview": "the present is urgent; resources feel scarce",
+        "identity_structure": "self-protection first; minimal bandwidth",
+        "decision_pattern": "short-horizon choices; avoid risk; seek certainty",
+        "social_orientation": "survival",
+        "language_markers": [
+          "i can't",
+          "too much",
+          "i need this to stop",
+          "i don't know what to do",
+          "i'm not okay"
+        ],
+        "growth_edge": "reduce urgency; stabilize the next hour",
+        "shadow_pattern": "collapse, freeze, or impulsive escape",
+        "tone": ["steady", "protective", "plain", "slow"],
+        "depth": "low",
+        "word_budget_max": 120,
+        "structure_template": [
+          "1 sentence: validate present reality",
+          "1 sentence: name one stabilizing focus",
+          "1 bullet: offer one tiny next step",
+          "1 question: yes/no or choose A/B"
+        ],
+        "do_not": [
+          "meaning_making_or_life_story_interpretations",
+          "shadow_work_or_trauma_excavation_framing",
+          "multi_step_routines",
+          "framework_explanations_or_model_names",
+          "statements_starting_with_you_are"
+        ],
+        "allowed_moves": [
+          "grounding",
+          "reduce_cognitive_load",
+          "simplify_choices",
+          "invite_pause",
+          "suggest_support_resources_non_medical"
+        ],
+        "micro_practices": [
+          { "id": "breath_3", "label": "3 slow breaths (long exhale)", "duration_seconds": 30 },
+          { "id": "orient_3_2", "label": "Name 3 things you see, 2 you feel", "duration_seconds": 45 },
+          { "id": "five_percent", "label": "What makes the next hour 5% easier?", "duration_seconds": 30 }
+        ],
+        "prompt_templates": {
+          "mirror": "Reflect in simple language. Reduce urgency. Offer one stabilizing step. Ask one small A/B or yes/no question.",
+          "journal": "Invite a 2-line check-in: (1) body sensation, (2) one need right now.",
+          "next_step": "Offer a tiny next-step menu with 2 options, both valid."
+        },
+        "exit_line": "You don't have to solve anything right now. Keep what helps; leave the rest.",
+        "ai_interpretation_hint": "Keep it short, concrete, and stabilizing. No frameworks. No big meaning. One tiny step only."
+      },
+      {
+        "level_id": "stabilizing",
+        "display_name": "Stabilizing",
+        "calibration_range_hint": null,
+        "primary_emotion": "anxiety",
+        "secondary_emotions": ["overwhelm", "irritability", "restlessness"],
+        "core_motivation": "regain steadiness; reduce overload",
+        "worldview": "things feel heavy, but settling is possible",
+        "identity_structure": "trying to hold it together; sensitive to pressure",
+        "decision_pattern": "sequence tasks; seek relief; choose simpler paths",
+        "social_orientation": "survival",
+        "language_markers": [
+          "overwhelmed",
+          "i'm spinning",
+          "too many things",
+          "i can't focus",
+          "i need to get through this"
+        ],
+        "growth_edge": "contain and sequence; one thing at a time",
+        "shadow_pattern": "catastrophizing or self-criticism under load",
+        "tone": ["calming", "reassuring", "concrete", "gentle"],
+        "depth": "low",
+        "word_budget_max": 160,
+        "structure_template": [
+          "1–2 sentences: mirror back the situation",
+          "1 sentence: name the tension without amplifying it",
+          "1 sentence: offer a reframe that reduces urgency",
+          "1 suggestion: one micro-practice OR one tiny plan step",
+          "1 question: next smallest decision"
+        ],
+        "do_not": [
+          "big_interpretations",
+          "multiple_suggestions_over_1",
+          "framework_explanations_or_model_names",
+          "moralizing_should_language",
+          "statements_starting_with_you_are"
+        ],
+        "allowed_moves": [
+          "decatastrophize",
+          "prioritize",
+          "good_enough_framing",
+          "clarify_next_smallest_action",
+          "normalize_experience"
+        ],
+        "micro_practices": [
+          { "id": "name_need", "label": "Name the feeling + name the need", "duration_seconds": 45 },
+          { "id": "next_10", "label": "Choose the next 10 minutes: one task or rest", "duration_seconds": 30 },
+          { "id": "one_boundary", "label": "Write one boundary in one sentence", "duration_seconds": 60 }
+        ],
+        "prompt_templates": {
+          "mirror": "Keep it simple. Reduce urgency. Offer one calming lens. One suggestion only.",
+          "journal": "Prompt: What feels heavy? What feels doable?",
+          "next_step": "Suggest one action that takes <5 minutes, or one rest choice."
+        },
+        "exit_line": "Nothing needs to be forced. Small steps count.",
+        "ai_interpretation_hint": "Contain overwhelm. One reframe, one action, one question. Avoid depth and avoid stacking advice."
+      },
+      {
+        "level_id": "coping",
+        "display_name": "Coping",
+        "calibration_range_hint": null,
+        "primary_emotion": "strain",
+        "secondary_emotions": ["frustration", "worry", "fatigue"],
+        "core_motivation": "function with support; regain agency",
+        "worldview": "life is manageable with structure",
+        "identity_structure": "capable but taxed; wants practical traction",
+        "decision_pattern": "tradeoffs, checklists, incremental changes",
+        "social_orientation": "tribal",
+        "language_markers": [
+          "i'm managing",
+          "i can handle it but",
+          "i need a plan",
+          "i keep repeating this",
+          "i'm tired of this loop"
+        ],
+        "growth_edge": "move from managing to choosing",
+        "shadow_pattern": "over-control, avoidance, or numb productivity",
+        "tone": ["grounded", "supportive", "organized", "warm"],
+        "depth": "medium_low",
+        "word_budget_max": 220,
+        "structure_template": [
+          "1–2 sentences: name a simple pattern",
+          "Offer 2 options (A/B) to meet it",
+          "1 question to choose",
+          "1 permission line (good enough is okay)"
+        ],
+        "do_not": [
+          "heavy_excavation",
+          "identity_pronouncements",
+          "moralizing_should_language",
+          "framework_explanations_or_model_names"
+        ],
+        "allowed_moves": [
+          "simple_pattern_spotting",
+          "tradeoff_mapping",
+          "good_better_best_choices",
+          "small_experiments"
+        ],
+        "micro_practices": [
+          { "id": "control_influence", "label": "Two-column: control vs influence", "duration_seconds": 120 },
+          { "id": "kindly_version", "label": "If I did this kindly, what changes?", "duration_seconds": 60 },
+          { "id": "restore_one", "label": "One restore action: water / walk / message", "duration_seconds": 120 }
+        ],
+        "prompt_templates": {
+          "mirror": "Name the pattern and offer two viable ways forward. Ask one choosing question.",
+          "journal": "Optional prompt: What am I protecting? What am I avoiding?",
+          "next_step": "Offer one small experiment for today, framed as optional."
+        },
+        "exit_line": "You're allowed to choose the simplest version that works.",
+        "ai_interpretation_hint": "Practical reflection with choice. Two options max. No identity labeling. Keep it structured."
+      },
+      {
+        "level_id": "exploring",
+        "display_name": "Exploring",
+        "calibration_range_hint": null,
+        "primary_emotion": "curiosity",
+        "secondary_emotions": ["hope", "tenderness", "uncertainty"],
+        "core_motivation": "insight and perspective; growth through reflection",
+        "worldview": "multiple perspectives are possible",
+        "identity_structure": "self as evolving; openness to learning",
+        "decision_pattern": "hypothesis testing; values-based choices",
+        "social_orientation": "cultural",
+        "language_markers": [
+          "i'm noticing",
+          "i wonder if",
+          "what does this say about",
+          "i want to understand",
+          "maybe there's another way"
+        ],
+        "growth_edge": "choose experiments over conclusions",
+        "shadow_pattern": "analysis paralysis or seeking perfect clarity",
+        "tone": ["curious", "precise", "spacious", "respectful"],
+        "depth": "medium",
+        "word_budget_max": 320,
+        "structure_template": [
+          "Reflect theme + tension",
+          "Offer 2 perspectives (not conclusions)",
+          "Ask 1–2 strong questions",
+          "Offer 1 small practice/experiment"
+        ],
+        "do_not": [
+          "certainty_claims",
+          "absolute_truth_language",
+          "framework_overload",
+          "prescriptive_commands"
+        ],
+        "allowed_moves": [
+          "nuanced_reframes",
+          "values_clarification",
+          "pattern_hypotheses",
+          "choice_forward_language"
+        ],
+        "micro_practices": [
+          { "id": "value_under", "label": "Name the value underneath this", "duration_seconds": 60 },
+          { "id": "trust_5", "label": "What if I trusted myself 5% more?", "duration_seconds": 60 },
+          { "id": "better_question", "label": "Write a better question for the problem", "duration_seconds": 90 }
+        ],
+        "prompt_templates": {
+          "mirror": "Offer two perspectives and invite the user to choose what resonates. Keep it grounded and optional.",
+          "journal": "Prompt: What might also be true? What do I want to try next?",
+          "next_step": "Offer a 24-hour experiment framed as optional, not a fix."
+        },
+        "exit_line": "Treat this as a menu, not a mandate.",
+        "ai_interpretation_hint": "Medium depth: two perspectives, choice-forward questions, one optional experiment. Avoid certainty."
+      },
+      {
+        "level_id": "integrating",
+        "display_name": "Integrating",
+        "calibration_range_hint": null,
+        "primary_emotion": "resolve",
+        "secondary_emotions": ["compassion", "determination", "grief"],
+        "core_motivation": "coherence and alignment; durable change",
+        "worldview": "patterns can be integrated without self-judgment",
+        "identity_structure": "self as coherent and evolving; willing to practice",
+        "decision_pattern": "commitments, boundaries, habits, conversations",
+        "social_orientation": "individual",
+        "language_markers": [
+          "this keeps showing up",
+          "i'm ready to change",
+          "i want to align",
+          "i can see the pattern",
+          "i need to choose differently"
+        ],
+        "growth_edge": "practice alignment gently, consistently",
+        "shadow_pattern": "over-intensity or self-judgment when progress is slow",
+        "tone": ["insightful", "compassionate", "clear", "steady"],
+        "depth": "high",
+        "word_budget_max": 450,
+        "structure_template": [
+          "Careful synthesis across time (as a hypothesis)",
+          "Name the core tradeoff / edge",
+          "Offer 1–2 integration moves (boundary, habit, conversation)",
+          "Ask one commitment question (what will you practice?)"
+        ],
+        "do_not": [
+          "grand_destiny_narratives",
+          "completion_or_healed_now_language",
+          "absolutist_labels",
+          "authoritarian_tone"
+        ],
+        "allowed_moves": [
+          "synthesis_as_hypothesis",
+          "compassionate_challenge",
+          "alignment_planning",
+          "gentle_accountability"
+        ],
+        "micro_practices": [
+          { "id": "boundary_kindness", "label": "One boundary + one kindness plan", "duration_seconds": 180 },
+          { "id": "conversation_opener", "label": "Draft a hard conversation opener", "duration_seconds": 180 },
+          { "id": "aligned_week", "label": "What does aligned effort look like this week?", "duration_seconds": 90 }
+        ],
+        "prompt_templates": {
+          "mirror": "Connect dots gently and explicitly as a hypothesis. Offer one coherent storyline without certainty.",
+          "journal": "Prompt: What am I ready to stop rehearsing?",
+          "next_step": "Offer one 7-day practice framed as optional; ask what they want to try."
+        },
+        "exit_line": "You're the authority on your life. Use what fits.",
+        "ai_interpretation_hint": "High depth allowed: synthesis and alignment moves, but keep humility. No guru voice; no destiny."
+      },
+      {
+        "level_id": "expanding",
+        "display_name": "Expanding",
+        "calibration_range_hint": null,
+        "primary_emotion": "peace",
+        "secondary_emotions": ["gratitude", "awe", "tender joy"],
+        "core_motivation": "spaciousness; contribution; paradox-holding",
+        "worldview": "multiple truths can coexist; less forcing",
+        "identity_structure": "self as fluid; oriented to service and presence",
+        "decision_pattern": "intuitive alignment; fewer, cleaner choices",
+        "social_orientation": "universal",
+        "language_markers": [
+          "i feel more spacious",
+          "i don't need to force it",
+          "both can be true",
+          "i can hold this",
+          "what wants to emerge"
+        ],
+        "growth_edge": "act from soft power; keep it simple",
+        "shadow_pattern": "spiritual bypass or avoidance of necessary action",
+        "tone": ["spacious", "calm", "subtle", "grounded_poetic_lite"],
+        "depth": "high",
+        "word_budget_max": 320,
+        "structure_template": [
+          "Brief reflection (1–2 sentences)",
+          "One paradox / spacious reframe",
+          "1–2 deep questions",
+          "One simple embodiment practice"
+        ],
+        "do_not": [
+          "guru_voice",
+          "teaching_mode",
+          "proclamations",
+          "inflated_certainty"
+        ],
+        "allowed_moves": [
+          "paradox_holding",
+          "spacious_inquiry",
+          "compassion",
+          "service_orientation"
+        ],
+        "micro_practices": [
+          { "id": "hand_on_chest", "label": "2 minutes stillness, hand on chest", "duration_seconds": 120 },
+          { "id": "not_forcing", "label": "What am I not forcing anymore?", "duration_seconds": 60 },
+          { "id": "soft_power", "label": "What would soft power look like today?", "duration_seconds": 60 }
+        ],
+        "prompt_templates": {
+          "mirror": "Use fewer words. Invite spaciousness and choice. Avoid conclusions.",
+          "journal": "Prompt: What is asking to be expressed through me—gently?",
+          "next_step": "Offer one small act of alignment or service, framed as optional."
+        },
+        "exit_line": "Let it be light. Keep what lands; release the rest.",
+        "ai_interpretation_hint": "High depth with fewer words. Ask better questions. Keep it grounded, non-teaching, non-proclamatory."
+      }
+    ]
+  }
+}
