@@ -3556,6 +3556,55 @@ async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_ref
         # =====================================================================
         # GENERATE KEYSTONE VIA LLM
         # =====================================================================
+        
+        # ===== CONSCIOUSNESS ADAPTATION FOR DAILY INSIGHTS =====
+        # Fetch user's consciousness state and inject adaptation rules
+        consciousness_insert = ""
+        try:
+            consciousness_snapshot = user.get("consciousness_snapshot")
+            if not consciousness_snapshot:
+                consciousness_snapshot = get_default_snapshot()
+            
+            level_id = consciousness_snapshot.get("inferred_level_id", "coping")
+            confidence = consciousness_snapshot.get("confidence", 0.45)
+            
+            # Get adaptation block
+            adaptation = get_adaptation_block(level_id, confidence)
+            
+            # Format the adaptation insert for Daily Insights
+            consciousness_insert = f"""
+=== CONSCIOUSNESS ADAPTATION (INVISIBLE TO USER) ===
+
+Based on the user's current state, adapt your response as follows:
+
+MODE: {adaptation.get("mode", "cope")}
+DEPTH: {adaptation.get("depth", "medium_low")}
+TONE: {", ".join(adaptation.get("tone", ["grounded"]))}
+WORD BUDGET: Maximum {adaptation.get("word_budget_max", 220)} words for the keystone text
+
+STRUCTURE GUIDANCE:
+{chr(10).join(f"- {s}" for s in adaptation.get("structure_template", [])[:4])}
+
+ABSOLUTELY AVOID (these would harm the user in this state):
+{chr(10).join(f"- {a}" for a in adaptation.get("avoid", [])[:8])}
+
+AI GUIDANCE: {adaptation.get("ai_interpretation_hint", "")}
+
+REMEMBER:
+- This adaptation is INVISIBLE to the user - never mention levels, states, or adaptation
+- Mirror, not guru - reflect, don't teach or predict
+- At most ONE micro-affirmation
+- At most ONE reflective question
+- Keep it grounded, non-mystical, non-prescriptive
+- End with something soft and non-directive
+"""
+            logger.info(f"[Keystone] Consciousness adaptation applied: level={level_id}, depth={adaptation.get('depth')}, mode={adaptation.get('mode')}")
+            
+        except Exception as e:
+            # If adaptation fails, continue without it
+            logger.warning(f"[Keystone] Consciousness adaptation failed, using default: {e}")
+        # ===== END CONSCIOUSNESS ADAPTATION =====
+        
         system_prompt = DAILY_KEYSTONE_PROMPT.format(
             variant_template=variant['opening'],
             variant_structure=variant['structure'],
@@ -3563,6 +3612,10 @@ async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_ref
             lived_context=lived_context,
             tone_guidance=tone
         )
+        
+        # Append consciousness adaptation if available
+        if consciousness_insert:
+            system_prompt += "\n" + consciousness_insert
         
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
