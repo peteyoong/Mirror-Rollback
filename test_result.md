@@ -217,12 +217,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Mirror Chat Component"
-    - "Mirror Chat API Endpoint"
+    - "Astrology Chart Auto-Migration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "main"
+    message: "Implemented P0 task: Astrology Chart Auto-Migration. The get_user_astrology_data() helper now automatically checks if the user's chart is in legacy format and triggers migration if needed. Migration cases handled: 1) legacy_string_format (old sun_sign/moon_sign only), 2) missing_houses, 3) missing_ascendant, 4) incomplete_houses (cusps != 12), 5) empty_astrology. Testing should verify: a) calling /api/astrology/deep-dive with a user that has old-format chart triggers migration, b) migration_info is saved to the chart, c) the chart now has planets, houses with 12 cusps, and valid ascendant."
   - agent: "main"
     message: "Mirror Chat feature implementation complete. Backend API at /api/mirror/chat working with EMERGENT_LLM_KEY. Frontend MirrorChat.tsx integrated into Journal tab with toggle. Full conversation flow tested via Playwright screenshots - AI responds with reflective, non-prescriptive messages."
