@@ -228,14 +228,22 @@ export const useAppStore = create<AppState>((set, get) => ({
   
   // Session restore: fetch user/chart from API using persisted userId
   restoreSession: async () => {
-    const { user, chart } = get();
+    const { user, chart, hasTriedSessionRestore, isRestoringSession } = get();
     
-    // If already have user and chart, no need to restore
+    // Prevent duplicate calls
+    if (isRestoringSession) {
+      console.log('[SessionRestore] Already restoring, skipping...');
+      return false;
+    }
+    
+    // If already have user and chart, mark as tried and return success
     if (user && chart) {
       console.log('[SessionRestore] Already have user and chart, skipping restore');
+      set({ hasTriedSessionRestore: true });
       return true;
     }
     
+    // Set restoring=true immediately, hasTriedSessionRestore stays false until finally
     set({ isRestoringSession: true, sessionRestoreError: null });
     
     try {
@@ -246,7 +254,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       const stateAfterLoad = get();
       if (stateAfterLoad.user && stateAfterLoad.chart) {
         console.log('[SessionRestore] Restored from local storage');
-        set({ isRestoringSession: false });
         return true;
       }
       
@@ -254,8 +261,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const userId = await storage.getItem(SESSION_USER_ID_KEY);
       
       if (!userId) {
-        console.log('[SessionRestore] No persisted userId found');
-        set({ isRestoringSession: false });
+        console.log('[SessionRestore] No persisted userId found - fresh user');
         return false;
       }
       
@@ -297,17 +303,19 @@ export const useAppStore = create<AppState>((set, get) => ({
         await storage.setItem('hasCompletedOnboarding', 'true');
       }
       
-      set({ isRestoringSession: false });
       console.log('[SessionRestore] Session restored successfully');
-      return true;
+      return !!(userData && chartData);
       
     } catch (error: any) {
       console.error('[SessionRestore] Failed to restore session:', error);
       set({ 
-        isRestoringSession: false, 
         sessionRestoreError: error?.message || 'Failed to restore session' 
       });
       return false;
+    } finally {
+      // CRITICAL: Always set these in finally block
+      set({ isRestoringSession: false, hasTriedSessionRestore: true });
+      console.log('[SessionRestore] Restore attempt completed, hasTriedSessionRestore=true');
     }
   },
   
