@@ -11,6 +11,7 @@ import {
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import IncompleteBirthDataCard from './IncompleteBirthDataCard';
 
 interface AstrologySection {
   label: string;
@@ -30,6 +31,7 @@ interface AstrologyData {
   success?: boolean;
   error?: string;
   message?: string;
+  missing_fields?: string[];
 }
 
 interface Props {
