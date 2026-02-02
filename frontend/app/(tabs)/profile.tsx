@@ -137,11 +137,15 @@ export default function ProfileScreen() {
           
           <Pressable 
             style={styles.actionButton}
-            onPress={handleLogout}
+            onPress={() => {
+              console.log('[Profile] Log Out pressed');
+              handleLogout();
+            }}
             disabled={isLoggingOut}
+            testID="logout-button"
           >
             <Ionicons name="log-out-outline" size={22} color={Colors.text} />
-            <View style={styles.actionTextContainer}>
+            <View style={styles.actionTextContainer} pointerEvents="none">
               <Text style={styles.actionTitle}>Log Out</Text>
               <Text style={styles.actionDescription}>
                 Return to welcome screen
@@ -158,11 +162,15 @@ export default function ProfileScreen() {
 
           <Pressable 
             style={styles.actionButton}
-            onPress={handleResetSession}
+            onPress={() => {
+              console.log('[Profile] Reset Session pressed');
+              handleResetSession();
+            }}
             disabled={isLoggingOut}
+            testID="reset-session-button"
           >
             <Ionicons name="refresh-outline" size={22} color={Colors.warning} />
-            <View style={styles.actionTextContainer}>
+            <View style={styles.actionTextContainer} pointerEvents="none">
               <Text style={[styles.actionTitle, { color: Colors.warning }]}>
                 Reset Session
               </Text>
