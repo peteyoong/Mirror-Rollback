@@ -25,6 +25,8 @@ interface CoreMechanics {
   profile?: string;
   definition?: string;
   incarnation_cross?: string;
+  incarnation_cross_label?: string;
+  incarnation_cross_gates?: string;
   channels?: string[];
 }
 
