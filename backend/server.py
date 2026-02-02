@@ -3587,6 +3587,148 @@ async def get_user_astrology_data(user_id: str) -> Tuple[dict, dict]:
     return user, chart
 
 
+async def check_and_migrate_astrology_chart(user_id: str) -> Tuple[bool, str, dict]:
+    """
+    Check if chart has valid astrology data. If old format or missing houses/ascendant,
+    automatically recompute the chart.
+    
+    Returns:
+        Tuple of (migration_performed, status_message, updated_chart)
+    """
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    if not user:
+        return (False, "User not found", {})
+    
+    chart = await db.charts.find_one({"user_id": user_id})
+    if not chart:
+        return (False, "Chart not found", {})
+    
+    astro = chart.get('astrology', {})
+    
+    # Check if needs migration
+    needs_migration = False
+    migration_reason = None
+    
+    # Case 1: Old format (just string signs, no planets/houses)
+    if 'sun_sign' in astro and 'planets' not in astro:
+        needs_migration = True
+        migration_reason = "legacy_string_format"
+    
+    # Case 2: New format but missing houses
+    elif 'planets' in astro:
+        houses = astro.get('houses', {})
+        if not houses:
+            needs_migration = True
+            migration_reason = "missing_houses"
+        elif not houses.get('ascendant'):
+            needs_migration = True
+            migration_reason = "missing_ascendant"
+        elif len(houses.get('cusps', [])) != 12:
+            needs_migration = True
+            migration_reason = "incomplete_houses"
+    
+    # Case 3: Empty astrology data
+    elif not astro:
+        needs_migration = True
+        migration_reason = "empty_astrology"
+    
+    if not needs_migration:
+        return (False, "Chart is current", chart)
+    
+    # Perform migration by recalculating chart
+    logger.info(f"[MIGRATION] Auto-migrating chart for user {user_id}, reason: {migration_reason}")
+    
+    # Check required fields
+    if not user.get('timezone'):
+        return (False, f"Cannot migrate: missing timezone", chart)
+    if not user.get('birth_time'):
+        return (False, f"Cannot migrate: missing birth_time", chart)
+    if not user.get('birth_date'):
+        return (False, f"Cannot migrate: missing birth_date", chart)
+    if not user.get('birth_location'):
+        return (False, f"Cannot migrate: missing birth_location", chart)
+    
+    # Trigger recalculation
+    try:
+        from calculations.timezone_utils import resolve_birth_utc_with_debug
+        from calculations.astrology import get_full_natal_chart
+        from calculations.human_design import get_human_design_chart
+        from calculations.numerology import get_full_numerology
+        
+        birth_date = user['birth_date']
+        birth_time = user['birth_time']
+        user_timezone = user['timezone']
+        
+        birth_date_str = birth_date.strftime("%Y-%m-%d") if isinstance(birth_date, datetime) else str(birth_date)
+        
+        resolution = resolve_birth_utc_with_debug(
+            birth_date_str=birth_date_str,
+            birth_time_str=birth_time,
+            timezone_str=user_timezone
+        )
+        
+        if not resolution["success"]:
+            return (False, f"Migration failed: {resolution['error']}", chart)
+        
+        birth_datetime_utc = resolution["birth_utc"]
+        location = user['birth_location']
+        lat = location['latitude']
+        lon = location['longitude']
+        
+        sidereal_settings = {
+            "mode": "true_sidereal_user_defined",
+            "svp_degrees": 31.2836,
+            "reference_year": 2000,
+            "yearly_increment": 0.0
+        }
+        
+        # Recalculate
+        astrology_chart = get_full_natal_chart(
+            birth_datetime_utc, lat, lon,
+            sidereal_settings=sidereal_settings,
+            house_system="Equal"
+        )
+        
+        human_design = get_human_design_chart(
+            birth_datetime_utc, lat, lon,
+            sidereal_settings=sidereal_settings
+        )
+        
+        if isinstance(birth_date, str):
+            birth_date = datetime.strptime(birth_date, "%Y-%m-%d")
+        numerology = get_full_numerology(birth_date, user.get("name"))
+        
+        # Update chart in database
+        chart_update = {
+            "astrology": astrology_chart,
+            "human_design": human_design,
+            "numerology": numerology,
+            "calculated_at": datetime.now(timezone.utc).isoformat(),
+            "migration_info": {
+                "migrated_at": datetime.now(timezone.utc).isoformat(),
+                "migration_reason": migration_reason,
+                "timezone_iana": resolution['debug_stamp'].get('timezone_iana'),
+                "resolved_offset": resolution['debug_stamp'].get('resolved_utc_offset_at_birth')
+            }
+        }
+        
+        await db.charts.update_one(
+            {"user_id": user_id},
+            {"$set": chart_update}
+        )
+        
+        updated_chart = await db.charts.find_one({"user_id": user_id})
+        logger.info(f"[MIGRATION] Successfully migrated chart for user {user_id}")
+        
+        return (True, f"Chart migrated from {migration_reason}", updated_chart)
+        
+    except Exception as e:
+        logger.error(f"[MIGRATION] Failed to migrate chart for user {user_id}: {e}")
+        return (False, f"Migration failed: {str(e)}", chart)
+    
+    return user, chart
+
+
 def extract_astrology_placements(chart: dict) -> dict:
     """Extract key astrology placements from chart data.
     
