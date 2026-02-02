@@ -260,6 +260,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
   },
+  transitionTitle: {
+    fontSize: 32,
+    fontWeight: '300',
+    color: Colors.text,
+    marginBottom: 32,
+    textAlign: 'center',
+  },
+  transitionBody: {
+    alignItems: 'center',
+    marginBottom: 48,
+  },
+  transitionBodyText: {
+    fontSize: 16,
+    lineHeight: 26,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  transitionFooter: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+  },
   transitionText: {
     fontSize: 28,
     fontWeight: '500',
