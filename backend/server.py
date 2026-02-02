@@ -1847,6 +1847,20 @@ async def mirror_chat(request: MirrorChatRequest):
         if request.lens and request.lens in LENS_PROMPTS:
             system_prompt += "\n" + LENS_PROMPTS[request.lens]
         
+        # ===== KEYSTONE CONTINUATION MODE =====
+        is_keystone_followup = request.keystone_context is not None
+        if is_keystone_followup:
+            kc = request.keystone_context
+            keystone_insert = KEYSTONE_CONTINUATION_INSERT.format(
+                title=kc.title,
+                keystone=kc.keystone,
+                reflect_question=kc.reflect_question,
+                micro_affirmation=kc.micro_affirmation,
+                tone=kc.tone
+            )
+            system_prompt += "\n" + keystone_insert
+            logger.info(f"[Mirror Chat] Keystone continuation mode for user {request.user_id}, date={kc.date}")
+        
         # Add context
         system_prompt += "\n\n--- USER CONTEXT ---\n" + "\n".join(context_parts)
         
