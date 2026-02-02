@@ -304,60 +304,68 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
         ) : data ? (
           <>
             {/* Title */}
-            <Text style={styles.title}>{data.title}</Text>
+            <Text style={styles.title}>{data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : 'Astrology')}</Text>
 
             {/* Date for Today's Snapshot tab only */}
             {activeTab === 'today' && data.date && (
               <Text style={styles.dateLabel}>{data.date}</Text>
             )}
 
-            {/* Core Placements Card (Deep Dive only) */}
+            {/* Core Placements Card (Deep Dive only) - always show even if success=false */}
             {activeTab === 'deep_dive' && renderCorePlacements()}
 
-            {/* Expand Button (Deep Dive only) */}
-            {activeTab === 'deep_dive' && (
-              <TouchableOpacity
-                style={styles.expandButton}
-                onPress={() => setExpandedSection(expandedSection ? null : 'all')}
-              >
-                <Text style={styles.expandButtonText}>
-                  {expandedSection ? 'Collapse sections' : 'Explore your core structure'}
+            {/* ERROR CARD: Show when Deep Dive computation failed */}
+            {activeTab === 'deep_dive' && data.success === false && renderComputeErrorCard()}
+
+            {/* Only show content sections if success !== false */}
+            {data.success !== false && (
+              <>
+                {/* Expand Button (Deep Dive only) */}
+                {activeTab === 'deep_dive' && (
+                  <TouchableOpacity
+                    style={styles.expandButton}
+                    onPress={() => setExpandedSection(expandedSection ? null : 'all')}
+                  >
+                    <Text style={styles.expandButtonText}>
+                      {expandedSection ? 'Collapse sections' : 'Explore your core structure'}
+                    </Text>
+                    <Ionicons
+                      name={expandedSection ? 'contract-outline' : 'expand-outline'}
+                      size={16}
+                      color={Colors.accent}
+                    />
+                  </TouchableOpacity>
+                )}
+
+                {/* Sections */}
+                {data.sections?.map((section, index) => renderSection(section, index))}
+
+                {/* Mirror Prompt */}
+                {data.mirror_prompt && (
+                  <View style={styles.mirrorPromptCard}>
+                    <Text style={styles.mirrorPromptLabel}>REFLECT</Text>
+                    <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
+                  </View>
+                )}
+
+                {/* Natal Chart Reference (Deep Dive only) */}
+                {renderNatalChartReference()}
+
+                {/* Ask Mirror Button */}
+                <TouchableOpacity
+                  style={styles.askMirrorButton}
+                  onPress={onOpenChat}
+                >
+                  <Ionicons name="chatbubble-outline" size={18} color={Colors.surface} />
+                  <Text style={styles.askMirrorText}>Ask about this lens</Text>
+                </TouchableOpacity>
+
+                {/* Footer */}
+                <Text style={styles.footer}>
+                  A lens for understanding patterns, not a definition of identity.
                 </Text>
-                <Ionicons
-                  name={expandedSection ? 'contract-outline' : 'expand-outline'}
-                  size={16}
-                  color={Colors.accent}
-                />
-              </TouchableOpacity>
+              </>
             )}
-
-            {/* Sections */}
-            {data.sections.map((section, index) => renderSection(section, index))}
-
-            {/* Mirror Prompt */}
-            {data.mirror_prompt && (
-              <View style={styles.mirrorPromptCard}>
-                <Text style={styles.mirrorPromptLabel}>REFLECT</Text>
-                <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
-              </View>
-            )}
-
-            {/* Natal Chart Reference (Deep Dive only) */}
-            {renderNatalChartReference()}
-
-            {/* Ask Mirror Button */}
-            <TouchableOpacity
-              style={styles.askMirrorButton}
-              onPress={onOpenChat}
-            >
-              <Ionicons name="chatbubble-outline" size={18} color={Colors.surface} />
-              <Text style={styles.askMirrorText}>Ask about this lens</Text>
-            </TouchableOpacity>
-
-            {/* Footer */}
-            <Text style={styles.footer}>
-              A lens for understanding patterns, not a definition of identity.
-            </Text>
           </>
         ) : null}
       </ScrollView>
