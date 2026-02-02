@@ -446,6 +446,100 @@ export default function MirrorChat({
     );
   };
 
+  // Thread Pill - shows when active keystone thread (generalist only)
+  const renderThreadPill = () => {
+    if (lens || !threadState?.active) return null;
+    
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr + 'T00:00:00');
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+    
+    return (
+      <TouchableOpacity
+        style={styles.threadPill}
+        onPress={() => setShowThreadModal(true)}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="link-outline" size={14} color={Colors.accent} />
+        <Text style={styles.threadPillText}>Today's thread</Text>
+        <Text style={styles.threadPillDate}>{formatDate(threadState.thread_date)}</Text>
+        <Ionicons name="chevron-forward" size={12} color={Colors.textTertiary} />
+      </TouchableOpacity>
+    );
+  };
+
+  // Thread Modal - shows keystone recap
+  const renderThreadModal = () => {
+    if (!threadState) return null;
+    
+    return (
+      <Modal
+        visible={showThreadModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowThreadModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowThreadModal(false)}
+        >
+          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.threadModalContent}>
+              {/* Close button */}
+              <TouchableOpacity
+                style={styles.threadModalClose}
+                onPress={() => setShowThreadModal(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="close" size={20} color={Colors.textSecondary} />
+              </TouchableOpacity>
+              
+              {/* Title */}
+              {threadState.title && (
+                <Text style={styles.threadModalTitle}>
+                  {threadState.title.toUpperCase()}
+                </Text>
+              )}
+              
+              {/* Keystone text */}
+              {threadState.keystone && (
+                <Text style={styles.threadModalKeystone}>
+                  {threadState.keystone}
+                </Text>
+              )}
+              
+              {/* Micro-affirmation */}
+              {threadState.micro_affirmation && (
+                <Text style={styles.threadModalAffirmation}>
+                  {threadState.micro_affirmation}
+                </Text>
+              )}
+              
+              {/* Reflect question */}
+              {threadState.reflect_question && (
+                <View style={styles.threadModalReflect}>
+                  <Text style={styles.threadModalReflectLabel}>REFLECT</Text>
+                  <Text style={styles.threadModalReflectQuestion}>
+                    {threadState.reflect_question}
+                  </Text>
+                </View>
+              )}
+              
+              {/* Remaining turns indicator */}
+              <View style={styles.threadModalFooter}>
+                <Text style={styles.threadModalFooterText}>
+                  {threadState.remaining_turns} turn{threadState.remaining_turns !== 1 ? 's' : ''} remaining in this thread
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
+
   const canSend = inputText.trim().length > 0 && !isLoading && sessionId;
 
   return (
