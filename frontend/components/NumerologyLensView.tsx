@@ -568,8 +568,8 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
               </View>
             )}
 
-            {/* Unlock Prompt (if name-based numbers locked) */}
-            {renderUnlockPrompt()}
+            {/* Unlock Banner (shown when full name needed) */}
+            {activeTab === 'deep_dive' && renderUnlockBanner()}
 
             {/* Ask Mirror Button */}
             <TouchableOpacity
