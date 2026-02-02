@@ -5540,12 +5540,19 @@ async def infer_consciousness_level(user_id: str, request: InferConsciousnessReq
     """
     P1: Compute and persist consciousness snapshot.
     Uses language markers to infer level from provided text or recent journal entries.
+    Applies smoothing to prevent rapid state switching.
     Defaults to coping if confidence < 0.45 or signals conflict.
     """
     try:
         user = await db.users.find_one({"_id": ObjectId(user_id)})
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get current snapshot and history for smoothing
+        current_snapshot = user.get("consciousness_snapshot")
+        inference_history = []
+        if current_snapshot:
+            inference_history = current_snapshot.get("inference_history", [])
         
         text_to_analyze = ""
         source_events = []
@@ -5578,9 +5585,13 @@ async def infer_consciousness_level(user_id: str, request: InferConsciousnessReq
                     ])
                     source_events.append("recent_chat_messages")
         
-        # Infer level from text
+        # Infer level from text with smoothing
         if text_to_analyze:
-            snapshot = infer_level_from_text(text_to_analyze)
+            snapshot = infer_level_from_text(
+                text_to_analyze,
+                current_snapshot=current_snapshot,
+                inference_history=inference_history
+            )
             snapshot["source_events"] = source_events
         else:
             snapshot = get_default_snapshot()
@@ -5592,7 +5603,8 @@ async def infer_consciousness_level(user_id: str, request: InferConsciousnessReq
             {"$set": {"consciousness_snapshot": snapshot}}
         )
         
-        logger.info(f"[Consciousness] Inferred level {snapshot['inferred_level_id']} for user {user_id} (confidence: {snapshot['confidence']})")
+        smoothing_info = snapshot.get("smoothing", {})
+        logger.info(f"[Consciousness] Inferred level {snapshot['inferred_level_id']} for user {user_id} (confidence: {snapshot['confidence']}, smoothing: {smoothing_info.get('applied', 'none')})")
         
         # Get full level details
         level = get_level_by_id(snapshot.get("inferred_level_id", "coping"))
