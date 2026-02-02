@@ -191,6 +191,18 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               <Text style={styles.retryText}>Try Again</Text>
             </TouchableOpacity>
           </View>
+        ) : data?.error === 'INCOMPLETE_BIRTH_DATA' ? (
+          // Show incomplete birth data card when precondition check fails
+          <View style={styles.incompleteDataContainer}>
+            <Text style={styles.incompleteTitle}>Human Design</Text>
+            <IncompleteBirthDataCard 
+              missingFields={data.missing_fields}
+              lensName="Human Design insights"
+            />
+            <Text style={styles.incompleteHint}>
+              Your chart requires precise birth details to calculate your Type, Strategy, and Authority.
+            </Text>
+          </View>
         ) : data ? (
           <>
             {/* Title */}
