@@ -899,6 +899,11 @@ const styles = StyleSheet.create({
     color: '#e74c3c',
     marginBottom: 12,
   },
+  unlockErrorText: {
+    fontSize: 13,
+    color: '#e74c3c',
+    marginBottom: 12,
+  },
   privacyNote: {
     fontSize: 12,
     color: Colors.textTertiary,
