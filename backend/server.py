@@ -676,20 +676,22 @@ USER'S DESIGN MECHANICS:
 {mechanics_context}
 
 Generate a response with these sections:
-1. "Today's Focus" - One aspect of their design to notice today (1-2 sentences)
-2. "A Small Experiment" - A concrete, low-stakes way to observe this pattern
-3. "What to Notice" - What sensations or signals might arise
+1. "Today's Focus" - One aspect of their design to notice today (1-2 sentences, max 40 words)
+2. "A Small Experiment" - A concrete, low-stakes way to observe this pattern (max 50 words)
+3. "What to Notice" - What sensations or signals might arise (max 40 words)
+
+STRICT LENGTH: Total response must be under 150 words.
 
 Return ONLY valid JSON:
 {{
-  "title": "Today's Experiment",
+  "title": "Today's Snapshot",
   "date": "{today_date}",
   "sections": [
     {{"label": "Today's Focus", "body": "..."}},
     {{"label": "A Small Experiment", "body": "..."}},
     {{"label": "What to Notice", "body": "..."}}
   ],
-  "mirror_prompt": "A single noticing prompt for the day"
+  "mirror_prompt": "A single noticing prompt for the day (max 20 words)"
 }}
 """
 
