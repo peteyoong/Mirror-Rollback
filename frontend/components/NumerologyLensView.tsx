@@ -367,7 +367,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                 />
                 
                 {unlockError && (
-                  <Text style={styles.errorText}>{unlockError}</Text>
+                  <Text style={styles.unlockErrorText}>{unlockError}</Text>
                 )}
                 
                 <Text style={styles.privacyNote}>
