@@ -519,7 +519,7 @@ export default function LensDetail() {
         </View>
         
         <Text style={styles.personalizedMirrorFooter}>
-          Take what resonates; leave what doesn't.
+          Take what resonates; leave what doesn&apos;t.
         </Text>
       </View>
     );
@@ -564,7 +564,7 @@ export default function LensDetail() {
         </View>
         
         <Text style={styles.personalizedMirrorFooter}>
-          Take what resonates; leave what doesn't.
+          Take what resonates; leave what doesn&apos;t.
         </Text>
       </View>
     );
