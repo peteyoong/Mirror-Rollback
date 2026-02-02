@@ -32,8 +32,8 @@ export default function ProfileScreen() {
             setIsLoggingOut(true);
             try {
               await clearUser();
-              // Navigate to welcome screen
-              router.replace('/welcome');
+              // Navigate to onboarding screen
+              router.replace('/onboarding');
             } catch (error) {
               console.error('Logout error:', error);
               Alert.alert('Error', 'Failed to log out. Please try again.');
@@ -59,7 +59,7 @@ export default function ProfileScreen() {
             setIsLoggingOut(true);
             try {
               await clearUser();
-              router.replace('/welcome');
+              router.replace('/onboarding');
             } catch (error) {
               console.error('Reset error:', error);
               Alert.alert('Error', 'Failed to reset session. Please try again.');
