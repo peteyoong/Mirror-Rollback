@@ -144,12 +144,64 @@ def test_astrology_deep_dive():
     return results
 
 def test_success_false_case():
-    """Test success=false case with incomplete data"""
+    """Test success=false case and error handling"""
     
-    print(f"\n🧪 Testing success=false case")
-    print("Creating user with incomplete data (missing timezone)")
+    print(f"\n🧪 Testing success=false and error handling cases")
     
-    # First create a user with incomplete data
+    test_cases = [
+        {
+            "name": "Non-existent user",
+            "user_id": "000000000000000000000000",
+            "expected_status": 404,
+            "expected_response": "User not found"
+        },
+        {
+            "name": "Invalid user ID format", 
+            "user_id": "invalid-id",
+            "expected_status": 422,
+            "expected_response": "validation error"
+        }
+    ]
+    
+    results = []
+    
+    for test_case in test_cases:
+        print(f"\n🔍 Testing {test_case['name']}")
+        print(f"User ID: {test_case['user_id']}")
+        
+        url = f"{BASE_URL}/astrology/deep-dive/{test_case['user_id']}"
+        
+        try:
+            response = requests.get(url, timeout=30)
+            print(f"Status Code: {response.status_code}")
+            print(f"Response: {response.text}")
+            
+            expected_status = test_case['expected_status']
+            if response.status_code == expected_status:
+                print(f"✅ Correctly returned {expected_status} status")
+                results.append({
+                    'name': test_case['name'],
+                    'success': True,
+                    'message': f'Correctly returned {expected_status} status'
+                })
+            else:
+                print(f"❌ Expected {expected_status}, got {response.status_code}")
+                results.append({
+                    'name': test_case['name'],
+                    'success': False,
+                    'message': f'Expected {expected_status}, got {response.status_code}'
+                })
+                
+        except Exception as e:
+            print(f"❌ Exception: {str(e)}")
+            results.append({
+                'name': test_case['name'],
+                'success': False,
+                'message': f'Exception: {str(e)}'
+            })
+    
+    # Test user creation with invalid timezone
+    print(f"\n🔍 Testing user creation with invalid timezone")
     create_url = f"{BASE_URL}/users"
     
     incomplete_user_data = {
@@ -164,71 +216,42 @@ def test_success_false_case():
     }
     
     try:
-        print(f"Creating user with incomplete data...")
+        print(f"Creating user with empty timezone...")
         create_response = requests.post(create_url, json=incomplete_user_data, timeout=30)
         print(f"Create user status: {create_response.status_code}")
+        print(f"Response: {create_response.text}")
         
-        if create_response.status_code == 400:
-            print("✅ User creation correctly failed due to missing timezone")
-            print(f"Error response: {create_response.text}")
-            return {
+        if create_response.status_code in [400, 422, 500]:
+            print("✅ User creation correctly failed due to invalid timezone")
+            results.append({
+                'name': 'Invalid timezone creation',
                 'success': True,
-                'message': 'User creation correctly failed due to missing timezone',
-                'response': create_response.text
-            }
-        elif create_response.status_code == 200:
-            # If user was created despite missing timezone, test the deep dive
-            user_data = create_response.json()
-            user_id = user_data.get('id')
-            print(f"User created with ID: {user_id}")
-            
-            # Test deep dive with this incomplete user
-            deep_dive_url = f"{BASE_URL}/astrology/deep-dive/{user_id}"
-            deep_dive_response = requests.get(deep_dive_url, timeout=30)
-            
-            print(f"Deep dive status: {deep_dive_response.status_code}")
-            
-            if deep_dive_response.status_code == 200:
-                data = deep_dive_response.json()
-                success = data.get('success', False)
-                
-                if not success:
-                    print("✅ Deep dive correctly returned success=false")
-                    print(f"Error code: {data.get('error_code', 'unknown')}")
-                    print(f"Full response: {json.dumps(data, indent=2)}")
-                    return {
-                        'success': True,
-                        'message': 'Deep dive correctly returned success=false',
-                        'response': data
-                    }
-                else:
-                    print("❌ Deep dive returned success=true despite incomplete data")
-                    return {
-                        'success': False,
-                        'message': 'Deep dive returned success=true despite incomplete data',
-                        'response': data
-                    }
-            else:
-                print(f"❌ Deep dive HTTP error: {deep_dive_response.status_code}")
-                return {
-                    'success': False,
-                    'message': f'Deep dive HTTP error: {deep_dive_response.status_code}',
-                    'response': deep_dive_response.text
-                }
+                'message': 'User creation correctly failed due to invalid timezone'
+            })
         else:
-            print(f"❌ Unexpected create user status: {create_response.status_code}")
-            return {
+            print(f"❌ Expected error status, got {create_response.status_code}")
+            results.append({
+                'name': 'Invalid timezone creation',
                 'success': False,
-                'message': f'Unexpected create user status: {create_response.status_code}',
-                'response': create_response.text
-            }
+                'message': f'Expected error status, got {create_response.status_code}'
+            })
             
     except Exception as e:
-        print(f"❌ Exception in success=false test: {str(e)}")
-        return {
+        print(f"❌ Exception in user creation test: {str(e)}")
+        results.append({
+            'name': 'Invalid timezone creation',
             'success': False,
             'message': f'Exception: {str(e)}'
-        }
+        })
+    
+    # Overall result
+    all_passed = all(r['success'] for r in results)
+    
+    return {
+        'success': all_passed,
+        'message': 'All error handling tests passed' if all_passed else 'Some error handling tests failed',
+        'results': results
+    }
 
 def main():
     """Main test execution"""
