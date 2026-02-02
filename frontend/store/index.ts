@@ -320,11 +320,25 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   retrySessionRestore: async () => {
-    set({ sessionRestoreError: null });
+    set({ sessionRestoreError: null, hasTriedSessionRestore: false });
     return get().restoreSession();
   },
   
   clearSessionRestoreError: () => {
     set({ sessionRestoreError: null });
+  },
+  
+  // Helper: Should we redirect to onboarding?
+  // Only returns true if we've tried restoring AND there's no user
+  shouldRedirectToOnboarding: () => {
+    const { hasTriedSessionRestore, isRestoringSession, user } = get();
+    
+    // If still restoring or haven't tried yet, DON'T redirect
+    if (isRestoringSession || !hasTriedSessionRestore) {
+      return false;
+    }
+    
+    // Only redirect if restore is done AND no user
+    return !user?.id;
   },
 }));
