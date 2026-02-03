@@ -730,12 +730,16 @@ Return ONLY valid JSON:
 """
 
 # TAB/TASK PROMPT: DEEP DIVE
-HUMAN_DESIGN_DEEP_DIVE_PROMPT = """Explain the user's core Human Design mechanics.
+HUMAN_DESIGN_DEEP_DIVE_PROMPT = """Explain the user's Human Design in depth.
 
-Focus ONLY on:
-- Type (energy architecture)
-- Strategy (engagement pattern)
-- Authority (decision-making clarity)
+Include ALL of the following:
+1. Type (energy architecture)
+2. Strategy (engagement pattern)
+3. Authority (decision-making clarity)
+4. Profile (learning and life theme)
+5. Incarnation Cross (life direction/theme - if available)
+6. Definition (energy connectivity)
+7. Defined Centers (key themes)
 
 Rules:
 - Treat these as mechanics, not fixed traits
@@ -752,29 +756,42 @@ After explanation:
 - Invite the user to test these patterns in their own life
 - Do not conclude or summarise definitively
 
-USER'S CORE MECHANICS:
+USER'S HUMAN DESIGN:
 Type: {hd_type}
 Strategy: {strategy}
 Authority: {authority}
 Profile: {profile}
+Incarnation Cross: {incarnation_cross}
+Definition: {definition}
+Defined Centers: {defined_centers}
+Defined Channels: {defined_channels}
 
 Generate a response with these sections:
 1. "Type: Your Energy Architecture" - How energy tends to flow and what rhythm feels natural
 2. "Strategy: Your Engagement Pattern" - How life tends to work best when engaged with in a certain way
 3. "Authority: Your Clarity Process" - How decisions tend to feel most aligned when given space
+4. "Profile: Your Learning Style" - How you tend to learn and what your life theme may emphasize
+5. "Incarnation Cross: Your Life Direction" - The broad theme or direction your life may orient around (only if cross is provided)
+6. "Definition & Centers" - How your energy connects and which themes are consistently emphasized
 
 Return ONLY valid JSON:
 {{
-  "title": "Your Core Mechanics",
+  "title": "Your Human Design Profile",
   "core_mechanics": {{
     "type": "{hd_type}",
     "strategy": "{strategy}",
-    "authority": "{authority}"
+    "authority": "{authority}",
+    "profile": "{profile}",
+    "incarnation_cross": "{incarnation_cross}",
+    "definition": "{definition}"
   }},
   "sections": [
     {{"label": "Type: Your Energy Architecture", "body": "..."}},
     {{"label": "Strategy: Your Engagement Pattern", "body": "..."}},
-    {{"label": "Authority: Your Clarity Process", "body": "..."}}
+    {{"label": "Authority: Your Clarity Process", "body": "..."}},
+    {{"label": "Profile: Your Learning Style", "body": "..."}},
+    {{"label": "Incarnation Cross: Your Life Direction", "body": "..."}},
+    {{"label": "Definition & Centers", "body": "..."}}
   ],
   "mirror_prompt": "A reflective question inviting experimentation, not conclusion"
 }}
