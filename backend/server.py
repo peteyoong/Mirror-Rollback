@@ -4450,12 +4450,18 @@ async def get_human_design_deep_dive(user_id: str):
                 "core_mechanics": {
                     "type": hd_data['type'],
                     "strategy": strategy_desc,
-                    "authority": hd_data['authority']
+                    "authority": hd_data['authority'],
+                    "profile": hd_data.get('profile', 'Unknown'),
+                    "incarnation_cross": hd_data.get('incarnation_cross', 'Unknown'),
+                    "definition": hd_data.get('definition', 'Unknown')
                 },
                 "sections": [
                     {"label": "Type: Your Energy Architecture", "body": f"As a {hd_data['type']}, there's a particular way energy tends to move through you."},
                     {"label": "Strategy: Your Engagement Pattern", "body": f"Your design suggests {strategy_desc.lower()}."},
-                    {"label": "Authority: Your Clarity Process", "body": f"With {hd_data['authority']} authority, clarity tends to come in a specific way."}
+                    {"label": "Authority: Your Clarity Process", "body": f"With {hd_data['authority']} authority, clarity tends to come in a specific way."},
+                    {"label": "Profile: Your Learning Style", "body": f"Your {hd_data.get('profile', 'Unknown')} profile suggests a particular way you tend to learn and engage with life."},
+                    {"label": "Incarnation Cross: Your Life Direction", "body": f"Your {hd_data.get('incarnation_cross', 'Unknown')} points to a broad life theme you may find yourself oriented around."},
+                    {"label": "Definition & Centers", "body": f"With {hd_data.get('definition', 'Unknown')} definition and {', '.join(hd_data.get('defined_centers', [])) or 'key'} centers defined, there's a particular way your energy connects."}
                 ],
                 "mirror_prompt": "What would be a small, low-stakes way to experiment with this today?"
             }
