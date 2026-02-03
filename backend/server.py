@@ -4374,7 +4374,8 @@ Profile: {hd_data['profile']}
 @api_router.get("/human-design/deep-dive/{user_id}")
 async def get_human_design_deep_dive(user_id: str):
     """
-    Generate Deep Dive - Type, Strategy, Authority only.
+    Generate Deep Dive - Full Human Design profile including Type, Strategy, Authority,
+    Profile, Incarnation Cross, Definition, and Centers.
     Mechanics, not mysticism. Experimentation, not prescription.
     """
     import json as json_module
@@ -4391,12 +4392,20 @@ async def get_human_design_deep_dive(user_id: str):
         
         strategy_desc = HD_STRATEGY_DESCRIPTIONS.get(hd_data['type'], 'Unique engagement pattern')
         
-        # Build full prompt
+        # Format defined centers and channels for the prompt
+        defined_centers_str = ", ".join(hd_data.get('defined_centers', [])) or "Unknown"
+        defined_channels_str = ", ".join(hd_data.get('defined_channels', [])) or "Unknown"
+        
+        # Build full prompt with all available HD data
         system_prompt = HUMAN_DESIGN_GLOBAL_PROMPT + "\n\n" + HUMAN_DESIGN_DEEP_DIVE_PROMPT.format(
             hd_type=hd_data['type'],
             strategy=strategy_desc,
             authority=hd_data['authority'],
-            profile=hd_data['profile']
+            profile=hd_data['profile'],
+            incarnation_cross=hd_data.get('incarnation_cross', 'Unknown'),
+            definition=hd_data.get('definition', 'Unknown'),
+            defined_centers=defined_centers_str,
+            defined_channels=defined_channels_str
         )
         
         chat = LlmChat(
