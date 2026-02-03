@@ -124,6 +124,25 @@ backend:
         agent: "main"
         comment: "Endpoint /api/mirror/chat working. Tested with curl - returns reflective, non-prescriptive responses. Supports lens_context parameter for astrology/human_design/numerology modes. Uses EMERGENT_LLM_KEY with emergentintegrations library."
 
+  - task: "Astrology Auto-Migration (BUG #1 Fix)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          BUG #1 FIX COMPLETE: Auto-migration for old/incomplete astrology charts.
+          - check_and_migrate_astrology_chart() function detects: legacy_string_format, missing_houses, missing_ascendant, incomplete_houses, empty_astrology
+          - Integrated into /astrology/summary, /astrology/today, /astrology/deep-dive endpoints
+          - IANA timezone support with historical offset resolution (pytz)
+          - Birth time normalization (handles "1:25am", "01:25", "13:25")
+          - Migration info persisted with audit trail
+          - Tested with user 69819f1a1e4549392d7cb6d1 - auto-migrated from legacy_string_format successfully
+
   - task: "Location Search API"
     implemented: true
     working: true
