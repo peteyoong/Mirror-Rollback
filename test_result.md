@@ -266,3 +266,30 @@ agent_communication:
       - GET /api/astrology/deep-dive/6971c81f2b40fd5ef501d375 (complete user - should return success:true)
       
       Please test the "Astrology Auto-Migration" task to verify all scenarios work correctly.
+  - agent: "testing"
+    message: |
+      ASTROLOGY AUTO-MIGRATION TESTING COMPLETE - ALL TESTS PASSED ✅
+      
+      Comprehensive testing performed on all 5 critical scenarios:
+      
+      1. ✅ Migrated User (69819f1a1e4549392d7cb6d1): Successfully auto-migrated from legacy format
+         - Returns success=true with computed ascendant="Cancer" (not "Unknown")
+         - debug_stamp shows data_format="full_computed" and houses_computed=true
+         - Backend logs confirm: "Auto-migrating chart...reason: legacy_string_format" → "Successfully migrated chart"
+      
+      2. ✅ Missing Timezone User (6971cc4381beab3a8955b256): Proper error handling
+         - Returns success=false with clear error="MIGRATION_FAILED" 
+         - Backend logs show: "Migration needed but failed...Cannot migrate: missing timezone"
+      
+      3. ✅ Complete User (6971c81f2b40fd5ef501d375): No migration needed, works correctly
+         - Returns success=true with all core placements (Sun=Pisces, Moon=Aries, Ascendant=Sagittarius)
+      
+      4. ✅ Summary Endpoint: Auto-migration integrated correctly
+         - /api/astrology/summary/69819f1a1e4549392d7cb6d1 returns valid JSON structure
+      
+      5. ✅ Today Endpoint: Auto-migration integrated correctly  
+         - /api/astrology/today/69819f1a1e4549392d7cb6d1 returns valid JSON with correct date
+      
+      CRITICAL BUG FIX VERIFIED: Old/incomplete astrology charts are automatically migrated when any astrology endpoint is called. Migration persists with audit trail. Error handling works for incomplete data.
+      
+      Additional verification: Mirror Chat API and Location Search API also working correctly.
