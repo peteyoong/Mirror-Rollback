@@ -233,3 +233,24 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Mirror Chat feature implementation complete. Backend API at /api/mirror/chat working with EMERGENT_LLM_KEY. Frontend MirrorChat.tsx integrated into Journal tab with toggle. Full conversation flow tested via Playwright screenshots - AI responds with reflective, non-prescriptive messages."
+  - agent: "main"
+    message: |
+      BUG #1 FIX COMPLETE: Astrology Auto-Migration implemented.
+      
+      What was done:
+      1. Integrated check_and_migrate_astrology_chart() into all 3 astrology endpoints
+      2. Auto-migration triggers on: legacy_string_format, missing_houses, missing_ascendant, incomplete_houses
+      3. IANA timezone support with historical offset resolution (pytz)
+      4. Birth time normalization (handles "1:25am", "01:25" formats)
+      5. Migration info persisted with audit trail
+      
+      Test user created: 69819f1a1e4549392d7cb6d1 (Migration Test User)
+      - Started with old-format chart (legacy strings)
+      - Auto-migrated to full computed chart with houses, planets, ascendant
+      
+      Test endpoints:
+      - GET /api/astrology/deep-dive/69819f1a1e4549392d7cb6d1 (migrated user - should return success:true)
+      - GET /api/astrology/deep-dive/6971cc4381beab3a8955b256 (user missing timezone - should return success:false)
+      - GET /api/astrology/deep-dive/6971c81f2b40fd5ef501d375 (complete user - should return success:true)
+      
+      Please test the "Astrology Auto-Migration" task to verify all scenarios work correctly.
