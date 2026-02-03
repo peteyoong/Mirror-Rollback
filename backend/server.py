@@ -3927,12 +3927,21 @@ async def get_astrology_today(user_id: str):
     """
     Generate Today's Snapshot - daily-first astrology timing lens.
     2-3 themes max, optional "On the horizon" if major alignment within 7 days.
+    
+    Auto-migrates old chart formats before serving data.
     """
     import json as json_module
     
     try:
         if not EMERGENT_LLM_KEY:
             raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        # =====================================================================
+        # AUTO-MIGRATION: Check and migrate old chart formats
+        # =====================================================================
+        migration_performed, migration_status, migrated_chart = await check_and_migrate_astrology_chart(user_id)
+        if migration_performed:
+            logger.info(f"[ASTRO_TODAY] Auto-migrated chart for user {user_id}: {migration_status}")
         
         user, chart = await get_user_astrology_data(user_id)
         placements = extract_astrology_placements(chart)
