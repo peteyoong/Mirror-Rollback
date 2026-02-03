@@ -4023,13 +4023,33 @@ async def get_astrology_deep_dive(user_id: str):
     Generate Deep Dive - Sun, Moon, Ascendant only.
     NO transits, NO timing, NO future implications.
     
-    Returns success:false with error code if critical data missing.
+    Auto-migrates old chart formats before serving data.
+    Returns success:false with error code if critical data missing after migration attempt.
     """
     import json as json_module
     
     try:
         if not EMERGENT_LLM_KEY:
             raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        # =====================================================================
+        # AUTO-MIGRATION: Check and migrate old chart formats FIRST
+        # =====================================================================
+        migration_performed, migration_status, migrated_chart = await check_and_migrate_astrology_chart(user_id)
+        if migration_performed:
+            logger.info(f"[ASTRO_DEEP_DIVE] Auto-migrated chart for user {user_id}: {migration_status}")
+        elif "Cannot migrate" in migration_status:
+            # Migration was needed but couldn't be done - return failure
+            logger.warning(f"[ASTRO_DEEP_DIVE] Migration needed but failed for user {user_id}: {migration_status}")
+            return {
+                "success": False,
+                "error": "MIGRATION_FAILED",
+                "message": migration_status,
+                "debug_stamp": {
+                    "migration_attempted": True,
+                    "migration_reason": migration_status
+                }
+            }
         
         user, chart = await get_user_astrology_data(user_id)
         placements = extract_astrology_placements(chart)
