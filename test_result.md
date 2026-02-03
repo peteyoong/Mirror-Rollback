@@ -281,8 +281,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Mirror Chat Component"
-    - "Mirror Chat API Endpoint"
+    - "Lens Deep Dive Views"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
