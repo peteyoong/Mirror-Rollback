@@ -4392,9 +4392,18 @@ async def get_human_design_deep_dive(user_id: str):
         
         strategy_desc = HD_STRATEGY_DESCRIPTIONS.get(hd_data['type'], 'Unique engagement pattern')
         
-        # Format defined centers and channels for the prompt
+        # Format defined centers for the prompt
         defined_centers_str = ", ".join(hd_data.get('defined_centers', [])) or "Unknown"
-        defined_channels_str = ", ".join(hd_data.get('defined_channels', [])) or "Unknown"
+        
+        # Format defined channels - they're dicts with gate1, gate2
+        channels = hd_data.get('defined_channels', [])
+        if channels and isinstance(channels[0], dict):
+            # Format as "35-36, 37-40"
+            defined_channels_str = ", ".join([f"{ch.get('gate1')}-{ch.get('gate2')}" for ch in channels])
+        elif channels:
+            defined_channels_str = ", ".join(str(ch) for ch in channels)
+        else:
+            defined_channels_str = "None identified"
         
         # Build full prompt with all available HD data
         system_prompt = HUMAN_DESIGN_GLOBAL_PROMPT + "\n\n" + HUMAN_DESIGN_DEEP_DIVE_PROMPT.format(
