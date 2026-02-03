@@ -4149,7 +4149,7 @@ async def get_astrology_deep_dive(user_id: str):
 # =====================================================================
 
 def extract_human_design_data(chart: dict) -> dict:
-    """Extract Human Design data from chart."""
+    """Extract Human Design data from chart - includes all available fields."""
     hd = chart.get('human_design', {})
     
     return {
@@ -4157,8 +4157,14 @@ def extract_human_design_data(chart: dict) -> dict:
         "strategy": hd.get('strategy', 'Unknown'),
         "authority": hd.get('authority', 'Unknown'),
         "profile": hd.get('profile', 'Unknown'),
+        "definition": hd.get('definition', 'Unknown'),
+        "incarnation_cross": hd.get('incarnation_cross', 'Unknown'),
         "defined_centers": hd.get('defined_centers', []),
-        "gates": hd.get('gates', [])
+        "defined_channels": hd.get('defined_channels', []),
+        "all_gates": hd.get('all_gates', []),
+        "personality_gates": hd.get('personality_gates', []),
+        "design_gates": hd.get('design_gates', []),
+        "gates": hd.get('gates', [])  # Legacy field
     }
 
 
