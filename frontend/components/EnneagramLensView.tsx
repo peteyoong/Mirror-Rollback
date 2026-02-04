@@ -722,6 +722,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
         return 'Use this energy for one courageous action: a difficult conversation, a focused sprint on deep work, or a decision you\'ve been avoiding.';
       }
     };
+    
+    // Get today's micro-lesson
+    const lessonIndex = getTodaysMicroLessonIndex(core);
+    const todaysLesson = MICRO_LESSONS[core]?.[lessonIndex] || MICRO_LESSONS[1][0];
 
     return (
       <>
@@ -752,6 +756,36 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 </Text>
               </TouchableOpacity>
             ))}
+          </View>
+        </View>
+        
+        {/* Daily Micro-Lesson Card */}
+        <View style={styles.microLessonCard}>
+          <View style={styles.microLessonHeader}>
+            <View>
+              <Text style={styles.microLessonTitle}>Daily Micro-Lesson</Text>
+              <Text style={styles.microLessonSubtitle}>Type {core} practice</Text>
+            </View>
+            <Ionicons name="bulb-outline" size={22} color={Colors.text} />
+          </View>
+          <Text style={styles.microLessonBody}>
+            {renderBoldText(todaysLesson, styles.microLessonBodyText, styles.microLessonBoldText)}
+          </Text>
+          <View style={styles.microLessonFooter}>
+            <View style={styles.microLessonRotates}>
+              <Ionicons name="refresh-outline" size={12} color={Colors.textTertiary} />
+              <Text style={styles.microLessonRotatesText}>Rotates daily</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.microLessonAskButton}
+              onPress={() => {
+                setChatExpanded(true);
+                setActiveCardContext('practice');
+              }}
+            >
+              <Text style={styles.microLessonAskText}>Ask about this</Text>
+              <Ionicons name="chatbubble-outline" size={12} color={Colors.text} />
+            </TouchableOpacity>
           </View>
         </View>
 
