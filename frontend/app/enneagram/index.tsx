@@ -82,7 +82,7 @@ export default function EnneagramIntro() {
             </View>
             <Text style={styles.infoText}>
               Put you in a box, predict behavior, or replace self-observation. 
-              It's a lens for reflection — not a label.
+              It&apos;s a lens for reflection — not a label.
             </Text>
           </View>
         </View>
