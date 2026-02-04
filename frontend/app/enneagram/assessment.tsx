@@ -1266,6 +1266,136 @@ export default function EnneagramAssessment() {
     );
   }
   
+  // ============================================
+  // RENDER: Likert Wing Question (Section 3)
+  // ============================================
+  if (currentQuestion.type === 'likert_wing') {
+    const wingQuestion = currentQuestion as LikertWingQuestion;
+    
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="dark" />
+        
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={Colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.sectionIndicator}>
+            Section {currentSectionIndex + 1} of {SECTIONS.length}
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        
+        {/* Progress bar */}
+        <View style={styles.progressContainer}>
+          <View style={[styles.progressBar, { width: `${overallProgress}%` }]} />
+        </View>
+        
+        <ScrollView contentContainerStyle={styles.questionScrollContent}>
+          {/* Question number */}
+          <Text style={styles.questionNumber}>
+            Question {currentQuestionIndex + 1} of {currentSectionQuestions.length}
+          </Text>
+          
+          {/* Question text */}
+          <Text style={styles.questionText}>
+            {wingQuestion.text}
+          </Text>
+          
+          {/* Likert options */}
+          <View style={styles.likertContainer}>
+            {LIKERT_OPTIONS.map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                style={styles.likertOption}
+                onPress={() => handleLikertResponse(option.value)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.likertCircle}>
+                  <Text style={styles.likertValue}>{option.value}</Text>
+                </View>
+                <Text style={styles.likertLabel}>{option.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+  
+  // ============================================
+  // RENDER: Forced Choice Wing Question (Section 3)
+  // ============================================
+  if (currentQuestion.type === 'forced_choice_wing') {
+    const fcWingQuestion = currentQuestion as ForcedChoiceWingQuestion;
+    
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="dark" />
+        
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={Colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.sectionIndicator}>
+            Section {currentSectionIndex + 1} of {SECTIONS.length}
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        
+        {/* Progress bar */}
+        <View style={styles.progressContainer}>
+          <View style={[styles.progressBar, { width: `${overallProgress}%` }]} />
+        </View>
+        
+        <ScrollView contentContainerStyle={styles.questionScrollContent}>
+          {/* Question number */}
+          <Text style={styles.questionNumber}>
+            Question {currentQuestionIndex + 1} of {currentSectionQuestions.length}
+          </Text>
+          
+          {/* Prompt */}
+          <Text style={styles.forcedChoicePrompt}>
+            {fcWingQuestion.prompt}
+          </Text>
+          
+          {/* Options */}
+          <View style={styles.forcedChoiceContainer}>
+            <TouchableOpacity
+              style={styles.forcedChoiceOption}
+              onPress={() => handleForcedChoiceResponse('A')}
+              activeOpacity={0.7}
+            >
+              <View style={styles.forcedChoiceLabel}>
+                <Text style={styles.forcedChoiceLetter}>A</Text>
+              </View>
+              <Text style={styles.forcedChoiceText}>{fcWingQuestion.optionA}</Text>
+            </TouchableOpacity>
+            
+            <View style={styles.forcedChoiceDivider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+            
+            <TouchableOpacity
+              style={styles.forcedChoiceOption}
+              onPress={() => handleForcedChoiceResponse('B')}
+              activeOpacity={0.7}
+            >
+              <View style={styles.forcedChoiceLabel}>
+                <Text style={styles.forcedChoiceLetter}>B</Text>
+              </View>
+              <Text style={styles.forcedChoiceText}>{fcWingQuestion.optionB}</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+  
   // Fallback
   return null;
 }
