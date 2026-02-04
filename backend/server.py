@@ -251,6 +251,26 @@ class EnneagramResultResponse(BaseModel):
     created_at: str
 
 
+# Enneagram Chat Models
+class EnneagramChatContext(BaseModel):
+    inferred_core: int
+    inferred_wing: Any  # int | "balanced"
+    confidence_tier: str
+    is_close: bool = False
+    top_candidates: List[Dict[str, Any]] = []  # top 2 candidates
+    energy_state: str = "unknown"  # low|neutral|high|unknown
+    active_card_context: str = "today_general"  # stress|growth|practice|journal|deep_dive|today_general
+
+class EnneagramChatRequest(BaseModel):
+    user_id: str
+    message: str
+    context: EnneagramChatContext
+
+class EnneagramChatResponse(BaseModel):
+    response: str
+    timestamp: str
+
+
 # Thread Anchor Insert - for maintaining coherence in keystone thread mode
 THREAD_ANCHOR_INSERT = """
 === ACTIVE KEYSTONE THREAD ===
