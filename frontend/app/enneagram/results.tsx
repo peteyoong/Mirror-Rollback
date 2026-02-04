@@ -77,6 +77,8 @@ export default function EnneagramResults() {
   const [result, setResult] = useState<EnneagramResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [showRetakeModal, setShowRetakeModal] = useState(false);
+  const [debugExpanded, setDebugExpanded] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
   
   useEffect(() => {
     const fetchResult = async () => {
