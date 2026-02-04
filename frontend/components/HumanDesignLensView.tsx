@@ -174,7 +174,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={Colors.textTertiary} />
-            <Text style={styles.loadingText}>Loading...</Text>
+            <Text style={styles.loadingText}>
+              {activeTab === 'deep_dive' 
+                ? 'Generating your personalized reading...\nThis may take 30-45 seconds'
+                : 'Loading...'}
+            </Text>
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
