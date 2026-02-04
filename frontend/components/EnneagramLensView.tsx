@@ -1,0 +1,1186 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Modal,
+} from 'react-native';
+import { Colors } from '../constants/colors';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// ============================================
+// TYPE DATA
+// ============================================
+
+const TYPE_NAMES: { [key: number]: string } = {
+  1: 'The Perfectionist',
+  2: 'The Helper',
+  3: 'The Achiever',
+  4: 'The Individualist',
+  5: 'The Investigator',
+  6: 'The Loyalist',
+  7: 'The Enthusiast',
+  8: 'The Challenger',
+  9: 'The Peacemaker',
+};
+
+const CORE_MOTIVATIONS: { [key: number]: string } = {
+  1: 'Driven by integrity and high standards — a desire to improve and do what is right.',
+  2: 'Driven by connection through helping — a need to be needed and valued for giving.',
+  3: 'Driven by value through achievement — a need to succeed and be seen as capable.',
+  4: 'Driven by identity and meaning — a search for depth, authenticity, and significance.',
+  5: 'Driven by competence and understanding — a need for knowledge, clarity, and inner resources.',
+  6: 'Driven by security and trust — a need for certainty, support, and reliable foundations.',
+  7: 'Driven by freedom and possibility — a need to stay stimulated, open, and unconfined.',
+  8: 'Driven by autonomy and control — a need to be strong, independent, and uncontrolled.',
+  9: 'Driven by peace and harmony — a desire for stability, comfort, and inner calm.',
+};
+
+// Wing numbers for each core type
+const WING_NUMBERS: { [key: number]: { left: number; right: number } } = {
+  1: { left: 9, right: 2 },
+  2: { left: 1, right: 3 },
+  3: { left: 2, right: 4 },
+  4: { left: 3, right: 5 },
+  5: { left: 4, right: 6 },
+  6: { left: 5, right: 7 },
+  7: { left: 6, right: 8 },
+  8: { left: 7, right: 9 },
+  9: { left: 8, right: 1 },
+};
+
+// Stress patterns per type
+const STRESS_PATTERNS: { [key: number]: string } = {
+  1: 'Under stress, you may become moody and emotionally volatile, feeling misunderstood (4-like behavior).',
+  2: 'Under stress, you may become aggressive and controlling, demanding recognition (8-like behavior).',
+  3: 'Under stress, you may disengage and become apathetic, avoiding failure (9-like behavior).',
+  4: 'Under stress, you may become clingy and overly involved, seeking connection (2-like behavior).',
+  5: 'Under stress, you may become scattered and impulsive, acting without thinking (7-like behavior).',
+  6: 'Under stress, you may become competitive and arrogant, proving your worth (3-like behavior).',
+  7: 'Under stress, you may become critical and perfectionistic, rigid and controlling (1-like behavior).',
+  8: 'Under stress, you may become withdrawn and secretive, pulling away from connection (5-like behavior).',
+  9: 'Under stress, you may become anxious and reactive, worrying about worst cases (6-like behavior).',
+};
+
+// Growth patterns per type
+const GROWTH_PATTERNS: { [key: number]: string } = {
+  1: 'When resourced, access spontaneity and joy (7-like): lightness, acceptance, playful engagement.',
+  2: 'When resourced, access self-care and boundaries (4-like): honoring your own needs and feelings.',
+  3: 'When resourced, access commitment and loyalty (6-like): depth over image, authentic connection.',
+  4: 'When resourced, access objectivity and discipline (1-like): structure, principles, right action.',
+  5: 'When resourced, access confident action (8-like): assertion, decisiveness, engaging the world.',
+  6: 'When resourced, access inner peace and receptivity (9-like): trust, relaxation, groundedness.',
+  7: 'When resourced, access focused depth (5-like): concentration, mastery, finishing what you start.',
+  8: 'When resourced, access openheartedness (2-like): vulnerability, care, letting others in.',
+  9: 'When resourced, access assertive energy (3-like): goals, action, making your mark.',
+};
+
+// Journal prompts per type
+const JOURNAL_PROMPTS: { [key: number]: string } = {
+  1: 'Where am I holding to a standard that serves my ego more than the situation?',
+  2: 'What do I need right now that I\'m not asking for?',
+  3: 'Where am I performing rather than being honest about what I feel?',
+  4: 'What ordinary moment today could I receive as enough?',
+  5: 'Where am I withholding time or energy out of a fear of being depleted?',
+  6: 'What authority am I seeking outside myself that I already have within?',
+  7: 'What am I avoiding by keeping my options open?',
+  8: 'Where am I using strength to avoid showing vulnerability?',
+  9: 'What is my own opinion about this — not what would keep the peace?',
+};
+
+// Type patterns for Deep Dive
+const TYPE_PATTERNS: { [key: number]: { strengths: string; blindSpot: string; defense: string; relational: string; work: string } } = {
+  1: {
+    strengths: 'Principled, responsible, improvement-oriented, ethical, organized',
+    blindSpot: 'Your own anger and resentment; the gap between ideals and reality',
+    defense: 'Reaction formation — converting unacceptable impulses into their opposites',
+    relational: 'Teaching and correcting; can be critical; seeks shared standards',
+    work: 'Detail-oriented, reliable, quality-focused; struggles with "good enough"',
+  },
+  2: {
+    strengths: 'Generous, empathetic, supportive, interpersonally attuned, warm',
+    blindSpot: 'Your own needs and pride in being needed; indirect manipulation',
+    defense: 'Repression — pushing your own needs out of awareness',
+    relational: 'Giving to receive; creates dependency; fears being unwanted',
+    work: 'People-centered, helpful, collaborative; struggles with boundaries',
+  },
+  3: {
+    strengths: 'Efficient, adaptable, goal-oriented, inspiring, pragmatic',
+    blindSpot: 'Your own feelings and authentic self; image vs. substance gap',
+    defense: 'Identification — becoming the role or image that wins approval',
+    relational: 'Impressive and charming; can be superficial; fears being seen as failing',
+    work: 'High-achieving, competitive, results-driven; struggles with depth',
+  },
+  4: {
+    strengths: 'Creative, emotionally honest, aesthetic, deep, authentic',
+    blindSpot: 'What\'s present and ordinary; romanticizing what\'s missing',
+    defense: 'Introjection — internalizing criticism and making it part of identity',
+    relational: 'Intense and meaningful; can be dramatic; fears being ordinary',
+    work: 'Original, expressive, meaning-driven; struggles with routine tasks',
+  },
+  5: {
+    strengths: 'Observant, insightful, objective, self-sufficient, analytical',
+    blindSpot: 'Your emotional needs and impact on others; excessive detachment',
+    defense: 'Isolation — separating feelings from thoughts and events',
+    relational: 'Private and cerebral; needs space; fears intrusion and demands',
+    work: 'Expert, thorough, innovative; struggles with collaboration and action',
+  },
+  6: {
+    strengths: 'Loyal, responsible, vigilant, questioning, committed',
+    blindSpot: 'Your own courage and authority; projecting threats onto others',
+    defense: 'Projection — attributing your own doubts and fears to external sources',
+    relational: 'Reliable and testing; questions loyalty; fears betrayal',
+    work: 'Team-oriented, troubleshooting, thorough; struggles with confidence',
+  },
+  7: {
+    strengths: 'Enthusiastic, optimistic, versatile, quick-minded, adventurous',
+    blindSpot: 'Painful feelings and limits; using positive framing to avoid depth',
+    defense: 'Rationalization — reframing pain as learning or opportunity',
+    relational: 'Fun and engaging; avoids negativity; fears being trapped in pain',
+    work: 'Innovative, energetic, multi-tasking; struggles with follow-through',
+  },
+  8: {
+    strengths: 'Powerful, protective, direct, decisive, self-confident',
+    blindSpot: 'Your own vulnerability and impact; excessive force or control',
+    defense: 'Denial — blocking awareness of weakness or vulnerability',
+    relational: 'Protective and confronting; dominates; fears being controlled',
+    work: 'Leadership-oriented, decisive, entrepreneurial; struggles with delegation',
+  },
+  9: {
+    strengths: 'Peaceful, accepting, patient, receptive, mediating',
+    blindSpot: 'Your own preferences and anger; merging with others\' agendas',
+    defense: 'Narcotization — numbing through routine, comfort, or distraction',
+    relational: 'Harmonizing and accommodating; avoids conflict; fears disconnection',
+    work: 'Steady, inclusive, diplomatic; struggles with priorities and assertion',
+  },
+};
+
+// Self-mastery levels
+const MASTERY_LEVELS: { [key: number]: { reactive: string; average: string; resourced: string } } = {
+  1: {
+    reactive: 'Critical, rigid, resentful — the inner critic runs the show.',
+    average: 'Hardworking, principled, sometimes preachy — improvement-focused.',
+    resourced: 'Wise, accepting, discerning — holds standards without attachment.',
+  },
+  2: {
+    reactive: 'Manipulative, prideful, martyr — giving with strings attached.',
+    average: 'Helpful, warm, people-pleasing — connection through service.',
+    resourced: 'Unconditionally caring, self-aware — gives freely without agenda.',
+  },
+  3: {
+    reactive: 'Deceitful, image-obsessed, empty — performing for approval.',
+    average: 'Ambitious, efficient, competitive — achieving visible goals.',
+    resourced: 'Authentic, inspiring, truthful — succeeds from genuine value.',
+  },
+  4: {
+    reactive: 'Self-absorbed, dramatic, envious — lost in emotional storms.',
+    average: 'Creative, melancholic, searching — seeking meaningful depth.',
+    resourced: 'Equanimous, creative, present — transforms feeling into beauty.',
+  },
+  5: {
+    reactive: 'Isolated, nihilistic, detached — retreating from all demands.',
+    average: 'Analytical, private, accumulating — building inner resources.',
+    resourced: 'Visionary, engaged, generous — shares knowledge and presence.',
+  },
+  6: {
+    reactive: 'Paranoid, reactive, blaming — seeing threat everywhere.',
+    average: 'Loyal, questioning, responsible — seeking security in structure.',
+    resourced: 'Courageous, trusting, grounded — acts from inner authority.',
+  },
+  7: {
+    reactive: 'Scattered, escapist, excessive — running from any discomfort.',
+    average: 'Optimistic, busy, planning — staying stimulated and positive.',
+    resourced: 'Focused, joyful, present — experiences depth without fear.',
+  },
+  8: {
+    reactive: 'Dominating, vengeful, destructive — power without restraint.',
+    average: 'Assertive, protective, direct — leading through strength.',
+    resourced: 'Magnanimous, vulnerable, just — uses power to serve.',
+  },
+  9: {
+    reactive: 'Stubborn, checked-out, passive-aggressive — resisting through inaction.',
+    average: 'Pleasant, accommodating, routine — maintaining peace.',
+    resourced: 'Engaged, self-assured, present — acts from clear priorities.',
+  },
+};
+
+// ============================================
+// TYPES
+// ============================================
+
+interface EnneagramResult {
+  inferred_core: number;
+  inferred_wing: number | 'balanced';
+  confidence: number;
+  confidence_tier: string;
+  is_close?: boolean;
+  top_candidates: { type: number; probability: number }[];
+  state_calibration?: {
+    energy_state: string;
+    life_context: string;
+    answer_frame: string;
+  };
+}
+
+interface Props {
+  result: EnneagramResult;
+  userId: string;
+}
+
+type TabType = 'summary' | 'today' | 'deep_dive';
+type EnergyState = 'low' | 'neutral' | 'high';
+type MasteryLevel = 'reactive' | 'average' | 'resourced';
+
+// ============================================
+// COMPONENT
+// ============================================
+
+export default function EnneagramLensView({ result, userId }: Props) {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<TabType>('summary');
+  const [energyState, setEnergyState] = useState<EnergyState | null>(
+    (result.state_calibration?.energy_state as EnergyState) || null
+  );
+  const [selectedMasteryLevel, setSelectedMasteryLevel] = useState<MasteryLevel>('average');
+  const [showRetakeModal, setShowRetakeModal] = useState(false);
+
+  const core = result.inferred_core;
+  const wing = result.inferred_wing;
+  const wings = WING_NUMBERS[core];
+  const otherWing = wing === wings.left ? wings.right : wings.left;
+
+  // Save energy state locally for session
+  const handleEnergySelect = async (state: EnergyState) => {
+    setEnergyState(state);
+    try {
+      await AsyncStorage.setItem(`enneagram_energy_${userId}`, state);
+    } catch (e) {
+      console.error('Failed to save energy state:', e);
+    }
+  };
+
+  // Load saved energy state
+  useEffect(() => {
+    const loadEnergyState = async () => {
+      try {
+        const saved = await AsyncStorage.getItem(`enneagram_energy_${userId}`);
+        if (saved && !energyState) {
+          setEnergyState(saved as EnergyState);
+        }
+      } catch (e) {
+        console.error('Failed to load energy state:', e);
+      }
+    };
+    loadEnergyState();
+  }, [userId]);
+
+  const handleRetakeConfirm = () => {
+    setShowRetakeModal(false);
+    router.push('/enneagram/assessment');
+  };
+
+  // ============================================
+  // RENDER HELPERS
+  // ============================================
+
+  const renderTabs = () => (
+    <View style={styles.tabContainer}>
+      <TouchableOpacity
+        style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
+        onPress={() => setActiveTab('summary')}
+      >
+        <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>
+          Summary
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.tab, activeTab === 'today' && styles.activeTab]}
+        onPress={() => setActiveTab('today')}
+      >
+        <Text style={[styles.tabText, activeTab === 'today' && styles.activeTabText]}>
+          Today
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
+        onPress={() => setActiveTab('deep_dive')}
+      >
+        <Text style={[styles.tabText, activeTab === 'deep_dive' && styles.activeTabText]}>
+          Deep Dive
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderConfidenceBadge = () => {
+    const tier = result.confidence_tier;
+    return (
+      <View style={[
+        styles.confidenceBadge,
+        tier === 'high' && styles.confidenceHigh,
+        tier === 'medium' && styles.confidenceMedium,
+        tier === 'low' && styles.confidenceLow,
+      ]}>
+        <Text style={styles.confidenceText}>
+          {tier === 'high' ? 'High' : tier === 'medium' ? 'Medium' : 'Low'} Confidence
+        </Text>
+      </View>
+    );
+  };
+
+  // ============================================
+  // SUMMARY TAB
+  // ============================================
+
+  const renderSummaryTab = () => (
+    <>
+      {/* Hero Card */}
+      <View style={styles.heroCard}>
+        <View style={styles.heroBadge}>
+          <Text style={styles.heroBadgeText}>{core}</Text>
+        </View>
+        <Text style={styles.heroTitle}>Type {core}</Text>
+        <Text style={styles.heroSubtitle}>
+          {wing === 'balanced' ? 'Balanced wings' : `Wing ${wing}`}
+        </Text>
+        {renderConfidenceBadge()}
+        <Text style={styles.heroDisclaimer}>
+          This lens reflects motivation, not mood.
+        </Text>
+      </View>
+
+      {/* Core Motivation Card */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Core Motivation</Text>
+        <Text style={styles.cardBody}>
+          {CORE_MOTIVATIONS[core]}
+        </Text>
+      </View>
+
+      {/* Wing Access Card */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Your Wing Access</Text>
+        {wing !== 'balanced' ? (
+          <>
+            <Text style={styles.cardBody}>
+              Wings are access paths — capacities you can develop. The quieter wing often holds untapped potential.
+            </Text>
+            <View style={styles.wingRow}>
+              <View style={styles.wingItem}>
+                <Text style={styles.wingLabel}>Dominant</Text>
+                <Text style={styles.wingValue}>Wing {wing}</Text>
+              </View>
+              <View style={styles.wingDivider} />
+              <View style={styles.wingItem}>
+                <Text style={styles.wingLabel}>Growth access</Text>
+                <Text style={styles.wingValue}>Wing {otherWing}</Text>
+              </View>
+            </View>
+          </>
+        ) : (
+          <Text style={styles.cardBody}>
+            You show access to both wings. Balance comes from choosing consciously based on the situation, not defaulting to one pattern.
+          </Text>
+        )}
+      </View>
+
+      {/* Top Alternatives Card */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Top Alternatives</Text>
+        <Text style={styles.cardSubtitle}>
+          Common mistypes included for self-verification
+        </Text>
+        {result.top_candidates.slice(0, 3).map((candidate, index) => (
+          <View key={candidate.type} style={styles.candidateRow}>
+            <Text style={styles.candidateRank}>{index + 1}</Text>
+            <Text style={styles.candidateType}>
+              Type {candidate.type} — {TYPE_NAMES[candidate.type]}
+            </Text>
+            <Text style={styles.candidatePercent}>
+              {Math.round(candidate.probability * 100)}%
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      {/* CTA Row */}
+      <View style={styles.ctaRow}>
+        <TouchableOpacity
+          style={styles.ctaButtonPrimary}
+          onPress={() => router.push('/enneagram/results')}
+        >
+          <Text style={styles.ctaButtonPrimaryText}>View Full Results</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.ctaButtonSecondary}
+          onPress={() => setShowRetakeModal(true)}
+        >
+          <Text style={styles.ctaButtonSecondaryText}>Retake Assessment</Text>
+        </TouchableOpacity>
+      </View>
+    </>
+  );
+
+  // ============================================
+  // TODAY TAB
+  // ============================================
+
+  const renderTodayTab = () => {
+    // Generate practice based on energy state
+    const getPractice = (): string => {
+      if (!energyState || energyState === 'low') {
+        return 'Ground yourself: feet on floor, three deep breaths. Then choose one small task you can complete in 10 minutes. Do only that.';
+      } else if (energyState === 'neutral') {
+        return 'Name one honest feeling without justifying it. Then pick your single most important priority for the next 2 hours. Focus only on that.';
+      } else {
+        return 'Use this energy for one courageous action: a difficult conversation, a focused sprint on deep work, or a decision you\'ve been avoiding.';
+      }
+    };
+
+    return (
+      <>
+        {/* Today Check-in Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Today Check-in</Text>
+          <Text style={styles.cardBody}>What&apos;s your energy right now?</Text>
+          <View style={styles.energyButtons}>
+            {(['low', 'neutral', 'high'] as EnergyState[]).map((state) => (
+              <TouchableOpacity
+                key={state}
+                style={[
+                  styles.energyButton,
+                  energyState === state && styles.energyButtonSelected
+                ]}
+                onPress={() => handleEnergySelect(state)}
+              >
+                <Ionicons
+                  name={state === 'low' ? 'battery-dead-outline' : state === 'neutral' ? 'battery-half-outline' : 'battery-full-outline'}
+                  size={18}
+                  color={energyState === state ? Colors.background : Colors.text}
+                />
+                <Text style={[
+                  styles.energyButtonText,
+                  energyState === state && styles.energyButtonTextSelected
+                ]}>
+                  {state.charAt(0).toUpperCase() + state.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Stress Pattern Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="warning-outline" size={18} color={Colors.textSecondary} />
+            <Text style={styles.cardTitle}>Watch For (Stress)</Text>
+          </View>
+          <Text style={styles.cardBody}>
+            {STRESS_PATTERNS[core]}
+          </Text>
+        </View>
+
+        {/* Growth Pattern Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="trending-up-outline" size={18} color={Colors.textSecondary} />
+            <Text style={styles.cardTitle}>Access (Growth)</Text>
+          </View>
+          <Text style={styles.cardBody}>
+            {GROWTH_PATTERNS[core]}
+          </Text>
+        </View>
+
+        {/* 2-Minute Practice Card */}
+        <View style={styles.practiceCard}>
+          <Text style={styles.practiceLabel}>2-MINUTE PRACTICE</Text>
+          <Text style={styles.practiceBody}>
+            {getPractice()}
+          </Text>
+        </View>
+
+        {/* Journal Prompt Card */}
+        <View style={styles.promptCard}>
+          <Text style={styles.promptLabel}>JOURNAL PROMPT</Text>
+          <Text style={styles.promptBody}>
+            {JOURNAL_PROMPTS[core]}
+          </Text>
+        </View>
+      </>
+    );
+  };
+
+  // ============================================
+  // DEEP DIVE TAB
+  // ============================================
+
+  const renderDeepDiveTab = () => {
+    const patterns = TYPE_PATTERNS[core];
+    const mastery = MASTERY_LEVELS[core];
+
+    return (
+      <>
+        {/* Type Pattern Section */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Type {core} Pattern</Text>
+          
+          <View style={styles.patternRow}>
+            <Text style={styles.patternLabel}>Strengths</Text>
+            <Text style={styles.patternValue}>{patterns.strengths}</Text>
+          </View>
+          
+          <View style={styles.patternRow}>
+            <Text style={styles.patternLabel}>Blind Spot</Text>
+            <Text style={styles.patternValue}>{patterns.blindSpot}</Text>
+          </View>
+          
+          <View style={styles.patternRow}>
+            <Text style={styles.patternLabel}>Default Defense</Text>
+            <Text style={styles.patternValue}>{patterns.defense}</Text>
+          </View>
+          
+          <View style={styles.patternRow}>
+            <Text style={styles.patternLabel}>Relational Pattern</Text>
+            <Text style={styles.patternValue}>{patterns.relational}</Text>
+          </View>
+          
+          <View style={styles.patternRow}>
+            <Text style={styles.patternLabel}>Work Pattern</Text>
+            <Text style={styles.patternValue}>{patterns.work}</Text>
+          </View>
+        </View>
+
+        {/* Wings as Flight Section */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Wings as Flight</Text>
+          <Text style={styles.cardBody}>
+            A strong wing gives power and range in that direction. The quieter wing — often underdeveloped early — gives balance when reopened.
+          </Text>
+          <Text style={styles.cardNote}>
+            Some people develop a &quot;cut wing&quot; early due to circumstances. Reopening it often restores flexibility and range.
+          </Text>
+          {wing !== 'balanced' && (
+            <View style={styles.wingFlightRow}>
+              <View style={styles.wingFlightItem}>
+                <Text style={styles.wingFlightLabel}>Strong Wing</Text>
+                <Text style={styles.wingFlightValue}>{wing}</Text>
+              </View>
+              <View style={styles.wingFlightItem}>
+                <Text style={styles.wingFlightLabel}>Growth Wing</Text>
+                <Text style={styles.wingFlightValue}>{otherWing}</Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* Self-Mastery Dial Section */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Self-Mastery Dial</Text>
+          <Text style={styles.cardSubtitle}>
+            Your core type stays stable; your expression changes with energy and development.
+          </Text>
+          
+          <View style={styles.masteryToggle}>
+            {(['reactive', 'average', 'resourced'] as MasteryLevel[]).map((level) => (
+              <TouchableOpacity
+                key={level}
+                style={[
+                  styles.masteryButton,
+                  selectedMasteryLevel === level && styles.masteryButtonSelected
+                ]}
+                onPress={() => setSelectedMasteryLevel(level)}
+              >
+                <Text style={[
+                  styles.masteryButtonText,
+                  selectedMasteryLevel === level && styles.masteryButtonTextSelected
+                ]}>
+                  {level.charAt(0).toUpperCase() + level.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          
+          <View style={styles.masteryDescription}>
+            <Text style={styles.masteryDescriptionText}>
+              {mastery[selectedMasteryLevel]}
+            </Text>
+          </View>
+        </View>
+
+        {/* Verification Section */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Verification</Text>
+          <Text style={styles.cardBody}>
+            If this doesn&apos;t sit right, explore these nearby patterns:
+          </Text>
+          {result.top_candidates.slice(1, 3).map((candidate) => (
+            <View key={candidate.type} style={styles.verificationItem}>
+              <Text style={styles.verificationType}>
+                Type {candidate.type} — {TYPE_NAMES[candidate.type]}
+              </Text>
+              <Text style={styles.verificationPercent}>
+                {Math.round(candidate.probability * 100)}%
+              </Text>
+            </View>
+          ))}
+          <TouchableOpacity
+            style={styles.retakeLink}
+            onPress={() => setShowRetakeModal(true)}
+          >
+            <Ionicons name="refresh-outline" size={16} color={Colors.textSecondary} />
+            <Text style={styles.retakeLinkText}>Retake Assessment</Text>
+          </TouchableOpacity>
+        </View>
+      </>
+    );
+  };
+
+  // ============================================
+  // RETAKE MODAL
+  // ============================================
+
+  const renderRetakeModal = () => (
+    <Modal
+      visible={showRetakeModal}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowRetakeModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Retake Assessment?</Text>
+          <Text style={styles.modalText}>
+            This will replace your current results. The assessment takes about 10-12 minutes.
+          </Text>
+          <View style={styles.modalActions}>
+            <TouchableOpacity
+              style={styles.modalCancelButton}
+              onPress={() => setShowRetakeModal(false)}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalConfirmButton}
+              onPress={handleRetakeConfirm}
+            >
+              <Text style={styles.modalConfirmText}>Retake</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  // ============================================
+  // MAIN RENDER
+  // ============================================
+
+  return (
+    <View style={styles.container}>
+      {renderTabs()}
+      
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {activeTab === 'summary' && renderSummaryTab()}
+        {activeTab === 'today' && renderTodayTab()}
+        {activeTab === 'deep_dive' && renderDeepDiveTab()}
+        
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
+      
+      {renderRetakeModal()}
+    </View>
+  );
+}
+
+// ============================================
+// STYLES
+// ============================================
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 16,
+  },
+  bottomSpacer: {
+    height: 40,
+  },
+
+  // Tabs
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.text,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textTertiary,
+  },
+  activeTabText: {
+    color: Colors.text,
+  },
+
+  // Hero Card
+  heroCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 16,
+  },
+  heroBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.text,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  heroBadgeText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: Colors.background,
+  },
+  heroTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  heroSubtitle: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginBottom: 12,
+  },
+  heroDisclaimer: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+
+  // Confidence Badge
+  confidenceBadge: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: Colors.border,
+  },
+  confidenceHigh: {
+    backgroundColor: '#D4EDDA',
+  },
+  confidenceMedium: {
+    backgroundColor: '#FFF3CD',
+  },
+  confidenceLow: {
+    backgroundColor: '#F8D7DA',
+  },
+  confidenceText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+
+  // Cards
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 12,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    marginBottom: 12,
+  },
+  cardBody: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+  },
+  cardNote: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textTertiary,
+    marginTop: 12,
+    fontStyle: 'italic',
+  },
+
+  // Wing Row
+  wingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  wingItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  wingDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: Colors.border,
+  },
+  wingLabel: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    marginBottom: 4,
+  },
+  wingValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+
+  // Candidates
+  candidateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  candidateRank: {
+    width: 24,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+  },
+  candidateType: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.text,
+  },
+  candidatePercent: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+
+  // CTA Row
+  ctaRow: {
+    gap: 12,
+    marginTop: 8,
+  },
+  ctaButtonPrimary: {
+    backgroundColor: Colors.text,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  ctaButtonPrimaryText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  ctaButtonSecondary: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  ctaButtonSecondaryText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+
+  // Energy Buttons (Today tab)
+  energyButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+  },
+  energyButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  energyButtonSelected: {
+    backgroundColor: Colors.text,
+    borderColor: Colors.text,
+  },
+  energyButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  energyButtonTextSelected: {
+    color: Colors.background,
+  },
+
+  // Practice Card
+  practiceCard: {
+    backgroundColor: Colors.surfaceLight,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 12,
+  },
+  practiceLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  practiceBody: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.text,
+  },
+
+  // Prompt Card
+  promptCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.text,
+  },
+  promptLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  promptBody: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: Colors.text,
+    fontStyle: 'italic',
+  },
+
+  // Pattern Rows (Deep Dive)
+  patternRow: {
+    marginBottom: 14,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  patternLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  patternValue: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.text,
+  },
+
+  // Wing Flight Row
+  wingFlightRow: {
+    flexDirection: 'row',
+    marginTop: 16,
+    gap: 12,
+  },
+  wingFlightItem: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    borderRadius: 10,
+    padding: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  wingFlightLabel: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    marginBottom: 4,
+  },
+  wingFlightValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+
+  // Mastery Toggle
+  masteryToggle: {
+    flexDirection: 'row',
+    backgroundColor: Colors.background,
+    borderRadius: 10,
+    padding: 4,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  masteryButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  masteryButtonSelected: {
+    backgroundColor: Colors.text,
+  },
+  masteryButtonText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  masteryButtonTextSelected: {
+    color: Colors.background,
+  },
+  masteryDescription: {
+    backgroundColor: Colors.background,
+    borderRadius: 10,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  masteryDescriptionText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.text,
+    textAlign: 'center',
+  },
+
+  // Verification
+  verificationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  verificationType: {
+    fontSize: 14,
+    color: Colors.text,
+  },
+  verificationPercent: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  retakeLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 16,
+    paddingVertical: 8,
+  },
+  retakeLinkText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 340,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 12,
+  },
+  modalText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+    marginBottom: 24,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalCancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  modalConfirmButton: {
+    flex: 1,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: Colors.text,
+    borderRadius: 10,
+  },
+  modalConfirmText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+});
