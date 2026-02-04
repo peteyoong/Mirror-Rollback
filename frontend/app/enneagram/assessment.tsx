@@ -49,13 +49,14 @@ const SECTIONS: SectionConfig[] = [
 ];
 
 // ============================================
-// PLACEHOLDER QUESTIONS (to be replaced)
+// QUESTION TYPES
 // ============================================
 
 interface LikertQuestion {
   id: string;
   text: string;
   type: 'likert';
+  typeMapping: number; // Enneagram type 1-9 for scoring
 }
 
 interface ForcedChoiceQuestion {
@@ -67,11 +68,198 @@ interface ForcedChoiceQuestion {
 
 type Question = LikertQuestion | ForcedChoiceQuestion;
 
-// Placeholder questions - to be replaced with actual assessment questions
+// ============================================
+// SECTION 1: CORE MOTIVATION QUESTIONS (27 total)
+// ============================================
+
+const CORE_MOTIVATION_QUESTIONS: LikertQuestion[] = [
+  // TYPE 1 - The Perfectionist
+  {
+    id: 'Q01',
+    text: 'I experience a persistent inner sense that things could and should be better than they are.',
+    type: 'likert',
+    typeMapping: 1,
+  },
+  {
+    id: 'Q02',
+    text: 'I feel uneasy when I compromise my standards, even in small ways.',
+    type: 'likert',
+    typeMapping: 1,
+  },
+  {
+    id: 'Q03',
+    text: 'There is an internal pressure to correct mistakes — especially my own.',
+    type: 'likert',
+    typeMapping: 1,
+  },
+
+  // TYPE 2 - The Helper
+  {
+    id: 'Q04',
+    text: 'I naturally focus on what others need, often before noticing my own.',
+    type: 'likert',
+    typeMapping: 2,
+  },
+  {
+    id: 'Q05',
+    text: 'Feeling appreciated or valued by others strongly affects my sense of worth.',
+    type: 'likert',
+    typeMapping: 2,
+  },
+  {
+    id: 'Q06',
+    text: 'I find it difficult to disengage when someone depends on me.',
+    type: 'likert',
+    typeMapping: 2,
+  },
+
+  // TYPE 3 - The Achiever
+  {
+    id: 'Q07',
+    text: 'I instinctively adapt myself to what will be valued or rewarded in a given environment.',
+    type: 'likert',
+    typeMapping: 3,
+  },
+  {
+    id: 'Q08',
+    text: 'Achievement and visible progress strongly influence how I evaluate myself.',
+    type: 'likert',
+    typeMapping: 3,
+  },
+  {
+    id: 'Q09',
+    text: 'I feel driven to be effective, capable, and ahead of expectations.',
+    type: 'likert',
+    typeMapping: 3,
+  },
+
+  // TYPE 4 - The Individualist
+  {
+    id: 'Q10',
+    text: 'I am preoccupied with understanding who I truly am and what makes me distinct.',
+    type: 'likert',
+    typeMapping: 4,
+  },
+  {
+    id: 'Q11',
+    text: 'I often feel a sense of longing for something essential that feels missing.',
+    type: 'likert',
+    typeMapping: 4,
+  },
+  {
+    id: 'Q12',
+    text: 'Meaning and emotional depth matter more to me than practicality.',
+    type: 'likert',
+    typeMapping: 4,
+  },
+
+  // TYPE 5 - The Investigator
+  {
+    id: 'Q13',
+    text: 'I feel safest when I have sufficient knowledge, clarity, and inner resources.',
+    type: 'likert',
+    typeMapping: 5,
+  },
+  {
+    id: 'Q14',
+    text: 'I am instinctively careful about how much of myself — time, energy, or attention — I give.',
+    type: 'likert',
+    typeMapping: 5,
+  },
+  {
+    id: 'Q15',
+    text: 'Understanding precedes action for me; I dislike acting without grasping the whole picture.',
+    type: 'likert',
+    typeMapping: 5,
+  },
+
+  // TYPE 6 - The Loyalist
+  {
+    id: 'Q16',
+    text: 'I naturally anticipate potential problems and think through what could go wrong.',
+    type: 'likert',
+    typeMapping: 6,
+  },
+  {
+    id: 'Q17',
+    text: 'I seek certainty or reassurance before fully committing to decisions.',
+    type: 'likert',
+    typeMapping: 6,
+  },
+  {
+    id: 'Q18',
+    text: 'Trust and reliability are central concerns in how I navigate relationships and systems.',
+    type: 'likert',
+    typeMapping: 6,
+  },
+
+  // TYPE 7 - The Enthusiast
+  {
+    id: 'Q19',
+    text: 'I orient toward keeping options open and avoiding situations that feel confining or heavy.',
+    type: 'likert',
+    typeMapping: 7,
+  },
+  {
+    id: 'Q20',
+    text: 'I become restless when life feels predictable, restricted, or emotionally dense.',
+    type: 'likert',
+    typeMapping: 7,
+  },
+  {
+    id: 'Q21',
+    text: 'I instinctively reframe difficulties to preserve a sense of possibility or optimism.',
+    type: 'likert',
+    typeMapping: 7,
+  },
+
+  // TYPE 8 - The Challenger
+  {
+    id: 'Q22',
+    text: 'I feel a strong need to stay in control of my life and circumstances.',
+    type: 'likert',
+    typeMapping: 8,
+  },
+  {
+    id: 'Q23',
+    text: 'I resist being constrained, dominated, or told what to do.',
+    type: 'likert',
+    typeMapping: 8,
+  },
+  {
+    id: 'Q24',
+    text: 'I respect strength and directness more than sensitivity or hesitation.',
+    type: 'likert',
+    typeMapping: 8,
+  },
+
+  // TYPE 9 - The Peacemaker
+  {
+    id: 'Q25',
+    text: 'I tend to minimise conflict and smooth things over to maintain harmony.',
+    type: 'likert',
+    typeMapping: 9,
+  },
+  {
+    id: 'Q26',
+    text: 'I can lose touch with my own priorities by accommodating others.',
+    type: 'likert',
+    typeMapping: 9,
+  },
+  {
+    id: 'Q27',
+    text: 'I feel most comfortable when there is stability and little emotional tension.',
+    type: 'likert',
+    typeMapping: 9,
+  },
+];
+
+// ============================================
+// SECTION QUESTIONS
+// ============================================
+
 const SECTION_QUESTIONS: { [key: string]: Question[] } = {
-  core_motivation: [
-    // Placeholder - will be replaced with actual Likert questions
-  ],
+  core_motivation: CORE_MOTIVATION_QUESTIONS,
   disambiguation: [
     // Placeholder - will be replaced with actual forced-choice questions
   ],
