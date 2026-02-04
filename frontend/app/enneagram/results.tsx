@@ -406,6 +406,63 @@ export default function EnneagramResults() {
           </View>
         </View>
         
+        {/* Feedback Card */}
+        <View style={styles.feedbackCard}>
+          <Text style={styles.feedbackTitle}>Does this feel accurate?</Text>
+          <View style={styles.feedbackButtons}>
+            <TouchableOpacity
+              style={[
+                styles.feedbackButton,
+                selectedFeedback === 'yes' && styles.feedbackButtonSelected,
+              ]}
+              onPress={() => handleFeedbackSelect('yes')}
+              disabled={hasSubmittedFeedbackRef.current && selectedFeedback !== null}
+            >
+              {selectedFeedback === 'yes' && (
+                <Ionicons name="checkmark" size={14} color={Colors.text} style={styles.feedbackCheckmark} />
+              )}
+              <Text style={[
+                styles.feedbackButtonText,
+                selectedFeedback === 'yes' && styles.feedbackButtonTextSelected,
+              ]}>Yes</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[
+                styles.feedbackButton,
+                selectedFeedback === 'mostly' && styles.feedbackButtonSelected,
+              ]}
+              onPress={() => handleFeedbackSelect('mostly')}
+              disabled={hasSubmittedFeedbackRef.current && selectedFeedback !== null}
+            >
+              {selectedFeedback === 'mostly' && (
+                <Ionicons name="checkmark" size={14} color={Colors.text} style={styles.feedbackCheckmark} />
+              )}
+              <Text style={[
+                styles.feedbackButtonText,
+                selectedFeedback === 'mostly' && styles.feedbackButtonTextSelected,
+              ]}>Mostly</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[
+                styles.feedbackButton,
+                selectedFeedback === 'no' && styles.feedbackButtonSelected,
+              ]}
+              onPress={() => handleFeedbackSelect('no')}
+              disabled={hasSubmittedFeedbackRef.current && selectedFeedback !== null}
+            >
+              {selectedFeedback === 'no' && (
+                <Ionicons name="checkmark" size={14} color={Colors.text} style={styles.feedbackCheckmark} />
+              )}
+              <Text style={[
+                styles.feedbackButtonText,
+                selectedFeedback === 'no' && styles.feedbackButtonTextSelected,
+              ]}>No</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        
         {/* Why Paragraph */}
         <View style={styles.whyCard}>
           <Text style={styles.whyTitle}>Why this type?</Text>
