@@ -4540,11 +4540,16 @@ async def get_human_design_deep_dive(user_id: str):
                     "authority": hd_data['authority']
                 }
             
+            # =====================================================================
+            # CACHE THE RESPONSE for instant repeat views
+            # =====================================================================
+            await set_cached_deep_dive(user_id, "human_design", result)
+            
             return result
             
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse HD deep dive JSON: {e}")
-            return {
+            fallback_result = {
                 "title": "Your Core Mechanics",
                 "core_mechanics": {
                     "type": hd_data['type'],
@@ -4564,6 +4569,9 @@ async def get_human_design_deep_dive(user_id: str):
                 ],
                 "mirror_prompt": "What would be a small, low-stakes way to experiment with this today?"
             }
+            # Cache fallback too
+            await set_cached_deep_dive(user_id, "human_design", fallback_result)
+            return fallback_result
     
     except HTTPException:
         raise
