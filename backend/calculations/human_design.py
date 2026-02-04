@@ -117,6 +117,111 @@ HD_GATE_WHEEL = [
     # Gate 25 wraps from Pisces to Aries (handled specially)
 ]
 
+# =============================================================================
+# INCARNATION CROSS NAMES
+# =============================================================================
+# Maps personality Sun gate to the cross name. The cross is determined by
+# the Sun gate in the Personality (conscious) calculation.
+# Format: gate_number -> cross_name
+
+INCARNATION_CROSS_NAMES = {
+    1: "Sphinx",
+    2: "Driver",
+    3: "Laws",
+    4: "Explanation",
+    5: "Consciousness",
+    6: "Eden",
+    7: "Sphinx",
+    8: "Contagion",
+    9: "Planning",
+    10: "Vessel of Love",
+    11: "Education",
+    12: "Eden",
+    13: "Sphinx",
+    14: "Contagion",
+    15: "Vessel of Love",
+    16: "Planning",
+    17: "Service",
+    18: "Service",
+    19: "Four Ways",
+    20: "Sleeping Phoenix",
+    21: "Tension",
+    22: "Rulership",
+    23: "Assimilation",
+    24: "Incarnation",
+    25: "Vessel of Love",
+    26: "Rulership",
+    27: "Unexpected",
+    28: "Game Player",
+    29: "Contagion",
+    30: "Contagion",
+    31: "Unexpected",
+    32: "Maya",
+    33: "Four Ways",
+    34: "Sleeping Phoenix",
+    35: "Consciousness",
+    36: "Eden",
+    37: "Migration",
+    38: "Tension",
+    39: "Tension",
+    40: "Migration",
+    41: "Unexpected",
+    42: "Maya",
+    43: "Explanation",
+    44: "Four Ways",
+    45: "Rulership",
+    46: "Vessel of Love",
+    47: "Rulership",
+    48: "Tension",
+    49: "Explanation",
+    50: "Laws",
+    51: "Penetration",
+    52: "Service",
+    53: "Penetration",
+    54: "Penetration",
+    55: "Sleeping Phoenix",
+    56: "Laws",
+    57: "Penetration",
+    58: "Service",
+    59: "Sleeping Phoenix",
+    60: "Laws",
+    61: "Maya",
+    62: "Maya",
+    63: "Consciousness",
+    64: "Consciousness",
+}
+
+def get_incarnation_cross_name(p_sun_gate: int, profile_line1: int) -> str:
+    """
+    Get the full incarnation cross name based on personality Sun gate and profile.
+    
+    The cross angle (Right Angle, Left Angle, Juxtaposition) is determined by the
+    first number of the profile:
+    - Lines 1, 2, 3, 4 = Right Angle Cross (RAX) - Personal destiny
+    - Line 4 with specific gates = Juxtaposition Cross (JXP) - Fixed fate
+    - Lines 5, 6 = Left Angle Cross (LAX) - Transpersonal karma
+    
+    Args:
+        p_sun_gate: Personality Sun gate number
+        profile_line1: First line of the profile (1-6)
+    
+    Returns:
+        Full cross name like "RAX Migration" or "LAX Tension"
+    """
+    cross_name = INCARNATION_CROSS_NAMES.get(p_sun_gate, f"Cross of Gate {p_sun_gate}")
+    
+    # Determine cross angle from profile
+    if profile_line1 in [1, 2, 3]:
+        angle = "RAX"  # Right Angle Cross
+    elif profile_line1 == 4:
+        angle = "JXP"  # Juxtaposition Cross
+    elif profile_line1 in [5, 6]:
+        angle = "LAX"  # Left Angle Cross
+    else:
+        angle = "RAX"  # Default fallback
+    
+    return f"{angle} {cross_name}"
+
 
 def longitude_to_gate(longitude: float) -> Dict:
     """Convert sidereal longitude to I-Ching gate using HD Rave Mandala wheel
