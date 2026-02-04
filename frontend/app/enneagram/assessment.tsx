@@ -278,6 +278,469 @@ const CORE_MOTIVATION_QUESTIONS: LikertQuestion[] = [
 ];
 
 // ============================================
+// SECTION 3: WING RESOLUTION QUESTIONS
+// All wing questions for all 9 core types
+// Each type has 4 Likert + 2 Forced-choice = 6 questions
+// ============================================
+
+const ALL_WING_QUESTIONS: WingQuestion[] = [
+  // ============================================
+  // Core Type 1 (wings 9-left and 2-right)
+  // ============================================
+  {
+    id: 'W1_01',
+    coreType: 1,
+    wingSide: 'left',
+    text: 'I try to improve things quietly and calmly, without drawing attention.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W1_02',
+    coreType: 1,
+    wingSide: 'left',
+    text: 'I avoid open conflict even when I\'m dissatisfied.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W1_03',
+    coreType: 1,
+    wingSide: 'right',
+    text: 'I feel responsible for helping others improve or do the right thing.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W1_04',
+    coreType: 1,
+    wingSide: 'right',
+    text: 'I get frustrated when others ignore guidance or standards.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W1_FC01',
+    coreType: 1,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I improve things by staying calm and steady.',
+    optionB: 'I improve things by actively helping and correcting.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+  {
+    id: 'W1_FC02',
+    coreType: 1,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'Harmony matters more to me than being heard.',
+    optionB: 'Helping others matters more to me than staying neutral.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+
+  // ============================================
+  // Core Type 2 (wings 1-left and 3-right)
+  // ============================================
+  {
+    id: 'W2_01',
+    coreType: 2,
+    wingSide: 'left',
+    text: 'I help others because it feels morally right, not just relational.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W2_02',
+    coreType: 2,
+    wingSide: 'left',
+    text: 'I have clear opinions about how people should behave.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W2_03',
+    coreType: 2,
+    wingSide: 'right',
+    text: 'I enjoy being recognised as capable and valuable.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W2_04',
+    coreType: 2,
+    wingSide: 'right',
+    text: 'Being seen as successful matters to me more than I admit.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W2_FC01',
+    coreType: 2,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I help because it\'s the right thing to do.',
+    optionB: 'I help and want my contribution to be recognised.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+  {
+    id: 'W2_FC02',
+    coreType: 2,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'Principles guide my helping.',
+    optionB: 'Impact and results guide my helping.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+
+  // ============================================
+  // Core Type 3 (wings 2-left and 4-right)
+  // ============================================
+  {
+    id: 'W3_01',
+    coreType: 3,
+    wingSide: 'left',
+    text: 'I gain energy from being liked and appreciated.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W3_02',
+    coreType: 3,
+    wingSide: 'left',
+    text: 'Helping others succeed enhances my own sense of success.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W3_03',
+    coreType: 3,
+    wingSide: 'right',
+    text: 'I care deeply about being authentic, not just impressive.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W3_04',
+    coreType: 3,
+    wingSide: 'right',
+    text: 'I\'m sensitive to feeling different or misunderstood.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W3_FC01',
+    coreType: 3,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'People connection motivates me.',
+    optionB: 'Authenticity motivates me.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+  {
+    id: 'W3_FC02',
+    coreType: 3,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I win by being supportive.',
+    optionB: 'I win by being uniquely myself.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+
+  // ============================================
+  // Core Type 4 (wings 3-left and 5-right)
+  // ============================================
+  {
+    id: 'W4_01',
+    coreType: 4,
+    wingSide: 'left',
+    text: 'I want my uniqueness to be seen and valued.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W4_02',
+    coreType: 4,
+    wingSide: 'left',
+    text: 'Recognition and impact matter to me more than I admit.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W4_03',
+    coreType: 4,
+    wingSide: 'right',
+    text: 'I prefer depth and privacy over visibility.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W4_04',
+    coreType: 4,
+    wingSide: 'right',
+    text: 'I retreat inward to process meaning and emotion.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W4_FC01',
+    coreType: 4,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I want my uniqueness to be recognised.',
+    optionB: 'I want my uniqueness to be privately understood.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+  {
+    id: 'W4_FC02',
+    coreType: 4,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'Visibility matters.',
+    optionB: 'Depth and solitude matter.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+
+  // ============================================
+  // Core Type 5 (wings 4-left and 6-right)
+  // ============================================
+  {
+    id: 'W5_01',
+    coreType: 5,
+    wingSide: 'left',
+    text: 'My inner world feels complex, nuanced, and emotionally rich.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W5_02',
+    coreType: 5,
+    wingSide: 'left',
+    text: 'Originality and personal meaning are essential to me.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W5_03',
+    coreType: 5,
+    wingSide: 'right',
+    text: 'Structure, systems, and reliability help me feel steady.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W5_04',
+    coreType: 5,
+    wingSide: 'right',
+    text: 'Clear roles and expectations reduce my stress.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W5_FC01',
+    coreType: 5,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'Meaning and originality guide me.',
+    optionB: 'Structure and reliability guide me.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+  {
+    id: 'W5_FC02',
+    coreType: 5,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I withdraw to preserve inner depth.',
+    optionB: 'I withdraw to preserve order and certainty.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+
+  // ============================================
+  // Core Type 6 (wings 5-left and 7-right)
+  // ============================================
+  {
+    id: 'W6_01',
+    coreType: 6,
+    wingSide: 'left',
+    text: 'Analysis and preparation help me feel secure.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W6_02',
+    coreType: 6,
+    wingSide: 'left',
+    text: 'I prefer clarity and distance over enthusiasm.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W6_03',
+    coreType: 6,
+    wingSide: 'right',
+    text: 'I manage anxiety by staying active and optimistic.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W6_04',
+    coreType: 6,
+    wingSide: 'right',
+    text: 'Movement and engagement calm me more than reflection.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W6_FC01',
+    coreType: 6,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I manage fear by analysing.',
+    optionB: 'I manage fear by staying upbeat and active.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+  {
+    id: 'W6_FC02',
+    coreType: 6,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'Preparation calms me.',
+    optionB: 'Possibility calms me.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+
+  // ============================================
+  // Core Type 7 (wings 6-left and 8-right)
+  // ============================================
+  {
+    id: 'W7_01',
+    coreType: 7,
+    wingSide: 'left',
+    text: 'I feel steadier when I have trusted allies or reassurance.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W7_02',
+    coreType: 7,
+    wingSide: 'left',
+    text: 'Uncertainty pushes me to seek support or structure.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W7_03',
+    coreType: 7,
+    wingSide: 'right',
+    text: 'I feel most alive when I assert myself against resistance.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W7_04',
+    coreType: 7,
+    wingSide: 'right',
+    text: 'When blocked, my instinct is to push through rather than reconsider.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W7_FC01',
+    coreType: 7,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I worry about losing support or security.',
+    optionB: 'I worry about being controlled or limited.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+  {
+    id: 'W7_FC02',
+    coreType: 7,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I stabilise by planning with others.',
+    optionB: 'I stabilise by taking charge.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+
+  // ============================================
+  // Core Type 8 (wings 7-left and 9-right)
+  // ============================================
+  {
+    id: 'W8_01',
+    coreType: 8,
+    wingSide: 'left',
+    text: 'I combine intensity with action and momentum.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W8_02',
+    coreType: 8,
+    wingSide: 'left',
+    text: 'I dislike stagnation and move quickly.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W8_03',
+    coreType: 8,
+    wingSide: 'right',
+    text: 'I prefer steady control over constant confrontation.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W8_04',
+    coreType: 8,
+    wingSide: 'right',
+    text: 'Calm authority matters more to me than force.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W8_FC01',
+    coreType: 8,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'Momentum matters most.',
+    optionB: 'Stability matters most.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+  {
+    id: 'W8_FC02',
+    coreType: 8,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I lead by pushing forward.',
+    optionB: 'I lead by staying grounded.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+
+  // ============================================
+  // Core Type 9 (wings 8-left and 1-right)
+  // ============================================
+  {
+    id: 'W9_01',
+    coreType: 9,
+    wingSide: 'left',
+    text: 'When pushed, I can be stubborn and quietly firm.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W9_02',
+    coreType: 9,
+    wingSide: 'left',
+    text: 'I protect my space more strongly than people realise.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W9_03',
+    coreType: 9,
+    wingSide: 'right',
+    text: 'I feel tension when things are imperfect or unfair.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W9_04',
+    coreType: 9,
+    wingSide: 'right',
+    text: 'I try to be calm and correct, even internally.',
+    type: 'likert_wing',
+  },
+  {
+    id: 'W9_FC01',
+    coreType: 9,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I keep peace by holding my ground quietly.',
+    optionB: 'I keep peace by staying principled and correct.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+  {
+    id: 'W9_FC02',
+    coreType: 9,
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I resist pressure by becoming firm.',
+    optionB: 'I resist pressure by becoming precise.',
+    optionAMapsTo: 'left',
+    type: 'forced_choice_wing',
+  },
+];
+
+// Helper function to get wing questions for a specific core type
+const getWingQuestionsForType = (coreType: number): WingQuestion[] => {
+  return ALL_WING_QUESTIONS.filter(q => q.coreType === coreType);
+};
+
+// ============================================
 // SECTION QUESTIONS
 // ============================================
 
