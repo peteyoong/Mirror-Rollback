@@ -1,141 +1,147 @@
 <analysis>
 
 **original_problem_statement**:
-The user's initial goal was to fix a critical bug (BUG #1) where the Astrology Deep Dive screen showed Ascendant is unknown. This expanded to include hardening the fix, fixing a bug in the Human Design Deep Dive not showing detailed information, correcting the Incarnation Cross naming convention, and addressing performance issues with slow AI responses.
-
-After all fixes were implemented, the user encountered deployment issues where the live URL was not showing the latest changes. This was investigated and resolved by guiding the user to the correct preview URL and explaining the routing infrastructure.
-
-The user's final request is to save the current progress and start a new fork to implement a new Enneagram lens.
-
-PRODUCT REQUIREMENTS (for completed work):
--   **Bug #1 Fix**: Fully resolved. The app now uses IANA timezones, normalizes time inputs, returns clear API errors, and automatically migrates old/incomplete chart data.
--   **Human Design Deep Dive**: The endpoint now returns detailed information, including the user's Profile, Incarnation Cross, Definition, and Defined Centers/Channels.
--   **Incarnation Cross Naming**: The naming convention was corrected to be user-friendly, showing the angle (RAX/LAX/JXP) and the proper name (e.g., LAX Migration).
--   **Performance**: All three Deep Dive lens endpoints (Astrology, Human Design, Numerology) now have a backend caching layer to make subsequent views load instantly.
--   **UX**: The frontend for Deep Dive views now shows an informative loading message to the user, managing expectations for the initial AI generation time.
+The user's overall goal is to build a new Enneagram lens for the application. This involves creating a multi-section assessment flow, implementing a complex scoring algorithm, persisting the results, and building out the lens view for users who have completed the assessment. The lens view should have three tabs (Summary, Today, Deep Dive) with structured, non-AI-generated content, a supplementary contextual chat feature, and a daily rotating micro-lesson.
 
 **User's preferred language**: English
 
 **what currently exists?**
-A stable, full-stack Expo (React Native) and FastAPI application with three functional lenses: Astrology, Human Design, and Numerology. All known bugs reported by the user in this session have been fixed. The application features a robust, self-healing data migration system for astrology charts and a backend caching mechanism for performance-intensive AI-generated content. The deployment and routing issues have been clarified and resolved.
+The application now has a complete, multi-step Enneagram assessment flow. Users can take the assessment, which is divided into three sections: Core Motivation (Likert scale), Disambiguation (Forced Choice), and Wing Resolution (a mix of question types). A complex, client-side scoring algorithm processes the answers to determine the user's core type, wing, and confidence level. These results are persisted to the user's profile via a new backend endpoint.
+
+For users with a saved result, a comprehensive  is displayed, featuring Summary, Today, and Deep Dive tabs with structured content. A contextual chat feature, scoped specifically to the Enneagram lens, has also been implemented on the Today and Deep Dive tabs, supported by its own backend endpoint that receives the user's Enneagram profile for tailored AI responses.
 
 **Last working item**:
--   **Last item agent was working**: The user requested a manual fork to start a new feature after all fixes were completed. The agent provided instructions on how to do this. The last code-related work was implementing backend caching and frontend loading indicators for the Deep Dive views.
--   **Status**: COMPLETED
--   **Agent Testing Done**: Y
--   **Which testing method agent to use?**: NA
--   **User Testing Done**: Y (User confirmed the app works and is now requesting a new feature).
+    - Last item agent was working: The agent was adding a Daily Micro-Lesson card to the Today tab within the  component. This card is designed to show a deterministic, daily rotating lesson based on the user's core Enneagram type. The agent has successfully added the content library for all 9 types and the JSX for the new card into the  function.
+    - Status: IN PROGRESS
+    - Agent Testing Done: N
+    - Which testing method agent to use? screenshot tool
+    - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-There are no pending or in-progress issues. All reported bugs and performance enhancements from this session have been completed.
+  Issue 1:  (P0) The Daily Micro-Lesson card is not fully implemented.
+
+  Issues Detail:
+  - Issue 1: 
+     - Attempted fixes: The agent added the data (micro-lessons for all 9 types) and the JSX to render the card in . However, the corresponding styles for the new card have not been added to the , so the card is likely unstyled or breaking the layout.
+     - Next debug checklist: 
+        1. Open .
+        2. In the  block at the end of the file, add styles for , , , and . Use existing card styles as a reference for consistency.
+        3. Restart the expo server: expo: ERROR (not running)
+expo: ERROR (abnormal termination).
+        4. Use the screenshot tool to verify the new card is rendered correctly in the Today tab. You will need to complete the onboarding flow first to create a user and get to the main app.
+     - Why fix this issue and what will be achieved with the fix? This will complete the user's final request for the Enneagram feature, adding a key piece of daily, structured value to the Today tab.
+     - Status:  IN PROGRESS
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? frontend
+     - Blocked on other issue: None
 
 **In progress Task List**:
-There are no in-progress tasks.
+  - Task 1: Complete the Daily Micro-Lesson feature.
+     - Where to resume: Adding styles to .
+     - What will be achieved with this? A new daily content card will appear on the Today tab of the Enneagram lens, providing users with a practical, rotating micro-lesson based on their type.
+     - Status: IN PROGRESS
+     - Should Test frontend/backend/both after fix? frontend
+     - Blocked on something: No
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks**:
-    -   **(P0) Implement New Enneagram Lens**: This is the user's immediate next request. The new agent should plan and implement this new lens, following the existing architecture (Summary/Today/Deep Dive). This will require gathering prompts and data requirements from the user.
--   **Future Tasks**:
-    -   **(P1) Fix Bug #2**: Address other bugs the user mentioned previously, to be tackled after the Enneagram lens.
-    -   **(P2) Implement Consciousness lens**: Another new lens in the product backlog.
-    -   **(P3) Persist Post-Registration Questionnaire**: A long-standing task to save user questionnaire answers to the backend.
+- **Future Tasks**:
+    - **(P1) Fix Bug #2**: Address other bugs the user mentioned in previous sessions.
+    - **(P2) Implement Consciousness lens**: Implement another new lens from the product backlog.
+    - **(P3) Persist Post-Registration Questionnaire**: Connect the frontend questionnaire to a backend endpoint to save user answers. This is a long-standing deferred task.
 
 **Completed work in this session**
--   **BUG #1 Fix - Astrology Auto-Migration (DONE)**: Implemented a self-healing mechanism in  to detect and automatically recompute old-format astrology charts, resolving the Ascendant unknown bug.
--   **Human Design Deep Dive Enhancement (DONE)**: Updated the  endpoint in  and its corresponding AI prompt to include detailed data like Incarnation Cross, Profile, Definition, and Channels.
--   **Incarnation Cross Naming Fix (DONE)**: Added a lookup table and logic in  to display user-friendly Incarnation Cross names (e.g., LAX Migration).
--   **Performance Caching for Deep Dives (DONE)**: Implemented a caching layer using a new MongoDB collection () in  for all three Deep Dive endpoints to drastically speed up repeat views.
--   **UX Loading Indicator Improvement (DONE)**: Updated , , and  to show an informative message (Generating your personalized reading... This may take 30-45 seconds) during the initial slow AI call.
--   **Deployment & Routing Troubleshooting (DONE)**: Diagnosed and resolved issues related to incorrect preview URLs and explained the platform's routing system to the user, enabling them to access the live application.
+- **Enneagram Assessment Flow (DONE)**: Created the complete 3-section assessment UI in , including all 27 core questions, 6 disambiguation questions, and 54 conditional wing questions.
+- **Enneagram Scoring Algorithm (DONE)**: Implemented a complex client-side scoring logic in  that uses z-scores, softmax, and weighted hits to calculate the user's core type, wing, and confidence level.
+- **Enneagram State Calibration (DONE)**: Added a pre-results screen to the assessment flow to capture the user's state (, , ).
+- **Backend Persistence (DONE)**: Created a new endpoint  in  to save the final assessment results to the  collection in MongoDB.
+- **Enneagram Results Screen (DONE)**: Built the  page to display the user's scored profile, including top candidates and confidence level.
+- **Enneagram Lens View (DONE)**: Created the main  component with three tabs (Summary, Today, Deep Dive) filled with structured, non-AI content.
+- **Enneagram Contextual Chat (DONE)**: Implemented a lens-specific chat feature within the Today and Deep Dive tabs. This includes a new backend endpoint  in  that generates structured, context-aware AI responses.
+- **Routing & Gating (DONE)**: Updated  to correctly route users to either the assessment (if no result exists) or the  (if a result is present).
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: Post-Registration Questionnaire Not Saved**
-    -   **Debug checklist**:
-        -   The  function in  needs to be implemented to call a new backend endpoint.
-        -   A new  endpoint is required on the backend to receive and save the questionnaire answers to the  collection.
-    -   **Why to solve this issue and what will be achieved with this?**: This is a core part of the user onboarding flow that has been deferred. Completing it will gather crucial data for personalization.
-    -   **Should Test frontend/backend/both after fix**: both
-    -   **Is recurring issue?**: N
+   - Issue 1: Post-Registration Questionnaire Not Saved
+     - Debug checklist:
+        - The  function in  needs to be implemented.
+        - A new  endpoint is required on the backend () to receive and save the questionnaire answers to the  collection.
+     - Why to solve this issue and what will be achieved with this? This is a core part of user onboarding that has been deferred. Completing it will gather crucial data for personalization.
+     - Should Test frontend/backend/both after fix: both
+     - Is recurring issue? Y
 
 **Known issue recurrence from previous fork**
--   None.
+  - None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Backend Caching**: Using a dedicated MongoDB collection () to store the results of expensive, deterministic AI generation calls. A hash of the user ID, lens, and tab is used as the cache key.
--   **Data-driven Naming**: Using a Python dictionary in  as a lookup table to translate technical gate data into user-friendly Incarnation Cross names.
--   **Forked Environment Configuration**: Understanding that forked environments receive new, unique preview URLs and that environment variables (like ) must be updated to reflect this.
--   **Proxy Routing**: The deployment environment uses a proxy that routes requests with the  prefix to the backend service (port 8001) and all other requests to the frontend service (port 3000).
+- **Multi-step Assessment Flow**: A complex, multi-section assessment built in a single React component () with conditional rendering for each section and question type.
+- **Client-Side Scoring Algorithm**: A detailed scoring logic implemented in , including mean calculation, weighted hits for forced-choice questions, z-score normalization across types, and softmax for probabilities.
+- **Dynamic Content Filtering**: Section 3 of the assessment dynamically filters and displays specific wing questions based on the inferred core type calculated from Section 1's answers.
+- **Deterministic Daily Content**: The Daily Micro-Lesson feature uses the number of days since the Unix epoch () to provide a rotating but predictable daily content piece, avoiding an AI call.
+- **Contextual, Scoped Chat**: A chat feature was added specifically for the Enneagram lens, passing a rich context payload (core type, wing, energy state) to a dedicated backend endpoint () to get tailored, structured AI responses.
 
 **key DB schema**
--   : { , , , , ,  }
--   : { , , ,  (now includes correct  name),  }
--   : {  (cache key hash),  (cached JSON response),  }
+- : { , , ..., : { , , , , , ... } }
+- : Stores chat messages, now potentially including messages with  for Enneagram chat.
 
 **changes in tech stack**
--   None.
+- None.
 
 **All files of reference**
--   : Contains the core API logic, including the newly added caching functions (, ) and their integration into the three deep dive endpoints.
--   : Contains the new  dictionary and the updated  function that uses it.
--   : Representative of the frontend changes; contains the conditional loading text for the Deep Dive tab.
--   : This file was critical for resolving the deployment issue and must contain the correct  for the environment.
+- : **Last worked on file.** Contains the main UI for the Enneagram lens and is where the Daily Micro-Lesson card needs to be finished.
+- : The core of the assessment, containing all questions, UI logic, and the complex scoring algorithm.
+- : Contains the new backend endpoints for saving Enneagram results () and handling contextual chat ().
+- : The entry point that directs users to either the assessment or the main lens view.
+- : Displays the final assessment results after scoring is complete.
+- : Updated with functions to call the new backend endpoints.
 
 **Areas that need refactoring**:
--   The file  still contains a lot of old, now-unused logic for rendering Human Design content directly. This should be cleaned up. The user has previously acknowledged this but de-prioritized it.
+- The ESLint configuration () might need to be updated to correctly parse TypeScript interfaces in  files to resolve the interface is a reserved keyword error.
 
 **key api endpoints**
--    (Updated with caching)
--    (Updated with more data and caching)
--    (Updated with caching)
+- : Saves the user's computed Enneagram assessment results to their profile.
+- : Retrieves the user's saved Enneagram results.
+- : Handles chat messages specifically for the Enneagram lens, taking in user profile context for tailored AI responses.
 
 **Critical Info for New Agent**
--   **Your primary task is to implement the new Enneagram lens.** The user has explicitly stated this is the next step. All previous work is complete and the app is stable.
--   **Follow the existing architecture**: Create new backend endpoints (), calculation/prompt logic, and a new frontend component ().
--   **Gather Requirements**: You MUST start by asking the user for the product requirements for the Enneagram lens. Key questions include:
-    -   Is Enneagram type determined by a questionnaire, or is it derived from other user data?
-    -   What are the prompts for the Summary, Today, and Deep Dive tabs?
-    -   Are there any unlock flows, similar to the Numerology name unlock?
--   Do not work on any other tasks (like the post-registration questionnaire) until you get confirmation from the user.
+- Your immediate task is to finish the Daily Micro-Lesson card in . This primarily involves adding the necessary styles to the  to make the card render correctly.
+- After adding the styles, restart the services and use the screenshot tool to verify the card appears correctly on the Today tab. You will need to complete the onboarding flow to get a user session and see the lens view.
+- The user has been very specific with requirements. Adhere closely to the provided content and styling patterns. The entire Enneagram feature is now functionally complete, pending this final UI touch-up.
 
 **documents created in this job**
--   None.
+- None.
 
-**Last 10 User Messages and any pending HUMAN messages**
-10. **Request**: How do I start a new fork? (Answered by agent)
-9.  **Request**: Save this fork and start a new one for an Enneagram Lens. (Acknowledged)
-8.  **Request**: Implement caching and better loading indicators for the slow Deep Dive tabs. (COMPLETED)
-7.  **Feedback**: The app is still hanging on the live version, and asked if a redeploy is needed. Also asked why the server is slow. (Agent explained redeploy is needed and the slowness is due to AI, then proposed caching).
-6.  **Request**: Look back at the chat and fix the Incarnation Cross naming convention. (COMPLETED)
-5.  **Feedback**: The app is working now, but the Human Design Deep Dive tab could not load after a refresh. (Agent investigated and confirmed API is working, likely a temp issue).
-4.  **Confirmation**: Ok it works now. (User confirms the deployment/routing issue is resolved).
-3.  **Feedback from Tech Support**: Provided the response from tech support, suggesting clearing the cache and checking API prefixes. (Agent used this to re-verify and test).
-2.  **Request**: User cannot find the i button for Job ID. (Agent provided the Job ID and support contact info directly).
-1.  **Feedback**: User reports the live URL () shows . (This was the key message that pinpointed the routing issue).
+**Last 10 User Messages and any pending HUMAN messages** 
+- User requested adding a Daily Micro-Lesson card to the Enneagram Today tab. (IN PROGRESS)
+- User requested adding a contextual chat box to the Enneagram lens. (COMPLETED)
+- User requested building the main Enneagram Lens View with 3 tabs. (COMPLETED)
+- User requested implementing the full scoring algorithm, backend persistence, and results UI. (COMPLETED)
+- User requested adding all Section 3 (Wing Resolution) questions and conditional logic. (COMPLETED)
+- User requested adding all Section 2 (Disambiguation) questions. (COMPLETED)
+- User requested adding all Section 1 (Core Motivation) questions. (COMPLETED)
+- User requested creating the initial Enneagram assessment flow structure. (COMPLETED)
 
 **Project Health Check:**
--   **Broken**: None.
--   **Mocked**: The post-registration questionnaire flow is not connected to the backend.
--   **Known Bugs**: None active. The slowness of AI generation has been mitigated with backend caching.
+- **Broken**: The Today tab layout in  may be broken due to the newly added but unstyled Daily Micro-Lesson card.
+- **Mocked**: The post-registration questionnaire flow remains disconnected from the backend.
 
 **3rd Party Integrations**
--   **OpenAI GPT (via )**: Uses Emergent LLM Key.
--   **Nominatim (via )**: For location geocoding.
--   **Swiss Ephemeris (via )**: For astrological calculations.
--   ****: For timezone-aware datetime calculations.
+- **OpenAI GPT (via )**: Uses Emergent LLM Key for the contextual chat feature.
+- **Nominatim (via )**: For location geocoding during user onboarding.
+- **Swiss Ephemeris (via )**: For astrological calculations.
+- ****: For timezone-aware datetime calculations.
 
 **Testing status**
--   Testing agent used after significant changes: YES (The backend testing agent was used to verify the auto-migration feature. The frontend testing agent was used to validate the UI across all lenses.)
--   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: None.
--   Known regressions: None.
+- Testing agent used after significant changes: NO (Agent has been building incrementally and testing manually via screenshots and ).
+- Troubleshoot agent used after agent stuck in loop: NO
+- Test files created: None.
+- Known regressions: None.
 
 **Credentials to test flow:**
--   None required. Onboarding a new user will create the necessary data.
+- None required. A new user can be created by going through the onboarding flow.
 
 **What agent forgot to execute**
--   The agent successfully completed all user requests in this session, including emergent issues like deployment and performance problems. Nothing was forgotten or overlooked.
+- The agent did not forget any steps but was in the middle of implementing the Daily Micro-Lesson card. The JSX was added, but the corresponding styles were not, which is the immediate next step.
 
 </analysis>
