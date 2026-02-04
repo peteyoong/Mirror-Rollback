@@ -5232,6 +5232,51 @@ async def get_enneagram_result(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Enneagram Feedback endpoint
+class EnneagramFeedbackRequest(BaseModel):
+    user_id: str
+    accuracy_feedback: str  # "yes", "mostly", or "no"
+    timestamp: str
+    inferred_core: int
+    inferred_wing: Union[int, str]
+    confidence: float
+
+@api_router.post("/profile/enneagram/feedback")
+async def submit_enneagram_feedback(request: EnneagramFeedbackRequest):
+    """Store user self-verification feedback for their Enneagram result"""
+    try:
+        feedback_doc = {
+            "user_id": request.user_id,
+            "accuracy_feedback": request.accuracy_feedback,
+            "timestamp": request.timestamp,
+            "inferred_core": request.inferred_core,
+            "inferred_wing": request.inferred_wing,
+            "confidence": request.confidence,
+            "created_at": datetime.now(timezone.utc)
+        }
+        
+        # Store in enneagram_feedback collection
+        await db.enneagram_feedback.insert_one(feedback_doc)
+        
+        # Also update user profile with latest feedback
+        await db.users.update_one(
+            {"_id": ObjectId(request.user_id)},
+            {"$set": {"enneagram_feedback": {
+                "accuracy_feedback": request.accuracy_feedback,
+                "timestamp": request.timestamp,
+                "submitted_at": datetime.now(timezone.utc).isoformat()
+            }}}
+        )
+        
+        logger.info(f"[Enneagram Feedback] User {request.user_id} submitted feedback: {request.accuracy_feedback}")
+        
+        return {"success": True}
+        
+    except Exception as e:
+        logger.error(f"Error saving Enneagram feedback: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Enneagram type names for context
 ENNEAGRAM_TYPE_NAMES = {
     1: "The Perfectionist",
