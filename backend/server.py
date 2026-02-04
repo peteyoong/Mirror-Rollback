@@ -2629,6 +2629,13 @@ async def get_lenses():
                 "icon": "numbers"
             },
             {
+                "name": "Enneagram",
+                "description": "A framework for understanding core motivations, fears, and growth patterns",
+                "helps_with": "Understanding why you do what you do, identifying blind spots, and recognizing patterns",
+                "does_not": "Put you in a box or predict behavior — it's a lens for reflection, not a label",
+                "icon": "git-branch"
+            },
+            {
                 "name": "Levels of Consciousness",
                 "description": "A map of emotional and spiritual development (Hawkins Scale)",
                 "helps_with": "Understanding where you are and what might shift",
