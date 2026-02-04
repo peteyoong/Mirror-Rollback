@@ -1592,4 +1592,76 @@ const styles = StyleSheet.create({
   chatSendButtonDisabled: {
     backgroundColor: Colors.border,
   },
+  
+  // Daily Micro-Lesson Card
+  microLessonCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 12,
+  },
+  microLessonHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  microLessonTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  microLessonSubtitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  microLessonBody: {
+    marginBottom: 14,
+  },
+  microLessonBodyText: {
+    fontSize: 15,
+    lineHeight: 23,
+    color: Colors.textSecondary,
+  },
+  microLessonBoldText: {
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  microLessonFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  microLessonRotates: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  microLessonRotatesText: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+  },
+  microLessonAskButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: Colors.surfaceLight,
+  },
+  microLessonAskText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.text,
+  },
 });
