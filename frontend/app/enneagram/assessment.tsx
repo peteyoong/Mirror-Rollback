@@ -1267,6 +1267,20 @@ export default function EnneagramAssessment() {
         }
       });
       
+      // Log validation row for research (dev only, exactly once)
+      if (!hasLoggedValidationRowRef.current) {
+        hasLoggedValidationRowRef.current = true;
+        logEnneagramValidationRow(
+          user?.id,
+          scoring,
+          {
+            energy_state: stateCalibration.energy_state,
+            life_context: stateCalibration.life_context,
+            answer_frame: stateCalibration.answer_frame
+          }
+        );
+      }
+      
       // Navigate to results after brief delay
       setTimeout(() => {
         router.replace('/enneagram/results');
