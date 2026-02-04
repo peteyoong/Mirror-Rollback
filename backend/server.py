@@ -4917,11 +4917,16 @@ async def get_numerology_deep_dive(user_id: str):
             else:
                 result["unlock_prompt"] = None
             
+            # =====================================================================
+            # CACHE THE RESPONSE for instant repeat views
+            # =====================================================================
+            await set_cached_deep_dive(user_id, "numerology", result)
+            
             return result
             
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse numerology deep dive JSON: {e}")
-            return {
+            fallback_result = {
                 "title": "Your Core Numbers",
                 "core_numbers": {
                     "life_path": data["life_path_number"],
@@ -4935,6 +4940,9 @@ async def get_numerology_deep_dive(user_id: str):
                 "unlock_prompt": None if data["has_name_numbers"] else "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality).",
                 "mirror_prompt": "What recurring themes do you notice in your own journey?"
             }
+            # Cache fallback too
+            await set_cached_deep_dive(user_id, "numerology", fallback_result)
+            return fallback_result
     
     except HTTPException:
         raise
