@@ -4123,12 +4123,20 @@ async def get_astrology_deep_dive(user_id: str):
     
     Auto-migrates old chart formats before serving data.
     Returns success:false with error code if critical data missing after migration attempt.
+    Uses caching for instant repeat views.
     """
     import json as json_module
     
     try:
         if not EMERGENT_LLM_KEY:
             raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        # =====================================================================
+        # CHECK CACHE FIRST - instant response for repeat views
+        # =====================================================================
+        cached_response = await get_cached_deep_dive(user_id, "astrology")
+        if cached_response:
+            return cached_response
         
         # =====================================================================
         # AUTO-MIGRATION: Check and migrate old chart formats FIRST
