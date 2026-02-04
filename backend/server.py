@@ -4458,12 +4458,21 @@ async def get_human_design_deep_dive(user_id: str):
     Generate Deep Dive - Full Human Design profile including Type, Strategy, Authority,
     Profile, Incarnation Cross, Definition, and Centers.
     Mechanics, not mysticism. Experimentation, not prescription.
+    
+    Uses caching for instant repeat views.
     """
     import json as json_module
     
     try:
         if not EMERGENT_LLM_KEY:
             raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        # =====================================================================
+        # CHECK CACHE FIRST - instant response for repeat views
+        # =====================================================================
+        cached_response = await get_cached_deep_dive(user_id, "human_design")
+        if cached_response:
+            return cached_response
         
         user, chart = await get_user_astrology_data(user_id)
         hd_data = extract_human_design_data(chart)
