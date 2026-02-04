@@ -235,36 +235,35 @@ frontend:
       - working: "needs_testing"
         agent: "main"
         comment: |
-          ENNEAGRAM LENS VIEW COMPLETE - 3 tabs implemented:
+          ENNEAGRAM LENS VIEW COMPLETE - 3 tabs implemented
+      - working: "needs_testing"
+        agent: "main"
+        comment: |
+          ENNEAGRAM CONTEXTUAL CHAT ADDED:
           
-          1. SUMMARY TAB:
-             - Hero card with Type number, wing info, confidence badge
-             - Core Motivation card with type-specific description
-             - Wing Access card (dominant/growth wings or balanced explanation)
-             - Top Alternatives card with mistypes for self-verification
-             - CTA row: View Full Results / Retake Assessment
+          1. BACKEND ENDPOINT (POST /api/enneagram/chat):
+             - Receives user message + context payload
+             - Context includes: inferred_core, wing, confidence_tier, is_close, top_candidates
+             - Also includes: energy_state, active_card_context
+             - Returns structured response with headings:
+               * "What I'm noticing"
+               * "A cleaner frame"
+               * "One small experiment"
+             - 120-220 word limit
+             - Special handling for low confidence / close results
+             - Separate chat history collection (enneagram_chat_history)
           
-          2. TODAY TAB:
-             - Energy check-in (Low/Neutral/High buttons with session persistence)
-             - Watch For (Stress Pattern) card with type-specific stress behavior
-             - Access (Growth Pattern) card with type-specific growth direction
-             - 2-Minute Practice card (varies by energy state)
-             - Journal Prompt card with type-specific reflection question
+          2. FRONTEND CHAT BOX:
+             - Collapsible "Ask about this" card at bottom of Today and Deep Dive tabs
+             - Chat input with placeholder text
+             - Message history display (user/assistant bubbles)
+             - Loading state handling
+             - Uses separate API function (sendEnneagramChat)
           
-          3. DEEP DIVE TAB:
-             - Type Pattern section (strengths, blind spot, defense, relational, work)
-             - Wings as Flight section (strong wing/growth wing metaphor)
-             - Self-Mastery Dial (Reactive/Average/Resourced toggle with descriptions)
-             - Verification section with nearby patterns and retake option
-          
-          ROUTING:
-          - /enneagram shows EnneagramLensView when result exists
-          - /enneagram shows intro screen when no result
-          - /enneagram/results remains standalone results page
-          
-          FILES CREATED:
-          - /app/frontend/components/EnneagramLensView.tsx (600+ lines)
-          - Updated /app/frontend/app/enneagram/index.tsx for conditional rendering
+          3. CONTEXT INJECTION:
+             - Enneagram profile: type, wing, confidence, candidates
+             - Today state: energy_state (low/neutral/high/unknown)
+             - Active card context: stress/growth/practice/journal/deep_dive/today_general
 
   - task: "Journal Tab with Mirror Chat Toggle"
     implemented: true
