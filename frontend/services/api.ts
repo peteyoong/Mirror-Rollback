@@ -114,4 +114,22 @@ export const getEnneagramResult = async (userId: string) => {
   return response.data;
 };
 
+// Enneagram Chat API
+export const sendEnneagramChat = async (data: {
+  user_id: string;
+  message: string;
+  context: {
+    inferred_core: number;
+    inferred_wing: number | string;
+    confidence_tier: string;
+    is_close?: boolean;
+    top_candidates?: { type: number; probability: number }[];
+    energy_state: string;
+    active_card_context: string;
+  };
+}) => {
+  const response = await api.post('/enneagram/chat', data);
+  return response.data;
+};
+
 export default api;
