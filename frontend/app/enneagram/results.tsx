@@ -114,6 +114,174 @@ export default function EnneagramResults() {
     router.replace('/enneagram/assessment');
   };
   
+  // Copy debug JSON to clipboard (dev only)
+  const handleCopyDebugJSON = async () => {
+    if (!result) return;
+    try {
+      await Clipboard.setStringAsync(JSON.stringify(result, null, 2));
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+    }
+  };
+  
+  // Render debug panel (dev only)
+  const renderDebugPanel = () => {
+    if (!IS_DEV || !result) return null;
+    
+    const { debug_scores, state_calibration, top_candidates } = result;
+    
+    return (
+      <View style={styles.debugContainer}>
+        <TouchableOpacity 
+          style={styles.debugToggle}
+          onPress={() => setDebugExpanded(!debugExpanded)}
+        >
+          <View style={styles.debugToggleLeft}>
+            <Ionicons name="bug-outline" size={16} color={Colors.textTertiary} />
+            <Text style={styles.debugToggleText}>
+              {debugExpanded ? 'Hide Debug' : 'Show Debug'}
+            </Text>
+          </View>
+          <Ionicons 
+            name={debugExpanded ? 'chevron-up' : 'chevron-down'} 
+            size={16} 
+            color={Colors.textTertiary} 
+          />
+        </TouchableOpacity>
+        
+        {debugExpanded && (
+          <View style={styles.debugContent}>
+            {/* Core Result */}
+            <View style={styles.debugSection}>
+              <Text style={styles.debugSectionTitle}>Result</Text>
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>inferred_core</Text>
+                <Text style={styles.debugValue}>{result.inferred_core}</Text>
+              </View>
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>inferred_wing</Text>
+                <Text style={styles.debugValue}>{String(result.inferred_wing)}</Text>
+              </View>
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>confidence</Text>
+                <Text style={styles.debugValue}>{result.confidence.toFixed(4)}</Text>
+              </View>
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>confidence_tier</Text>
+                <Text style={styles.debugValue}>{result.confidence_tier}</Text>
+              </View>
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>is_close</Text>
+                <Text style={styles.debugValue}>{String(result.is_close)}</Text>
+              </View>
+            </View>
+            
+            {/* Top Candidates */}
+            <View style={styles.debugSection}>
+              <Text style={styles.debugSectionTitle}>Top Candidates</Text>
+              {top_candidates.map((c, i) => (
+                <View key={i} style={styles.debugRow}>
+                  <Text style={styles.debugLabel}>Type {c.type}</Text>
+                  <Text style={styles.debugValue}>{(c.probability * 100).toFixed(1)}%</Text>
+                </View>
+              ))}
+            </View>
+            
+            {/* Wing Scores */}
+            {debug_scores?.wing_scores && (
+              <View style={styles.debugSection}>
+                <Text style={styles.debugSectionTitle}>Wing Scores</Text>
+                <View style={styles.debugRow}>
+                  <Text style={styles.debugLabel}>wing_left</Text>
+                  <Text style={styles.debugValue}>
+                    {typeof debug_scores.wing_scores.left === 'number' 
+                      ? debug_scores.wing_scores.left.toFixed(3) 
+                      : '-'}
+                  </Text>
+                </View>
+                <View style={styles.debugRow}>
+                  <Text style={styles.debugLabel}>wing_right</Text>
+                  <Text style={styles.debugValue}>
+                    {typeof debug_scores.wing_scores.right === 'number' 
+                      ? debug_scores.wing_scores.right.toFixed(3) 
+                      : '-'}
+                  </Text>
+                </View>
+                <View style={styles.debugRow}>
+                  <Text style={styles.debugLabel}>diff</Text>
+                  <Text style={styles.debugValue}>
+                    {typeof debug_scores.wing_scores.diff === 'number' 
+                      ? debug_scores.wing_scores.diff.toFixed(3) 
+                      : '-'}
+                  </Text>
+                </View>
+              </View>
+            )}
+            
+            {/* Raw Scores (compact) */}
+            {debug_scores?.raw_scores && Object.keys(debug_scores.raw_scores).length > 0 && (
+              <View style={styles.debugSection}>
+                <Text style={styles.debugSectionTitle}>Raw Scores</Text>
+                <Text style={styles.debugJson}>
+                  {JSON.stringify(debug_scores.raw_scores, null, 1)}
+                </Text>
+              </View>
+            )}
+            
+            {/* Z-Scores (compact) */}
+            {debug_scores?.z_scores && Object.keys(debug_scores.z_scores).length > 0 && (
+              <View style={styles.debugSection}>
+                <Text style={styles.debugSectionTitle}>Z-Scores</Text>
+                <Text style={styles.debugJson}>
+                  {JSON.stringify(debug_scores.z_scores, null, 1)}
+                </Text>
+              </View>
+            )}
+            
+            {/* State Calibration */}
+            {state_calibration && (
+              <View style={styles.debugSection}>
+                <Text style={styles.debugSectionTitle}>State Calibration</Text>
+                <View style={styles.debugRow}>
+                  <Text style={styles.debugLabel}>energy_state</Text>
+                  <Text style={styles.debugValue}>{state_calibration.energy_state || '-'}</Text>
+                </View>
+                <View style={styles.debugRow}>
+                  <Text style={styles.debugLabel}>life_context</Text>
+                  <Text style={styles.debugValue}>{state_calibration.life_context || '-'}</Text>
+                </View>
+                <View style={styles.debugRow}>
+                  <Text style={styles.debugLabel}>answer_frame</Text>
+                  <Text style={styles.debugValue}>{state_calibration.answer_frame || '-'}</Text>
+                </View>
+              </View>
+            )}
+            
+            {/* Copy Button */}
+            <TouchableOpacity 
+              style={styles.debugCopyButton}
+              onPress={handleCopyDebugJSON}
+            >
+              <Ionicons 
+                name={copySuccess ? 'checkmark' : 'copy-outline'} 
+                size={14} 
+                color={copySuccess ? '#4CAF50' : Colors.textTertiary} 
+              />
+              <Text style={[
+                styles.debugCopyText,
+                copySuccess && styles.debugCopySuccess
+              ]}>
+                {copySuccess ? 'Copied!' : 'Copy debug JSON'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    );
+  };
+  
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
