@@ -1154,18 +1154,61 @@ export default function EnneagramAssessment() {
         setCurrentQuestionIndex(0);
         setShowSectionIntro(true);
       } else {
-        // Assessment complete - show interpreting screen
-        setShowInterpretingScreen(true);
-        
-        // Navigate to results after delay
-        setTimeout(() => {
-          // Store responses in async storage for results screen
-          // For now, navigate to results
-          router.replace('/enneagram/results');
-        }, 3000);
+        // All questions complete - show state calibration before interpreting
+        setShowStateCalibration(true);
       }
     }
-  }, [currentQuestionIndex, currentSectionQuestions.length, currentSectionIndex, router]);
+  }, [currentQuestionIndex, currentSectionQuestions.length, currentSectionIndex]);
+  
+  // Handle state calibration completion
+  const handleStateCalibrationComplete = useCallback(async () => {
+    if (!stateCalibration.energy_state || !stateCalibration.life_context || !stateCalibration.answer_frame) {
+      return; // All fields required
+    }
+    
+    setShowStateCalibration(false);
+    setShowInterpretingScreen(true);
+    setIsSaving(true);
+    
+    try {
+      // Compute final scoring
+      const scoring = computeFullScoring();
+      
+      // Save to backend
+      await saveEnneagramResult({
+        user_id: user!.id,
+        method: 'assessment_inference_v1',
+        version: 'v1',
+        inferred_core: scoring.inferred_core,
+        inferred_wing: scoring.inferred_wing,
+        confidence: scoring.confidence,
+        confidence_tier: scoring.confidence_tier,
+        is_close: scoring.is_close,
+        top_candidates: scoring.top_candidates,
+        state_calibration: {
+          energy_state: stateCalibration.energy_state,
+          life_context: stateCalibration.life_context,
+          answer_frame: stateCalibration.answer_frame
+        },
+        debug_scores: {
+          raw_scores: scoring.raw_scores,
+          z_scores: scoring.z_scores,
+          wing_scores: scoring.wing_scores
+        }
+      });
+      
+      // Navigate to results after brief delay
+      setTimeout(() => {
+        router.replace('/enneagram/results');
+      }, 2000);
+    } catch (error) {
+      console.error('Error saving Enneagram result:', error);
+      // Still navigate to results even on error
+      setTimeout(() => {
+        router.replace('/enneagram/results');
+      }, 2000);
+    }
+  }, [stateCalibration, computeFullScoring, user, router]);
   
   // Start section (from intro)
   const handleStartSection = useCallback(() => {
