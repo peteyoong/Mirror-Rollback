@@ -204,6 +204,28 @@ frontend:
         agent: "main"
         comment: "Full chat UI with message bubbles, input field, send button. Successfully sends messages to backend and displays AI responses. Tested via Playwright - conversation flows correctly."
 
+  - task: "Enneagram Assessment Flow"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/enneagram/index.tsx, /app/frontend/app/enneagram/assessment.tsx, /app/frontend/app/enneagram/results.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Enneagram Assessment flow structure created:
+          - Intro screen with CTA to start assessment
+          - Assessment flow with 3 sections (Core Motivation, Disambiguation, Wing Resolution)
+          - Section intro screens with specified copy
+          - Likert scale (1-5) question UI
+          - Forced-choice (A/B) question UI
+          - Progress indicator
+          - Interpreting screen transition
+          - Placeholder results screen
+          NOTE: No actual questions added yet - flow only as requested.
+
   - task: "Journal Tab with Mirror Chat Toggle"
     implemented: true
     working: true
