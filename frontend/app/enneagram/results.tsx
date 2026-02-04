@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,11 +15,14 @@ import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import { Ionicons } from '@expo/vector-icons';
-import { getEnneagramResult } from '../../services/api';
+import { getEnneagramResult, submitEnneagramFeedback } from '../../services/api';
 import * as Clipboard from 'expo-clipboard';
 
 // Check if we're in development mode
 const IS_DEV = process.env.NODE_ENV !== 'production' || __DEV__;
+
+// Feedback types
+type FeedbackValue = 'yes' | 'mostly' | 'no' | null;
 
 // Type motivation labels
 const TYPE_MOTIVATIONS: { [key: number]: string } = {
