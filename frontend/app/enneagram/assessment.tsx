@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,73 @@ import { Ionicons } from '@expo/vector-icons';
 import { saveEnneagramResult } from '../../services/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// ============================================
+// VALIDATION ROW LOGGER (DEV ONLY)
+// ============================================
+
+interface ValidationRowData {
+  participant_id: string;
+  timestamp: string;
+  pred_core: number;
+  pred_wing: number | 'balanced';
+  pred_confidence: number;
+  pred_top2: string;
+  pred_top3: string;
+  close_flag: boolean;
+  energy_state: string;
+  life_context: string;
+  answer_frame: string;
+}
+
+/**
+ * Formats and logs a validation row for research purposes.
+ * Only logs in development builds (__DEV__ === true).
+ * Returns the formatted row for reference.
+ */
+function logEnneagramValidationRow(
+  userId: string | undefined,
+  scoring: {
+    inferred_core: number;
+    inferred_wing: number | 'balanced';
+    confidence: number;
+    is_close: boolean;
+    top_candidates: { type: number; probability: number }[];
+  },
+  stateCalibration: {
+    energy_state: string;
+    life_context: string;
+    answer_frame: string;
+  }
+): ValidationRowData | null {
+  // Only log in development
+  if (!__DEV__) {
+    return null;
+  }
+  
+  const topTypes = scoring.top_candidates
+    .sort((a, b) => b.probability - a.probability)
+    .map(c => c.type);
+  
+  const row: ValidationRowData = {
+    participant_id: userId || 'unknown',
+    timestamp: new Date().toISOString(),
+    pred_core: scoring.inferred_core,
+    pred_wing: scoring.inferred_wing,
+    pred_confidence: scoring.confidence,
+    pred_top2: topTypes.slice(0, 2).join(','),
+    pred_top3: topTypes.slice(0, 3).join(','),
+    close_flag: scoring.is_close,
+    energy_state: stateCalibration.energy_state || '',
+    life_context: stateCalibration.life_context || '',
+    answer_frame: stateCalibration.answer_frame || '',
+  };
+  
+  // Log with exact prefix format
+  console.log('ENNEAGRAM_VALIDATION_ROW:', JSON.stringify(row));
+  
+  return row;
+}
 
 // ============================================
 // SECTION DEFINITIONS
