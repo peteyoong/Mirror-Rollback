@@ -882,11 +882,13 @@ const styles = StyleSheet.create({
   },
   
   // Forced Choice
-  forcedChoiceInstruction: {
-    fontSize: 14,
-    color: Colors.textTertiary,
+  forcedChoicePrompt: {
+    fontSize: 20,
+    lineHeight: 28,
+    color: Colors.text,
     textAlign: 'center',
     marginBottom: 32,
+    fontWeight: '500',
   },
   forcedChoiceContainer: {
     gap: 16,
