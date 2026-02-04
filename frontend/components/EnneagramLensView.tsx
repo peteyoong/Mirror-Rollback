@@ -649,6 +649,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
             {JOURNAL_PROMPTS[core]}
           </Text>
         </View>
+        
+        {/* Chat Box */}
+        {renderChatBox()}
       </>
     );
   };
