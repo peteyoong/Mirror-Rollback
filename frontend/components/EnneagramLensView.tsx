@@ -244,6 +244,11 @@ type MasteryLevel = 'reactive' | 'average' | 'resourced';
 // COMPONENT
 // ============================================
 
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export default function EnneagramLensView({ result, userId }: Props) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('summary');
@@ -252,11 +257,54 @@ export default function EnneagramLensView({ result, userId }: Props) {
   );
   const [selectedMasteryLevel, setSelectedMasteryLevel] = useState<MasteryLevel>('average');
   const [showRetakeModal, setShowRetakeModal] = useState(false);
+  
+  // Chat state
+  const [chatExpanded, setChatExpanded] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [activeCardContext, setActiveCardContext] = useState<string>('today_general');
 
   const core = result.inferred_core;
   const wing = result.inferred_wing;
   const wings = WING_NUMBERS[core];
   const otherWing = wing === wings.left ? wings.right : wings.left;
+  
+  // Send chat message
+  const handleSendChat = useCallback(async () => {
+    if (!chatInput.trim() || chatLoading) return;
+    
+    const userMessage = chatInput.trim();
+    setChatInput('');
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setChatLoading(true);
+    
+    try {
+      const response = await sendEnneagramChat({
+        user_id: userId,
+        message: userMessage,
+        context: {
+          inferred_core: result.inferred_core,
+          inferred_wing: result.inferred_wing,
+          confidence_tier: result.confidence_tier,
+          is_close: result.is_close || false,
+          top_candidates: result.top_candidates.slice(0, 2),
+          energy_state: energyState || 'unknown',
+          active_card_context: activeTab === 'deep_dive' ? 'deep_dive' : activeCardContext,
+        },
+      });
+      
+      setChatMessages(prev => [...prev, { role: 'assistant', content: response.response }]);
+    } catch (error) {
+      console.error('Enneagram chat error:', error);
+      setChatMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'I couldn\'t process that right now. Try again in a moment.' 
+      }]);
+    } finally {
+      setChatLoading(false);
+    }
+  }, [chatInput, chatLoading, userId, result, energyState, activeTab, activeCardContext]);
 
   // Save energy state locally for session
   const handleEnergySelect = async (state: EnergyState) => {
