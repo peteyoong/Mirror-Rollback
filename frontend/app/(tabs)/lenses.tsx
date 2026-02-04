@@ -56,7 +56,10 @@ export default function LensesScreen() {
 
   const handleViewSummary = (lensName: string) => {
     const lensKey = LENS_KEYS[lensName];
-    if (lensKey) {
+    if (lensKey === 'enneagram') {
+      // Enneagram has its own intro/assessment flow
+      router.push('/enneagram');
+    } else if (lensKey) {
       router.push(`/lenses/${lensKey}`);
     }
   };
