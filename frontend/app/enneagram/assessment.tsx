@@ -110,10 +110,10 @@ function logEnneagramValidationRow(
     top_candidates: { type: number; probability: number }[];
   },
   stateCalibration: {
-    energy_state: string;
-    life_context: string;
-    answer_frame: string;
-  }
+    energy_state?: string | null;
+    life_context?: string | null;
+    answer_frame?: string | null;
+  } | null | undefined
 ): ValidationRowData | null {
   // Only log in development
   if (!__DEV__) {
@@ -124,6 +124,9 @@ function logEnneagramValidationRow(
     .sort((a, b) => b.probability - a.probability)
     .map(c => c.type);
   
+  // Normalize state calibration values for clean dataset
+  const normalizedState = normalizeStateCalibration(stateCalibration);
+  
   const row: ValidationRowData = {
     participant_id: userId || 'unknown',
     timestamp: new Date().toISOString(),
@@ -133,9 +136,9 @@ function logEnneagramValidationRow(
     pred_top2: topTypes.slice(0, 2).join(','),
     pred_top3: topTypes.slice(0, 3).join(','),
     close_flag: scoring.is_close,
-    energy_state: stateCalibration.energy_state || '',
-    life_context: stateCalibration.life_context || '',
-    answer_frame: stateCalibration.answer_frame || '',
+    energy_state: normalizedState.energy_state,
+    life_context: normalizedState.life_context,
+    answer_frame: normalizedState.answer_frame,
   };
   
   // Log with exact prefix format
