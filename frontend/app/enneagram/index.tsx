@@ -14,30 +14,25 @@ import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import { Ionicons } from '@expo/vector-icons';
 import { getEnneagramResult } from '../../services/api';
-
-// Type names
-const TYPE_NAMES: { [key: number]: string } = {
-  1: 'The Perfectionist',
-  2: 'The Helper',
-  3: 'The Achiever',
-  4: 'The Individualist',
-  5: 'The Investigator',
-  6: 'The Loyalist',
-  7: 'The Enthusiast',
-  8: 'The Challenger',
-  9: 'The Peacemaker',
-};
+import EnneagramLensView from '../../components/EnneagramLensView';
 
 interface EnneagramResult {
   inferred_core: number;
   inferred_wing: number | 'balanced';
   confidence: number;
   confidence_tier: string;
+  is_close?: boolean;
+  top_candidates: { type: number; probability: number }[];
+  state_calibration?: {
+    energy_state: string;
+    life_context: string;
+    answer_frame: string;
+  };
 }
 
-// Enneagram Lens Intro Screen
-// Shows summary if user has result, otherwise shows intro with assessment CTA
-export default function EnneagramIntro() {
+// Enneagram Lens Screen
+// Shows EnneagramLensView when result exists, otherwise shows intro with assessment CTA
+export default function EnneagramScreen() {
   const router = useRouter();
   const { user } = useAppStore();
   const [result, setResult] = useState<EnneagramResult | null>(null);
@@ -75,10 +70,6 @@ export default function EnneagramIntro() {
     router.push('/enneagram/assessment');
   };
   
-  const handleViewResults = () => {
-    router.push('/enneagram/results');
-  };
-  
   const handleBack = () => {
     router.back();
   };
@@ -94,18 +85,8 @@ export default function EnneagramIntro() {
     );
   }
   
-  // User has a result - show summary card + view results
+  // User has a result - show the lens view
   if (result) {
-    const wingDisplay = result.inferred_wing === 'balanced' 
-      ? 'Balanced Wings' 
-      : `Wing ${result.inferred_wing}`;
-    
-    const confidenceLabel = result.confidence_tier === 'high' 
-      ? 'High' 
-      : result.confidence_tier === 'medium' 
-        ? 'Medium' 
-        : 'Low';
-    
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar style="dark" />
@@ -122,55 +103,7 @@ export default function EnneagramIntro() {
           <View style={styles.headerSpacer} />
         </View>
         
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Result Summary Card */}
-          <View style={styles.resultSummaryCard}>
-            <View style={styles.resultBadge}>
-              <Text style={styles.resultBadgeText}>{result.inferred_core}</Text>
-            </View>
-            <Text style={styles.resultTitle}>
-              Type {result.inferred_core} with {wingDisplay}
-            </Text>
-            <Text style={styles.resultSubtitle}>
-              {TYPE_NAMES[result.inferred_core]}
-            </Text>
-            <View style={[
-              styles.confidencePill,
-              result.confidence_tier === 'high' && styles.confidenceHigh,
-              result.confidence_tier === 'medium' && styles.confidenceMedium,
-              result.confidence_tier === 'low' && styles.confidenceLow,
-            ]}>
-              <Text style={styles.confidencePillText}>
-                Confidence: {confidenceLabel}
-              </Text>
-            </View>
-            
-            <TouchableOpacity style={styles.viewResultsButton} onPress={handleViewResults}>
-              <Text style={styles.viewResultsText}>View Full Results</Text>
-              <Ionicons name="arrow-forward" size={16} color={Colors.text} />
-            </TouchableOpacity>
-          </View>
-          
-          {/* Placeholder for lens content */}
-          <View style={styles.lensPlaceholder}>
-            <Ionicons name="construct-outline" size={32} color={Colors.textTertiary} />
-            <Text style={styles.lensPlaceholderTitle}>Lens Content Coming Soon</Text>
-            <Text style={styles.lensPlaceholderText}>
-              Daily insights and deep dives for your Enneagram type will be available here.
-            </Text>
-          </View>
-          
-          {/* Retake Option */}
-          <TouchableOpacity 
-            style={styles.retakeButton}
-            onPress={handleStartAssessment}
-          >
-            <Ionicons name="refresh-outline" size={18} color={Colors.textSecondary} />
-            <Text style={styles.retakeText}>Retake Assessment</Text>
-          </TouchableOpacity>
-          
-          <View style={styles.bottomSpacer} />
-        </ScrollView>
+        <EnneagramLensView result={result} userId={user.id} />
       </SafeAreaView>
     );
   }
@@ -332,109 +265,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 24,
     paddingBottom: 40,
-  },
-  
-  // Result Summary (when user has result)
-  resultSummaryCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: 20,
-  },
-  resultBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.text,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  resultBadgeText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.background,
-  },
-  resultTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  resultSubtitle: {
-    fontSize: 15,
-    color: Colors.textSecondary,
-    marginBottom: 12,
-  },
-  confidencePill: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: Colors.border,
-    marginBottom: 16,
-  },
-  confidenceHigh: {
-    backgroundColor: '#D4EDDA',
-  },
-  confidenceMedium: {
-    backgroundColor: '#FFF3CD',
-  },
-  confidenceLow: {
-    backgroundColor: '#F8D7DA',
-  },
-  confidencePillText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.text,
-  },
-  viewResultsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 8,
-  },
-  viewResultsText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  
-  // Lens Placeholder
-  lensPlaceholder: {
-    backgroundColor: Colors.surfaceLight,
-    borderRadius: 12,
-    padding: 32,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  lensPlaceholderTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  lensPlaceholderText: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  
-  // Retake
-  retakeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-  },
-  retakeText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
   },
   
   // Hero
