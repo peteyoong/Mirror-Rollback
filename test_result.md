@@ -207,7 +207,7 @@ frontend:
   - task: "Enneagram Assessment Flow"
     implemented: true
     working: "needs_testing"
-    file: "/app/frontend/app/enneagram/index.tsx, /app/frontend/app/enneagram/assessment.tsx, /app/frontend/app/enneagram/results.tsx"
+    file: "/app/frontend/app/enneagram/index.tsx, /app/frontend/app/enneagram/assessment.tsx, /app/frontend/app/enneagram/results.tsx, /app/frontend/components/EnneagramLensView.tsx"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
@@ -231,41 +231,40 @@ frontend:
       - working: "needs_testing"
         agent: "main"
         comment: |
-          FULL SCORING, PERSISTENCE, AND RESULTS IMPLEMENTED:
+          FULL SCORING, PERSISTENCE, AND RESULTS IMPLEMENTED
+      - working: "needs_testing"
+        agent: "main"
+        comment: |
+          ENNEAGRAM LENS VIEW COMPLETE - 3 tabs implemented:
           
-          1. SCORING ALGORITHM (assessment.tsx):
-             - Core scoring: mean Likert + 1.5*forced_hits per type
-             - Z-score normalization across types
-             - Softmax for probabilities
-             - confidence_tier: high (>=0.75), medium (0.60-0.74), low (<0.60)
-             - is_close flag if top 2 types differ by <0.08
-             - Wing scoring: mean Likert + 1.25*forced_hits per wing side
-             - balanced wing if diff < 0.6
+          1. SUMMARY TAB:
+             - Hero card with Type number, wing info, confidence badge
+             - Core Motivation card with type-specific description
+             - Wing Access card (dominant/growth wings or balanced explanation)
+             - Top Alternatives card with mistypes for self-verification
+             - CTA row: View Full Results / Retake Assessment
           
-          2. STATE CALIBRATION:
-             - Collects: energy_state (low/neutral/high)
-             - life_context (surviving/managing/expanding)
-             - answer_frame (best_self/recent_self)
-             - Does NOT affect scoring
+          2. TODAY TAB:
+             - Energy check-in (Low/Neutral/High buttons with session persistence)
+             - Watch For (Stress Pattern) card with type-specific stress behavior
+             - Access (Growth Pattern) card with type-specific growth direction
+             - 2-Minute Practice card (varies by energy state)
+             - Journal Prompt card with type-specific reflection question
           
-          3. BACKEND ENDPOINTS (server.py):
-             - POST /api/enneagram/results - save result
-             - GET /api/enneagram/results/{user_id} - retrieve result
-             - Creates enneagram_results collection
-             - Updates user profile with enneagram summary
+          3. DEEP DIVE TAB:
+             - Type Pattern section (strengths, blind spot, defense, relational, work)
+             - Wings as Flight section (strong wing/growth wing metaphor)
+             - Self-Mastery Dial (Reactive/Average/Resourced toggle with descriptions)
+             - Verification section with nearby patterns and retake option
           
-          4. RESULTS SCREEN (results.tsx):
-             - Displays Type X with Wing Y
-             - Confidence badge (High/Medium/Low)
-             - Top 3 candidates with probabilities
-             - Close call notice if is_close
-             - Type motivation "why" paragraph
-             - View Lens / Retake Assessment CTAs
+          ROUTING:
+          - /enneagram shows EnneagramLensView when result exists
+          - /enneagram shows intro screen when no result
+          - /enneagram/results remains standalone results page
           
-          5. INTRO SCREEN GATING (index.tsx):
-             - Shows summary card if user has result
-             - Shows intro with assessment CTA if no result
-             - View Full Results button
+          FILES CREATED:
+          - /app/frontend/components/EnneagramLensView.tsx (600+ lines)
+          - Updated /app/frontend/app/enneagram/index.tsx for conditional rendering
 
   - task: "Journal Tab with Mirror Chat Toggle"
     implemented: true
