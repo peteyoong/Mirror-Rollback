@@ -28,7 +28,8 @@ const LENS_KEYS: { [key: string]: string } = {
   'True Sidereal Astrology': 'astrology',
   'Human Design': 'human_design',
   'Numerology': 'numerology',
-  'Levels of Consciousness': 'consciousness'
+  'Levels of Consciousness': 'consciousness',
+  'Enneagram': 'enneagram',
 };
 
 export default function LensesScreen() {
