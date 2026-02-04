@@ -261,11 +261,67 @@ const CORE_MOTIVATION_QUESTIONS: LikertQuestion[] = [
 // SECTION QUESTIONS
 // ============================================
 
+// Section 2: Disambiguation Questions (6 total)
+const DISAMBIGUATION_QUESTIONS: ForcedChoiceQuestion[] = [
+  {
+    id: 'FC01',
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I pursue experiences and possibilities to avoid feeling restricted or deprived.',
+    optionB: 'I pursue achievement to feel valuable and successful.',
+    optionAType: 7,
+    optionBType: 3,
+    type: 'forced_choice',
+  },
+  {
+    id: 'FC02',
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I keep options open to avoid feeling trapped or limited.',
+    optionB: 'I scan ahead to anticipate risks and ensure safety.',
+    optionAType: 7,
+    optionBType: 6,
+    type: 'forced_choice',
+  },
+  {
+    id: 'FC03',
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I avoid being boxed in so I can stay free and stimulated.',
+    optionB: 'I push back so no one has power over me.',
+    optionAType: 7,
+    optionBType: 8,
+    type: 'forced_choice',
+  },
+  {
+    id: 'FC04',
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I withdraw to preserve energy and understanding.',
+    optionB: 'I tighten control to correct what feels wrong.',
+    optionAType: 5,
+    optionBType: 1,
+    type: 'forced_choice',
+  },
+  {
+    id: 'FC05',
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I focus on winning approval through performance.',
+    optionB: 'I focus on asserting power and independence.',
+    optionAType: 3,
+    optionBType: 8,
+    type: 'forced_choice',
+  },
+  {
+    id: 'FC06',
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I stay connected by being useful and supportive.',
+    optionB: 'I stay connected by avoiding tension and disagreement.',
+    optionAType: 2,
+    optionBType: 9,
+    type: 'forced_choice',
+  },
+];
+
 const SECTION_QUESTIONS: { [key: string]: Question[] } = {
   core_motivation: CORE_MOTIVATION_QUESTIONS,
-  disambiguation: [
-    // Placeholder - will be replaced with actual forced-choice questions
-  ],
+  disambiguation: DISAMBIGUATION_QUESTIONS,
   wing_resolution: [
     // Placeholder - will be replaced with actual questions
   ],
