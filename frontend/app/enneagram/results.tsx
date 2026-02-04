@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Modal,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -15,6 +16,10 @@ import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import { Ionicons } from '@expo/vector-icons';
 import { getEnneagramResult } from '../../services/api';
+import * as Clipboard from 'expo-clipboard';
+
+// Check if we're in development mode
+const IS_DEV = process.env.NODE_ENV !== 'production' || __DEV__;
 
 // Type motivation labels
 const TYPE_MOTIVATIONS: { [key: number]: string } = {
