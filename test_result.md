@@ -249,6 +249,20 @@ frontend:
           - FC04: Type5 vs Type1 | FC05: Type3 vs Type8 | FC06: Type2 vs Type9
           - No scoring logic added yet
           - Section 3 still placeholder
+      - working: "NA"
+        agent: "main"
+        comment: |
+          SECTION 3 WING RESOLUTION COMPLETE: All 54 wing questions for all 9 types.
+          - Added new question types: LikertWingQuestion, ForcedChoiceWingQuestion
+          - Each type has 6 questions (4 Likert + 2 forced-choice tie-breakers)
+          - Wing questions organized by core type with left/right wing mappings
+          - Implemented inferredCoreTypeForWing computation:
+            * Averages Section 1 Likert scores per type (Q01-Q27)
+            * Highest average determines which wing block to show
+          - Dynamic question filtering: only shows wing questions for inferred type
+          - Added render sections for likert_wing and forced_choice_wing types
+          - Progress indicator accounts for dynamic wing question count
+          - Total questions: 27 (S1) + 6 (S2) + 6 (S3 dynamic) = 39 per assessment
 
   - task: "Journal Tab with Mirror Chat Toggle"
     implemented: true
