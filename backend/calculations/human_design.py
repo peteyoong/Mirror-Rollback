@@ -893,3 +893,4 @@ def get_strategy_for_type(hd_type: str) -> str:
         'Reflector': 'To Wait a Lunar Cycle'
     }
     return strategies.get(hd_type, 'Unknown')
+# Deployment: 20260204_080831 - Incarnation cross naming fix
