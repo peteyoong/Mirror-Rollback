@@ -777,6 +777,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
             <Text style={styles.retakeLinkText}>Retake Assessment</Text>
           </TouchableOpacity>
         </View>
+        
+        {/* Chat Box */}
+        {renderChatBox()}
       </>
     );
   };
