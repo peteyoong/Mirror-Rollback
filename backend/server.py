@@ -5240,6 +5240,9 @@ class EnneagramFeedbackRequest(BaseModel):
     inferred_core: int
     inferred_wing: Union[int, str]
     confidence: float
+    energy_state: Optional[str] = None
+    life_context: Optional[str] = None
+    answer_frame: Optional[str] = None
 
 @api_router.post("/profile/enneagram/feedback")
 async def submit_enneagram_feedback(request: EnneagramFeedbackRequest):
@@ -5252,6 +5255,9 @@ async def submit_enneagram_feedback(request: EnneagramFeedbackRequest):
             "inferred_core": request.inferred_core,
             "inferred_wing": request.inferred_wing,
             "confidence": request.confidence,
+            "energy_state": request.energy_state,
+            "life_context": request.life_context,
+            "answer_frame": request.answer_frame,
             "created_at": datetime.now(timezone.utc)
         }
         
