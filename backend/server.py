@@ -5344,9 +5344,6 @@ Keep it brief and practical. No essays."""
             upsert=True
         )
         
-        # Record rate limit usage
-        record_rate_limit_usage(request.user_id, is_lens=True)
-        
         logger.info(f"[Enneagram Chat] User {request.user_id} - Type {core_type} - Context: {ctx.active_card_context}")
         
         return EnneagramChatResponse(
