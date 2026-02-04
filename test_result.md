@@ -237,6 +237,18 @@ frontend:
           - Type 7: Q19-Q21 | Type 8: Q22-Q24 | Type 9: Q25-Q27
           - No scoring logic added yet (as requested)
           - Sections 2 & 3 still placeholders
+      - working: "NA"
+        agent: "main"
+        comment: |
+          SECTION 2 QUESTIONS ADDED: 6 Disambiguation forced-choice questions.
+          - All 6 questions with A/B forced choice (no neutral)
+          - Each question has: id (FC01-FC06), prompt, optionA, optionB, optionAType, optionBType
+          - Updated ForcedChoiceQuestion interface to include prompt and type mappings
+          - Updated rendering to use question's prompt field
+          - FC01: Type7 vs Type3 | FC02: Type7 vs Type6 | FC03: Type7 vs Type8
+          - FC04: Type5 vs Type1 | FC05: Type3 vs Type8 | FC06: Type2 vs Type9
+          - No scoring logic added yet
+          - Section 3 still placeholder
 
   - task: "Journal Tab with Mirror Chat Toggle"
     implemented: true
