@@ -5231,6 +5231,136 @@ async def get_enneagram_result(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Enneagram type names for context
+ENNEAGRAM_TYPE_NAMES = {
+    1: "The Perfectionist",
+    2: "The Helper", 
+    3: "The Achiever",
+    4: "The Individualist",
+    5: "The Investigator",
+    6: "The Loyalist",
+    7: "The Enthusiast",
+    8: "The Challenger",
+    9: "The Peacemaker"
+}
+
+@api_router.post("/enneagram/chat", response_model=EnneagramChatResponse)
+async def enneagram_chat(request: EnneagramChatRequest):
+    """Enneagram-specific contextual chat with structured responses"""
+    try:
+        # Check rate limit (using lens limit)
+        check_rate_limit(request.user_id, is_lens=True)
+        
+        # Get chat history for Enneagram (separate from main chat)
+        chat_history = await db.enneagram_chat_history.find_one({"user_id": request.user_id})
+        
+        if not chat_history:
+            chat_history = {
+                "user_id": request.user_id,
+                "messages": [],
+                "created_at": datetime.now(timezone.utc)
+            }
+        
+        # Build context for the prompt
+        ctx = request.context
+        core_type = ctx.inferred_core
+        wing = ctx.inferred_wing
+        wing_display = "balanced wings" if wing == "balanced" else f"wing {wing}"
+        type_name = ENNEAGRAM_TYPE_NAMES.get(core_type, f"Type {core_type}")
+        
+        # Build top candidates string
+        top_types_str = ""
+        if ctx.top_candidates and len(ctx.top_candidates) >= 2:
+            top_types_str = f"Type {ctx.top_candidates[0].get('type', '')} and Type {ctx.top_candidates[1].get('type', '')}"
+        
+        # Build the system prompt
+        system_prompt = f"""You are a reflective guide within Project Mirror's Enneagram lens.
+
+USER'S ENNEAGRAM PROFILE:
+- Core Type: {core_type} ({type_name}) with {wing_display}
+- Confidence: {ctx.confidence_tier}
+- Is Close Result: {ctx.is_close}
+- Top Candidates: {top_types_str}
+
+CURRENT STATE:
+- Energy Level: {ctx.energy_state}
+- Active Context: {ctx.active_card_context}
+
+YOUR ROLE:
+You help the user explore their Enneagram patterns with calm, grounded reflection.
+You are NOT an authority. You offer perspectives, not conclusions.
+Keep your response between 120-220 words.
+
+RESPONSE FORMAT (use these exact headings):
+**What I'm noticing**
+[1-2 sentences observing their question in relation to their type pattern]
+
+**A cleaner frame**
+[2-3 sentences offering a different perspective or reframe specific to their type]
+
+**One small experiment**
+[1-2 sentences with a concrete, actionable practice they could try]
+
+TONE RULES:
+- Calm, direct, grounded — not mystical or guru-like
+- Use phrases like "One way to look at this..." or "You might notice..."
+- Do not prescribe or predict
+- Be specific to Type {core_type} patterns when relevant
+
+{"IMPORTANT: Since confidence is " + ctx.confidence_tier + " and this was a close result, include one sentence: 'If this doesn't fully fit, " + top_types_str + " is a common overlap — we can explore both.'" if ctx.is_close or ctx.confidence_tier == "low" else ""}
+
+Keep it brief and practical. No essays."""
+
+        # Add user message to history
+        user_msg = {
+            "role": "user",
+            "content": request.message,
+            "timestamp": datetime.now(timezone.utc),
+            "context": {
+                "energy_state": ctx.energy_state,
+                "active_card_context": ctx.active_card_context
+            }
+        }
+        chat_history["messages"].append(user_msg)
+        
+        # Generate AI response
+        response_text = await generate_ai_response(system_prompt, request.message, request.user_id)
+        
+        # Add assistant message to history
+        assistant_msg = {
+            "role": "assistant",
+            "content": response_text,
+            "timestamp": datetime.now(timezone.utc)
+        }
+        chat_history["messages"].append(assistant_msg)
+        
+        # Update chat history (keep last 10 messages for Enneagram chat)
+        chat_history["messages"] = chat_history["messages"][-10:]
+        chat_history["updated_at"] = datetime.now(timezone.utc)
+        
+        await db.enneagram_chat_history.update_one(
+            {"user_id": request.user_id},
+            {"$set": chat_history},
+            upsert=True
+        )
+        
+        # Record rate limit usage
+        record_rate_limit_usage(request.user_id, is_lens=True)
+        
+        logger.info(f"[Enneagram Chat] User {request.user_id} - Type {core_type} - Context: {ctx.active_card_context}")
+        
+        return EnneagramChatResponse(
+            response=response_text,
+            timestamp=datetime.now(timezone.utc).isoformat()
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Enneagram chat error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
