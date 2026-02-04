@@ -130,7 +130,7 @@ export default function EnneagramIntro() {
         {/* Note */}
         <View style={styles.noteSection}>
           <Text style={styles.noteText}>
-            Answer based on what feels most fundamental to you — not how you've been lately. 
+            Answer based on what feels most fundamental to you — not how you&apos;ve been lately. 
             There are no right or wrong answers.
           </Text>
         </View>
