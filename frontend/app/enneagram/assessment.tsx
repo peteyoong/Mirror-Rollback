@@ -699,9 +699,9 @@ export default function EnneagramAssessment() {
             Question {currentQuestionIndex + 1} of {currentSectionQuestions.length}
           </Text>
           
-          {/* Instruction */}
-          <Text style={styles.forcedChoiceInstruction}>
-            Choose the option that feels closer to you
+          {/* Prompt */}
+          <Text style={styles.forcedChoicePrompt}>
+            {fcQuestion.prompt}
           </Text>
           
           {/* Options */}
