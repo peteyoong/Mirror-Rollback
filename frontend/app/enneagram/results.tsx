@@ -82,6 +82,8 @@ export default function EnneagramResults() {
   const [showRetakeModal, setShowRetakeModal] = useState(false);
   const [debugExpanded, setDebugExpanded] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackValue>(null);
+  const hasSubmittedFeedbackRef = useRef(false);
   
   useEffect(() => {
     const fetchResult = async () => {
