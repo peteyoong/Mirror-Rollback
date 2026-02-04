@@ -405,6 +405,8 @@ export default function Onboarding() {
                   placeholder="Start typing a city name..."
                   placeholderTextColor={Colors.textTertiary}
                   autoCapitalize="words"
+                  autoComplete="off"
+                  autoCorrect={false}
                 />
 
                 {isSearching && (
