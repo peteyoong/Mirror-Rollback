@@ -140,6 +140,9 @@ export const submitEnneagramFeedback = async (data: {
   inferred_core: number;
   inferred_wing: number | string;
   confidence: number;
+  energy_state?: string;
+  life_context?: string;
+  answer_frame?: string;
 }) => {
   const response = await api.post('/profile/enneagram/feedback', data);
   return response.data;
