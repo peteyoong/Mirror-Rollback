@@ -1974,4 +1974,63 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
   },
+  
+  // State Calibration
+  calibrationScrollContent: {
+    flexGrow: 1,
+    padding: 24,
+  },
+  calibrationTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 12,
+    marginTop: 16,
+  },
+  calibrationSubtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+    marginBottom: 32,
+  },
+  calibrationSection: {
+    marginBottom: 28,
+  },
+  calibrationLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.text,
+    marginBottom: 12,
+  },
+  calibrationOptions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  calibrationOption: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+  },
+  calibrationOptionSelected: {
+    backgroundColor: Colors.text,
+    borderColor: Colors.text,
+  },
+  calibrationOptionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  calibrationOptionTextSelected: {
+    color: Colors.background,
+  },
+  continueButtonDisabled: {
+    backgroundColor: Colors.border,
+    opacity: 0.6,
+  },
 });
