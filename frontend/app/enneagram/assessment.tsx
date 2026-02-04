@@ -863,16 +863,60 @@ export default function EnneagramAssessment() {
     wing_resolution: [],
   });
   
-  // Get current section and questions
+  // ============================================
+  // COMPUTE INFERRED CORE TYPE FOR WING RESOLUTION
+  // ============================================
+  // Calculate average scores per type from Section 1 responses
+  const computeInferredCoreType = useCallback((): number => {
+    const typeScores: { [key: number]: number[] } = {
+      1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [],
+    };
+    
+    // Group responses by type
+    responses.core_motivation.forEach(response => {
+      const question = CORE_MOTIVATION_QUESTIONS.find(q => q.id === response.questionId);
+      if (question) {
+        typeScores[question.typeMapping].push(response.value);
+      }
+    });
+    
+    // Calculate averages and find highest
+    let highestAvg = 0;
+    let inferredType = 1;
+    
+    for (let type = 1; type <= 9; type++) {
+      const scores = typeScores[type];
+      if (scores.length > 0) {
+        const avg = scores.reduce((sum, val) => sum + val, 0) / scores.length;
+        if (avg > highestAvg) {
+          highestAvg = avg;
+          inferredType = type;
+        }
+      }
+    }
+    
+    return inferredType;
+  }, [responses.core_motivation]);
+  
+  // Get the inferred core type (computed when entering Section 3)
+  const inferredCoreTypeForWing = computeInferredCoreType();
+  
+  // Get wing questions dynamically based on inferred core type
+  const wingQuestionsForInferredType = getWingQuestionsForType(inferredCoreTypeForWing);
+  
+  // Get current section and questions (dynamic for wing_resolution)
   const currentSection = SECTIONS[currentSectionIndex];
-  const currentSectionQuestions = SECTION_QUESTIONS[currentSection.id] || [];
+  const currentSectionQuestions = currentSection.id === 'wing_resolution' 
+    ? wingQuestionsForInferredType 
+    : (SECTION_QUESTIONS[currentSection.id] || []);
   const currentQuestion = currentSectionQuestions[currentQuestionIndex];
   
-  // Calculate overall progress
-  const totalQuestions = Object.values(SECTION_QUESTIONS).reduce(
-    (sum, questions) => sum + questions.length,
-    0
-  );
+  // Calculate overall progress (accounting for dynamic wing questions)
+  const section1Count = SECTION_QUESTIONS.core_motivation.length;
+  const section2Count = SECTION_QUESTIONS.disambiguation.length;
+  const section3Count = wingQuestionsForInferredType.length;
+  const totalQuestions = section1Count + section2Count + section3Count;
+  
   const completedQuestions = 
     responses.core_motivation.length + 
     responses.disambiguation.length + 
@@ -881,9 +925,9 @@ export default function EnneagramAssessment() {
     ? (completedQuestions / totalQuestions) * 100 
     : 0;
   
-  // Handle Likert response
+  // Handle Likert response (for both regular and wing questions)
   const handleLikertResponse = useCallback((value: number) => {
-    if (!currentQuestion || currentQuestion.type !== 'likert') return;
+    if (!currentQuestion || (currentQuestion.type !== 'likert' && currentQuestion.type !== 'likert_wing')) return;
     
     const newResponse: LikertResponse = {
       questionId: currentQuestion.id,
@@ -898,9 +942,9 @@ export default function EnneagramAssessment() {
     advanceToNext();
   }, [currentQuestion, currentSection]);
   
-  // Handle Forced Choice response
+  // Handle Forced Choice response (for both regular and wing questions)
   const handleForcedChoiceResponse = useCallback((choice: 'A' | 'B') => {
-    if (!currentQuestion || currentQuestion.type !== 'forced_choice') return;
+    if (!currentQuestion || (currentQuestion.type !== 'forced_choice' && currentQuestion.type !== 'forced_choice_wing')) return;
     
     const newResponse: ForcedChoiceResponse = {
       questionId: currentQuestion.id,
