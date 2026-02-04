@@ -59,6 +59,15 @@ interface EnneagramResult {
     life_context: string;
     answer_frame: string;
   };
+  debug_scores?: {
+    raw_scores: { [key: string]: number };
+    z_scores: { [key: string]: number };
+    wing_scores: {
+      left: number;
+      right: number;
+      diff: number;
+    };
+  };
   created_at?: string;
 }
 
