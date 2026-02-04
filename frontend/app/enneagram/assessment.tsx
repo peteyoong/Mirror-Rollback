@@ -877,6 +877,8 @@ export default function EnneagramAssessment() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showSectionIntro, setShowSectionIntro] = useState(true);
   const [showInterpretingScreen, setShowInterpretingScreen] = useState(false);
+  const [showStateCalibration, setShowStateCalibration] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Response storage
   const [responses, setResponses] = useState<AssessmentResponses>({
@@ -884,6 +886,160 @@ export default function EnneagramAssessment() {
     disambiguation: [],
     wing_resolution: [],
   });
+  
+  // State calibration
+  const [stateCalibration, setStateCalibration] = useState<StateCalibration>({
+    energy_state: null,
+    life_context: null,
+    answer_frame: null,
+  });
+  
+  // ============================================
+  // SCORING ALGORITHM
+  // ============================================
+  
+  // Compute full scoring (call after all sections complete)
+  const computeFullScoring = useCallback((): ScoringResult => {
+    // Step 1: Compute mean Likert scores per type (Section 1)
+    const typeLikertScores: { [key: number]: number[] } = {
+      1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [],
+    };
+    
+    responses.core_motivation.forEach(response => {
+      const question = CORE_MOTIVATION_QUESTIONS.find(q => q.id === response.questionId);
+      if (question) {
+        typeLikertScores[question.typeMapping].push(response.value);
+      }
+    });
+    
+    const meanLikert: { [key: number]: number } = {};
+    for (let t = 1; t <= 9; t++) {
+      const scores = typeLikertScores[t];
+      meanLikert[t] = scores.length > 0 
+        ? scores.reduce((sum, v) => sum + v, 0) / scores.length 
+        : 0;
+    }
+    
+    // Step 2: Count forced-choice hits (Section 2)
+    const forcedHits: { [key: number]: number } = {
+      1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0,
+    };
+    
+    responses.disambiguation.forEach(response => {
+      const question = DISAMBIGUATION_QUESTIONS.find(q => q.id === response.questionId);
+      if (question) {
+        const selectedType = response.choice === 'A' ? question.optionAType : question.optionBType;
+        forcedHits[selectedType]++;
+      }
+    });
+    
+    // Step 3: Compute raw scores
+    const rawScores: { [key: string]: number } = {};
+    for (let t = 1; t <= 9; t++) {
+      rawScores[String(t)] = meanLikert[t] + (1.5 * forcedHits[t]);
+    }
+    
+    // Step 4: Z-score normalization
+    const rawValues = Object.values(rawScores);
+    const mean = rawValues.reduce((a, b) => a + b, 0) / rawValues.length;
+    const variance = rawValues.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / rawValues.length;
+    const stddev = Math.sqrt(variance) || 1;
+    
+    const zScores: { [key: string]: number } = {};
+    for (let t = 1; t <= 9; t++) {
+      zScores[String(t)] = (rawScores[String(t)] - mean) / stddev;
+    }
+    
+    // Step 5: Softmax to probabilities
+    const expValues = Object.values(zScores).map(z => Math.exp(z));
+    const sumExp = expValues.reduce((a, b) => a + b, 0);
+    
+    const probabilities: { type: number; probability: number }[] = [];
+    for (let t = 1; t <= 9; t++) {
+      probabilities.push({
+        type: t,
+        probability: Math.exp(zScores[String(t)]) / sumExp
+      });
+    }
+    
+    // Sort by probability descending
+    probabilities.sort((a, b) => b.probability - a.probability);
+    
+    const inferred_core = probabilities[0].type;
+    const confidence = probabilities[0].probability;
+    const is_close = probabilities.length >= 2 && 
+      (probabilities[0].probability - probabilities[1].probability) < 0.08;
+    
+    let confidence_tier: 'high' | 'medium' | 'low';
+    if (confidence >= 0.75) confidence_tier = 'high';
+    else if (confidence >= 0.60) confidence_tier = 'medium';
+    else confidence_tier = 'low';
+    
+    const top_candidates = probabilities.slice(0, 3);
+    
+    // Step 6: Wing scoring
+    const leftWing = inferred_core === 1 ? 9 : inferred_core - 1;
+    const rightWing = inferred_core === 9 ? 1 : inferred_core + 1;
+    
+    const wingQuestions = getWingQuestionsForType(inferred_core);
+    
+    let leftLikertSum = 0, leftLikertCount = 0;
+    let rightLikertSum = 0, rightLikertCount = 0;
+    let leftForcedHits = 0, rightForcedHits = 0;
+    
+    responses.wing_resolution.forEach(response => {
+      const question = wingQuestions.find(q => q.id === response.questionId);
+      if (!question) return;
+      
+      if (question.type === 'likert_wing') {
+        const likertQ = question as LikertWingQuestion;
+        const likertR = response as LikertResponse;
+        if (likertQ.wingSide === 'left') {
+          leftLikertSum += likertR.value;
+          leftLikertCount++;
+        } else {
+          rightLikertSum += likertR.value;
+          rightLikertCount++;
+        }
+      } else if (question.type === 'forced_choice_wing') {
+        const fcQ = question as ForcedChoiceWingQuestion;
+        const fcR = response as ForcedChoiceResponse;
+        const selected = fcR.choice === 'A' ? fcQ.optionAMapsTo : (fcQ.optionAMapsTo === 'left' ? 'right' : 'left');
+        if (selected === 'left') leftForcedHits++;
+        else rightForcedHits++;
+      }
+    });
+    
+    const leftMean = leftLikertCount > 0 ? leftLikertSum / leftLikertCount : 0;
+    const rightMean = rightLikertCount > 0 ? rightLikertSum / rightLikertCount : 0;
+    
+    const wing_left_score = leftMean + (1.25 * leftForcedHits);
+    const wing_right_score = rightMean + (1.25 * rightForcedHits);
+    const wing_diff = Math.abs(wing_left_score - wing_right_score);
+    
+    let inferred_wing: number | 'balanced';
+    if (wing_diff < 0.6) {
+      inferred_wing = 'balanced';
+    } else {
+      inferred_wing = wing_left_score > wing_right_score ? leftWing : rightWing;
+    }
+    
+    return {
+      inferred_core,
+      inferred_wing,
+      confidence,
+      confidence_tier,
+      is_close,
+      top_candidates,
+      raw_scores: rawScores,
+      z_scores: zScores,
+      wing_scores: {
+        left: wing_left_score,
+        right: wing_right_score,
+        diff: wing_diff
+      }
+    };
+  }, [responses]);
   
   // ============================================
   // COMPUTE INFERRED CORE TYPE FOR WING RESOLUTION
