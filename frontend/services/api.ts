@@ -83,4 +83,35 @@ export const getLenses = async () => {
   return response.data;
 };
 
+// Enneagram APIs
+export const saveEnneagramResult = async (data: {
+  user_id: string;
+  method: string;
+  version: string;
+  inferred_core: number;
+  inferred_wing: number | string;
+  confidence: number;
+  confidence_tier: string;
+  is_close: boolean;
+  top_candidates: { type: number; probability: number }[];
+  state_calibration: {
+    energy_state: string;
+    life_context: string;
+    answer_frame: string;
+  };
+  debug_scores: {
+    raw_scores: { [key: string]: number };
+    z_scores: { [key: string]: number };
+    wing_scores: { left: number; right: number; diff: number };
+  };
+}) => {
+  const response = await api.post('/enneagram/results', data);
+  return response.data;
+};
+
+export const getEnneagramResult = async (userId: string) => {
+  const response = await api.get(`/enneagram/results/${userId}`);
+  return response.data;
+};
+
 export default api;
