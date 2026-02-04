@@ -4840,12 +4840,20 @@ async def get_numerology_deep_dive(user_id: str):
     """
     Generate Numerology Deep Dive - expanded exploration of core numbers.
     NO cycles/timing. Focus on Life Path, Birthday, and name-based numbers if available.
+    Uses caching for instant repeat views.
     """
     import json as json_module
     
     try:
         if not EMERGENT_LLM_KEY:
             raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        # =====================================================================
+        # CHECK CACHE FIRST - instant response for repeat views
+        # =====================================================================
+        cached_response = await get_cached_deep_dive(user_id, "numerology")
+        if cached_response:
+            return cached_response
         
         user, chart = await get_user_numerology_data(user_id)
         data = extract_numerology_data(chart, user)
