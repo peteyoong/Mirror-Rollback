@@ -203,6 +203,54 @@ class MirrorChatResponse(BaseModel):
     thread: Optional[dict] = None  # Thread state metadata
 
 
+# Enneagram Assessment Models
+class EnneagramTopCandidate(BaseModel):
+    type: int
+    probability: float
+
+class EnneagramStateCalibration(BaseModel):
+    energy_state: str  # low|neutral|high
+    life_context: str  # surviving|managing|expanding
+    answer_frame: str  # best_self|recent_self
+
+class EnneagramWingScores(BaseModel):
+    left: float
+    right: float
+    diff: float
+
+class EnneagramDebugScores(BaseModel):
+    raw_scores: Dict[str, float]
+    z_scores: Dict[str, float]
+    wing_scores: EnneagramWingScores
+
+class EnneagramResultSave(BaseModel):
+    user_id: str
+    method: str = "assessment_inference_v1"
+    version: str = "v1"
+    inferred_core: int
+    inferred_wing: Any  # int | "balanced"
+    confidence: float
+    confidence_tier: str  # high|medium|low
+    is_close: bool
+    top_candidates: List[EnneagramTopCandidate]
+    state_calibration: EnneagramStateCalibration
+    debug_scores: EnneagramDebugScores
+
+class EnneagramResultResponse(BaseModel):
+    id: str
+    user_id: str
+    method: str
+    version: str
+    inferred_core: int
+    inferred_wing: Any
+    confidence: float
+    confidence_tier: str
+    is_close: bool
+    top_candidates: List[EnneagramTopCandidate]
+    state_calibration: EnneagramStateCalibration
+    created_at: str
+
+
 # Thread Anchor Insert - for maintaining coherence in keystone thread mode
 THREAD_ANCHOR_INSERT = """
 === ACTIVE KEYSTONE THREAD ===
