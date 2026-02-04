@@ -61,8 +61,11 @@ interface LikertQuestion {
 
 interface ForcedChoiceQuestion {
   id: string;
+  prompt: string;
   optionA: string;
   optionB: string;
+  optionAType: number; // Enneagram type 1-9 for scoring
+  optionBType: number; // Enneagram type 1-9 for scoring
   type: 'forced_choice';
 }
 
