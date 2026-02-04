@@ -206,7 +206,7 @@ frontend:
 
   - task: "Enneagram Assessment Flow"
     implemented: true
-    working: "NA"
+    working: "needs_testing"
     file: "/app/frontend/app/enneagram/index.tsx, /app/frontend/app/enneagram/assessment.tsx, /app/frontend/app/enneagram/results.tsx"
     stuck_count: 0
     priority: "high"
@@ -215,54 +215,57 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: |
-          Enneagram Assessment flow structure created:
-          - Intro screen with CTA to start assessment
-          - Assessment flow with 3 sections (Core Motivation, Disambiguation, Wing Resolution)
-          - Section intro screens with specified copy
-          - Likert scale (1-5) question UI
-          - Forced-choice (A/B) question UI
-          - Progress indicator
-          - Interpreting screen transition
-          - Placeholder results screen
-          NOTE: No actual questions added yet - flow only as requested.
+          Enneagram Assessment flow structure created
       - working: "NA"
         agent: "main"
         comment: |
           SECTION 1 QUESTIONS ADDED: 27 Core Motivation questions implemented.
-          - All 27 questions with Likert scale (1-5)
-          - Each question has: id (Q01-Q27), text, type='likert', typeMapping (1-9)
-          - Questions organized by Enneagram type (3 questions per type)
-          - Type 1: Q01-Q03 | Type 2: Q04-Q06 | Type 3: Q07-Q09
-          - Type 4: Q10-Q12 | Type 5: Q13-Q15 | Type 6: Q16-Q18
-          - Type 7: Q19-Q21 | Type 8: Q22-Q24 | Type 9: Q25-Q27
-          - No scoring logic added yet (as requested)
-          - Sections 2 & 3 still placeholders
       - working: "NA"
         agent: "main"
         comment: |
           SECTION 2 QUESTIONS ADDED: 6 Disambiguation forced-choice questions.
-          - All 6 questions with A/B forced choice (no neutral)
-          - Each question has: id (FC01-FC06), prompt, optionA, optionB, optionAType, optionBType
-          - Updated ForcedChoiceQuestion interface to include prompt and type mappings
-          - Updated rendering to use question's prompt field
-          - FC01: Type7 vs Type3 | FC02: Type7 vs Type6 | FC03: Type7 vs Type8
-          - FC04: Type5 vs Type1 | FC05: Type3 vs Type8 | FC06: Type2 vs Type9
-          - No scoring logic added yet
-          - Section 3 still placeholder
       - working: "NA"
         agent: "main"
         comment: |
           SECTION 3 WING RESOLUTION COMPLETE: All 54 wing questions for all 9 types.
-          - Added new question types: LikertWingQuestion, ForcedChoiceWingQuestion
-          - Each type has 6 questions (4 Likert + 2 forced-choice tie-breakers)
-          - Wing questions organized by core type with left/right wing mappings
-          - Implemented inferredCoreTypeForWing computation:
-            * Averages Section 1 Likert scores per type (Q01-Q27)
-            * Highest average determines which wing block to show
-          - Dynamic question filtering: only shows wing questions for inferred type
-          - Added render sections for likert_wing and forced_choice_wing types
-          - Progress indicator accounts for dynamic wing question count
-          - Total questions: 27 (S1) + 6 (S2) + 6 (S3 dynamic) = 39 per assessment
+      - working: "needs_testing"
+        agent: "main"
+        comment: |
+          FULL SCORING, PERSISTENCE, AND RESULTS IMPLEMENTED:
+          
+          1. SCORING ALGORITHM (assessment.tsx):
+             - Core scoring: mean Likert + 1.5*forced_hits per type
+             - Z-score normalization across types
+             - Softmax for probabilities
+             - confidence_tier: high (>=0.75), medium (0.60-0.74), low (<0.60)
+             - is_close flag if top 2 types differ by <0.08
+             - Wing scoring: mean Likert + 1.25*forced_hits per wing side
+             - balanced wing if diff < 0.6
+          
+          2. STATE CALIBRATION:
+             - Collects: energy_state (low/neutral/high)
+             - life_context (surviving/managing/expanding)
+             - answer_frame (best_self/recent_self)
+             - Does NOT affect scoring
+          
+          3. BACKEND ENDPOINTS (server.py):
+             - POST /api/enneagram/results - save result
+             - GET /api/enneagram/results/{user_id} - retrieve result
+             - Creates enneagram_results collection
+             - Updates user profile with enneagram summary
+          
+          4. RESULTS SCREEN (results.tsx):
+             - Displays Type X with Wing Y
+             - Confidence badge (High/Medium/Low)
+             - Top 3 candidates with probabilities
+             - Close call notice if is_close
+             - Type motivation "why" paragraph
+             - View Lens / Retake Assessment CTAs
+          
+          5. INTRO SCREEN GATING (index.tsx):
+             - Shows summary card if user has result
+             - Shows intro with assessment CTA if no result
+             - View Full Results button
 
   - task: "Journal Tab with Mirror Chat Toggle"
     implemented: true
