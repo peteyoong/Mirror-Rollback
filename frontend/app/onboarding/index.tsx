@@ -53,8 +53,10 @@ export default function Onboarding() {
 
   // Use ref to track if we just selected a location (synchronous, not batched)
   const justSelectedRef = useRef(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSearchQueryRef = useRef<string>('');
 
-  const handleSearchLocation = async (query: string) => {
+  const handleSearchLocation = useCallback(async (query: string) => {
     // If we just selected a location, don't search again
     if (justSelectedRef.current) {
       justSelectedRef.current = false;
@@ -71,20 +73,36 @@ export default function Onboarding() {
       return;
     }
 
-    setIsSearching(true);
-    try {
-      const results = await searchLocations(query);
-      setLocations(results || []);
-    } catch (err: any) {
-      console.error('Location search error:', err);
-      // Only show error if we don't have a selected location
-      if (!selectedLocation) {
-        setLocations([]);
-      }
-    } finally {
-      setIsSearching(false);
+    // Clear any pending search
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
-  };
+
+    // Debounce the search by 300ms
+    setIsSearching(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      // Store the query we're searching for
+      lastSearchQueryRef.current = query;
+      
+      try {
+        const results = await searchLocations(query);
+        // Only update results if this is still the latest query
+        if (lastSearchQueryRef.current === query) {
+          setLocations(results || []);
+        }
+      } catch (err: any) {
+        console.error('Location search error:', err);
+        // Only show error if we don't have a selected location
+        if (!selectedLocation && lastSearchQueryRef.current === query) {
+          setLocations([]);
+        }
+      } finally {
+        if (lastSearchQueryRef.current === query) {
+          setIsSearching(false);
+        }
+      }
+    }, 300);
+  }, [selectedLocation]);
 
   const handleSelectLocation = (location: Location) => {
     justSelectedRef.current = true; // Prevent re-search (synchronous)
