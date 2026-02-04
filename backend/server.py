@@ -5220,6 +5220,7 @@ async def get_enneagram_result(user_id: str):
                 "is_close": result.get("is_close", False),
                 "top_candidates": result.get("top_candidates", []),
                 "state_calibration": result.get("state_calibration", {}),
+                "debug_scores": result.get("debug_scores", {}),
                 "created_at": result["created_at"].isoformat() if result.get("created_at") else None
             }
         }
