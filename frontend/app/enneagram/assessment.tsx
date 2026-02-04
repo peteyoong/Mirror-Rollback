@@ -961,6 +961,9 @@ export default function EnneagramAssessment() {
     answer_frame: null,
   });
   
+  // Guard to prevent duplicate validation row logs
+  const hasLoggedValidationRowRef = useRef(false);
+  
   // ============================================
   // SCORING ALGORITHM
   // ============================================
