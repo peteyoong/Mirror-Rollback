@@ -225,6 +225,18 @@ frontend:
           - Interpreting screen transition
           - Placeholder results screen
           NOTE: No actual questions added yet - flow only as requested.
+      - working: "NA"
+        agent: "main"
+        comment: |
+          SECTION 1 QUESTIONS ADDED: 27 Core Motivation questions implemented.
+          - All 27 questions with Likert scale (1-5)
+          - Each question has: id (Q01-Q27), text, type='likert', typeMapping (1-9)
+          - Questions organized by Enneagram type (3 questions per type)
+          - Type 1: Q01-Q03 | Type 2: Q04-Q06 | Type 3: Q07-Q09
+          - Type 4: Q10-Q12 | Type 5: Q13-Q15 | Type 6: Q16-Q18
+          - Type 7: Q19-Q21 | Type 8: Q22-Q24 | Type 9: Q25-Q27
+          - No scoring logic added yet (as requested)
+          - Sections 2 & 3 still placeholders
 
   - task: "Journal Tab with Mirror Chat Toggle"
     implemented: true
