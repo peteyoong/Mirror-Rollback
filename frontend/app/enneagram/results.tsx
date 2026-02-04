@@ -131,6 +131,36 @@ export default function EnneagramResults() {
     }
   };
   
+  // Handle feedback selection
+  const handleFeedbackSelect = async (feedback: 'yes' | 'mostly' | 'no') => {
+    if (!result || !user?.id || hasSubmittedFeedbackRef.current) return;
+    
+    setSelectedFeedback(feedback);
+    hasSubmittedFeedbackRef.current = true;
+    
+    const payload = {
+      user_id: user.id,
+      accuracy_feedback: feedback,
+      timestamp: new Date().toISOString(),
+      inferred_core: result.inferred_core,
+      inferred_wing: result.inferred_wing,
+      confidence: result.confidence,
+    };
+    
+    try {
+      await submitEnneagramFeedback(payload);
+      
+      // Dev logging (only on successful submission)
+      if (IS_DEV) {
+        console.log('ENNEAGRAM_FEEDBACK:', JSON.stringify(payload));
+      }
+    } catch (error) {
+      // Fail silently - don't show error UI
+      // Reset flag so user can retry if they want
+      hasSubmittedFeedbackRef.current = false;
+    }
+  };
+  
   // Render debug panel (dev only)
   const renderDebugPanel = () => {
     if (!IS_DEV || !result) return null;
