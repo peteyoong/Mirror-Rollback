@@ -421,6 +421,9 @@ export default function EnneagramResults() {
           </TouchableOpacity>
         </View>
         
+        {/* Debug Panel (Dev Only) */}
+        {renderDebugPanel()}
+        
         <View style={styles.bottomSpacer} />
       </ScrollView>
       
