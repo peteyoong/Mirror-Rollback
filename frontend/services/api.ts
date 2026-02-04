@@ -132,4 +132,17 @@ export const sendEnneagramChat = async (data: {
   return response.data;
 };
 
+// Enneagram Feedback API
+export const submitEnneagramFeedback = async (data: {
+  user_id: string;
+  accuracy_feedback: 'yes' | 'mostly' | 'no';
+  timestamp: string;
+  inferred_core: number;
+  inferred_wing: number | string;
+  confidence: number;
+}) => {
+  const response = await api.post('/profile/enneagram/feedback', data);
+  return response.data;
+};
+
 export default api;
