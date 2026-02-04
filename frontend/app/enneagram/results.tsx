@@ -188,6 +188,9 @@ export default function EnneagramResults() {
     setSelectedFeedback(feedback);
     hasSubmittedFeedbackRef.current = true;
     
+    // Normalize state calibration for clean dataset
+    const normalizedState = normalizeStateCalibration(result.state_calibration);
+    
     const payload = {
       user_id: user.id,
       accuracy_feedback: feedback,
@@ -195,6 +198,9 @@ export default function EnneagramResults() {
       inferred_core: result.inferred_core,
       inferred_wing: result.inferred_wing,
       confidence: result.confidence,
+      energy_state: normalizedState.energy_state,
+      life_context: normalizedState.life_context,
+      answer_frame: normalizedState.answer_frame,
     };
     
     try {
