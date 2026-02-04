@@ -214,6 +214,149 @@ const MASTERY_LEVELS: { [key: number]: { reactive: string; average: string; reso
 };
 
 // ============================================
+// DAILY MICRO-LESSONS (10 per type)
+// ============================================
+
+const MICRO_LESSONS: { [key: number]: string[] } = {
+  1: [
+    "Notice where 'should' appears today. **Replace one 'should' with a choice.**",
+    "Pick one small imperfection and let it stand. Practice staying calm with it.",
+    "When you correct something, ask: 'Is this improvement… or control?'",
+    "Trade criticism for precision: describe facts before judging.",
+    "Try 'good enough' on one task. Finish, then stop.",
+    "If you feel resentful, check if you're holding an unspoken standard.",
+    "Choose one value you care about and do one tiny act that matches it.",
+    "Before fixing others, ask permission—or offer options.",
+    "Name your inner critic voice. Then answer it with a kinder truth.",
+    "Today's integrity practice: align one action with what you believe.",
+  ],
+  2: [
+    "Before helping, pause: **Do they want help or presence?**",
+    "Ask for one thing you need, directly and simply.",
+    "Notice if you're earning love. Try giving without tracking.",
+    "If you feel unappreciated, check what expectation was unspoken.",
+    "Practice saying 'not today' once, kindly.",
+    "Let someone else support you without reciprocating immediately.",
+    "Name your real feeling before you go into 'caretaker mode.'",
+    "Today's boundary: help, but don't over-extend.",
+    "Replace advice with a question. Stay curious.",
+    "Choose one relationship and be honest about your needs.",
+  ],
+  3: [
+    "Notice where you're performing. **Name the real fear underneath.**",
+    "Do one thing slowly and well, even if no one sees it.",
+    "Ask: 'What would success mean if nobody applauded?'",
+    "Share one imperfect truth with someone safe.",
+    "Choose one priority and drop one optional goal.",
+    "Check if you're avoiding a feeling by staying productive.",
+    "Practice being present without optimizing the moment.",
+    "Today's integrity: don't exaggerate—be exact.",
+    "Celebrate progress privately, not publicly.",
+    "Ask for feedback that is not about results—about impact.",
+  ],
+  4: [
+    "Notice longing today. **Name what you actually want.**",
+    "Choose one ordinary moment and make it meaningful through attention.",
+    "If you feel misunderstood, state your need plainly once.",
+    "Practice 'enoughness': list 3 things that are already true and good.",
+    "Create something small in 10 minutes. Finish it.",
+    "Don't amplify emotion—witness it. Let it move through.",
+    "Trade comparison for curiosity: 'What is this here to teach me?'",
+    "Today: connect to beauty without needing intensity.",
+    "Share a feeling without adding a story about it.",
+    "Choose action over mood once today.",
+  ],
+  5: [
+    "Notice where you're withholding. **Offer one small contribution.**",
+    "Action can create clarity. Pick one tiny step before more research.",
+    "If you feel drained, check if you're hoarding energy unnecessarily.",
+    "Practice presence: engage for 5 minutes without retreating mentally.",
+    "Say what you know in simple language—no over-explaining.",
+    "Share one thought or feeling with someone you trust.",
+    "Today: prioritize one deep focus block, then stop.",
+    "Ask for what you need rather than disappearing.",
+    "Let curiosity connect you to people, not just ideas.",
+    "Your knowledge becomes wisdom when you apply it.",
+  ],
+  6: [
+    "Notice the 'what if' loop. **Name the most likely outcome.**",
+    "Choose one trusted person and ask for direct reassurance.",
+    "Separate facts from fears: write 2 facts, 2 worries.",
+    "Practice inner authority: make one small decision without polling others.",
+    "If you feel tense, check if you're scanning for threats.",
+    "Today: do one courageous action even with uncertainty.",
+    "Replace worst-case planning with 'next right step.'",
+    "Trust practice: delegate one small thing.",
+    "Name your loyalty—what are you protecting? Is it still true?",
+    "Ground in support: remember times you handled hard things.",
+  ],
+  7: [
+    "Notice option-seeking. **Name the avoidance.**",
+    "Choose one thing and go deeper, not wider.",
+    "If you feel restless, ask: 'What feeling am I skipping?'",
+    "Practice constraint: one plan, one commitment, one finish.",
+    "Let a moment be simple—no upgrading needed.",
+    "Today: complete a task even when it becomes boring.",
+    "Replace reframing with truth: state the hard part plainly once.",
+    "Joy practice: enjoy what's here without chasing the next.",
+    "Ask someone: 'What are you not saying?' and listen fully.",
+    "Freedom grows when you can stay with discomfort.",
+  ],
+  8: [
+    "Notice control impulses. **Name what you're protecting.**",
+    "Practice soft power: make one request without pushing.",
+    "If you feel intensity rising, slow your body down first.",
+    "Let someone else lead a small decision today.",
+    "Say the vulnerable truth under the strong stance.",
+    "Boundary practice: be clear without being forceful.",
+    "Ask: 'Is this strength… or armor?'",
+    "Choose one act of protection that is gentle, not aggressive.",
+    "Repair quickly: if you overpowered, acknowledge it directly.",
+    "True autonomy includes letting people choose.",
+  ],
+  9: [
+    "Notice numbing. **Name what you want.**",
+    "Choose one small priority and complete it before merging with others.",
+    "Practice saying a clear 'no' once, kindly.",
+    "If you're procrastinating, ask: 'What conflict am I avoiding?'",
+    "Bring one honest preference into a conversation.",
+    "Do one thing that creates momentum, even if imperfect.",
+    "Body check: where are you tense but ignoring it?",
+    "Choose presence over comfort: engage fully for 10 minutes.",
+    "If you feel invisible, make yourself explicit—one sentence.",
+    "Peace isn't avoidance. It's alignment.",
+  ],
+};
+
+// Helper function to get today's micro-lesson index (Asia/Kuala_Lumpur timezone)
+const getTodaysMicroLessonIndex = (coreType: number): number => {
+  // Get current date in Asia/Kuala_Lumpur timezone
+  const now = new Date();
+  const klTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
+  
+  // Calculate days since Unix epoch
+  const daysSinceEpoch = Math.floor(klTime.getTime() / (1000 * 60 * 60 * 24));
+  
+  // Get lessons for this type
+  const lessons = MICRO_LESSONS[coreType] || MICRO_LESSONS[1];
+  
+  // Return index using modulo
+  return daysSinceEpoch % lessons.length;
+};
+
+// Helper function to render text with bold sections (marked with **)
+const renderBoldText = (text: string, style: any, boldStyle: any) => {
+  const parts = text.split(/\*\*(.*?)\*\*/g);
+  return parts.map((part, index) => {
+    // Odd indices are the bold parts
+    if (index % 2 === 1) {
+      return <Text key={index} style={[style, boldStyle]}>{part}</Text>;
+    }
+    return <Text key={index} style={style}>{part}</Text>;
+  });
+};
+
+// ============================================
 // TYPES
 // ============================================
 
