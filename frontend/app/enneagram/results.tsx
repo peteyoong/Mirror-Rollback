@@ -24,6 +24,56 @@ const IS_DEV = process.env.NODE_ENV !== 'production' || __DEV__;
 // Feedback types
 type FeedbackValue = 'yes' | 'mostly' | 'no' | null;
 
+// ============================================
+// STATE CALIBRATION NORMALIZATION
+// ============================================
+
+// Allowed enum values for state calibration
+const ALLOWED_ENERGY_STATES = ['low', 'neutral', 'high'] as const;
+const ALLOWED_LIFE_CONTEXTS = ['surviving', 'managing', 'expanding'] as const;
+const ALLOWED_ANSWER_FRAMES = ['best_self', 'recent_self'] as const;
+
+type NormalizedEnergyState = typeof ALLOWED_ENERGY_STATES[number];
+type NormalizedLifeContext = typeof ALLOWED_LIFE_CONTEXTS[number];
+type NormalizedAnswerFrame = typeof ALLOWED_ANSWER_FRAMES[number];
+
+interface NormalizedStateCalibration {
+  energy_state: NormalizedEnergyState;
+  life_context: NormalizedLifeContext;
+  answer_frame: NormalizedAnswerFrame;
+}
+
+/**
+ * Normalizes state calibration values to allowed enums.
+ * Used for validation logging and feedback submission to keep dataset clean.
+ */
+function normalizeStateCalibration(state: {
+  energy_state?: string | null;
+  life_context?: string | null;
+  answer_frame?: string | null;
+} | null | undefined): NormalizedStateCalibration {
+  const rawEnergy = state?.energy_state;
+  const rawLifeContext = state?.life_context;
+  const rawAnswerFrame = state?.answer_frame;
+  
+  const energy_state: NormalizedEnergyState = 
+    rawEnergy && ALLOWED_ENERGY_STATES.includes(rawEnergy as NormalizedEnergyState)
+      ? (rawEnergy as NormalizedEnergyState)
+      : 'neutral';
+  
+  const life_context: NormalizedLifeContext = 
+    rawLifeContext && ALLOWED_LIFE_CONTEXTS.includes(rawLifeContext as NormalizedLifeContext)
+      ? (rawLifeContext as NormalizedLifeContext)
+      : 'managing';
+  
+  const answer_frame: NormalizedAnswerFrame = 
+    rawAnswerFrame && ALLOWED_ANSWER_FRAMES.includes(rawAnswerFrame as NormalizedAnswerFrame)
+      ? (rawAnswerFrame as NormalizedAnswerFrame)
+      : 'best_self';
+  
+  return { energy_state, life_context, answer_frame };
+}
+
 // Type motivation labels
 const TYPE_MOTIVATIONS: { [key: number]: string } = {
   1: 'integrity and high standards',
