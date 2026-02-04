@@ -384,6 +384,92 @@ export default function EnneagramLensView({ result, userId }: Props) {
       </View>
     );
   };
+  
+  // ============================================
+  // CHAT BOX COMPONENT
+  // ============================================
+  
+  const renderChatBox = () => (
+    <View style={styles.chatContainer}>
+      <TouchableOpacity 
+        style={styles.chatHeader}
+        onPress={() => setChatExpanded(!chatExpanded)}
+      >
+        <View style={styles.chatHeaderLeft}>
+          <Ionicons 
+            name="chatbubble-outline" 
+            size={18} 
+            color={Colors.textSecondary} 
+          />
+          <Text style={styles.chatHeaderText}>Ask about this</Text>
+        </View>
+        <Ionicons 
+          name={chatExpanded ? 'chevron-down' : 'chevron-up'} 
+          size={18} 
+          color={Colors.textTertiary} 
+        />
+      </TouchableOpacity>
+      
+      {chatExpanded && (
+        <View style={styles.chatBody}>
+          {/* Chat Messages */}
+          {chatMessages.length > 0 && (
+            <View style={styles.chatMessages}>
+              {chatMessages.map((msg, index) => (
+                <View 
+                  key={index} 
+                  style={[
+                    styles.chatMessage,
+                    msg.role === 'user' ? styles.chatMessageUser : styles.chatMessageAssistant
+                  ]}
+                >
+                  <Text style={[
+                    styles.chatMessageText,
+                    msg.role === 'user' && styles.chatMessageTextUser
+                  ]}>
+                    {msg.content}
+                  </Text>
+                </View>
+              ))}
+              {chatLoading && (
+                <View style={styles.chatMessageAssistant}>
+                  <ActivityIndicator size="small" color={Colors.textSecondary} />
+                </View>
+              )}
+            </View>
+          )}
+          
+          {/* Chat Input */}
+          <View style={styles.chatInputContainer}>
+            <TextInput
+              style={styles.chatInput}
+              value={chatInput}
+              onChangeText={setChatInput}
+              placeholder="Ask about today's pattern, your wing, stress loops, or how to practice."
+              placeholderTextColor={Colors.textTertiary}
+              multiline
+              maxLength={500}
+              editable={!chatLoading}
+            />
+            <TouchableOpacity 
+              style={[
+                styles.chatSendButton,
+                (!chatInput.trim() || chatLoading) && styles.chatSendButtonDisabled
+              ]}
+              onPress={handleSendChat}
+              disabled={!chatInput.trim() || chatLoading}
+            >
+              <Ionicons 
+                name="send" 
+                size={18} 
+                color={(!chatInput.trim() || chatLoading) ? Colors.textTertiary : Colors.background} 
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    </View>
+  );
 
   // ============================================
   // SUMMARY TAB
