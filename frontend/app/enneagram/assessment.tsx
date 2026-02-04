@@ -839,10 +839,29 @@ export interface ForcedChoiceResponse {
   choice: 'A' | 'B';
 }
 
+export interface StateCalibration {
+  energy_state: 'low' | 'neutral' | 'high' | null;
+  life_context: 'surviving' | 'managing' | 'expanding' | null;
+  answer_frame: 'best_self' | 'recent_self' | null;
+}
+
 export interface AssessmentResponses {
   core_motivation: LikertResponse[];
   disambiguation: ForcedChoiceResponse[];
   wing_resolution: (LikertResponse | ForcedChoiceResponse)[];
+}
+
+// Scoring result types
+export interface ScoringResult {
+  inferred_core: number;
+  inferred_wing: number | 'balanced';
+  confidence: number;
+  confidence_tier: 'high' | 'medium' | 'low';
+  is_close: boolean;
+  top_candidates: { type: number; probability: number }[];
+  raw_scores: { [key: string]: number };
+  z_scores: { [key: string]: number };
+  wing_scores: { left: number; right: number; diff: number };
 }
 
 // ============================================
