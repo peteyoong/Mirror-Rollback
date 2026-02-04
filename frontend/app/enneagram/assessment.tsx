@@ -69,7 +69,27 @@ interface ForcedChoiceQuestion {
   type: 'forced_choice';
 }
 
-type Question = LikertQuestion | ForcedChoiceQuestion;
+// Wing question types for Section 3
+interface LikertWingQuestion {
+  id: string;
+  coreType: number; // Which core type this wing question belongs to (1-9)
+  wingSide: 'left' | 'right'; // Left wing or right wing
+  text: string;
+  type: 'likert_wing';
+}
+
+interface ForcedChoiceWingQuestion {
+  id: string;
+  coreType: number; // Which core type this wing question belongs to (1-9)
+  prompt: string;
+  optionA: string;
+  optionB: string;
+  optionAMapsTo: 'left' | 'right';
+  type: 'forced_choice_wing';
+}
+
+type WingQuestion = LikertWingQuestion | ForcedChoiceWingQuestion;
+type Question = LikertQuestion | ForcedChoiceQuestion | WingQuestion;
 
 // ============================================
 // SECTION 1: CORE MOTIVATION QUESTIONS (27 total)
