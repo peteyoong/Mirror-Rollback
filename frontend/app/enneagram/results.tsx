@@ -677,6 +677,56 @@ const styles = StyleSheet.create({
   },
   
   // Why Card
+  // Feedback Card
+  feedbackCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 16,
+  },
+  feedbackTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  feedbackButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  feedbackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+    minWidth: 70,
+  },
+  feedbackButtonSelected: {
+    borderColor: Colors.text,
+    backgroundColor: Colors.surfaceLight,
+  },
+  feedbackButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  feedbackButtonTextSelected: {
+    color: Colors.text,
+  },
+  feedbackCheckmark: {
+    marginRight: 4,
+  },
+  
+  // Why Card
   whyCard: {
     backgroundColor: Colors.surface,
     borderRadius: 12,
