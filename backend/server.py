@@ -1467,6 +1467,87 @@ async def generate_ai_response(system_prompt: str, user_message: str, user_id: s
 
 
 # ===========================
+# DEEP DIVE CACHING
+# ===========================
+# Cache AI-generated Deep Dive responses to avoid slow regeneration
+
+async def get_cached_deep_dive(user_id: str, lens: str, cache_key: str = None) -> dict:
+    """
+    Get cached Deep Dive response if available.
+    
+    Args:
+        user_id: User ID
+        lens: 'astrology', 'human_design', or 'numerology'
+        cache_key: Optional additional key (e.g., chart hash) for cache invalidation
+    
+    Returns:
+        Cached response dict or None if not cached
+    """
+    try:
+        cache_doc = await db.deep_dive_cache.find_one({
+            "user_id": user_id,
+            "lens": lens
+        })
+        
+        if cache_doc:
+            # Check if cache is still valid (optional: add TTL check here)
+            logger.info(f"[CACHE HIT] Deep Dive {lens} for user {user_id}")
+            return cache_doc.get("response")
+        
+        return None
+    except Exception as e:
+        logger.error(f"Cache read error: {e}")
+        return None
+
+
+async def set_cached_deep_dive(user_id: str, lens: str, response: dict, cache_key: str = None):
+    """
+    Cache a Deep Dive response.
+    
+    Args:
+        user_id: User ID
+        lens: 'astrology', 'human_design', or 'numerology'
+        response: The response dict to cache
+        cache_key: Optional additional key for cache invalidation
+    """
+    try:
+        await db.deep_dive_cache.update_one(
+            {"user_id": user_id, "lens": lens},
+            {
+                "$set": {
+                    "user_id": user_id,
+                    "lens": lens,
+                    "response": response,
+                    "cache_key": cache_key,
+                    "cached_at": datetime.now(timezone.utc).isoformat()
+                }
+            },
+            upsert=True
+        )
+        logger.info(f"[CACHE SET] Deep Dive {lens} for user {user_id}")
+    except Exception as e:
+        logger.error(f"Cache write error: {e}")
+
+
+async def invalidate_deep_dive_cache(user_id: str, lens: str = None):
+    """
+    Invalidate cached Deep Dive responses when chart is recalculated.
+    
+    Args:
+        user_id: User ID
+        lens: Optional specific lens to invalidate, or None for all
+    """
+    try:
+        if lens:
+            await db.deep_dive_cache.delete_one({"user_id": user_id, "lens": lens})
+        else:
+            await db.deep_dive_cache.delete_many({"user_id": user_id})
+        logger.info(f"[CACHE INVALIDATED] Deep Dive cache for user {user_id}, lens={lens}")
+    except Exception as e:
+        logger.error(f"Cache invalidation error: {e}")
+
+
+# ===========================
 # API ROUTES
 # ===========================
 
