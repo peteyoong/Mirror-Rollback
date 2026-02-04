@@ -829,13 +829,14 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     design_sun_line = design_data['Sun']['gate']['line']
     profile = calculate_profile(personality_sun_line, design_sun_line)
     
-    # Calculate Incarnation Cross (simplified)
+    # Calculate Incarnation Cross with proper naming
     p_sun_gate = personality_data['Sun']['gate']['gate']
     p_earth_gate = personality_data['Earth']['gate']['gate']
     d_sun_gate = design_data['Sun']['gate']['gate']
     d_earth_gate = design_data['Earth']['gate']['gate']
     
-    incarnation_cross = f"Right Angle Cross of {p_sun_gate}/{p_earth_gate}"
+    # Get proper cross name (e.g., "RAX Migration" instead of "Right Angle Cross of 37/40")
+    incarnation_cross = get_incarnation_cross_name(p_sun_gate, personality_sun_line)
     
     # Format channels for output
     defined_channels_formatted = [
