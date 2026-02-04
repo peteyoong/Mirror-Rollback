@@ -1327,4 +1327,92 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.background,
   },
+  
+  // Chat Box
+  chatContainer: {
+    marginTop: 16,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+  },
+  chatHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: Colors.surfaceLight,
+  },
+  chatHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  chatHeaderText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  chatBody: {
+    padding: 14,
+    paddingTop: 8,
+  },
+  chatMessages: {
+    marginBottom: 12,
+    maxHeight: 300,
+  },
+  chatMessage: {
+    marginBottom: 10,
+    padding: 12,
+    borderRadius: 10,
+    maxWidth: '90%',
+  },
+  chatMessageUser: {
+    alignSelf: 'flex-end',
+    backgroundColor: Colors.text,
+  },
+  chatMessageAssistant: {
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  chatMessageText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.text,
+  },
+  chatMessageTextUser: {
+    color: Colors.background,
+  },
+  chatInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 10,
+  },
+  chatInput: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    fontSize: 14,
+    maxHeight: 100,
+    color: Colors.text,
+  },
+  chatSendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.text,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chatSendButtonDisabled: {
+    backgroundColor: Colors.border,
+  },
 });
