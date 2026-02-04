@@ -5090,6 +5090,127 @@ async def unlock_numerology_name(user_id: str, request: NumerologyUnlockRequest)
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ============================================
+# ENNEAGRAM ENDPOINTS
+# ============================================
+
+@api_router.post("/enneagram/results")
+async def save_enneagram_result(request: EnneagramResultSave):
+    """Save Enneagram assessment results to user profile"""
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(request.user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Create the result document
+        result_doc = {
+            "user_id": request.user_id,
+            "method": request.method,
+            "version": request.version,
+            "inferred_core": request.inferred_core,
+            "inferred_wing": request.inferred_wing,
+            "confidence": request.confidence,
+            "confidence_tier": request.confidence_tier,
+            "is_close": request.is_close,
+            "top_candidates": [{"type": c.type, "probability": c.probability} for c in request.top_candidates],
+            "state_calibration": {
+                "energy_state": request.state_calibration.energy_state,
+                "life_context": request.state_calibration.life_context,
+                "answer_frame": request.state_calibration.answer_frame
+            },
+            "debug_scores": {
+                "raw_scores": request.debug_scores.raw_scores,
+                "z_scores": request.debug_scores.z_scores,
+                "wing_scores": {
+                    "left": request.debug_scores.wing_scores.left,
+                    "right": request.debug_scores.wing_scores.right,
+                    "diff": request.debug_scores.wing_scores.diff
+                }
+            },
+            "created_at": datetime.now(timezone.utc)
+        }
+        
+        # Upsert - replace any existing result for this user
+        await db.enneagram_results.update_one(
+            {"user_id": request.user_id},
+            {"$set": result_doc},
+            upsert=True
+        )
+        
+        # Also update user profile with latest enneagram result
+        await db.users.update_one(
+            {"_id": ObjectId(request.user_id)},
+            {"$set": {
+                "enneagram": {
+                    "inferred_core": request.inferred_core,
+                    "inferred_wing": request.inferred_wing,
+                    "confidence": request.confidence,
+                    "confidence_tier": request.confidence_tier,
+                    "assessed_at": datetime.now(timezone.utc)
+                }
+            }}
+        )
+        
+        logger.info(f"[Enneagram] Saved result for user {request.user_id}: Type {request.inferred_core}w{request.inferred_wing}")
+        
+        return {
+            "success": True,
+            "message": "Enneagram result saved successfully",
+            "result": {
+                "inferred_core": request.inferred_core,
+                "inferred_wing": request.inferred_wing,
+                "confidence_tier": request.confidence_tier
+            }
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Save Enneagram result error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/enneagram/results/{user_id}")
+async def get_enneagram_result(user_id: str):
+    """Get saved Enneagram result for user"""
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get the result
+        result = await db.enneagram_results.find_one({"user_id": user_id})
+        
+        if not result:
+            return {"has_result": False, "result": None}
+        
+        return {
+            "has_result": True,
+            "result": {
+                "id": str(result.get("_id", "")),
+                "user_id": result["user_id"],
+                "method": result.get("method", "assessment_inference_v1"),
+                "version": result.get("version", "v1"),
+                "inferred_core": result["inferred_core"],
+                "inferred_wing": result["inferred_wing"],
+                "confidence": result["confidence"],
+                "confidence_tier": result["confidence_tier"],
+                "is_close": result.get("is_close", False),
+                "top_candidates": result.get("top_candidates", []),
+                "state_calibration": result.get("state_calibration", {}),
+                "created_at": result["created_at"].isoformat() if result.get("created_at") else None
+            }
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get Enneagram result error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
