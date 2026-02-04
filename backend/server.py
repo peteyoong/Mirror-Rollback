@@ -4222,11 +4222,16 @@ async def get_astrology_deep_dive(user_id: str):
             result["success"] = True
             result["debug_stamp"] = placements["debug_stamp"]
             
+            # =====================================================================
+            # CACHE THE RESPONSE for instant repeat views
+            # =====================================================================
+            await set_cached_deep_dive(user_id, "astrology", result)
+            
             return result
             
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse astrology deep dive JSON: {e}")
-            return {
+            fallback_result = {
                 "success": True,  # Data is valid, just LLM parsing failed
                 "title": "Your Core Structure",
                 "core_placements": {
@@ -4242,6 +4247,9 @@ async def get_astrology_deep_dive(user_id: str):
                 "mirror_prompt": "What in these descriptions feels true to your lived experience?",
                 "debug_stamp": placements["debug_stamp"]
             }
+            # Cache fallback too
+            await set_cached_deep_dive(user_id, "astrology", fallback_result)
+            return fallback_result
     
     except HTTPException:
         raise
