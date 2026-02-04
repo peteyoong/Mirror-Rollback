@@ -1254,6 +1254,115 @@ export default function EnneagramAssessment() {
   }
   
   // ============================================
+  // RENDER: State Calibration Screen
+  // ============================================
+  if (showStateCalibration) {
+    const isComplete = stateCalibration.energy_state && stateCalibration.life_context && stateCalibration.answer_frame;
+    
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="dark" />
+        
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => setShowStateCalibration(false)} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={Colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.sectionIndicator}>Final Step</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        
+        <ScrollView contentContainerStyle={styles.calibrationScrollContent}>
+          <Text style={styles.calibrationTitle}>Before we interpret your results</Text>
+          <Text style={styles.calibrationSubtitle}>
+            These questions help us understand the context of your answers. They do not affect your score.
+          </Text>
+          
+          {/* Energy State */}
+          <View style={styles.calibrationSection}>
+            <Text style={styles.calibrationLabel}>How would you describe your energy level right now?</Text>
+            <View style={styles.calibrationOptions}>
+              {(['low', 'neutral', 'high'] as const).map(option => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.calibrationOption,
+                    stateCalibration.energy_state === option && styles.calibrationOptionSelected
+                  ]}
+                  onPress={() => setStateCalibration(prev => ({ ...prev, energy_state: option }))}
+                >
+                  <Text style={[
+                    styles.calibrationOptionText,
+                    stateCalibration.energy_state === option && styles.calibrationOptionTextSelected
+                  ]}>
+                    {option === 'low' ? 'Low' : option === 'neutral' ? 'Neutral' : 'High'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+          
+          {/* Life Context */}
+          <View style={styles.calibrationSection}>
+            <Text style={styles.calibrationLabel}>How would you describe your current life context?</Text>
+            <View style={styles.calibrationOptions}>
+              {(['surviving', 'managing', 'expanding'] as const).map(option => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.calibrationOption,
+                    stateCalibration.life_context === option && styles.calibrationOptionSelected
+                  ]}
+                  onPress={() => setStateCalibration(prev => ({ ...prev, life_context: option }))}
+                >
+                  <Text style={[
+                    styles.calibrationOptionText,
+                    stateCalibration.life_context === option && styles.calibrationOptionTextSelected
+                  ]}>
+                    {option === 'surviving' ? 'Surviving' : option === 'managing' ? 'Managing' : 'Expanding'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+          
+          {/* Answer Frame */}
+          <View style={styles.calibrationSection}>
+            <Text style={styles.calibrationLabel}>How did you answer the questions?</Text>
+            <View style={styles.calibrationOptions}>
+              {(['best_self', 'recent_self'] as const).map(option => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.calibrationOption,
+                    stateCalibration.answer_frame === option && styles.calibrationOptionSelected
+                  ]}
+                  onPress={() => setStateCalibration(prev => ({ ...prev, answer_frame: option }))}
+                >
+                  <Text style={[
+                    styles.calibrationOptionText,
+                    stateCalibration.answer_frame === option && styles.calibrationOptionTextSelected
+                  ]}>
+                    {option === 'best_self' ? 'My best self' : 'How I\'ve been lately'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+          
+          <TouchableOpacity
+            style={[styles.continueButton, !isComplete && styles.continueButtonDisabled]}
+            onPress={handleStateCalibrationComplete}
+            disabled={!isComplete}
+          >
+            <Text style={styles.continueButtonText}>See My Results</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+  
+  // ============================================
   // RENDER: Interpreting Screen
   // ============================================
   if (showInterpretingScreen) {
@@ -1262,11 +1371,15 @@ export default function EnneagramAssessment() {
         <StatusBar style="dark" />
         <View style={styles.interpretingContainer}>
           <View style={styles.interpretingIconContainer}>
-            <Ionicons name="analytics-outline" size={48} color={Colors.textSecondary} />
+            {isSaving ? (
+              <ActivityIndicator size="large" color={Colors.textSecondary} />
+            ) : (
+              <Ionicons name="analytics-outline" size={48} color={Colors.textSecondary} />
+            )}
           </View>
           <Text style={styles.interpretingTitle}>Interpreting your responses…</Text>
           <Text style={styles.interpretingSubtext}>
-            We're analyzing your patterns to identify your Enneagram type.
+            We&apos;re analyzing your patterns to identify your Enneagram type.
           </Text>
         </View>
       </SafeAreaView>
