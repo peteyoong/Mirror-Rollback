@@ -660,6 +660,46 @@ test_plan:
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "testing"
+    message: |
+      NUMEROLOGY FULL NAME GATE FIX TESTING COMPLETE ✅
+      
+      Comprehensive testing performed on the Numerology Full Name Gate fix as requested:
+      
+      🔢 ACCEPTANCE TEST RESULTS (ALL PASSED):
+      
+      1. ✅ NEW USER FLOW VERIFIED:
+         - Created user without numerology_full_name
+         - Chart calculation successful
+         - Life Path and Birthday numbers computed from birth date only
+      
+      2. ✅ LOCKED STATE VERIFICATION:
+         - Life Path number present (not locked)
+         - Expression: "locked" ✅
+         - Soul Urge: "locked" ✅
+         - unlock_prompt present and correct
+      
+      3. ✅ UNLOCK MECHANISM WORKING:
+         - POST /api/numerology/unlock-name/{user_id} successful
+         - Full birth name "John Robert Williams" processed
+         - Expression, Soul Urge, Personality numbers calculated
+      
+      4. ✅ UNLOCKED STATE VERIFICATION:
+         - Expression: 7 (actual number, not "locked")
+         - Soul Urge: 9 (actual number, not "locked")
+         - unlock_prompt: null (correctly cleared)
+      
+      5. ✅ CRITICAL INVARIANT VERIFIED:
+         - New users WITHOUT numerology_full_name MUST have locked expression/soul_urge
+         - NO fallback to user.name allowed
+         - Even users with user.name field show locked state until explicit unlock
+      
+      🔧 BUG FOUND AND FIXED:
+      - Discovered cache invalidation missing in unlock endpoint
+      - Fixed: Added cache invalidation after name unlock
+      - Cache now properly refreshes, showing unlocked numbers immediately
+      
+      CONCLUSION: Numerology Full Name Gate fix is working correctly and meets all acceptance criteria.
   - agent: "main"
     message: |
       ENNEAGRAM ASSESSMENT FLOW IMPLEMENTED
