@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,8 @@ import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
 import { storage } from '../../store';
-import DailyFocusCard from '../../components/DailyFocusCard';
+import DailyFocusCard, { DailyFocusState } from '../../components/DailyFocusCard';
+import ReflectionEntry from '../../components/ReflectionEntry';
 
 interface DailyKeystone {
   date: string;
