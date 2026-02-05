@@ -396,6 +396,8 @@ def test_daily_focus_api():
         return False
 
     """Run all backend tests"""
+def main():
+    """Run all backend tests"""
     print("🧪 STARTING BACKEND API TESTS")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test User ID: {TEST_USER_ID}")
