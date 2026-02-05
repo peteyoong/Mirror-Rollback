@@ -4711,14 +4711,18 @@ def extract_human_design_data(chart: dict) -> dict:
     else:
         gates_display = None
     
+    # Get human-friendly label for the cross
+    incarnation_cross_label = get_incarnation_cross_label(incarnation_cross)
+    
     return {
         "type": hd.get('type', 'Unknown'),
         "strategy": hd.get('strategy', 'Unknown'),
         "authority": hd.get('authority', 'Unknown'),
         "profile": hd.get('profile', 'Unknown'),
         "definition": hd.get('definition', 'Unknown'),
-        "incarnation_cross": incarnation_cross,
-        "incarnation_cross_gates": gates_display,  # Formatted string for display
+        "incarnation_cross": incarnation_cross,  # Full raw string
+        "incarnation_cross_label": incarnation_cross_label,  # Human-friendly label
+        "incarnation_cross_gates": gates_display,  # Formatted gates string for display
         "defined_centers": hd.get('defined_centers', []),
         "defined_channels": hd.get('defined_channels', []),
         "all_gates": hd.get('all_gates', []),
