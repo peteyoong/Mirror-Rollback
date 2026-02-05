@@ -49,6 +49,33 @@ export default function MirrorScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentDate, setCurrentDate] = useState<string>(getLocalDateString());
   const lastLoadedDateRef = useRef<string | null>(null);
+  
+  // Track daily focus state for reflection entry
+  const [focusState, setFocusState] = useState<DailyFocusState>({
+    isLoading: true,
+    isDismissed: false,
+    hasContext: false,
+    context: null,
+    ambientLine: null,
+  });
+
+  // Handle focus state changes from DailyFocusCard
+  const handleFocusStateChange = useCallback((state: DailyFocusState) => {
+    setFocusState(state);
+  }, []);
+
+  // Handle reflection entry tap
+  const handleReflect = useCallback(() => {
+    // Navigate to reflection chat with context state
+    const params = new URLSearchParams();
+    if (focusState.context) {
+      params.set('context', focusState.context);
+    }
+    if (focusState.isDismissed) {
+      params.set('dismissed', 'true');
+    }
+    router.push(`/reflection-chat?${params.toString()}`);
+  }, [router, focusState.context, focusState.isDismissed]);
 
   // Handler to continue with Mirror chat
   const handleContinueWithMirror = async () => {
