@@ -4214,7 +4214,10 @@ async def check_and_migrate_astrology_chart(user_id: str) -> Tuple[bool, str, di
         
         if isinstance(birth_date, str):
             birth_date = datetime.strptime(birth_date, "%Y-%m-%d")
-        numerology = get_full_numerology(birth_date, user.get("name"))
+        # IMPORTANT: Only use numerology_full_name for name-based numbers (Expression/Soul Urge/Personality)
+        # Do NOT fall back to user.name - this is a trust-critical design decision
+        numerology_full_name = user.get("numerology_full_name")  # Only from explicit unlock flow
+        numerology = get_full_numerology(birth_date, numerology_full_name)
         
         # Update chart in database
         chart_update = {
