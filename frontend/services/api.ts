@@ -1,11 +1,42 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
-const API_BASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8001';
+// Resolve API base URL with proper fallback chain for Expo
+const getApiBaseUrl = (): string => {
+  // 1. Try expo-constants extra config
+  const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
+  if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
+    return extraUrl;
+  }
+  
+  // 2. Try process.env (works in Expo with EXPO_PUBLIC_ prefix)
+  const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.length > 0) {
+    return envUrl;
+  }
+  
+  // 3. For web preview, use relative URL (same origin)
+  if (Platform.OS === 'web') {
+    // In web, use empty string to make requests relative to current origin
+    // The ingress will route /api/* to the backend
+    return '';
+  }
+  
+  // 4. Fallback for native development
+  return 'http://localhost:8001';
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+// Debug log for troubleshooting (only in dev)
+if (__DEV__) {
+  console.log('[API] Base URL resolved to:', API_BASE_URL || '(relative)');
+}
 
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
-  timeout: 30000,
+  timeout: 60000, // Increased timeout for slow LLM responses
   headers: {
     'Content-Type': 'application/json',
   },
