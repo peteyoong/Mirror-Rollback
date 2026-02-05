@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
 """
 Backend API Testing for Project Mirror
-Testing the three new implementations:
-1. POST /api/profile/questionnaire - Questionnaire Persistence
-2. POST /api/reflection/chat - Verify still working after changes
-3. GET /api/daily-focus/{user_id} - Verify daily focus API
+Focus: Numerology Full Name Gate Fix Testing
 """
 
 import requests
 import json
 import sys
 from datetime import datetime
+import time
 
-# Get backend URL from frontend env
+# Configuration
 BACKEND_URL = "https://mirror-daily.preview.emergentagent.com/api"
-TEST_USER_ID = "69819f1a1e4549392d7cb6d1"
+
+def log_test(message):
+    """Log test messages with timestamp"""
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"[{timestamp}] {message}")
 
 def test_questionnaire_persistence():
     """Test POST /api/profile/questionnaire - Questionnaire Persistence"""
