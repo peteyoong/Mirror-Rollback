@@ -4731,6 +4731,7 @@ HD_AUTHORITY_DESCRIPTIONS = {
 async def get_human_design_summary(user_id: str):
     """
     Generate Human Design summary - high-level mechanics synthesis.
+    Includes core_mechanics anchor (Type, Authority, Profile, Incarnation Cross).
     NO gates, NO channels, NO mystical language.
     """
     import json as json_module
@@ -4749,10 +4750,20 @@ async def get_human_design_summary(user_id: str):
         strategy_desc = HD_STRATEGY_DESCRIPTIONS.get(hd_data['type'], 'Unique engagement pattern')
         authority_desc = HD_AUTHORITY_DESCRIPTIONS.get(hd_data['authority'], 'Unique clarity process')
         
+        # Extract incarnation cross gates for display
+        incarnation_cross = hd_data.get('incarnation_cross', 'Unknown')
+        cross_gates = hd_data.get('incarnation_cross_gates', [])
+        if cross_gates and len(cross_gates) >= 4:
+            # Format as "37/5 • 40/35"
+            cross_gates_str = f"{cross_gates[0]}/{cross_gates[1]} • {cross_gates[2]}/{cross_gates[3]}"
+        else:
+            cross_gates_str = None
+        
         profile_context = f"""
 Type: {hd_data['type']} - {strategy_desc}
 Authority: {hd_data['authority']} - {authority_desc}
 Profile: {hd_data['profile']}
+Incarnation Cross: {incarnation_cross}
 """
         
         # Build full prompt
@@ -4785,12 +4796,30 @@ Profile: {hd_data['profile']}
             
             result["mirror_prompt"] = apply_human_design_guardrails(result.get("mirror_prompt", ""))
             
+            # ALWAYS include core_mechanics anchor - this is the fix for the regression
+            result["core_mechanics"] = {
+                "type": hd_data['type'],
+                "strategy": strategy_desc,
+                "authority": hd_data['authority'],
+                "profile": hd_data.get('profile', 'Unknown'),
+                "incarnation_cross": incarnation_cross,
+                "incarnation_cross_gates": cross_gates_str
+            }
+            
             return result
             
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse HD summary JSON: {e}")
             return {
                 "title": "Your Human Design Profile",
+                "core_mechanics": {
+                    "type": hd_data['type'],
+                    "strategy": strategy_desc,
+                    "authority": hd_data['authority'],
+                    "profile": hd_data.get('profile', 'Unknown'),
+                    "incarnation_cross": incarnation_cross,
+                    "incarnation_cross_gates": cross_gates_str
+                },
                 "sections": [
                     {"label": "Your Energy Pattern", "body": f"As a {hd_data['type']}, your energy tends to operate in a particular rhythm that may feel natural once you recognise it."},
                     {"label": "Engaging with Life", "body": f"Your design suggests a pattern of {strategy_desc.lower()}."},
