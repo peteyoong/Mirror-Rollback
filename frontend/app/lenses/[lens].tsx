@@ -265,7 +265,9 @@ const HD_FALLBACK_QUESTION = "What might you notice if you simply observed how y
 export default function LensDetail() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { lens } = params;
+  const rawLens = params.lens as string;
+  // Normalize lens param: human-design -> human_design
+  const lens = rawLens?.replace(/-/g, '_');
   const [activeTab, setActiveTab] = useState<'summary' | 'snapshot' | 'deep_dive'>('deep_dive');
   const [chatInput, setChatInput] = useState('');
   const { user, chart } = useAppStore();
