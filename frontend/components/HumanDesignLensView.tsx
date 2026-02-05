@@ -105,19 +105,39 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const mechanics = data?.core_mechanics || {
       type: 'Unknown',
       strategy: 'Unknown',
-      authority: 'Unknown'
+      authority: 'Unknown',
+      profile: 'Unknown',
+      incarnation_cross: 'Unknown',
+      incarnation_cross_gates: null
     };
 
     // Helper to format unknown gracefully
-    const formatMechanic = (value: string) => {
+    const formatMechanic = (value: string | undefined | null) => {
       if (!value || value === 'Unknown') return '—';
       // For authority, take first part if it contains slash
       return value.split('/')[0];
     };
 
+    // Format incarnation cross with gates
+    const formatCross = () => {
+      if (!mechanics.incarnation_cross || mechanics.incarnation_cross === 'Unknown') {
+        return '—';
+      }
+      // Clean up the label (e.g., "Right Angle Cross of 23/43" -> "Right Angle Cross")
+      const crossLabel = mechanics.incarnation_cross.replace(/\s*of\s*\d+\/\d+.*$/, '').trim();
+      const gates = mechanics.incarnation_cross_gates;
+      
+      if (gates) {
+        return `${crossLabel}\n${gates}`;
+      }
+      return crossLabel;
+    };
+
     return (
       <View style={styles.coreMechanicsCard}>
-        <Text style={styles.coreMechanicsTitle}>TYPE • STRATEGY • AUTHORITY</Text>
+        <Text style={styles.coreMechanicsTitle}>CORE MECHANICS</Text>
+        
+        {/* Row 1: Type + Authority */}
         <View style={styles.mechanicsGrid}>
           <View style={styles.mechanicItem}>
             <Ionicons name="flash-outline" size={16} color={Colors.accent} />
@@ -129,6 +149,21 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <Ionicons name="compass-outline" size={16} color={Colors.accent} />
             <Text style={styles.mechanicLabel}>Authority</Text>
             <Text style={styles.mechanicValue}>{formatMechanic(mechanics.authority)}</Text>
+          </View>
+        </View>
+        
+        {/* Row 2: Profile + Incarnation Cross */}
+        <View style={[styles.mechanicsGrid, { marginTop: 16 }]}>
+          <View style={styles.mechanicItem}>
+            <Ionicons name="person-outline" size={16} color={Colors.accent} />
+            <Text style={styles.mechanicLabel}>Profile</Text>
+            <Text style={styles.mechanicValue}>{mechanics.profile || '—'}</Text>
+          </View>
+          <View style={styles.mechanicDivider} />
+          <View style={styles.mechanicItem}>
+            <Ionicons name="git-branch-outline" size={16} color={Colors.accent} />
+            <Text style={styles.mechanicLabel}>Incarnation Cross</Text>
+            <Text style={[styles.mechanicValue, styles.mechanicValueSmall]}>{formatCross()}</Text>
           </View>
         </View>
       </View>
