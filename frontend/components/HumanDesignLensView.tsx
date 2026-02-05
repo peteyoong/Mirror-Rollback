@@ -24,6 +24,9 @@ interface HumanDesignData {
     type: string;
     strategy: string;
     authority: string;
+    profile?: string;
+    incarnation_cross?: string;
+    incarnation_cross_gates?: string;
   };
   date?: string;
 }
