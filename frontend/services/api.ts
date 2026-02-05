@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
@@ -32,6 +32,7 @@ const API_BASE_URL = getApiBaseUrl();
 // Debug log for troubleshooting (only in dev)
 if (__DEV__) {
   console.log('[API] Base URL resolved to:', API_BASE_URL || '(relative - web)');
+  console.log('[API] Platform:', Platform.OS);
 }
 
 const api = axios.create({
@@ -41,6 +42,107 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// ============================================
+// RETRY LOGIC FOR NETWORK RESILIENCE
+// ============================================
+// Handles transient failures: DNS issues, connection drops, tunnel restarts
+
+interface RetryConfig {
+  maxRetries?: number;
+  baseDelayMs?: number;
+  maxDelayMs?: number;
+  retryCondition?: (error: AxiosError) => boolean;
+}
+
+const DEFAULT_RETRY_CONFIG: Required<RetryConfig> = {
+  maxRetries: 3,
+  baseDelayMs: 1000,
+  maxDelayMs: 10000,
+  retryCondition: (error: AxiosError) => {
+    // Retry on network errors (no response received)
+    if (!error.response) {
+      // This includes: ENOTFOUND (hostname not found), ETIMEDOUT, ECONNREFUSED, etc.
+      return true;
+    }
+    // Retry on 5xx server errors (temporary issues)
+    if (error.response.status >= 500) {
+      return true;
+    }
+    // Don't retry on 4xx client errors
+    return false;
+  },
+};
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function requestWithRetry<T>(
+  requestFn: () => Promise<T>,
+  config: RetryConfig = {}
+): Promise<T> {
+  const { maxRetries, baseDelayMs, maxDelayMs, retryCondition } = {
+    ...DEFAULT_RETRY_CONFIG,
+    ...config,
+  };
+
+  let lastError: AxiosError | null = null;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await requestFn();
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      lastError = axiosError;
+
+      // Check if we should retry
+      const shouldRetry = attempt < maxRetries && retryCondition(axiosError);
+
+      if (__DEV__) {
+        console.log(
+          `[API] Request failed (attempt ${attempt + 1}/${maxRetries + 1}):`,
+          axiosError.message,
+          shouldRetry ? '- will retry' : '- giving up'
+        );
+      }
+
+      if (!shouldRetry) {
+        throw error;
+      }
+
+      // Exponential backoff with jitter
+      const delay = Math.min(
+        baseDelayMs * Math.pow(2, attempt) + Math.random() * 500,
+        maxDelayMs
+      );
+
+      if (__DEV__) {
+        console.log(`[API] Retrying in ${Math.round(delay)}ms...`);
+      }
+
+      await sleep(delay);
+    }
+  }
+
+  throw lastError;
+}
+
+// Wrap axios instance methods with retry logic
+const apiWithRetry = {
+  get: <T = any>(url: string, config?: AxiosRequestConfig) =>
+    requestWithRetry(() => api.get<T>(url, config)),
+  
+  post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) =>
+    requestWithRetry(() => api.post<T>(url, data, config)),
+  
+  put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) =>
+    requestWithRetry(() => api.put<T>(url, data, config)),
+  
+  delete: <T = any>(url: string, config?: AxiosRequestConfig) =>
+    requestWithRetry(() => api.delete<T>(url, config)),
+  
+  patch: <T = any>(url: string, data?: any, config?: AxiosRequestConfig) =>
+    requestWithRetry(() => api.patch<T>(url, data, config)),
+};
 
 // Daily Focus API (Context Selector Layer)
 export interface DailyFocusResponse {
