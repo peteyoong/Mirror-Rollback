@@ -118,19 +118,18 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       return value.split('/')[0];
     };
 
-    // Format incarnation cross with gates
+    // Format incarnation cross with gates on separate line
     const formatCross = () => {
       if (!mechanics.incarnation_cross || mechanics.incarnation_cross === 'Unknown') {
         return '—';
       }
       // Clean up the label (e.g., "Right Angle Cross of 23/43" -> "Right Angle Cross")
       const crossLabel = mechanics.incarnation_cross.replace(/\s*of\s*\d+\/\d+.*$/, '').trim();
-      const gates = mechanics.incarnation_cross_gates;
-      
-      if (gates) {
-        return `${crossLabel}\n${gates}`;
-      }
       return crossLabel;
+    };
+
+    const getCrossGates = () => {
+      return mechanics.incarnation_cross_gates || '—';
     };
 
     return (
@@ -164,6 +163,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <Ionicons name="git-branch-outline" size={16} color={Colors.accent} />
             <Text style={styles.mechanicLabel}>Incarnation Cross</Text>
             <Text style={[styles.mechanicValue, styles.mechanicValueSmall]}>{formatCross()}</Text>
+            <Text style={styles.mechanicGates}>{getCrossGates()}</Text>
           </View>
         </View>
       </View>
