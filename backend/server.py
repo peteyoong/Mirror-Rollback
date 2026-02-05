@@ -3639,16 +3639,18 @@ async def reflection_chat(request: ReflectionChatRequest):
         # Call LLM using emergentintegrations
         reflection_chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
-            model="gpt-4.1-mini",  # Lightweight model for brief reflections
-            system_prompt=REFLECTION_SYSTEM_PROMPT
+            session_id=f"reflection_{request.user_id}_{datetime.now().timestamp()}",
+            system_message=REFLECTION_SYSTEM_PROMPT
         )
+        reflection_chat.with_model("openai", "gpt-4.1-mini")  # Lightweight model for brief reflections
         
-        # Build user message with context
-        full_message = llm_messages[-1]["content"] if llm_messages else ""
+        # Build user message with context hint if present
+        user_content = llm_messages[-1]["content"] if llm_messages else ""
         if request.context:
-            full_message = f"[Context hint: {request.context}]\n\n{full_message}"
+            user_content = f"[Context hint: {request.context}]\n\n{user_content}"
         
-        response = await reflection_chat.send_message_async(full_message)
+        user_message = UserMessage(text=user_content)
+        response = await reflection_chat.send_message(user_message)
         
         assistant_response = response.strip()
         
