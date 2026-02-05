@@ -5429,6 +5429,12 @@ async def unlock_numerology_name(user_id: str, request: NumerologyUnlockRequest)
             {"$set": numerology_update}
         )
         
+        # Also store in user document for future chart recalculations
+        await db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"numerology_full_name": full_name}}
+        )
+        
         logger.info(f"[Numerology] Name-based numbers unlocked for user {user_id}")
         
         # Return the new numbers (without echoing the name back)
