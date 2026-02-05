@@ -3636,15 +3636,21 @@ async def reflection_chat(request: ReflectionChatRequest):
                     "content": msg["content"]
                 })
         
-        # Call LLM
-        response = await client.chat.completions.create(
-            model="gpt-5.2",
-            messages=llm_messages,
-            max_tokens=150,  # Keep responses short
-            temperature=0.7,
+        # Call LLM using emergentintegrations
+        reflection_chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            model="gpt-4.1-mini",  # Lightweight model for brief reflections
+            system_prompt=REFLECTION_SYSTEM_PROMPT
         )
         
-        assistant_response = response.choices[0].message.content.strip()
+        # Build user message with context
+        full_message = llm_messages[-1]["content"] if llm_messages else ""
+        if request.context:
+            full_message = f"[Context hint: {request.context}]\n\n{full_message}"
+        
+        response = await reflection_chat.send_message_async(full_message)
+        
+        assistant_response = response.strip()
         
         # Store reflection in database (as event, not evaluation)
         await db.reflections.insert_one({
