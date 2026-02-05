@@ -196,7 +196,7 @@ export const getChart = async (userId: string) => {
 
 // Journal APIs
 export const createJournalEntry = async (userId: string, content: string) => {
-  const response = await api.post('/journal', {
+  const response = await apiWithRetry.post('/journal', {
     user_id: userId,
     content,
   });
@@ -204,19 +204,19 @@ export const createJournalEntry = async (userId: string, content: string) => {
 };
 
 export const getJournalEntries = async (userId: string) => {
-  const response = await api.get(`/journal/${userId}`);
+  const response = await apiWithRetry.get(`/journal/${userId}`);
   return response.data;
 };
 
 // Reflection APIs
 export const getDailyReflection = async (userId: string) => {
-  const response = await api.post('/reflections/daily', { user_id: userId });
+  const response = await apiWithRetry.post('/reflections/daily', { user_id: userId });
   return response.data;
 };
 
 // Chat APIs
 export const sendChatMessage = async (userId: string, message: string) => {
-  const response = await api.post('/chat', {
+  const response = await apiWithRetry.post('/chat', {
     user_id: userId,
     message,
   });
@@ -225,7 +225,7 @@ export const sendChatMessage = async (userId: string, message: string) => {
 
 // Lenses APIs
 export const getLenses = async () => {
-  const response = await api.get('/lenses');
+  const response = await apiWithRetry.get('/lenses');
   return response.data;
 };
 
@@ -251,12 +251,12 @@ export const saveEnneagramResult = async (data: {
     wing_scores: { left: number; right: number; diff: number };
   };
 }) => {
-  const response = await api.post('/enneagram/results', data);
+  const response = await apiWithRetry.post('/enneagram/results', data);
   return response.data;
 };
 
 export const getEnneagramResult = async (userId: string) => {
-  const response = await api.get(`/enneagram/results/${userId}`);
+  const response = await apiWithRetry.get(`/enneagram/results/${userId}`);
   return response.data;
 };
 
@@ -274,7 +274,7 @@ export const sendEnneagramChat = async (data: {
     active_card_context: string;
   };
 }) => {
-  const response = await api.post('/enneagram/chat', data);
+  const response = await apiWithRetry.post('/enneagram/chat', data);
   return response.data;
 };
 
