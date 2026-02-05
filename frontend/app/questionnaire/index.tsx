@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,14 @@ import {
   StyleSheet,
   ScrollView,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
+import api from '../../services/api';
 
 const QUESTIONS = [
   {
@@ -73,22 +75,44 @@ const QUESTIONS = [
 
 export default function Questionnaire() {
   const router = useRouter();
-  const { user } = useAppStore();
+  const { 
+    user, 
+    questionnaireAnswers, 
+    questionnaireComplete,
+    setQuestionnaireAnswer, 
+    completeQuestionnaire 
+  } = useAppStore();
+  
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
   const [showTransition, setShowTransition] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(1));
 
-  const handleSelectOption = (option: string) => {
-    const newAnswers = [...answers, option];
-    setAnswers(newAnswers);
+  // Load persisted progress on mount
+  useEffect(() => {
+    if (questionnaireAnswers.length > 0 && questionnaireAnswers.length < QUESTIONS.length) {
+      // Resume from where user left off
+      setCurrentQuestion(questionnaireAnswers.length);
+    }
+  }, []);
+
+  // If questionnaire already complete, redirect immediately
+  useEffect(() => {
+    if (questionnaireComplete) {
+      router.replace('/todays-mirror');
+    }
+  }, [questionnaireComplete]);
+
+  const handleSelectOption = async (option: string) => {
+    // Save answer to store (persisted)
+    await setQuestionnaireAnswer(currentQuestion, option);
 
     // Fade out
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 200,
       useNativeDriver: true,
-    }).start(() => {
+    }).start(async () => {
       if (currentQuestion < QUESTIONS.length - 1) {
         // Move to next question
         setCurrentQuestion(currentQuestion + 1);
@@ -99,20 +123,54 @@ export default function Questionnaire() {
           useNativeDriver: true,
         }).start();
       } else {
-        // Show transition screen
+        // All questions answered - save to backend
         setShowTransition(true);
+        setIsSaving(true);
+        
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 300,
           useNativeDriver: true,
         }).start();
 
-        // Navigate to Today's Mirror transition screen after 3 seconds
+        // Get all answers including this last one
+        const allAnswers = [...questionnaireAnswers];
+        allAnswers[currentQuestion] = option;
+
+        try {
+          // Save to backend
+          if (user?.id) {
+            await api.post('/profile/questionnaire', {
+              user_id: user.id,
+              answers: allAnswers,
+              questions: QUESTIONS.map(q => q.question),
+            });
+            console.log('[Questionnaire] Answers saved to backend');
+          }
+          
+          // Mark questionnaire as complete (persisted)
+          await completeQuestionnaire();
+          
+        } catch (error) {
+          console.error('[Questionnaire] Failed to save to backend:', error);
+          // Still mark complete locally even if backend fails
+          await completeQuestionnaire();
+        } finally {
+          setIsSaving(false);
+        }
+
+        // Navigate to Today's Mirror after a brief pause
         setTimeout(() => {
           router.replace('/todays-mirror');
-        }, 3000);
+        }, 2500);
       }
     });
+  };
+
+  const handleSkip = async () => {
+    // Mark as complete even when skipping
+    await completeQuestionnaire();
+    router.replace('/todays-mirror');
   };
 
   if (!user) {
@@ -129,6 +187,13 @@ export default function Questionnaire() {
           <Text style={styles.transitionSubtext}>
             This isn't about defining you — it's about meeting you where you are.
           </Text>
+          {isSaving && (
+            <ActivityIndicator 
+              style={styles.savingIndicator} 
+              size="small" 
+              color={Colors.textTertiary} 
+            />
+          )}
         </Animated.View>
       </SafeAreaView>
     );
@@ -170,7 +235,7 @@ export default function Questionnaire() {
           {/* Skip option */}
           <TouchableOpacity
             style={styles.skipButton}
-            onPress={() => router.replace('/todays-mirror')}
+            onPress={handleSkip}
           >
             <Text style={styles.skipText}>Skip for now</Text>
           </TouchableOpacity>
@@ -261,5 +326,8 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: Colors.textSecondary,
     textAlign: 'center',
+  },
+  savingIndicator: {
+    marginTop: 24,
   },
 });
