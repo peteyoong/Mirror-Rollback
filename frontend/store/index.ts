@@ -235,10 +235,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   
   loadPersistedData: async () => {
     try {
-      const [userStr, chartStr, onboardingStr] = await Promise.all([
+      const [userStr, chartStr, onboardingStr, questionnaireAnswersStr, questionnaireCompleteStr] = await Promise.all([
         storage.getItem('user'),
         storage.getItem('chart'),
         storage.getItem('hasCompletedOnboarding'),
+        storage.getItem('questionnaireAnswers'),
+        storage.getItem('questionnaireComplete'),
       ]);
       
       if (userStr) {
@@ -249,6 +251,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
       if (onboardingStr) {
         set({ hasCompletedOnboarding: onboardingStr === 'true' });
+      }
+      if (questionnaireAnswersStr) {
+        set({ questionnaireAnswers: JSON.parse(questionnaireAnswersStr) });
+      }
+      if (questionnaireCompleteStr) {
+        set({ questionnaireComplete: questionnaireCompleteStr === 'true' });
       }
     } catch (error) {
       console.error('Error loading persisted data:', error);
