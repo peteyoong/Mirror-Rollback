@@ -107,9 +107,9 @@ export default function Questionnaire() {
           useNativeDriver: true,
         }).start();
 
-        // Navigate to main app after 3 seconds
+        // Navigate to Today's Mirror transition screen after 3 seconds
         setTimeout(() => {
-          router.replace('/(tabs)');
+          router.replace('/todays-mirror');
         }, 3000);
       }
     });
