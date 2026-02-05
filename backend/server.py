@@ -5437,6 +5437,9 @@ async def unlock_numerology_name(user_id: str, request: NumerologyUnlockRequest)
         
         logger.info(f"[Numerology] Name-based numbers unlocked for user {user_id}")
         
+        # CRITICAL: Invalidate cached deep dive response since numerology data changed
+        await invalidate_deep_dive_cache(user_id, "numerology")
+        
         # Return the new numbers (without echoing the name back)
         return {
             "success": True,
