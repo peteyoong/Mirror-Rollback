@@ -11,6 +11,19 @@ const api = axios.create({
   },
 });
 
+// Daily Focus API (Context Selector Layer)
+export interface DailyFocusResponse {
+  ambient_line: string;
+  context: string | null;
+  confidence: number;
+  generated_at_iso: string;
+}
+
+export const getDailyFocus = async (userId: string): Promise<DailyFocusResponse> => {
+  const response = await api.get(`/daily-focus/${userId}`);
+  return response.data;
+};
+
 // User APIs
 export const createUser = async (data: {
   name?: string;
