@@ -261,18 +261,22 @@ def test_daily_focus_api():
 
 def main():
     """Run all backend tests"""
-    print("🧪 STARTING BACKEND API TESTS FOR DAILY FLOW ENDPOINTS")
+    print("🧪 STARTING BACKEND API TESTS")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test User ID: {TEST_USER_ID}")
     print(f"Test Time: {datetime.now().isoformat()}")
     
     results = []
     
-    # Test Reflection Chat API
+    # Test 1: Questionnaire Persistence API
+    questionnaire_success = test_questionnaire_persistence()
+    results.append(("Questionnaire Persistence API", questionnaire_success))
+    
+    # Test 2: Reflection Chat API
     reflection_success = test_reflection_chat_api()
     results.append(("Reflection Chat API", reflection_success))
     
-    # Test Daily Focus API  
+    # Test 3: Daily Focus API  
     daily_focus_success = test_daily_focus_api()
     results.append(("Daily Focus API", daily_focus_success))
     
