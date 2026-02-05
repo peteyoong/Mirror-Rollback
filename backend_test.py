@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Project Mirror - Daily Flow Endpoints
-Testing the new Reflection Chat and Daily Focus APIs
+Backend API Testing for Project Mirror
+Testing the three new implementations:
+1. POST /api/profile/questionnaire - Questionnaire Persistence
+2. POST /api/reflection/chat - Verify still working after changes
+3. GET /api/daily-focus/{user_id} - Verify daily focus API
 """
 
 import requests
