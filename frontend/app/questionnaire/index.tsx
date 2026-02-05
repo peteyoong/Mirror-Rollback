@@ -170,7 +170,7 @@ export default function Questionnaire() {
           {/* Skip option */}
           <TouchableOpacity
             style={styles.skipButton}
-            onPress={() => router.replace('/(tabs)')}
+            onPress={() => router.replace('/todays-mirror')}
           >
             <Text style={styles.skipText}>Skip for now</Text>
           </TouchableOpacity>
