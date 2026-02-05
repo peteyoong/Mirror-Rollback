@@ -5063,13 +5063,16 @@ async def get_human_design_deep_dive(user_id: str):
             
             result["mirror_prompt"] = apply_human_design_guardrails(result.get("mirror_prompt", ""))
             
-            # Ensure core_mechanics is included
-            if "core_mechanics" not in result:
-                result["core_mechanics"] = {
-                    "type": hd_data['type'],
-                    "strategy": strategy_desc,
-                    "authority": hd_data['authority']
-                }
+            # Ensure core_mechanics is included with consistent fields
+            result["core_mechanics"] = {
+                "type": hd_data['type'],
+                "strategy": strategy_desc,
+                "authority": hd_data['authority'],
+                "profile": hd_data.get('profile', 'Unknown'),
+                "incarnation_cross": hd_data.get('incarnation_cross_label', hd_data.get('incarnation_cross', 'Unknown')),
+                "incarnation_cross_gates": hd_data.get('incarnation_cross_gates'),
+                "definition": hd_data.get('definition', 'Unknown')
+            }
             
             # =====================================================================
             # CACHE THE RESPONSE for instant repeat views
@@ -5087,7 +5090,8 @@ async def get_human_design_deep_dive(user_id: str):
                     "strategy": strategy_desc,
                     "authority": hd_data['authority'],
                     "profile": hd_data.get('profile', 'Unknown'),
-                    "incarnation_cross": hd_data.get('incarnation_cross', 'Unknown'),
+                    "incarnation_cross": hd_data.get('incarnation_cross_label', hd_data.get('incarnation_cross', 'Unknown')),
+                    "incarnation_cross_gates": hd_data.get('incarnation_cross_gates'),
                     "definition": hd_data.get('definition', 'Unknown')
                 },
                 "sections": [
