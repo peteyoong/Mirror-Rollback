@@ -4775,12 +4775,8 @@ async def get_human_design_summary(user_id: str):
         
         # Extract incarnation cross gates for display
         incarnation_cross = hd_data.get('incarnation_cross', 'Unknown')
-        cross_gates = hd_data.get('incarnation_cross_gates', [])
-        if cross_gates and len(cross_gates) >= 4:
-            # Format as "37/5 • 40/35"
-            cross_gates_str = f"{cross_gates[0]}/{cross_gates[1]} • {cross_gates[2]}/{cross_gates[3]}"
-        else:
-            cross_gates_str = None
+        # incarnation_cross_gates is now a pre-formatted string from extract_human_design_data
+        cross_gates_str = hd_data.get('incarnation_cross_gates')  # Already formatted as "23/43" or "37/5 • 40/35"
         
         profile_context = f"""
 Type: {hd_data['type']} - {strategy_desc}
