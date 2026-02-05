@@ -1,296 +1,274 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Project Mirror
-Focus: Numerology Full Name Gate Fix Testing
+Backend API Testing for Project Mirror - Enneagram Assessment Flow
+Testing the complete Enneagram results endpoint functionality
 """
 
 import requests
 import json
 import sys
 from datetime import datetime
-import time
 
 # Configuration
 BACKEND_URL = "https://mirror-daily.preview.emergentagent.com/api"
+TEST_USER_ID = "69819f1a1e4549392d7cb6d1"
 
-def log_test(message):
-    """Log test messages with timestamp"""
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"[{timestamp}] {message}")
+def log_test(test_name, status, details=""):
+    """Log test results with consistent formatting"""
+    status_symbol = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
+    print(f"{status_symbol} {test_name}: {status}")
+    if details:
+        print(f"   {details}")
+    print()
 
-def test_numerology_full_name_gate():
-    """
-    Test the Numerology Full Name Gate fix as specified in the review request.
+def test_enneagram_results_save():
+    """Test 1: Verify Enneagram results endpoint - POST /api/enneagram/results"""
+    print("🔧 TEST 1: POST /api/enneagram/results - Save Enneagram Results")
     
-    ACCEPTANCE TEST - New User Flow:
-    1. Create a new user (without numerology_full_name)
-    2. Calculate chart for the new user
-    3. Get numerology summary - verify locked state
-    4. Unlock with full birth name
-    5. Get numerology summary again - verify unlocked state
-    """
-    
-    log_test("🔢 STARTING NUMEROLOGY FULL NAME GATE TEST")
-    
-    # Step 1: Create a new user (without numerology_full_name)
-    log_test("Step 1: Creating new user without numerology_full_name")
-    
-    user_data = {
-        "name": "Numerology Gate Test",
-        "birth_date": "1995-08-22",
-        "birth_time": "10:00",
-        "city": "Chicago",
-        "country": "USA",
-        "timezone": "America/Chicago",
-        "latitude": 41.8781,
-        "longitude": -87.6298
+    # Test payload as specified in the review request
+    payload = {
+        "user_id": TEST_USER_ID,
+        "method": "assessment_inference_v1",
+        "version": "v1",
+        "inferred_core": 4,
+        "inferred_wing": 5,
+        "confidence": 0.68,
+        "confidence_tier": "medium",
+        "is_close": True,
+        "top_candidates": [
+            {"type": 4, "probability": 0.68},
+            {"type": 5, "probability": 0.62}
+        ],
+        "state_calibration": {
+            "energy_state": "neutral",
+            "life_context": "managing",
+            "answer_frame": "recent_self"
+        },
+        "debug_scores": {
+            "raw_scores": {"1": 3.0, "2": 3.5, "3": 3.2, "4": 4.5, "5": 4.3, "6": 3.1, "7": 3.0, "8": 2.8, "9": 3.6},
+            "z_scores": {"1": -0.5, "2": 0.2, "3": 0.0, "4": 1.5, "5": 1.3, "6": -0.3, "7": -0.5, "8": -0.8, "9": 0.5},
+            "wing_scores": {"left": 3.2, "right": 4.0, "diff": 0.8}
+        }
     }
     
     try:
-        response = requests.post(f"{BACKEND_URL}/users", json=user_data, timeout=30)
-        log_test(f"POST /api/users - Status: {response.status_code}")
+        response = requests.post(
+            f"{BACKEND_URL}/enneagram/results",
+            json=payload,
+            headers={"Content-Type": "application/json"},
+            timeout=30
+        )
         
-        if response.status_code != 200:
-            log_test(f"❌ FAILED: User creation failed - {response.text}")
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("success") and data.get("result"):
+                result = data["result"]
+                if (result.get("inferred_core") == 4 and 
+                    result.get("inferred_wing") == 5 and 
+                    result.get("confidence_tier") == "medium"):
+                    log_test("Enneagram Results Save", "PASS", 
+                           f"Successfully saved: Type {result['inferred_core']}w{result['inferred_wing']}, {result['confidence_tier']} confidence")
+                    return True
+                else:
+                    log_test("Enneagram Results Save", "FAIL", 
+                           f"Response data mismatch: {result}")
+                    return False
+            else:
+                log_test("Enneagram Results Save", "FAIL", 
+                       f"Invalid response structure: {data}")
+                return False
+        else:
+            log_test("Enneagram Results Save", "FAIL", 
+                   f"HTTP {response.status_code}: {response.text}")
             return False
             
-        user_response = response.json()
-        new_user_id = user_response.get("id")
-        
-        if not new_user_id:
-            log_test(f"❌ FAILED: No user ID returned - {user_response}")
-            return False
-            
-        log_test(f"✅ User created successfully - ID: {new_user_id}")
-        
-    except Exception as e:
-        log_test(f"❌ FAILED: User creation error - {e}")
+    except requests.exceptions.RequestException as e:
+        log_test("Enneagram Results Save", "FAIL", f"Request error: {e}")
         return False
-    
-    # Step 2: Calculate chart for the new user
-    log_test("Step 2: Calculating chart for new user")
-    
-    try:
-        chart_data = {"user_id": new_user_id}
-        response = requests.post(f"{BACKEND_URL}/charts/calculate", json=chart_data, timeout=60)
-        log_test(f"POST /api/charts/calculate - Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            log_test(f"❌ FAILED: Chart calculation failed - {response.text}")
-            return False
-            
-        chart_response = response.json()
-        log_test(f"✅ Chart calculated successfully")
-        
     except Exception as e:
-        log_test(f"❌ FAILED: Chart calculation error - {e}")
+        log_test("Enneagram Results Save", "FAIL", f"Unexpected error: {e}")
         return False
-    
-    # Step 3: Get numerology summary - verify locked state
-    log_test("Step 3: Getting numerology deep-dive (should be locked)")
-    
-    try:
-        response = requests.get(f"{BACKEND_URL}/numerology/deep-dive/{new_user_id}", timeout=30)
-        log_test(f"GET /api/numerology/deep-dive/{new_user_id} - Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            log_test(f"❌ FAILED: Numerology deep-dive failed - {response.text}")
-            return False
-            
-        numerology_response = response.json()
-        log_test(f"Numerology response: {json.dumps(numerology_response, indent=2)}")
-        
-        # Step 4: VERIFY locked state
-        log_test("Step 4: Verifying locked state")
-        
-        core_numbers = numerology_response.get("core_numbers", {})
-        unlock_prompt = numerology_response.get("unlock_prompt")
-        
-        # Check Life Path and Birthday numbers are present
-        life_path = core_numbers.get("life_path")
-        if not life_path or life_path == "locked":
-            log_test(f"❌ FAILED: Life Path should be present, got: {life_path}")
-            return False
-        log_test(f"✅ Life Path number present: {life_path}")
-        
-        # Check Expression and Soul Urge are locked
-        expression = core_numbers.get("expression")
-        soul_urge = core_numbers.get("soul_urge")
-        
-        if expression != "locked":
-            log_test(f"❌ FAILED: Expression should be 'locked', got: {expression}")
-            return False
-        log_test(f"✅ Expression is locked: {expression}")
-        
-        if soul_urge != "locked":
-            log_test(f"❌ FAILED: Soul Urge should be 'locked', got: {soul_urge}")
-            return False
-        log_test(f"✅ Soul Urge is locked: {soul_urge}")
-        
-        # Check unlock_prompt is present
-        if not unlock_prompt:
-            log_test(f"❌ FAILED: unlock_prompt should be present, got: {unlock_prompt}")
-            return False
-        log_test(f"✅ Unlock prompt present: {unlock_prompt}")
-        
-    except Exception as e:
-        log_test(f"❌ FAILED: Numerology deep-dive error - {e}")
-        return False
-    
-    # Step 5: Unlock with full birth name
-    log_test("Step 5: Unlocking with full birth name")
-    
-    try:
-        unlock_data = {"full_birth_name": "John Robert Williams"}
-        response = requests.post(f"{BACKEND_URL}/numerology/unlock-name/{new_user_id}", json=unlock_data, timeout=30)
-        log_test(f"POST /api/numerology/unlock-name/{new_user_id} - Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            log_test(f"❌ FAILED: Name unlock failed - {response.text}")
-            return False
-            
-        unlock_response = response.json()
-        log_test(f"✅ Name unlocked successfully: {unlock_response}")
-        
-    except Exception as e:
-        log_test(f"❌ FAILED: Name unlock error - {e}")
-        return False
-    
-    # Step 6: Get numerology summary again - verify unlocked state
-    log_test("Step 6: Getting numerology deep-dive again (should be unlocked)")
-    
-    try:
-        response = requests.get(f"{BACKEND_URL}/numerology/deep-dive/{new_user_id}", timeout=30)
-        log_test(f"GET /api/numerology/deep-dive/{new_user_id} - Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            log_test(f"❌ FAILED: Numerology deep-dive after unlock failed - {response.text}")
-            return False
-            
-        unlocked_response = response.json()
-        log_test(f"Unlocked numerology response: {json.dumps(unlocked_response, indent=2)}")
-        
-        # Step 7: VERIFY unlocked state
-        log_test("Step 7: Verifying unlocked state")
-        
-        core_numbers = unlocked_response.get("core_numbers", {})
-        unlock_prompt = unlocked_response.get("unlock_prompt")
-        
-        # Check Expression and Soul Urge are now actual numbers (not "locked")
-        expression = core_numbers.get("expression")
-        soul_urge = core_numbers.get("soul_urge")
-        
-        if expression == "locked" or not expression:
-            log_test(f"❌ FAILED: Expression should be unlocked, got: {expression}")
-            return False
-        log_test(f"✅ Expression is unlocked: {expression}")
-        
-        if soul_urge == "locked" or not soul_urge:
-            log_test(f"❌ FAILED: Soul Urge should be unlocked, got: {soul_urge}")
-            return False
-        log_test(f"✅ Soul Urge is unlocked: {soul_urge}")
-        
-        # Check unlock_prompt is now null
-        if unlock_prompt is not None:
-            log_test(f"❌ FAILED: unlock_prompt should be null after unlock, got: {unlock_prompt}")
-            return False
-        log_test(f"✅ Unlock prompt is null: {unlock_prompt}")
-        
-    except Exception as e:
-        log_test(f"❌ FAILED: Numerology deep-dive after unlock error - {e}")
-        return False
-    
-    log_test("🎉 NUMEROLOGY FULL NAME GATE TEST COMPLETED SUCCESSFULLY")
-    return True
 
-def test_critical_invariant():
-    """
-    Test the critical invariant: New users WITHOUT numerology_full_name 
-    MUST have expression/soul_urge/personality = "locked"
-    NO fallback to user.name allowed
-    """
+def test_enneagram_results_retrieve():
+    """Test 2: Verify Enneagram results retrieval - GET /api/enneagram/results/{user_id}"""
+    print("🔧 TEST 2: GET /api/enneagram/results/{user_id} - Retrieve Enneagram Results")
     
-    log_test("🔒 TESTING CRITICAL INVARIANT")
+    try:
+        response = requests.get(
+            f"{BACKEND_URL}/enneagram/results/{TEST_USER_ID}",
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("has_result") and data.get("result"):
+                result = data["result"]
+                # Verify the data matches what we saved in test 1
+                if (result.get("inferred_core") == 4 and 
+                    result.get("inferred_wing") == 5 and 
+                    result.get("confidence_tier") == "medium" and
+                    result.get("user_id") == TEST_USER_ID):
+                    
+                    # Check for required fields
+                    required_fields = ["id", "method", "version", "confidence", "is_close", 
+                                     "top_candidates", "state_calibration", "debug_scores", "created_at"]
+                    missing_fields = [field for field in required_fields if field not in result]
+                    
+                    if not missing_fields:
+                        log_test("Enneagram Results Retrieve", "PASS", 
+                               f"Successfully retrieved: Type {result['inferred_core']}w{result['inferred_wing']}, all fields present")
+                        return True
+                    else:
+                        log_test("Enneagram Results Retrieve", "FAIL", 
+                               f"Missing required fields: {missing_fields}")
+                        return False
+                else:
+                    log_test("Enneagram Results Retrieve", "FAIL", 
+                           f"Data mismatch or missing core fields: {result}")
+                    return False
+            elif not data.get("has_result"):
+                log_test("Enneagram Results Retrieve", "FAIL", 
+                       "No result found - may indicate save test failed")
+                return False
+            else:
+                log_test("Enneagram Results Retrieve", "FAIL", 
+                       f"Invalid response structure: {data}")
+                return False
+        else:
+            log_test("Enneagram Results Retrieve", "FAIL", 
+                   f"HTTP {response.status_code}: {response.text}")
+            return False
+            
+    except requests.exceptions.RequestException as e:
+        log_test("Enneagram Results Retrieve", "FAIL", f"Request error: {e}")
+        return False
+    except Exception as e:
+        log_test("Enneagram Results Retrieve", "FAIL", f"Unexpected error: {e}")
+        return False
+
+def test_large_payload_handling():
+    """Test 3: Verify large payload handling (simulating many answers)"""
+    print("🔧 TEST 3: Large Payload Handling - Confirm no payload size issues")
     
-    # Create another user to verify the invariant
-    user_data = {
-        "name": "Test User With Name",  # This should NOT be used as fallback
-        "birth_date": "1990-05-15",
-        "birth_time": "14:30",
-        "city": "New York",
-        "country": "USA", 
-        "timezone": "America/New_York",
-        "latitude": 40.7128,
-        "longitude": -74.0060
+    # Create a large debug_scores object to test payload limits
+    large_raw_scores = {}
+    large_z_scores = {}
+    
+    # Generate 100 fake score entries to simulate a large assessment
+    for i in range(1, 101):
+        large_raw_scores[str(i)] = round(2.0 + (i % 5) * 0.5, 2)
+        large_z_scores[str(i)] = round(-2.0 + (i % 5) * 1.0, 2)
+    
+    large_payload = {
+        "user_id": TEST_USER_ID,
+        "method": "assessment_inference_v1_large",
+        "version": "v1",
+        "inferred_core": 7,
+        "inferred_wing": 8,
+        "confidence": 0.75,
+        "confidence_tier": "high",
+        "is_close": False,
+        "top_candidates": [
+            {"type": 7, "probability": 0.75},
+            {"type": 8, "probability": 0.65},
+            {"type": 6, "probability": 0.55}
+        ],
+        "state_calibration": {
+            "energy_state": "high",
+            "life_context": "expanding",
+            "answer_frame": "best_self"
+        },
+        "debug_scores": {
+            "raw_scores": large_raw_scores,
+            "z_scores": large_z_scores,
+            "wing_scores": {"left": 4.2, "right": 4.8, "diff": 0.6}
+        }
     }
     
     try:
-        # Create user
-        response = requests.post(f"{BACKEND_URL}/users", json=user_data, timeout=30)
-        if response.status_code != 200:
-            log_test(f"❌ FAILED: User creation failed - {response.text}")
+        # Calculate payload size
+        payload_size = len(json.dumps(large_payload))
+        print(f"   📊 Payload size: {payload_size:,} bytes ({payload_size/1024:.1f} KB)")
+        
+        response = requests.post(
+            f"{BACKEND_URL}/enneagram/results",
+            json=large_payload,
+            headers={"Content-Type": "application/json"},
+            timeout=60  # Longer timeout for large payload
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("success") and data.get("result"):
+                result = data["result"]
+                if (result.get("inferred_core") == 7 and 
+                    result.get("inferred_wing") == 8 and 
+                    result.get("confidence_tier") == "high"):
+                    log_test("Large Payload Handling", "PASS", 
+                           f"Successfully processed {payload_size:,} byte payload")
+                    return True
+                else:
+                    log_test("Large Payload Handling", "FAIL", 
+                           f"Response data mismatch: {result}")
+                    return False
+            else:
+                log_test("Large Payload Handling", "FAIL", 
+                       f"Invalid response structure: {data}")
+                return False
+        elif response.status_code == 413:
+            log_test("Large Payload Handling", "FAIL", 
+                   f"Payload too large (413): Server cannot handle {payload_size:,} bytes")
+            return False
+        else:
+            log_test("Large Payload Handling", "FAIL", 
+                   f"HTTP {response.status_code}: {response.text}")
             return False
             
-        user_response = response.json()
-        user_id = user_response.get("id")
-        
-        # Calculate chart
-        chart_data = {"user_id": user_id}
-        response = requests.post(f"{BACKEND_URL}/charts/calculate", json=chart_data, timeout=60)
-        if response.status_code != 200:
-            log_test(f"❌ FAILED: Chart calculation failed - {response.text}")
-            return False
-        
-        # Get numerology deep-dive
-        response = requests.get(f"{BACKEND_URL}/numerology/deep-dive/{user_id}", timeout=30)
-        if response.status_code != 200:
-            log_test(f"❌ FAILED: Numerology deep-dive failed - {response.text}")
-            return False
-            
-        numerology_response = response.json()
-        core_numbers = numerology_response.get("core_numbers", {})
-        
-        # CRITICAL CHECK: Even though user has a name, expression/soul_urge should be locked
-        expression = core_numbers.get("expression")
-        soul_urge = core_numbers.get("soul_urge")
-        
-        if expression != "locked":
-            log_test(f"❌ CRITICAL INVARIANT VIOLATED: Expression should be 'locked' for new user, got: {expression}")
-            return False
-            
-        if soul_urge != "locked":
-            log_test(f"❌ CRITICAL INVARIANT VIOLATED: Soul Urge should be 'locked' for new user, got: {soul_urge}")
-            return False
-            
-        log_test(f"✅ CRITICAL INVARIANT VERIFIED: New user has locked expression/soul_urge despite having user.name")
-        
-    except Exception as e:
-        log_test(f"❌ FAILED: Critical invariant test error - {e}")
+    except requests.exceptions.RequestException as e:
+        log_test("Large Payload Handling", "FAIL", f"Request error: {e}")
         return False
-    
-    return True
+    except Exception as e:
+        log_test("Large Payload Handling", "FAIL", f"Unexpected error: {e}")
+        return False
 
 def main():
-    """Run all numerology tests"""
-    log_test("🚀 STARTING NUMEROLOGY FULL NAME GATE TESTING")
-    log_test(f"Backend URL: {BACKEND_URL}")
+    """Run all Enneagram endpoint tests"""
+    print("🧪 ENNEAGRAM ASSESSMENT COMPLETE FLOW TESTING")
+    print("=" * 60)
+    print(f"Backend URL: {BACKEND_URL}")
+    print(f"Test User ID: {TEST_USER_ID}")
+    print(f"Test Time: {datetime.now().isoformat()}")
+    print("=" * 60)
+    print()
     
-    all_tests_passed = True
+    # Run all tests
+    test_results = []
     
-    # Test 1: Full numerology gate flow
-    if not test_numerology_full_name_gate():
-        all_tests_passed = False
+    # Test 1: Save Enneagram results
+    test_results.append(test_enneagram_results_save())
     
-    # Test 2: Critical invariant
-    if not test_critical_invariant():
-        all_tests_passed = False
+    # Test 2: Retrieve Enneagram results
+    test_results.append(test_enneagram_results_retrieve())
+    
+    # Test 3: Large payload handling
+    test_results.append(test_large_payload_handling())
     
     # Summary
-    if all_tests_passed:
-        log_test("🎉 ALL NUMEROLOGY TESTS PASSED")
+    print("=" * 60)
+    print("📊 TEST SUMMARY")
+    print("=" * 60)
+    
+    passed = sum(test_results)
+    total = len(test_results)
+    
+    print(f"Tests Passed: {passed}/{total}")
+    print(f"Success Rate: {(passed/total)*100:.1f}%")
+    
+    if passed == total:
+        print("🎉 ALL TESTS PASSED - Enneagram Assessment Flow is working correctly!")
         return 0
     else:
-        log_test("❌ SOME NUMEROLOGY TESTS FAILED")
+        print("⚠️  SOME TESTS FAILED - Review the failures above")
         return 1
 
 if __name__ == "__main__":
