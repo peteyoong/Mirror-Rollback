@@ -112,6 +112,57 @@ user_problem_statement: |
   - NEW: LLM-powered Mirror Chat as the primary AI companion
 
 backend:
+  - task: "Numerology Full Name Gate Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          NUMEROLOGY FULL NAME GATE FIX TESTING COMPLETE ✅
+          
+          🔢 ACCEPTANCE TEST RESULTS:
+          
+          1. ✅ NEW USER CREATION: Successfully created user without numerology_full_name
+             - User ID: 6984580213cf6c2aff715989
+             - No full birth name provided initially
+          
+          2. ✅ CHART CALCULATION: Chart calculated successfully for new user
+             - All numerology calculations completed
+             - Life Path and Birthday numbers computed from birth date
+          
+          3. ✅ LOCKED STATE VERIFICATION: 
+             - Life Path number present: 9 ✅
+             - Expression: "locked" ✅
+             - Soul Urge: "locked" ✅
+             - unlock_prompt present: "Add your full birth name to unlock deeper numerology..." ✅
+          
+          4. ✅ NAME UNLOCK PROCESS: POST /api/numerology/unlock-name/{user_id}
+             - Request: {"full_birth_name": "John Robert Williams"}
+             - Response: success=true with unlocked numbers
+             - Expression: 7, Soul Urge: 9, Personality: 7
+          
+          5. ✅ UNLOCKED STATE VERIFICATION:
+             - Expression: 7 (unlocked) ✅
+             - Soul Urge: 9 (unlocked) ✅
+             - unlock_prompt: null ✅
+          
+          6. ✅ CRITICAL INVARIANT VERIFIED:
+             - New users WITHOUT numerology_full_name MUST have expression/soul_urge = "locked"
+             - NO fallback to user.name allowed ✅
+             - Even users with user.name field still show locked state until explicit unlock
+          
+          🔧 BUG FIXED DURING TESTING:
+          - Found and fixed cache invalidation issue in unlock endpoint
+          - Added: await invalidate_deep_dive_cache(user_id, "numerology") 
+          - Cache now properly refreshes after name unlock
+          
+          CONCLUSION: Numerology Full Name Gate fix is working correctly. All acceptance criteria met.
+
   - task: "Questionnaire Persistence API"
     implemented: true
     working: true
