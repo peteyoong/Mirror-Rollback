@@ -157,14 +157,14 @@ def test_numerology_full_name_gate():
         return False
     
     # Step 6: Get numerology summary again - verify unlocked state
-    log_test("Step 6: Getting numerology summary again (should be unlocked)")
+    log_test("Step 6: Getting numerology deep-dive again (should be unlocked)")
     
     try:
-        response = requests.get(f"{BACKEND_URL}/numerology/summary/{new_user_id}", timeout=30)
-        log_test(f"GET /api/numerology/summary/{new_user_id} - Status: {response.status_code}")
+        response = requests.get(f"{BACKEND_URL}/numerology/deep-dive/{new_user_id}", timeout=30)
+        log_test(f"GET /api/numerology/deep-dive/{new_user_id} - Status: {response.status_code}")
         
         if response.status_code != 200:
-            log_test(f"❌ FAILED: Numerology summary after unlock failed - {response.text}")
+            log_test(f"❌ FAILED: Numerology deep-dive after unlock failed - {response.text}")
             return False
             
         unlocked_response = response.json()
@@ -197,7 +197,7 @@ def test_numerology_full_name_gate():
         log_test(f"✅ Unlock prompt is null: {unlock_prompt}")
         
     except Exception as e:
-        log_test(f"❌ FAILED: Numerology summary after unlock error - {e}")
+        log_test(f"❌ FAILED: Numerology deep-dive after unlock error - {e}")
         return False
     
     log_test("🎉 NUMEROLOGY FULL NAME GATE TEST COMPLETED SUCCESSFULLY")
