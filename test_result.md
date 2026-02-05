@@ -228,6 +228,47 @@ backend:
         comment: "Calculates astrology, human design, and numerology charts."
 
 frontend:
+  - task: "Daily Flow & Reflection UI"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/(tabs)/index.tsx, /app/frontend/app/reflection-chat.tsx, /app/frontend/components/DailyFocusCard.tsx, /app/frontend/components/ReflectionEntry.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          DAILY FLOW IMPLEMENTATION COMPLETE:
+          
+          1. DAILY FOCUS CARD (DailyFocusCard.tsx):
+             - Shows ambient line ("Something to notice today...")
+             - Shows context hypothesis ("Today's mirror may relate to...")
+             - Dismissible (persists for the calendar day)
+             - Passes state to parent for reflection entry
+          
+          2. REFLECTION ENTRY (ReflectionEntry.tsx):
+             - Subtle "Reflect" button below Daily Focus Card
+             - Navigates to /reflection-chat with context and dismissed state
+          
+          3. REFLECTION CHAT (reflection-chat.tsx):
+             - Pre-seeded opening based on context state:
+               * With context: "This may relate to {context}. What comes to mind?"
+               * After dismiss: "No need to go anywhere specific. What's here right now?"
+               * Default: "We can keep this light. What stood out today?"
+             - Chat UI with user/assistant bubbles
+             - Connects to POST /api/reflection/chat backend
+          
+          4. INTEGRATION:
+             - Mirror home tab displays DailyFocusCard and ReflectionEntry
+             - State flows correctly from Daily Focus → Reflect → Chat
+             - Backend logs confirm successful chat requests
+          
+          Verified via screenshots:
+          - Welcome page shows "Continue" for returning users
+          - Mirror home shows Daily Focus Card with context
+          - Reflection chat shows context-aware opening message
+
   - task: "Mirror Chat Component"
     implemented: true
     working: true
