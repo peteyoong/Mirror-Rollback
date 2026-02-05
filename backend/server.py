@@ -5357,13 +5357,15 @@ async def get_numerology_deep_dive(user_id: str):
                 "title": "Your Core Numbers",
                 "core_numbers": {
                     "life_path": data["life_path_number"],
-                    "expression": data["expression_number"] if data["has_name_numbers"] else "locked",
-                    "soul_urge": data["soul_urge_number"] if data["has_name_numbers"] else "locked"
+                    "expression": data["expression_number"] if data["has_name_numbers"] else None,
+                    "soul_urge": data["soul_urge_number"] if data["has_name_numbers"] else None,
+                    "personality": data.get("personality_number") if data["has_name_numbers"] else None
                 },
                 "sections": [
                     {"label": "Life Path: Your Learning Theme", "body": f"Life Path {data['life_path_number']} often describes a recurring theme of learning and growth. This isn't about who you are, but about what tends to show up as territory for exploration."},
                     {"label": "Birthday: Your Secondary Flavour", "body": f"Birthday number {data['birthday_number'] or 'unknown'} adds a secondary emphasis — a flavour that colours how you approach things."}
                 ],
+                "unlock_required": not data["has_name_numbers"],
                 "unlock_prompt": None if data["has_name_numbers"] else "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality).",
                 "mirror_prompt": "What recurring themes do you notice in your own journey?"
             }
