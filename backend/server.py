@@ -4697,25 +4697,11 @@ def extract_human_design_data(chart: dict) -> dict:
     # Try to extract gate numbers from incarnation cross string
     # Format: "Right Angle Cross of 23/43" or "LAX Migration (37/5 | 40/35)"
     if incarnation_cross and incarnation_cross != 'Unknown':
-        # Find all numbers in the string
-        gate_numbers = re.findall(r'\d+', incarnation_cross)
-        if gate_numbers:
-            incarnation_cross_gates = [int(g) for g in gate_numbers[:4]]  # Take up to 4 gates
-    
-    # If we only have 2 gates (Sun gates), complete with Earth gates from personality/design
-    if len(incarnation_cross_gates) == 2:
-        personality_gates = hd.get('personality_gates', [])
-        design_gates = hd.get('design_gates', [])
-        
-        # The incarnation cross consists of 4 gates:
-        # Personality Sun (position 1), Personality Earth (position 2)
-        # Design Sun (position 3), Design Earth (position 4)
-        # If we have "23/43", these are likely Sun gates. Look for Earth gates.
-        if len(personality_gates) >= 2 and len(design_gates) >= 2:
-            # Typically gates are ordered by planet, with Sun first, Earth second
-            # Format as: Personality Sun/Design Sun • Personality Earth/Design Earth
-            # Which would be: [23, 43, next personality, next design]
-            pass  # Keep the 2 we have for now - the format is correct
+        # Look for patterns like "23/43" or "37/5" (gate numbers separated by /)
+        gate_pattern = re.findall(r'(\d+)\s*/\s*(\d+)', incarnation_cross)
+        if gate_pattern:
+            for pair in gate_pattern:
+                incarnation_cross_gates.extend([int(g) for g in pair])
     
     # Format the gates string for display: "23/43" or "37/5 • 40/35"
     if len(incarnation_cross_gates) >= 4:
