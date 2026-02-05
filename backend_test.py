@@ -16,7 +16,58 @@ from datetime import datetime
 BACKEND_URL = "https://mirror-daily.preview.emergentagent.com/api"
 TEST_USER_ID = "69819f1a1e4549392d7cb6d1"
 
-def test_reflection_chat_api():
+def test_questionnaire_persistence():
+    """Test POST /api/profile/questionnaire - Questionnaire Persistence"""
+    print("\n=== TESTING QUESTIONNAIRE PERSISTENCE API ===")
+    
+    print(f"\n1. Testing questionnaire persistence for user: {TEST_USER_ID}")
+    payload = {
+        "user_id": TEST_USER_ID,
+        "answers": ["Answer1", "Answer2", "Answer3"],
+        "questions": ["Q1", "Q2", "Q3"]
+    }
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/profile/questionnaire",
+            json=payload,
+            headers={"Content-Type": "application/json"},
+            timeout=30
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        print(f"Response Headers: {dict(response.headers)}")
+        print(f"Request Payload: {json.dumps(payload, indent=2)}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Response: {json.dumps(data, indent=2)}")
+            
+            # Verify expected response structure
+            expected_success = True
+            expected_answers_saved = 3
+            
+            if (data.get("success") == expected_success and 
+                data.get("answers_saved") == expected_answers_saved):
+                print("✅ Questionnaire persistence: SUCCESS")
+                print(f"   - Response contains success={expected_success}")
+                print(f"   - Response contains answers_saved={expected_answers_saved}")
+                return True
+            else:
+                print("❌ Questionnaire persistence: FAILED")
+                print(f"   - Expected: {{'success': {expected_success}, 'answers_saved': {expected_answers_saved}}}")
+                print(f"   - Got: {data}")
+                return False
+        else:
+            print(f"❌ Request failed: {response.status_code}")
+            print(f"Error response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Exception during questionnaire persistence test: {e}")
+        return False
+
+
     """Test POST /api/reflection/chat endpoint"""
     print("\n=== TESTING REFLECTION CHAT API ===")
     
