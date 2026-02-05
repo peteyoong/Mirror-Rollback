@@ -225,22 +225,42 @@ export default function ReflectionChat() {
             scrollViewRef.current?.scrollToEnd({ animated: false });
           }}
         >
-          {messages.map((message) => (
-            <View
-              key={message.id}
-              style={[
-                styles.messageBubble,
-                message.role === 'user' ? styles.userBubble : styles.assistantBubble,
-              ]}
-            >
-              <Text style={[
-                styles.messageText,
-                message.role === 'user' ? styles.userText : styles.assistantText,
-              ]}>
-                {message.content}
-              </Text>
-            </View>
-          ))}
+          {messages.map((message) => {
+            // Render micro-reflection prompt with special styling
+            if (message.role === 'micro-prompt') {
+              return (
+                <View key={message.id} style={styles.microPromptContainer}>
+                  <View style={styles.microPromptCard}>
+                    <Text style={styles.microPromptText}>{message.content}</Text>
+                    <TouchableOpacity
+                      style={styles.microPromptDismiss}
+                      onPress={handleDismissMicroPrompt}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Text style={styles.microPromptDismissText}>Dismiss</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            }
+            
+            return (
+              <View
+                key={message.id}
+                style={[
+                  styles.messageBubble,
+                  message.role === 'user' ? styles.userBubble : styles.assistantBubble,
+                ]}
+              >
+                <Text style={[
+                  styles.messageText,
+                  message.role === 'user' ? styles.userText : styles.assistantText,
+                ]}>
+                  {message.content}
+                </Text>
+              </View>
+            );
+          })}
           
           {isLoading && (
             <View style={[styles.messageBubble, styles.assistantBubble]}>
