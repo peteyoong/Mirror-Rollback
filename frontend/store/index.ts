@@ -193,6 +193,21 @@ export const useAppStore = create<AppState>((set, get) => ({
     await storage.setItem('hasCompletedOnboarding', 'true');
   },
   
+  // Questionnaire actions
+  setQuestionnaireAnswer: async (index: number, answer: string) => {
+    const { questionnaireAnswers } = get();
+    const newAnswers = [...questionnaireAnswers];
+    newAnswers[index] = answer;
+    set({ questionnaireAnswers: newAnswers });
+    // Persist answers to local storage
+    await storage.setItem('questionnaireAnswers', JSON.stringify(newAnswers));
+  },
+  
+  completeQuestionnaire: async () => {
+    set({ questionnaireComplete: true });
+    await storage.setItem('questionnaireComplete', 'true');
+  },
+  
   clearUser: async () => {
     set({
       user: null,
@@ -200,6 +215,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       dailyReflection: null,
       journalEntries: [],
       hasCompletedOnboarding: false,
+      questionnaireAnswers: [],
+      questionnaireComplete: false,
       sessionRestoreError: null,
     });
     // Clear user data and all chat session IDs
@@ -208,6 +225,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       'user', 
       'chart', 
       'hasCompletedOnboarding',
+      'questionnaireAnswers',
+      'questionnaireComplete',
       CHAT_SESSION_KEYS.mirror,
       CHAT_SESSION_KEYS.astrology,
       CHAT_SESSION_KEYS.human_design,
