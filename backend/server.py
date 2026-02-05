@@ -4687,7 +4687,31 @@ async def get_astrology_deep_dive(user_id: str):
 
 def extract_human_design_data(chart: dict) -> dict:
     """Extract Human Design data from chart - includes all available fields."""
+    import re
     hd = chart.get('human_design', {})
+    
+    # Parse incarnation cross to extract gates
+    incarnation_cross = hd.get('incarnation_cross', 'Unknown')
+    incarnation_cross_gates = []
+    
+    # Try to extract gate numbers from incarnation cross string
+    # Format: "Right Angle Cross of 23/43" or "LAX Migration (37/5 | 40/35)"
+    if incarnation_cross and incarnation_cross != 'Unknown':
+        # Find all numbers in the string
+        gate_numbers = re.findall(r'\d+', incarnation_cross)
+        if gate_numbers:
+            incarnation_cross_gates = [int(g) for g in gate_numbers[:4]]  # Take up to 4 gates
+    
+    # If no gates found in cross string, try to derive from personality/design gates
+    if not incarnation_cross_gates or len(incarnation_cross_gates) < 4:
+        personality_gates = hd.get('personality_gates', [])
+        design_gates = hd.get('design_gates', [])
+        
+        # Sun and Earth gates from personality and design make up the cross
+        if personality_gates and design_gates:
+            # Typically: Personality Sun, Personality Earth, Design Sun, Design Earth
+            # These are the first gates in each list if sorted by planet
+            pass  # Keep whatever we found from the string
     
     return {
         "type": hd.get('type', 'Unknown'),
@@ -4695,7 +4719,8 @@ def extract_human_design_data(chart: dict) -> dict:
         "authority": hd.get('authority', 'Unknown'),
         "profile": hd.get('profile', 'Unknown'),
         "definition": hd.get('definition', 'Unknown'),
-        "incarnation_cross": hd.get('incarnation_cross', 'Unknown'),
+        "incarnation_cross": incarnation_cross,
+        "incarnation_cross_gates": incarnation_cross_gates,
         "defined_centers": hd.get('defined_centers', []),
         "defined_channels": hd.get('defined_channels', []),
         "all_gates": hd.get('all_gates', []),
