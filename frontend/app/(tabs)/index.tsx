@@ -15,6 +15,7 @@ import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
 import { storage } from '../../store';
+import DailyFocusCard from '../../components/DailyFocusCard';
 
 interface DailyKeystone {
   date: string;
