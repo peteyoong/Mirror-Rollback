@@ -89,8 +89,26 @@ export default function ReflectionChat() {
     }
   }, [getOpeningMessage]);
 
+  // Check if we should show micro-reflection prompt
+  const shouldShowMicroPrompt = useCallback(() => {
+    // Only show once per session, after 2+ user messages, and not if dismissed
+    return !microPromptShown && 
+           !microPromptDismissed && 
+           userMessageCountRef.current >= 2;
+  }, [microPromptShown, microPromptDismissed]);
+
+  // Handle dismissing micro-reflection prompt
+  const handleDismissMicroPrompt = () => {
+    setMicroPromptDismissed(true);
+    // Remove the micro-prompt from messages
+    setMessages(prev => prev.filter(m => m.role !== 'micro-prompt'));
+  };
+
   const handleSend = async () => {
     if (!inputText.trim() || isLoading || !user?.id) return;
+
+    // Track user message count for micro-prompt logic
+    userMessageCountRef.current += 1;
 
     const userMessage: Message = {
       id: Date.now().toString(),
