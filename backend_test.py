@@ -316,7 +316,85 @@ def test_reflection_chat_api():
         return False
 
 
-def main():
+
+def test_daily_focus_api():
+    """Test GET /api/daily-focus/{user_id} endpoint"""
+    print("\n=== TESTING DAILY FOCUS API ===")
+    
+    print(f"\n1. Testing daily focus for user: {TEST_USER_ID}")
+    
+    try:
+        response = requests.get(
+            f"{BACKEND_URL}/daily-focus/{TEST_USER_ID}",
+            timeout=30
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        print(f"Response Headers: {dict(response.headers)}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Response Keys: {list(data.keys())}")
+            print(f"Response: {json.dumps(data, indent=2)}")
+            
+            # Check required fields
+            required_fields = ["ambient_line", "context", "confidence", "generated_at_iso"]
+            missing_fields = [field for field in required_fields if field not in data]
+            
+            if missing_fields:
+                print(f"❌ Missing required fields: {missing_fields}")
+                return False
+            
+            # Validate field types and values
+            ambient_line = data.get("ambient_line")
+            context = data.get("context")
+            confidence = data.get("confidence")
+            generated_at_iso = data.get("generated_at_iso")
+            
+            print(f"Ambient Line: {ambient_line}")
+            print(f"Context: {context}")
+            print(f"Confidence: {confidence}")
+            print(f"Generated At: {generated_at_iso}")
+            
+            # Validate context is one of the 6 allowed or null
+            allowed_contexts = [
+                "Self & Inner State", 
+                "Relationships", 
+                "Work & Purpose", 
+                "Health & Body", 
+                "Rest & Restoration", 
+                "Growth & Expansion",
+                None
+            ]
+            
+            if context not in allowed_contexts:
+                print(f"❌ Invalid context value: {context}. Must be one of {allowed_contexts}")
+                return False
+            
+            # Validate confidence is a number
+            if not isinstance(confidence, (int, float)):
+                print(f"❌ Confidence must be a number, got: {type(confidence)}")
+                return False
+            
+            # Validate generated_at_iso is a valid ISO string
+            try:
+                datetime.fromisoformat(generated_at_iso.replace('Z', '+00:00'))
+            except ValueError:
+                print(f"❌ Invalid ISO timestamp: {generated_at_iso}")
+                return False
+            
+            print("✅ Daily focus API: SUCCESS - All required fields present and valid")
+            return True
+                
+        else:
+            print(f"❌ Request failed: {response.status_code}")
+            print(f"Error response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Exception during daily focus test: {e}")
+        return False
+
     """Run all backend tests"""
     print("🧪 STARTING BACKEND API TESTS")
     print(f"Backend URL: {BACKEND_URL}")
