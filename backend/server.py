@@ -5586,6 +5586,49 @@ class EnneagramFeedbackRequest(BaseModel):
     life_context: Optional[str] = None
     answer_frame: Optional[str] = None
 
+
+# Questionnaire Persistence Models
+class QuestionnaireRequest(BaseModel):
+    user_id: str
+    answers: List[str]
+    questions: List[str]
+
+
+@api_router.post("/profile/questionnaire")
+async def save_questionnaire(request: QuestionnaireRequest):
+    """
+    Save post-registration questionnaire answers to user profile.
+    
+    This endpoint persists questionnaire data for personalization.
+    """
+    try:
+        questionnaire_doc = {
+            "answers": request.answers,
+            "questions": request.questions,
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+            "questionnaire_complete": True
+        }
+        
+        # Update user profile with questionnaire data
+        result = await db.users.update_one(
+            {"_id": ObjectId(request.user_id)},
+            {"$set": {"questionnaire": questionnaire_doc}}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        logger.info(f"[Questionnaire] Saved {len(request.answers)} answers for user {request.user_id}")
+        
+        return {"success": True, "answers_saved": len(request.answers)}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error saving questionnaire: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/profile/enneagram/feedback")
 async def submit_enneagram_feedback(request: EnneagramFeedbackRequest):
     """Store user self-verification feedback for their Enneagram result"""
