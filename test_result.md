@@ -1139,3 +1139,37 @@ agent_communication:
       - Mobile responsiveness confirmed
       
       CONCLUSION: The core mechanics card is working correctly but is only displayed on the Deep Dive tab, not the Summary tab as requested in the review. The 2x2 grid shows the expected data: Manifestor | Emotional / 5/1 | LAX Migration.
+  - agent: "testing"
+    message: |
+      HUMAN DESIGN SUMMARY TAB CORE MECHANICS VERIFICATION COMPLETE ✅
+      
+      📱 REVIEW REQUEST TESTING RESULTS:
+      ✅ Mobile viewport set correctly (390x844)
+      ✅ localStorage configured with existing user (6984b4a4ce7b78080ce4853a)
+      ✅ Navigation to /lenses/human-design successful
+      ✅ Summary tab clicked and activated
+      
+      🔧 CODE VERIFICATION:
+      ✅ HumanDesignLensView.tsx line 243 shows core mechanics card IS configured for Summary tab
+      ✅ Code change confirmed: `{(activeTab === 'summary' || activeTab === 'deep_dive') && renderCoreMechanics()}`
+      ✅ The fix has been implemented to show core mechanics on Summary tab
+      
+      ❌ CRITICAL ISSUE IDENTIFIED - API ROUTING PROBLEM:
+      - Summary tab shows "Unable to load this view right now" error
+      - Frontend making requests to http://localhost:3000/api/* (404 errors)
+      - Backend running on port 8001, accessible via https://mirror-daily.preview.emergentagent.com/api/*
+      - API service configured for relative URLs on web platform, but proxy routing not working
+      - Console logs show: "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      
+      🔍 ROOT CAUSE ANALYSIS:
+      - Frontend API service (api.ts line 11) uses relative URLs for web: `return '';`
+      - This expects ingress/proxy to route /api/* to backend, but routing is broken
+      - Backend API works correctly when accessed directly via public URL
+      - User data (6984b4a4ce7b78080ce4853a) exists and returns valid Human Design data
+      
+      📸 EVIDENCE:
+      - Screenshot shows Summary tab with "Unable to load this view right now" message
+      - Console logs confirm 404 errors for API requests
+      - Direct backend API test successful: returns valid Human Design profile data
+      
+      CONCLUSION: The core mechanics card fix is implemented correctly in the code, but cannot be verified due to API routing issues preventing the Summary tab from loading data. The frontend cannot reach the backend through the expected proxy routing.
