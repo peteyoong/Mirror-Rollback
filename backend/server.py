@@ -4865,7 +4865,7 @@ Incarnation Cross: {incarnation_cross}
                 "strategy": strategy_desc,
                 "authority": hd_data['authority'],
                 "profile": hd_data.get('profile', 'Unknown'),
-                "incarnation_cross": incarnation_cross,
+                "incarnation_cross": hd_data.get('incarnation_cross_label', incarnation_cross),  # Use friendly label
                 "incarnation_cross_gates": cross_gates_str
             }
             
@@ -4880,7 +4880,7 @@ Incarnation Cross: {incarnation_cross}
                     "strategy": strategy_desc,
                     "authority": hd_data['authority'],
                     "profile": hd_data.get('profile', 'Unknown'),
-                    "incarnation_cross": incarnation_cross,
+                    "incarnation_cross": hd_data.get('incarnation_cross_label', incarnation_cross),  # Use friendly label
                     "incarnation_cross_gates": cross_gates_str
                 },
                 "sections": [
