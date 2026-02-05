@@ -410,6 +410,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
   },
+  mechanicGates: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 2,
+  },
   mechanicDivider: {
     width: 1,
     height: 40,
