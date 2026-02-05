@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Project Mirror - Enneagram Assessment Flow
-Testing the complete Enneagram results endpoint functionality
+Backend API Testing for Project Mirror - Human Design Summary Endpoint Consistency
+Testing specific scenarios as requested in the review request.
 """
 
 import requests
 import json
 import sys
 from datetime import datetime
+from typing import Dict, Any, Optional
 
 # Configuration
 BACKEND_URL = "https://mirror-daily.preview.emergentagent.com/api"
