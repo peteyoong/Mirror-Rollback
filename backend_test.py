@@ -18,423 +18,280 @@ def log_test(message):
     timestamp = datetime.now().strftime("%H:%M:%S")
     print(f"[{timestamp}] {message}")
 
-def test_questionnaire_persistence():
-    """Test POST /api/profile/questionnaire - Questionnaire Persistence"""
-    print("\n=== TESTING QUESTIONNAIRE PERSISTENCE API ===")
+def test_numerology_full_name_gate():
+    """
+    Test the Numerology Full Name Gate fix as specified in the review request.
     
-    print(f"\n1. Testing questionnaire persistence for user: {TEST_USER_ID}")
-    payload = {
-        "user_id": TEST_USER_ID,
-        "answers": ["Answer1", "Answer2", "Answer3"],
-        "questions": ["Q1", "Q2", "Q3"]
+    ACCEPTANCE TEST - New User Flow:
+    1. Create a new user (without numerology_full_name)
+    2. Calculate chart for the new user
+    3. Get numerology summary - verify locked state
+    4. Unlock with full birth name
+    5. Get numerology summary again - verify unlocked state
+    """
+    
+    log_test("🔢 STARTING NUMEROLOGY FULL NAME GATE TEST")
+    
+    # Step 1: Create a new user (without numerology_full_name)
+    log_test("Step 1: Creating new user without numerology_full_name")
+    
+    user_data = {
+        "name": "Numerology Gate Test",
+        "birth_date": "1995-08-22",
+        "birth_time": "10:00",
+        "city": "Chicago",
+        "country": "USA",
+        "timezone": "America/Chicago",
+        "latitude": 41.8781,
+        "longitude": -87.6298
     }
     
     try:
-        response = requests.post(
-            f"{BACKEND_URL}/profile/questionnaire",
-            json=payload,
-            headers={"Content-Type": "application/json"},
-            timeout=30
-        )
+        response = requests.post(f"{BACKEND_URL}/users", json=user_data, timeout=30)
+        log_test(f"POST /api/users - Status: {response.status_code}")
         
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Headers: {dict(response.headers)}")
-        print(f"Request Payload: {json.dumps(payload, indent=2)}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response: {json.dumps(data, indent=2)}")
-            
-            # Verify expected response structure
-            expected_success = True
-            expected_answers_saved = 3
-            
-            if (data.get("success") == expected_success and 
-                data.get("answers_saved") == expected_answers_saved):
-                print("✅ Questionnaire persistence: SUCCESS")
-                print(f"   - Response contains success={expected_success}")
-                print(f"   - Response contains answers_saved={expected_answers_saved}")
-                return True
-            else:
-                print("❌ Questionnaire persistence: FAILED")
-                print(f"   - Expected: {{'success': {expected_success}, 'answers_saved': {expected_answers_saved}}}")
-                print(f"   - Got: {data}")
-                return False
-        else:
-            print(f"❌ Request failed: {response.status_code}")
-            print(f"Error response: {response.text}")
+        if response.status_code != 200:
+            log_test(f"❌ FAILED: User creation failed - {response.text}")
             return False
             
+        user_response = response.json()
+        new_user_id = user_response.get("id")
+        
+        if not new_user_id:
+            log_test(f"❌ FAILED: No user ID returned - {user_response}")
+            return False
+            
+        log_test(f"✅ User created successfully - ID: {new_user_id}")
+        
     except Exception as e:
-        print(f"❌ Exception during questionnaire persistence test: {e}")
+        log_test(f"❌ FAILED: User creation error - {e}")
         return False
-
-
-    """Test POST /api/reflection/chat endpoint"""
-    print("\n=== TESTING REFLECTION CHAT API ===")
     
-    # Test 1: Reflection chat with context
-    print("\n1. Testing reflection chat WITH context...")
-    payload_with_context = {
-        "user_id": TEST_USER_ID,
-        "messages": [{"role": "user", "content": "I feel restless today"}],
-        "context": "Rest & Restoration"
+    # Step 2: Calculate chart for the new user
+    log_test("Step 2: Calculating chart for new user")
+    
+    try:
+        chart_data = {"user_id": new_user_id}
+        response = requests.post(f"{BACKEND_URL}/charts/calculate", json=chart_data, timeout=60)
+        log_test(f"POST /api/charts/calculate - Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            log_test(f"❌ FAILED: Chart calculation failed - {response.text}")
+            return False
+            
+        chart_response = response.json()
+        log_test(f"✅ Chart calculated successfully")
+        
+    except Exception as e:
+        log_test(f"❌ FAILED: Chart calculation error - {e}")
+        return False
+    
+    # Step 3: Get numerology summary - verify locked state
+    log_test("Step 3: Getting numerology summary (should be locked)")
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/numerology/summary/{new_user_id}", timeout=30)
+        log_test(f"GET /api/numerology/summary/{new_user_id} - Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            log_test(f"❌ FAILED: Numerology summary failed - {response.text}")
+            return False
+            
+        numerology_response = response.json()
+        log_test(f"Numerology response: {json.dumps(numerology_response, indent=2)}")
+        
+        # Step 4: VERIFY locked state
+        log_test("Step 4: Verifying locked state")
+        
+        core_numbers = numerology_response.get("core_numbers", {})
+        unlock_prompt = numerology_response.get("unlock_prompt")
+        
+        # Check Life Path and Birthday numbers are present
+        life_path = core_numbers.get("life_path")
+        if not life_path or life_path == "locked":
+            log_test(f"❌ FAILED: Life Path should be present, got: {life_path}")
+            return False
+        log_test(f"✅ Life Path number present: {life_path}")
+        
+        # Check Expression and Soul Urge are locked
+        expression = core_numbers.get("expression")
+        soul_urge = core_numbers.get("soul_urge")
+        
+        if expression != "locked":
+            log_test(f"❌ FAILED: Expression should be 'locked', got: {expression}")
+            return False
+        log_test(f"✅ Expression is locked: {expression}")
+        
+        if soul_urge != "locked":
+            log_test(f"❌ FAILED: Soul Urge should be 'locked', got: {soul_urge}")
+            return False
+        log_test(f"✅ Soul Urge is locked: {soul_urge}")
+        
+        # Check unlock_prompt is present
+        if not unlock_prompt:
+            log_test(f"❌ FAILED: unlock_prompt should be present, got: {unlock_prompt}")
+            return False
+        log_test(f"✅ Unlock prompt present: {unlock_prompt}")
+        
+    except Exception as e:
+        log_test(f"❌ FAILED: Numerology summary error - {e}")
+        return False
+    
+    # Step 5: Unlock with full birth name
+    log_test("Step 5: Unlocking with full birth name")
+    
+    try:
+        unlock_data = {"full_birth_name": "John Robert Williams"}
+        response = requests.post(f"{BACKEND_URL}/numerology/unlock-name/{new_user_id}", json=unlock_data, timeout=30)
+        log_test(f"POST /api/numerology/unlock-name/{new_user_id} - Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            log_test(f"❌ FAILED: Name unlock failed - {response.text}")
+            return False
+            
+        unlock_response = response.json()
+        log_test(f"✅ Name unlocked successfully: {unlock_response}")
+        
+    except Exception as e:
+        log_test(f"❌ FAILED: Name unlock error - {e}")
+        return False
+    
+    # Step 6: Get numerology summary again - verify unlocked state
+    log_test("Step 6: Getting numerology summary again (should be unlocked)")
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/numerology/summary/{new_user_id}", timeout=30)
+        log_test(f"GET /api/numerology/summary/{new_user_id} - Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            log_test(f"❌ FAILED: Numerology summary after unlock failed - {response.text}")
+            return False
+            
+        unlocked_response = response.json()
+        log_test(f"Unlocked numerology response: {json.dumps(unlocked_response, indent=2)}")
+        
+        # Step 7: VERIFY unlocked state
+        log_test("Step 7: Verifying unlocked state")
+        
+        core_numbers = unlocked_response.get("core_numbers", {})
+        unlock_prompt = unlocked_response.get("unlock_prompt")
+        
+        # Check Expression and Soul Urge are now actual numbers (not "locked")
+        expression = core_numbers.get("expression")
+        soul_urge = core_numbers.get("soul_urge")
+        
+        if expression == "locked" or not expression:
+            log_test(f"❌ FAILED: Expression should be unlocked, got: {expression}")
+            return False
+        log_test(f"✅ Expression is unlocked: {expression}")
+        
+        if soul_urge == "locked" or not soul_urge:
+            log_test(f"❌ FAILED: Soul Urge should be unlocked, got: {soul_urge}")
+            return False
+        log_test(f"✅ Soul Urge is unlocked: {soul_urge}")
+        
+        # Check unlock_prompt is now null
+        if unlock_prompt is not None:
+            log_test(f"❌ FAILED: unlock_prompt should be null after unlock, got: {unlock_prompt}")
+            return False
+        log_test(f"✅ Unlock prompt is null: {unlock_prompt}")
+        
+    except Exception as e:
+        log_test(f"❌ FAILED: Numerology summary after unlock error - {e}")
+        return False
+    
+    log_test("🎉 NUMEROLOGY FULL NAME GATE TEST COMPLETED SUCCESSFULLY")
+    return True
+
+def test_critical_invariant():
+    """
+    Test the critical invariant: New users WITHOUT numerology_full_name 
+    MUST have expression/soul_urge/personality = "locked"
+    NO fallback to user.name allowed
+    """
+    
+    log_test("🔒 TESTING CRITICAL INVARIANT")
+    
+    # Create another user to verify the invariant
+    user_data = {
+        "name": "Test User With Name",  # This should NOT be used as fallback
+        "birth_date": "1990-05-15",
+        "birth_time": "14:30",
+        "city": "New York",
+        "country": "USA", 
+        "timezone": "America/New_York",
+        "latitude": 40.7128,
+        "longitude": -74.0060
     }
     
     try:
-        response = requests.post(
-            f"{BACKEND_URL}/reflection/chat",
-            json=payload_with_context,
-            headers={"Content-Type": "application/json"},
-            timeout=30
-        )
-        
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Headers: {dict(response.headers)}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response Keys: {list(data.keys())}")
-            
-            # Check for required response structure
-            if "response" in data:
-                response_text = data["response"]
-                print(f"Response Text (first 200 chars): {response_text[:200]}...")
-                
-                # Check mirror philosophy compliance (no "you should", no advice)
-                forbidden_phrases = ["you should", "you need to", "you must", "i recommend", "try to"]
-                violations = [phrase for phrase in forbidden_phrases if phrase in response_text.lower()]
-                
-                if violations:
-                    print(f"❌ MIRROR PHILOSOPHY VIOLATION: Found forbidden phrases: {violations}")
-                    return False
-                else:
-                    print("✅ Mirror philosophy compliance: No prescriptive language found")
-                
-                print("✅ Reflection chat with context: SUCCESS")
-                return True
-            else:
-                print(f"❌ Missing 'response' key in response: {data}")
-                return False
-        else:
-            print(f"❌ Request failed: {response.status_code}")
-            print(f"Error response: {response.text}")
+        # Create user
+        response = requests.post(f"{BACKEND_URL}/users", json=user_data, timeout=30)
+        if response.status_code != 200:
+            log_test(f"❌ FAILED: User creation failed - {response.text}")
             return False
             
-    except Exception as e:
-        print(f"❌ Exception during reflection chat with context: {e}")
-        return False
-    
-    # Test 2: Reflection chat without context
-    print("\n2. Testing reflection chat WITHOUT context...")
-    payload_without_context = {
-        "user_id": TEST_USER_ID,
-        "messages": [{"role": "user", "content": "Just checking in"}],
-        "context": None
-    }
-    
-    try:
-        response = requests.post(
-            f"{BACKEND_URL}/reflection/chat",
-            json=payload_without_context,
-            headers={"Content-Type": "application/json"},
-            timeout=30
-        )
+        user_response = response.json()
+        user_id = user_response.get("id")
         
-        print(f"Status Code: {response.status_code}")
+        # Calculate chart
+        chart_data = {"user_id": user_id}
+        response = requests.post(f"{BACKEND_URL}/charts/calculate", json=chart_data, timeout=60)
+        if response.status_code != 200:
+            log_test(f"❌ FAILED: Chart calculation failed - {response.text}")
+            return False
         
-        if response.status_code == 200:
-            data = response.json()
-            if "response" in data:
-                print("✅ Reflection chat without context: SUCCESS")
-                return True
-            else:
-                print(f"❌ Missing 'response' key: {data}")
-                return False
-        else:
-            print(f"❌ Request failed: {response.status_code}")
-            print(f"Error response: {response.text}")
+        # Get numerology summary
+        response = requests.get(f"{BACKEND_URL}/numerology/summary/{user_id}", timeout=30)
+        if response.status_code != 200:
+            log_test(f"❌ FAILED: Numerology summary failed - {response.text}")
             return False
             
-    except Exception as e:
-        print(f"❌ Exception during reflection chat without context: {e}")
-        return False
-
-
-def test_reflection_chat_api():
-    """Test POST /api/reflection/chat endpoint"""
-    print("\n=== TESTING REFLECTION CHAT API ===")
-    
-    # Test 1: Reflection chat with context
-    print("\n1. Testing reflection chat WITH context...")
-    payload_with_context = {
-        "user_id": TEST_USER_ID,
-        "messages": [{"role": "user", "content": "Testing"}],
-        "context": "Self & Inner State"
-    }
-    
-    try:
-        response = requests.post(
-            f"{BACKEND_URL}/reflection/chat",
-            json=payload_with_context,
-            headers={"Content-Type": "application/json"},
-            timeout=30
-        )
+        numerology_response = response.json()
+        core_numbers = numerology_response.get("core_numbers", {})
         
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Headers: {dict(response.headers)}")
-        print(f"Request Payload: {json.dumps(payload_with_context, indent=2)}")
+        # CRITICAL CHECK: Even though user has a name, expression/soul_urge should be locked
+        expression = core_numbers.get("expression")
+        soul_urge = core_numbers.get("soul_urge")
         
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response Keys: {list(data.keys())}")
-            
-            # Check for required response structure
-            if "response" in data:
-                response_text = data["response"]
-                print(f"Response Text (first 200 chars): {response_text[:200]}...")
-                
-                # Check mirror philosophy compliance (no "you should", no advice)
-                forbidden_phrases = ["you should", "you need to", "you must", "i recommend", "try to"]
-                violations = [phrase for phrase in forbidden_phrases if phrase in response_text.lower()]
-                
-                if violations:
-                    print(f"❌ MIRROR PHILOSOPHY VIOLATION: Found forbidden phrases: {violations}")
-                    return False
-                else:
-                    print("✅ Mirror philosophy compliance: No prescriptive language found")
-                
-                print("✅ Reflection chat with context: SUCCESS")
-                return True
-            else:
-                print(f"❌ Missing 'response' key in response: {data}")
-                return False
-        else:
-            print(f"❌ Request failed: {response.status_code}")
-            print(f"Error response: {response.text}")
+        if expression != "locked":
+            log_test(f"❌ CRITICAL INVARIANT VIOLATED: Expression should be 'locked' for new user, got: {expression}")
             return False
             
-    except Exception as e:
-        print(f"❌ Exception during reflection chat with context: {e}")
-        return False
-
-
-    """Test GET /api/daily-focus/{user_id} endpoint"""
-    print("\n=== TESTING DAILY FOCUS API ===")
-    
-    print(f"\n1. Testing daily focus for user: {TEST_USER_ID}")
-    
-    try:
-        response = requests.get(
-            f"{BACKEND_URL}/daily-focus/{TEST_USER_ID}",
-            timeout=30
-        )
-        
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Headers: {dict(response.headers)}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response Keys: {list(data.keys())}")
-            
-            # Check required fields
-            required_fields = ["ambient_line", "context", "confidence", "generated_at_iso"]
-            missing_fields = [field for field in required_fields if field not in data]
-            
-            if missing_fields:
-                print(f"❌ Missing required fields: {missing_fields}")
-                return False
-            
-            # Validate field types and values
-            ambient_line = data.get("ambient_line")
-            context = data.get("context")
-            confidence = data.get("confidence")
-            generated_at_iso = data.get("generated_at_iso")
-            
-            print(f"Ambient Line: {ambient_line}")
-            print(f"Context: {context}")
-            print(f"Confidence: {confidence}")
-            print(f"Generated At: {generated_at_iso}")
-            
-            # Validate context is one of the 6 allowed or null
-            allowed_contexts = [
-                "Self & Inner State", 
-                "Relationships", 
-                "Work & Purpose", 
-                "Health & Body", 
-                "Rest & Restoration", 
-                "Growth & Expansion",
-                None
-            ]
-            
-            if context not in allowed_contexts:
-                print(f"❌ Invalid context value: {context}. Must be one of {allowed_contexts}")
-                return False
-            
-            # Validate confidence is a number
-            if not isinstance(confidence, (int, float)):
-                print(f"❌ Confidence must be a number, got: {type(confidence)}")
-                return False
-            
-            # Validate generated_at_iso is a valid ISO string
-            try:
-                datetime.fromisoformat(generated_at_iso.replace('Z', '+00:00'))
-            except ValueError:
-                print(f"❌ Invalid ISO timestamp: {generated_at_iso}")
-                return False
-            
-            print("✅ Daily focus API: SUCCESS - All required fields present and valid")
-            
-            # Test caching behavior - make same request again
-            print("\n2. Testing caching behavior (same user, same day)...")
-            response2 = requests.get(
-                f"{BACKEND_URL}/daily-focus/{TEST_USER_ID}",
-                timeout=30
-            )
-            
-            if response2.status_code == 200:
-                data2 = response2.json()
-                
-                # Check if responses are identical (cached)
-                if data == data2:
-                    print("✅ Caching working: Same response returned for same user/day")
-                    return True
-                else:
-                    print("⚠️  Caching may not be working: Different responses for same user/day")
-                    print(f"First response generated_at: {data.get('generated_at_iso')}")
-                    print(f"Second response generated_at: {data2.get('generated_at_iso')}")
-                    return True  # Still consider success as core functionality works
-            else:
-                print(f"❌ Second request failed: {response2.status_code}")
-                return False
-                
-        else:
-            print(f"❌ Request failed: {response.status_code}")
-            print(f"Error response: {response.text}")
+        if soul_urge != "locked":
+            log_test(f"❌ CRITICAL INVARIANT VIOLATED: Soul Urge should be 'locked' for new user, got: {soul_urge}")
             return False
             
-    except Exception as e:
-        print(f"❌ Exception during daily focus test: {e}")
-        return False
-
-
-
-def test_daily_focus_api():
-    """Test GET /api/daily-focus/{user_id} endpoint"""
-    print("\n=== TESTING DAILY FOCUS API ===")
-    
-    print(f"\n1. Testing daily focus for user: {TEST_USER_ID}")
-    
-    try:
-        response = requests.get(
-            f"{BACKEND_URL}/daily-focus/{TEST_USER_ID}",
-            timeout=30
-        )
+        log_test(f"✅ CRITICAL INVARIANT VERIFIED: New user has locked expression/soul_urge despite having user.name")
         
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Headers: {dict(response.headers)}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response Keys: {list(data.keys())}")
-            print(f"Response: {json.dumps(data, indent=2)}")
-            
-            # Check required fields
-            required_fields = ["ambient_line", "context", "confidence", "generated_at_iso"]
-            missing_fields = [field for field in required_fields if field not in data]
-            
-            if missing_fields:
-                print(f"❌ Missing required fields: {missing_fields}")
-                return False
-            
-            # Validate field types and values
-            ambient_line = data.get("ambient_line")
-            context = data.get("context")
-            confidence = data.get("confidence")
-            generated_at_iso = data.get("generated_at_iso")
-            
-            print(f"Ambient Line: {ambient_line}")
-            print(f"Context: {context}")
-            print(f"Confidence: {confidence}")
-            print(f"Generated At: {generated_at_iso}")
-            
-            # Validate context is one of the 6 allowed or null
-            allowed_contexts = [
-                "Self & Inner State", 
-                "Relationships", 
-                "Work & Purpose", 
-                "Health & Body", 
-                "Rest & Restoration", 
-                "Growth & Expansion",
-                None
-            ]
-            
-            if context not in allowed_contexts:
-                print(f"❌ Invalid context value: {context}. Must be one of {allowed_contexts}")
-                return False
-            
-            # Validate confidence is a number
-            if not isinstance(confidence, (int, float)):
-                print(f"❌ Confidence must be a number, got: {type(confidence)}")
-                return False
-            
-            # Validate generated_at_iso is a valid ISO string
-            try:
-                datetime.fromisoformat(generated_at_iso.replace('Z', '+00:00'))
-            except ValueError:
-                print(f"❌ Invalid ISO timestamp: {generated_at_iso}")
-                return False
-            
-            print("✅ Daily focus API: SUCCESS - All required fields present and valid")
-            return True
-                
-        else:
-            print(f"❌ Request failed: {response.status_code}")
-            print(f"Error response: {response.text}")
-            return False
-            
     except Exception as e:
-        print(f"❌ Exception during daily focus test: {e}")
+        log_test(f"❌ FAILED: Critical invariant test error - {e}")
         return False
+    
+    return True
 
-    """Run all backend tests"""
 def main():
-    """Run all backend tests"""
-    print("🧪 STARTING BACKEND API TESTS")
-    print(f"Backend URL: {BACKEND_URL}")
-    print(f"Test User ID: {TEST_USER_ID}")
-    print(f"Test Time: {datetime.now().isoformat()}")
+    """Run all numerology tests"""
+    log_test("🚀 STARTING NUMEROLOGY FULL NAME GATE TESTING")
+    log_test(f"Backend URL: {BACKEND_URL}")
     
-    results = []
+    all_tests_passed = True
     
-    # Test 1: Questionnaire Persistence API
-    questionnaire_success = test_questionnaire_persistence()
-    results.append(("Questionnaire Persistence API", questionnaire_success))
+    # Test 1: Full numerology gate flow
+    if not test_numerology_full_name_gate():
+        all_tests_passed = False
     
-    # Test 2: Reflection Chat API
-    reflection_success = test_reflection_chat_api()
-    results.append(("Reflection Chat API", reflection_success))
-    
-    # Test 3: Daily Focus API  
-    daily_focus_success = test_daily_focus_api()
-    results.append(("Daily Focus API", daily_focus_success))
+    # Test 2: Critical invariant
+    if not test_critical_invariant():
+        all_tests_passed = False
     
     # Summary
-    print("\n" + "="*60)
-    print("🏁 TEST SUMMARY")
-    print("="*60)
-    
-    all_passed = True
-    for test_name, success in results:
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{test_name}: {status}")
-        if not success:
-            all_passed = False
-    
-    print(f"\nOverall Result: {'✅ ALL TESTS PASSED' if all_passed else '❌ SOME TESTS FAILED'}")
-    
-    return 0 if all_passed else 1
-
+    if all_tests_passed:
+        log_test("🎉 ALL NUMEROLOGY TESTS PASSED")
+        return 0
+    else:
+        log_test("❌ SOME NUMEROLOGY TESTS FAILED")
+        return 1
 
 if __name__ == "__main__":
     sys.exit(main())
