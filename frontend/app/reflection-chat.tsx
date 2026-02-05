@@ -20,7 +20,7 @@ import api from '../services/api';
 
 interface Message {
   id: string;
-  role: 'system' | 'user' | 'assistant';
+  role: 'system' | 'user' | 'assistant' | 'micro-prompt';
   content: string;
   timestamp: Date;
 }
@@ -50,6 +50,11 @@ export default function ReflectionChat() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const hasInitializedRef = useRef(false);
+  
+  // Micro-Reflection Prompt state (session only, not persisted)
+  const [microPromptShown, setMicroPromptShown] = useState(false);
+  const [microPromptDismissed, setMicroPromptDismissed] = useState(false);
+  const userMessageCountRef = useRef(0);
 
   // Generate pre-seeded opening message based on state
   const getOpeningMessage = useCallback((): string => {
