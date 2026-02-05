@@ -159,7 +159,64 @@ def test_questionnaire_persistence():
         return False
 
 
-def test_daily_focus_api():
+def test_reflection_chat_api():
+    """Test POST /api/reflection/chat endpoint"""
+    print("\n=== TESTING REFLECTION CHAT API ===")
+    
+    # Test 1: Reflection chat with context
+    print("\n1. Testing reflection chat WITH context...")
+    payload_with_context = {
+        "user_id": TEST_USER_ID,
+        "messages": [{"role": "user", "content": "Testing"}],
+        "context": "Self & Inner State"
+    }
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/reflection/chat",
+            json=payload_with_context,
+            headers={"Content-Type": "application/json"},
+            timeout=30
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        print(f"Response Headers: {dict(response.headers)}")
+        print(f"Request Payload: {json.dumps(payload_with_context, indent=2)}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Response Keys: {list(data.keys())}")
+            
+            # Check for required response structure
+            if "response" in data:
+                response_text = data["response"]
+                print(f"Response Text (first 200 chars): {response_text[:200]}...")
+                
+                # Check mirror philosophy compliance (no "you should", no advice)
+                forbidden_phrases = ["you should", "you need to", "you must", "i recommend", "try to"]
+                violations = [phrase for phrase in forbidden_phrases if phrase in response_text.lower()]
+                
+                if violations:
+                    print(f"❌ MIRROR PHILOSOPHY VIOLATION: Found forbidden phrases: {violations}")
+                    return False
+                else:
+                    print("✅ Mirror philosophy compliance: No prescriptive language found")
+                
+                print("✅ Reflection chat with context: SUCCESS")
+                return True
+            else:
+                print(f"❌ Missing 'response' key in response: {data}")
+                return False
+        else:
+            print(f"❌ Request failed: {response.status_code}")
+            print(f"Error response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Exception during reflection chat with context: {e}")
+        return False
+
+
     """Test GET /api/daily-focus/{user_id} endpoint"""
     print("\n=== TESTING DAILY FOCUS API ===")
     
