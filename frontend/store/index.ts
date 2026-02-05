@@ -156,6 +156,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   dailyReflection: null,
   journalEntries: [],
   hasCompletedOnboarding: false,
+  questionnaireAnswers: [],
+  questionnaireComplete: false,
   isRestoringSession: false,
   hasTriedSessionRestore: false,  // NEW: Auth hydration gate
   sessionRestoreError: null,
