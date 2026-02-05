@@ -5327,12 +5327,16 @@ async def get_numerology_deep_dive(user_id: str):
             
             result["mirror_prompt"] = apply_numerology_guardrails(result.get("mirror_prompt", ""))
             
-            # Ensure core numbers are present
+            # Ensure core numbers are present - use null for locked fields (UI renders 🔒)
             result["core_numbers"] = {
                 "life_path": data["life_path_number"],
-                "expression": data["expression_number"] if data["has_name_numbers"] else "locked",
-                "soul_urge": data["soul_urge_number"] if data["has_name_numbers"] else "locked"
+                "expression": data["expression_number"] if data["has_name_numbers"] else None,
+                "soul_urge": data["soul_urge_number"] if data["has_name_numbers"] else None,
+                "personality": data.get("personality_number") if data["has_name_numbers"] else None
             }
+            
+            # Add unlock flags for UI
+            result["unlock_required"] = not data["has_name_numbers"]
             
             # Add unlock prompt if needed
             if not data["has_name_numbers"]:
