@@ -112,6 +112,42 @@ user_problem_statement: |
   - NEW: LLM-powered Mirror Chat as the primary AI companion
 
 backend:
+  - task: "Reflection Chat API (Daily Flow Layer 3)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          NEW ENDPOINT: POST /api/reflection/chat
+          - Mirroring philosophy implementation (no advice, no diagnosis)
+          - Context-aware responses using optional context parameter
+          - Uses EMERGENT_LLM_KEY with emergentintegrations LlmChat
+          - Tested with curl - returns reflective responses like "It sounds like there's a growing sense of needing more rest these days."
+          - Logs reflection events to database (without evaluating content)
+          - Graceful fallback on error
+
+  - task: "Daily Focus API (Context Selector Layer)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          ENDPOINT: GET /api/daily-focus/{user_id}
+          - Returns daily ambient line and optional context hypothesis
+          - Context derived from user's chart data (Human Design type, etc.)
+          - Deterministic per day (cached)
+          - 6 allowed life contexts: Self & Inner State, Relationships, Work & Purpose, Health & Body, Rest & Restoration, Growth & Expansion
+
   - task: "Mirror Chat API Endpoint"
     implemented: true
     working: true
