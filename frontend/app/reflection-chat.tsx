@@ -397,4 +397,37 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
+  // Micro-Reflection Prompt styles
+  microPromptContainer: {
+    alignItems: 'center',
+    marginVertical: 16,
+    paddingHorizontal: 8,
+  },
+  microPromptCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    maxWidth: '90%',
+  },
+  microPromptText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  microPromptDismiss: {
+    marginTop: 10,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+  microPromptDismissText: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    textDecorationLine: 'underline',
+  },
 });
