@@ -5137,6 +5137,9 @@ async def get_numerology_summary(user_id: str):
             
             result["mirror_prompt"] = apply_numerology_guardrails(result.get("mirror_prompt", ""))
             
+            # Add unlock flags for UI
+            result["unlock_required"] = not data["has_name_numbers"]
+            
             # Add unlock prompt if needed
             if not data["has_name_numbers"]:
                 result["unlock_prompt"] = "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality)."
@@ -5153,6 +5156,7 @@ async def get_numerology_summary(user_id: str):
                     {"label": "How Numerology Works (Here)", "body": "Numerology in Project Mirror is used as a lens for noticing patterns, not predicting outcomes. Numbers describe symbolic themes and rhythms — recurring emphases that may feel familiar, not fixed truths about who you are."},
                     {"label": "Your Numerology Snapshot", "body": f"Your Life Path {data['life_path_number']} often correlates with a particular kind of learning journey — themes that tend to recur over time as opportunities for growth and awareness."}
                 ],
+                "unlock_required": not data["has_name_numbers"],
                 "unlock_prompt": None if data["has_name_numbers"] else "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality).",
                 "mirror_prompt": "What recurring themes do you notice in your own life?"
             }
