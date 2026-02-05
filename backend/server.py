@@ -4703,13 +4703,30 @@ def extract_human_design_data(chart: dict) -> dict:
             for pair in gate_pattern:
                 incarnation_cross_gates.extend([int(g) for g in pair])
     
-    # Format the gates string for display: "23/43" or "37/5 • 40/35"
+    # If no gates found in cross string, derive from personality/design gates
+    # The incarnation cross consists of 4 gates:
+    # Personality Sun (index 0), Personality Earth (index 1)
+    # Design Sun (index 0), Design Earth (index 1)
+    if len(incarnation_cross_gates) < 2:
+        personality_gates = hd.get('personality_gates', [])
+        design_gates = hd.get('design_gates', [])
+        
+        # Build cross from first 2 gates of each (Sun and Earth positions)
+        if len(personality_gates) >= 2 and len(design_gates) >= 2:
+            incarnation_cross_gates = [
+                personality_gates[0],  # Personality Sun
+                design_gates[0],       # Design Sun
+                personality_gates[1],  # Personality Earth
+                design_gates[1]        # Design Earth
+            ]
+    
+    # Format the gates string for display: "37/5 • 40/35" or "23/43"
     if len(incarnation_cross_gates) >= 4:
         gates_display = f"{incarnation_cross_gates[0]}/{incarnation_cross_gates[1]} • {incarnation_cross_gates[2]}/{incarnation_cross_gates[3]}"
     elif len(incarnation_cross_gates) >= 2:
         gates_display = f"{incarnation_cross_gates[0]}/{incarnation_cross_gates[1]}"
     else:
-        gates_display = None
+        gates_display = "—"  # Safe placeholder when gates not derivable
     
     # Get human-friendly label for the cross
     incarnation_cross_label = get_incarnation_cross_label(incarnation_cross)
@@ -4722,7 +4739,7 @@ def extract_human_design_data(chart: dict) -> dict:
         "definition": hd.get('definition', 'Unknown'),
         "incarnation_cross": incarnation_cross,  # Full raw string
         "incarnation_cross_label": incarnation_cross_label,  # Human-friendly label
-        "incarnation_cross_gates": gates_display,  # Formatted gates string for display
+        "incarnation_cross_gates": gates_display,  # Formatted gates string for display (never null)
         "defined_centers": hd.get('defined_centers', []),
         "defined_channels": hd.get('defined_channels', []),
         "all_gates": hd.get('all_gates', []),
