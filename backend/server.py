@@ -3550,6 +3550,122 @@ async def get_daily_focus(user_id: str):
         )
 
 
+# =====================================================================
+# REFLECTION CHAT (Daily Flow Layer 3)
+# =====================================================================
+
+class ReflectionChatRequest(BaseModel):
+    user_id: str
+    messages: List[Dict[str, str]]
+    context: Optional[str] = None
+
+
+class ReflectionChatResponse(BaseModel):
+    response: str
+
+
+# System prompt for reflection chat - embodies Mirror philosophy
+REFLECTION_SYSTEM_PROMPT = """You are a reflective companion in Project Mirror.
+
+Your role is to mirror, not coach. To notice, not advise. To reflect, not interpret.
+
+CORE RULES:
+- Never give advice
+- Never explain patterns
+- Never make predictions
+- Never assign meaning
+- Never use "you are" or "you should"
+- Never ask "why"
+- Short responses are often better
+
+PREFERRED PHRASES:
+- "It sounds like..."
+- "You might be noticing..."
+- "That feels significant."
+- "There's something there."
+- "Mm."
+
+AVOID:
+- "This suggests..."
+- "This means..."
+- "You are someone who..."
+- "Have you tried..."
+- "You should..."
+
+When the user shares something:
+1. Acknowledge gently without interpretation
+2. Mirror back what they said in slightly different words
+3. Or simply hold space with minimal words
+
+Short answers are valid. Silence is valid.
+The user may leave at any time without consequence."""
+
+
+@api_router.post("/reflection/chat", response_model=ReflectionChatResponse)
+async def reflection_chat(request: ReflectionChatRequest):
+    """
+    Reflection chat endpoint for daily flow.
+    
+    Follows Mirror philosophy:
+    - Mirroring, not coaching
+    - Noticing, not advising
+    - No meaning-making
+    - No identity statements
+    """
+    try:
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        # Build messages for LLM
+        llm_messages = [
+            {"role": "system", "content": REFLECTION_SYSTEM_PROMPT}
+        ]
+        
+        # Add context hint if provided
+        if request.context:
+            llm_messages.append({
+                "role": "system",
+                "content": f"The user's current context hypothesis is: {request.context}. Do not mention this directly."
+            })
+        
+        # Add conversation history
+        for msg in request.messages:
+            if msg.get("role") in ["user", "assistant"]:
+                llm_messages.append({
+                    "role": msg["role"],
+                    "content": msg["content"]
+                })
+        
+        # Call LLM
+        response = await client.chat.completions.create(
+            model="gpt-5.2",
+            messages=llm_messages,
+            max_tokens=150,  # Keep responses short
+            temperature=0.7,
+        )
+        
+        assistant_response = response.choices[0].message.content.strip()
+        
+        # Store reflection in database (as event, not evaluation)
+        await db.reflections.insert_one({
+            "user_id": request.user_id,
+            "context": request.context,
+            "message_count": len(request.messages),
+            "created_at": datetime.now(timezone.utc)
+        })
+        
+        logger.info(f"[Reflection] Chat response for user {request.user_id}")
+        
+        return ReflectionChatResponse(response=assistant_response)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Reflection] Chat error: {e}")
+        # Graceful fallback
+        return ReflectionChatResponse(response="That feels significant.")
+
+
 @api_router.get("/mirror/home/{user_id}")
 async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_refresh: bool = False):
     """
