@@ -406,6 +406,10 @@ const styles = StyleSheet.create({
     color: Colors.text,
     textAlign: 'center',
   },
+  mechanicValueSmall: {
+    fontSize: 12,
+    lineHeight: 16,
+  },
   mechanicDivider: {
     width: 1,
     height: 40,
