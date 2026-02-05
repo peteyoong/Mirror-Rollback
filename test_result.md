@@ -112,6 +112,37 @@ user_problem_statement: |
   - NEW: LLM-powered Mirror Chat as the primary AI companion
 
 backend:
+  - task: "Questionnaire Persistence API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          QUESTIONNAIRE PERSISTENCE TESTING COMPLETE ✅
+          
+          1. ✅ ENDPOINT FUNCTIONALITY: POST /api/profile/questionnaire
+             - Status: 200 OK
+             - Request Payload: {"user_id": "69819f1a1e4549392d7cb6d1", "answers": ["Answer1", "Answer2", "Answer3"], "questions": ["Q1", "Q2", "Q3"]}
+             - Response Structure: {"success": true, "answers_saved": 3}
+             - Verified exact response format as specified in review request
+          
+          2. ✅ DATA PERSISTENCE VERIFIED:
+             - Backend logs confirm: "[Questionnaire] Saved 3 answers for user 69819f1a1e4549392d7cb6d1"
+             - User profile updated with questionnaire data
+             - Questionnaire completion flag set correctly
+          
+          3. ✅ BACKEND INTEGRATION VERIFIED:
+             - No errors in backend logs
+             - Proper validation and error handling
+             - Response times acceptable (< 1 second)
+          
+          CONCLUSION: Questionnaire Persistence API fully functional and meets all specified requirements.
+
   - task: "Reflection Chat API (Daily Flow Layer 3)"
     implemented: true
     working: true
