@@ -118,6 +118,10 @@ interface AppState {
   journalEntries: JournalEntry[];
   hasCompletedOnboarding: boolean;
   
+  // Questionnaire state
+  questionnaireAnswers: string[];
+  questionnaireComplete: boolean;
+  
   // Session restore state - THE AUTH HYDRATION GATE
   isRestoringSession: boolean;
   hasTriedSessionRestore: boolean;  // NEW: true once restore attempt completes (success or fail)
@@ -132,6 +136,10 @@ interface AppState {
   completeOnboarding: () => Promise<void>;
   clearUser: () => Promise<void>;
   loadPersistedData: () => Promise<void>;
+  
+  // Questionnaire actions
+  setQuestionnaireAnswer: (index: number, answer: string) => Promise<void>;
+  completeQuestionnaire: () => Promise<void>;
   
   // Session restore actions
   restoreSession: () => Promise<boolean>;
