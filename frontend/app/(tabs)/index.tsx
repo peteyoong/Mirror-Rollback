@@ -222,7 +222,15 @@ export default function MirrorScreen() {
         </View>
 
         {/* Daily Focus Card - Context Surfacing */}
-        <DailyFocusCard userId={user.id} />
+        <DailyFocusCard 
+          userId={user.id} 
+          onStateChange={handleFocusStateChange}
+        />
+        
+        {/* Reflection Entry - Subtle entry to daily reflection */}
+        {!focusState.isLoading && (
+          <ReflectionEntry onPress={handleReflect} />
+        )}
 
         {/* Loading State */}
         {isLoading && (
