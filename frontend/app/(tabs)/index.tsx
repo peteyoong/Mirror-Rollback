@@ -193,6 +193,9 @@ export default function MirrorScreen() {
           </Text>
         </View>
 
+        {/* Daily Focus Card - Context Surfacing */}
+        <DailyFocusCard userId={user.id} />
+
         {/* Loading State */}
         {isLoading && (
           <View style={styles.loadingContainer}>
