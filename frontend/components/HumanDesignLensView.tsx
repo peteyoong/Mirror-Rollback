@@ -239,8 +239,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               <Text style={styles.dateLabel}>{data.date}</Text>
             )}
 
-            {/* Core Mechanics Card (Deep Dive only) */}
-            {activeTab === 'deep_dive' && renderCoreMechanics()}
+            {/* Core Mechanics Card (Summary and Deep Dive) */}
+            {(activeTab === 'summary' || activeTab === 'deep_dive') && renderCoreMechanics()}
 
             {/* Expand Button (Deep Dive only) */}
             {activeTab === 'deep_dive' && (
