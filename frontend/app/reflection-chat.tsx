@@ -148,7 +148,24 @@ export default function ReflectionChat() {
         timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages(prev => {
+        const newMessages = [...prev, assistantMessage];
+        
+        // Check if we should inject micro-reflection prompt
+        // Only after 2+ user messages, once per session, not if dismissed
+        if (shouldShowMicroPrompt() && !microPromptShown) {
+          setMicroPromptShown(true);
+          const microPrompt: Message = {
+            id: 'micro-prompt',
+            role: 'micro-prompt',
+            content: 'You could pause here, or write a sentence if that feels right.',
+            timestamp: new Date(),
+          };
+          return [...newMessages, microPrompt];
+        }
+        
+        return newMessages;
+      });
     } catch (error) {
       console.error('Reflection chat error:', error);
       // Graceful fallback - don't show error, just acknowledge
