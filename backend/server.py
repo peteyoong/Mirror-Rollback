@@ -3332,6 +3332,224 @@ class MirrorHomeResponse(BaseModel):
     is_first_visit: bool = False
 
 
+# =====================================================================
+# DAILY CONTEXT SURFACING (Context Selector Layer)
+# =====================================================================
+
+# Allowed life contexts (hard-capped vocabulary)
+ALLOWED_LIFE_CONTEXTS = [
+    "Work & Contribution",
+    "Relationships",
+    "Family & Responsibility",
+    "Self & Inner State",
+    "Direction & Meaning",
+    "Rest & Restoration"
+]
+
+# Ambient noticing lines (Tier 1 - very light, no action required)
+AMBIENT_NOTICING_LINES = [
+    "Something to notice today: how your energy shifts across moments.",
+    "Something to notice today: where your attention naturally rests.",
+    "Something to notice today: what feels lighter than yesterday.",
+    "Something to notice today: the space between thoughts.",
+    "Something to notice today: what you're drawn toward without reason.",
+    "Something to notice today: how effort and ease alternate.",
+    "Something to notice today: what you return to in quiet moments.",
+    "Something to notice today: the rhythm of your day.",
+    "Something to notice today: where resistance softens.",
+    "Something to notice today: what needs less than you thought.",
+]
+
+
+class DailyFocusResponse(BaseModel):
+    ambient_line: str
+    context: Optional[str] = None
+    confidence: float = 0.0
+    generated_at_iso: str
+
+
+@api_router.get("/daily-focus/{user_id}", response_model=DailyFocusResponse)
+async def get_daily_focus(user_id: str):
+    """
+    Daily Context Surfacing - Context Selector Layer
+    
+    Returns a daily focus with:
+    - ambient_line: A gentle noticing prompt (always present)
+    - context: One of the 6 allowed life contexts, or null
+    - confidence: How confident the system is in the context selection
+    
+    Rules:
+    - Non-deterministic, non-prescriptive
+    - Same user receives same context for the calendar day
+    - Context is optional and dismissible
+    - No lens exposure, no predictions, no identity assignment
+    """
+    import hashlib
+    
+    try:
+        # Get current UTC date for caching
+        today_utc = datetime.now(timezone.utc).date()
+        date_str = today_utc.strftime("%Y-%m-%d")
+        
+        # Check cache first
+        cached = await db.daily_focus.find_one({
+            "user_id": user_id,
+            "date": date_str
+        })
+        
+        if cached:
+            logger.info(f"[DailyFocus] Returning cached focus for {user_id} on {date_str}")
+            return DailyFocusResponse(
+                ambient_line=cached["ambient_line"],
+                context=cached.get("context"),
+                confidence=cached.get("confidence", 0.0),
+                generated_at_iso=cached["generated_at_iso"]
+            )
+        
+        # Verify user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Create deterministic seed for the day
+        seed_input = f"{user_id}:{date_str}:daily-focus-v1"
+        daily_seed = hashlib.sha256(seed_input.encode()).hexdigest()
+        
+        # Select ambient line deterministically
+        ambient_index = int(daily_seed[:4], 16) % len(AMBIENT_NOTICING_LINES)
+        ambient_line = AMBIENT_NOTICING_LINES[ambient_index]
+        
+        # =====================================================================
+        # CONTEXT SELECTION (Internal probabilistic layer)
+        # Uses lens data to infer likely context, but never exposes mechanics
+        # =====================================================================
+        
+        context = None
+        confidence = 0.0
+        
+        # Get user's chart data for context inference
+        chart = await db.charts.find_one({"user_id": user_id})
+        
+        if chart:
+            # Context scoring based on lens signals (internal only)
+            context_scores = {ctx: 0.0 for ctx in ALLOWED_LIFE_CONTEXTS}
+            
+            # Get astrology data
+            astrology = chart.get("astrology", {})
+            sun_sign = astrology.get("sun", {}).get("sign", "")
+            moon_sign = astrology.get("moon", {}).get("sign", "")
+            rising_sign = astrology.get("ascendant", {}).get("sign", "")
+            
+            # Get Human Design data
+            human_design = chart.get("human_design", {})
+            hd_type = human_design.get("type", "")
+            authority = human_design.get("authority", "")
+            profile = human_design.get("profile", "")
+            
+            # Get current day of week for additional variance
+            day_of_week = today_utc.weekday()
+            
+            # Subtle context weighting based on lens patterns
+            # (This is the probabilistic layer - user never sees this logic)
+            
+            # Sign-based tendencies (very soft signals)
+            fire_signs = ["Aries", "Leo", "Sagittarius"]
+            earth_signs = ["Taurus", "Virgo", "Capricorn"]
+            air_signs = ["Gemini", "Libra", "Aquarius"]
+            water_signs = ["Cancer", "Scorpio", "Pisces"]
+            
+            # Slight context preferences based on elemental emphasis
+            if sun_sign in fire_signs or moon_sign in fire_signs:
+                context_scores["Work & Contribution"] += 0.15
+                context_scores["Direction & Meaning"] += 0.12
+            if sun_sign in earth_signs or moon_sign in earth_signs:
+                context_scores["Family & Responsibility"] += 0.15
+                context_scores["Rest & Restoration"] += 0.10
+            if sun_sign in air_signs or moon_sign in air_signs:
+                context_scores["Relationships"] += 0.15
+                context_scores["Direction & Meaning"] += 0.10
+            if sun_sign in water_signs or moon_sign in water_signs:
+                context_scores["Self & Inner State"] += 0.18
+                context_scores["Relationships"] += 0.12
+            
+            # Human Design type tendencies
+            if hd_type == "Generator" or hd_type == "Manifesting Generator":
+                context_scores["Work & Contribution"] += 0.12
+            elif hd_type == "Projector":
+                context_scores["Relationships"] += 0.12
+                context_scores["Rest & Restoration"] += 0.10
+            elif hd_type == "Manifestor":
+                context_scores["Direction & Meaning"] += 0.15
+            elif hd_type == "Reflector":
+                context_scores["Self & Inner State"] += 0.15
+            
+            # Day-of-week influence (subtle variance)
+            day_context_boost = {
+                0: "Work & Contribution",      # Monday
+                1: "Direction & Meaning",      # Tuesday
+                2: "Relationships",            # Wednesday
+                3: "Family & Responsibility",  # Thursday
+                4: "Self & Inner State",       # Friday
+                5: "Rest & Restoration",       # Saturday
+                6: "Rest & Restoration",       # Sunday
+            }
+            context_scores[day_context_boost[day_of_week]] += 0.08
+            
+            # Add deterministic daily variance using seed
+            seed_variance = int(daily_seed[4:8], 16) / 65535.0  # 0.0 to 1.0
+            context_index = int(seed_variance * len(ALLOWED_LIFE_CONTEXTS))
+            context_scores[ALLOWED_LIFE_CONTEXTS[context_index]] += 0.10
+            
+            # Find highest scoring context
+            max_context = max(context_scores, key=context_scores.get)
+            max_score = context_scores[max_context]
+            
+            # Only surface context if confidence is reasonable
+            # (Prevents weak or arbitrary context surfacing)
+            if max_score >= 0.20:
+                context = max_context
+                confidence = min(max_score, 0.85)  # Cap confidence
+        
+        # Store in cache
+        generated_at_iso = datetime.now(timezone.utc).isoformat()
+        
+        await db.daily_focus.update_one(
+            {"user_id": user_id, "date": date_str},
+            {"$set": {
+                "user_id": user_id,
+                "date": date_str,
+                "ambient_line": ambient_line,
+                "context": context,
+                "confidence": confidence,
+                "generated_at_iso": generated_at_iso
+            }},
+            upsert=True
+        )
+        
+        logger.info(f"[DailyFocus] Generated focus for {user_id}: context={context}, confidence={confidence:.2f}")
+        
+        return DailyFocusResponse(
+            ambient_line=ambient_line,
+            context=context,
+            confidence=confidence,
+            generated_at_iso=generated_at_iso
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[DailyFocus] Error generating daily focus: {e}")
+        # Fallback: return ambient line only, no context
+        fallback_seed = hashlib.sha256(f"{user_id}:{datetime.now(timezone.utc).date()}".encode()).hexdigest()
+        fallback_index = int(fallback_seed[:4], 16) % len(AMBIENT_NOTICING_LINES)
+        return DailyFocusResponse(
+            ambient_line=AMBIENT_NOTICING_LINES[fallback_index],
+            context=None,
+            confidence=0.0,
+            generated_at_iso=datetime.now(timezone.utc).isoformat()
+        )
+
+
 @api_router.get("/mirror/home/{user_id}")
 async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_refresh: bool = False):
     """
