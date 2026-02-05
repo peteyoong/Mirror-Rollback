@@ -241,10 +241,10 @@ def test_critical_invariant():
             log_test(f"❌ FAILED: Chart calculation failed - {response.text}")
             return False
         
-        # Get numerology summary
-        response = requests.get(f"{BACKEND_URL}/numerology/summary/{user_id}", timeout=30)
+        # Get numerology deep-dive
+        response = requests.get(f"{BACKEND_URL}/numerology/deep-dive/{user_id}", timeout=30)
         if response.status_code != 200:
-            log_test(f"❌ FAILED: Numerology summary failed - {response.text}")
+            log_test(f"❌ FAILED: Numerology deep-dive failed - {response.text}")
             return False
             
         numerology_response = response.json()
