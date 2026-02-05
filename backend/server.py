@@ -2010,7 +2010,10 @@ async def calculate_chart(request: ChartCalculationRequest):
         )
         
         logger.info(f"Calculating numerology for user {request.user_id}")
-        numerology = get_full_numerology(birth_date, user.get("name"))
+        # IMPORTANT: Only use numerology_full_name for name-based numbers (Expression/Soul Urge/Personality)
+        # Do NOT fall back to user.name - this is a trust-critical design decision
+        numerology_full_name = user.get("numerology_full_name")  # Only from explicit unlock flow
+        numerology = get_full_numerology(birth_date, numerology_full_name)
         
         logger.info(f"Getting consciousness framework for user {request.user_id}")
         consciousness = get_consciousness_framework()
