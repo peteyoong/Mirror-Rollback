@@ -290,8 +290,10 @@ export const submitEnneagramFeedback = async (data: {
   life_context?: string;
   answer_frame?: string;
 }) => {
-  const response = await api.post('/profile/enneagram/feedback', data);
+  const response = await apiWithRetry.post('/profile/enneagram/feedback', data);
   return response.data;
 };
 
+// Export both the raw api instance and the retry-wrapped version
+export { apiWithRetry };
 export default api;
