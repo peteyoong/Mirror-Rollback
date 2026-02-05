@@ -87,14 +87,14 @@ def test_numerology_full_name_gate():
         return False
     
     # Step 3: Get numerology summary - verify locked state
-    log_test("Step 3: Getting numerology summary (should be locked)")
+    log_test("Step 3: Getting numerology deep-dive (should be locked)")
     
     try:
-        response = requests.get(f"{BACKEND_URL}/numerology/summary/{new_user_id}", timeout=30)
-        log_test(f"GET /api/numerology/summary/{new_user_id} - Status: {response.status_code}")
+        response = requests.get(f"{BACKEND_URL}/numerology/deep-dive/{new_user_id}", timeout=30)
+        log_test(f"GET /api/numerology/deep-dive/{new_user_id} - Status: {response.status_code}")
         
         if response.status_code != 200:
-            log_test(f"❌ FAILED: Numerology summary failed - {response.text}")
+            log_test(f"❌ FAILED: Numerology deep-dive failed - {response.text}")
             return False
             
         numerology_response = response.json()
@@ -134,7 +134,7 @@ def test_numerology_full_name_gate():
         log_test(f"✅ Unlock prompt present: {unlock_prompt}")
         
     except Exception as e:
-        log_test(f"❌ FAILED: Numerology summary error - {e}")
+        log_test(f"❌ FAILED: Numerology deep-dive error - {e}")
         return False
     
     # Step 5: Unlock with full birth name
