@@ -153,7 +153,7 @@ export interface DailyFocusResponse {
 }
 
 export const getDailyFocus = async (userId: string): Promise<DailyFocusResponse> => {
-  const response = await api.get(`/daily-focus/${userId}`);
+  const response = await apiWithRetry.get(`/daily-focus/${userId}`);
   return response.data;
 };
 
@@ -168,29 +168,29 @@ export const createUser = async (data: {
   latitude?: number;
   longitude?: number;
 }) => {
-  const response = await api.post('/users', data);
+  const response = await apiWithRetry.post('/users', data);
   return response.data;
 };
 
 export const getUser = async (userId: string) => {
-  const response = await api.get(`/users/${userId}`);
+  const response = await apiWithRetry.get(`/users/${userId}`);
   return response.data;
 };
 
 // Location APIs
 export const searchLocations = async (query: string) => {
-  const response = await api.post('/locations/search', { query });
+  const response = await apiWithRetry.post('/locations/search', { query });
   return response.data.results;
 };
 
 // Chart APIs
 export const calculateChart = async (userId: string) => {
-  const response = await api.post('/charts/calculate', { user_id: userId });
+  const response = await apiWithRetry.post('/charts/calculate', { user_id: userId });
   return response.data;
 };
 
 export const getChart = async (userId: string) => {
-  const response = await api.get(`/charts/${userId}`);
+  const response = await apiWithRetry.get(`/charts/${userId}`);
   return response.data;
 };
 
