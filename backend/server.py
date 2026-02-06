@@ -6164,8 +6164,16 @@ async def save_enneagram_result(request: EnneagramResultSave):
 
 
 @api_router.get("/enneagram/results/{user_id}")
-async def get_enneagram_result(user_id: str):
-    """Get saved Enneagram result for user"""
+async def get_enneagram_result(user_id: str, debug: bool = False):
+    """Get saved Enneagram result for user
+    
+    Args:
+        user_id: User ID
+        debug: If true, include full convergence debug data
+    
+    Returns user-facing convergence data (summary, supported_types) by default.
+    Full convergence signals only returned when debug=true.
+    """
     try:
         # Validate user exists
         user = await db.users.find_one({"_id": ObjectId(user_id)})
@@ -6178,24 +6186,40 @@ async def get_enneagram_result(user_id: str):
         if not result:
             return {"has_result": False, "result": None}
         
+        # Build base response
+        response_result = {
+            "id": str(result.get("_id", "")),
+            "user_id": result["user_id"],
+            "method": result.get("method", "assessment_inference_v1"),
+            "version": result.get("version", "v1"),
+            "inferred_core": result["inferred_core"],
+            "inferred_wing": result["inferred_wing"],
+            "confidence": result["confidence"],
+            "confidence_tier": result["confidence_tier"],
+            "is_close": result.get("is_close", False),
+            "top_candidates": result.get("top_candidates", []),
+            "state_calibration": result.get("state_calibration", {}),
+            "debug_scores": result.get("debug_scores", {}),
+            "enneagram_computed_details": result.get("enneagram_computed_details", {}),
+            "created_at": result["created_at"].isoformat() if result.get("created_at") else None
+        }
+        
+        # Add convergence data if present (v2 records)
+        convergence = result.get("convergence")
+        if convergence:
+            # User-facing: only summary and supported_types
+            response_result["convergence_summary"] = convergence.get("convergence_summary", "")
+            response_result["supported_types"] = convergence.get("supported_types", [])
+            response_result["adjusted_confidence"] = result.get("adjusted_confidence")
+            response_result["adjusted_tier"] = result.get("adjusted_tier")
+            
+            # Debug mode: include full convergence object
+            if debug:
+                response_result["convergence"] = convergence
+        
         return {
             "has_result": True,
-            "result": {
-                "id": str(result.get("_id", "")),
-                "user_id": result["user_id"],
-                "method": result.get("method", "assessment_inference_v1"),
-                "version": result.get("version", "v1"),
-                "inferred_core": result["inferred_core"],
-                "inferred_wing": result["inferred_wing"],
-                "confidence": result["confidence"],
-                "confidence_tier": result["confidence_tier"],
-                "is_close": result.get("is_close", False),
-                "top_candidates": result.get("top_candidates", []),
-                "state_calibration": result.get("state_calibration", {}),
-                "debug_scores": result.get("debug_scores", {}),
-                "enneagram_computed_details": result.get("enneagram_computed_details", {}),
-                "created_at": result["created_at"].isoformat() if result.get("created_at") else None
-            }
+            "result": response_result
         }
     
     except HTTPException:
