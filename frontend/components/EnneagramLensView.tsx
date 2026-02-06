@@ -1004,6 +1004,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
             <>
               <Text style={styles.wingSectionTitle}>Your Wing Access</Text>
               <Text style={styles.wingSectionBody}>{BALANCED_WINGS_EXPLANATION}</Text>
+              <Text style={styles.wingGrowthNoteText}>{BALANCED_WINGS_GROWTH_NOTE}</Text>
               <View style={styles.wingAccessHint}>
                 <Text style={styles.wingAccessHintText}>
                   Both {core}w{wings.left} and {core}w{wings.right} are available to you.
