@@ -529,3 +529,294 @@ def get_full_natal_chart(
 def close_ephemeris():
     """Clean up Swiss Ephemeris resources"""
     swe.close()
+
+
+# =============================================================================
+# ASPECTS CALCULATION (Required for debug_compute_astrology)
+# =============================================================================
+ASPECT_TYPES = {
+    'conjunction': {'angle': 0, 'orb': 8},
+    'opposition': {'angle': 180, 'orb': 8},
+    'trine': {'angle': 120, 'orb': 8},
+    'square': {'angle': 90, 'orb': 7},
+    'sextile': {'angle': 60, 'orb': 6},
+    'quincunx': {'angle': 150, 'orb': 3},
+    'semi-sextile': {'angle': 30, 'orb': 2},
+}
+
+def calculate_aspects(planets: Dict) -> List[Dict]:
+    """Calculate aspects between planets
+    
+    Args:
+        planets: Dict of planet data with longitude
+    
+    Returns:
+        List of aspect dicts {body1, body2, type, orb, exact_angle}
+    """
+    aspects = []
+    planet_names = [p for p in planets.keys() if p not in ['Earth', 'South Node']]
+    
+    for i, p1 in enumerate(planet_names):
+        for p2 in planet_names[i+1:]:
+            long1 = planets[p1]['longitude']
+            long2 = planets[p2]['longitude']
+            
+            # Calculate angular separation
+            diff = abs(long1 - long2)
+            if diff > 180:
+                diff = 360 - diff
+            
+            # Check against each aspect type
+            for aspect_name, aspect_config in ASPECT_TYPES.items():
+                angle = aspect_config['angle']
+                orb = aspect_config['orb']
+                
+                deviation = abs(diff - angle)
+                if deviation <= orb:
+                    aspects.append({
+                        'body1': p1,
+                        'body2': p2,
+                        'type': aspect_name,
+                        'orb': round(deviation, 2),
+                        'exact_angle': round(diff, 2),
+                        'applying': planets[p1].get('speed', 0) > planets[p2].get('speed', 0)
+                    })
+                    break  # Only one aspect type per planet pair
+    
+    # Sort by orb (tighter aspects first)
+    aspects.sort(key=lambda x: x['orb'])
+    return aspects
+
+
+# =============================================================================
+# DEBUG HELPER: debug_compute_astrology()
+# =============================================================================
+# Usage (from REPL or test script):
+#   from calculations.astrology import debug_compute_astrology
+#   debug_compute_astrology()
+#
+# Or from project root:
+#   python -c "from backend.calculations.astrology import debug_compute_astrology; debug_compute_astrology()"
+# =============================================================================
+
+def debug_compute_astrology():
+    """Debug runner to compute a full True Sidereal-M chart and print integrity summary.
+    
+    Test Case: Pete
+    - Birth local: 1968-04-01 01:25
+    - UTC offset: +07:30 (Malaysia historical timezone)
+    - UTC birth: 1968-03-31 17:55:00Z
+    - Coordinates: lat=3.1073, lon=101.6070
+    - Birth place: Petaling Jaya, Malaysia
+    - House system: Equal
+    - Sidereal mode: true_sidereal_m (user-defined SVP)
+    - Node mode: true_node
+    """
+    print("=" * 70)
+    print("DEBUG: Astrology Compute Integrity Test")
+    print("=" * 70)
+    print()
+    
+    # Hardcoded test case for Pete
+    # Local: 1968-04-01 01:25 with UTC offset +07:30
+    # UTC = Local - 07:30 = 1968-03-31 17:55:00Z
+    birth_utc = datetime(1968, 3, 31, 17, 55, 0)
+    lat = 3.1073
+    lon = 101.6070
+    birth_place = "Petaling Jaya, Malaysia"
+    
+    print(f"Test Case: Pete")
+    print(f"  Birth (local): 1968-04-01 01:25")
+    print(f"  UTC Offset:    +07:30")
+    print(f"  Birth (UTC):   {birth_utc.isoformat()}")
+    print(f"  Coordinates:   lat={lat}, lon={lon}")
+    print(f"  Place:         {birth_place}")
+    print(f"  House System:  Equal")
+    print(f"  Sidereal Mode: true_sidereal_m (SVP 31.2836°)")
+    print(f"  Node Mode:     true_node")
+    print()
+    print("-" * 70)
+    
+    # Sidereal settings for True Sidereal M
+    sidereal_settings = {
+        "mode": "true_sidereal_m",
+        "svp_degrees": 31.2836,  # Project Mirror default SVP
+        "reference_year": 2000,
+        "yearly_increment": 0.0  # Fixed - no precession
+    }
+    
+    try:
+        # Compute the chart
+        chart = get_full_natal_chart(
+            birth_datetime=birth_utc,
+            lat=lat,
+            lon=lon,
+            sidereal_settings=sidereal_settings,
+            house_system="Equal"
+        )
+        
+        # Calculate aspects
+        aspects = calculate_aspects(chart['planets'])
+        
+        # Add aspects to chart for completeness
+        chart['aspects'] = aspects
+        
+        # =====================================================================
+        # INTEGRITY REPORT
+        # =====================================================================
+        print("COMPUTE INTEGRITY: PASSED ✓")
+        print()
+        
+        # 1. Top-level keys
+        print("1. TOP-LEVEL KEYS:")
+        print(f"   {list(chart.keys())}")
+        print()
+        
+        # 2. Angles: ASC/DC/MC/IC
+        print("2. ANGLES:")
+        angles = chart.get('angles', {})
+        for angle_name in ['asc', 'dc', 'mc', 'ic']:
+            angle = angles.get(angle_name, {})
+            sign = angle.get('sign', 'N/A')
+            degree = angle.get('degree', 0)
+            print(f"   {angle_name.upper():3}: {degree:5.2f}° {sign}")
+        print()
+        
+        # 3. Houses: count of cusps, house 1 cusp
+        print("3. HOUSES:")
+        houses = chart.get('houses', {})
+        formatted_cusps = houses.get('formatted_cusps', [])
+        print(f"   Cusp count: {len(formatted_cusps)}")
+        if formatted_cusps:
+            h1 = formatted_cusps[0]
+            print(f"   House 1:    {h1.get('degree', 0):.2f}° {h1.get('sign', 'N/A')}")
+        print()
+        
+        # 4. Planets: confirm all 10 names exist
+        print("4. PLANETS:")
+        required_planets = ["Sun", "Moon", "Mercury", "Venus", "Mars", 
+                           "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+        planets = chart.get('planets', {})
+        present = [p for p in required_planets if p in planets]
+        missing = [p for p in required_planets if p not in planets]
+        print(f"   Required (10): {len(present)}/10 present")
+        if missing:
+            print(f"   MISSING: {missing}")
+        else:
+            print(f"   All present: ✓")
+        # Print planet positions compactly
+        for pname in required_planets:
+            if pname in planets:
+                p = planets[pname]
+                print(f"   {pname:8}: {p.get('degree', 0):5.2f}° {p.get('sign', 'N/A'):12} (House {p.get('house', '?')})")
+        print()
+        
+        # 5. Nodes: North and South with metadata.node_mode
+        print("5. NODES:")
+        nodes = chart.get('nodes', {})
+        north = nodes.get('north', {})
+        south = nodes.get('south', {})
+        node_mode = chart.get('sidereal_settings', {}).get('node_mode', 'unknown')
+        
+        print(f"   Node Mode: {node_mode}")
+        print(f"   North Node: {north.get('degree', 0):.2f}° {north.get('sign', 'N/A')} (House {north.get('house', '?')})")
+        print(f"   South Node: {south.get('degree', 0):.2f}° {south.get('sign', 'N/A')} (House {south.get('house', '?')})")
+        print()
+        
+        # 6. Aspects: count and first 5
+        print("6. ASPECTS:")
+        print(f"   Total count: {len(aspects)}")
+        print(f"   First 5:")
+        for asp in aspects[:5]:
+            print(f"     {asp['body1']}-{asp['body2']} {asp['type']} ({asp['orb']}°)")
+        print()
+        
+        # 7. Sect
+        print("7. SECT:")
+        print(f"   {chart.get('sect', 'unknown')}")
+        print()
+        
+        print("-" * 70)
+        print("DEBUG COMPLETE: Chart computed successfully with full integrity.")
+        print("=" * 70)
+        
+        return chart
+        
+    except ValueError as e:
+        # Compute Integrity Error
+        print("COMPUTE INTEGRITY: FAILED ✗")
+        print()
+        print(f"ERROR: {str(e)}")
+        print()
+        print("-" * 70)
+        print("FULL JSON PAYLOAD FOR DEBUGGING:")
+        print("-" * 70)
+        
+        # Attempt to get partial chart for debugging
+        # Re-run computation without integrity check to see what we got
+        try:
+            # Temporarily bypass integrity check to show partial data
+            import json
+            
+            # Get Julian Day
+            jd = get_julian_day(
+                birth_utc.year, birth_utc.month, birth_utc.day,
+                birth_utc.hour, birth_utc.minute, birth_utc.second
+            )
+            
+            svp = sidereal_settings['svp_degrees']
+            
+            # Get what we can
+            asc_tropical = calculate_ascendant_tropical(jd, lat, lon)
+            asc_sidereal = tropical_to_sidereal(asc_tropical, svp)
+            house_cusps = calculate_equal_houses(asc_sidereal)
+            
+            partial_planets = {}
+            for name, planet_id in PLANETS.items():
+                try:
+                    if name == 'South Node':
+                        if 'North Node' in partial_planets:
+                            north_node = partial_planets['North Node']
+                            south_long = normalize_degrees(north_node['longitude'] + 180)
+                            sign_info = longitude_to_sign_degree(south_long)
+                            partial_planets[name] = {
+                                'longitude': south_long,
+                                'sign': sign_info['sign'],
+                                'degree': sign_info['degree'],
+                                'house': get_house_for_planet(south_long, house_cusps)
+                            }
+                    else:
+                        pos = calculate_planet_position_sidereal(planet_id, jd, svp)
+                        pos['house'] = get_house_for_planet(pos['longitude'], house_cusps)
+                        partial_planets[name] = pos
+                except Exception as planet_err:
+                    partial_planets[name] = {'error': str(planet_err)}
+            
+            partial_chart = {
+                'planets': partial_planets,
+                'house_cusps': house_cusps,
+                'ascendant_sidereal': asc_sidereal,
+                'julian_day': jd
+            }
+            
+            print(json.dumps(partial_chart, indent=2, default=str))
+            
+        except Exception as debug_err:
+            print(f"Could not generate partial chart: {debug_err}")
+        
+        print("=" * 70)
+        raise
+    
+    except Exception as e:
+        # Unexpected error
+        print(f"UNEXPECTED ERROR: {type(e).__name__}: {str(e)}")
+        print("=" * 70)
+        raise
+
+
+# =============================================================================
+# ADDITIONAL DEBUG ENTRY POINT
+# =============================================================================
+if __name__ == "__main__":
+    # Allow running directly: python astrology.py
+    debug_compute_astrology()
