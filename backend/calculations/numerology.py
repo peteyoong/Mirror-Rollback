@@ -313,7 +313,7 @@ def get_personal_day_description(number: int) -> str:
 
 
 def get_full_numerology(birth_date: datetime, full_name: str = None) -> Dict:
-    """Calculate complete numerology profile"""
+    """Calculate complete numerology profile (legacy function)"""
     result = {
         'life_path': calculate_life_path(birth_date),
         'birthday': calculate_birthday_number(birth_date)
@@ -339,4 +339,246 @@ def get_numerology_cycles(birth_date: datetime, current_date: datetime = None) -
         'personal_year': calculate_personal_year(birth_date, current_date),
         'personal_month': calculate_personal_month(birth_date, current_date),
         'personal_day': calculate_personal_day(birth_date, current_date)
+    }
+
+
+# =============================================================================
+# CANONICAL COMPUTE FUNCTION WITH INTEGRITY CONTRACT
+# =============================================================================
+
+def get_canonical_numerology(
+    birth_date: datetime,
+    numerology_full_name: Optional[str] = None,
+    current_date: Optional[datetime] = None
+) -> Dict:
+    """Calculate complete numerology profile with compute integrity contract.
+    
+    NUMEROLOGY COMPUTE INTEGRITY CONTRACT:
+    This function MUST return a complete, validated canonical payload or raise
+    ComputeIntegrityError. Partial charts are NEVER returned.
+    
+    REQUIRED COMPUTED OBJECTS:
+    - core.life_path (always required)
+    - core.birthday_number (always required)
+    - core.expression (null if no name, numeric if name provided)
+    - core.soul_urge (null if no name, numeric if name provided)
+    - core.personality (null if no name, numeric if name provided)
+    - cycles.personal_year (always required)
+    - cycles.personal_month (always required)
+    - cycles.personal_day (always required)
+    
+    Args:
+        birth_date: Birth date (datetime)
+        numerology_full_name: Full birth name for Expression/Soul Urge/Personality (optional)
+        current_date: Date for cycles calculation (defaults to now)
+    
+    Returns:
+        Dict with canonical numerology payload
+    
+    Raises:
+        ComputeIntegrityError: If any required data is missing or invalid
+    """
+    if current_date is None:
+        current_date = datetime.now()
+    
+    compute_errors = []
+    
+    # =========================================================================
+    # CALCULATE CORE NUMBERS
+    # =========================================================================
+    
+    # Life Path (REQUIRED)
+    try:
+        life_path_data = calculate_life_path(birth_date)
+        life_path = life_path_data.get('number')
+        if life_path is None:
+            compute_errors.append("Core: life_path calculation failed")
+    except Exception as e:
+        compute_errors.append(f"Core: life_path error - {str(e)}")
+        life_path = None
+        life_path_data = {}
+    
+    # Birthday Number (REQUIRED)
+    try:
+        birthday_data = calculate_birthday_number(birth_date)
+        birthday_number = birthday_data.get('number')
+        if birthday_number is None:
+            compute_errors.append("Core: birthday_number calculation failed")
+    except Exception as e:
+        compute_errors.append(f"Core: birthday_number error - {str(e)}")
+        birthday_number = None
+        birthday_data = {}
+    
+    # Name-based numbers (CONDITIONAL)
+    has_name = bool(numerology_full_name and numerology_full_name.strip())
+    
+    if has_name:
+        # Expression (REQUIRED if name provided)
+        try:
+            expression_data = calculate_expression_number(numerology_full_name)
+            expression = expression_data.get('number')
+            if expression is None:
+                compute_errors.append("Core: expression calculation failed (name provided)")
+        except Exception as e:
+            compute_errors.append(f"Core: expression error - {str(e)}")
+            expression = None
+            expression_data = {}
+        
+        # Soul Urge (REQUIRED if name provided)
+        try:
+            soul_urge_data = calculate_soul_urge(numerology_full_name)
+            soul_urge = soul_urge_data.get('number')
+            if soul_urge is None:
+                compute_errors.append("Core: soul_urge calculation failed (name provided)")
+        except Exception as e:
+            compute_errors.append(f"Core: soul_urge error - {str(e)}")
+            soul_urge = None
+            soul_urge_data = {}
+        
+        # Personality (REQUIRED if name provided)
+        try:
+            personality_data = calculate_personality_number(numerology_full_name)
+            personality = personality_data.get('number')
+            if personality is None:
+                compute_errors.append("Core: personality calculation failed (name provided)")
+        except Exception as e:
+            compute_errors.append(f"Core: personality error - {str(e)}")
+            personality = None
+            personality_data = {}
+    else:
+        # Name not provided - these must be null but keys must exist
+        expression = None
+        soul_urge = None
+        personality = None
+        expression_data = {"number": None, "description": "Locked - add birth name to unlock"}
+        soul_urge_data = {"number": None, "description": "Locked - add birth name to unlock"}
+        personality_data = {"number": None, "description": "Locked - add birth name to unlock"}
+    
+    # =========================================================================
+    # CALCULATE CYCLES
+    # =========================================================================
+    
+    # Personal Year (REQUIRED)
+    try:
+        personal_year_data = calculate_personal_year(birth_date, current_date)
+        personal_year = personal_year_data.get('number')
+        if personal_year is None:
+            compute_errors.append("Cycles: personal_year calculation failed")
+    except Exception as e:
+        compute_errors.append(f"Cycles: personal_year error - {str(e)}")
+        personal_year = None
+        personal_year_data = {}
+    
+    # Personal Month (REQUIRED)
+    try:
+        personal_month_data = calculate_personal_month(birth_date, current_date)
+        personal_month = personal_month_data.get('number')
+        if personal_month is None:
+            compute_errors.append("Cycles: personal_month calculation failed")
+    except Exception as e:
+        compute_errors.append(f"Cycles: personal_month error - {str(e)}")
+        personal_month = None
+        personal_month_data = {}
+    
+    # Personal Day (REQUIRED)
+    try:
+        personal_day_data = calculate_personal_day(birth_date, current_date)
+        personal_day = personal_day_data.get('number')
+        if personal_day is None:
+            compute_errors.append("Cycles: personal_day calculation failed")
+    except Exception as e:
+        compute_errors.append(f"Cycles: personal_day error - {str(e)}")
+        personal_day = None
+        personal_day_data = {}
+    
+    # =========================================================================
+    # COMPUTE INTEGRITY ASSERTIONS
+    # =========================================================================
+    
+    # Validate core numbers exist
+    if life_path is None:
+        compute_errors.append("Core: life_path is required")
+    if birthday_number is None:
+        compute_errors.append("Core: birthday_number is required")
+    
+    # Validate cycles exist
+    if personal_year is None:
+        compute_errors.append("Cycles: personal_year is required")
+    if personal_month is None:
+        compute_errors.append("Cycles: personal_month is required")
+    if personal_day is None:
+        compute_errors.append("Cycles: personal_day is required")
+    
+    # If name provided, validate name-based numbers are numeric
+    if has_name:
+        if not isinstance(expression, int):
+            compute_errors.append("Core: expression must be numeric when name is provided")
+        if not isinstance(soul_urge, int):
+            compute_errors.append("Core: soul_urge must be numeric when name is provided")
+        if not isinstance(personality, int):
+            compute_errors.append("Core: personality must be numeric when name is provided")
+    
+    # =========================================================================
+    # FAIL FAST - DO NOT RETURN PARTIAL DATA
+    # =========================================================================
+    if compute_errors:
+        partial_data = {
+            'life_path': life_path,
+            'birthday_number': birthday_number,
+            'personal_year': personal_year,
+            'has_name': has_name
+        }
+        raise ComputeIntegrityError(compute_errors, partial_data)
+    
+    # =========================================================================
+    # BUILD CANONICAL PAYLOAD
+    # =========================================================================
+    return {
+        # CANONICAL NORMALIZED STRUCTURE
+        "core": {
+            "life_path": life_path,
+            "life_path_description": life_path_data.get('description'),
+            "birthday_number": birthday_number,
+            "birthday_description": birthday_data.get('description'),
+            "expression": expression,
+            "expression_description": expression_data.get('description'),
+            "soul_urge": soul_urge,
+            "soul_urge_description": soul_urge_data.get('description'),
+            "personality": personality,
+            "personality_description": personality_data.get('description')
+        },
+        "cycles": {
+            "personal_year": personal_year,
+            "personal_year_description": personal_year_data.get('description'),
+            "personal_year_context": personal_year_data.get('year'),
+            "personal_month": personal_month,
+            "personal_month_description": personal_month_data.get('description'),
+            "personal_month_context": personal_month_data.get('month'),
+            "personal_day": personal_day,
+            "personal_day_description": personal_day_data.get('description'),
+            "personal_day_date": personal_day_data.get('date')
+        },
+        "inputs": {
+            "birth_date": birth_date.strftime('%Y-%m-%d') if hasattr(birth_date, 'strftime') else str(birth_date),
+            "numerology_full_name": numerology_full_name if has_name else None
+        },
+        
+        # Metadata
+        "has_name_numbers": has_name,
+        "locked_numbers": [] if has_name else ["expression", "soul_urge", "personality"],
+        "computation_version": "mirror-deterministic-v1",
+        "computed_at": current_date.isoformat() if hasattr(current_date, 'isoformat') else str(current_date),
+        
+        # Compute integrity confirmation
+        "compute_integrity": {
+            "valid": True,
+            "life_path_valid": isinstance(life_path, int),
+            "birthday_valid": isinstance(birthday_number, int),
+            "cycles_valid": all([
+                isinstance(personal_year, int),
+                isinstance(personal_month, int),
+                isinstance(personal_day, int)
+            ]),
+            "name_numbers_status": "computed" if has_name else "locked"
+        }
     }
