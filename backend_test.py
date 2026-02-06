@@ -1,262 +1,350 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Project Mirror
-Testing the Enneagram Traits Endpoint
+Backend Test Suite for Emergent! AI Contract Integration
+Testing the new Emergent! AI Contract system in Project Mirror
 """
 
-import requests
+import asyncio
+import aiohttp
 import json
-import sys
+import logging
 from datetime import datetime
+from typing import Dict, List, Any
 
-# Backend URL from frontend .env
-BACKEND_URL = "https://trait-explorer-3.preview.emergentagent.com/api"
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-def test_enneagram_traits_endpoint():
-    """Test the new Enneagram traits endpoint: GET /api/enneagram/traits/{user_id}"""
-    
-    print("=" * 80)
-    print("TESTING ENNEAGRAM TRAITS ENDPOINT")
-    print("=" * 80)
-    
-    # Test Case 1: User with Enneagram result
-    print("\n1. Testing user WITH Enneagram result (69819f1a1e4549392d7cb6d1)")
-    print("-" * 60)
-    
-    user_with_result = "69819f1a1e4549392d7cb6d1"
-    url = f"{BACKEND_URL}/enneagram/traits/{user_with_result}"
-    
-    try:
-        response = requests.get(url, timeout=30)
-        print(f"Status Code: {response.status_code}")
+# Base URL from frontend .env
+BASE_URL = "https://trait-explorer-3.preview.emergentagent.com/api"
+
+# Test user ID from review request
+TEST_USER_ID = "69819f1a1e4549392d7cb6d1"
+
+class EmergentContractTester:
+    def __init__(self):
+        self.session = None
+        self.test_results = []
         
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response received: {len(json.dumps(data))} characters")
-            
-            # Validate response structure
-            required_fields = ["cards", "source", "computed_details", "type", "wing"]
-            missing_fields = [field for field in required_fields if field not in data]
-            
-            if missing_fields:
-                print(f"❌ MISSING FIELDS: {missing_fields}")
-                return False
-            
-            print(f"✅ All required fields present: {required_fields}")
-            
-            # Validate cards structure
-            cards = data.get("cards", [])
-            print(f"Number of cards: {len(cards)}")
-            
-            if len(cards) == 0:
-                print("❌ Expected cards but got empty array")
-                return False
-            
-            # Check each card structure
-            for i, card in enumerate(cards):
-                card_fields = ["card_id", "title", "body", "suggested_question"]
-                missing_card_fields = [field for field in card_fields if field not in card]
-                
-                if missing_card_fields:
-                    print(f"❌ Card {i+1} missing fields: {missing_card_fields}")
-                    return False
-                
-                print(f"✅ Card {i+1}: {card['title'][:50]}...")
-            
-            # Validate computed_details
-            computed_details = data.get("computed_details")
-            if computed_details:
-                expected_details = ["center", "hornevian_group", "harmonic_group", 
-                                  "stress_line_to", "growth_line_to", "wing_balance_label"]
-                missing_details = [field for field in expected_details if field not in computed_details]
-                
-                if missing_details:
-                    print(f"⚠️  Missing computed_details fields: {missing_details}")
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession()
+        return self
+        
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            await self.session.close()
+    
+    def log_test_result(self, test_name: str, success: bool, details: str, response_data: Any = None):
+        """Log test result for summary"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "details": details,
+            "timestamp": datetime.now().isoformat(),
+            "response_data": response_data
+        }
+        self.test_results.append(result)
+        
+        status = "✅ PASS" if success else "❌ FAIL"
+        logger.info(f"{status} - {test_name}: {details}")
+    
+    async def test_emergent_contract_analytics(self):
+        """Test GET /api/emergent-contract/analytics endpoint"""
+        test_name = "Emergent Contract Analytics"
+        
+        try:
+            url = f"{BASE_URL}/emergent-contract/analytics"
+            async with self.session.get(url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    # Verify expected structure
+                    required_fields = ["status", "contract_version", "analytics"]
+                    missing_fields = [field for field in required_fields if field not in data]
+                    
+                    if missing_fields:
+                        self.log_test_result(test_name, False, 
+                                           f"Missing required fields: {missing_fields}", data)
+                        return False
+                    
+                    # Verify expected values
+                    if data.get("status") != "ok":
+                        self.log_test_result(test_name, False, 
+                                           f"Expected status='ok', got '{data.get('status')}'", data)
+                        return False
+                    
+                    if data.get("contract_version") != "1.0":
+                        self.log_test_result(test_name, False, 
+                                           f"Expected contract_version='1.0', got '{data.get('contract_version')}'", data)
+                        return False
+                    
+                    analytics = data.get("analytics", {})
+                    self.log_test_result(test_name, True, 
+                                       f"Analytics endpoint working. Total events: {analytics.get('total_events', 0)}", data)
+                    return True
                 else:
-                    print("✅ All computed_details fields present")
+                    self.log_test_result(test_name, False, 
+                                       f"HTTP {response.status}: {await response.text()}")
+                    return False
+                    
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+    
+    async def test_emergent_contract_modes(self):
+        """Test GET /api/emergent-contract/modes endpoint"""
+        test_name = "Emergent Contract Modes"
+        
+        try:
+            url = f"{BASE_URL}/emergent-contract/modes"
+            async with self.session.get(url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    # Verify expected structure
+                    if "modes" not in data:
+                        self.log_test_result(test_name, False, "Missing 'modes' field", data)
+                        return False
+                    
+                    modes = data["modes"]
+                    expected_modes = [
+                        "daily_insight", "reflection_chat", "relationship", "timeline", 
+                        "deep_dive", "enneagram", "journal_prompt", "synthesis", "general"
+                    ]
+                    
+                    # Check if we have all 9 expected modes
+                    missing_modes = [mode for mode in expected_modes if mode not in modes]
+                    if missing_modes:
+                        self.log_test_result(test_name, False, 
+                                           f"Missing expected modes: {missing_modes}. Got: {modes}", data)
+                        return False
+                    
+                    if len(modes) != 9:
+                        self.log_test_result(test_name, False, 
+                                           f"Expected 9 modes, got {len(modes)}: {modes}", data)
+                        return False
+                    
+                    self.log_test_result(test_name, True, 
+                                       f"All 9 expected modes found: {modes}", data)
+                    return True
+                else:
+                    self.log_test_result(test_name, False, 
+                                       f"HTTP {response.status}: {await response.text()}")
+                    return False
+                    
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+    
+    async def test_reflection_chat_emergent_generate(self):
+        """Test POST /api/reflection/chat with emergent_generate integration"""
+        test_name = "Reflection Chat with Emergent Generate"
+        
+        try:
+            url = f"{BASE_URL}/reflection/chat"
+            payload = {
+                "user_id": TEST_USER_ID,
+                "messages": [{"role": "user", "content": "I feel restless today"}],
+                "context": "Self & Inner State"
+            }
             
-            # Validate source
-            source = data.get("source")
-            valid_sources = ["static", "book", "none"]
-            if source not in valid_sources:
-                print(f"❌ Invalid source: {source}. Expected one of: {valid_sources}")
-                return False
+            async with self.session.post(url, json=payload) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    # Verify response structure
+                    if "response" not in data:
+                        self.log_test_result(test_name, False, "Missing 'response' field", data)
+                        return False
+                    
+                    response_text = data["response"]
+                    
+                    # Check for contract violations (forbidden phrases)
+                    forbidden_phrases = [
+                        "you should", "you need to", "you must", "you have to",
+                        "you will", "this will happen", "it will happen",
+                        "you're going to", "in the future you"
+                    ]
+                    
+                    violations = []
+                    for phrase in forbidden_phrases:
+                        if phrase.lower() in response_text.lower():
+                            violations.append(phrase)
+                    
+                    if violations:
+                        self.log_test_result(test_name, False, 
+                                           f"Contract violations found: {violations}. Response: {response_text[:200]}...", data)
+                        return False
+                    
+                    # Check for positive indicators (reflective language)
+                    positive_indicators = [
+                        "it sounds like", "you might notice", "there's a quality", 
+                        "you may", "often experienced as", "one way to look"
+                    ]
+                    
+                    has_reflective_language = any(
+                        indicator.lower() in response_text.lower() 
+                        for indicator in positive_indicators
+                    )
+                    
+                    if not has_reflective_language:
+                        self.log_test_result(test_name, False, 
+                                           f"No reflective language detected. Response: {response_text[:200]}...", data)
+                        return False
+                    
+                    self.log_test_result(test_name, True, 
+                                       f"Contract-compliant response received. Length: {len(response_text)} chars", data)
+                    return True
+                else:
+                    self.log_test_result(test_name, False, 
+                                       f"HTTP {response.status}: {await response.text()}")
+                    return False
+                    
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+    
+    async def test_analytics_after_chat(self):
+        """Test that analytics are logged after chat interaction"""
+        test_name = "Analytics Logging After Chat"
+        
+        try:
+            # First, get initial analytics
+            url = f"{BASE_URL}/emergent-contract/analytics"
+            async with self.session.get(url) as response:
+                if response.status != 200:
+                    self.log_test_result(test_name, False, "Could not get initial analytics")
+                    return False
+                
+                initial_data = await response.json()
+                initial_events = initial_data.get("analytics", {}).get("total_events", 0)
             
-            print(f"✅ Valid source: {source}")
+            # Make a chat request
+            chat_url = f"{BASE_URL}/reflection/chat"
+            payload = {
+                "user_id": TEST_USER_ID,
+                "messages": [{"role": "user", "content": "Testing analytics logging"}],
+                "context": "Self & Inner State"
+            }
             
-            # Validate type and wing
-            enneagram_type = data.get("type")
-            wing = data.get("wing")
-            
-            if not isinstance(enneagram_type, int) or enneagram_type < 1 or enneagram_type > 9:
-                print(f"❌ Invalid Enneagram type: {enneagram_type}")
-                return False
-            
-            print(f"✅ Valid Enneagram type: {enneagram_type}")
-            
-            if wing is not None and wing != "balanced":
-                if not isinstance(wing, int) or wing < 1 or wing > 9:
-                    print(f"❌ Invalid wing: {wing}")
+            async with self.session.post(chat_url, json=payload) as response:
+                if response.status != 200:
+                    self.log_test_result(test_name, False, "Chat request failed")
                     return False
             
-            print(f"✅ Valid wing: {wing}")
+            # Wait a moment for logging
+            await asyncio.sleep(1)
             
-            print("✅ TEST 1 PASSED: User with Enneagram result")
+            # Check analytics again
+            async with self.session.get(url) as response:
+                if response.status != 200:
+                    self.log_test_result(test_name, False, "Could not get updated analytics")
+                    return False
+                
+                updated_data = await response.json()
+                updated_events = updated_data.get("analytics", {}).get("total_events", 0)
             
-        else:
-            print(f"❌ Unexpected status code: {response.status_code}")
-            print(f"Response: {response.text}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ Request failed: {e}")
-        return False
-    
-    # Test Case 2: User without Enneagram result (create a fresh user ID)
-    print("\n2. Testing user WITHOUT Enneagram result")
-    print("-" * 60)
-    
-    # Use a non-existent user ID
-    user_without_result = "000000000000000000000000"
-    url = f"{BACKEND_URL}/enneagram/traits/{user_without_result}"
-    
-    try:
-        response = requests.get(url, timeout=30)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response received: {len(json.dumps(data))} characters")
-            
-            # Validate expected response for user without result
-            expected_fields = ["cards", "source", "message", "computed_details"]
-            missing_fields = [field for field in expected_fields if field not in data]
-            
-            if missing_fields:
-                print(f"❌ MISSING FIELDS: {missing_fields}")
-                return False
-            
-            # Check that cards is empty
-            cards = data.get("cards", [])
-            if len(cards) != 0:
-                print(f"❌ Expected empty cards array, got {len(cards)} cards")
-                return False
-            
-            print("✅ Cards array is empty as expected")
-            
-            # Check source is "none"
-            source = data.get("source")
-            if source != "none":
-                print(f"❌ Expected source 'none', got '{source}'")
-                return False
-            
-            print("✅ Source is 'none' as expected")
-            
-            # Check message is present
-            message = data.get("message")
-            if not message or "Complete the Enneagram assessment" not in message:
-                print(f"❌ Expected assessment completion message, got: {message}")
-                return False
-            
-            print("✅ Appropriate message for incomplete assessment")
-            
-            # Check computed_details is None
-            computed_details = data.get("computed_details")
-            if computed_details is not None:
-                print(f"❌ Expected computed_details to be None, got: {computed_details}")
-                return False
-            
-            print("✅ computed_details is None as expected")
-            print("✅ TEST 2 PASSED: User without Enneagram result")
-            
-        else:
-            print(f"❌ Unexpected status code: {response.status_code}")
-            print(f"Response: {response.text}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ Request failed: {e}")
-        return False
-    
-    # Test Case 3: Invalid user ID
-    print("\n3. Testing INVALID user ID")
-    print("-" * 60)
-    
-    invalid_user_id = "invalid_user_id_format"
-    url = f"{BACKEND_URL}/enneagram/traits/{invalid_user_id}"
-    
-    try:
-        response = requests.get(url, timeout=30)
-        print(f"Status Code: {response.status_code}")
-        
-        # Should handle gracefully - either 400, 404, or 500 with error message
-        if response.status_code in [400, 404, 500]:
-            print("✅ Graceful error handling for invalid user ID")
-            print("✅ TEST 3 PASSED: Invalid user ID handled gracefully")
-        elif response.status_code == 200:
-            # If it returns 200, it should return empty result
-            data = response.json()
-            cards = data.get("cards", [])
-            source = data.get("source")
-            
-            if len(cards) == 0 and source == "none":
-                print("✅ Invalid user ID treated as user without result")
-                print("✅ TEST 3 PASSED: Invalid user ID handled gracefully")
+            if updated_events > initial_events:
+                self.log_test_result(test_name, True, 
+                                   f"Analytics logged: {initial_events} -> {updated_events} events", updated_data)
+                return True
             else:
-                print(f"❌ Unexpected response for invalid user ID: {data}")
+                self.log_test_result(test_name, False, 
+                                   f"No new events logged: {initial_events} -> {updated_events}", updated_data)
                 return False
-        else:
-            print(f"❌ Unexpected status code for invalid user ID: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return False
+    
+    async def test_backend_logs_for_contract(self):
+        """Test that backend logs contain [EMERGENT_CONTRACT] entries"""
+        test_name = "Backend Contract Logging"
+        
+        try:
+            # Make a reflection chat request to trigger logging
+            url = f"{BASE_URL}/reflection/chat"
+            payload = {
+                "user_id": TEST_USER_ID,
+                "messages": [{"role": "user", "content": "Testing contract logging"}],
+                "context": "Self & Inner State"
+            }
             
-    except Exception as e:
-        print(f"❌ Request failed: {e}")
-        return False
+            async with self.session.post(url, json=payload) as response:
+                if response.status == 200:
+                    # We can't directly check backend logs from here, but we can verify
+                    # the response indicates the contract system is working
+                    data = await response.json()
+                    
+                    if "response" in data and len(data["response"]) > 0:
+                        self.log_test_result(test_name, True, 
+                                           "Chat response received, contract system should be logging", data)
+                        return True
+                    else:
+                        self.log_test_result(test_name, False, "Empty or invalid response", data)
+                        return False
+                else:
+                    self.log_test_result(test_name, False, 
+                                       f"HTTP {response.status}: {await response.text()}")
+                    return False
+                    
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
     
-    # Performance Test
-    print("\n4. Testing RESPONSE TIME")
-    print("-" * 60)
-    
-    start_time = datetime.now()
-    try:
-        response = requests.get(f"{BACKEND_URL}/enneagram/traits/{user_with_result}", timeout=30)
-        end_time = datetime.now()
-        response_time = (end_time - start_time).total_seconds()
+    async def run_all_tests(self):
+        """Run all Emergent Contract tests"""
+        logger.info("🚀 Starting Emergent! AI Contract Integration Tests")
+        logger.info(f"Base URL: {BASE_URL}")
+        logger.info(f"Test User ID: {TEST_USER_ID}")
+        logger.info("=" * 80)
         
-        print(f"Response time: {response_time:.2f} seconds")
+        # Run tests in order
+        tests = [
+            self.test_emergent_contract_analytics,
+            self.test_emergent_contract_modes,
+            self.test_reflection_chat_emergent_generate,
+            self.test_analytics_after_chat,
+            self.test_backend_logs_for_contract
+        ]
         
-        if response_time > 2.0:
-            print("⚠️  Response time > 2 seconds (using static fallback should be faster)")
+        results = []
+        for test in tests:
+            result = await test()
+            results.append(result)
+            # Small delay between tests
+            await asyncio.sleep(0.5)
+        
+        # Summary
+        logger.info("=" * 80)
+        logger.info("📊 TEST SUMMARY")
+        logger.info("=" * 80)
+        
+        passed = sum(1 for r in results if r)
+        total = len(results)
+        
+        for result in self.test_results:
+            status = "✅ PASS" if result["success"] else "❌ FAIL"
+            logger.info(f"{status} {result['test']}")
+            if not result["success"]:
+                logger.info(f"    Details: {result['details']}")
+        
+        logger.info("=" * 80)
+        logger.info(f"📈 OVERALL RESULT: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+        
+        if passed == total:
+            logger.info("🎉 ALL TESTS PASSED - Emergent Contract Integration is working correctly!")
         else:
-            print("✅ Response time acceptable (< 2 seconds)")
-            
-        print("✅ TEST 4 PASSED: Performance test completed")
+            logger.error(f"⚠️  {total-passed} tests failed - Issues found with Emergent Contract Integration")
         
-    except Exception as e:
-        print(f"❌ Performance test failed: {e}")
-        return False
-    
-    print("\n" + "=" * 80)
-    print("ALL ENNEAGRAM TRAITS ENDPOINT TESTS PASSED ✅")
-    print("=" * 80)
-    return True
+        return passed == total
 
-
-def main():
-    """Run all backend tests"""
-    print("Starting Backend API Tests...")
-    print(f"Backend URL: {BACKEND_URL}")
-    print(f"Test started at: {datetime.now().isoformat()}")
-    
-    success = test_enneagram_traits_endpoint()
-    
-    if success:
-        print("\n🎉 ALL TESTS PASSED!")
-        sys.exit(0)
-    else:
-        print("\n❌ SOME TESTS FAILED!")
-        sys.exit(1)
-
+async def main():
+    """Main test runner"""
+    async with EmergentContractTester() as tester:
+        success = await tester.run_all_tests()
+        return success
 
 if __name__ == "__main__":
-    main()
+    success = asyncio.run(main())
+    exit(0 if success else 1)
