@@ -7373,6 +7373,31 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
             
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse numerology deep dive JSON: {e}")
+            
+            # Build sections list - always include Life Path and Birthday
+            sections = [
+                {"label": f"Life Path {life_path}", "body": f"Your Life Path {life_path} suggests {core.get('life_path_description', 'a particular orientation toward life')}. This number points to recurring themes and lessons that tend to show up throughout your journey."},
+                {"label": f"Birthday Number {birthday_number}", "body": f"Born on the {birthday_number} day, there's {core.get('birthday_description', 'a specific quality to how you engage')}. This adds a secondary emphasis to how you approach things."},
+            ]
+            
+            # Add name-based sections if available
+            if has_name:
+                if expression_number:
+                    sections.append({
+                        "label": f"Expression {expression_number}",
+                        "body": f"Your Expression number {expression_number} ({core.get('expression_description', 'suggests patterns in how you tend to express yourself')}) points to your outward style and how your energy tends to be expressed in the world."
+                    })
+                if soul_urge_number:
+                    sections.append({
+                        "label": f"Soul Urge {soul_urge_number}",
+                        "body": f"Your Soul Urge number {soul_urge_number} ({core.get('soul_urge_description', 'reflects inner motivations')}) describes what tends to drive you from within—your emotional undertone and deeper motivations."
+                    })
+                if personality_number:
+                    sections.append({
+                        "label": f"Personality {personality_number}",
+                        "body": f"Your Personality number {personality_number} ({core.get('personality_description', 'shapes first impressions')}) reflects the face you tend to show the world—your first-impression energy and social-facing tone."
+                    })
+            
             fallback_result = {
                 "success": True,  # Data is valid, just LLM parsing failed
                 "title": "Your Core Numbers",
@@ -7383,16 +7408,14 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
                     "soul_urge": soul_urge_number if has_name else None,
                     "personality": personality_number if has_name else None
                 },
-                "sections": [
-                    {"label": f"Life Path {life_path}", "body": f"Your Life Path {life_path} suggests {core.get('life_path_description', 'a particular orientation toward life')}."},
-                    {"label": f"Birthday Number {birthday_number}", "body": f"Born on the {birthday_number} day, there's {core.get('birthday_description', 'a specific quality to how you engage')}."},
-                ],
+                "sections": sections,
                 "mirror_prompt": "Where do you see these patterns showing up in your life?",
                 "unlock_required": not has_name,
                 "unlock_prompt": "Add your full birth name to unlock deeper numerology." if not has_name else None,
                 "debug_stamp": {
                     "compute_integrity_valid": canonical_num.get('compute_integrity', {}).get('valid', False),
-                    "has_name_numbers": has_name
+                    "has_name_numbers": has_name,
+                    "fallback_used": True
                 }
             }
             # Cache fallback too
