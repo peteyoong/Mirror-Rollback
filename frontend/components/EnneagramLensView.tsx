@@ -2213,6 +2213,13 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     color: Colors.textSecondary,
   },
+  wingGrowthNoteText: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: Colors.textTertiary,
+    marginTop: 10,
+    fontStyle: 'italic',
+  },
   wingAccessHint: {
     marginTop: 12,
     paddingTop: 12,
