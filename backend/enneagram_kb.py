@@ -843,7 +843,7 @@ Return ONLY valid JSON array:
                 title=card.get("title", f"Pattern {i+1}"),
                 body=card.get("body", ""),
                 citation={"source": "JOH Book 1", "page": source_page} if source_page else None,
-                suggested_question=f"How does this pattern show up for me?"
+                suggested_question="How does this pattern show up for me?"
             ))
         
         return cards if cards else STATIC_TRAIT_CARDS.get(core_type, [])[:max_cards]
