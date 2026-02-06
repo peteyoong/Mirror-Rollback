@@ -5148,15 +5148,23 @@ async def get_human_design_deep_dive(user_id: str):
             defined_channels=defined_channels_str
         )
         
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"hd_deep_{user_id}_{datetime.now().strftime('%Y%m%d')}",
-            system_message=system_prompt
-        )
-        chat.with_model("openai", "gpt-5.2")
+        # ===== USE EMERGENT CONTRACT =====
+        from emergent_contract import emergent_generate
         
-        message = UserMessage(text="Generate the Deep Dive for this user's Human Design mechanics. Return ONLY valid JSON.")
-        response_text = await chat.send_message(message)
+        response_text = await emergent_generate(
+            mode="deep_dive",
+            user_message="Generate the Deep Dive for this user's Human Design mechanics. Return ONLY valid JSON.",
+            endpoint="human_design_deep_dive",
+            user_id=user_id,
+            context={
+                "lens": "human_design",
+                "type": hd_data['type'],
+                "authority": hd_data['authority'],
+                "profile": hd_data['profile']
+            },
+            additional_system_prompt=system_prompt,
+            model="gpt-5.2"
+        )
         
         # Parse JSON response
         try:
