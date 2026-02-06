@@ -1969,20 +1969,46 @@ How does this theme show up in your actual life?"""
 
 
 def apply_numerology_guardrails(response_text: str) -> str:
-    """Check numerology response for forbidden patterns and reframe."""
+    """Check numerology response for forbidden patterns and reframe.
+    
+    Enforces the Symbolic Systems Doctrine:
+    - No fate/destiny/purpose framing
+    - No predictive claims
+    - No authority language
+    - No identity claims
+    """
     forbidden_patterns = [
+        # Identity claims
         (r"\byou are a\b", "you may notice tendencies toward"),
+        (r"\bthis is who you are\b", "this is a pattern you might recognise"),
+        (r"\bthis number defines\b", "this number is often associated with"),
+        
+        # Destiny/purpose framing
         (r"\byour destiny is\b", "a pattern that often shows up is"),
         (r"\byou're meant to\b", "there may be a natural emphasis on"),
-        (r"\byou should\b", "an experiment could be to"),
-        (r"\byou must\b", "it may help to notice"),
-        (r"\bthis is who you are\b", "this is a pattern you might recognise"),
+        (r"\byour life purpose\b", "a recurring theme"),
         (r"\bdestiny\b", "theme"),
         (r"\bpurpose\b", "emphasis"),
         (r"\bmeant to be\b", "often experienced as"),
+        (r"\bmeant to\b", "inclined toward"),
+        (r"\byou are here to\b", "you may find resonance with"),
+        
+        # Predictive claims
         (r"\bwill happen\b", "may be present"),
+        (r"\bthis year will bring\b", "this period can emphasize"),
+        (r"\bexpect changes\b", "you may notice shifts"),
+        (r"\byou will\b", "you may"),
+        (r"\bthis will\b", "this can"),
+        
+        # Authority language
         (r"\bthis means\b", "this often correlates with"),
-        (r"\byour life purpose\b", "a recurring learning theme"),
+        (r"\byou should\b", "an experiment could be to"),
+        (r"\byou must\b", "it may help to notice"),
+        (r"\byou need to\b", "you might explore"),
+        
+        # Success/failure guarantees
+        (r"\bthis guarantees\b", "this may support"),
+        (r"\bsuccess is certain\b", "there may be opportunity"),
     ]
     
     result = response_text
