@@ -9,6 +9,7 @@ Features:
 - Chunks text with overlap for better retrieval
 - Returns citations with page numbers
 - Gracefully handles missing PDF
+- Generates trait cards for Deep Dive UI
 """
 
 import os
@@ -29,13 +30,33 @@ logger = logging.getLogger(__name__)
 # CONFIGURATION
 # ============================================================================
 
-PDF_PATH = os.environ.get('ENNEAGRAM_PDF_PATH', '/app/backend/data/JOH_Book_1.pdf')
+# PDF paths to try (in order of preference)
+PDF_PATHS = [
+    os.environ.get('ENNEAGRAM_PDF_PATH', '/app/backend/data/JOH_Book_1.pdf'),
+    '/app/backend/data/JOH_Book_1.pdf',
+    '/mnt/data/JOH Book 1.pdf',
+    '/mnt/data/JOH_Book_1.pdf',
+]
+
 CHUNK_SIZE = 900  # Target chunk size in characters
 CHUNK_OVERLAP = 120  # Overlap between chunks
 MIN_CHUNK_SIZE = 200  # Minimum viable chunk size
 ENNEAGRAM_KEYWORDS = ['enneagram', 'type', 'wing', 'center', 'instinct', 'fixation', 
                        'passion', 'virtue', 'holy idea', 'stress', 'growth', 'integration',
                        'disintegration', 'triads', 'hornevian', 'harmonic']
+
+# Type name mappings for search enhancement
+TYPE_NAMES = {
+    1: ["one", "perfectionist", "reformer"],
+    2: ["two", "helper", "giver"],
+    3: ["three", "achiever", "performer"],
+    4: ["four", "individualist", "romantic"],
+    5: ["five", "investigator", "observer"],
+    6: ["six", "loyalist", "questioner"],
+    7: ["seven", "enthusiast", "epicure"],
+    8: ["eight", "challenger", "protector"],
+    9: ["nine", "peacemaker", "mediator"],
+}
 
 
 # ============================================================================
