@@ -5396,7 +5396,8 @@ def extract_numerology_data(chart: dict, user: dict) -> dict:
         "personality_number": get_number(personality),
         "personality_description": get_desc(personality),
         "has_name_numbers": has_name_numbers,
-        "user_birth_date": user.get("birth_date")
+        "user_birth_date": user.get("birth_date"),
+        "full_birth_name": user.get("numerology_full_name") or user.get("full_birth_name")
     }
 
 
