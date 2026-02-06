@@ -285,8 +285,9 @@ class EnneagramKnowledgeBase:
     Uses TF-IDF + cosine similarity for semantic search.
     """
     
-    def __init__(self, pdf_path: str = PDF_PATH):
+    def __init__(self, pdf_path: str = None):
         self.pdf_path = pdf_path
+        self.active_pdf_path: Optional[str] = None  # Track which path was used
         self.chunks: List[Chunk] = []
         self.vectorizer: Optional[TfidfVectorizer] = None
         self.tfidf_matrix = None
@@ -296,14 +297,38 @@ class EnneagramKnowledgeBase:
     def initialize(self) -> bool:
         """
         Load PDF, extract text, chunk, and build TF-IDF index.
+        Tries multiple PDF paths in order of preference.
         Returns True if successful, False otherwise.
         """
         try:
-            # Check if PDF exists
-            if not os.path.exists(self.pdf_path):
-                self.load_error = f"PDF not found at {self.pdf_path}"
+            # Build list of paths to try
+            paths_to_try = []
+            if self.pdf_path:
+                paths_to_try.append(self.pdf_path)
+            paths_to_try.extend(PDF_PATHS)
+            
+            # Remove duplicates while preserving order
+            seen = set()
+            unique_paths = []
+            for p in paths_to_try:
+                if p not in seen:
+                    seen.add(p)
+                    unique_paths.append(p)
+            
+            # Find first existing PDF
+            found_path = None
+            for path in unique_paths:
+                if os.path.exists(path):
+                    found_path = path
+                    break
+            
+            if not found_path:
+                self.load_error = f"PDF not found in any location: {unique_paths}"
                 logger.warning(f"[EnneagramKB] {self.load_error}")
                 return False
+            
+            self.pdf_path = found_path
+            self.active_pdf_path = found_path
             
             # Extract text from PDF
             logger.info(f"[EnneagramKB] Loading PDF from {self.pdf_path}")
@@ -330,7 +355,7 @@ class EnneagramKnowledgeBase:
             self._build_index()
             
             self.is_ready = True
-            logger.info("[EnneagramKB] Knowledge base initialized successfully")
+            logger.info(f"[EnneagramKB] Knowledge base initialized successfully from {found_path}")
             return True
             
         except Exception as e:
