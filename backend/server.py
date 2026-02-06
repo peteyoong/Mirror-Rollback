@@ -5877,6 +5877,29 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
         else:
             defined_channels_str = "None identified"
         
+        # =====================================================================
+        # PREPARE FULL HD JSON FOR ASSISTANT CONTEXT
+        # =====================================================================
+        full_hd_summary = {
+            "type": hd_data.get('type'),
+            "strategy": strategy_desc,
+            "authority": hd_data.get('authority'),
+            "profile": hd_data.get('profile'),
+            "definition": hd_data.get('definition'),
+            "incarnation_cross": hd_data.get('incarnation_cross'),
+            "defined_centers": hd_data.get('defined_centers', []),
+            "undefined_centers": hd_data.get('undefined_centers', []),
+            "defined_channels": [
+                f"{ch.get('gate1')}-{ch.get('gate2')}" if isinstance(ch, dict) else str(ch)
+                for ch in channels
+            ],
+            "active_gates": hd_data.get('active_gates', []),
+            "variables": hd_data.get('variables', {}),
+        }
+        
+        import json as json_module_for_hd
+        full_hd_json_str = json_module_for_hd.dumps(full_hd_summary, indent=2)
+        
         # Build full prompt with all available HD data
         system_prompt = HUMAN_DESIGN_GLOBAL_PROMPT + "\n\n" + HUMAN_DESIGN_DEEP_DIVE_PROMPT.format(
             hd_type=hd_data['type'],
@@ -5886,7 +5909,8 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
             incarnation_cross=hd_data.get('incarnation_cross', 'Unknown'),
             definition=hd_data.get('definition', 'Unknown'),
             defined_centers=defined_centers_str,
-            defined_channels=defined_channels_str
+            defined_channels=defined_channels_str,
+            full_hd_json=full_hd_json_str
         )
         
         # ===== USE EMERGENT CONTRACT =====
@@ -5901,7 +5925,10 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
                 "lens": "human_design",
                 "type": hd_data['type'],
                 "authority": hd_data['authority'],
-                "profile": hd_data['profile']
+                "profile": hd_data['profile'],
+                "full_chart_available": True,
+                "gates_available": bool(full_hd_summary.get("active_gates")),
+                "channels_available": bool(full_hd_summary.get("defined_channels"))
             },
             additional_system_prompt=system_prompt,
             model="gpt-5.2"
