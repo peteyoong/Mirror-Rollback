@@ -98,6 +98,10 @@ const JOURNAL_PROMPTS: { [key: number]: string } = {
   4: 'What ordinary moment today could I receive as enough?',
   5: 'Where am I withholding time or energy out of a fear of being depleted?',
   6: 'What authority am I seeking outside myself that I already have within?',
+  7: 'What am I running from by staying busy?',
+  8: 'Where am I protecting myself by taking control instead of letting go?',
+  9: 'What opinion or preference am I merging away to keep the peace?',
+};
 
 // Wing flavor descriptions - how each wing colors the core type
 const WING_FLAVORS: { [key: string]: string } = {
