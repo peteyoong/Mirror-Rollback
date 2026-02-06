@@ -803,63 +803,6 @@ def close_ephemeris():
 
 
 # =============================================================================
-# ASPECTS CALCULATION (Required for debug_compute_astrology)
-# =============================================================================
-ASPECT_TYPES = {
-    'conjunction': {'angle': 0, 'orb': 8},
-    'opposition': {'angle': 180, 'orb': 8},
-    'trine': {'angle': 120, 'orb': 8},
-    'square': {'angle': 90, 'orb': 7},
-    'sextile': {'angle': 60, 'orb': 6},
-    'quincunx': {'angle': 150, 'orb': 3},
-    'semi-sextile': {'angle': 30, 'orb': 2},
-}
-
-def calculate_aspects(planets: Dict) -> List[Dict]:
-    """Calculate aspects between planets
-    
-    Args:
-        planets: Dict of planet data with longitude
-    
-    Returns:
-        List of aspect dicts {body1, body2, type, orb, exact_angle}
-    """
-    aspects = []
-    planet_names = [p for p in planets.keys() if p not in ['Earth', 'South Node']]
-    
-    for i, p1 in enumerate(planet_names):
-        for p2 in planet_names[i+1:]:
-            long1 = planets[p1]['longitude']
-            long2 = planets[p2]['longitude']
-            
-            # Calculate angular separation
-            diff = abs(long1 - long2)
-            if diff > 180:
-                diff = 360 - diff
-            
-            # Check against each aspect type
-            for aspect_name, aspect_config in ASPECT_TYPES.items():
-                angle = aspect_config['angle']
-                orb = aspect_config['orb']
-                
-                deviation = abs(diff - angle)
-                if deviation <= orb:
-                    aspects.append({
-                        'body1': p1,
-                        'body2': p2,
-                        'type': aspect_name,
-                        'orb': round(deviation, 2),
-                        'exact_angle': round(diff, 2),
-                        'applying': planets[p1].get('speed', 0) > planets[p2].get('speed', 0)
-                    })
-                    break  # Only one aspect type per planet pair
-    
-    # Sort by orb (tighter aspects first)
-    aspects.sort(key=lambda x: x['orb'])
-    return aspects
-
-
-# =============================================================================
 # DEBUG HELPER: debug_compute_astrology()
 # =============================================================================
 # Usage (from REPL or test script):
@@ -917,20 +860,15 @@ def debug_compute_astrology():
     }
     
     try:
-        # Compute the chart
+        # Compute the chart using production function (now includes aspects)
         chart = get_full_natal_chart(
             birth_datetime=birth_utc,
             lat=lat,
             lon=lon,
             sidereal_settings=sidereal_settings,
-            house_system="Equal"
+            house_system="Equal",
+            node_mode="true_node"
         )
-        
-        # Calculate aspects
-        aspects = calculate_aspects(chart['planets'])
-        
-        # Add aspects to chart for completeness
-        chart['aspects'] = aspects
         
         # =====================================================================
         # INTEGRITY REPORT
@@ -963,7 +901,7 @@ def debug_compute_astrology():
             print(f"   House 1:    {h1.get('degree', 0):.2f}° {h1.get('sign', 'N/A')}")
         print()
         
-        # 4. Planets: confirm all 10 names exist
+        # 4. Planets: confirm all 10 names exist with retrograde status
         print("4. PLANETS:")
         required_planets = ["Sun", "Moon", "Mercury", "Venus", "Mars", 
                            "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
@@ -975,11 +913,12 @@ def debug_compute_astrology():
             print(f"   MISSING: {missing}")
         else:
             print(f"   All present: ✓")
-        # Print planet positions compactly
+        # Print planet positions compactly with retrograde
         for pname in required_planets:
             if pname in planets:
                 p = planets[pname]
-                print(f"   {pname:8}: {p.get('degree', 0):5.2f}° {p.get('sign', 'N/A'):12} (House {p.get('house', '?')})")
+                retro = "Rx" if p.get('retrograde') else ""
+                print(f"   {pname:8}: {p.get('degree', 0):5.2f}° {p.get('sign', 'N/A'):12} (House {p.get('house', '?')}) {retro}")
         print()
         
         # 5. Nodes: North and South with metadata.node_mode
@@ -987,17 +926,75 @@ def debug_compute_astrology():
         nodes = chart.get('nodes', {})
         north = nodes.get('north', {})
         south = nodes.get('south', {})
-        node_mode = chart.get('sidereal_settings', {}).get('node_mode', 'unknown')
+        # Get node_mode from metadata (new structure) or sidereal_settings (legacy)
+        node_mode = chart.get('metadata', {}).get('node_mode') or chart.get('sidereal_settings', {}).get('node_mode', 'unknown')
         
-        print(f"   Node Mode: {node_mode}")
+        print(f"   metadata.node_mode: {node_mode}")
+        print(f"   nodes.north.mode: {north.get('mode', 'N/A')}")
         print(f"   North Node: {north.get('degree', 0):.2f}° {north.get('sign', 'N/A')} (House {north.get('house', '?')})")
         print(f"   South Node: {south.get('degree', 0):.2f}° {south.get('sign', 'N/A')} (House {south.get('house', '?')})")
+        print(f"   aliases: {nodes.get('aliases', [])}")
         print()
         
-        # 6. Aspects: count and first 5
+        # 6. Aspects: count and first 5 (now from chart directly)
         print("6. ASPECTS:")
+        aspects = chart.get('aspects', [])
         print(f"   Total count: {len(aspects)}")
         print(f"   First 5:")
+        for asp in aspects[:5]:
+            print(f"     {asp['body1']}-{asp['body2']} {asp['type']} ({asp['orb']}°)")
+        print()
+        
+        # 7. Sect
+        print("7. SECT:")
+        print(f"   {chart.get('sect', 'unknown')}")
+        print()
+        
+        # 8. Metadata block
+        print("8. METADATA:")
+        metadata = chart.get('metadata', {})
+        for key, value in metadata.items():
+            if key != 'coordinates':
+                print(f"   {key}: {value}")
+        print()
+        
+        print("-" * 70)
+        print("DEBUG COMPLETE: Chart computed successfully with full integrity.")
+        print("=" * 70)
+        
+        return chart
+        
+    except ComputeIntegrityError as e:
+        # Compute Integrity Error - structured failure
+        print("COMPUTE INTEGRITY: FAILED ✗")
+        print()
+        print(f"ERROR: {str(e)}")
+        print(f"Errors ({len(e.errors)}):")
+        for err in e.errors:
+            print(f"  - {err}")
+        print()
+        print("-" * 70)
+        print("PARTIAL DATA FOR DEBUGGING:")
+        print("-" * 70)
+        
+        import json
+        if e.partial_data:
+            print(json.dumps(e.partial_data, indent=2, default=str))
+        
+        print("=" * 70)
+        raise
+        
+    except ValueError as e:
+        # Legacy ValueError (e.g., invalid house system)
+        print(f"VALIDATION ERROR: {str(e)}")
+        print("=" * 70)
+        raise
+    
+    except Exception as e:
+        # Unexpected error
+        print(f"UNEXPECTED ERROR: {type(e).__name__}: {str(e)}")
+        print("=" * 70)
+        raise
         for asp in aspects[:5]:
             print(f"     {asp['body1']}-{asp['body2']} {asp['type']} ({asp['orb']}°)")
         print()
