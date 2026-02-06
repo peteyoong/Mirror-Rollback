@@ -6256,11 +6256,13 @@ async def compute_enneagram_convergence(user_id: str):
         try:
             if user.get("birth_date") and user.get("birth_time") and user.get("birth_location"):
                 birth_date = user["birth_date"]
-                if isinstance(birth_date, str):
-                    birth_date = datetime.strptime(birth_date, "%Y-%m-%d")
+                if isinstance(birth_date, datetime):
+                    birth_date_str = birth_date.strftime("%Y-%m-%d")
+                else:
+                    birth_date_str = str(birth_date).split()[0]  # Handle "1968-04-01 00:00:00" format
                 
-                utc_birth = resolve_birth_utc(
-                    birth_date=birth_date,
+                utc_result = resolve_birth_utc(
+                    birth_date_str=birth_date_str,
                     birth_time_str=user.get("birth_time", "12:00"),
                     timezone_str=user.get("timezone", "UTC")
                 )
