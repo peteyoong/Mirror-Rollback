@@ -7127,7 +7127,14 @@ async def get_numerology_today(user_id: str):
 async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
     """
     Generate Numerology Deep Dive - expanded exploration of core numbers.
-    NO cycles/timing. Focus on Life Path, Birthday, and name-based numbers if available.
+    NO cycles/timing in deep dive. Focus on Life Path, Birthday, and name-based numbers if available.
+    
+    NUMEROLOGY COMPUTE INTEGRITY CONTRACT:
+    - Uses canonical get_canonical_numerology() output
+    - Catches ComputeIntegrityError BEFORE invoking LLM
+    - Validates core.life_path and cycles.personal_year before LLM invocation
+    - Never returns partial data or invokes LLM with missing core data
+    
     Uses caching for instant repeat views.
     """
     import json as json_module
@@ -7145,24 +7152,159 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
                 return cached_response
         
         user, chart = await get_user_numerology_data(user_id)
-        data = extract_numerology_data(chart, user)
+        
+        # =====================================================================
+        # RECOMPUTE USING CANONICAL get_canonical_numerology (MANDATORY)
+        # =====================================================================
+        from calculations.numerology import get_canonical_numerology
+        from calculations.astrology import ComputeIntegrityError
+        from datetime import datetime
+        
+        # Get user's birth date
+        birth_date = user.get('birth_date')
+        if not birth_date:
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": ["Metadata: birth_date is required"],
+                "action": "Numerology deep dive paused until birth date is available.",
+                "sections": [],
+                "mirror_prompt": None
+            }
+        
+        # Convert birth_date if it's a datetime object
+        if isinstance(birth_date, datetime):
+            birth_date_dt = birth_date
+        elif isinstance(birth_date, str):
+            try:
+                birth_date_dt = datetime.strptime(birth_date.split()[0], "%Y-%m-%d")
+            except ValueError:
+                return {
+                    "success": False,
+                    "error": "compute_integrity_error",
+                    "title": "Compute Integrity Error",
+                    "missing": ["Metadata: birth_date format invalid"],
+                    "action": "Numerology deep dive paused. Check birth date format.",
+                    "sections": [],
+                    "mirror_prompt": None
+                }
+        else:
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": ["Metadata: birth_date type invalid"],
+                "action": "Numerology deep dive paused. Check birth date format.",
+                "sections": [],
+                "mirror_prompt": None
+            }
+        
+        # Get numerology full name if available
+        numerology_full_name = user.get('numerology_full_name')
+        
+        # =====================================================================
+        # CALL CANONICAL COMPUTE FUNCTION - CATCHES ComputeIntegrityError
+        # =====================================================================
+        try:
+            canonical_num = get_canonical_numerology(
+                birth_date=birth_date_dt,
+                numerology_full_name=numerology_full_name,
+                current_date=datetime.now()
+            )
+        except ComputeIntegrityError as e:
+            # Compute layer failed - return error WITHOUT invoking LLM
+            logger.error(f"[NUM_DEEP_DIVE] ComputeIntegrityError for user {user_id}: {e.errors}")
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": e.errors,
+                "action": "Numerology deep dive paused until compute payload is complete.",
+                "sections": [],
+                "mirror_prompt": None,
+                "partial_data": e.partial_data
+            }
+        except Exception as e:
+            logger.error(f"[NUM_DEEP_DIVE] Unexpected compute error for user {user_id}: {e}")
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": [str(e)],
+                "action": "Numerology deep dive paused due to compute error.",
+                "sections": [],
+                "mirror_prompt": None
+            }
+        
+        # =====================================================================
+        # NUMEROLOGY INTEGRITY ASSERTIONS AT HANDOFF (MANDATORY)
+        # =====================================================================
+        core = canonical_num.get('core', {})
+        cycles = canonical_num.get('cycles', {})
+        
+        assertion_errors = []
+        
+        life_path = core.get('life_path')
+        personal_year = cycles.get('personal_year')
+        birthday_number = core.get('birthday_number')
+        
+        if life_path is None:
+            assertion_errors.append("Core: life_path missing")
+        if personal_year is None:
+            assertion_errors.append("Cycles: personal_year missing")
+        if birthday_number is None:
+            assertion_errors.append("Core: birthday_number missing")
+        
+        if assertion_errors:
+            logger.error(f"[NUM_DEEP_DIVE] Assertion failed for user {user_id}: {assertion_errors}")
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": assertion_errors,
+                "action": "Numerology deep dive paused. Core numbers not fully computed.",
+                "sections": [],
+                "mirror_prompt": None
+            }
+        
+        # =====================================================================
+        # TEMPORARY DEBUG LOG (for verification)
+        # =====================================================================
+        has_name = canonical_num.get('has_name_numbers', False)
+        logger.info(f"[NUM_DEEP_DIVE_HANDOFF] user={user_id}")
+        logger.info(f"  life_path: {life_path}")
+        logger.info(f"  birthday_number: {birthday_number}")
+        logger.info(f"  personal_year: {personal_year}")
+        logger.info(f"  has_name_numbers: {has_name}")
+        logger.info(f"  handoff_ok: true")
+        
+        # =====================================================================
+        # PREPARE CANONICAL NUMEROLOGY JSON FOR ASSISTANT CONTEXT
+        # =====================================================================
+        expression_number = core.get('expression')
+        soul_urge_number = core.get('soul_urge')
+        personality_number = core.get('personality')
         
         # Build name numbers context
-        if data["has_name_numbers"]:
-            name_numbers_context = f"""- expression_number: {data['expression_number']} ({data['expression_description']})
-- soul_urge_number: {data['soul_urge_number']} ({data['soul_urge_description']})
-- personality_number: {data['personality_number']} ({data['personality_description']})"""
-            expression_for_prompt = data['expression_number']
-            soul_urge_for_prompt = data['soul_urge_number']
+        if has_name:
+            name_numbers_context = f"""- expression_number: {expression_number} ({core.get('expression_description')})
+- soul_urge_number: {soul_urge_number} ({core.get('soul_urge_description')})
+- personality_number: {personality_number} ({core.get('personality_description')})"""
+            expression_for_prompt = expression_number
+            soul_urge_for_prompt = soul_urge_number
         else:
             name_numbers_context = "- Name-based numbers: NOT PROVIDED (Expression, Soul Urge, Personality unavailable)"
             expression_for_prompt = '"locked"'
             soul_urge_for_prompt = '"locked"'
         
+        # Full canonical payload for LLM context
+        full_num_json_str = json_module.dumps(canonical_num, indent=2, default=str)
+        
         # Build full prompt
         system_prompt = NUMEROLOGY_GLOBAL_PROMPT + "\n\n" + NUMEROLOGY_DEEP_DIVE_PROMPT.format(
-            life_path_number=data["life_path_number"],
-            birthday_number=data["birthday_number"] or "Not available",
+            life_path_number=life_path,
+            birthday_number=birthday_number,
             expression_number=expression_for_prompt,
             soul_urge_number=soul_urge_for_prompt,
             name_numbers_context=name_numbers_context
@@ -7178,8 +7320,9 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
             user_id=user_id,
             context={
                 "lens": "numerology",
-                "life_path": data["life_path_number"],
-                "has_name_numbers": data["has_name_numbers"]
+                "life_path": life_path,
+                "has_name_numbers": has_name,
+                "compute_integrity_valid": canonical_num.get('compute_integrity', {}).get('valid', False)
             },
             additional_system_prompt=system_prompt,
             model="gpt-5.2"
@@ -7202,20 +7345,24 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
             
             # Ensure core numbers are present - use null for locked fields (UI renders 🔒)
             result["core_numbers"] = {
-                "life_path": data["life_path_number"],
-                "expression": data["expression_number"] if data["has_name_numbers"] else None,
-                "soul_urge": data["soul_urge_number"] if data["has_name_numbers"] else None,
-                "personality": data.get("personality_number") if data["has_name_numbers"] else None
+                "life_path": life_path,
+                "birthday_number": birthday_number,
+                "expression": expression_number if has_name else None,
+                "soul_urge": soul_urge_number if has_name else None,
+                "personality": personality_number if has_name else None
             }
             
-            # Add unlock flags for UI
-            result["unlock_required"] = not data["has_name_numbers"]
+            # Add success flag and debug info
+            result["success"] = True
+            result["unlock_required"] = not has_name
+            result["unlock_prompt"] = "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality)." if not has_name else None
             
-            # Add unlock prompt if needed
-            if not data["has_name_numbers"]:
-                result["unlock_prompt"] = "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality)."
-            else:
-                result["unlock_prompt"] = None
+            result["debug_stamp"] = {
+                "compute_integrity_valid": canonical_num.get('compute_integrity', {}).get('valid', False),
+                "life_path_valid": isinstance(life_path, int),
+                "cycles_valid": isinstance(personal_year, int),
+                "has_name_numbers": has_name
+            }
             
             # =====================================================================
             # CACHE THE RESPONSE for instant repeat views
@@ -7227,10 +7374,36 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse numerology deep dive JSON: {e}")
             fallback_result = {
+                "success": True,  # Data is valid, just LLM parsing failed
                 "title": "Your Core Numbers",
                 "core_numbers": {
-                    "life_path": data["life_path_number"],
-                    "expression": data["expression_number"] if data["has_name_numbers"] else None,
+                    "life_path": life_path,
+                    "birthday_number": birthday_number,
+                    "expression": expression_number if has_name else None,
+                    "soul_urge": soul_urge_number if has_name else None,
+                    "personality": personality_number if has_name else None
+                },
+                "sections": [
+                    {"label": f"Life Path {life_path}", "body": f"Your Life Path {life_path} suggests {core.get('life_path_description', 'a particular orientation toward life')}."},
+                    {"label": f"Birthday Number {birthday_number}", "body": f"Born on the {birthday_number} day, there's {core.get('birthday_description', 'a specific quality to how you engage')}."},
+                ],
+                "mirror_prompt": "Where do you see these patterns showing up in your life?",
+                "unlock_required": not has_name,
+                "unlock_prompt": "Add your full birth name to unlock deeper numerology." if not has_name else None,
+                "debug_stamp": {
+                    "compute_integrity_valid": canonical_num.get('compute_integrity', {}).get('valid', False),
+                    "has_name_numbers": has_name
+                }
+            }
+            # Cache fallback too
+            await set_cached_deep_dive(user_id, "numerology", fallback_result)
+            return fallback_result
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Numerology deep dive error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
                     "soul_urge": data["soul_urge_number"] if data["has_name_numbers"] else None,
                     "personality": data.get("personality_number") if data["has_name_numbers"] else None
                 },
