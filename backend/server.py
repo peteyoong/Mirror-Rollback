@@ -1009,8 +1009,23 @@ def apply_astrology_guardrails(response_text: str) -> str:
     - No authority language
     - No spiritualized assertions
     - No therapeutic directives
+    - No claims of missing data (Nodes, birth info, etc.)
     """
     forbidden_patterns = [
+        # =================================================================
+        # MISSING DATA CLAIMS (CRITICAL - Never claim we don't have data)
+        # =================================================================
+        # These patterns should NEVER appear when data is computed
+        (r"I don't have your (?:North )?Node[s]?", "your Nodes are part of your computed chart"),
+        (r"I can't see your Node[s]?", "your Nodes are part of your computed chart"),
+        (r"I don't have access to your Node[s]?", "your Nodes are in your computed chart"),
+        (r"I don't have your birth (?:time|place|location)", "your birth data is part of your computed chart"),
+        (r"need your birth (?:time|place|location)", "your birth data is already computed"),
+        (r"your Node[s]? (?:aren't|are not|isn't|is not) available", "your Nodes are computed"),
+        (r"I don't have enough information", "your chart data is available"),
+        (r"can't access your Node[s]?", "your Nodes are in your chart"),
+        (r"without your Node[s]?", "with your Nodes from your chart"),
+        
         # Predictive claims
         (r"\bwill happen\b", "may be experienced as"),
         (r"\byou will\b", "you may notice"),
