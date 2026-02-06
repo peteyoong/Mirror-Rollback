@@ -335,6 +335,46 @@ export const getEnneagramKbStatus = async () => {
   return response.data;
 };
 
+// Enneagram Trait Cards
+export interface EnneagramTraitCard {
+  card_id: string;
+  title: string;
+  body: string;
+  citation?: {
+    source: string;
+    page?: number;
+  };
+  suggested_question?: string;
+}
+
+export interface EnneagramComputedDetails {
+  center?: string;
+  hornevian_group?: string;
+  harmonic_group?: string;
+  object_relations?: string;
+  stress_line_to?: number;
+  growth_line_to?: number;
+  wing_left_type?: number;
+  wing_right_type?: number;
+  wing_balance_label?: string;
+  wing_openness_hint?: string;
+  social_style_tags?: string[];
+}
+
+export interface EnneagramTraitsResponse {
+  cards: EnneagramTraitCard[];
+  source: 'book' | 'static' | 'none';
+  computed_details?: EnneagramComputedDetails;
+  type?: number;
+  wing?: number | 'balanced';
+  message?: string;
+}
+
+export const getEnneagramTraits = async (userId: string): Promise<EnneagramTraitsResponse> => {
+  const response = await apiWithRetry.get(`/enneagram/traits/${userId}`);
+  return response.data;
+};
+
 // Export both the raw api instance and the retry-wrapped version
 export { apiWithRetry };
 export default api;
