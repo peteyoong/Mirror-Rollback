@@ -839,15 +839,15 @@ def debug_compute_astrology():
     lon = 101.6070
     birth_place = "Petaling Jaya, Malaysia"
     
-    print(f"Test Case: Pete")
-    print(f"  Birth (local): 1968-04-01 01:25")
-    print(f"  UTC Offset:    +07:30")
+    print("Test Case: Pete")
+    print("  Birth (local): 1968-04-01 01:25")
+    print("  UTC Offset:    +07:30")
     print(f"  Birth (UTC):   {birth_utc.isoformat()}")
     print(f"  Coordinates:   lat={lat}, lon={lon}")
     print(f"  Place:         {birth_place}")
-    print(f"  House System:  Equal")
-    print(f"  Sidereal Mode: true_sidereal_m (SVP 31.2836°)")
-    print(f"  Node Mode:     true_node")
+    print("  House System:  Equal")
+    print("  Sidereal Mode: true_sidereal_m (SVP 31.2836°)")
+    print("  Node Mode:     true_node")
     print()
     print("-" * 70)
     
@@ -912,7 +912,7 @@ def debug_compute_astrology():
         if missing:
             print(f"   MISSING: {missing}")
         else:
-            print(f"   All present: ✓")
+            print("   All present: ✓")
         # Print planet positions compactly with retrograde
         for pname in required_planets:
             if pname in planets:
@@ -940,7 +940,7 @@ def debug_compute_astrology():
         print("6. ASPECTS:")
         aspects = chart.get('aspects', [])
         print(f"   Total count: {len(aspects)}")
-        print(f"   First 5:")
+        print("   First 5:")
         for asp in aspects[:5]:
             print(f"     {asp['body1']}-{asp['body2']} {asp['type']} ({asp['orb']}°)")
         print()
