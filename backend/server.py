@@ -5767,7 +5767,7 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
                     "personality": data.get("personality_number") if data["has_name_numbers"] else None
                 },
                 "sections": [
-                    {"label": "Life Path: Your Learning Theme", "body": f"Life Path {data['life_path_number']} often describes a recurring theme of learning and growth. This isn't about who you are, but about what tends to show up as territory for exploration."},
+                    {"label": "Life Path: Your Learning Theme", "body": _get_master_number_fallback_text(data['life_path_number'])},
                     {"label": "Birthday: Your Secondary Flavour", "body": f"Birthday number {data['birthday_number'] or 'unknown'} adds a secondary emphasis — a flavour that colours how you approach things."}
                 ],
                 "unlock_required": not data["has_name_numbers"],
