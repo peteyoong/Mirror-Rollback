@@ -901,12 +901,97 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // DEEP DIVE TAB
   // ============================================
 
+  // Helper to format group labels nicely
+  const formatGroupLabel = (group: string | undefined): string => {
+    if (!group) return '—';
+    return group.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  };
+
   const renderDeepDiveTab = () => {
     const patterns = TYPE_PATTERNS[core];
     const mastery = MASTERY_LEVELS[core];
 
     return (
       <>
+        {/* Enneagram Structure Card (Compact 2x2 grid) */}
+        {computedDetails && (
+          <View style={styles.structureCard}>
+            <Text style={styles.structureTitle}>ENNEAGRAM STRUCTURE</Text>
+            
+            {/* Row 1: Center + Hornevian Group */}
+            <View style={styles.structureGrid}>
+              <View style={styles.structureItem}>
+                <Ionicons name="radio-button-on-outline" size={14} color={Colors.textSecondary} />
+                <Text style={styles.structureLabel}>Center</Text>
+                <Text style={styles.structureValue}>{formatGroupLabel(computedDetails.center)}</Text>
+              </View>
+              <View style={styles.structureDivider} />
+              <View style={styles.structureItem}>
+                <Ionicons name="people-outline" size={14} color={Colors.textSecondary} />
+                <Text style={styles.structureLabel}>Social Style</Text>
+                <Text style={styles.structureValue}>{formatGroupLabel(computedDetails.hornevian_group)}</Text>
+              </View>
+            </View>
+            
+            {/* Row 2: Stress Line + Growth Line */}
+            <View style={[styles.structureGrid, { marginTop: 12 }]}>
+              <View style={styles.structureItem}>
+                <Ionicons name="arrow-down-outline" size={14} color={Colors.textSecondary} />
+                <Text style={styles.structureLabel}>Stress → Type</Text>
+                <Text style={styles.structureValue}>{computedDetails.stress_line_to || '—'}</Text>
+              </View>
+              <View style={styles.structureDivider} />
+              <View style={styles.structureItem}>
+                <Ionicons name="arrow-up-outline" size={14} color={Colors.textSecondary} />
+                <Text style={styles.structureLabel}>Growth → Type</Text>
+                <Text style={styles.structureValue}>{computedDetails.growth_line_to || '—'}</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Trait Cards Section */}
+        {(traitCards.length > 0 || traitsLoading) && (
+          <View style={styles.traitCardsSection}>
+            <View style={styles.traitCardsHeader}>
+              <Text style={styles.traitCardsTitle}>Pattern Insights</Text>
+              {traitsSource === 'book' && (
+                <View style={styles.traitCardsSourceBadge}>
+                  <Ionicons name="book-outline" size={10} color={Colors.textSecondary} />
+                  <Text style={styles.traitCardsSourceText}>From Book</Text>
+                </View>
+              )}
+            </View>
+            
+            {traitsLoading ? (
+              <View style={styles.traitCardsLoading}>
+                <ActivityIndicator size="small" color={Colors.textTertiary} />
+              </View>
+            ) : (
+              traitCards.map((card, index) => (
+                <View key={card.card_id} style={styles.traitCard}>
+                  <Text style={styles.traitCardTitle}>{card.title}</Text>
+                  <Text style={styles.traitCardBody}>{card.body}</Text>
+                  {card.citation && (
+                    <Text style={styles.traitCardCitation}>
+                      — {card.citation.source}{card.citation.page ? `, p.${card.citation.page}` : ''}
+                    </Text>
+                  )}
+                  {card.suggested_question && (
+                    <TouchableOpacity 
+                      style={styles.traitCardAsk}
+                      onPress={() => handleOpenQA(card.suggested_question)}
+                    >
+                      <Text style={styles.traitCardAskText}>Ask about this</Text>
+                      <Ionicons name="chatbubble-outline" size={11} color={Colors.text} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))
+            )}
+          </View>
+        )}
+
         {/* Type Pattern Section */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Type {core} Pattern</Text>
