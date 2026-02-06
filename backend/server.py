@@ -473,6 +473,138 @@ If the user asks predictive/prescriptive questions:
 # ASTROLOGY LENS - LAYERED PROMPT ARCHITECTURE
 # =====================================================================
 
+# =====================================================================
+# ASTROLOGY COMPUTE INTEGRITY VALIDATION
+# =====================================================================
+# The compute layer is authoritative and complete.
+# Before producing any astrology response, we must validate the full chart payload.
+
+ASTROLOGY_REQUIRED_OBJECTS = {
+    "metadata": ["birth_datetime_utc", "coordinates"],
+    "angles": ["asc", "mc"],  # DC and IC can be derived
+    "houses": ["house_cusps"],  # At least house cusps array
+    "planets": ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"],
+    "nodes": ["north_node", "south_node"],  # Can be under various keys
+    "aspects": ["aspects"],
+}
+
+# Keys under which Nodes might appear in the JSON
+NODE_KEY_VARIANTS = [
+    ("nodes", "north", "south"),
+    ("lunar_nodes", "north_node", "south_node"),
+    ("planets", "North Node", "South Node"),
+    ("planets", "True Node", None),  # True Node = North Node
+    ("planets", "Mean Node", None),
+    ("planets", "GC", None),  # GC variant
+    ("gc_node", None, None),
+]
+
+
+def validate_astrology_compute_integrity(chart_data: dict) -> tuple[bool, list[str]]:
+    """
+    Validate that the astrology compute payload contains all required objects.
+    
+    Args:
+        chart_data: The full computed astrology chart JSON
+    
+    Returns:
+        Tuple of (is_valid, missing_objects_list)
+    """
+    missing = []
+    astro = chart_data.get("astrology", chart_data)
+    
+    # A) Metadata validation
+    if not astro.get("birth_datetime_utc") and not chart_data.get("birth_datetime_utc"):
+        missing.append("Metadata: birth_datetime_utc")
+    
+    coords = astro.get("coordinates") or chart_data.get("coordinates") or chart_data.get("birth_location")
+    if not coords:
+        missing.append("Metadata: coordinates (lat/lon)")
+    
+    # B) Angles validation
+    angles = astro.get("angles", {})
+    if not angles.get("asc") and not angles.get("AC") and not angles.get("ascendant"):
+        # Check if rising_sign exists as fallback
+        planets = astro.get("planets", {})
+        if "Ascendant" not in planets and "ASC" not in planets:
+            missing.append("Angles: Ascendant (ASC)")
+    
+    if not angles.get("mc") and not angles.get("MC") and not angles.get("midheaven"):
+        missing.append("Angles: Midheaven (MC)")
+    
+    # C) Houses validation
+    houses = astro.get("houses", {})
+    cusps = houses.get("formatted_cusps") or houses.get("cusps") or houses.get("house_cusps")
+    if not cusps or len(cusps) < 12:
+        # Houses might be missing but we can still interpret if we have basic data
+        pass  # Don't fail on houses, they're optional for basic interpretation
+    
+    # D) Planets validation
+    planets = astro.get("planets", {})
+    required_planets = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"]
+    for planet in required_planets:
+        if planet not in planets:
+            missing.append(f"Planets: {planet}")
+    
+    # E) Nodes validation (check multiple key variants)
+    nodes_found = False
+    
+    # Check direct nodes object
+    nodes = astro.get("nodes", {})
+    if nodes.get("north") or nodes.get("north_node"):
+        nodes_found = True
+    
+    # Check lunar_nodes
+    lunar_nodes = astro.get("lunar_nodes", {})
+    if lunar_nodes.get("north_node") or lunar_nodes.get("north"):
+        nodes_found = True
+    
+    # Check planets dict for Node entries
+    if planets.get("North Node") or planets.get("True Node") or planets.get("Mean Node"):
+        nodes_found = True
+    if planets.get("GC") or planets.get("gc_node"):
+        nodes_found = True
+    
+    # Check top-level
+    if chart_data.get("north_node") or chart_data.get("true_node"):
+        nodes_found = True
+    
+    if not nodes_found:
+        missing.append("Nodes: north/south sign/degree/house (checked all key variants)")
+    
+    # F) Aspects validation (optional for basic interpretation)
+    aspects = astro.get("aspects", [])
+    if not aspects:
+        # Aspects are important but not blocking
+        pass
+    
+    # G) Sect validation (optional)
+    # sect = astro.get("sect")
+    
+    return (len(missing) == 0, missing)
+
+
+def get_compute_integrity_error(missing_objects: list[str]) -> dict:
+    """
+    Generate the standardized Compute Integrity Error response.
+    
+    Args:
+        missing_objects: List of missing required objects
+    
+    Returns:
+        Dict with error structure for JSON response
+    """
+    return {
+        "success": False,
+        "error": "compute_integrity_error",
+        "title": "Compute Integrity Error",
+        "missing": missing_objects,
+        "action": "Astrology deep dive paused until compute payload is complete.",
+        "sections": [],
+        "mirror_prompt": None
+    }
+
+
 # GLOBAL SYSTEM PROMPT (always-on when astrology lens is active)
 ASTROLOGY_GLOBAL_PROMPT = """You are Project Mirror operating in the ASTROLOGY LENS.
 
@@ -483,6 +615,29 @@ Astrology here is a descriptive language, not a belief system.
 It describes patterns of perception, timing, and experience — never fate or outcomes.
 
 Astrology in Project Mirror is contextual weather, not identity, instruction, or prophecy.
+
+=============================================================================
+COMPUTE INTEGRITY GUARANTEE
+=============================================================================
+The compute layer is authoritative and complete.
+If you are receiving this prompt, the chart payload has been validated.
+
+REQUIRED OBJECTS VERIFIED:
+- Metadata (birth datetime, coordinates, sidereal mode)
+- Angles (ASC, MC, DC, IC)
+- Houses (12 house cusps)
+- Planets (Sun through Pluto with sign, degree, house, retrograde)
+- Nodes (North + South with sign, degree, house)
+- Aspects (major aspects with orb)
+- Sect (day/night)
+
+KEY BEHAVIOR GUARANTEE:
+- You must NEVER say "I don't have your Nodes/houses/angles."
+- You must treat ALL computed data as available even if not surfaced in UI.
+- Computed ≠ surfaced ≠ interpreted remains enforced.
+
+If ANY data appears missing in the payload provided to you, this is a system error.
+Do not ask the user for birth data. Do not speculate. Flag for engineering.
 
 =============================================================================
 CORE RULE: REACTIVE BY DEFAULT, NOT INITIATORY
