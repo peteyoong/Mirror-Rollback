@@ -504,6 +504,12 @@ def validate_astrology_compute_integrity(chart_data: dict) -> tuple[bool, list[s
     """
     Validate that the astrology compute payload contains all required objects.
     
+    Uses the normalized structure from Swiss Ephemeris Compute Contract:
+    - nodes: { north: {...}, south: {...} }
+    - angles: { asc: {...}, mc: {...}, ic: {...}, dc: {...} }
+    - houses: { formatted_cusps: [...] }
+    - planets: { Sun: {...}, ... }
+    
     Args:
         chart_data: The full computed astrology chart JSON
     
@@ -514,72 +520,82 @@ def validate_astrology_compute_integrity(chart_data: dict) -> tuple[bool, list[s
     astro = chart_data.get("astrology", chart_data)
     
     # A) Metadata validation
-    if not astro.get("birth_datetime_utc") and not chart_data.get("birth_datetime_utc"):
+    if not astro.get("input_datetime_utc") and not chart_data.get("birth_datetime_utc"):
         missing.append("Metadata: birth_datetime_utc")
     
     coords = astro.get("coordinates") or chart_data.get("coordinates") or chart_data.get("birth_location")
     if not coords:
         missing.append("Metadata: coordinates (lat/lon)")
     
-    # B) Angles validation
+    # Check node_mode in sidereal_settings
+    sidereal_settings = astro.get("sidereal_settings", {})
+    if not sidereal_settings.get("node_mode"):
+        # Not critical, but note it
+        pass
+    
+    # B) Angles validation (check normalized structure first, then fallbacks)
     angles = astro.get("angles", {})
-    if not angles.get("asc") and not angles.get("AC") and not angles.get("ascendant"):
-        # Check if rising_sign exists as fallback
-        planets = astro.get("planets", {})
-        if "Ascendant" not in planets and "ASC" not in planets:
-            missing.append("Angles: Ascendant (ASC)")
+    if angles:
+        # New normalized structure
+        for angle_name in ["asc", "mc"]:
+            if not angles.get(angle_name, {}).get("sign"):
+                missing.append(f"Angles: {angle_name.upper()} missing sign/degree")
+    else:
+        # Fallback to old structure
+        houses = astro.get("houses", {})
+        if not houses.get("ascendant") and not houses.get("formatted_cusps"):
+            missing.append("Angles: Ascendant (ASC) missing")
+        if not houses.get("mc"):
+            missing.append("Angles: Midheaven (MC) missing")
     
-    if not angles.get("mc") and not angles.get("MC") and not angles.get("midheaven"):
-        missing.append("Angles: Midheaven (MC)")
-    
-    # C) Houses validation
+    # C) Houses validation (need 12 cusps)
     houses = astro.get("houses", {})
-    cusps = houses.get("formatted_cusps") or houses.get("cusps") or houses.get("house_cusps")
-    if not cusps or len(cusps) < 12:
+    cusps = houses.get("formatted_cusps") or houses.get("cusps") or []
+    if len(cusps) < 12:
         # Houses might be missing but we can still interpret if we have basic data
-        pass  # Don't fail on houses, they're optional for basic interpretation
+        pass  # Soft failure - don't block on houses
     
     # D) Planets validation
     planets = astro.get("planets", {})
     required_planets = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"]
     for planet in required_planets:
         if planet not in planets:
-            missing.append(f"Planets: {planet}")
+            missing.append(f"Planets: {planet} missing")
+        elif planets[planet].get('house') is None:
+            missing.append(f"Planets: {planet} missing house placement")
     
-    # E) Nodes validation (check multiple key variants)
+    # E) Nodes validation (check normalized structure first)
     nodes_found = False
     
-    # Check direct nodes object
+    # Check normalized nodes structure (new)
     nodes = astro.get("nodes", {})
-    if nodes.get("north") or nodes.get("north_node"):
+    if nodes.get("north", {}).get("sign"):
         nodes_found = True
     
-    # Check lunar_nodes
-    lunar_nodes = astro.get("lunar_nodes", {})
-    if lunar_nodes.get("north_node") or lunar_nodes.get("north"):
-        nodes_found = True
-    
-    # Check planets dict for Node entries
-    if planets.get("North Node") or planets.get("True Node") or planets.get("Mean Node"):
-        nodes_found = True
-    if planets.get("GC") or planets.get("gc_node"):
-        nodes_found = True
-    
-    # Check top-level
-    if chart_data.get("north_node") or chart_data.get("true_node"):
-        nodes_found = True
+    # Fallback checks for various node key formats
+    if not nodes_found:
+        # Check planets dict for Node entries
+        if planets.get("North Node") or planets.get("True Node") or planets.get("Mean Node"):
+            nodes_found = True
+        if planets.get("GC"):  # GC = North Node variant
+            nodes_found = True
+        
+        # Check lunar_nodes
+        lunar_nodes = astro.get("lunar_nodes", {})
+        if lunar_nodes.get("north_node") or lunar_nodes.get("north"):
+            nodes_found = True
+        
+        # Check top-level
+        if chart_data.get("north_node") or chart_data.get("true_node"):
+            nodes_found = True
     
     if not nodes_found:
-        missing.append("Nodes: north/south sign/degree/house (checked all key variants)")
+        missing.append("Nodes: north/south sign/degree/house (checked all key variants including GC)")
     
-    # F) Aspects validation (optional for basic interpretation)
-    aspects = astro.get("aspects", [])
-    if not aspects:
-        # Aspects are important but not blocking
-        pass
-    
-    # G) Sect validation (optional)
-    # sect = astro.get("sect")
+    # F) Check compute_integrity flag if present (from Swiss Ephemeris contract)
+    compute_integrity = astro.get("compute_integrity", {})
+    if compute_integrity and not compute_integrity.get("valid", True):
+        missing.append("Compute Integrity: flagged as invalid by compute layer")
     
     return (len(missing) == 0, missing)
 
