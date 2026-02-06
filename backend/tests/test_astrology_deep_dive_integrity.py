@@ -338,8 +338,7 @@ class TestComputeIntegrityErrorShortCircuits:
         assert "error_count" in result["compute_integrity"]
         assert "message" in result["compute_integrity"]
     
-    @pytest.mark.asyncio
-    async def test_deep_dive_returns_error_on_compute_failure(self):
+    def test_deep_dive_returns_error_on_compute_failure(self):
         """Deep dive endpoint returns compute_integrity_error without LLM call."""
         # Mock the scenario where compute fails
         mock_errors = ["Nodes: north missing sign", "Nodes: south missing sign"]
