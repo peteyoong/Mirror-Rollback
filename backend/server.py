@@ -1114,9 +1114,19 @@ Use available computed fields:
 - birthday_number: {birthday_number} (if available)
 {name_numbers_context}
 
+MASTER NUMBER HANDLING (IMPORTANT):
+- 11, 22, and 33 are "master numbers" with dual energy
+- Life Path 11 = "11/2" - carries BOTH the intensity of 11 AND the cooperative/diplomatic qualities of 2
+- Life Path 22 = "22/4" - carries BOTH the visionary builder of 22 AND the practical foundation of 4
+- Life Path 33 = "33/6" - carries BOTH the master teacher of 33 AND the nurturing qualities of 6
+- When discussing a master number, ALWAYS acknowledge both aspects:
+  * The heightened/intensified quality of the master number
+  * The underlying base number it reduces to (11→2, 22→4, 33→6)
+  * The tension or dance between these two energies
+
 Structure the content in expandable sections:
 
-1) Life Path - Describe as a long-term learning or growth theme. Emphasize patterns that tend to recur over time. Avoid identity or destiny language.
+1) Life Path - Describe as a long-term learning or growth theme. Emphasize patterns that tend to recur over time. Avoid identity or destiny language. For master numbers, discuss BOTH the master number AND its reduction.
 2) Birthday Number (if available) - Describe as a secondary flavour or emphasis. Keep short and supportive.
 3) Expression (only if available) - Describe as outward style, strengths, or how energy tends to be expressed. Grounded and descriptive.
 4) Soul Urge (only if available) - Describe as inner motivation or emotional tone. Avoid romanticized phrasing.
