@@ -30,7 +30,9 @@ from enneagram_kb import (
     get_knowledge_base,
     is_knowledge_base_ready,
     get_kb_status,
-    compute_enneagram_details
+    compute_enneagram_details,
+    get_trait_cards,
+    TraitCard
 )
 
 ROOT_DIR = Path(__file__).parent
