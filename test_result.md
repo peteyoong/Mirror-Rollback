@@ -111,6 +111,31 @@ user_problem_statement: |
   - Journal with template-based "Reflect with Mirror" feature
   - NEW: LLM-powered Mirror Chat as the primary AI companion
 
+
+  - task: "Enneagram Traits Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          NEW ENDPOINT: GET /api/enneagram/traits/{user_id}
+          - Returns trait cards from KB (if available) or static fallback cards
+          - Returns computed_details with center, groups, stress/growth lines, wing info
+          - Gracefully handles missing PDF (KB unavailable)
+          - Uses gpt-4.1-mini for card generation when KB is ready
+          - Tested with curl: returns 3 static cards + computed_details for Type 7 user
+          
+          NEW MODULE ADDITIONS to enneagram_kb.py:
+          - TraitCard dataclass for structured card data
+          - STATIC_TRAIT_CARDS: Fallback cards for all 9 types
+          - get_trait_cards() async function for card generation
+
+
 backend:
   - task: "Numerology Full Name Gate Fix"
     implemented: true
