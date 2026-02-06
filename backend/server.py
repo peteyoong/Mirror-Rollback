@@ -3578,41 +3578,9 @@ class ReflectionChatResponse(BaseModel):
     response: str
 
 
-# System prompt for reflection chat - embodies Mirror philosophy
-REFLECTION_SYSTEM_PROMPT = """You are a reflective companion in Project Mirror.
-
-Your role is to mirror, not coach. To notice, not advise. To reflect, not interpret.
-
-CORE RULES:
-- Never give advice
-- Never explain patterns
-- Never make predictions
-- Never assign meaning
-- Never use "you are" or "you should"
-- Never ask "why"
-- Short responses are often better
-
-PREFERRED PHRASES:
-- "It sounds like..."
-- "You might be noticing..."
-- "That feels significant."
-- "There's something there."
-- "Mm."
-
-AVOID:
-- "This suggests..."
-- "This means..."
-- "You are someone who..."
-- "Have you tried..."
-- "You should..."
-
-When the user shares something:
-1. Acknowledge gently without interpretation
-2. Mirror back what they said in slightly different words
-3. Or simply hold space with minimal words
-
-Short answers are valid. Silence is valid.
-The user may leave at any time without consequence."""
+# Legacy prompt kept for reference - now using emergent_contract.py
+REFLECTION_SYSTEM_PROMPT_LEGACY = """Your role is to mirror, not coach. To notice, not advise. 
+Short responses are often better. Hold space with minimal words."""
 
 
 @api_router.post("/reflection/chat", response_model=ReflectionChatResponse)
@@ -3620,53 +3588,59 @@ async def reflection_chat(request: ReflectionChatRequest):
     """
     Reflection chat endpoint for daily flow.
     
-    Follows Mirror philosophy:
-    - Mirroring, not coaching
-    - Noticing, not advising
-    - No meaning-making
-    - No identity statements
+    NOW USING: emergent_generate() with mode="reflection_chat"
+    
+    Follows Emergent! contract:
+    - Reflection > Prediction
+    - Agency-first language
+    - No prescriptions
     """
+    from emergent_contract import emergent_generate
+    
     try:
-        if not EMERGENT_LLM_KEY:
-            raise HTTPException(status_code=500, detail="AI service not configured")
-        
-        # Build messages for LLM
-        llm_messages = [
-            {"role": "system", "content": REFLECTION_SYSTEM_PROMPT}
-        ]
-        
-        # Add context hint if provided
-        if request.context:
-            llm_messages.append({
-                "role": "system",
-                "content": f"The user's current context hypothesis is: {request.context}. Do not mention this directly."
-            })
-        
-        # Add conversation history
-        for msg in request.messages:
+        # Build user message with conversation history context
+        conversation_context = ""
+        for msg in request.messages[-5:]:  # Last 5 messages for context
             if msg.get("role") in ["user", "assistant"]:
-                llm_messages.append({
-                    "role": msg["role"],
-                    "content": msg["content"]
-                })
+                conversation_context += f"{msg['role'].upper()}: {msg['content']}\n"
         
-        # Call LLM using emergentintegrations
-        reflection_chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"reflection_{request.user_id}_{datetime.now().timestamp()}",
-            system_message=REFLECTION_SYSTEM_PROMPT
-        )
-        reflection_chat.with_model("openai", "gpt-4.1-mini")  # Lightweight model for brief reflections
+        # Get the latest user message
+        latest_message = ""
+        for msg in reversed(request.messages):
+            if msg.get("role") == "user":
+                latest_message = msg["content"]
+                break
         
-        # Build user message with context hint if present
-        user_content = llm_messages[-1]["content"] if llm_messages else ""
+        if not latest_message:
+            latest_message = "I'm here."
+        
+        # Build context for emergent_generate
+        context = {}
         if request.context:
-            user_content = f"[Context hint: {request.context}]\n\n{user_content}"
+            context["life_context"] = request.context
+        if conversation_context:
+            context["conversation_history"] = conversation_context
         
-        user_message = UserMessage(text=user_content)
-        response = await reflection_chat.send_message(user_message)
+        # Additional prompt specific to reflection chat style
+        additional_prompt = """
+REFLECTION CHAT STYLE:
+- Keep responses brief (1-3 short sentences often enough)
+- Use phrases like: "It sounds like...", "You might be noticing...", "That feels significant.", "There's something there."
+- Mirror back what they said in slightly different words
+- Or simply hold space with minimal words
+- Short answers are valid. Silence is valid.
+"""
         
-        assistant_response = response.strip()
+        # Use the centralized contract-enforced generation
+        response = await emergent_generate(
+            mode="reflection_chat",
+            user_message=latest_message,
+            endpoint="reflection_chat",
+            user_id=request.user_id,
+            context=context,
+            additional_system_prompt=additional_prompt,
+            model="gpt-4.1-mini"  # Lightweight model for brief reflections
+        )
         
         # Store reflection in database (as event, not evaluation)
         await db.reflections.insert_one({
@@ -3676,16 +3650,17 @@ async def reflection_chat(request: ReflectionChatRequest):
             "created_at": datetime.now(timezone.utc)
         })
         
-        logger.info(f"[Reflection] Chat response for user {request.user_id}")
+        logger.info(f"[Reflection] Chat response via emergent_generate for user {request.user_id}")
         
-        return ReflectionChatResponse(response=assistant_response)
+        return ReflectionChatResponse(response=response)
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"[Reflection] Chat error: {e}")
-        # Graceful fallback
-        return ReflectionChatResponse(response="That feels significant.")
+        # Graceful fallback from contract
+        from emergent_contract import get_safe_fallback
+        return ReflectionChatResponse(response=get_safe_fallback("reflection_chat"))
 
 
 @api_router.get("/mirror/home/{user_id}")
