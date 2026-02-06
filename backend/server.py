@@ -6203,6 +6203,11 @@ async def get_enneagram_raw_scores(user_id: str):
             "confidence_tier": result.get("confidence_tier")
         }
         
+        # Include convergence data if available
+        convergence = result.get("convergence")
+        if convergence:
+            response["convergence"] = convergence
+        
         logger.info(f"[Enneagram] Raw scores requested for user {user_id}")
         
         return response
@@ -6212,6 +6217,160 @@ async def get_enneagram_raw_scores(user_id: str):
     except Exception as e:
         logger.error(f"Get Enneagram raw scores error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/enneagram/convergence/{user_id}")
+async def compute_enneagram_convergence(user_id: str):
+    """
+    Compute cross-lens convergence for Enneagram result.
+    
+    Uses True Sidereal Astrology and Human Design data to provide
+    confirming or weakening signals for the Enneagram assessment.
+    
+    This endpoint:
+    1. Retrieves user's Enneagram result
+    2. Computes their astrology and HD charts (if not cached)
+    3. Computes convergence signals
+    4. Updates the stored result with convergence data
+    5. Returns the convergence analysis
+    
+    IMPORTANT: This NEVER changes the inferred Enneagram type.
+    It only adjusts confidence based on cross-lens alignment.
+    """
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get Enneagram result
+        enneagram_result = await db.enneagram_results.find_one({"user_id": user_id})
+        if not enneagram_result:
+            raise HTTPException(
+                status_code=404,
+                detail="No Enneagram assessment found for this user"
+            )
+        
+        # Compute astrology chart
+        astrology_data = None
+        try:
+            if user.get("birth_date") and user.get("birth_time") and user.get("birth_location"):
+                birth_date = user["birth_date"]
+                if isinstance(birth_date, str):
+                    birth_date = datetime.strptime(birth_date, "%Y-%m-%d")
+                
+                utc_birth = resolve_birth_utc(
+                    birth_date=birth_date,
+                    birth_time_str=user.get("birth_time", "12:00"),
+                    timezone_str=user.get("timezone", "UTC")
+                )
+                
+                location = user.get("birth_location", {})
+                astrology_data = get_full_natal_chart(
+                    utc_birth=utc_birth,
+                    latitude=location.get("latitude", 0),
+                    longitude=location.get("longitude", 0),
+                    sidereal_settings={
+                        "mode": "true_sidereal_user_defined",
+                        "svp_year": 2000,
+                        "svp_degrees": 31.2836,
+                        "yearly_increment": 0.0
+                    }
+                )
+        except Exception as e:
+            logger.warning(f"[Convergence] Could not compute astrology for {user_id}: {e}")
+        
+        # Compute Human Design chart
+        hd_data = None
+        try:
+            if user.get("birth_date") and user.get("birth_time") and user.get("birth_location"):
+                birth_date = user["birth_date"]
+                if isinstance(birth_date, str):
+                    birth_date = datetime.strptime(birth_date, "%Y-%m-%d")
+                
+                utc_birth = resolve_birth_utc(
+                    birth_date=birth_date,
+                    birth_time_str=user.get("birth_time", "12:00"),
+                    timezone_str=user.get("timezone", "UTC")
+                )
+                
+                location = user.get("birth_location", {})
+                hd_data = get_human_design_chart(
+                    utc_birth=utc_birth,
+                    latitude=location.get("latitude", 0),
+                    longitude=location.get("longitude", 0),
+                    sidereal_settings={
+                        "mode": "true_sidereal_user_defined",
+                        "svp_year": 2000,
+                        "svp_degrees": 31.2836,
+                        "yearly_increment": 0.0
+                    }
+                )
+        except Exception as e:
+            logger.warning(f"[Convergence] Could not compute HD for {user_id}: {e}")
+        
+        # Build Enneagram result dict for convergence
+        enn_result_dict = {
+            'inferred_core': enneagram_result.get('inferred_core'),
+            'confidence': enneagram_result.get('confidence'),
+            'confidence_tier': enneagram_result.get('confidence_tier'),
+            'top_candidates': enneagram_result.get('top_candidates', [])
+        }
+        
+        # Compute convergence
+        convergence = compute_convergence(
+            enneagram_result=enn_result_dict,
+            astrology_data=astrology_data,
+            human_design_data=hd_data
+        )
+        
+        # Apply convergence to result (for adjusted confidence)
+        updated_result = apply_convergence_to_result(enn_result_dict, convergence)
+        
+        # Store convergence data in database
+        await db.enneagram_results.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "convergence": convergence,
+                "confidence_with_convergence": updated_result.get('confidence'),
+                "confidence_tier_with_convergence": updated_result.get('confidence_tier')
+            }}
+        )
+        
+        logger.info(f"[Convergence] Computed for user {user_id}: support={convergence.get('support_score')}, adjustment={convergence.get('confidence_adjustment')}")
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "inferred_core": enn_result_dict.get('inferred_core'),
+            "original_confidence": enn_result_dict.get('confidence'),
+            "original_tier": enn_result_dict.get('confidence_tier'),
+            "convergence": convergence,
+            "adjusted_confidence": updated_result.get('confidence'),
+            "adjusted_tier": updated_result.get('confidence_tier'),
+            "astrology_available": astrology_data is not None,
+            "human_design_available": hd_data is not None
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Compute convergence error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/enneagram/convergence/rules")
+async def get_convergence_rules():
+    """
+    Return the convergence rules table documentation.
+    
+    This endpoint provides transparency into how cross-lens
+    convergence is computed.
+    """
+    return {
+        "rules_table": get_convergence_rules_table(),
+        "version": "convergence-v1"
+    }
 
 
 # =============================================================================
