@@ -5954,6 +5954,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.on_event("startup")
+async def startup():
+    """Initialize resources at server startup"""
+    # Initialize Enneagram Knowledge Base
+    pdf_path = os.environ.get('ENNEAGRAM_PDF_PATH', '/app/backend/data/JOH_Book_1.pdf')
+    kb_ready = initialize_knowledge_base(pdf_path)
+    if kb_ready:
+        logger.info("[Startup] Enneagram Knowledge Base initialized successfully")
+    else:
+        logger.warning("[Startup] Enneagram Knowledge Base not available (PDF missing or error)")
+
+
 @app.on_event("shutdown")
 async def shutdown():
     """Clean up resources"""
