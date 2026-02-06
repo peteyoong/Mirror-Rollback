@@ -2959,44 +2959,54 @@ async def mirror_chat(request: MirrorChatRequest):
         
         history = chat_sessions[session_id]
         
-        # ===== LLM CALL WITH FALLBACK =====
+        # ===== LLM CALL VIA EMERGENT CONTRACT =====
+        from emergent_contract import emergent_generate, validate_emergent_output, log_contract_event
+        
         response_text = None
         try:
-            # Call LLM for reflective reply
-            chat = LlmChat(
-                api_key=EMERGENT_LLM_KEY,
-                session_id=session_id,
-                system_message=system_prompt
-            )
-            chat.with_model("openai", "gpt-5.2")
+            # Determine mode based on lens
+            if request.lens == "astrology":
+                mode = "deep_dive"  # Will add astrology-specific context
+            elif request.lens == "human_design":
+                mode = "deep_dive"
+            elif request.lens == "numerology":
+                mode = "deep_dive"
+            elif is_keystone_followup:
+                mode = "daily_insight"
+            else:
+                mode = "reflection_chat"
             
-            # Send user message
-            message = UserMessage(text=request.message)
-            response_text = await chat.send_message(message)
+            # Build context for emergent_generate
+            emit_context = {
+                "lens": request.lens or "generalist",
+                "is_keystone_followup": is_keystone_followup,
+                "has_thread": thread_state is not None
+            }
+            if thread_state:
+                emit_context["thread_tone"] = thread_state.get("tone", "unclear")
+                emit_context["thread_remaining"] = thread_state.get("remaining_turns", 0)
+            
+            # Use centralized contract-enforced generation
+            response_text = await emergent_generate(
+                mode=mode,
+                user_message=request.message,
+                endpoint="mirror_chat",
+                user_id=request.user_id,
+                context=emit_context,
+                additional_system_prompt=system_prompt,  # Pass the full system prompt we built
+                model="gpt-5.2"
+            )
             
             # Log request (no user text)
-            logger.info(f"Mirror chat: user={request.user_id}, lens={request.lens or 'generalist'}")
+            logger.info(f"Mirror chat via emergent_generate: user={request.user_id}, lens={request.lens or 'generalist'}, mode={mode}")
             
         except Exception as llm_error:
             logger.error(f"LLM call failed for user {request.user_id}: {type(llm_error).__name__}")
-            response_text = FALLBACK_RESPONSE
+            from emergent_contract import get_safe_fallback
+            response_text = get_safe_fallback(mode if 'mode' in dir() else "reflection_chat")
         
-        # ===== GUARDRAIL ENFORCEMENT (only if not fallback) =====
-        if response_text != FALLBACK_RESPONSE:
-            violations = check_guardrail_violations(response_text)
-            if violations:
-                # Log violations (types and counts only, no user text)
-                violation_types = list(violations.keys())
-                for vtype in violation_types:
-                    guardrail_violation_counts[vtype] += 1
-                guardrail_violation_counts["total_rewrites"] += 1
-                
-                logger.warning(f"Guardrail violations detected: {violation_types}. Total rewrites: {guardrail_violation_counts['total_rewrites']}")
-                
-                # Rewrite for compliance
-                response_text = await rewrite_for_compliance(response_text, violations)
-                logger.info(f"Response rewritten for compliance. Violation types: {violation_types}")
-        # ===== END GUARDRAIL ENFORCEMENT =====
+        # Note: Guardrail enforcement is now handled INSIDE emergent_generate()
+        # The contract module does validation, rewriting, and regeneration automatically
         
         # Store in history
         history.append({"role": "user", "content": request.message})
