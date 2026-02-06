@@ -793,16 +793,49 @@ What in this description feels recognisable to you?"""
 
 
 def apply_astrology_guardrails(response_text: str) -> str:
-    """Check astrology response for forbidden patterns and reframe if needed."""
+    """Check astrology response for forbidden patterns and reframe if needed.
+    
+    Enforces allowed/forbidden language rules:
+    - No fate/destiny framing
+    - No predictive claims
+    - No authority language
+    - No spiritualized assertions
+    - No therapeutic directives
+    """
     forbidden_patterns = [
+        # Predictive claims
         (r"\bwill happen\b", "may be experienced as"),
         (r"\byou will\b", "you may notice"),
+        (r"\bthis will\b", "this can"),
+        (r"\bthis leads to\b", "this sometimes correlates with"),
+        
+        # Authority language
+        (r"\bthis means you are\b", "this can feel like being"),
         (r"\bthis means\b", "this often correlates with"),
-        (r"\byou should\b", "you might explore"),
-        (r"\byou need to\b", "it may help to"),
+        (r"\bthis shows that you must\b", "this may suggest"),
+        (r"\byou must\b", "you might"),
+        
+        # Fate/destiny framing
         (r"\bdestiny\b", "pattern"),
         (r"\bfate\b", "tendency"),
         (r"\bmeant to\b", "inclined toward"),
+        (r"\byour purpose is\b", "one possible orientation is"),
+        (r"\byou are destined\b", "you may be drawn"),
+        
+        # Spiritualized assertions
+        (r"\bsoul contract\b", "inner pattern"),
+        (r"\bkarmic duty\b", "recurring theme"),
+        (r"\bkarmic\b", "recurring"),
+        (r"\bhigher calling\b", "deeper inclination"),
+        (r"\bspiritual mission\b", "underlying orientation"),
+        
+        # Therapeutic/coaching directives
+        (r"\byou should\b", "you might explore"),
+        (r"\byou need to\b", "it may help to"),
+        (r"\byou should work on\b", "you might notice"),
+        (r"\btry to heal\b", "consider exploring"),
+        (r"\bthe lesson is\b", "one pattern that emerges is"),
+        (r"\byou need to learn\b", "you may find value in exploring"),
     ]
     
     result = response_text
