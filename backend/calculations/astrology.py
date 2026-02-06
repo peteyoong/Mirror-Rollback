@@ -262,49 +262,6 @@ def get_house_for_planet(planet_longitude: float, house_cusps: List[float]) -> i
 
 
 # =============================================================================
-# COMPUTE INTEGRITY ERROR - Standardized Error Object
-# =============================================================================
-class ComputeIntegrityError(Exception):
-    """Raised when the astrology compute contract validation fails.
-    
-    This exception contains structured error information that can be
-    serialized to JSON for API responses.
-    """
-    def __init__(self, errors: List[str], partial_data: Optional[Dict] = None):
-        self.errors = errors
-        self.partial_data = partial_data
-        super().__init__(f"Compute Integrity Error: {'; '.join(errors)}")
-    
-    def to_dict(self) -> Dict:
-        """Return standardized compute integrity error object."""
-        return {
-            "compute_integrity": {
-                "valid": False,
-                "errors": self.errors,
-                "error_count": len(self.errors),
-                "message": "Chart computation failed integrity checks. Do not interpret partial data."
-            },
-            "partial_data": self.partial_data  # For debugging only
-        }
-
-
-def get_compute_integrity_error(errors: List[str], partial_data: Optional[Dict] = None) -> Dict:
-    """Return a standardized compute integrity error object (non-exception version).
-    
-    Use this when you need to return an error dict instead of raising.
-    """
-    return {
-        "compute_integrity": {
-            "valid": False,
-            "errors": errors,
-            "error_count": len(errors),
-            "message": "Chart computation failed integrity checks. Do not interpret partial data."
-        },
-        "partial_data": partial_data
-    }
-
-
-# =============================================================================
 # ASPECT CALCULATION (Production - moved before get_full_natal_chart)
 # =============================================================================
 ASPECT_TYPES = {
