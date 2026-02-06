@@ -4693,15 +4693,24 @@ async def get_astrology_deep_dive(user_id: str):
             rising_sign=placements['rising_sign']
         )
         
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"astro_deep_{user_id}_{datetime.now().strftime('%Y%m%d')}",
-            system_message=system_prompt
-        )
-        chat.with_model("openai", "gpt-5.2")
+        # ===== USE EMERGENT CONTRACT =====
+        from emergent_contract import emergent_generate, log_direct_llm_usage
         
-        message = UserMessage(text="Generate the Deep Dive for this user's core structure. Return ONLY valid JSON.")
-        response_text = await chat.send_message(message)
+        # Generate using contract-enforced wrapper
+        response_text = await emergent_generate(
+            mode="deep_dive",
+            user_message="Generate the Deep Dive for this user's core structure. Return ONLY valid JSON.",
+            endpoint="astrology_deep_dive",
+            user_id=user_id,
+            context={
+                "lens": "astrology",
+                "sun_sign": placements['sun_sign'],
+                "moon_sign": placements['moon_sign'],
+                "rising_sign": placements['rising_sign']
+            },
+            additional_system_prompt=system_prompt,
+            model="gpt-5.2"
+        )
         
         # Parse JSON response
         try:
