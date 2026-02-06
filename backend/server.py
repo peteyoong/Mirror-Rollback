@@ -5976,7 +5976,18 @@ async def save_enneagram_result(request: EnneagramResultSave):
                     "left": request.debug_scores.wing_scores.left,
                     "right": request.debug_scores.wing_scores.right,
                     "diff": request.debug_scores.wing_scores.diff
-                }
+                },
+                # Extended debug data (v2 - optional fields)
+                "mean_likert": request.debug_scores.mean_likert if request.debug_scores.mean_likert else {},
+                "forced_hits": request.debug_scores.forced_hits if request.debug_scores.forced_hits else {},
+                "probabilities": request.debug_scores.probabilities if request.debug_scores.probabilities else {},
+                "wing_access": {
+                    "left_type": request.debug_scores.wing_access.left_type,
+                    "right_type": request.debug_scores.wing_access.right_type,
+                    "left_accessible": request.debug_scores.wing_access.left_accessible,
+                    "right_accessible": request.debug_scores.wing_access.right_accessible,
+                    "dominant_wing": request.debug_scores.wing_access.dominant_wing
+                } if request.debug_scores.wing_access else {}
             },
             # Add enriched computed details
             "enneagram_computed_details": enneagram_computed_details,
