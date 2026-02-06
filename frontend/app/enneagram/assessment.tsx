@@ -878,13 +878,17 @@ const getWingQuestionsForType = (coreType: number): WingQuestion[] => {
 // SECTION QUESTIONS
 // ============================================
 
-// Section 2: Disambiguation Questions (6 total)
+// Section 2: Disambiguation Questions (9 total - UPDATED v2)
+// FC multiplier reduced from 1.5 to 1.0
+// FC01-FC03 rewritten to use expansion framing for Type 7
+// FC07-FC09 added for 7/8/3/6 cluster discrimination
 const DISAMBIGUATION_QUESTIONS: ForcedChoiceQuestion[] = [
+  // FC01-FC03: Type 7 disambiguation with EXPANSION framing (not avoidance)
   {
     id: 'FC01',
     prompt: 'Which feels closer underneath?',
-    optionA: 'I pursue experiences and possibilities to avoid feeling restricted or deprived.',
-    optionB: 'I pursue achievement to feel valuable and successful.',
+    optionA: 'I pursue many experiences because the world is full of exciting possibilities.',
+    optionB: 'I pursue goals strategically because success opens doors and earns respect.',
     optionAType: 7,
     optionBType: 3,
     type: 'forced_choice',
@@ -892,8 +896,8 @@ const DISAMBIGUATION_QUESTIONS: ForcedChoiceQuestion[] = [
   {
     id: 'FC02',
     prompt: 'Which feels closer underneath?',
-    optionA: 'I keep options open to avoid feeling trapped or limited.',
-    optionB: 'I scan ahead to anticipate risks and ensure safety.',
+    optionA: 'I generate enthusiasm and momentum to expand what is possible.',
+    optionB: 'I think carefully and prepare so I am ready for whatever comes.',
     optionAType: 7,
     optionBType: 6,
     type: 'forced_choice',
@@ -901,12 +905,13 @@ const DISAMBIGUATION_QUESTIONS: ForcedChoiceQuestion[] = [
   {
     id: 'FC03',
     prompt: 'Which feels closer underneath?',
-    optionA: 'I avoid being boxed in so I can stay free and stimulated.',
-    optionB: 'I push back so no one has power over me.',
+    optionA: 'I move quickly toward new opportunities and enjoy the variety.',
+    optionB: 'I take charge directly and make things happen through force of will.',
     optionAType: 7,
     optionBType: 8,
     type: 'forced_choice',
   },
+  // FC04-FC06: Original discrimination items (kept)
   {
     id: 'FC04',
     prompt: 'Which feels closer underneath?',
@@ -929,9 +934,37 @@ const DISAMBIGUATION_QUESTIONS: ForcedChoiceQuestion[] = [
     id: 'FC06',
     prompt: 'Which feels closer underneath?',
     optionA: 'I stay connected by being useful and supportive.',
-    optionB: 'I stay connected by avoiding tension and disagreement.',
+    optionB: 'I stay connected by maintaining harmony and avoiding friction.',
     optionAType: 2,
     optionBType: 9,
+    type: 'forced_choice',
+  },
+  // FC07-FC09: NEW - 7/8/3/6 cluster discrimination
+  {
+    id: 'FC07',
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I dislike being limited by rules and prefer to follow my own instincts.',
+    optionB: 'I appreciate clear guidelines and feel uneasy when expectations are vague.',
+    optionAType: 8,
+    optionBType: 6,
+    type: 'forced_choice',
+  },
+  {
+    id: 'FC08',
+    prompt: 'Which feels closer underneath?',
+    optionA: 'I am more motivated by the excitement of starting things than finishing them.',
+    optionB: 'I am more motivated by completing things and seeing measurable results.',
+    optionAType: 7,
+    optionBType: 3,
+    type: 'forced_choice',
+  },
+  {
+    id: 'FC09',
+    prompt: 'Which feels closer underneath?',
+    optionA: 'When challenged, I push back and assert my position directly.',
+    optionB: 'When challenged, I consider multiple angles before responding.',
+    optionAType: 8,
+    optionBType: 6,
     type: 'forced_choice',
   },
 ];
