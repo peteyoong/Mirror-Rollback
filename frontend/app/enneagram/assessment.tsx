@@ -288,41 +288,43 @@ const CORE_MOTIVATION_QUESTIONS: LikertQuestion[] = [
   },
 
   // TYPE 4 - The Individualist
+  // UPDATED: Specific behavioral tradeoffs, not generic introspection
   {
     id: 'Q10',
-    text: 'I am preoccupied with understanding who I truly am and what makes me distinct.',
+    text: 'I would rather feel deeply understood by a few than broadly liked by many.',
     type: 'likert',
     typeMapping: 4,
   },
   {
     id: 'Q11',
-    text: 'I often feel a sense of longing for something essential that feels missing.',
+    text: 'I have withdrawn from opportunities because they felt ordinary or inauthentic.',
     type: 'likert',
     typeMapping: 4,
   },
   {
     id: 'Q12',
-    text: 'Meaning and emotional depth matter more to me than practicality.',
+    text: 'I sometimes envy what others have while also feeling my experience is fundamentally different from theirs.',
     type: 'likert',
     typeMapping: 4,
   },
 
   // TYPE 5 - The Investigator
+  // UPDATED: Specific behavioral tradeoffs, not generic wisdom
   {
     id: 'Q13',
-    text: 'I feel safest when I have sufficient knowledge, clarity, and inner resources.',
+    text: 'I routinely decline social invitations to protect time for thinking or projects.',
     type: 'likert',
     typeMapping: 5,
   },
   {
     id: 'Q14',
-    text: 'I am instinctively careful about how much of myself — time, energy, or attention — I give.',
+    text: 'I delay taking action until I have gathered enough information, even when others want me to move faster.',
     type: 'likert',
     typeMapping: 5,
   },
   {
     id: 'Q15',
-    text: 'Understanding precedes action for me; I dislike acting without grasping the whole picture.',
+    text: 'I feel drained after extended interaction and need significant alone time to recover.',
     type: 'likert',
     typeMapping: 5,
   },
