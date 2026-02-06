@@ -8,11 +8,20 @@ Outputs must remain stable across versions.
 Do NOT modify without updating regression tests and bumping computation_version.
 
 Current version: mirror-deterministic-v1
+
+SYMBOLIC COMPUTE CONTRACT:
+This module implements the SymbolicComputeContract interface for Human Design.
+All payloads must include compute_integrity validation.
 ===============================================================================
 """
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Tuple, Optional
-from .astrology import get_full_natal_chart, normalize_degrees, ComputeIntegrityError
+from .astrology import get_full_natal_chart, normalize_degrees
+from .symbolic_compute_contract import (
+    ComputeIntegrityError,
+    ComputeIntegrityResult,
+    HUMAN_DESIGN_REQUIRED_KEYS
+)
 import swisseph as swe
 import math
 
