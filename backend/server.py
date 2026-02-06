@@ -5405,6 +5405,46 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
 # NUMEROLOGY LENS ENDPOINTS
 # =====================================================================
 
+def _format_master_number(num: int) -> str:
+    """Format master numbers as 11/2, 22/4, 33/6"""
+    if num == 11:
+        return "11/2"
+    elif num == 22:
+        return "22/4"
+    elif num == 33:
+        return "33/6"
+    return str(num)
+
+def _get_master_number_fallback_text(life_path: int) -> str:
+    """Generate fallback text that properly handles master numbers."""
+    if life_path == 11:
+        return (
+            "Life Path 11/2 is a master number — carrying both the heightened sensitivity and intuition of 11, "
+            "and the diplomatic, cooperative qualities of its base number 2. This dual energy often shows up as "
+            "a recurring theme of learning to balance visionary perception with partnership and harmony. "
+            "It's not about who you are, but about what tends to show up as territory for exploration."
+        )
+    elif life_path == 22:
+        return (
+            "Life Path 22/4 is a master number — carrying both the visionary builder capacity of 22, "
+            "and the practical, foundation-building qualities of its base number 4. This dual energy often shows up as "
+            "a recurring theme of learning to ground big-picture vision into tangible form. "
+            "It's not about who you are, but about what tends to show up as territory for exploration."
+        )
+    elif life_path == 33:
+        return (
+            "Life Path 33/6 is a master number — carrying both the master teacher energy of 33, "
+            "and the nurturing, responsibility-oriented qualities of its base number 6. This dual energy often shows up as "
+            "a recurring theme of learning to integrate compassionate guidance with practical care. "
+            "It's not about who you are, but about what tends to show up as territory for exploration."
+        )
+    else:
+        return (
+            f"Life Path {life_path} often describes a recurring theme of learning and growth. "
+            "This isn't about who you are, but about what tends to show up as territory for exploration."
+        )
+
+
 async def get_user_numerology_data(user_id: str):
     """Helper to fetch user and chart numerology data."""
     user = await db.users.find_one({"_id": ObjectId(user_id)})
