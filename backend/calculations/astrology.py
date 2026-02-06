@@ -8,6 +8,10 @@ Outputs must remain stable across versions.
 Do NOT modify without updating regression tests and bumping computation_version.
 
 Current version: mirror-deterministic-v1
+
+SYMBOLIC COMPUTE CONTRACT:
+This module implements the SymbolicComputeContract interface for Astrology.
+All payloads must include compute_integrity validation.
 ===============================================================================
 
 This module implements True Sidereal astrology with:
@@ -26,6 +30,14 @@ import swisseph as swe
 from datetime import datetime
 from typing import Dict, List, Optional
 import math
+
+# Import from shared symbolic compute contract
+from .symbolic_compute_contract import (
+    ComputeIntegrityError,
+    ComputeIntegrityResult,
+    SymbolicPayload,
+    ASTROLOGY_REQUIRED_KEYS
+)
 
 # Set ephemeris path (Swiss Ephemeris will use built-in data)
 swe.set_ephe_path(None)
