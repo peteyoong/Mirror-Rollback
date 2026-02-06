@@ -2980,7 +2980,16 @@ async def mirror_chat(request: MirrorChatRequest):
                 # Defined Channels if available
                 defined_channels = hd.get('defined_channels', [])
                 if defined_channels:
-                    context_parts.append(f"Defined Channels: {', '.join(defined_channels[:5])}")  # Limit to first 5
+                    # Handle both string and dict formats for channels
+                    channel_strs = []
+                    for channel in defined_channels[:5]:  # Limit to first 5
+                        if isinstance(channel, dict):
+                            gate1 = channel.get('gate1', '')
+                            gate2 = channel.get('gate2', '')
+                            channel_strs.append(f"{gate1}-{gate2}")
+                        else:
+                            channel_strs.append(str(channel))
+                    context_parts.append(f"Defined Channels: {', '.join(channel_strs)}")
             
             # Numerology context
             numerology = chart.get('numerology', {})
