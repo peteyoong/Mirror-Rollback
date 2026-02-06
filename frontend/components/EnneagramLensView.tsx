@@ -1147,6 +1147,82 @@ export default function EnneagramLensView({ result, userId }: Props) {
   );
 
   // ============================================
+  // Q&A MODAL (hidden initially, opened from trait cards)
+  // ============================================
+
+  const renderQAModal = () => (
+    <Modal
+      visible={showQAModal}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setShowQAModal(false)}
+    >
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.qaModalOverlay}
+      >
+        <View style={styles.qaModalContent}>
+          {/* Header */}
+          <View style={styles.qaModalHeader}>
+            <Text style={styles.qaModalTitle}>Ask About Enneagram</Text>
+            <TouchableOpacity onPress={() => setShowQAModal(false)}>
+              <Ionicons name="close" size={24} color={Colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Answer Area */}
+          {qaAnswer && (
+            <View style={styles.qaAnswerContainer}>
+              <ScrollView style={styles.qaAnswerScroll} showsVerticalScrollIndicator={false}>
+                <Text style={styles.qaAnswerText}>{qaAnswer}</Text>
+              </ScrollView>
+            </View>
+          )}
+          
+          {qaLoading && (
+            <View style={styles.qaLoadingContainer}>
+              <ActivityIndicator size="small" color={Colors.textSecondary} />
+              <Text style={styles.qaLoadingText}>Searching book knowledge...</Text>
+            </View>
+          )}
+          
+          {/* Input Area */}
+          <View style={styles.qaInputContainer}>
+            <TextInput
+              style={styles.qaInput}
+              value={qaQuestion}
+              onChangeText={setQaQuestion}
+              placeholder="Ask about your type, patterns, or the Enneagram..."
+              placeholderTextColor={Colors.textTertiary}
+              multiline
+              maxLength={500}
+              editable={!qaLoading}
+            />
+            <TouchableOpacity 
+              style={[
+                styles.qaSendButton,
+                (!qaQuestion.trim() || qaLoading) && styles.qaSendButtonDisabled
+              ]}
+              onPress={() => handleAskQuestion()}
+              disabled={!qaQuestion.trim() || qaLoading}
+            >
+              <Ionicons 
+                name="send" 
+                size={18} 
+                color={(!qaQuestion.trim() || qaLoading) ? Colors.textTertiary : Colors.background} 
+              />
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={styles.qaDisclaimer}>
+            Answers are drawn from Enneagram literature. Use as reflection, not prescription.
+          </Text>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+
+  // ============================================
   // MAIN RENDER
   // ============================================
 
@@ -1167,6 +1243,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
       </ScrollView>
       
       {renderRetakeModal()}
+      {renderQAModal()}
     </View>
   );
 }
