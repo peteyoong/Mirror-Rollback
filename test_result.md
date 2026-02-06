@@ -853,16 +853,43 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 1
+  test_sequence: 2
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Emergent Contract Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "main"
+    message: |
+      EMERGENT! AI CONTRACT INTEGRATION COMPLETE
+      
+      Implemented the Emergent! system-wide AI contract as the governing philosophy for ALL AI outputs:
+      
+      NEW FILE: /app/backend/emergent_contract.py
+      - EMERGENT_SYSTEM_CONTRACT: Master philosophy enforced on all AI calls
+      - MODE_CONTRACTS: 9 context-specific overlays (daily_insight, reflection_chat, relationship, timeline, deep_dive, enneagram, journal_prompt, synthesis, general)
+      - emergent_generate(): Single entry point wrapper for ALL AI generation
+      - Validator with severity levels: WARNING (log), REWRITE (auto-fix), BLOCK (regenerate)
+      - Analytics logging for tuning loop
+      
+      REFACTORED ENDPOINTS (Priority Order):
+      1. POST /api/reflection/chat - Now uses emergent_generate(mode="reflection_chat")
+      2. GET /api/mirror/home/{user_id} (Daily Keystone) - Now uses emergent_generate(mode="daily_insight")
+      3. POST /api/mirror/chat - Now uses emergent_generate() with dynamic mode selection
+      
+      NEW ENDPOINTS:
+      - GET /api/emergent-contract/analytics - Contract compliance metrics
+      - GET /api/emergent-contract/modes - Available mode contracts
+      
+      PLEASE TEST:
+      1. Reflection Chat endpoint with sample messages
+      2. Contract analytics endpoint
+      3. Verify responses follow contract (no "you should", "you will", etc.)
   - agent: "testing"
     message: |
       NUMEROLOGY FULL NAME GATE FIX TESTING COMPLETE ✅
