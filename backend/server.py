@@ -6054,6 +6054,111 @@ async def get_enneagram_result(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/enneagram/raw-scores/{user_id}")
+async def get_enneagram_raw_scores(user_id: str):
+    """
+    Expose raw Enneagram scoring output for debugging purposes.
+    
+    Returns ONLY the raw computed scores without any interpretation,
+    rebalancing, or confidence/wing logic.
+    
+    Output format:
+    - enneagram_raw_scores: Dict mapping type "1"-"9" to raw score
+    - normalization_method: Brief explanation of how scores were computed
+    - top_three_types: Top 3 types by raw score (no interpretation)
+    """
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get the result from enneagram_results collection
+        result = await db.enneagram_results.find_one({"user_id": user_id})
+        
+        if not result:
+            raise HTTPException(
+                status_code=404, 
+                detail="No Enneagram assessment found for this user"
+            )
+        
+        # Extract debug_scores which contains raw_scores
+        debug_scores = result.get("debug_scores", {})
+        raw_scores = debug_scores.get("raw_scores", {})
+        z_scores = debug_scores.get("z_scores", {})
+        
+        if not raw_scores:
+            raise HTTPException(
+                status_code=404,
+                detail="No raw scores found in assessment data"
+            )
+        
+        # Ensure all types 1-9 are represented (fill missing with 0)
+        enneagram_raw_scores = {}
+        for type_num in range(1, 10):
+            key = str(type_num)
+            enneagram_raw_scores[key] = raw_scores.get(key, 0.0)
+        
+        # Compute top 3 by raw score (no interpretation, just sorting)
+        sorted_types = sorted(
+            [(int(k), v) for k, v in enneagram_raw_scores.items()],
+            key=lambda x: x[1],
+            reverse=True
+        )
+        top_three = [
+            {"type": t, "score": round(s, 4)} 
+            for t, s in sorted_types[:3]
+        ]
+        
+        # Build normalization explanation
+        normalization_method = (
+            "Scores computed from assessment responses using weighted question mapping. "
+            "Each question maps to one or more Enneagram types with specific weights. "
+            "Raw scores are the sum of weighted responses (response_value * question_weight) "
+            "for each type. No post-processing, rebalancing, or confidence adjustment applied "
+            "to these raw values."
+        )
+        
+        # Include z_scores if available for additional context
+        z_scores_output = {}
+        if z_scores:
+            for type_num in range(1, 10):
+                key = str(type_num)
+                z_scores_output[key] = z_scores.get(key, 0.0)
+        
+        response = {
+            "enneagram_raw_scores": enneagram_raw_scores,
+            "normalization_method": normalization_method,
+            "top_three_types": top_three,
+        }
+        
+        # Include z_scores as additional diagnostic info if available
+        if z_scores_output:
+            response["z_scores"] = z_scores_output
+            response["z_score_note"] = (
+                "Z-scores represent standardized scores (how many standard deviations "
+                "from the mean). Higher z-scores indicate stronger affinity relative "
+                "to the population baseline."
+            )
+        
+        # Include assessment metadata for transparency
+        response["assessment_metadata"] = {
+            "method": result.get("method", "unknown"),
+            "version": result.get("version", "unknown"),
+            "assessed_at": result.get("created_at").isoformat() if result.get("created_at") else None
+        }
+        
+        logger.info(f"[Enneagram] Raw scores requested for user {user_id}")
+        
+        return response
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get Enneagram raw scores error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # =============================================================================
 # ENNEAGRAM Q&A ENDPOINT (Knowledge Base)
 # =============================================================================
