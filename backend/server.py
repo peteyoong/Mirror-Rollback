@@ -1635,6 +1635,41 @@ async def root():
     return {"message": "Project Mirror API", "version": "1.0"}
 
 
+@api_router.get("/emergent-contract/analytics")
+async def get_contract_analytics():
+    """
+    Get analytics on Emergent! contract compliance.
+    
+    Returns metrics on:
+    - Total AI generations
+    - Violations by type
+    - Rewrite and block rates
+    - Breakdown by endpoint and mode
+    """
+    from emergent_contract import get_analytics_summary
+    
+    return {
+        "status": "ok",
+        "contract_version": "1.0",
+        "analytics": get_analytics_summary()
+    }
+
+
+@api_router.get("/emergent-contract/modes")
+async def get_available_modes():
+    """Get list of available mode contracts for the Emergent! system"""
+    from emergent_contract import get_available_modes, MODE_CONTRACTS
+    
+    modes = get_available_modes()
+    return {
+        "modes": modes,
+        "mode_descriptions": {
+            mode: MODE_CONTRACTS[mode].split('\n')[1].strip() if MODE_CONTRACTS[mode] else ""
+            for mode in modes
+        }
+    }
+
+
 @api_router.post("/locations/search")
 async def search_locations(request: LocationSearchRequest):
     """Search for locations with autocomplete"""
