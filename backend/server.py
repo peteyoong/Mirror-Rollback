@@ -5370,11 +5370,18 @@ def extract_numerology_data(chart: dict, user: dict) -> dict:
     life_path = numerology.get("life_path")
     birthday = numerology.get("birthday")
     
-    # Name-based (optional)
+    # Name-based (optional) - require ALL of them to be considered "has_name_numbers"
     expression = numerology.get("expression")
     soul_urge = numerology.get("soul_urge")
     personality = numerology.get("personality")
-    has_name_numbers = numerology.get("has_name_numbers", bool(expression or soul_urge or personality))
+    
+    # Only consider name numbers complete if ALL three are present
+    # This fixes an issue where old charts might have partial name numbers
+    has_name_numbers = bool(expression and soul_urge and personality) or numerology.get("has_name_numbers", False)
+    
+    # Additional check: if chart says has_name_numbers but some are missing, override
+    if has_name_numbers and (not expression or not soul_urge):
+        has_name_numbers = False
     
     return {
         "life_path_number": get_number(life_path, "Unknown"),
