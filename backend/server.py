@@ -5612,6 +5612,15 @@ async def save_enneagram_result(request: EnneagramResultSave):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
+        # Compute enriched Enneagram details (triads, lines, groups)
+        enneagram_computed_details = compute_enneagram_details(
+            core_type=request.inferred_core,
+            wing=request.inferred_wing if isinstance(request.inferred_wing, int) else 0,
+            wing_left_score=request.debug_scores.wing_scores.left,
+            wing_right_score=request.debug_scores.wing_scores.right,
+            confidence=request.confidence
+        )
+        
         # Create the result document
         result_doc = {
             "user_id": request.user_id,
@@ -5637,6 +5646,8 @@ async def save_enneagram_result(request: EnneagramResultSave):
                     "diff": request.debug_scores.wing_scores.diff
                 }
             },
+            # Add enriched computed details
+            "enneagram_computed_details": enneagram_computed_details,
             "created_at": datetime.now(timezone.utc)
         }
         
@@ -5656,6 +5667,7 @@ async def save_enneagram_result(request: EnneagramResultSave):
                     "inferred_wing": request.inferred_wing,
                     "confidence": request.confidence,
                     "confidence_tier": request.confidence_tier,
+                    "enneagram_computed_details": enneagram_computed_details,
                     "assessed_at": datetime.now(timezone.utc)
                 }
             }}
@@ -5669,7 +5681,8 @@ async def save_enneagram_result(request: EnneagramResultSave):
             "result": {
                 "inferred_core": request.inferred_core,
                 "inferred_wing": request.inferred_wing,
-                "confidence_tier": request.confidence_tier
+                "confidence_tier": request.confidence_tier,
+                "enneagram_computed_details": enneagram_computed_details
             }
         }
     
