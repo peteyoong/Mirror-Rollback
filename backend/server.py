@@ -5464,6 +5464,9 @@ async def get_numerology_summary(user_id: str):
             else:
                 result["unlock_prompt"] = None
             
+            # Add full birth name if available
+            result["full_birth_name"] = data.get("full_birth_name")
+            
             return result
             
         except json_module.JSONDecodeError as e:
