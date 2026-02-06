@@ -6134,14 +6134,21 @@ async def get_enneagram_raw_scores(user_id: str):
             for t, s in sorted_types[:3]
         ]
         
-        # Build normalization explanation
-        normalization_method = (
-            "Scores computed from assessment responses using weighted question mapping. "
-            "Each question maps to one or more Enneagram types with specific weights. "
-            "Raw scores are the sum of weighted responses (response_value * question_weight) "
-            "for each type. No post-processing, rebalancing, or confidence adjustment applied "
-            "to these raw values."
-        )
+        # Build normalization explanation (updated for v2)
+        version = result.get("version", "v1")
+        if version == "v2":
+            normalization_method = (
+                "v2 Scoring: raw_score = mean_likert + (1.0 × forced_hits). "
+                "FC multiplier reduced from 1.5 to 1.0. "
+                "Confidence tiers: high (top>=0.45, gap>=0.15), medium (top>=0.33, gap>=0.08), low (else). "
+                "Wing access: accessible if normalized>=0.20, dominant if >=0.25 and diff>=0.07."
+            )
+        else:
+            normalization_method = (
+                "v1 Scoring: raw_score = mean_likert + (1.5 × forced_hits). "
+                "Confidence tiers: high (>=0.75), medium (>=0.60), low (else). "
+                "Wing: balanced if diff<0.6, else dominant."
+            )
         
         # Include z_scores if available for additional context
         z_scores_output = {}
@@ -6150,6 +6157,7 @@ async def get_enneagram_raw_scores(user_id: str):
                 key = str(type_num)
                 z_scores_output[key] = z_scores.get(key, 0.0)
         
+        # Build response with all debug data
         response = {
             "enneagram_raw_scores": enneagram_raw_scores,
             "normalization_method": normalization_method,
@@ -6159,17 +6167,33 @@ async def get_enneagram_raw_scores(user_id: str):
         # Include z_scores as additional diagnostic info if available
         if z_scores_output:
             response["z_scores"] = z_scores_output
-            response["z_score_note"] = (
-                "Z-scores represent standardized scores (how many standard deviations "
-                "from the mean). Higher z-scores indicate stronger affinity relative "
-                "to the population baseline."
-            )
+        
+        # Extended debug data (v2)
+        mean_likert = debug_scores.get("mean_likert", {})
+        forced_hits = debug_scores.get("forced_hits", {})
+        probabilities = debug_scores.get("probabilities", {})
+        wing_access = debug_scores.get("wing_access", {})
+        
+        # Build comprehensive debug object
+        response["debug"] = {
+            "mean_likert_per_type": mean_likert if mean_likert else {str(i): 0.0 for i in range(1, 10)},
+            "forced_hits_per_type": forced_hits if forced_hits else {str(i): 0 for i in range(1, 10)},
+            "raw_score_per_type": enneagram_raw_scores,
+            "z_score_per_type": z_scores_output,
+            "probability_per_type": probabilities if probabilities else {},
+            "wing_scores": debug_scores.get("wing_scores", {}),
+            "wing_access": wing_access if wing_access else {}
+        }
         
         # Include assessment metadata for transparency
         response["assessment_metadata"] = {
             "method": result.get("method", "unknown"),
-            "version": result.get("version", "unknown"),
-            "assessed_at": result.get("created_at").isoformat() if result.get("created_at") else None
+            "version": version,
+            "assessed_at": result.get("created_at").isoformat() if result.get("created_at") else None,
+            "inferred_core": result.get("inferred_core"),
+            "inferred_wing": result.get("inferred_wing"),
+            "confidence": result.get("confidence"),
+            "confidence_tier": result.get("confidence_tier")
         }
         
         logger.info(f"[Enneagram] Raw scores requested for user {user_id}")
