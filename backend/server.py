@@ -3037,6 +3037,37 @@ async def mirror_chat(request: MirrorChatRequest):
                         context_parts.append(f"Personal Month: {cycles['personal_month']['number']} ({cycles['personal_month']['description']})")
                         context_parts.append(f"Personal Day: {cycles['personal_day']['number']} ({cycles['personal_day']['description']})")
         
+            # Enneagram context
+            enneagram_results = await db.enneagram_results.find_one({"user_id": request.user_id})
+            if enneagram_results and (request.lens is None or request.lens == "enneagram"):
+                context_parts.append("\n--- ENNEAGRAM ---")
+                core_type = enneagram_results.get('core_type', 'Unknown')
+                wing = enneagram_results.get('wing', '')
+                confidence = enneagram_results.get('confidence', 0)
+                computed = enneagram_results.get('enneagram_computed_details', {})
+                
+                # Type names for readability
+                type_names = {
+                    "1": "Reformer", "2": "Helper", "3": "Achiever", "4": "Individualist",
+                    "5": "Investigator", "6": "Loyalist", "7": "Enthusiast", "8": "Challenger", "9": "Peacemaker"
+                }
+                type_name = type_names.get(str(core_type), "Unknown")
+                
+                context_parts.append(f"Core Type: {core_type} ({type_name})")
+                if wing:
+                    context_parts.append(f"Wing: {wing}")
+                context_parts.append(f"Confidence: {confidence:.0%}" if isinstance(confidence, float) else f"Confidence: {confidence}")
+                
+                # Add instinctual variants if available
+                instincts = computed.get('instinctual_stack', computed.get('dominant_instinct', ''))
+                if instincts:
+                    context_parts.append(f"Instinctual Stack: {instincts}")
+                
+                # Add tritype if available
+                tritype = computed.get('tritype', '')
+                if tritype:
+                    context_parts.append(f"Tritype: {tritype}")
+        
         # Add recent journal entries if requested (LIMITED to MAX_JOURNAL_ENTRIES)
         if request.include_journal:
             journal_entries = await db.journal.find(
