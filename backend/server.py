@@ -24,6 +24,15 @@ from calculations.numerology import get_full_numerology, get_numerology_cycles
 from calculations.consciousness import get_consciousness_framework, analyze_consciousness_indicators
 from calculations.timezone_utils import resolve_birth_utc, parse_timezone
 
+# Import Enneagram Knowledge Base
+from enneagram_kb import (
+    initialize_knowledge_base,
+    get_knowledge_base,
+    is_knowledge_base_ready,
+    get_kb_status,
+    compute_enneagram_details
+)
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
