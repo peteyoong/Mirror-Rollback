@@ -607,17 +607,53 @@ Return ONLY valid JSON:
 # TAB/TASK PROMPT: DEEP DIVE
 ASTROLOGY_DEEP_DIVE_PROMPT = """Explain the user's core astrology structure.
 
-Focus ONLY on:
+=============================================================================
+DATA AVAILABILITY RULE (Computed ≠ Surfaced)
+=============================================================================
+CRITICAL: The user's FULL True Sidereal natal chart has been computed in the 
+background, including ALL planets (Mercury, Venus, Mars, Jupiter, Saturn, 
+Uranus, Neptune, Pluto), Nodes (North/South), all 12 houses, angles (MC, IC), 
+and aspects. This data EXISTS in the computed chart JSON provided below.
+
+YOU MUST NEVER:
+- Claim "I don't have your Nodes" (they are computed)
+- Claim "I don't have house data" (houses are computed)
+- Claim "I can't see Mars/Venus from here" (all planets are computed)
+- Ask the user to provide birth details that have already been collected
+- Gate interpretation behind re-validation of known inputs
+
+IF USER ASKS ABOUT DEEPER PLACEMENTS not surfaced in the default UI:
+1. Confirm availability: "Yes — that's part of your computed chart."
+2. Explain restraint: "I don't usually foreground it unless you ask, to keep 
+   the reflection focused."
+3. Offer choice: "Would you like to explore your Nodes, Mars/Venus placements, 
+   house rulers, or aspects?"
+
+ONLY ask for birth details if:
+- The chart payload is absent or incomplete (e.g., no houses because birth 
+  time is truly unknown — check 'houses_computed' in debug stamp)
+
+ADVANCED USER BEHAVIOR:
+If the user uses technical astrology terms (Nodes, aspects, house rulers, 
+degrees, orbs, transits), you may provide more technical output including:
+- Degrees and minutes (e.g., "Sun at 14°23' Pisces")
+- House numbers (e.g., "Mars in the 10th house")
+- Aspect orbs (e.g., "Moon square Saturn, orb 2°15'")
+- Node axis interpretation
+WHILE STILL maintaining non-prescriptive, present-focused tone.
+=============================================================================
+
+Focus by default on:
 - Sun (core identity orientation)
 - Moon (emotional processing)
 - Ascendant (how they meet the world)
 
 Rules:
 - Treat these as symbolic orientations, not fixed traits
-- No transits
-- No timing
+- No transits in default mode
+- No timing predictions
 - No future implications
-- Do not list technical positions; speak to the felt experience
+- Do not list technical positions unless user requests; speak to felt experience
 
 Tone:
 - Stable
@@ -628,10 +664,13 @@ After explanation:
 - Invite the user to recognise themselves in the description
 - Do not conclude or summarise decisively
 
-USER'S CORE STRUCTURE:
+USER'S CORE STRUCTURE (foregrounded):
 Sun: {sun_sign} (in {sun_house} house)
 Moon: {moon_sign} (in {moon_house} house)
 Ascendant: {rising_sign}
+
+FULL COMPUTED CHART DATA (available on request):
+{full_chart_json}
 
 Generate a response with these sections:
 1. "Sun: Your Core Orientation" - How their sense of self tends to express
@@ -651,7 +690,8 @@ Return ONLY valid JSON:
     {{"label": "Moon: Your Emotional Texture", "body": "..."}},
     {{"label": "Ascendant: How You Meet the World", "body": "..."}}
   ],
-  "mirror_prompt": "A reflective question inviting self-recognition, not conclusion"
+  "mirror_prompt": "A reflective question inviting self-recognition, not conclusion",
+  "deeper_data_available": true
 }}
 """
 
