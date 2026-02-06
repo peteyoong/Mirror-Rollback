@@ -118,14 +118,20 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       return value.split('/')[0];
     };
 
-    // Format incarnation cross with gates on separate line
+    // Format incarnation cross - show the full name
     const formatCross = () => {
       if (!mechanics.incarnation_cross || mechanics.incarnation_cross === 'Unknown') {
         return '—';
       }
-      // Clean up the label (e.g., "Right Angle Cross of 23/43" -> "Right Angle Cross")
-      const crossLabel = mechanics.incarnation_cross.replace(/\s*of\s*\d+\/\d+.*$/, '').trim();
-      return crossLabel;
+      // If it's a numbered cross like "Right Angle Cross of 37/40", extract just the type
+      // If it's a named cross like "Right Angle Cross of Migration", show the full name
+      const numbered = /\s*of\s*\d+\/\d+/;
+      if (numbered.test(mechanics.incarnation_cross)) {
+        // It's still numbered (old format) - just show the cross type
+        return mechanics.incarnation_cross.replace(/\s*of\s*\d+\/\d+.*$/, '').trim();
+      }
+      // It's a named cross - show it fully (e.g., "Right Angle Cross of Migration")
+      return mechanics.incarnation_cross;
     };
 
     const getCrossGates = () => {
