@@ -166,6 +166,235 @@ The user should finish reading feeling seen, empowered, and in control.
 """
 
 # ============================================================================
+# LEVELS OF CONSCIOUSNESS (LoC) META-GOVERNOR
+# ============================================================================
+# LoC is NOT a symbolic lens. It is an internal moderation tool that throttles:
+# - Symbolic density
+# - Interpretive intensity
+# - Language complexity
+# - Emotional load
+#
+# CORE RULE: LoC never adds content. It only limits depth and tone.
+# VISIBILITY RULE: Never mention LoC to users unless they explicitly ask.
+
+class LoCBand(Enum):
+    """Levels of Consciousness bands for throttling symbolic output."""
+    SURVIVAL = "survival"        # Lowest symbolic density
+    STABILIZING = "stabilizing"  # Very low symbolic density
+    MANAGING = "managing"        # Default, balanced
+    EXPANDING = "expanding"      # More symbolic allowed
+    INTEGRATIVE = "integrative"  # Highest tolerance for complexity
+
+
+LOC_GOVERNOR_RULES = {
+    LoCBand.SURVIVAL: {
+        "max_sentences": 4,
+        "max_lenses": 0,  # No symbolic interpretation
+        "allow_metaphor": False,
+        "allow_pattern_naming": False,
+        "allow_reflection_question": False,
+        "tone": "concrete, grounding, short sentences, facts-first",
+        "instruction": """
+LOC BAND: SURVIVAL/STABILIZING (Lowest symbolic density)
+
+ALLOWED:
+- Concrete, grounding language only
+- Short sentences (3-4 max)
+- Facts-first output (technical placements only if asked)
+- "One small step" framing without advice
+
+DISALLOW:
+- Symbolic interpretation beyond bare minimum
+- Multiple lenses in one response
+- Metaphor escalation
+- "Big picture" meaning-making
+- Extended reflection questions
+
+IF user asks a symbolic question:
+- Provide technical facts only (placements/numbers/gates)
+- Offer at most ONE gentle experiential sentence
+- End quickly with choice to stop or continue
+"""
+    },
+    
+    LoCBand.STABILIZING: {
+        "max_sentences": 5,
+        "max_lenses": 1,
+        "allow_metaphor": False,
+        "allow_pattern_naming": True,
+        "allow_reflection_question": False,
+        "tone": "grounded, simple, supportive",
+        "instruction": """
+LOC BAND: STABILIZING (Low symbolic density)
+
+ALLOWED:
+- Grounded, simple language
+- One lens at a time
+- Basic pattern naming
+- Short factual summaries
+
+DISALLOW:
+- Extended interpretation
+- Multiple lenses
+- Metaphor
+- Complex reflection questions
+"""
+    },
+    
+    LoCBand.MANAGING: {
+        "max_sentences": 8,
+        "max_lenses": 1,
+        "allow_metaphor": True,
+        "allow_pattern_naming": True,
+        "allow_reflection_question": True,
+        "tone": "balanced, grounded, optional reflection",
+        "instruction": """
+LOC BAND: MANAGING (Default, balanced)
+
+ALLOWED:
+- One lens at a time
+- Simple pattern naming
+- Optional reflection question
+- Minimal metaphor if grounded
+
+DISALLOW:
+- Stacking multiple systems
+- Extended interpretation
+- Metaphor escalation
+"""
+    },
+    
+    LoCBand.EXPANDING: {
+        "max_sentences": 12,
+        "max_lenses": 2,
+        "allow_metaphor": True,
+        "allow_pattern_naming": True,
+        "allow_reflection_question": True,
+        "tone": "richer language, still grounded, user-led",
+        "instruction": """
+LOC BAND: EXPANDING (More symbolic allowed, still optional)
+
+ALLOWED:
+- Richer language, still grounded
+- Optional second lens ONLY if user explicitly asks
+- Slightly longer reflective framing (still minimal)
+
+DISALLOW:
+- Synthesis or hierarchy across systems
+- Destiny framing
+- Unsolicited multi-lens interpretation
+"""
+    },
+    
+    LoCBand.INTEGRATIVE: {
+        "max_sentences": 16,
+        "max_lenses": 3,
+        "allow_metaphor": True,
+        "allow_pattern_naming": True,
+        "allow_reflection_question": True,
+        "tone": "nuanced, complexity-tolerant, user-led",
+        "instruction": """
+LOC BAND: INTEGRATIVE (Highest tolerance for complexity)
+
+ALLOWED:
+- Holding tensions (e.g. astrology vs HD) using collision rules
+- Meta-reflection about how lenses differ
+- User-led exploration across lenses
+- Nuanced, complexity-tolerant language
+
+DISALLOW:
+- Concluding "the truth" from systems
+- Collapsing multiple lenses into one takeaway
+- Uninvited synthesis
+"""
+    }
+}
+
+# Universal safety rules that apply to ALL LoC bands
+LOC_UNIVERSAL_SAFETY_RULES = """
+UNIVERSAL SAFETY RULES (ALL LOC BANDS):
+- Never initiate symbolic lenses unless user opted in (Reactive-by-default rule)
+- Never claim data is missing when computed (Computed ≠ Surfaced rule)
+- Never rank systems or synthesize them uninvited (Collision rule)
+- Never prescribe actions or assert identity/purpose
+- If user appears distressed, confused, or overwhelmed: throttle down immediately
+"""
+
+
+def get_loc_band(loc_value: Optional[str] = None, confidence: float = 0.0) -> LoCBand:
+    """
+    Determine the LoC band from input value.
+    
+    Args:
+        loc_value: String LoC band name (survival/stabilizing/managing/expanding/integrative)
+        confidence: Confidence score (0.0-1.0)
+    
+    Returns:
+        LoCBand enum value. Defaults to MANAGING if missing or low confidence.
+    """
+    # Default to MANAGING if missing or low confidence
+    if not loc_value or confidence < 0.3:
+        return LoCBand.MANAGING
+    
+    # Map string to enum
+    loc_mapping = {
+        "survival": LoCBand.SURVIVAL,
+        "stabilizing": LoCBand.STABILIZING,
+        "managing": LoCBand.MANAGING,
+        "expanding": LoCBand.EXPANDING,
+        "integrative": LoCBand.INTEGRATIVE,
+    }
+    
+    return loc_mapping.get(loc_value.lower(), LoCBand.MANAGING)
+
+
+def get_loc_instruction(band: LoCBand) -> str:
+    """Get the instruction text for a given LoC band."""
+    rules = LOC_GOVERNOR_RULES.get(band, LOC_GOVERNOR_RULES[LoCBand.MANAGING])
+    return rules["instruction"] + "\n" + LOC_UNIVERSAL_SAFETY_RULES
+
+
+def apply_loc_throttle(response_text: str, band: LoCBand) -> str:
+    """
+    Apply LoC-based throttling to response text.
+    
+    This function enforces output limits based on the LoC band:
+    - Truncates if too many sentences
+    - Removes metaphor-heavy language for lower bands
+    
+    Args:
+        response_text: The generated response
+        band: The LoC band to apply
+    
+    Returns:
+        Throttled response text
+    """
+    rules = LOC_GOVERNOR_RULES.get(band, LOC_GOVERNOR_RULES[LoCBand.MANAGING])
+    max_sentences = rules["max_sentences"]
+    
+    # Split into sentences (rough approximation)
+    sentences = re.split(r'(?<=[.!?])\s+', response_text)
+    
+    # Truncate if too many sentences
+    if len(sentences) > max_sentences:
+        sentences = sentences[:max_sentences]
+        # Add graceful ending if truncated
+        if not sentences[-1].endswith(('.', '!', '?')):
+            sentences[-1] = sentences[-1].rstrip() + '.'
+    
+    result = ' '.join(sentences)
+    
+    # For survival/stabilizing bands, remove metaphor-heavy phrases
+    if band in [LoCBand.SURVIVAL, LoCBand.STABILIZING]:
+        # Remove "like a", "as if", "imagine" phrases
+        result = re.sub(r'\blike a [^,\.]+[,\.]', '.', result)
+        result = re.sub(r'\bas if [^,\.]+[,\.]', '.', result)
+        result = re.sub(r'\bimagine [^,\.]+[,\.]', '.', result)
+    
+    return result
+
+
+# ============================================================================
 # MODE CONTRACTS - Context-Specific Overlays
 # ============================================================================
 
