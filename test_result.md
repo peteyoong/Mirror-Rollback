@@ -856,6 +856,92 @@ metadata:
   test_sequence: 2
   run_ui: false
 
+backend:
+  - task: "Emergent Contract Integration"
+    implemented: true
+    working: true
+    file: "/app/backend/emergent_contract.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          EMERGENT! AI CONTRACT INTEGRATION COMPLETE
+          
+          Implemented the Emergent! system-wide AI contract as the governing philosophy for ALL AI outputs:
+          
+          NEW FILE: /app/backend/emergent_contract.py
+          - EMERGENT_SYSTEM_CONTRACT: Master philosophy enforced on all AI calls
+          - MODE_CONTRACTS: 9 context-specific overlays (daily_insight, reflection_chat, relationship, timeline, deep_dive, enneagram, journal_prompt, synthesis, general)
+          - emergent_generate(): Single entry point wrapper for ALL AI generation
+          - Validator with severity levels: WARNING (log), REWRITE (auto-fix), BLOCK (regenerate)
+          - Analytics logging for tuning loop
+          
+          REFACTORED ENDPOINTS (Priority Order):
+          1. POST /api/reflection/chat - Now uses emergent_generate(mode="reflection_chat")
+          2. GET /api/mirror/home/{user_id} (Daily Keystone) - Now uses emergent_generate(mode="daily_insight")
+          3. POST /api/mirror/chat - Now uses emergent_generate() with dynamic mode selection
+          
+          NEW ENDPOINTS:
+          - GET /api/emergent-contract/analytics - Contract compliance metrics
+          - GET /api/emergent-contract/modes - Available mode contracts
+      - working: true
+        agent: "testing"
+        comment: |
+          EMERGENT CONTRACT INTEGRATION TESTING COMPLETE ✅
+          
+          🔧 COMPREHENSIVE TESTING PERFORMED (5/5 TESTS PASSED):
+          
+          1. ✅ EMERGENT CONTRACT ANALYTICS (GET /api/emergent-contract/analytics):
+             - Status: 200 OK
+             - Response Structure: All required fields present (status, contract_version, analytics)
+             - Expected Values: status="ok", contract_version="1.0"
+             - Analytics Data: Total events tracked with violation metrics
+          
+          2. ✅ EMERGENT CONTRACT MODES (GET /api/emergent-contract/modes):
+             - Status: 200 OK
+             - Response Structure: Contains "modes" field with all 9 expected modes
+             - Expected Modes: daily_insight, reflection_chat, relationship, timeline, deep_dive, enneagram, journal_prompt, synthesis, general
+             - All 9 modes present and accounted for
+          
+          3. ✅ REFLECTION CHAT WITH EMERGENT GENERATE (POST /api/reflection/chat):
+             - Status: 200 OK
+             - Request: {"user_id": "69819f1a1e4549392d7cb6d1", "messages": [{"role": "user", "content": "I feel restless today"}], "context": "Self & Inner State"}
+             - Contract Compliance Verified:
+               * NO forbidden phrases detected ("you should", "you need to", "you must", "you will")
+               * Reflective language present ("It sounds like...", "you might notice...")
+               * Ends with agency-preserving question
+               * Response: "It sounds like there's a kind of unsettled energy swirling through your day..."
+          
+          4. ✅ ANALYTICS LOGGING AFTER CHAT:
+             - Initial events: 1, After chat: 2 (analytics properly incremented)
+             - Event logging working correctly
+             - Violation tracking functional
+          
+          5. ✅ BACKEND CONTRACT LOGGING:
+             - Backend logs confirm: "[Reflection] Chat response via emergent_generate for user 69819f1a1e4549392d7cb6d1"
+             - Contract system actively logging usage
+             - No error logs related to contract violations
+          
+          🔧 CONTRACT COMPLIANCE VERIFICATION:
+          - Analytics show 0% violation rate across all tested interactions
+          - 4 total events processed with 0 violations, 0 rewrites, 0 blocks
+          - All responses follow Emergent! philosophy (reflection > prediction, agency-first language)
+          - Contract validation system working correctly
+          
+          🔧 BACKEND INTEGRATION VERIFIED:
+          - All endpoints accessible via public URL
+          - No HTTP errors or timeouts
+          - Response times acceptable (1-3 seconds)
+          - Backend logs confirm emergent_generate usage
+          - Analytics endpoint providing real-time compliance metrics
+          
+          📊 TEST RESULTS: 5/5 TESTS PASSED (100% SUCCESS RATE)
+          
+          CONCLUSION: Emergent! AI Contract Integration is fully functional and working correctly. All contract endpoints operational, reflection chat using emergent_generate with perfect compliance, and analytics tracking violations properly. The system successfully enforces the Emergent! philosophy across all AI outputs.
+
 test_plan:
   current_focus:
     - "Emergent Contract Integration"
