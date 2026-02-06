@@ -11,10 +11,14 @@ Current version: mirror-deterministic-v1
 ===============================================================================
 """
 from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Tuple
-from .astrology import get_full_natal_chart, normalize_degrees
+from typing import Dict, List, Tuple, Optional
+from .astrology import get_full_natal_chart, normalize_degrees, ComputeIntegrityError
 import swisseph as swe
 import math
+
+
+# All centers in Human Design
+ALL_CENTERS = ['Head', 'Ajna', 'Throat', 'G Center', 'Ego', 'Sacral', 'Solar Plexus', 'Spleen', 'Root']
 
 # =============================================================================
 # HUMAN DESIGN RAVE MANDALA GATE WHEEL
