@@ -7404,26 +7404,6 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
     except Exception as e:
         logger.error(f"Numerology deep dive error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-                    "soul_urge": data["soul_urge_number"] if data["has_name_numbers"] else None,
-                    "personality": data.get("personality_number") if data["has_name_numbers"] else None
-                },
-                "sections": [
-                    {"label": "Life Path: Your Learning Theme", "body": _get_master_number_fallback_text(data['life_path_number'])},
-                    {"label": "Birthday: Your Secondary Flavour", "body": f"Birthday number {data['birthday_number'] or 'unknown'} adds a secondary emphasis — a flavour that colours how you approach things."}
-                ],
-                "unlock_required": not data["has_name_numbers"],
-                "unlock_prompt": None if data["has_name_numbers"] else "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality).",
-                "mirror_prompt": "What recurring themes do you notice in your own journey?"
-            }
-            # Cache fallback too
-            await set_cached_deep_dive(user_id, "numerology", fallback_result)
-            return fallback_result
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Numerology deep dive error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # =====================================================================
