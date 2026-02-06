@@ -5723,6 +5723,7 @@ async def get_enneagram_result(user_id: str):
                 "top_candidates": result.get("top_candidates", []),
                 "state_calibration": result.get("state_calibration", {}),
                 "debug_scores": result.get("debug_scores", {}),
+                "enneagram_computed_details": result.get("enneagram_computed_details", {}),
                 "created_at": result["created_at"].isoformat() if result.get("created_at") else None
             }
         }
@@ -5732,6 +5733,91 @@ async def get_enneagram_result(user_id: str):
     except Exception as e:
         logger.error(f"Get Enneagram result error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
+# ENNEAGRAM Q&A ENDPOINT (Knowledge Base)
+# =============================================================================
+
+class EnneagramAskRequest(BaseModel):
+    user_id: Optional[str] = None
+    question: str
+
+
+@api_router.post("/enneagram/ask")
+async def enneagram_ask(request: EnneagramAskRequest):
+    """
+    Ask a question about the Enneagram system.
+    Uses PDF knowledge base retrieval + user's Enneagram profile for context.
+    
+    Works even without user_id (answers generally from PDF).
+    """
+    try:
+        # Get user's Enneagram profile if user_id provided
+        user_profile = None
+        if request.user_id:
+            try:
+                result = await db.enneagram_results.find_one({"user_id": request.user_id})
+                if result:
+                    user_profile = {
+                        "inferred_core": result.get("inferred_core"),
+                        "inferred_wing": result.get("inferred_wing"),
+                        "confidence_tier": result.get("confidence_tier"),
+                        "enneagram_computed_details": result.get("enneagram_computed_details", {})
+                    }
+            except Exception as e:
+                logger.warning(f"[EnneagramAsk] Could not fetch user profile: {e}")
+        
+        # Get knowledge base
+        kb = get_knowledge_base()
+        
+        # Define LLM helper function
+        async def llm_call(system_prompt: str, user_message: str) -> str:
+            if not EMERGENT_LLM_KEY:
+                return "AI service is not configured."
+            
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"enneagram_qa_{datetime.now().timestamp()}",
+                system_message=system_prompt
+            )
+            chat.with_model("openai", "gpt-4.1-mini")
+            
+            message = UserMessage(text=user_message)
+            response = await chat.send_message(message)
+            return response
+        
+        # Get answer from knowledge base
+        answer_result = await kb.answer(
+            query=request.question,
+            user_profile=user_profile,
+            llm_func=llm_call
+        )
+        
+        # Determine if we should include debug info
+        is_dev = os.environ.get("NODE_ENV") != "production" or __debug__
+        
+        response = answer_result.to_dict(include_debug=is_dev)
+        
+        # Add knowledge base status
+        response["kb_status"] = {
+            "ready": is_knowledge_base_ready(),
+            "chunks_available": len(kb.chunks) if kb.chunks else 0
+        }
+        
+        logger.info(f"[EnneagramAsk] Answered question for user {request.user_id or 'anonymous'}")
+        
+        return response
+    
+    except Exception as e:
+        logger.error(f"[EnneagramAsk] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/enneagram/kb-status")
+async def get_enneagram_kb_status():
+    """Get status of the Enneagram knowledge base (debug endpoint)."""
+    return get_kb_status()
 
 
 # Enneagram Feedback endpoint
