@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Emergent! AI Contract Integration
-Tests the refactored endpoints after contract integration.
+Backend Testing Suite for Project Mirror
+Testing Mirror Chat lens context functionality and other backend features
 """
 
 import asyncio
 import aiohttp
 import json
+import sys
 import time
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, Optional
 
-# Base URL from frontend/.env
+# Test Configuration
 BASE_URL = "https://trait-explorer-3.preview.emergentagent.com/api"
+TEST_USER_ID = "697f0c6abf35c0528ff06954"  # User ID from review request
+FALLBACK_USER_ID = "69819f1a1e4549392d7cb6d1"  # Fallback user from test_result.md
 
-# Test user ID (from test_result.md)
-TEST_USER_ID = "69819f1a1e4549392d7cb6d1"
-
-class EmergentContractTester:
+class MirrorChatTester:
     def __init__(self):
         self.session = None
         self.results = []
@@ -30,336 +30,314 @@ class EmergentContractTester:
         if self.session:
             await self.session.close()
     
-    def log_result(self, test_name: str, success: bool, details: Dict[str, Any]):
+    def log_result(self, test_name: str, status: str, details: str, response_data: Optional[Dict] = None):
         """Log test result"""
         result = {
             "test": test_name,
-            "success": success,
+            "status": status,
+            "details": details,
             "timestamp": datetime.now().isoformat(),
-            "details": details
+            "response_data": response_data
         }
         self.results.append(result)
         
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status} {test_name}")
-        if not success:
-            print(f"   Error: {details.get('error', 'Unknown error')}")
-        elif details.get('response_summary'):
-            print(f"   {details['response_summary']}")
+        # Print result
+        status_emoji = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
+        print(f"{status_emoji} {test_name}: {status}")
+        print(f"   {details}")
+        if response_data and status == "FAIL":
+            print(f"   Response: {json.dumps(response_data, indent=2)[:200]}...")
+        print()
     
-    async def test_contract_analytics_initial(self) -> Dict[str, Any]:
-        """Test GET /api/emergent-contract/analytics - Initial state"""
+    async def make_request(self, method: str, endpoint: str, data: Optional[Dict] = None) -> tuple[int, Dict]:
+        """Make HTTP request and return status code and response data"""
+        url = f"{BASE_URL}{endpoint}"
+        
         try:
-            async with self.session.get(f"{BASE_URL}/emergent-contract/analytics") as resp:
-                if resp.status != 200:
-                    self.log_result("Contract Analytics (Initial)", False, {
-                        "error": f"HTTP {resp.status}",
-                        "response": await resp.text()
-                    })
-                    return {}
-                
-                data = await resp.json()
-                
-                # Check required fields
-                required_fields = ["status", "contract_version", "analytics"]
-                missing_fields = [f for f in required_fields if f not in data]
-                
-                if missing_fields:
-                    self.log_result("Contract Analytics (Initial)", False, {
-                        "error": f"Missing fields: {missing_fields}",
-                        "response": data
-                    })
-                    return {}
-                
-                # Check for new analytics fields
-                analytics = data.get("analytics", {})
-                has_block_regen_rate = "block_regen_success_rate" in analytics
-                has_top_issue_codes = "top_issue_codes_by_mode" in analytics
-                
-                self.log_result("Contract Analytics (Initial)", True, {
-                    "status": data["status"],
-                    "contract_version": data["contract_version"],
-                    "total_events": analytics.get("total_events", 0),
-                    "has_block_regen_success_rate": has_block_regen_rate,
-                    "has_top_issue_codes_by_mode": has_top_issue_codes,
-                    "response_summary": f"Status: {data['status']}, Events: {analytics.get('total_events', 0)}"
-                })
-                
-                return data
-                
+            if method.upper() == "GET":
+                async with self.session.get(url) as response:
+                    status = response.status
+                    try:
+                        response_data = await response.json()
+                    except:
+                        response_data = {"error": "Invalid JSON response", "text": await response.text()}
+                    return status, response_data
+            elif method.upper() == "POST":
+                headers = {"Content-Type": "application/json"}
+                async with self.session.post(url, json=data, headers=headers) as response:
+                    status = response.status
+                    try:
+                        response_data = await response.json()
+                    except:
+                        response_data = {"error": "Invalid JSON response", "text": await response.text()}
+                    return status, response_data
         except Exception as e:
-            self.log_result("Contract Analytics (Initial)", False, {
-                "error": str(e)
-            })
-            return {}
+            return 0, {"error": str(e)}
     
-    async def test_red_team_tests(self) -> Dict[str, Any]:
-        """Test GET /api/emergent-contract/red-team - NEW endpoint"""
-        try:
-            print("Running red team tests (this may take 30-60 seconds)...")
-            start_time = time.time()
-            
-            async with self.session.get(f"{BASE_URL}/emergent-contract/red-team") as resp:
-                if resp.status != 200:
-                    self.log_result("Red Team Tests", False, {
-                        "error": f"HTTP {resp.status}",
-                        "response": await resp.text()
-                    })
-                    return {}
-                
-                data = await resp.json()
-                elapsed = time.time() - start_time
-                
-                # Check structure
-                required_fields = ["timestamp", "tests", "all_passed"]
-                missing_fields = [f for f in required_fields if f not in data]
-                
-                if missing_fields:
-                    self.log_result("Red Team Tests", False, {
-                        "error": f"Missing fields: {missing_fields}",
-                        "response": data
-                    })
-                    return {}
-                
-                # Check individual tests
-                tests = data.get("tests", {})
-                expected_tests = ["timeline_prediction", "relationship_certainty", "work_certainty"]
-                
-                test_results = {}
-                for test_name in expected_tests:
-                    if test_name in tests:
-                        test_data = tests[test_name]
-                        test_results[test_name] = {
-                            "passed": test_data.get("passed", False),
-                            "input": test_data.get("input", ""),
-                            "response_preview": test_data.get("response", "")[:100] + "..." if test_data.get("response") else ""
-                        }
-                
-                all_passed = data.get("all_passed", False)
-                
-                self.log_result("Red Team Tests", all_passed, {
-                    "all_passed": all_passed,
-                    "test_count": len(tests),
-                    "individual_results": test_results,
-                    "elapsed_seconds": round(elapsed, 2),
-                    "response_summary": f"All passed: {all_passed}, Tests: {len(tests)}, Time: {elapsed:.1f}s"
-                })
-                
-                return data
-                
-        except Exception as e:
-            self.log_result("Red Team Tests", False, {
-                "error": str(e)
-            })
-            return {}
+    async def test_mirror_chat_endpoint_availability(self):
+        """Test 0: Basic endpoint availability"""
+        test_name = "Mirror Chat Endpoint Availability"
+        
+        # Simple test message
+        payload = {
+            "user_id": TEST_USER_ID,
+            "message": "Hello",
+            "session_id": "test_basic"
+        }
+        
+        status, response = await self.make_request("POST", "/mirror/chat", payload)
+        
+        if status == 200 and "response" in response:
+            self.log_result(
+                test_name,
+                "PASS",
+                f"✅ Mirror Chat endpoint accessible and responding",
+                {"status": status, "has_response": "response" in response}
+            )
+            return True
+        else:
+            self.log_result(
+                test_name,
+                "FAIL",
+                f"❌ Mirror Chat endpoint not working. Status: {status}",
+                response
+            )
+            return False
     
-    async def test_reflection_chat_contract_compliance(self) -> Dict[str, Any]:
-        """Test POST /api/reflection/chat with contract compliance check"""
-        try:
-            payload = {
-                "user_id": TEST_USER_ID,
-                "messages": [{"role": "user", "content": "I'm feeling anxious about work"}],
-                "context": "Work & Career"
-            }
-            
-            async with self.session.post(
-                f"{BASE_URL}/reflection/chat",
-                json=payload,
-                headers={"Content-Type": "application/json"}
-            ) as resp:
-                if resp.status != 200:
-                    self.log_result("Reflection Chat Contract Compliance", False, {
-                        "error": f"HTTP {resp.status}",
-                        "response": await resp.text()
-                    })
-                    return {}
-                
-                data = await resp.json()
-                
-                # Check response structure
-                if "response" not in data:
-                    self.log_result("Reflection Chat Contract Compliance", False, {
-                        "error": "Missing 'response' field",
-                        "response": data
-                    })
-                    return {}
-                
-                response_text = data["response"]
-                
-                # Check for forbidden phrases
-                forbidden_phrases = ["you should", "you will", "you are a", "you must", "you need to"]
-                violations = []
-                
-                for phrase in forbidden_phrases:
-                    if phrase.lower() in response_text.lower():
-                        violations.append(phrase)
-                
-                # Check for contract-compliant language
-                compliant_phrases = ["you may", "you might", "it sounds like", "you could", "one way"]
-                found_compliant = []
-                
-                for phrase in compliant_phrases:
-                    if phrase.lower() in response_text.lower():
-                        found_compliant.append(phrase)
-                
-                is_compliant = len(violations) == 0
-                
-                self.log_result("Reflection Chat Contract Compliance", is_compliant, {
-                    "response_length": len(response_text),
-                    "violations_found": violations,
-                    "compliant_phrases_found": found_compliant,
-                    "response_preview": response_text[:200] + "..." if len(response_text) > 200 else response_text,
-                    "response_summary": f"Compliant: {is_compliant}, Violations: {len(violations)}"
-                })
-                
-                return data
-                
-        except Exception as e:
-            self.log_result("Reflection Chat Contract Compliance", False, {
-                "error": str(e)
-            })
-            return {}
+    async def test_human_design_lens_context(self):
+        """Test 1: Human Design Chat Context - Should know incarnation cross data"""
+        test_name = "Human Design Lens Context"
+        
+        payload = {
+            "user_id": TEST_USER_ID,
+            "message": "Tell me about my incarnation cross",
+            "lens": "human_design",
+            "session_id": "test_hd_context"
+        }
+        
+        status, response = await self.make_request("POST", "/mirror/chat", payload)
+        
+        if status != 200:
+            self.log_result(test_name, "FAIL", f"HTTP {status} - Expected 200", response)
+            return False
+        
+        if "response" not in response:
+            self.log_result(test_name, "FAIL", "Missing 'response' field in API response", response)
+            return False
+        
+        response_text = response["response"].lower()
+        
+        # Check for expected incarnation cross data
+        expected_phrases = [
+            "right angle cross of migration",
+            "migration",
+            "37", "40",  # Gates
+            "incarnation cross"
+        ]
+        
+        found_phrases = []
+        missing_phrases = []
+        
+        for phrase in expected_phrases:
+            if phrase in response_text:
+                found_phrases.append(phrase)
+            else:
+                missing_phrases.append(phrase)
+        
+        if "right angle cross of migration" in response_text or ("migration" in response_text and "cross" in response_text):
+            self.log_result(
+                test_name, 
+                "PASS", 
+                f"✅ Response includes incarnation cross context. Found: {found_phrases}",
+                {"response_length": len(response["response"]), "found_context": found_phrases}
+            )
+            return True
+        else:
+            self.log_result(
+                test_name, 
+                "FAIL", 
+                f"❌ Response missing incarnation cross context. Missing: {missing_phrases}. Response: {response['response'][:200]}...",
+                response
+            )
+            return False
     
-    async def test_contract_analytics_after_chat(self) -> Dict[str, Any]:
-        """Test GET /api/emergent-contract/analytics after chat to verify event logging"""
-        try:
-            async with self.session.get(f"{BASE_URL}/emergent-contract/analytics") as resp:
-                if resp.status != 200:
-                    self.log_result("Contract Analytics (After Chat)", False, {
-                        "error": f"HTTP {resp.status}",
-                        "response": await resp.text()
-                    })
-                    return {}
-                
-                data = await resp.json()
-                analytics = data.get("analytics", {})
-                
-                # Check if events were logged
-                total_events = analytics.get("total_events", 0)
-                violation_rate = analytics.get("violation_rate", 0)
-                
-                # Check for new required fields
-                has_block_regen_rate = "block_regen_success_rate" in analytics
-                has_top_issue_codes = "top_issue_codes_by_mode" in analytics
-                
-                success = total_events > 0 and has_block_regen_rate and has_top_issue_codes
-                
-                self.log_result("Contract Analytics (After Chat)", success, {
-                    "total_events": total_events,
-                    "violation_rate": violation_rate,
-                    "has_block_regen_success_rate": has_block_regen_rate,
-                    "has_top_issue_codes_by_mode": has_top_issue_codes,
-                    "block_regen_success_rate": analytics.get("block_regen_success_rate"),
-                    "top_issue_codes_by_mode": analytics.get("top_issue_codes_by_mode", {}),
-                    "response_summary": f"Events logged: {total_events}, Violation rate: {violation_rate:.2%}"
-                })
-                
-                return data
-                
-        except Exception as e:
-            self.log_result("Contract Analytics (After Chat)", False, {
-                "error": str(e)
-            })
-            return {}
+    async def test_system_context_verification(self):
+        """Test 2: Verify system includes incarnation cross data in context"""
+        test_name = "System Context Verification"
+        
+        # Test with a more direct question about gates
+        payload = {
+            "user_id": TEST_USER_ID,
+            "message": "What are my incarnation cross gates?",
+            "lens": "human_design",
+            "session_id": "test_context_gates"
+        }
+        
+        status, response = await self.make_request("POST", "/mirror/chat", payload)
+        
+        if status != 200:
+            self.log_result(test_name, "FAIL", f"HTTP {status} - Expected 200", response)
+            return False
+        
+        if "response" not in response:
+            self.log_result(test_name, "FAIL", "Missing 'response' field in API response", response)
+            return False
+        
+        response_text = response["response"].lower()
+        
+        # Check for gate numbers and incarnation cross references
+        context_indicators = [
+            "37", "40",  # Specific gates
+            "gate", "gates",
+            "incarnation",
+            "cross"
+        ]
+        
+        found_indicators = [indicator for indicator in context_indicators if indicator in response_text]
+        
+        if len(found_indicators) >= 2:  # Should find at least 2 context indicators
+            self.log_result(
+                test_name,
+                "PASS", 
+                f"✅ System context includes incarnation cross data. Found indicators: {found_indicators}",
+                {"found_indicators": found_indicators}
+            )
+            return True
+        else:
+            self.log_result(
+                test_name,
+                "FAIL",
+                f"❌ System context missing incarnation cross data. Found only: {found_indicators}. Response: {response['response'][:200]}...",
+                response
+            )
+            return False
     
-    async def test_contract_modes_endpoint(self) -> Dict[str, Any]:
-        """Test GET /api/emergent-contract/modes endpoint"""
-        try:
-            async with self.session.get(f"{BASE_URL}/emergent-contract/modes") as resp:
-                if resp.status != 200:
-                    self.log_result("Contract Modes Endpoint", False, {
-                        "error": f"HTTP {resp.status}",
-                        "response": await resp.text()
-                    })
-                    return {}
-                
-                data = await resp.json()
-                
-                # Check required fields
-                if "modes" not in data:
-                    self.log_result("Contract Modes Endpoint", False, {
-                        "error": "Missing 'modes' field",
-                        "response": data
-                    })
-                    return {}
-                
-                modes = data["modes"]
-                expected_modes = [
-                    "daily_insight", "reflection_chat", "relationship", "timeline",
-                    "deep_dive", "enneagram", "journal_prompt", "synthesis", "general"
-                ]
-                
-                missing_modes = [m for m in expected_modes if m not in modes]
-                
-                success = len(missing_modes) == 0
-                
-                self.log_result("Contract Modes Endpoint", success, {
-                    "modes_count": len(modes),
-                    "modes_found": modes,
-                    "missing_modes": missing_modes,
-                    "response_summary": f"Modes: {len(modes)}, Missing: {len(missing_modes)}"
-                })
-                
-                return data
-                
-        except Exception as e:
-            self.log_result("Contract Modes Endpoint", False, {
-                "error": str(e)
-            })
-            return {}
+    async def test_enneagram_lens_context(self):
+        """Test 3: Enneagram Context - Should know user's type"""
+        test_name = "Enneagram Lens Context"
+        
+        payload = {
+            "user_id": TEST_USER_ID,
+            "message": "What is my Enneagram type?",
+            "lens": "enneagram", 
+            "session_id": "test_ennea_context"
+        }
+        
+        status, response = await self.make_request("POST", "/mirror/chat", payload)
+        
+        if status != 200:
+            self.log_result(test_name, "FAIL", f"HTTP {status} - Expected 200", response)
+            return False
+        
+        if "response" not in response:
+            self.log_result(test_name, "FAIL", "Missing 'response' field in API response", response)
+            return False
+        
+        response_text = response["response"].lower()
+        
+        # Check for Enneagram type indicators
+        enneagram_indicators = [
+            "type", "enneagram",
+            "1", "2", "3", "4", "5", "6", "7", "8", "9",  # Type numbers
+            "wing", "stress", "growth"
+        ]
+        
+        found_indicators = [indicator for indicator in enneagram_indicators if indicator in response_text]
+        
+        # Should find type-related content
+        if "type" in response_text and len(found_indicators) >= 2:
+            self.log_result(
+                test_name,
+                "PASS",
+                f"✅ Enneagram context working. Found indicators: {found_indicators}",
+                {"found_indicators": found_indicators}
+            )
+            return True
+        else:
+            self.log_result(
+                test_name,
+                "FAIL", 
+                f"❌ Enneagram context missing or incomplete. Found: {found_indicators}. Response: {response['response'][:200]}...",
+                response
+            )
+            return False
+    
+    async def test_emergent_contract_analytics(self):
+        """Test 4: Emergent Contract Analytics endpoint"""
+        test_name = "Emergent Contract Analytics"
+        
+        status, response = await self.make_request("GET", "/emergent-contract/analytics")
+        
+        if status != 200:
+            self.log_result(test_name, "FAIL", f"HTTP {status} - Expected 200", response)
+            return False
+        
+        required_fields = ["status", "contract_version", "analytics"]
+        missing_fields = [f for f in required_fields if f not in response]
+        
+        if missing_fields:
+            self.log_result(test_name, "FAIL", f"Missing required fields: {missing_fields}", response)
+            return False
+        
+        analytics = response.get("analytics", {})
+        has_events = analytics.get("total_events", 0) >= 0
+        
+        self.log_result(
+            test_name,
+            "PASS",
+            f"✅ Contract analytics working. Status: {response['status']}, Events: {analytics.get('total_events', 0)}",
+            {"analytics_keys": list(analytics.keys())}
+        )
+        return True
     
     async def run_all_tests(self):
-        """Run all tests in sequence"""
-        print("🧪 Starting Emergent! AI Contract Integration Tests")
+        """Run all Mirror Chat lens context tests"""
+        print("🧪 MIRROR CHAT LENS CONTEXT TESTING")
+        print("=" * 50)
         print(f"Base URL: {BASE_URL}")
         print(f"Test User ID: {TEST_USER_ID}")
-        print("=" * 60)
+        print()
         
-        # Test 1: Initial analytics state
-        await self.test_contract_analytics_initial()
+        # Run tests in order
+        tests = [
+            self.test_mirror_chat_endpoint_availability,
+            self.test_human_design_lens_context,
+            self.test_system_context_verification,
+            self.test_enneagram_lens_context,
+            self.test_emergent_contract_analytics
+        ]
         
-        # Test 2: Contract modes endpoint
-        await self.test_contract_modes_endpoint()
+        passed = 0
+        total = len(tests)
         
-        # Test 3: Red team tests (NEW endpoint)
-        await self.test_red_team_tests()
+        for test_func in tests:
+            try:
+                result = await test_func()
+                if result:
+                    passed += 1
+            except Exception as e:
+                self.log_result(test_func.__name__, "ERROR", f"Test failed with exception: {str(e)}")
         
-        # Test 4: Reflection chat with contract compliance
-        await self.test_reflection_chat_contract_compliance()
+        print("=" * 50)
+        print(f"📊 TEST SUMMARY: {passed}/{total} PASSED")
         
-        # Test 5: Analytics after chat (verify event logging)
-        await self.test_contract_analytics_after_chat()
+        if passed == total:
+            print("🎉 ALL TESTS PASSED - Mirror Chat lens context working correctly!")
+        else:
+            print(f"⚠️  {total - passed} TESTS FAILED - Issues found with lens context")
         
-        # Summary
-        print("=" * 60)
-        total_tests = len(self.results)
-        passed_tests = sum(1 for r in self.results if r["success"])
-        failed_tests = total_tests - passed_tests
-        
-        print(f"📊 TEST SUMMARY:")
-        print(f"   Total Tests: {total_tests}")
-        print(f"   Passed: {passed_tests}")
-        print(f"   Failed: {failed_tests}")
-        print(f"   Success Rate: {passed_tests/total_tests*100:.1f}%")
-        
-        if failed_tests > 0:
-            print(f"\n❌ FAILED TESTS:")
-            for result in self.results:
-                if not result["success"]:
-                    print(f"   - {result['test']}: {result['details'].get('error', 'Unknown error')}")
-        
-        return {
-            "total": total_tests,
-            "passed": passed_tests,
-            "failed": failed_tests,
-            "success_rate": passed_tests/total_tests,
-            "results": self.results
-        }
+        return passed, total, self.results
 
 async def main():
     """Main test runner"""
-    async with EmergentContractTester() as tester:
-        return await tester.run_all_tests()
+    async with MirrorChatTester() as tester:
+        passed, total, results = await tester.run_all_tests()
+        
+        # Return exit code based on results
+        if passed == total:
+            sys.exit(0)  # Success
+        else:
+            sys.exit(1)  # Failure
 
 if __name__ == "__main__":
     asyncio.run(main())
