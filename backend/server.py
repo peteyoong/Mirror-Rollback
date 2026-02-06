@@ -6724,12 +6724,13 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
             user_id=user_id,
             context={
                 "lens": "human_design",
-                "type": hd_data['type'],
-                "authority": hd_data['authority'],
-                "profile": hd_data['profile'],
+                "type": hd_type,
+                "authority": authority,
+                "profile": profile,
                 "full_chart_available": True,
                 "gates_available": bool(full_hd_summary.get("active_gates")),
-                "channels_available": bool(full_hd_summary.get("defined_channels"))
+                "channels_available": bool(full_hd_summary.get("defined_channels")),
+                "compute_integrity_valid": canonical_hd.get('compute_integrity', {}).get('valid', False)
             },
             additional_system_prompt=system_prompt,
             model="gpt-5.2"
@@ -6750,15 +6751,24 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
             
             result["mirror_prompt"] = apply_human_design_guardrails(result.get("mirror_prompt", ""))
             
-            # Ensure core_mechanics is included with consistent fields
+            # Ensure core_mechanics is included with consistent fields (using canonical data)
             result["core_mechanics"] = {
-                "type": hd_data['type'],
+                "type": hd_type,
                 "strategy": strategy_desc,
-                "authority": hd_data['authority'],
-                "profile": hd_data.get('profile', 'Unknown'),
-                "incarnation_cross": hd_data.get('incarnation_cross_label', hd_data.get('incarnation_cross', 'Unknown')),
-                "incarnation_cross_gates": hd_data.get('incarnation_cross_gates'),
-                "definition": hd_data.get('definition', 'Unknown')
+                "authority": authority,
+                "profile": profile,
+                "incarnation_cross": incarnation_cross.get('name', 'Unknown'),
+                "incarnation_cross_gates": incarnation_cross.get('gates'),
+                "definition": canonical_hd.get('definition', 'Unknown')
+            }
+            
+            # Add success flag and debug info
+            result["success"] = True
+            result["debug_stamp"] = {
+                "compute_integrity_valid": canonical_hd.get('compute_integrity', {}).get('valid', False),
+                "type_valid": bool(hd_type),
+                "authority_valid": bool(authority),
+                "gates_count": len(canonical_hd.get('active_gates', []))
             }
             
             # =====================================================================
@@ -6771,25 +6781,29 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse HD deep dive JSON: {e}")
             fallback_result = {
+                "success": True,  # Data is valid, just LLM parsing failed
                 "title": "Your Core Mechanics",
                 "core_mechanics": {
-                    "type": hd_data['type'],
+                    "type": hd_type,
                     "strategy": strategy_desc,
-                    "authority": hd_data['authority'],
-                    "profile": hd_data.get('profile', 'Unknown'),
-                    "incarnation_cross": hd_data.get('incarnation_cross_label', hd_data.get('incarnation_cross', 'Unknown')),
-                    "incarnation_cross_gates": hd_data.get('incarnation_cross_gates'),
-                    "definition": hd_data.get('definition', 'Unknown')
+                    "authority": authority,
+                    "profile": profile,
+                    "incarnation_cross": incarnation_cross.get('name', 'Unknown'),
+                    "incarnation_cross_gates": incarnation_cross.get('gates'),
+                    "definition": canonical_hd.get('definition', 'Unknown')
                 },
                 "sections": [
-                    {"label": "Type: Your Energy Architecture", "body": f"As a {hd_data['type']}, there's a particular way energy tends to move through you."},
+                    {"label": "Type: Your Energy Architecture", "body": f"As a {hd_type}, there's a particular way energy tends to move through you."},
                     {"label": "Strategy: Your Engagement Pattern", "body": f"Your design suggests {strategy_desc.lower()}."},
-                    {"label": "Authority: Your Clarity Process", "body": f"With {hd_data['authority']} authority, clarity tends to come in a specific way."},
-                    {"label": "Profile: Your Learning Style", "body": f"Your {hd_data.get('profile', 'Unknown')} profile suggests a particular way you tend to learn and engage with life."},
-                    {"label": "Incarnation Cross: Your Life Direction", "body": f"Your {hd_data.get('incarnation_cross', 'Unknown')} points to a broad life theme you may find yourself oriented around."},
-                    {"label": "Definition & Centers", "body": f"With {hd_data.get('definition', 'Unknown')} definition and {', '.join(hd_data.get('defined_centers', [])) or 'key'} centers defined, there's a particular way your energy connects."}
+                    {"label": "Authority: Your Clarity Process", "body": f"With {authority} authority, clarity tends to come in a specific way."},
+                    {"label": "Profile: Your Learning Style", "body": f"Your {profile} profile suggests a particular way you tend to learn and engage with life."},
+                    {"label": "Incarnation Cross: Your Life Direction", "body": f"Your {incarnation_cross.get('name', 'Unknown')} points to a broad life theme you may find yourself oriented around."},
+                    {"label": "Definition & Centers", "body": f"With {canonical_hd.get('definition', 'Unknown')} definition and {', '.join(defined_centers) or 'key'} centers defined, there's a particular way your energy connects."}
                 ],
-                "mirror_prompt": "What would be a small, low-stakes way to experiment with this today?"
+                "mirror_prompt": "What would be a small, low-stakes way to experiment with this today?",
+                "debug_stamp": {
+                    "compute_integrity_valid": canonical_hd.get('compute_integrity', {}).get('valid', False)
+                }
             }
             # Cache fallback too
             await set_cached_deep_dive(user_id, "human_design", fallback_result)
