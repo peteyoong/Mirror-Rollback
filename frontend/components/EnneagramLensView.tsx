@@ -2126,4 +2126,104 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontStyle: 'italic',
   },
+
+  // Deep Dive Header (Anchor)
+  deepDiveHeader: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+    alignItems: 'center',
+  },
+  deepDiveHeaderTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 4,
+  },
+  deepDiveType: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  deepDiveWingStance: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    marginBottom: 8,
+  },
+  deepDiveNote: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+  },
+  confidenceBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: Colors.surfaceLight,
+  },
+  confidenceBadgeText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  confidenceHigh: {
+    backgroundColor: 'rgba(76, 175, 80, 0.15)',
+  },
+  confidenceMedium: {
+    backgroundColor: 'rgba(255, 193, 7, 0.15)',
+  },
+  confidenceLow: {
+    backgroundColor: 'rgba(158, 158, 158, 0.15)',
+  },
+
+  // Wing Section
+  wingSection: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+  },
+  wingSectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 10,
+  },
+  wingSectionBody: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: Colors.textSecondary,
+  },
+  wingAccessHint: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  wingAccessHintText: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+  },
+  wingGrowthHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  wingGrowthHintText: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+  },
 });
