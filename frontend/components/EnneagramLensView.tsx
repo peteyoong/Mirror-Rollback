@@ -145,11 +145,6 @@ const WING_FLAVORS: { [key: string]: string } = {
 // Balanced wings explanation
 const BALANCED_WINGS_EXPLANATION = 'Your assessment suggests relatively equal access to both wings. This means you may draw on either flavor depending on context—neither has become a dominant default. Many Enneagram teachers consider this a flexibility that allows conscious choice: you can lean into whichever wing serves the situation.';
 
-  7: 'What am I avoiding by keeping my options open?',
-  8: 'Where am I using strength to avoid showing vulnerability?',
-  9: 'What is my own opinion about this — not what would keep the peace?',
-};
-
 // Type patterns for Deep Dive
 const TYPE_PATTERNS: { [key: number]: { strengths: string; blindSpot: string; defense: string; relational: string; work: string } } = {
   1: {
