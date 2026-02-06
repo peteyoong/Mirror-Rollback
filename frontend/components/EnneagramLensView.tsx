@@ -1069,6 +1069,8 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {/* ===== 4. PATTERN INSIGHTS (Trait Cards) ===== */}
         {(traitCards.length > 0 || traitsLoading) && (
           <View style={styles.traitCardsSection}>
+            {/* Faint divider before Pattern Insights */}
+            <View style={styles.sectionDivider} />
             <View style={styles.traitCardsHeader}>
               <Text style={styles.traitCardsTitle}>Pattern Insights</Text>
               {traitsSource === 'book' && (
@@ -1112,7 +1114,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Verification</Text>
           <Text style={styles.cardBody}>
-            If this doesn&apos;t sit right, explore these nearby patterns:
+            If you&apos;re unsure, these nearby patterns are sometimes explored:
           </Text>
           {result.top_candidates.slice(1, 3).map((candidate) => (
             <View key={candidate.type} style={styles.verificationItem}>
