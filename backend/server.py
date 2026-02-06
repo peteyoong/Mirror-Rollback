@@ -5863,8 +5863,27 @@ async def get_astrology_deep_dive(user_id: str):
             }
         
         try:
-            result = resolve_birth_utc_with_debug(birth_date, birth_time, timezone)
-            birth_utc = result['birth_utc']
+            # Handle both datetime objects and strings for birth_date
+            if isinstance(birth_date, datetime):
+                birth_date_str = birth_date.strftime("%Y-%m-%d")
+            else:
+                birth_date_str = str(birth_date).split()[0] if birth_date else ""
+            
+            result = resolve_birth_utc_with_debug(birth_date_str, birth_time, timezone)
+            birth_utc = result.get('birth_utc')
+            
+            if not birth_utc:
+                logger.error(f"[ASTRO_DEEP_DIVE] resolve_birth_utc_with_debug failed: {result.get('error')}")
+                return {
+                    "success": False,
+                    "error": "compute_integrity_error",
+                    "title": "Compute Integrity Error",
+                    "missing": [f"Metadata: {result.get('error', 'BIRTH_UTC_RESOLUTION_FAILED')} - {result.get('error_message', '')}"],
+                    "action": "Astrology deep dive paused. Check timezone/birth data format.",
+                    "sections": [],
+                    "mirror_prompt": None,
+                    "debug_stamp": result.get('debug_stamp')
+                }
         except Exception as e:
             logger.error(f"[ASTRO_DEEP_DIVE] Failed to resolve birth UTC: {e}")
             return {
