@@ -1692,6 +1692,35 @@ async def run_red_team_tests():
     return results
 
 
+@api_router.get("/emergent-contract/north-star")
+async def get_north_star():
+    """
+    Get the Emergent! North Star document - the soul and behavioral guide.
+    
+    This is the foundational philosophy that governs all AI outputs.
+    """
+    from emergent_contract import EMERGENT_NORTH_STAR
+    
+    return {
+        "title": "Emergent! North Star",
+        "version": "1.0",
+        "description": "The soul of Emergent! - the behavioral guide that governs all outputs",
+        "content": EMERGENT_NORTH_STAR,
+        "core_outcomes": [
+            "Users feel SEEN, not defined",
+            "Users feel ORIENTED, not foretold",
+            "Users feel EMPOWERED, not instructed",
+            "Users feel CURIOUS, not dependent"
+        ],
+        "absolute_constraints": [
+            "Never predict concrete events",
+            "Never claim authority or final truth",
+            "Never remove agency",
+            "Never use fixed identity labels"
+        ]
+    }
+
+
 @api_router.post("/locations/search")
 async def search_locations(request: LocationSearchRequest):
     """Search for locations with autocomplete"""
