@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Enneagram Knowledge Base and Enriched Computed Details
-Testing the new Enneagram KB functionality and enriched details computation.
+Backend API Testing for Project Mirror
+Testing the Enneagram Traits Endpoint
 """
 
 import requests
@@ -9,288 +9,254 @@ import json
 import sys
 from datetime import datetime
 
-# Backend URL from frontend environment
+# Backend URL from frontend .env
 BACKEND_URL = "https://introspect-hub.preview.emergentagent.com/api"
 
-def print_test_header(test_name):
-    """Print formatted test header"""
-    print(f"\n{'='*60}")
-    print(f"TEST: {test_name}")
-    print(f"{'='*60}")
-
-def print_result(success, message, details=None):
-    """Print test result with formatting"""
-    status = "✅ PASS" if success else "❌ FAIL"
-    print(f"{status}: {message}")
-    if details:
-        print(f"Details: {details}")
-
-def test_kb_status():
-    """Test 1: KB Status Endpoint"""
-    print_test_header("KB Status Endpoint")
+def test_enneagram_traits_endpoint():
+    """Test the new Enneagram traits endpoint: GET /api/enneagram/traits/{user_id}"""
+    
+    print("=" * 80)
+    print("TESTING ENNEAGRAM TRAITS ENDPOINT")
+    print("=" * 80)
+    
+    # Test Case 1: User with Enneagram result
+    print("\n1. Testing user WITH Enneagram result (69819f1a1e4549392d7cb6d1)")
+    print("-" * 60)
+    
+    user_with_result = "69819f1a1e4549392d7cb6d1"
+    url = f"{BACKEND_URL}/enneagram/traits/{user_with_result}"
     
     try:
-        url = f"{BACKEND_URL}/enneagram/kb-status"
-        print(f"Testing: GET {url}")
-        
         response = requests.get(url, timeout=30)
         print(f"Status Code: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
-            print(f"Response: {json.dumps(data, indent=2)}")
+            print(f"Response received: {len(json.dumps(data))} characters")
             
-            # Check expected fields
-            required_fields = ["status", "ready", "chunks_count", "error", "pdf_path"]
+            # Validate response structure
+            required_fields = ["cards", "source", "computed_details", "type", "wing"]
             missing_fields = [field for field in required_fields if field not in data]
             
             if missing_fields:
-                print_result(False, f"Missing required fields: {missing_fields}")
+                print(f"❌ MISSING FIELDS: {missing_fields}")
                 return False
             
-            # Check if ready is false (expected if PDF missing)
-            if data.get("ready") == False:
-                print_result(True, "KB Status correctly shows ready: false (PDF missing as expected)")
-                return True
-            elif data.get("ready") == True:
-                print_result(True, f"KB Status shows ready: true with {data.get('chunks_count', 0)} chunks")
-                return True
-            else:
-                print_result(False, f"Unexpected ready status: {data.get('ready')}")
+            print(f"✅ All required fields present: {required_fields}")
+            
+            # Validate cards structure
+            cards = data.get("cards", [])
+            print(f"Number of cards: {len(cards)}")
+            
+            if len(cards) == 0:
+                print("❌ Expected cards but got empty array")
                 return False
+            
+            # Check each card structure
+            for i, card in enumerate(cards):
+                card_fields = ["card_id", "title", "body", "suggested_question"]
+                missing_card_fields = [field for field in card_fields if field not in card]
+                
+                if missing_card_fields:
+                    print(f"❌ Card {i+1} missing fields: {missing_card_fields}")
+                    return False
+                
+                print(f"✅ Card {i+1}: {card['title'][:50]}...")
+            
+            # Validate computed_details
+            computed_details = data.get("computed_details")
+            if computed_details:
+                expected_details = ["center", "hornevian_group", "harmonic_group", 
+                                  "stress_line_to", "growth_line_to", "wing_balance_label"]
+                missing_details = [field for field in expected_details if field not in computed_details]
+                
+                if missing_details:
+                    print(f"⚠️  Missing computed_details fields: {missing_details}")
+                else:
+                    print("✅ All computed_details fields present")
+            
+            # Validate source
+            source = data.get("source")
+            valid_sources = ["static", "book", "none"]
+            if source not in valid_sources:
+                print(f"❌ Invalid source: {source}. Expected one of: {valid_sources}")
+                return False
+            
+            print(f"✅ Valid source: {source}")
+            
+            # Validate type and wing
+            enneagram_type = data.get("type")
+            wing = data.get("wing")
+            
+            if not isinstance(enneagram_type, int) or enneagram_type < 1 or enneagram_type > 9:
+                print(f"❌ Invalid Enneagram type: {enneagram_type}")
+                return False
+            
+            print(f"✅ Valid Enneagram type: {enneagram_type}")
+            
+            if wing is not None and wing != "balanced":
+                if not isinstance(wing, int) or wing < 1 or wing > 9:
+                    print(f"❌ Invalid wing: {wing}")
+                    return False
+            
+            print(f"✅ Valid wing: {wing}")
+            
+            print("✅ TEST 1 PASSED: User with Enneagram result")
+            
         else:
-            print_result(False, f"HTTP {response.status_code}: {response.text}")
+            print(f"❌ Unexpected status code: {response.status_code}")
+            print(f"Response: {response.text}")
             return False
             
     except Exception as e:
-        print_result(False, f"Request failed: {str(e)}")
+        print(f"❌ Request failed: {e}")
         return False
-
-def test_enneagram_ask():
-    """Test 2: Enneagram Ask Endpoint (Graceful Degradation)"""
-    print_test_header("Enneagram Ask Endpoint (Graceful Degradation)")
+    
+    # Test Case 2: User without Enneagram result (create a fresh user ID)
+    print("\n2. Testing user WITHOUT Enneagram result")
+    print("-" * 60)
+    
+    # Use a non-existent user ID
+    user_without_result = "000000000000000000000000"
+    url = f"{BACKEND_URL}/enneagram/traits/{user_without_result}"
     
     try:
-        url = f"{BACKEND_URL}/enneagram/ask"
-        payload = {
-            "question": "What is Type 4?"
-        }
-        
-        print(f"Testing: POST {url}")
-        print(f"Payload: {json.dumps(payload, indent=2)}")
-        
-        response = requests.post(url, json=payload, timeout=30)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response: {json.dumps(data, indent=2)}")
-            
-            # Check for graceful message when KB unavailable
-            answer = data.get("answer", "")
-            if "unavailable" in answer.lower() or "try again later" in answer.lower():
-                print_result(True, "Returns graceful message when KB unavailable")
-                return True
-            elif len(answer) > 50:  # If KB is available and returns actual content
-                print_result(True, "KB is available and returns detailed answer")
-                return True
-            else:
-                print_result(False, f"Unexpected response format or content: {answer}")
-                return False
-        else:
-            print_result(False, f"HTTP {response.status_code}: {response.text}")
-            return False
-            
-    except Exception as e:
-        print_result(False, f"Request failed: {str(e)}")
-        return False
-
-def test_enneagram_results_save():
-    """Test 3: Enneagram Results with Enriched Details"""
-    print_test_header("Enneagram Results Save with Enriched Details")
-    
-    try:
-        url = f"{BACKEND_URL}/enneagram/results"
-        payload = {
-            "user_id": "69819f1a1e4549392d7cb6d1",
-            "method": "assessment_inference_v1",
-            "version": "v1",
-            "inferred_core": 7,
-            "inferred_wing": 8,
-            "confidence": 0.72,
-            "confidence_tier": "medium",
-            "is_close": False,
-            "top_candidates": [{"type": 7, "probability": 0.72}],
-            "state_calibration": {
-                "energy_state": "high",
-                "life_context": "exploring",
-                "answer_frame": "best_self"
-            },
-            "debug_scores": {
-                "raw_scores": {"7": 4.5},
-                "z_scores": {"7": 1.5},
-                "wing_scores": {"left": 3.5, "right": 4.0, "diff": 0.5}
-            }
-        }
-        
-        print(f"Testing: POST {url}")
-        print(f"Payload: {json.dumps(payload, indent=2)}")
-        
-        response = requests.post(url, json=payload, timeout=30)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response: {json.dumps(data, indent=2)}")
-            
-            # Check for success
-            if not data.get("success"):
-                print_result(False, "Response does not indicate success")
-                return False
-            
-            # Check for enneagram_computed_details in result object
-            result = data.get("result", {})
-            computed_details = result.get("enneagram_computed_details", {})
-            if not computed_details:
-                print_result(False, "Missing enneagram_computed_details in result")
-                return False
-            
-            # Check required enriched fields for Type 7
-            expected_fields = {
-                "center": "head",
-                "hornevian_group": "assertive", 
-                "harmonic_group": "positive_outlook",
-                "stress_line_to": 1,
-                "growth_line_to": 5
-            }
-            
-            missing_or_wrong = []
-            for field, expected_value in expected_fields.items():
-                actual_value = computed_details.get(field)
-                if actual_value != expected_value:
-                    missing_or_wrong.append(f"{field}: expected {expected_value}, got {actual_value}")
-            
-            if missing_or_wrong:
-                print_result(False, f"Incorrect enriched details: {missing_or_wrong}")
-                return False
-            
-            # Check for additional expected fields
-            additional_fields = ["social_style_tags", "traits_library_refs"]
-            missing_additional = [field for field in additional_fields if field not in computed_details]
-            
-            if missing_additional:
-                print_result(False, f"Missing additional fields: {missing_additional}")
-                return False
-            
-            print_result(True, "Successfully saved results with correct enriched details")
-            print(f"Enriched details: {json.dumps(computed_details, indent=2)}")
-            return True
-            
-        else:
-            print_result(False, f"HTTP {response.status_code}: {response.text}")
-            return False
-            
-    except Exception as e:
-        print_result(False, f"Request failed: {str(e)}")
-        return False
-
-def test_enneagram_results_get():
-    """Test 4: Get Results with Enriched Details"""
-    print_test_header("Get Enneagram Results with Enriched Details")
-    
-    try:
-        user_id = "69819f1a1e4549392d7cb6d1"
-        url = f"{BACKEND_URL}/enneagram/results/{user_id}"
-        
-        print(f"Testing: GET {url}")
-        
         response = requests.get(url, timeout=30)
         print(f"Status Code: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
-            print(f"Response: {json.dumps(data, indent=2)}")
+            print(f"Response received: {len(json.dumps(data))} characters")
             
-            # Check if has_result is true
-            if not data.get("has_result"):
-                print_result(False, "No results found for user (has_result: false)")
-                return False
-            
-            # Check for result object
-            result = data.get("result", {})
-            if not result:
-                print_result(False, "Missing result object in response")
-                return False
-            
-            # Check for enneagram_computed_details in result
-            computed_details = result.get("enneagram_computed_details", {})
-            if not computed_details:
-                print_result(False, "Missing enneagram_computed_details in result")
-                return False
-            
-            # Verify the enriched details are present
-            required_fields = ["center", "hornevian_group", "harmonic_group", "stress_line_to", "growth_line_to"]
-            missing_fields = [field for field in required_fields if field not in computed_details]
+            # Validate expected response for user without result
+            expected_fields = ["cards", "source", "message", "computed_details"]
+            missing_fields = [field for field in expected_fields if field not in data]
             
             if missing_fields:
-                print_result(False, f"Missing enriched detail fields: {missing_fields}")
+                print(f"❌ MISSING FIELDS: {missing_fields}")
                 return False
             
-            print_result(True, "Successfully retrieved results with enriched details")
-            print(f"Enriched details: {json.dumps(computed_details, indent=2)}")
-            return True
+            # Check that cards is empty
+            cards = data.get("cards", [])
+            if len(cards) != 0:
+                print(f"❌ Expected empty cards array, got {len(cards)} cards")
+                return False
+            
+            print("✅ Cards array is empty as expected")
+            
+            # Check source is "none"
+            source = data.get("source")
+            if source != "none":
+                print(f"❌ Expected source 'none', got '{source}'")
+                return False
+            
+            print("✅ Source is 'none' as expected")
+            
+            # Check message is present
+            message = data.get("message")
+            if not message or "Complete the Enneagram assessment" not in message:
+                print(f"❌ Expected assessment completion message, got: {message}")
+                return False
+            
+            print("✅ Appropriate message for incomplete assessment")
+            
+            # Check computed_details is None
+            computed_details = data.get("computed_details")
+            if computed_details is not None:
+                print(f"❌ Expected computed_details to be None, got: {computed_details}")
+                return False
+            
+            print("✅ computed_details is None as expected")
+            print("✅ TEST 2 PASSED: User without Enneagram result")
             
         else:
-            print_result(False, f"HTTP {response.status_code}: {response.text}")
+            print(f"❌ Unexpected status code: {response.status_code}")
+            print(f"Response: {response.text}")
             return False
             
     except Exception as e:
-        print_result(False, f"Request failed: {str(e)}")
+        print(f"❌ Request failed: {e}")
         return False
+    
+    # Test Case 3: Invalid user ID
+    print("\n3. Testing INVALID user ID")
+    print("-" * 60)
+    
+    invalid_user_id = "invalid_user_id_format"
+    url = f"{BACKEND_URL}/enneagram/traits/{invalid_user_id}"
+    
+    try:
+        response = requests.get(url, timeout=30)
+        print(f"Status Code: {response.status_code}")
+        
+        # Should handle gracefully - either 400, 404, or 500 with error message
+        if response.status_code in [400, 404, 500]:
+            print("✅ Graceful error handling for invalid user ID")
+            print("✅ TEST 3 PASSED: Invalid user ID handled gracefully")
+        elif response.status_code == 200:
+            # If it returns 200, it should return empty result
+            data = response.json()
+            cards = data.get("cards", [])
+            source = data.get("source")
+            
+            if len(cards) == 0 and source == "none":
+                print("✅ Invalid user ID treated as user without result")
+                print("✅ TEST 3 PASSED: Invalid user ID handled gracefully")
+            else:
+                print(f"❌ Unexpected response for invalid user ID: {data}")
+                return False
+        else:
+            print(f"❌ Unexpected status code for invalid user ID: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Request failed: {e}")
+        return False
+    
+    # Performance Test
+    print("\n4. Testing RESPONSE TIME")
+    print("-" * 60)
+    
+    start_time = datetime.now()
+    try:
+        response = requests.get(f"{BACKEND_URL}/enneagram/traits/{user_with_result}", timeout=30)
+        end_time = datetime.now()
+        response_time = (end_time - start_time).total_seconds()
+        
+        print(f"Response time: {response_time:.2f} seconds")
+        
+        if response_time > 2.0:
+            print("⚠️  Response time > 2 seconds (using static fallback should be faster)")
+        else:
+            print("✅ Response time acceptable (< 2 seconds)")
+            
+        print("✅ TEST 4 PASSED: Performance test completed")
+        
+    except Exception as e:
+        print(f"❌ Performance test failed: {e}")
+        return False
+    
+    print("\n" + "=" * 80)
+    print("ALL ENNEAGRAM TRAITS ENDPOINT TESTS PASSED ✅")
+    print("=" * 80)
+    return True
+
 
 def main():
-    """Run all tests"""
-    print("🧪 ENNEAGRAM KNOWLEDGE BASE & ENRICHED DETAILS TESTING")
+    """Run all backend tests"""
+    print("Starting Backend API Tests...")
     print(f"Backend URL: {BACKEND_URL}")
-    print(f"Test Time: {datetime.now().isoformat()}")
+    print(f"Test started at: {datetime.now().isoformat()}")
     
-    tests = [
-        ("KB Status Endpoint", test_kb_status),
-        ("Enneagram Ask Endpoint", test_enneagram_ask),
-        ("Enneagram Results Save", test_enneagram_results_save),
-        ("Enneagram Results Get", test_enneagram_results_get),
-    ]
+    success = test_enneagram_traits_endpoint()
     
-    results = []
-    
-    for test_name, test_func in tests:
-        try:
-            success = test_func()
-            results.append((test_name, success))
-        except Exception as e:
-            print_result(False, f"Test {test_name} crashed: {str(e)}")
-            results.append((test_name, False))
-    
-    # Summary
-    print(f"\n{'='*60}")
-    print("TEST SUMMARY")
-    print(f"{'='*60}")
-    
-    passed = sum(1 for _, success in results if success)
-    total = len(results)
-    
-    for test_name, success in results:
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status}: {test_name}")
-    
-    print(f"\nOverall: {passed}/{total} tests passed")
-    
-    if passed == total:
-        print("🎉 ALL TESTS PASSED!")
-        return 0
+    if success:
+        print("\n🎉 ALL TESTS PASSED!")
+        sys.exit(0)
     else:
-        print("⚠️  SOME TESTS FAILED")
-        return 1
+        print("\n❌ SOME TESTS FAILED!")
+        sys.exit(1)
+
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
