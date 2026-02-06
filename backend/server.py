@@ -5758,7 +5758,8 @@ async def get_astrology_deep_dive(user_id: str):
     NO transits, NO timing, NO future implications.
     
     Auto-migrates old chart formats before serving data.
-    Returns success:false with error code if critical data missing after migration attempt.
+    Validates compute integrity before interpretation.
+    Returns success:false with error code if critical data missing.
     Uses caching for instant repeat views.
     """
     import json as json_module
@@ -5794,6 +5795,15 @@ async def get_astrology_deep_dive(user_id: str):
             }
         
         user, chart = await get_user_astrology_data(user_id)
+        
+        # =====================================================================
+        # COMPUTE INTEGRITY VALIDATION (MANDATORY)
+        # =====================================================================
+        is_valid, missing_objects = validate_astrology_compute_integrity(chart)
+        if not is_valid:
+            logger.warning(f"[ASTRO_DEEP_DIVE] Compute integrity failed for user {user_id}: {missing_objects}")
+            return get_compute_integrity_error(missing_objects)
+        
         placements = extract_astrology_placements(chart)
         
         # =====================================================================
