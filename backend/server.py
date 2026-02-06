@@ -229,15 +229,28 @@ class EnneagramWingScores(BaseModel):
     right: float
     diff: float
 
+# Extended wing access data (v2)
+class EnneagramWingAccess(BaseModel):
+    left_type: int
+    right_type: int
+    left_accessible: bool
+    right_accessible: bool
+    dominant_wing: Any  # int | "balanced" | "none"
+
 class EnneagramDebugScores(BaseModel):
     raw_scores: Dict[str, float]
     z_scores: Dict[str, float]
     wing_scores: EnneagramWingScores
+    # Extended debug data (v2 - optional for backward compatibility)
+    mean_likert: Optional[Dict[str, float]] = None
+    forced_hits: Optional[Dict[str, float]] = None
+    probabilities: Optional[Dict[str, float]] = None
+    wing_access: Optional[EnneagramWingAccess] = None
 
 class EnneagramResultSave(BaseModel):
     user_id: str
-    method: str = "assessment_inference_v1"
-    version: str = "v1"
+    method: str = "assessment_inference_v2"
+    version: str = "v2"
     inferred_core: int
     inferred_wing: Any  # int | "balanced"
     confidence: float
