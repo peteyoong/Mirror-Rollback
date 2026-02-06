@@ -148,10 +148,11 @@ def test_enneagram_results_save():
                 print_result(False, "Response does not indicate success")
                 return False
             
-            # Check for enneagram_computed_details
-            computed_details = data.get("enneagram_computed_details", {})
+            # Check for enneagram_computed_details in result object
+            result = data.get("result", {})
+            computed_details = result.get("enneagram_computed_details", {})
             if not computed_details:
-                print_result(False, "Missing enneagram_computed_details in response")
+                print_result(False, "Missing enneagram_computed_details in result")
                 return False
             
             # Check required enriched fields for Type 7
