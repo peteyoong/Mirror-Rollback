@@ -5944,7 +5944,11 @@ async def unlock_numerology_name(user_id: str, request: NumerologyUnlockRequest)
 
 @api_router.post("/enneagram/results")
 async def save_enneagram_result(request: EnneagramResultSave):
-    """Save Enneagram assessment results to user profile"""
+    """Save Enneagram assessment results to user profile
+    
+    For v2 assessments, automatically computes cross-lens convergence
+    using True Sidereal Astrology and Human Design data (if available).
+    """
     try:
         # Validate user exists
         user = await db.users.find_one({"_id": ObjectId(request.user_id)})
@@ -5959,6 +5963,100 @@ async def save_enneagram_result(request: EnneagramResultSave):
             wing_right_score=request.debug_scores.wing_scores.right,
             confidence=request.confidence
         )
+        
+        # =====================================================
+        # AUTO-COMPUTE CONVERGENCE FOR V2 ASSESSMENTS
+        # =====================================================
+        convergence_data = None
+        adjusted_confidence = request.confidence
+        adjusted_tier = request.confidence_tier
+        
+        if request.version == "v2":
+            # Build Enneagram result dict for convergence computation
+            enn_result_dict = {
+                'inferred_core': request.inferred_core,
+                'confidence': request.confidence,
+                'confidence_tier': request.confidence_tier,
+                'top_candidates': [{"type": c.type, "probability": c.probability} for c in request.top_candidates]
+            }
+            
+            # Compute astrology chart (if birth data available)
+            astrology_data = None
+            try:
+                if user.get("birth_date") and user.get("birth_time") and user.get("birth_location"):
+                    birth_date = user["birth_date"]
+                    if isinstance(birth_date, datetime):
+                        birth_date_str = birth_date.strftime("%Y-%m-%d")
+                    else:
+                        birth_date_str = str(birth_date).split()[0]
+                    
+                    utc_result = resolve_birth_utc(
+                        birth_date_str=birth_date_str,
+                        birth_time_str=user.get("birth_time", "12:00"),
+                        timezone_str=user.get("timezone", "UTC")
+                    )
+                    utc_datetime = utc_result[0]
+                    
+                    location = user.get("birth_location", {})
+                    astrology_data = get_full_natal_chart(
+                        utc_datetime,
+                        location.get("latitude", 0),
+                        location.get("longitude", 0),
+                        {
+                            "mode": "true_sidereal_user_defined",
+                            "svp_year": 2000,
+                            "svp_degrees": 31.2836,
+                            "yearly_increment": 0.0
+                        }
+                    )
+            except Exception as e:
+                logger.debug(f"[Convergence] Astrology unavailable for {request.user_id}: {e}")
+            
+            # Compute Human Design chart (if birth data available)
+            hd_data = None
+            try:
+                if user.get("birth_date") and user.get("birth_time") and user.get("birth_location"):
+                    birth_date = user["birth_date"]
+                    if isinstance(birth_date, datetime):
+                        birth_date_str = birth_date.strftime("%Y-%m-%d")
+                    else:
+                        birth_date_str = str(birth_date).split()[0]
+                    
+                    utc_result = resolve_birth_utc(
+                        birth_date_str=birth_date_str,
+                        birth_time_str=user.get("birth_time", "12:00"),
+                        timezone_str=user.get("timezone", "UTC")
+                    )
+                    utc_datetime = utc_result[0]
+                    
+                    location = user.get("birth_location", {})
+                    hd_data = get_human_design_chart(
+                        utc_datetime,
+                        location.get("latitude", 0),
+                        location.get("longitude", 0),
+                        {
+                            "mode": "true_sidereal_user_defined",
+                            "svp_year": 2000,
+                            "svp_degrees": 31.2836,
+                            "yearly_increment": 0.0
+                        }
+                    )
+            except Exception as e:
+                logger.debug(f"[Convergence] HD unavailable for {request.user_id}: {e}")
+            
+            # Compute convergence (handles missing data gracefully)
+            convergence_data = compute_convergence(
+                enneagram_result=enn_result_dict,
+                astrology_data=astrology_data,
+                human_design_data=hd_data
+            )
+            
+            # Apply convergence adjustments
+            updated_result = apply_convergence_to_result(enn_result_dict, convergence_data)
+            adjusted_confidence = updated_result.get('confidence', request.confidence)
+            adjusted_tier = updated_result.get('confidence_tier', request.confidence_tier)
+            
+            logger.info(f"[Convergence] Auto-computed for {request.user_id}: support={convergence_data.get('support_score')}, adjustment={convergence_data.get('confidence_adjustment')}")
         
         # Create the result document
         result_doc = {
@@ -6001,6 +6099,12 @@ async def save_enneagram_result(request: EnneagramResultSave):
             "created_at": datetime.now(timezone.utc)
         }
         
+        # Add convergence data for v2 assessments
+        if convergence_data is not None:
+            result_doc["convergence"] = convergence_data
+            result_doc["adjusted_confidence"] = adjusted_confidence
+            result_doc["adjusted_tier"] = adjusted_tier
+        
         # Upsert - replace any existing result for this user
         await db.enneagram_results.update_one(
             {"user_id": request.user_id},
@@ -6009,23 +6113,31 @@ async def save_enneagram_result(request: EnneagramResultSave):
         )
         
         # Also update user profile with latest enneagram result
+        user_enneagram_update = {
+            "inferred_core": request.inferred_core,
+            "inferred_wing": request.inferred_wing,
+            "confidence": request.confidence,
+            "confidence_tier": request.confidence_tier,
+            "enneagram_computed_details": enneagram_computed_details,
+            "assessed_at": datetime.now(timezone.utc)
+        }
+        
+        # Include convergence summary in user profile (user-facing only)
+        if convergence_data is not None:
+            user_enneagram_update["convergence_summary"] = convergence_data.get("convergence_summary", "")
+            user_enneagram_update["supported_types"] = convergence_data.get("supported_types", [])
+            user_enneagram_update["adjusted_confidence"] = adjusted_confidence
+            user_enneagram_update["adjusted_tier"] = adjusted_tier
+        
         await db.users.update_one(
             {"_id": ObjectId(request.user_id)},
-            {"$set": {
-                "enneagram": {
-                    "inferred_core": request.inferred_core,
-                    "inferred_wing": request.inferred_wing,
-                    "confidence": request.confidence,
-                    "confidence_tier": request.confidence_tier,
-                    "enneagram_computed_details": enneagram_computed_details,
-                    "assessed_at": datetime.now(timezone.utc)
-                }
-            }}
+            {"$set": {"enneagram": user_enneagram_update}}
         )
         
         logger.info(f"[Enneagram] Saved result for user {request.user_id}: Type {request.inferred_core}w{request.inferred_wing}")
         
-        return {
+        # Build response (include convergence summary for v2)
+        response = {
             "success": True,
             "message": "Enneagram result saved successfully",
             "result": {
@@ -6035,6 +6147,14 @@ async def save_enneagram_result(request: EnneagramResultSave):
                 "enneagram_computed_details": enneagram_computed_details
             }
         }
+        
+        # Add user-facing convergence data (not full debug) for v2
+        if convergence_data is not None:
+            response["result"]["convergence_summary"] = convergence_data.get("convergence_summary", "")
+            response["result"]["supported_types"] = convergence_data.get("supported_types", [])
+            response["result"]["adjusted_tier"] = adjusted_tier
+        
+        return response
     
     except HTTPException:
         raise
