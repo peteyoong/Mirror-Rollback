@@ -5773,8 +5773,13 @@ async def get_astrology_deep_dive(user_id: str):
     Generate Deep Dive - Sun, Moon, Ascendant only.
     NO transits, NO timing, NO future implications.
     
+    SWISS EPHEMERIS COMPUTE CONTRACT:
+    - Uses canonical get_full_natal_chart() output directly
+    - Catches ComputeIntegrityError BEFORE invoking LLM
+    - Validates nodes.north/south presence at handoff
+    - Never returns partial data or invokes LLM with missing nodes
+    
     Auto-migrates old chart formats before serving data.
-    Validates compute integrity before interpretation.
     Returns success:false with error code if critical data missing.
     Uses caching for instant repeat views.
     """
@@ -5813,65 +5818,183 @@ async def get_astrology_deep_dive(user_id: str):
         user, chart = await get_user_astrology_data(user_id)
         
         # =====================================================================
-        # COMPUTE INTEGRITY VALIDATION (MANDATORY)
+        # RECOMPUTE CHART USING CANONICAL get_full_natal_chart (MANDATORY)
         # =====================================================================
-        is_valid, missing_objects = validate_astrology_compute_integrity(chart)
-        if not is_valid:
-            logger.warning(f"[ASTRO_DEEP_DIVE] Compute integrity failed for user {user_id}: {missing_objects}")
-            return get_compute_integrity_error(missing_objects)
+        # This ensures we always use the Swiss Ephemeris Compute Contract
+        # and get a complete, validated payload with nodes
         
-        placements = extract_astrology_placements(chart)
+        from calculations.timezone_utils import resolve_birth_utc_with_debug
+        from datetime import datetime
+        
+        # Get user's birth data
+        birth_location = user.get('birth_location', {})
+        lat = birth_location.get('lat') or birth_location.get('latitude')
+        lon = birth_location.get('lon') or birth_location.get('lng') or birth_location.get('longitude')
+        
+        if not lat or not lon:
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": ["Metadata: birth_location (lat/lon)"],
+                "action": "Astrology deep dive paused until birth location is available.",
+                "sections": [],
+                "mirror_prompt": None
+            }
+        
+        # Resolve birth UTC
+        birth_date = user.get('birth_date')
+        birth_time = user.get('birth_time')
+        timezone = user.get('timezone')
+        
+        if not all([birth_date, birth_time, timezone]):
+            missing = []
+            if not birth_date: missing.append("birth_date")
+            if not birth_time: missing.append("birth_time")
+            if not timezone: missing.append("timezone")
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": [f"Metadata: {m}" for m in missing],
+                "action": "Astrology deep dive paused until birth data is complete.",
+                "sections": [],
+                "mirror_prompt": None
+            }
+        
+        try:
+            result = resolve_birth_utc_with_debug(birth_date, birth_time, timezone)
+            birth_utc = result['birth_utc']
+        except Exception as e:
+            logger.error(f"[ASTRO_DEEP_DIVE] Failed to resolve birth UTC: {e}")
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": ["Metadata: could not resolve birth UTC from provided data"],
+                "action": "Astrology deep dive paused. Check timezone/birth data format.",
+                "sections": [],
+                "mirror_prompt": None
+            }
         
         # =====================================================================
-        # PREPARE FULL CHART JSON FOR ASSISTANT CONTEXT
+        # CALL CANONICAL COMPUTE FUNCTION - CATCHES ComputeIntegrityError
         # =====================================================================
-        astro_data = chart.get('astrology', {})
-        full_chart_summary = {
-            "planets": {},
-            "nodes": {},
-            "houses": {},
-            "aspects": astro_data.get('aspects', [])[:10],  # Top 10 aspects
-            "houses_computed": placements.get("debug_stamp", {}).get("houses_computed", False)
+        try:
+            canonical_chart = get_full_natal_chart(
+                birth_datetime=birth_utc,
+                lat=lat,
+                lon=lon,
+                sidereal_settings={"mode": "true_sidereal_user_defined"},
+                house_system="Equal",
+                node_mode="true_node"
+            )
+        except ComputeIntegrityError as e:
+            # Compute layer failed - return error WITHOUT invoking LLM
+            logger.error(f"[ASTRO_DEEP_DIVE] ComputeIntegrityError for user {user_id}: {e.errors}")
+            error_response = e.to_dict()
+            # Map to our API response format
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": e.errors,
+                "action": "Astrology deep dive paused until compute payload is complete.",
+                "sections": [],
+                "mirror_prompt": None,
+                "partial_data": error_response.get("partial_data")
+            }
+        except ValueError as e:
+            # Invalid configuration (e.g., wrong house system)
+            logger.error(f"[ASTRO_DEEP_DIVE] ValueError for user {user_id}: {e}")
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": [str(e)],
+                "action": "Astrology deep dive paused due to configuration error.",
+                "sections": [],
+                "mirror_prompt": None
+            }
+        
+        # =====================================================================
+        # NODE PRESENCE ASSERTION AT HANDOFF (MANDATORY)
+        # =====================================================================
+        nodes = canonical_chart.get("nodes", {})
+        metadata = canonical_chart.get("metadata", {})
+        
+        node_north = nodes.get("north")
+        node_south = nodes.get("south")
+        node_mode = metadata.get("node_mode") or canonical_chart.get("sidereal_settings", {}).get("node_mode")
+        
+        # Assert all required node data exists
+        assertion_errors = []
+        if not node_north or not node_north.get("sign"):
+            assertion_errors.append("Nodes: north missing sign")
+        if not node_south or not node_south.get("sign"):
+            assertion_errors.append("Nodes: south missing sign")
+        if not node_mode:
+            assertion_errors.append("Nodes: metadata.node_mode missing")
+        if node_north and node_north.get("house") is None:
+            assertion_errors.append("Nodes: north missing house")
+        if node_south and node_south.get("house") is None:
+            assertion_errors.append("Nodes: south missing house")
+        
+        if assertion_errors:
+            logger.error(f"[ASTRO_DEEP_DIVE] Node assertion failed for user {user_id}: {assertion_errors}")
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": assertion_errors,
+                "action": "Astrology deep dive paused. Nodes not fully computed.",
+                "sections": [],
+                "mirror_prompt": None
+            }
+        
+        # =====================================================================
+        # TEMPORARY DEBUG LOG (for verification - remove after confirmation)
+        # =====================================================================
+        logger.info(f"[ASTRO_DEEP_DIVE_HANDOFF] user={user_id}")
+        logger.info(f"  metadata.node_mode: {node_mode}")
+        logger.info(f"  nodes.north: {node_north.get('sign')}/{node_north.get('degree', 0):.2f}° (House {node_north.get('house')})")
+        logger.info(f"  nodes.south: {node_south.get('sign')}/{node_south.get('degree', 0):.2f}° (House {node_south.get('house')})")
+        logger.info(f"  handoff_ok: true")
+        
+        # =====================================================================
+        # PREPARE CANONICAL FULL CHART JSON FOR LLM CONTEXT
+        # =====================================================================
+        # Use the canonical payload directly - do not rebuild a partial summary
+        full_chart_json_str = json_module.dumps(canonical_chart, indent=2, default=str)
+        
+        # Extract placements for prompt template
+        planets = canonical_chart.get("planets", {})
+        angles = canonical_chart.get("angles", {})
+        
+        sun_sign = planets.get("Sun", {}).get("sign", "Unknown")
+        sun_house = planets.get("Sun", {}).get("house", "Unknown")
+        moon_sign = planets.get("Moon", {}).get("sign", "Unknown")
+        moon_house = planets.get("Moon", {}).get("house", "Unknown")
+        rising_sign = angles.get("asc", {}).get("sign", "Unknown")
+        
+        placements = {
+            "sun_sign": sun_sign,
+            "sun_house": sun_house,
+            "moon_sign": moon_sign,
+            "moon_house": moon_house,
+            "rising_sign": rising_sign,
+            "success": rising_sign != "Unknown",
+            "error": None if rising_sign != "Unknown" else "ASCENDANT_MISSING",
+            "debug_stamp": {
+                "houses_computed": len(canonical_chart.get("houses", {}).get("formatted_cusps", [])) == 12,
+                "nodes_computed": True,
+                "aspects_computed": len(canonical_chart.get("aspects", [])) > 0,
+                "compute_integrity_valid": canonical_chart.get("compute_integrity", {}).get("valid", False)
+            }
         }
         
-        # Extract all planets
-        planets = astro_data.get('planets', {})
-        for planet_name, planet_data in planets.items():
-            if isinstance(planet_data, dict):
-                full_chart_summary["planets"][planet_name] = {
-                    "sign": planet_data.get('sign'),
-                    "house": planet_data.get('house'),
-                    "degrees": round(planet_data.get('longitude', 0) % 30, 2) if planet_data.get('longitude') else None
-                }
-        
-        # Extract nodes if available
-        if 'North Node' in planets:
-            node_data = planets['North Node']
-            if isinstance(node_data, dict):
-                full_chart_summary["nodes"]["north"] = {
-                    "sign": node_data.get('sign'),
-                    "house": node_data.get('house')
-                }
-        if 'South Node' in planets:
-            node_data = planets['South Node']
-            if isinstance(node_data, dict):
-                full_chart_summary["nodes"]["south"] = {
-                    "sign": node_data.get('sign'),
-                    "house": node_data.get('house')
-                }
-        
-        # Extract houses
-        houses = astro_data.get('houses', {})
-        formatted_cusps = houses.get('formatted_cusps', [])
-        for i, cusp in enumerate(formatted_cusps[:12], 1):
-            if isinstance(cusp, dict):
-                full_chart_summary["houses"][f"house_{i}"] = cusp.get('sign')
-        
-        import json as json_module_for_chart
-        full_chart_json_str = json_module_for_chart.dumps(full_chart_summary, indent=2)
-        
         # =====================================================================
-        # FAIL LOUDLY IF CRITICAL DATA MISSING
+        # FAIL LOUDLY IF CRITICAL DATA MISSING (Ascendant)
         # =====================================================================
         if not placements["success"] or placements["rising_sign"] == "Unknown":
             logger.warning(f"Astrology deep dive failed for user {user_id}: {placements['error']}")
@@ -5887,7 +6010,7 @@ async def get_astrology_deep_dive(user_id: str):
                 }
             }
         
-        # Build full prompt with full chart data
+        # Build full prompt with full chart data (canonical payload)
         system_prompt = ASTROLOGY_GLOBAL_PROMPT + "\n\n" + ASTROLOGY_DEEP_DIVE_PROMPT.format(
             sun_sign=placements['sun_sign'],
             sun_house=placements['sun_house'] or "Unknown",
@@ -5912,8 +6035,9 @@ async def get_astrology_deep_dive(user_id: str):
                 "moon_sign": placements['moon_sign'],
                 "rising_sign": placements['rising_sign'],
                 "full_chart_available": True,
-                "houses_computed": full_chart_summary.get("houses_computed", False),
-                "nodes_available": bool(full_chart_summary.get("nodes"))
+                "houses_computed": placements["debug_stamp"].get("houses_computed", False),
+                "nodes_available": True,  # Guaranteed by assertion
+                "node_mode": node_mode
             },
             additional_system_prompt=system_prompt,
             model="gpt-5.2"
