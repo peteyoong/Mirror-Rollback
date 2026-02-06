@@ -5520,15 +5520,22 @@ async def get_numerology_deep_dive(user_id: str):
             name_numbers_context=name_numbers_context
         )
         
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"numerology_deepdive_{user_id}_{datetime.now().strftime('%Y%m%d')}",
-            system_message=system_prompt
-        )
-        chat.with_model("openai", "gpt-5.2")
+        # ===== USE EMERGENT CONTRACT =====
+        from emergent_contract import emergent_generate
         
-        message = UserMessage(text="Generate the Numerology Deep Dive for this user. Return ONLY valid JSON.")
-        response_text = await chat.send_message(message)
+        response_text = await emergent_generate(
+            mode="deep_dive",
+            user_message="Generate the Numerology Deep Dive for this user. Return ONLY valid JSON.",
+            endpoint="numerology_deep_dive",
+            user_id=user_id,
+            context={
+                "lens": "numerology",
+                "life_path": data["life_path_number"],
+                "has_name_numbers": data["has_name_numbers"]
+            },
+            additional_system_prompt=system_prompt,
+            model="gpt-5.2"
+        )
         
         # Parse JSON response
         try:
