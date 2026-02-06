@@ -413,6 +413,18 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
   const [activeCardContext, setActiveCardContext] = useState<string>('today_general');
+  
+  // Trait cards and computed details state
+  const [traitCards, setTraitCards] = useState<EnneagramTraitCard[]>([]);
+  const [computedDetails, setComputedDetails] = useState<EnneagramComputedDetails | null>(null);
+  const [traitsLoading, setTraitsLoading] = useState(false);
+  const [traitsSource, setTraitsSource] = useState<'book' | 'static' | 'none'>('none');
+  
+  // Q&A Modal state (hidden initially per user request)
+  const [showQAModal, setShowQAModal] = useState(false);
+  const [qaQuestion, setQaQuestion] = useState('');
+  const [qaAnswer, setQaAnswer] = useState<string | null>(null);
+  const [qaLoading, setQaLoading] = useState(false);
 
   const core = result.inferred_core;
   const wing = result.inferred_wing;
