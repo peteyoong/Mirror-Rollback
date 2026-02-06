@@ -4958,13 +4958,14 @@ async def get_astrology_deep_dive(user_id: str):
                 }
             }
         
-        # Build full prompt
+        # Build full prompt with full chart data
         system_prompt = ASTROLOGY_GLOBAL_PROMPT + "\n\n" + ASTROLOGY_DEEP_DIVE_PROMPT.format(
             sun_sign=placements['sun_sign'],
             sun_house=placements['sun_house'] or "Unknown",
             moon_sign=placements['moon_sign'],
             moon_house=placements['moon_house'] or "Unknown",
-            rising_sign=placements['rising_sign']
+            rising_sign=placements['rising_sign'],
+            full_chart_json=full_chart_json_str
         )
         
         # ===== USE EMERGENT CONTRACT =====
@@ -4980,7 +4981,10 @@ async def get_astrology_deep_dive(user_id: str):
                 "lens": "astrology",
                 "sun_sign": placements['sun_sign'],
                 "moon_sign": placements['moon_sign'],
-                "rising_sign": placements['rising_sign']
+                "rising_sign": placements['rising_sign'],
+                "full_chart_available": True,
+                "houses_computed": full_chart_summary.get("houses_computed", False),
+                "nodes_available": bool(full_chart_summary.get("nodes"))
             },
             additional_system_prompt=system_prompt,
             model="gpt-5.2"
