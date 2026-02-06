@@ -2960,6 +2960,27 @@ async def mirror_chat(request: MirrorChatRequest):
                 context_parts.append(f"Strategy: {hd.get('strategy', 'Unknown')}")
                 context_parts.append(f"Authority: {hd.get('authority', 'Unknown')}")
                 context_parts.append(f"Profile: {hd.get('profile', 'Unknown')}")
+                context_parts.append(f"Definition: {hd.get('definition', 'Unknown')}")
+                
+                # Incarnation Cross - IMPORTANT: Include full details
+                inc_cross = hd.get('incarnation_cross', 'Unknown')
+                inc_cross_gates = hd.get('incarnation_cross_gates', '')
+                if inc_cross and inc_cross != 'Unknown':
+                    # Get the named cross using the helper function
+                    named_cross = get_incarnation_cross_label(inc_cross)
+                    context_parts.append(f"Incarnation Cross: {named_cross}")
+                    if inc_cross_gates:
+                        context_parts.append(f"Incarnation Cross Gates: {inc_cross_gates}")
+                
+                # Defined Centers if available
+                defined_centers = hd.get('defined_centers', [])
+                if defined_centers:
+                    context_parts.append(f"Defined Centers: {', '.join(defined_centers)}")
+                
+                # Defined Channels if available
+                defined_channels = hd.get('defined_channels', [])
+                if defined_channels:
+                    context_parts.append(f"Defined Channels: {', '.join(defined_channels[:5])}")  # Limit to first 5
             
             # Numerology context
             numerology = chart.get('numerology', {})
