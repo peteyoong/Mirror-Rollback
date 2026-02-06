@@ -1,300 +1,295 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Project Mirror - Human Design Summary Endpoint Consistency
-Testing specific scenarios as requested in the review request.
+Backend Test Suite for Enneagram Knowledge Base and Enriched Computed Details
+Testing the new Enneagram KB functionality and enriched details computation.
 """
 
 import requests
 import json
 import sys
 from datetime import datetime
-from typing import Dict, Any, Optional
 
-# Configuration
+# Backend URL from frontend environment
 BACKEND_URL = "https://mirror-daily.preview.emergentagent.com/api"
 
-def log_test(test_name, status, details=""):
-    """Log test results with consistent formatting"""
-    status_symbol = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
-    print(f"{status_symbol} {test_name}: {status}")
+def print_test_header(test_name):
+    """Print formatted test header"""
+    print(f"\n{'='*60}")
+    print(f"TEST: {test_name}")
+    print(f"{'='*60}")
+
+def print_result(success, message, details=None):
+    """Print test result with formatting"""
+    status = "✅ PASS" if success else "❌ FAIL"
+    print(f"{status}: {message}")
     if details:
-        print(f"   {details}")
-    print()
+        print(f"Details: {details}")
 
-def test_human_design_summary_consistency():
-    """
-    Test Human Design Summary endpoint consistency as specified in review request.
-    
-    Test 1: Summary with numbered cross (user: 69819f1a1e4549392d7cb6d1)
-    Test 2: Summary with named cross (user: 6984b4a4ce7b78080ce4853a)  
-    Test 3: Deep Dive consistency (user: 6984b4a4ce7b78080ce4853a)
-    """
-    
-    print("=" * 80)
-    print("HUMAN DESIGN SUMMARY ENDPOINT CONSISTENCY TESTING")
-    print("=" * 80)
-    
-    # Test 1: Summary with numbered cross
-    print("\n🔍 TEST 1: Summary with numbered cross")
-    print("User ID: 69819f1a1e4549392d7cb6d1")
-    print("Expected: Projector, Mental/Environment, 5/1, Right Angle Cross, 23/43")
-    
-    test1_result = test_summary_numbered_cross("69819f1a1e4549392d7cb6d1")
-    
-    # Test 2: Summary with named cross (different user)
-    print("\n🔍 TEST 2: Summary with named cross")
-    print("User ID: 6984b4a4ce7b78080ce4853a")
-    print("Expected: Valid HD type, human-friendly cross name like 'LAX Migration'")
-    
-    test2_result = test_summary_named_cross("6984b4a4ce7b78080ce4853a")
-    
-    # Test 3: Deep Dive consistency
-    print("\n🔍 TEST 3: Deep Dive consistency")
-    print("User ID: 6984b4a4ce7b78080ce4853a")
-    print("Expected: core_mechanics has same structure as Summary")
-    
-    test3_result = test_deep_dive_consistency("6984b4a4ce7b78080ce4853a", test2_result)
-    
-    # Summary
-    print("\n" + "=" * 80)
-    print("TEST SUMMARY")
-    print("=" * 80)
-    
-    all_passed = test1_result and test2_result and test3_result
-    
-    if all_passed:
-        print("✅ ALL TESTS PASSED - Human Design Summary endpoint consistency verified")
-    else:
-        print("❌ SOME TESTS FAILED - Issues found with endpoint consistency")
-        
-    return all_passed
-
-
-def test_summary_numbered_cross(user_id: str) -> bool:
-    """
-    Test 1: Summary with numbered cross
-    Verify specific expected values for user 69819f1a1e4549392d7cb6d1
-    """
-    
-    url = f"{BACKEND_URL}/human-design/summary/{user_id}"
+def test_kb_status():
+    """Test 1: KB Status Endpoint"""
+    print_test_header("KB Status Endpoint")
     
     try:
-        print(f"📡 GET {url}")
+        url = f"{BACKEND_URL}/enneagram/kb-status"
+        print(f"Testing: GET {url}")
+        
         response = requests.get(url, timeout=30)
+        print(f"Status Code: {response.status_code}")
         
-        print(f"📊 Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            log_test("Summary Numbered Cross", "FAIL", f"Expected 200, got {response.status_code}: {response.text}")
-            return False
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Response: {json.dumps(data, indent=2)}")
             
-        data = response.json()
-        print(f"📄 Response received: {len(json.dumps(data))} characters")
-        
-        # Check core_mechanics structure
-        if "core_mechanics" not in data:
-            log_test("Summary Numbered Cross", "FAIL", "Missing 'core_mechanics' field")
-            return False
+            # Check expected fields
+            required_fields = ["status", "ready", "chunks_count", "error", "pdf_path"]
+            missing_fields = [field for field in required_fields if field not in data]
             
-        core_mechanics = data["core_mechanics"]
-        print(f"🔧 Core mechanics: {json.dumps(core_mechanics, indent=2)}")
-        
-        # Verify expected values
-        expected_checks = [
-            ("type", "Projector"),
-            ("authority", "Mental/Environment"),
-            ("profile", "5/1"),
-            ("incarnation_cross_gates", "23/43")
-        ]
-        
-        all_checks_passed = True
-        
-        for field, expected_value in expected_checks:
-            actual_value = core_mechanics.get(field)
-            if actual_value == expected_value:
-                print(f"✅ {field}: '{actual_value}' (matches expected)")
+            if missing_fields:
+                print_result(False, f"Missing required fields: {missing_fields}")
+                return False
+            
+            # Check if ready is false (expected if PDF missing)
+            if data.get("ready") == False:
+                print_result(True, "KB Status correctly shows ready: false (PDF missing as expected)")
+                return True
+            elif data.get("ready") == True:
+                print_result(True, f"KB Status shows ready: true with {data.get('chunks_count', 0)} chunks")
+                return True
             else:
-                print(f"❌ {field}: '{actual_value}' (expected '{expected_value}')")
-                all_checks_passed = False
-        
-        # Check incarnation_cross is clean label
-        incarnation_cross = core_mechanics.get("incarnation_cross")
-        if incarnation_cross and "Right Angle Cross" in incarnation_cross:
-            print(f"✅ incarnation_cross: '{incarnation_cross}' (clean label format)")
+                print_result(False, f"Unexpected ready status: {data.get('ready')}")
+                return False
         else:
-            print(f"❌ incarnation_cross: '{incarnation_cross}' (expected clean label like 'Right Angle Cross')")
-            all_checks_passed = False
-        
-        if all_checks_passed:
-            log_test("Summary Numbered Cross", "PASS", "All expected values verified")
-        else:
-            log_test("Summary Numbered Cross", "FAIL", "Some expected values did not match")
-            
-        return all_checks_passed
-        
-    except requests.exceptions.RequestException as e:
-        log_test("Summary Numbered Cross", "FAIL", f"Request error: {e}")
-        return False
-    except json.JSONDecodeError as e:
-        log_test("Summary Numbered Cross", "FAIL", f"JSON decode error: {e}")
-        return False
-    except Exception as e:
-        log_test("Summary Numbered Cross", "FAIL", f"Unexpected error: {e}")
-        return False
-
-
-def test_summary_named_cross(user_id: str) -> Optional[Dict[str, Any]]:
-    """
-    Test 2: Summary with named cross (different user)
-    Verify valid HD type and human-friendly cross name
-    """
-    
-    url = f"{BACKEND_URL}/human-design/summary/{user_id}"
-    
-    try:
-        print(f"📡 GET {url}")
-        response = requests.get(url, timeout=30)
-        
-        print(f"📊 Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            log_test("Summary Named Cross", "FAIL", f"Expected 200, got {response.status_code}: {response.text}")
-            return None
-            
-        data = response.json()
-        print(f"📄 Response received: {len(json.dumps(data))} characters")
-        
-        # Check core_mechanics structure
-        if "core_mechanics" not in data:
-            log_test("Summary Named Cross", "FAIL", "Missing 'core_mechanics' field")
-            return None
-            
-        core_mechanics = data["core_mechanics"]
-        print(f"🔧 Core mechanics: {json.dumps(core_mechanics, indent=2)}")
-        
-        # Verify valid HD type
-        valid_hd_types = ["Generator", "Manifesting Generator", "Projector", "Manifestor", "Reflector"]
-        hd_type = core_mechanics.get("type")
-        
-        type_valid = hd_type in valid_hd_types
-        if type_valid:
-            print(f"✅ type: '{hd_type}' (valid HD type)")
-        else:
-            print(f"❌ type: '{hd_type}' (not a valid HD type)")
-        
-        # Check incarnation_cross is human-friendly name
-        incarnation_cross = core_mechanics.get("incarnation_cross")
-        cross_valid = incarnation_cross and incarnation_cross != "Unknown"
-        if cross_valid:
-            # Should be human-friendly like "LAX Migration" or "Left Angle Cross: Dedication"
-            print(f"✅ incarnation_cross: '{incarnation_cross}' (human-friendly name)")
-        else:
-            print(f"❌ incarnation_cross: '{incarnation_cross}' (expected human-friendly name)")
-        
-        if type_valid and cross_valid:
-            log_test("Summary Named Cross", "PASS", f"Valid HD type ({hd_type}) and human-friendly cross name")
-            return data
-        else:
-            log_test("Summary Named Cross", "FAIL", "Invalid HD type or cross name")
-            return None
-        
-    except requests.exceptions.RequestException as e:
-        log_test("Summary Named Cross", "FAIL", f"Request error: {e}")
-        return None
-    except json.JSONDecodeError as e:
-        log_test("Summary Named Cross", "FAIL", f"JSON decode error: {e}")
-        return None
-    except Exception as e:
-        log_test("Summary Named Cross", "FAIL", f"Unexpected error: {e}")
-        return None
-
-
-def test_deep_dive_consistency(user_id: str, summary_data: Optional[Dict[str, Any]]) -> bool:
-    """
-    Test 3: Deep Dive consistency
-    Verify core_mechanics has same structure as Summary
-    """
-    
-    if not summary_data:
-        log_test("Deep Dive Consistency", "FAIL", "Cannot test - Summary test failed")
-        return False
-    
-    url = f"{BACKEND_URL}/human-design/deep-dive/{user_id}"
-    
-    try:
-        print(f"📡 GET {url}")
-        response = requests.get(url, timeout=30)
-        
-        print(f"📊 Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            log_test("Deep Dive Consistency", "FAIL", f"Expected 200, got {response.status_code}: {response.text}")
+            print_result(False, f"HTTP {response.status_code}: {response.text}")
             return False
             
-        data = response.json()
-        print(f"📄 Response received: {len(json.dumps(data))} characters")
+    except Exception as e:
+        print_result(False, f"Request failed: {str(e)}")
+        return False
+
+def test_enneagram_ask():
+    """Test 2: Enneagram Ask Endpoint (Graceful Degradation)"""
+    print_test_header("Enneagram Ask Endpoint (Graceful Degradation)")
+    
+    try:
+        url = f"{BACKEND_URL}/enneagram/ask"
+        payload = {
+            "question": "What is Type 4?"
+        }
         
-        # Check core_mechanics structure
-        if "core_mechanics" not in data:
-            log_test("Deep Dive Consistency", "FAIL", "Missing 'core_mechanics' field in Deep Dive")
-            return False
+        print(f"Testing: POST {url}")
+        print(f"Payload: {json.dumps(payload, indent=2)}")
+        
+        response = requests.post(url, json=payload, timeout=30)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Response: {json.dumps(data, indent=2)}")
             
-        deep_dive_core = data["core_mechanics"]
-        summary_core = summary_data["core_mechanics"]
-        
-        print(f"🔧 Deep Dive core mechanics: {json.dumps(deep_dive_core, indent=2)}")
-        
-        # Check that required fields exist in both
-        required_fields = ["type", "authority", "profile", "incarnation_cross", "incarnation_cross_gates"]
-        
-        all_consistent = True
-        
-        for field in required_fields:
-            summary_value = summary_core.get(field)
-            deep_dive_value = deep_dive_core.get(field)
-            
-            if summary_value == deep_dive_value:
-                print(f"✅ {field}: Consistent between Summary and Deep Dive ('{summary_value}')")
+            # Check for graceful message when KB unavailable
+            answer = data.get("answer", "")
+            if "unavailable" in answer.lower() or "try again later" in answer.lower():
+                print_result(True, "Returns graceful message when KB unavailable")
+                return True
+            elif len(answer) > 50:  # If KB is available and returns actual content
+                print_result(True, "KB is available and returns detailed answer")
+                return True
             else:
-                print(f"❌ {field}: INCONSISTENT - Summary: '{summary_value}', Deep Dive: '{deep_dive_value}'")
-                all_consistent = False
-        
-        if all_consistent:
-            log_test("Deep Dive Consistency", "PASS", "All core_mechanics fields consistent between Summary and Deep Dive")
+                print_result(False, f"Unexpected response format or content: {answer}")
+                return False
         else:
-            log_test("Deep Dive Consistency", "FAIL", "Inconsistencies found between Summary and Deep Dive")
+            print_result(False, f"HTTP {response.status_code}: {response.text}")
+            return False
             
-        return all_consistent
-        
-    except requests.exceptions.RequestException as e:
-        log_test("Deep Dive Consistency", "FAIL", f"Request error: {e}")
-        return False
-    except json.JSONDecodeError as e:
-        log_test("Deep Dive Consistency", "FAIL", f"JSON decode error: {e}")
-        return False
     except Exception as e:
-        log_test("Deep Dive Consistency", "FAIL", f"Unexpected error: {e}")
+        print_result(False, f"Request failed: {str(e)}")
         return False
 
+def test_enneagram_results_save():
+    """Test 3: Enneagram Results with Enriched Details"""
+    print_test_header("Enneagram Results Save with Enriched Details")
+    
+    try:
+        url = f"{BACKEND_URL}/enneagram/results"
+        payload = {
+            "user_id": "69819f1a1e4549392d7cb6d1",
+            "method": "assessment_inference_v1",
+            "version": "v1",
+            "inferred_core": 7,
+            "inferred_wing": 8,
+            "confidence": 0.72,
+            "confidence_tier": "medium",
+            "is_close": False,
+            "top_candidates": [{"type": 7, "probability": 0.72}],
+            "state_calibration": {
+                "energy_state": "high",
+                "life_context": "exploring",
+                "answer_frame": "best_self"
+            },
+            "debug_scores": {
+                "raw_scores": {"7": 4.5},
+                "z_scores": {"7": 1.5},
+                "wing_scores": {"left": 3.5, "right": 4.0, "diff": 0.5}
+            }
+        }
+        
+        print(f"Testing: POST {url}")
+        print(f"Payload: {json.dumps(payload, indent=2)}")
+        
+        response = requests.post(url, json=payload, timeout=30)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Response: {json.dumps(data, indent=2)}")
+            
+            # Check for success
+            if not data.get("success"):
+                print_result(False, "Response does not indicate success")
+                return False
+            
+            # Check for enneagram_computed_details
+            computed_details = data.get("enneagram_computed_details", {})
+            if not computed_details:
+                print_result(False, "Missing enneagram_computed_details in response")
+                return False
+            
+            # Check required enriched fields for Type 7
+            expected_fields = {
+                "center": "head",
+                "hornevian_group": "assertive", 
+                "harmonic_group": "positive_outlook",
+                "stress_line_to": 1,
+                "growth_line_to": 5
+            }
+            
+            missing_or_wrong = []
+            for field, expected_value in expected_fields.items():
+                actual_value = computed_details.get(field)
+                if actual_value != expected_value:
+                    missing_or_wrong.append(f"{field}: expected {expected_value}, got {actual_value}")
+            
+            if missing_or_wrong:
+                print_result(False, f"Incorrect enriched details: {missing_or_wrong}")
+                return False
+            
+            # Check for additional expected fields
+            additional_fields = ["social_style_tags", "traits_library_refs"]
+            missing_additional = [field for field in additional_fields if field not in computed_details]
+            
+            if missing_additional:
+                print_result(False, f"Missing additional fields: {missing_additional}")
+                return False
+            
+            print_result(True, "Successfully saved results with correct enriched details")
+            print(f"Enriched details: {json.dumps(computed_details, indent=2)}")
+            return True
+            
+        else:
+            print_result(False, f"HTTP {response.status_code}: {response.text}")
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Request failed: {str(e)}")
+        return False
+
+def test_enneagram_results_get():
+    """Test 4: Get Results with Enriched Details"""
+    print_test_header("Get Enneagram Results with Enriched Details")
+    
+    try:
+        user_id = "69819f1a1e4549392d7cb6d1"
+        url = f"{BACKEND_URL}/enneagram/results/{user_id}"
+        
+        print(f"Testing: GET {url}")
+        
+        response = requests.get(url, timeout=30)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Response: {json.dumps(data, indent=2)}")
+            
+            # Check if has_result is true
+            if not data.get("has_result"):
+                print_result(False, "No results found for user (has_result: false)")
+                return False
+            
+            # Check for result object
+            result = data.get("result", {})
+            if not result:
+                print_result(False, "Missing result object in response")
+                return False
+            
+            # Check for enneagram_computed_details in result
+            computed_details = result.get("enneagram_computed_details", {})
+            if not computed_details:
+                print_result(False, "Missing enneagram_computed_details in result")
+                return False
+            
+            # Verify the enriched details are present
+            required_fields = ["center", "hornevian_group", "harmonic_group", "stress_line_to", "growth_line_to"]
+            missing_fields = [field for field in required_fields if field not in computed_details]
+            
+            if missing_fields:
+                print_result(False, f"Missing enriched detail fields: {missing_fields}")
+                return False
+            
+            print_result(True, "Successfully retrieved results with enriched details")
+            print(f"Enriched details: {json.dumps(computed_details, indent=2)}")
+            return True
+            
+        else:
+            print_result(False, f"HTTP {response.status_code}: {response.text}")
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Request failed: {str(e)}")
+        return False
 
 def main():
-    """Run Human Design Summary endpoint consistency tests"""
-    print("🧪 HUMAN DESIGN SUMMARY ENDPOINT CONSISTENCY TESTING")
-    print("=" * 60)
+    """Run all tests"""
+    print("🧪 ENNEAGRAM KNOWLEDGE BASE & ENRICHED DETAILS TESTING")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Time: {datetime.now().isoformat()}")
-    print("=" * 60)
-    print()
     
-    success = test_human_design_summary_consistency()
+    tests = [
+        ("KB Status Endpoint", test_kb_status),
+        ("Enneagram Ask Endpoint", test_enneagram_ask),
+        ("Enneagram Results Save", test_enneagram_results_save),
+        ("Enneagram Results Get", test_enneagram_results_get),
+    ]
     
-    if success:
-        print("\n🎉 ALL TESTS COMPLETED SUCCESSFULLY")
+    results = []
+    
+    for test_name, test_func in tests:
+        try:
+            success = test_func()
+            results.append((test_name, success))
+        except Exception as e:
+            print_result(False, f"Test {test_name} crashed: {str(e)}")
+            results.append((test_name, False))
+    
+    # Summary
+    print(f"\n{'='*60}")
+    print("TEST SUMMARY")
+    print(f"{'='*60}")
+    
+    passed = sum(1 for _, success in results if success)
+    total = len(results)
+    
+    for test_name, success in results:
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name}")
+    
+    print(f"\nOverall: {passed}/{total} tests passed")
+    
+    if passed == total:
+        print("🎉 ALL TESTS PASSED!")
         return 0
     else:
-        print("\n💥 TESTS FAILED - See details above")
+        print("⚠️  SOME TESTS FAILED")
         return 1
-
 
 if __name__ == "__main__":
     sys.exit(main())
