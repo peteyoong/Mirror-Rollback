@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://introspect-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://trait-explorer-3.preview.emergentagent.com/api"
 
 def test_enneagram_traits_endpoint():
     """Test the new Enneagram traits endpoint: GET /api/enneagram/traits/{user_id}"""
