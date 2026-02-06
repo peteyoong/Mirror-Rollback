@@ -3949,26 +3949,57 @@ async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_ref
             tone = "grounding"  # Default for first visit
         
         # =====================================================================
-        # GENERATE KEYSTONE VIA LLM
+        # GENERATE KEYSTONE VIA EMERGENT CONTRACT
         # =====================================================================
-        system_prompt = DAILY_KEYSTONE_PROMPT.format(
-            variant_template=variant['opening'],
-            variant_structure=variant['structure'],
-            lens_context=lens_context,
-            lived_context=lived_context,
-            tone_guidance=tone
-        )
+        from emergent_contract import emergent_generate
         
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"keystone_{user_id}_{date_str}_{daily_seed}",
-            system_message=system_prompt
-        )
-        chat.with_model("openai", "gpt-5.2")
+        # Build keystone-specific additional prompt
+        keystone_additional_prompt = f"""
+TODAY'S VARIANT: {variant['opening']}
+STRUCTURAL APPROACH: {variant['structure']}
+
+USER'S LENS SYNTHESIS (do NOT name any system — use archetypal phrasing):
+{lens_context}
+
+RECENT LIVED EXPERIENCE (if available):
+{lived_context}
+
+CURRENT TONE GUIDANCE: {tone}
+
+=== OUTPUT REQUIREMENTS ===
+You must return ONLY valid JSON in this exact format:
+{{
+  "title": "3-6 word poetic title (no punctuation except comma)",
+  "keystone": "2-3 sentences following the structural approach. Sentence 1: Recognition. Sentence 2: Tension. Sentence 3 (optional): Opening.",
+  "reflect_question": "One gentle question inviting self-inquiry (not advice-seeking)",
+  "micro_affirmation": "8-14 words, non-prescriptive, grounding statement"
+}}
+
+=== STRUCTURE FOR KEYSTONE ===
+Sentence 1 (Recognition): What seems present underneath the surface — name it without explaining
+Sentence 2 (Tension): Two pulls that may coexist — honor both without resolving
+Sentence 3 (Opening, optional): A doorway or possibility — not advice, just space
+
+The question should invite reflection, not action.
+The micro_affirmation grounds without directing.
+"""
         
         user_prompt = f"Generate the Daily Keystone for {user_name} on {date_str}. Remember: return ONLY valid JSON, no markdown."
-        message = UserMessage(text=user_prompt)
-        response_text = await chat.send_message(message)
+        
+        response_text = await emergent_generate(
+            mode="daily_insight",
+            user_message=user_prompt,
+            endpoint="mirror_home_keystone",
+            user_id=user_id,
+            context={
+                "date": date_str,
+                "daily_seed": daily_seed,
+                "tone": tone,
+                "source_signals": source_signals_used
+            },
+            additional_system_prompt=keystone_additional_prompt,
+            model="gpt-5.2"
+        )
         
         # Parse JSON response
         try:
