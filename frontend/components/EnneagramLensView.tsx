@@ -492,6 +492,52 @@ export default function EnneagramLensView({ result, userId }: Props) {
     loadEnergyState();
   }, [userId]);
 
+  // Load trait cards and computed details (once on mount)
+  useEffect(() => {
+    const loadTraitCards = async () => {
+      if (!userId) return;
+      
+      setTraitsLoading(true);
+      try {
+        const response = await getEnneagramTraits(userId);
+        setTraitCards(response.cards || []);
+        setComputedDetails(response.computed_details || null);
+        setTraitsSource(response.source || 'none');
+      } catch (error) {
+        console.error('Failed to load trait cards:', error);
+      } finally {
+        setTraitsLoading(false);
+      }
+    };
+    loadTraitCards();
+  }, [userId]);
+
+  // Handle Q&A question submission
+  const handleAskQuestion = useCallback(async (question?: string) => {
+    const questionToAsk = question || qaQuestion;
+    if (!questionToAsk.trim() || qaLoading) return;
+    
+    setQaLoading(true);
+    setQaAnswer(null);
+    
+    try {
+      const response = await askEnneagramQuestion(userId, questionToAsk);
+      setQaAnswer(response.answer);
+    } catch (error) {
+      console.error('Q&A error:', error);
+      setQaAnswer('Unable to process your question right now. Please try again.');
+    } finally {
+      setQaLoading(false);
+    }
+  }, [qaQuestion, qaLoading, userId]);
+
+  // Open Q&A modal with a suggested question from a trait card
+  const handleOpenQA = (suggestedQuestion?: string) => {
+    setQaQuestion(suggestedQuestion || '');
+    setQaAnswer(null);
+    setShowQAModal(true);
+  };
+
   const handleRetakeConfirm = () => {
     setShowRetakeModal(false);
     router.push('/enneagram/assessment');
