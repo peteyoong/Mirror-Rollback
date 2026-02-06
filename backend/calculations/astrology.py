@@ -383,9 +383,120 @@ def get_full_natal_chart(
     # in a separate layer (e.g., AI prompt assembly, UI copy).
     # =========================================================================
     
-    # Build result
+    # =========================================================================
+    # NORMALIZE NODES TO CANONICAL STRUCTURE
+    # =========================================================================
+    # Ensure nodes are available under normalized keys for downstream access
+    north_node = planets.get('North Node', planets.get('True Node', planets.get('Mean Node')))
+    south_node = planets.get('South Node')
+    
+    nodes = {
+        "north": {
+            "mode": "true_node",  # Swiss Ephemeris True Node by default
+            "sign": north_node['sign'] if north_node else None,
+            "degree": north_node['degree'] if north_node else None,
+            "longitude": north_node['longitude'] if north_node else None,
+            "house": north_node['house'] if north_node else None,
+            "retrograde": north_node.get('retrograde', True),  # Nodes are typically retrograde
+        },
+        "south": {
+            "sign": south_node['sign'] if south_node else None,
+            "degree": south_node['degree'] if south_node else None,
+            "longitude": south_node['longitude'] if south_node else None,
+            "house": south_node['house'] if south_node else None,
+            "retrograde": south_node.get('retrograde', True),
+        },
+        "aliases": ["GC", "True Node", "Mean Node"]  # GC maps to North Node
+    }
+    
+    # =========================================================================
+    # NORMALIZE ANGLES TO CANONICAL STRUCTURE
+    # =========================================================================
+    asc_sign_info = longitude_to_sign_degree(asc_sidereal)
+    mc_sign_info = longitude_to_sign_degree(mc_sidereal)
+    
+    # Calculate IC and DC from ASC and MC
+    ic_sidereal = normalize_degrees(mc_sidereal + 180)
+    dc_sidereal = normalize_degrees(asc_sidereal + 180)
+    ic_sign_info = longitude_to_sign_degree(ic_sidereal)
+    dc_sign_info = longitude_to_sign_degree(dc_sidereal)
+    
+    angles = {
+        "asc": {
+            "sign": asc_sign_info['sign'],
+            "degree": asc_sign_info['degree'],
+            "longitude": asc_sidereal,
+            "formatted": asc_sign_info['formatted']
+        },
+        "dc": {
+            "sign": dc_sign_info['sign'],
+            "degree": dc_sign_info['degree'],
+            "longitude": dc_sidereal,
+            "formatted": dc_sign_info['formatted']
+        },
+        "mc": {
+            "sign": mc_sign_info['sign'],
+            "degree": mc_sign_info['degree'],
+            "longitude": mc_sidereal,
+            "formatted": mc_sign_info['formatted']
+        },
+        "ic": {
+            "sign": ic_sign_info['sign'],
+            "degree": ic_sign_info['degree'],
+            "longitude": ic_sidereal,
+            "formatted": ic_sign_info['formatted']
+        }
+    }
+    
+    # =========================================================================
+    # DETERMINE SECT (DAY/NIGHT)
+    # =========================================================================
+    sun_house = planets['Sun']['house'] if 'Sun' in planets else 1
+    # Day chart if Sun is in houses 7-12 (above horizon)
+    sect = "day" if sun_house >= 7 else "night"
+    
+    # =========================================================================
+    # COMPUTE INTEGRITY ASSERTIONS (FAIL FAST)
+    # =========================================================================
+    compute_errors = []
+    
+    # Assert angles
+    for angle_name in ["asc", "mc", "ic", "dc"]:
+        if not angles.get(angle_name, {}).get("sign"):
+            compute_errors.append(f"Angles: {angle_name} missing sign/degree")
+    
+    # Assert 12 house cusps
+    if len(formatted_houses) != 12:
+        compute_errors.append(f"Houses: expected 12 cusps, got {len(formatted_houses)}")
+    
+    # Assert all 10 major planets
+    required_planets = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+    for planet_name in required_planets:
+        planet = planets.get(planet_name)
+        if not planet:
+            compute_errors.append(f"Planets: {planet_name} missing")
+        elif planet.get('house') is None:
+            compute_errors.append(f"Planets: {planet_name} missing house placement")
+    
+    # Assert nodes
+    if not nodes["north"].get("sign"):
+        compute_errors.append("Nodes: north missing sign/degree")
+    if not nodes["south"].get("sign"):
+        compute_errors.append("Nodes: south missing sign/degree")
+    if nodes["north"].get("house") is None:
+        compute_errors.append("Nodes: north missing house placement")
+    if nodes["south"].get("house") is None:
+        compute_errors.append("Nodes: south missing house placement")
+    
+    # If any assertions failed, raise error (do not return partial data)
+    if compute_errors:
+        raise ValueError(f"Compute Integrity Error: {'; '.join(compute_errors)}")
+    
+    # Build result with normalized structure
     return {
         'planets': planets,
+        'nodes': nodes,  # Normalized node structure
+        'angles': angles,  # Normalized angle structure
         'houses': {
             'system': "Equal",
             'cusps': house_cusps,
@@ -395,11 +506,23 @@ def get_full_natal_chart(
             'mc': mc_sidereal,
             'mc_tropical': mc_tropical
         },
-        'sidereal_settings': final_settings,
+        'sect': sect,
+        'sidereal_settings': {
+            **final_settings,
+            'node_mode': 'true_node'  # Explicit node mode in metadata
+        },
         'svp_applied': svp_degrees,
         'julian_day': jd,
         'input_datetime_utc': birth_datetime.isoformat() if hasattr(birth_datetime, 'isoformat') else str(birth_datetime),
-        'chart_type': f"True Sidereal User-Defined (SVP {svp_degrees}°, Equal Houses)"
+        'coordinates': {'lat': lat, 'lon': lon},
+        'chart_type': f"True Sidereal User-Defined (SVP {svp_degrees}°, Equal Houses)",
+        'compute_integrity': {
+            'valid': True,
+            'planets_count': len([p for p in required_planets if p in planets]),
+            'nodes_mode': 'true_node',
+            'houses_count': len(formatted_houses),
+            'angles_computed': list(angles.keys())
+        }
     }
 
 
