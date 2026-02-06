@@ -131,6 +131,13 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
       if (value === null || value === undefined) return '🔒';
       if (value === 'locked') return '🔒';
       if (value === 'Unknown') return '—';
+      
+      // Handle master numbers - display as "11/2", "22/4", "33/6"
+      const num = typeof value === 'string' ? parseInt(value, 10) : value;
+      if (num === 11) return '11/2';
+      if (num === 22) return '22/4';
+      if (num === 33) return '33/6';
+      
       return value.toString();
     };
 
