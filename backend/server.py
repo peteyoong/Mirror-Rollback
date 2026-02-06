@@ -4894,6 +4894,54 @@ async def get_astrology_deep_dive(user_id: str):
         placements = extract_astrology_placements(chart)
         
         # =====================================================================
+        # PREPARE FULL CHART JSON FOR ASSISTANT CONTEXT
+        # =====================================================================
+        astro_data = chart.get('astrology', {})
+        full_chart_summary = {
+            "planets": {},
+            "nodes": {},
+            "houses": {},
+            "aspects": astro_data.get('aspects', [])[:10],  # Top 10 aspects
+            "houses_computed": placements.get("debug_stamp", {}).get("houses_computed", False)
+        }
+        
+        # Extract all planets
+        planets = astro_data.get('planets', {})
+        for planet_name, planet_data in planets.items():
+            if isinstance(planet_data, dict):
+                full_chart_summary["planets"][planet_name] = {
+                    "sign": planet_data.get('sign'),
+                    "house": planet_data.get('house'),
+                    "degrees": round(planet_data.get('longitude', 0) % 30, 2) if planet_data.get('longitude') else None
+                }
+        
+        # Extract nodes if available
+        if 'North Node' in planets:
+            node_data = planets['North Node']
+            if isinstance(node_data, dict):
+                full_chart_summary["nodes"]["north"] = {
+                    "sign": node_data.get('sign'),
+                    "house": node_data.get('house')
+                }
+        if 'South Node' in planets:
+            node_data = planets['South Node']
+            if isinstance(node_data, dict):
+                full_chart_summary["nodes"]["south"] = {
+                    "sign": node_data.get('sign'),
+                    "house": node_data.get('house')
+                }
+        
+        # Extract houses
+        houses = astro_data.get('houses', {})
+        formatted_cusps = houses.get('formatted_cusps', [])
+        for i, cusp in enumerate(formatted_cusps[:12], 1):
+            if isinstance(cusp, dict):
+                full_chart_summary["houses"][f"house_{i}"] = cusp.get('sign')
+        
+        import json as json_module_for_chart
+        full_chart_json_str = json_module_for_chart.dumps(full_chart_summary, indent=2)
+        
+        # =====================================================================
         # FAIL LOUDLY IF CRITICAL DATA MISSING
         # =====================================================================
         if not placements["success"] or placements["rising_sign"] == "Unknown":
