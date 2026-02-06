@@ -8,11 +8,19 @@ Outputs must remain stable across versions.
 Do NOT modify without updating regression tests and bumping computation_version.
 
 Current version: mirror-deterministic-v1
+
+SYMBOLIC COMPUTE CONTRACT:
+This module implements the SymbolicComputeContract interface for Numerology.
+All payloads must include compute_integrity validation.
 ===============================================================================
 """
 from datetime import datetime
 from typing import Dict, List, Optional
-from .astrology import ComputeIntegrityError
+from .symbolic_compute_contract import (
+    ComputeIntegrityError,
+    ComputeIntegrityResult,
+    NUMEROLOGY_REQUIRED_KEYS
+)
 
 
 def reduce_to_single_digit(number: int, allow_master: bool = True) -> int:
