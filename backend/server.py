@@ -1984,6 +1984,72 @@ async def update_user_email(user_id: str, request: EmailUpdateRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class LoginRequest(BaseModel):
+    email: str
+
+
+@api_router.post("/users/login")
+async def login_user(request: LoginRequest):
+    """
+    Login existing user by email.
+    Returns the user and their chart data if found.
+    """
+    try:
+        email = request.email.strip().lower()
+        
+        if not email or '@' not in email:
+            raise HTTPException(status_code=400, detail="Please enter a valid email address")
+        
+        # Find user by email
+        user = await db.users.find_one({"email": email})
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="No account found with this email. Please create a new account.")
+        
+        user_id = str(user["_id"])
+        
+        # Get their chart
+        chart = await db.charts.find_one({"user_id": user_id})
+        
+        # Format user response
+        user_response = {
+            "id": user_id,
+            "name": user.get("name"),
+            "email": user.get("email"),
+            "birth_date": user.get("birth_date"),
+            "birth_time": user.get("birth_time"),
+            "city": user.get("city"),
+            "country": user.get("country"),
+            "created_at": user.get("created_at").isoformat() if user.get("created_at") else None
+        }
+        
+        # Format chart response if exists
+        chart_response = None
+        if chart:
+            chart_response = {
+                "id": str(chart["_id"]),
+                "user_id": chart["user_id"],
+                "astrology": chart.get("astrology"),
+                "numerology": chart.get("numerology"),
+                "human_design": chart.get("human_design"),
+                "calculated_at": chart.get("calculated_at")
+            }
+        
+        logger.info(f"[Login] User {user_id} logged in via email")
+        
+        return {
+            "success": True,
+            "user": user_response,
+            "chart": chart_response
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/charts/calculate")
 async def calculate_chart(request: ChartCalculationRequest):
     """Calculate all frameworks for user"""
