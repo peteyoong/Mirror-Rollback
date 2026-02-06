@@ -35,6 +35,13 @@ from enneagram_kb import (
     TraitCard
 )
 
+# Import Enneagram Convergence Module
+from enneagram_convergence import (
+    compute_convergence,
+    apply_convergence_to_result,
+    get_convergence_rules_table
+)
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
