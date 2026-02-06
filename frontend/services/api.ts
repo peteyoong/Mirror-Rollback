@@ -177,6 +177,12 @@ export const getUser = async (userId: string) => {
   return response.data;
 };
 
+// Login API - for existing users
+export const loginUser = async (email: string) => {
+  const response = await apiWithRetry.post('/users/login', { email });
+  return response.data;
+};
+
 // Location APIs
 export const searchLocations = async (query: string) => {
   const response = await apiWithRetry.post('/locations/search', { query });
