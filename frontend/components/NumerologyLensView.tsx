@@ -932,4 +932,62 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     fontStyle: 'italic',
   },
+  // Unlock Button Styles (prominent dark button)
+  unlockButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.accent,
+  },
+  unlockButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  unlockButtonText: {
+    flex: 1,
+  },
+  unlockButtonTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  unlockButtonSubtitle: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  // Full Name Display (when entered)
+  fullNameCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: Colors.surfaceLight,
+  },
+  fullNameTextContainer: {
+    flex: 1,
+  },
+  fullNameLabel: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  fullNameValue: {
+    fontSize: 15,
+    color: Colors.text,
+    fontWeight: '500',
+  },
 });
