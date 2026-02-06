@@ -257,36 +257,28 @@ class TestNeverClaimMissingNodes:
     
     def test_guardrails_catch_missing_nodes_claims(self):
         """Test that bad claims about missing Nodes are reframed."""
-        # Import here to avoid import errors if server module has issues
-        try:
-            from server import apply_astrology_guardrails
-        except ImportError:
-            # Create a mock guardrails function for testing
-            def apply_astrology_guardrails(text):
-                # Simulate the expected behavior
-                patterns = [
-                    (r"I don't have your (?:North )?Node[s]?", "your Nodes are part of your computed chart"),
-                    (r"I can't see your Nodes", "your Nodes are part of your computed chart"),
-                    (r"I don't have access to your Nodes", "your Nodes are in your computed chart"),
-                    (r"I don't have your birth (?:time|place|location)", "your birth data is in your computed chart"),
-                    (r"need your birth (?:time|place|location)", "your birth data is already computed"),
-                    (r"your Nodes aren't available", "your Nodes are computed"),
-                ]
-                result = text
-                for pattern, replacement in patterns:
-                    result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
-                return result
-            
-            # Still run the test with the mock
-            apply_astrology_guardrails = apply_astrology_guardrails
+        from server import apply_astrology_guardrails
         
-        # Test each forbidden phrase
-        for phrase in self.FORBIDDEN_PHRASES[:6]:  # Test first 6 as sample
-            output = apply_astrology_guardrails(phrase)
+        # Test each forbidden phrase - guardrails should reframe them
+        test_cases = [
+            ("I don't have your North Node", "your Nodes are part of your computed chart"),
+            ("I don't have your Nodes", "your Nodes are part of your computed chart"),
+            ("I can't see your Nodes", "your Nodes are part of your computed chart"),
+            ("I don't have your birth time", "your birth data is part of your computed chart"),
+            ("your Nodes aren't available", "your Nodes are computed"),
+            ("I don't have enough information", "your chart data is available"),
+        ]
+        
+        for input_text, expected_substring in test_cases:
+            output = apply_astrology_guardrails(input_text)
             
-            # Output should NOT contain forbidden patterns
-            assert "I don't have your" not in output.lower() or "computed" in output.lower(), \
-                f"Guardrails failed to catch: '{phrase}' -> '{output}'"
+            # Output should NOT contain the original forbidden pattern
+            assert "I don't have your" not in output or "computed" in output, \
+                f"Guardrails failed to catch: '{input_text}' -> '{output}'"
+            
+            # Output should contain the corrected form
+            assert expected_substring.lower() in output.lower(), \
+                f"Expected '{expected_substring}' in output, got: '{output}'"
     
     def test_node_data_never_claimed_missing_when_present(self, pete_chart):
         """With valid chart, no 'missing data' response should be generated."""
