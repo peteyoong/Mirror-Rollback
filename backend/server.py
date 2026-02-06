@@ -1752,8 +1752,29 @@ What would be a small, low-stakes way to test this?"""
 
 
 def apply_human_design_guardrails(response_text: str) -> str:
-    """Check Human Design response for forbidden patterns and reframe."""
+    """Check Human Design response for forbidden patterns and reframe.
+    
+    Enforces:
+    - No identity claims ("you are a...")
+    - No destiny/purpose framing
+    - No prescriptive advice
+    - No claims of missing data when data exists
+    """
     forbidden_patterns = [
+        # =================================================================
+        # MISSING DATA CLAIMS (CRITICAL - Never claim we don't have data)
+        # =================================================================
+        (r"I don't have your (?:gate|channel|center) data", "your gate data is part of your computed chart"),
+        (r"I can't see your (?:gates|channels|centers)", "your gates are in your computed chart"),
+        (r"I don't have access to your (?:bodygraph|Human Design|HD)", "your bodygraph is computed"),
+        (r"I don't have your (?:type|authority|profile)", "your type/authority/profile is part of your chart"),
+        (r"need your (?:gate|channel|center) data", "your gate data is already computed"),
+        (r"(?:gates|channels|centers) (?:aren't|are not) available", "your gates are computed"),
+        (r"I don't have enough information about your HD", "your HD chart is available"),
+        (r"can't access your (?:gates|channels|bodygraph)", "your bodygraph is in your chart"),
+        (r"without your (?:gates|channels|type|profile)", "with your computed HD data"),
+        
+        # Identity/prescriptive patterns
         (r"\byou are a\b", "you may notice tendencies toward"),
         (r"\byour purpose is\b", "a pattern that often shows up is"),
         (r"\byou're meant to\b", "there may be a natural inclination toward"),
