@@ -1414,11 +1414,11 @@ export default function EnneagramAssessment() {
       // Compute final scoring
       const scoring = computeFullScoring();
       
-      // Save to backend
+      // Save to backend with extended debug data (v2)
       await saveEnneagramResult({
         user_id: user!.id,
-        method: 'assessment_inference_v1',
-        version: 'v1',
+        method: 'assessment_inference_v2', // Updated version
+        version: 'v2',
         inferred_core: scoring.inferred_core,
         inferred_wing: scoring.inferred_wing,
         confidence: scoring.confidence,
@@ -1433,7 +1433,12 @@ export default function EnneagramAssessment() {
         debug_scores: {
           raw_scores: scoring.raw_scores,
           z_scores: scoring.z_scores,
-          wing_scores: scoring.wing_scores
+          wing_scores: scoring.wing_scores,
+          // Extended debug data (v2)
+          mean_likert: scoring.mean_likert,
+          forced_hits: scoring.forced_hits,
+          probabilities: scoring.probabilities,
+          wing_access: scoring.wing_access
         }
       });
       
