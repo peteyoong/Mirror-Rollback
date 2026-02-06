@@ -6266,18 +6266,19 @@ async def compute_enneagram_convergence(user_id: str):
                     birth_time_str=user.get("birth_time", "12:00"),
                     timezone_str=user.get("timezone", "UTC")
                 )
+                utc_datetime = utc_result[0]  # First element is datetime
                 
                 location = user.get("birth_location", {})
                 astrology_data = get_full_natal_chart(
-                    utc_birth=utc_result[0],  # resolve_birth_utc returns tuple, first element is datetime
-                    latitude=location.get("latitude", 0),
-                    longitude=location.get("longitude", 0),
-                    sidereal_settings={
+                    utc_datetime,  # positional: birth_datetime
+                    location.get("latitude", 0),  # positional: lat
+                    location.get("longitude", 0),  # positional: lon
+                    {
                         "mode": "true_sidereal_user_defined",
                         "svp_year": 2000,
                         "svp_degrees": 31.2836,
                         "yearly_increment": 0.0
-                    }
+                    }  # positional: sidereal_settings
                 )
         except Exception as e:
             logger.warning(f"[Convergence] Could not compute astrology for {user_id}: {e}")
@@ -6292,23 +6293,24 @@ async def compute_enneagram_convergence(user_id: str):
                 else:
                     birth_date_str = str(birth_date).split()[0]  # Handle "1968-04-01 00:00:00" format
                 
-                utc_birth = resolve_birth_utc(
+                utc_result = resolve_birth_utc(
                     birth_date_str=birth_date_str,
                     birth_time_str=user.get("birth_time", "12:00"),
                     timezone_str=user.get("timezone", "UTC")
                 )
+                utc_datetime = utc_result[0]  # First element is datetime
                 
                 location = user.get("birth_location", {})
                 hd_data = get_human_design_chart(
-                    utc_birth=utc_birth[0],  # resolve_birth_utc returns tuple, first element is datetime
-                    latitude=location.get("latitude", 0),
-                    longitude=location.get("longitude", 0),
-                    sidereal_settings={
+                    utc_datetime,  # positional: birth_datetime
+                    location.get("latitude", 0),  # positional: lat
+                    location.get("longitude", 0),  # positional: lon
+                    {
                         "mode": "true_sidereal_user_defined",
                         "svp_year": 2000,
                         "svp_degrees": 31.2836,
                         "yearly_increment": 0.0
-                    }
+                    }  # positional: sidereal_settings
                 )
         except Exception as e:
             logger.warning(f"[Convergence] Could not compute HD for {user_id}: {e}")
