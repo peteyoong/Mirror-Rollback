@@ -255,6 +255,17 @@ export const saveEnneagramResult = async (data: {
     raw_scores: { [key: string]: number };
     z_scores: { [key: string]: number };
     wing_scores: { left: number; right: number; diff: number };
+    // Extended debug data (v2 - optional)
+    mean_likert?: { [key: string]: number };
+    forced_hits?: { [key: string]: number };
+    probabilities?: { [key: string]: number };
+    wing_access?: {
+      left_type: number;
+      right_type: number;
+      left_accessible: boolean;
+      right_accessible: boolean;
+      dominant_wing: number | string;
+    };
   };
 }) => {
   const response = await apiWithRetry.post('/enneagram/results', data);
