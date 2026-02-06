@@ -5547,7 +5547,7 @@ async def get_numerology_summary(user_id: str):
                 "title": "Your Numerology Profile",
                 "sections": [
                     {"label": "How Numerology Works (Here)", "body": "Numerology in Project Mirror is used as a lens for noticing patterns, not predicting outcomes. Numbers describe symbolic themes and rhythms — recurring emphases that may feel familiar, not fixed truths about who you are."},
-                    {"label": "Your Numerology Snapshot", "body": f"Your Life Path {data['life_path_number']} often correlates with a particular kind of learning journey — themes that tend to recur over time as opportunities for growth and awareness."}
+                    {"label": "Your Numerology Snapshot", "body": _get_master_number_fallback_text(data['life_path_number'])}
                 ],
                 "unlock_required": not data["has_name_numbers"],
                 "unlock_prompt": None if data["has_name_numbers"] else "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality).",
