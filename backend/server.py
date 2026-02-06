@@ -6701,14 +6701,14 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
         
         full_hd_json_str = json_module.dumps(full_hd_summary, indent=2)
         
-        # Build full prompt with all available HD data
+        # Build full prompt with all available HD data (using canonical data)
         system_prompt = HUMAN_DESIGN_GLOBAL_PROMPT + "\n\n" + HUMAN_DESIGN_DEEP_DIVE_PROMPT.format(
-            hd_type=hd_data['type'],
+            hd_type=hd_type,
             strategy=strategy_desc,
-            authority=hd_data['authority'],
-            profile=hd_data['profile'],
-            incarnation_cross=hd_data.get('incarnation_cross', 'Unknown'),
-            definition=hd_data.get('definition', 'Unknown'),
+            authority=authority,
+            profile=profile,
+            incarnation_cross=incarnation_cross.get('name', 'Unknown'),
+            definition=canonical_hd.get('definition', 'Unknown'),
             defined_centers=defined_centers_str,
             defined_channels=defined_channels_str,
             full_hd_json=full_hd_json_str
