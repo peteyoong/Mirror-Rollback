@@ -2041,6 +2041,15 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
 
+  // Section Divider (before Pattern Insights)
+  sectionDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginBottom: 16,
+    marginTop: 4,
+    opacity: 0.5,
+  },
+
   // Q&A Modal
   qaModalOverlay: {
     flex: 1,
