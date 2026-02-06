@@ -5822,6 +5822,81 @@ async def get_enneagram_kb_status():
     return get_kb_status()
 
 
+@api_router.get("/enneagram/traits/{user_id}")
+async def get_enneagram_traits(user_id: str):
+    """
+    Get trait cards for a user's Enneagram type.
+    
+    Returns 3 trait cards derived from the knowledge base (if available)
+    or static fallback cards. Cards include citations when book-derived.
+    """
+    try:
+        # Get user's Enneagram result
+        result = await db.enneagram_results.find_one({"user_id": user_id})
+        
+        if not result:
+            # No Enneagram result - return empty with guidance
+            return {
+                "cards": [],
+                "source": "none",
+                "message": "Complete the Enneagram assessment to see personalized trait cards.",
+                "computed_details": None
+            }
+        
+        core_type = result.get("inferred_core")
+        wing = result.get("inferred_wing")
+        computed_details = result.get("enneagram_computed_details", {})
+        
+        if not core_type:
+            return {
+                "cards": [],
+                "source": "none",
+                "message": "Enneagram type not determined.",
+                "computed_details": None
+            }
+        
+        # Define LLM function for trait card generation
+        async def llm_func(system_prompt: str, user_message: str) -> str:
+            try:
+                chat = LlmChat(
+                    api_key=EMERGENT_LLM_KEY,
+                    session_id=f"trait_cards_{user_id}_{datetime.now().timestamp()}",
+                    system_message=system_prompt
+                )
+                chat.with_model("openai", "gpt-4.1-mini")
+                message = UserMessage(text=user_message)
+                return await chat.send_message(message)
+            except Exception as e:
+                logger.error(f"[TraitCards] LLM call failed: {e}")
+                raise e
+        
+        # Get trait cards (will use KB if available, otherwise static)
+        cards = await get_trait_cards(
+            core_type=core_type,
+            wing=wing if isinstance(wing, int) else None,
+            computed_details=computed_details,
+            llm_func=llm_func if is_knowledge_base_ready() else None,
+            max_cards=3
+        )
+        
+        # Determine source
+        source = "book" if is_knowledge_base_ready() and cards and cards[0].card_id.startswith("book_") else "static"
+        
+        logger.info(f"[TraitCards] Returned {len(cards)} cards for user {user_id} (source: {source})")
+        
+        return {
+            "cards": [card.to_dict() for card in cards],
+            "source": source,
+            "computed_details": computed_details,
+            "type": core_type,
+            "wing": wing
+        }
+        
+    except Exception as e:
+        logger.error(f"[TraitCards] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Enneagram Feedback endpoint
 class EnneagramFeedbackRequest(BaseModel):
     user_id: str
