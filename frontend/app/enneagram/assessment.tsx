@@ -1026,6 +1026,18 @@ export interface ScoringResult {
   raw_scores: { [key: string]: number };
   z_scores: { [key: string]: number };
   wing_scores: { left: number; right: number; diff: number };
+  // Extended debug data (v2)
+  mean_likert: { [key: string]: number };
+  forced_hits: { [key: string]: number };
+  probabilities: { [key: string]: number };
+  // Wing access flags (v2)
+  wing_access: {
+    left_type: number;
+    right_type: number;
+    left_accessible: boolean;
+    right_accessible: boolean;
+    dominant_wing: number | 'balanced' | 'none';
+  };
 }
 
 // ============================================
