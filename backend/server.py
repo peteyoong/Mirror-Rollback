@@ -6180,8 +6180,27 @@ Keep it brief and practical. No essays."""
         }
         chat_history["messages"].append(user_msg)
         
-        # Generate AI response
-        response_text = await generate_ai_response(system_prompt, request.message, request.user_id)
+        # ===== GENERATE AI RESPONSE VIA EMERGENT CONTRACT =====
+        from emergent_contract import emergent_generate
+        
+        response_text = await emergent_generate(
+            mode="enneagram",  # Uses enneagram-specific mode contract
+            user_message=request.message,
+            endpoint="enneagram_chat",
+            user_id=request.user_id,
+            context={
+                "lens": "enneagram",
+                "core_type": core_type,
+                "type_name": type_name,
+                "wing": wing_display,
+                "confidence": ctx.confidence_tier,
+                "is_close_result": ctx.is_close,
+                "energy_state": ctx.energy_state,
+                "active_card": ctx.active_card_context
+            },
+            additional_system_prompt=system_prompt,
+            model="gpt-5.2"
+        )
         
         # Add assistant message to history
         assistant_msg = {
