@@ -2183,8 +2183,21 @@ def apply_numerology_guardrails(response_text: str) -> str:
     - No predictive claims
     - No authority language
     - No identity claims
+    - No claims of missing data when data exists
     """
     forbidden_patterns = [
+        # =================================================================
+        # MISSING DATA CLAIMS (CRITICAL - Never claim we don't have data)
+        # =================================================================
+        (r"I don't have your (?:Expression|Soul Urge|Personality|Life Path) number", "your numbers are part of your computed chart"),
+        (r"I can't see your (?:numbers|Life Path|Expression)", "your numbers are in your computed chart"),
+        (r"I don't have access to your (?:numerology|numbers)", "your numerology is computed"),
+        (r"need your (?:numbers|name|birth date) to calculate", "your numerology data is already computed"),
+        (r"(?:numbers|numerology) (?:aren't|are not) available", "your numerology is computed"),
+        (r"I don't have enough information about your numerology", "your numerology is available"),
+        (r"can't access your (?:numbers|numerology|Life Path)", "your numerology is in your chart"),
+        (r"without your (?:numbers|name|Life Path)", "with your computed numerology data"),
+        
         # Identity claims
         (r"\byou are a\b", "you may notice tendencies toward"),
         (r"\bthis is who you are\b", "this is a pattern you might recognise"),
