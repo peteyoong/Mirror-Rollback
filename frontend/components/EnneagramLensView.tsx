@@ -15,7 +15,13 @@ import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { sendEnneagramChat } from '../services/api';
+import { 
+  sendEnneagramChat, 
+  getEnneagramTraits,
+  askEnneagramQuestion,
+  EnneagramTraitCard,
+  EnneagramComputedDetails 
+} from '../services/api';
 
 // ============================================
 // TYPE DATA
