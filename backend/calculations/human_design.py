@@ -753,7 +753,23 @@ def calculate_centers_old(personality_gates: List[int], design_gates: List[int])
 
 def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
                            sidereal_settings: Dict = None) -> Dict:
-    """Calculate complete Human Design bodygraph
+    """Calculate complete Human Design bodygraph with compute integrity contract.
+    
+    HUMAN DESIGN COMPUTE INTEGRITY CONTRACT:
+    This function MUST return a complete, validated canonical payload or raise
+    ComputeIntegrityError. Partial charts are NEVER returned.
+    
+    REQUIRED COMPUTED OBJECTS:
+    - type (Generator, Projector, Manifestor, Manifesting Generator, Reflector)
+    - strategy (To Respond, To Inform, etc.)
+    - authority (Emotional, Sacral, Splenic, etc.)
+    - profile (e.g., "3/5")
+    - definition (None, Single, Split, Triple Split, Quadruple Split)
+    - incarnation_cross (dict with name + gates)
+    - defined_centers (list)
+    - undefined_centers (list)
+    - defined_channels (list)
+    - active_gates (list)
     
     Args:
         birth_datetime: UTC birth datetime
@@ -762,7 +778,10 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
         sidereal_settings: Optional sidereal settings override
     
     Returns:
-        Dict with HD type, authority, profile, gates, design date info
+        Dict with canonical HD payload
+    
+    Raises:
+        ComputeIntegrityError: If any required data is missing or invalid
     """
     # Default sidereal settings
     if sidereal_settings is None:
@@ -776,7 +795,14 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     svp_degrees = sidereal_settings.get("svp_degrees", 31.2836)
     
     # Get Personality (Conscious) chart at birth
-    personality_chart = get_full_natal_chart(birth_datetime, lat, lon, sidereal_settings)
+    try:
+        personality_chart = get_full_natal_chart(birth_datetime, lat, lon, sidereal_settings)
+    except ComputeIntegrityError as e:
+        # Re-raise with HD context
+        raise ComputeIntegrityError(
+            [f"HD Personality Chart: {err}" for err in e.errors],
+            e.partial_data
+        )
     
     # Calculate Design date using numerical solver
     design_datetime, design_offset_degrees, design_debug = calculate_design_date(
@@ -784,7 +810,14 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     )
     
     # Get Design (Unconscious) chart at solved design date
-    design_chart = get_full_natal_chart(design_datetime, lat, lon, sidereal_settings)
+    try:
+        design_chart = get_full_natal_chart(design_datetime, lat, lon, sidereal_settings)
+    except ComputeIntegrityError as e:
+        # Re-raise with HD context
+        raise ComputeIntegrityError(
+            [f"HD Design Chart: {err}" for err in e.errors],
+            e.partial_data
+        )
     
     # Extract key planets for Human Design
     hd_planets = ['Sun', 'Earth', 'North Node', 'South Node', 'Moon']
@@ -794,14 +827,18 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     
     for planet in hd_planets:
         # Personality
-        p_pos = personality_chart['planets'][planet]
+        p_pos = personality_chart['planets'].get(planet)
+        if not p_pos:
+            raise ComputeIntegrityError([f"HD Personality: {planet} missing"])
         personality_data[planet] = {
             'position': p_pos,
             'gate': longitude_to_gate(p_pos['longitude'])
         }
         
         # Design
-        d_pos = design_chart['planets'][planet]
+        d_pos = design_chart['planets'].get(planet)
+        if not d_pos:
+            raise ComputeIntegrityError([f"HD Design: {planet} missing"])
         design_data[planet] = {
             'position': d_pos,
             'gate': longitude_to_gate(d_pos['longitude'])
@@ -818,6 +855,9 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     
     # A center is defined ONLY if it has at least one FULL channel
     defined_centers = get_defined_centers(defined_channels)
+    
+    # Calculate undefined centers
+    undefined_centers = [c for c in ALL_CENTERS if c not in defined_centers]
     
     # Determine type based on defined centers and channels
     hd_type = determine_type(defined_centers, defined_channels)
@@ -840,13 +880,79 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     d_earth_gate = design_data['Earth']['gate']['gate']
     
     # Get proper cross name (e.g., "RAX Migration" instead of "Right Angle Cross of 37/40")
-    incarnation_cross = get_incarnation_cross_name(p_sun_gate, personality_sun_line)
+    incarnation_cross_name = get_incarnation_cross_name(p_sun_gate, personality_sun_line)
+    incarnation_cross_gates = f"{p_sun_gate}/{p_earth_gate} | {d_sun_gate}/{d_earth_gate}"
     
     # Format channels for output
     defined_channels_formatted = [
         {"gate1": g1, "gate2": g2, "centers": [c1, c2]} 
         for g1, g2, c1, c2 in defined_channels
     ]
+    
+    # Strategy for type
+    strategy = get_strategy_for_type(hd_type)
+    
+    # =========================================================================
+    # COMPUTE INTEGRITY ASSERTIONS (FAIL FAST)
+    # =========================================================================
+    compute_errors = []
+    
+    # 1. Assert type is valid
+    valid_types = ['Generator', 'Manifesting Generator', 'Projector', 'Manifestor', 'Reflector']
+    if hd_type not in valid_types:
+        compute_errors.append(f"Type: invalid value '{hd_type}'")
+    
+    # 2. Assert strategy exists
+    if not strategy:
+        compute_errors.append("Strategy: missing")
+    
+    # 3. Assert authority exists
+    if not authority:
+        compute_errors.append("Authority: missing")
+    
+    # 4. Assert profile format is valid (X/Y where X,Y are 1-6)
+    if not profile or '/' not in profile:
+        compute_errors.append(f"Profile: invalid format '{profile}'")
+    else:
+        try:
+            p1, p2 = profile.split('/')
+            if not (1 <= int(p1) <= 6 and 1 <= int(p2) <= 6):
+                compute_errors.append(f"Profile: lines out of range '{profile}'")
+        except ValueError:
+            compute_errors.append(f"Profile: invalid format '{profile}'")
+    
+    # 5. Assert definition is valid
+    valid_definitions = ['None', 'Single', 'Split', 'Triple Split', 'Quadruple Split']
+    if definition not in valid_definitions:
+        compute_errors.append(f"Definition: invalid value '{definition}'")
+    
+    # 6. Assert incarnation cross exists
+    if not incarnation_cross_name:
+        compute_errors.append("Incarnation Cross: name missing")
+    if not incarnation_cross_gates:
+        compute_errors.append("Incarnation Cross: gates missing")
+    
+    # 7. Assert centers are computed (either defined or undefined)
+    total_centers = len(defined_centers) + len(undefined_centers)
+    if total_centers != 9:
+        compute_errors.append(f"Centers: expected 9 total, got {total_centers}")
+    
+    # 8. Assert active_gates is populated
+    if len(all_gates) == 0:
+        compute_errors.append("Active Gates: none computed")
+    
+    # =========================================================================
+    # FAIL FAST - DO NOT RETURN PARTIAL DATA
+    # =========================================================================
+    if compute_errors:
+        partial_data = {
+            'type': hd_type,
+            'authority': authority,
+            'profile': profile,
+            'defined_centers_count': len(defined_centers),
+            'gates_count': len(all_gates)
+        }
+        raise ComputeIntegrityError(compute_errors, partial_data)
     
     # =========================================================================
     # INTERPRETATION BOUNDARY - DO NOT CROSS
@@ -866,25 +972,58 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     # in a separate layer (e.g., AI prompt assembly, UI copy).
     # =========================================================================
     
+    # =========================================================================
+    # BUILD CANONICAL PAYLOAD
+    # =========================================================================
     return {
+        # CANONICAL REQUIRED FIELDS (normalized structure)
         'type': hd_type,
-        'definition': definition,
+        'strategy': strategy,
         'authority': authority,
         'profile': profile,
-        'incarnation_cross': incarnation_cross,
+        'definition': definition,
+        'incarnation_cross': {
+            'name': incarnation_cross_name,
+            'gates': incarnation_cross_gates,
+            'personality_sun': p_sun_gate,
+            'personality_earth': p_earth_gate,
+            'design_sun': d_sun_gate,
+            'design_earth': d_earth_gate
+        },
+        'defined_centers': defined_centers,
+        'undefined_centers': undefined_centers,
+        'defined_channels': defined_channels_formatted,
+        'active_gates': list(all_gates),
+        'variables': {},  # Reserved for future PHS/Environment variables
+        
+        # Extended data
         'personality': personality_data,
         'design': design_data,
-        'defined_centers': defined_centers,
-        'defined_channels': defined_channels_formatted,
-        'all_gates': list(all_gates),
         'personality_gates': personality_gates,
         'design_gates': design_gates,
-        'strategy': get_strategy_for_type(hd_type),
+        
+        # Legacy fields for backward compatibility
+        'incarnation_cross_legacy': incarnation_cross_name,  # Old flat format
+        'all_gates': list(all_gates),  # Alias
+        
+        # Metadata
         'chart_type': 'True Sidereal Human Design',
-        # Design date solver outputs
+        'computation_version': 'mirror-deterministic-v1',
         'design_datetime_utc_iso': design_datetime.isoformat() if hasattr(design_datetime, 'isoformat') else str(design_datetime),
         'design_offset_degrees': design_offset_degrees,
-        'design_solver_debug': design_debug
+        'design_solver_debug': design_debug,
+        
+        # Compute integrity confirmation
+        'compute_integrity': {
+            'valid': True,
+            'type_valid': hd_type in valid_types,
+            'authority_valid': bool(authority),
+            'profile_valid': bool(profile),
+            'definition_valid': definition in valid_definitions,
+            'centers_count': total_centers,
+            'gates_count': len(all_gates),
+            'channels_count': len(defined_channels)
+        }
     }
 
 def get_strategy_for_type(hd_type: str) -> str:
