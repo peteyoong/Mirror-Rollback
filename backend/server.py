@@ -1256,6 +1256,78 @@ Return ONLY valid JSON:
 # TAB/TASK PROMPT: DEEP DIVE
 HUMAN_DESIGN_DEEP_DIVE_PROMPT = """Explain the user's Human Design in depth.
 
+=============================================================================
+TECHNICAL QUESTION RESPONSE CONTRACT
+=============================================================================
+When user asks technical questions (gates, channels, lines, centers, definition,
+authority, profile, variables, circuitry, incarnation cross gates), follow this
+exact contract:
+
+STEP 1 — Confirm availability (Computed ≠ Surfaced)
+Start with one line:
+"Yes — that's part of your computed Human Design chart."
+Do NOT re-ask for birth data.
+
+STEP 2 — Provide a Technical Summary Block (concise, factual)
+When requested, provide a compact block with these fields (only if they exist):
+• Type
+• Strategy  
+• Authority
+• Profile
+• Definition (Single/Split/etc)
+• Defined Centers (list)
+• Undefined Centers (list)
+• Channels (each as "Gate–Gate")
+• Gates (optional list, only if asked)
+• Incarnation Cross name + gates (if asked)
+
+Output style:
+- Use neutral, factual phrasing
+- No meaning claims in this block
+
+Example format:
+"Technical view:
+• Type: Manifestor
+• Authority: Splenic
+• Defined centers: Throat, G, Spleen
+• Channels: 57-34, 20-10"
+
+STEP 3 — Optional Meaning (only after facts, one lens only)
+If the user asks "what does it mean?", add one short reflective paragraph:
+- Describe as "may show up as…"
+- Avoid identity/purpose statements
+- Avoid promises, prescriptions, or destiny framing
+
+STEP 4 — Offer a Choice of Where to Go Next (user-led)
+End with a user-sovereign choice:
+"Want to explore your Authority in practice, or a specific channel/gate?"
+
+=============================================================================
+STRICT FORBIDDENS (HD-specific)
+=============================================================================
+You must NEVER say:
+- "You are here to…"
+- "Your purpose is…"
+- "You are designed to…"
+- "Always / never do X"
+- "This guarantees…"
+
+Replace with:
+- "You may find it useful to experiment with…"
+- "Some people notice…"
+- "One possible way this expresses is…"
+
+=============================================================================
+DEPTH CONTROL
+=============================================================================
+- Stay at the depth the user requested
+- Do NOT lecture the full system
+- If user asks for one gate/channel, do NOT summarize the entire chart
+- Human Design in Project Mirror is a precision lens: facts first, meaning optional, user-led always
+
+=============================================================================
+DEFAULT DEEP DIVE CONTENT (when no specific technical question)
+=============================================================================
 Include ALL of the following:
 1. Type (energy architecture)
 2. Strategy (engagement pattern)
@@ -1280,7 +1352,7 @@ After explanation:
 - Invite the user to test these patterns in their own life
 - Do not conclude or summarise definitively
 
-USER'S HUMAN DESIGN:
+USER'S HUMAN DESIGN (foregrounded):
 Type: {hd_type}
 Strategy: {strategy}
 Authority: {authority}
@@ -1289,6 +1361,9 @@ Incarnation Cross: {incarnation_cross}
 Definition: {definition}
 Defined Centers: {defined_centers}
 Defined Channels: {defined_channels}
+
+FULL COMPUTED HD DATA (available on request):
+{full_hd_json}
 
 Generate a response with these sections:
 1. "Type: Your Energy Architecture" - How energy tends to flow and what rhythm feels natural
@@ -1317,7 +1392,8 @@ Return ONLY valid JSON:
     {{"label": "Incarnation Cross: Your Life Direction", "body": "..."}},
     {{"label": "Definition & Centers", "body": "..."}}
   ],
-  "mirror_prompt": "A reflective question inviting experimentation, not conclusion"
+  "mirror_prompt": "A reflective question inviting experimentation, not conclusion",
+  "deeper_data_available": true
 }}
 """
 
