@@ -5580,7 +5580,7 @@ async def get_numerology_today(user_id: str):
 
 
 @api_router.get("/numerology/deep-dive/{user_id}")
-async def get_numerology_deep_dive(user_id: str):
+async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
     """
     Generate Numerology Deep Dive - expanded exploration of core numbers.
     NO cycles/timing. Focus on Life Path, Birthday, and name-based numbers if available.
@@ -5595,9 +5595,10 @@ async def get_numerology_deep_dive(user_id: str):
         # =====================================================================
         # CHECK CACHE FIRST - instant response for repeat views
         # =====================================================================
-        cached_response = await get_cached_deep_dive(user_id, "numerology")
-        if cached_response:
-            return cached_response
+        if not force_refresh:
+            cached_response = await get_cached_deep_dive(user_id, "numerology")
+            if cached_response:
+                return cached_response
         
         user, chart = await get_user_numerology_data(user_id)
         data = extract_numerology_data(chart, user)
