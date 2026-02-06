@@ -294,6 +294,47 @@ export const submitEnneagramFeedback = async (data: {
   return response.data;
 };
 
+// Enneagram Q&A API (Knowledge Base)
+export interface EnneagramAskResponse {
+  answer: string;
+  citations: Array<{
+    pdf: string;
+    page: number;
+    chunk_id: string;
+    score: number;
+  }>;
+  kb_status: {
+    ready: boolean;
+    chunks_available: number;
+  };
+  debug?: {
+    used_chunks: Array<{
+      text: string;
+      score: number;
+      meta: {
+        pdf_page: number;
+        chunk_id: string;
+      };
+    }>;
+  };
+}
+
+export const askEnneagramQuestion = async (
+  userId: string | null,
+  question: string
+): Promise<EnneagramAskResponse> => {
+  const response = await apiWithRetry.post('/enneagram/ask', {
+    user_id: userId,
+    question,
+  });
+  return response.data;
+};
+
+export const getEnneagramKbStatus = async () => {
+  const response = await apiWithRetry.get('/enneagram/kb-status');
+  return response.data;
+};
+
 // Export both the raw api instance and the retry-wrapped version
 export { apiWithRetry };
 export default api;
