@@ -950,13 +950,85 @@ export default function EnneagramLensView({ result, userId }: Props) {
     return group.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   };
 
+  // Determine if wings are balanced
+  const isBalancedWings = wing === 'balanced' || computedDetails?.wing_balance_label === 'balanced';
+  
+  // Get wing stance display string
+  const getWingStanceLabel = (): string => {
+    if (isBalancedWings) return 'Balanced wings';
+    if (typeof wing === 'number') return `${core}w${wing}`;
+    return `Type ${core}`;
+  };
+
+  // Get wing flavor key for lookup
+  const getWingFlavorKey = (): string => {
+    if (typeof wing === 'number') return `${core}w${wing}`;
+    return '';
+  };
+
+  // Get confidence label from top candidate
+  const getConfidenceLabel = (): { text: string; tier: 'high' | 'medium' | 'low' } => {
+    const topProb = result.top_candidates[0]?.probability || 0;
+    if (topProb >= 0.7) return { text: 'High confidence', tier: 'high' };
+    if (topProb >= 0.5) return { text: 'Moderate confidence', tier: 'medium' };
+    return { text: 'Exploratory', tier: 'low' };
+  };
+
   const renderDeepDiveTab = () => {
-    const patterns = TYPE_PATTERNS[core];
-    const mastery = MASTERY_LEVELS[core];
+    const confidence = getConfidenceLabel();
+    const wingFlavorKey = getWingFlavorKey();
+    const wingFlavor = WING_FLAVORS[wingFlavorKey];
 
     return (
       <>
-        {/* Enneagram Structure Card (Compact 2x2 grid) */}
+        {/* ===== 1. DEEP DIVE HEADER (ANCHOR) ===== */}
+        <View style={styles.deepDiveHeader}>
+          <View style={styles.deepDiveHeaderTop}>
+            <Text style={styles.deepDiveType}>Type {core}</Text>
+            <View style={[
+              styles.confidenceBadge,
+              confidence.tier === 'high' && styles.confidenceHigh,
+              confidence.tier === 'medium' && styles.confidenceMedium,
+              confidence.tier === 'low' && styles.confidenceLow,
+            ]}>
+              <Text style={styles.confidenceBadgeText}>{confidence.text}</Text>
+            </View>
+          </View>
+          <Text style={styles.deepDiveWingStance}>{getWingStanceLabel()}</Text>
+          <Text style={styles.deepDiveNote}>This lens reflects motivation, not mood.</Text>
+        </View>
+
+        {/* ===== 2. WING SECTION ===== */}
+        <View style={styles.wingSection}>
+          {isBalancedWings ? (
+            <>
+              <Text style={styles.wingSectionTitle}>Your Wing Access</Text>
+              <Text style={styles.wingSectionBody}>{BALANCED_WINGS_EXPLANATION}</Text>
+              <View style={styles.wingAccessHint}>
+                <Text style={styles.wingAccessHintText}>
+                  Both {core}w{wings.left} and {core}w{wings.right} are available to you.
+                </Text>
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={styles.wingSectionTitle}>Wing nuance: {core}w{wing}</Text>
+              <Text style={styles.wingSectionBody}>
+                {wingFlavor || `Your dominant wing of ${wing} colors how Type ${core} expresses in you.`}
+              </Text>
+              {typeof wing === 'number' && (
+                <View style={styles.wingGrowthHint}>
+                  <Ionicons name="leaf-outline" size={12} color={Colors.textTertiary} />
+                  <Text style={styles.wingGrowthHintText}>
+                    Growth edge: explore your {otherWing}-wing for balance
+                  </Text>
+                </View>
+              )}
+            </>
+          )}
+        </View>
+
+        {/* ===== 3. ENNEAGRAM STRUCTURE (2×2 grid) ===== */}
         {computedDetails && (
           <View style={styles.structureCard}>
             <Text style={styles.structureTitle}>ENNEAGRAM STRUCTURE</Text>
@@ -993,7 +1065,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </View>
         )}
 
-        {/* Trait Cards Section */}
+        {/* ===== 4. PATTERN INSIGHTS (Trait Cards) ===== */}
         {(traitCards.length > 0 || traitsLoading) && (
           <View style={styles.traitCardsSection}>
             <View style={styles.traitCardsHeader}>
@@ -1011,7 +1083,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 <ActivityIndicator size="small" color={Colors.textTertiary} />
               </View>
             ) : (
-              traitCards.map((card, index) => (
+              traitCards.map((card) => (
                 <View key={card.card_id} style={styles.traitCard}>
                   <Text style={styles.traitCardTitle}>{card.title}</Text>
                   <Text style={styles.traitCardBody}>{card.body}</Text>
@@ -1035,94 +1107,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </View>
         )}
 
-        {/* Type Pattern Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Type {core} Pattern</Text>
-          
-          <View style={styles.patternRow}>
-            <Text style={styles.patternLabel}>Strengths</Text>
-            <Text style={styles.patternValue}>{patterns.strengths}</Text>
-          </View>
-          
-          <View style={styles.patternRow}>
-            <Text style={styles.patternLabel}>Blind Spot</Text>
-            <Text style={styles.patternValue}>{patterns.blindSpot}</Text>
-          </View>
-          
-          <View style={styles.patternRow}>
-            <Text style={styles.patternLabel}>Default Defense</Text>
-            <Text style={styles.patternValue}>{patterns.defense}</Text>
-          </View>
-          
-          <View style={styles.patternRow}>
-            <Text style={styles.patternLabel}>Relational Pattern</Text>
-            <Text style={styles.patternValue}>{patterns.relational}</Text>
-          </View>
-          
-          <View style={styles.patternRow}>
-            <Text style={styles.patternLabel}>Work Pattern</Text>
-            <Text style={styles.patternValue}>{patterns.work}</Text>
-          </View>
-        </View>
-
-        {/* Wings as Flight Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Wings as Flight</Text>
-          <Text style={styles.cardBody}>
-            A strong wing gives power and range in that direction. The quieter wing — often underdeveloped early — gives balance when reopened.
-          </Text>
-          <Text style={styles.cardNote}>
-            Some people develop a &quot;cut wing&quot; early due to circumstances. Reopening it often restores flexibility and range.
-          </Text>
-          {wing !== 'balanced' && (
-            <View style={styles.wingFlightRow}>
-              <View style={styles.wingFlightItem}>
-                <Text style={styles.wingFlightLabel}>Strong Wing</Text>
-                <Text style={styles.wingFlightValue}>{wing}</Text>
-              </View>
-              <View style={styles.wingFlightItem}>
-                <Text style={styles.wingFlightLabel}>Growth Wing</Text>
-                <Text style={styles.wingFlightValue}>{otherWing}</Text>
-              </View>
-            </View>
-          )}
-        </View>
-
-        {/* Self-Mastery Dial Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Self-Mastery Dial</Text>
-          <Text style={styles.cardSubtitle}>
-            Your core type stays stable; your expression changes with energy and development.
-          </Text>
-          
-          <View style={styles.masteryToggle}>
-            {(['reactive', 'average', 'resourced'] as MasteryLevel[]).map((level) => (
-              <TouchableOpacity
-                key={level}
-                style={[
-                  styles.masteryButton,
-                  selectedMasteryLevel === level && styles.masteryButtonSelected
-                ]}
-                onPress={() => setSelectedMasteryLevel(level)}
-              >
-                <Text style={[
-                  styles.masteryButtonText,
-                  selectedMasteryLevel === level && styles.masteryButtonTextSelected
-                ]}>
-                  {level.charAt(0).toUpperCase() + level.slice(1)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          
-          <View style={styles.masteryDescription}>
-            <Text style={styles.masteryDescriptionText}>
-              {mastery[selectedMasteryLevel]}
-            </Text>
-          </View>
-        </View>
-
-        {/* Verification Section */}
+        {/* ===== 5. VERIFICATION (Near bottom) ===== */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Verification</Text>
           <Text style={styles.cardBody}>
