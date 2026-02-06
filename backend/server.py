@@ -6487,6 +6487,12 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
     Profile, Incarnation Cross, Definition, and Centers.
     Mechanics, not mysticism. Experimentation, not prescription.
     
+    HUMAN DESIGN COMPUTE INTEGRITY CONTRACT:
+    - Uses canonical get_human_design_chart() output
+    - Catches ComputeIntegrityError BEFORE invoking LLM
+    - Validates type, authority, and defined_centers before LLM invocation
+    - Never returns partial data or invokes LLM with missing core data
+    
     Uses caching for instant repeat views.
     """
     import json as json_module
@@ -6504,48 +6510,196 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
                 return cached_response
         
         user, chart = await get_user_astrology_data(user_id)
-        hd_data = extract_human_design_data(chart)
         
-        if hd_data['type'] == 'Unknown':
-            raise HTTPException(status_code=404, detail="Human Design data not found")
+        # =====================================================================
+        # RECOMPUTE HD CHART USING CANONICAL get_human_design_chart (MANDATORY)
+        # =====================================================================
+        from calculations.timezone_utils import resolve_birth_utc_with_debug
+        from calculations.human_design import get_human_design_chart
+        from datetime import datetime
         
-        strategy_desc = HD_STRATEGY_DESCRIPTIONS.get(hd_data['type'], 'Unique engagement pattern')
+        # Get user's birth data
+        birth_location = user.get('birth_location', {})
+        lat = birth_location.get('lat') or birth_location.get('latitude')
+        lon = birth_location.get('lon') or birth_location.get('lng') or birth_location.get('longitude')
         
-        # Format defined centers for the prompt
-        defined_centers_str = ", ".join(hd_data.get('defined_centers', [])) or "Unknown"
+        if not lat or not lon:
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": ["Metadata: birth_location (lat/lon)"],
+                "action": "Human Design deep dive paused until birth location is available.",
+                "sections": [],
+                "mirror_prompt": None
+            }
         
-        # Format defined channels - they're dicts with gate1, gate2
-        channels = hd_data.get('defined_channels', [])
+        # Resolve birth UTC
+        birth_date = user.get('birth_date')
+        birth_time = user.get('birth_time')
+        timezone_str = user.get('timezone')
+        
+        if not all([birth_date, birth_time, timezone_str]):
+            missing = []
+            if not birth_date: missing.append("birth_date")
+            if not birth_time: missing.append("birth_time")
+            if not timezone_str: missing.append("timezone")
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": [f"Metadata: {m}" for m in missing],
+                "action": "Human Design deep dive paused until birth data is complete.",
+                "sections": [],
+                "mirror_prompt": None
+            }
+        
+        try:
+            # Handle both datetime objects and strings for birth_date
+            if isinstance(birth_date, datetime):
+                birth_date_str = birth_date.strftime("%Y-%m-%d")
+            else:
+                birth_date_str = str(birth_date).split()[0] if birth_date else ""
+            
+            result = resolve_birth_utc_with_debug(birth_date_str, birth_time, timezone_str)
+            birth_utc = result.get('birth_utc')
+            
+            if not birth_utc:
+                return {
+                    "success": False,
+                    "error": "compute_integrity_error",
+                    "title": "Compute Integrity Error",
+                    "missing": [f"Metadata: {result.get('error', 'BIRTH_UTC_RESOLUTION_FAILED')}"],
+                    "action": "Human Design deep dive paused. Check timezone/birth data format.",
+                    "sections": [],
+                    "mirror_prompt": None
+                }
+        except Exception as e:
+            logger.error(f"[HD_DEEP_DIVE] Failed to resolve birth UTC: {e}")
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": ["Metadata: could not resolve birth UTC"],
+                "action": "Human Design deep dive paused. Check timezone/birth data format.",
+                "sections": [],
+                "mirror_prompt": None
+            }
+        
+        # =====================================================================
+        # CALL CANONICAL COMPUTE FUNCTION - CATCHES ComputeIntegrityError
+        # =====================================================================
+        try:
+            canonical_hd = get_human_design_chart(
+                birth_datetime=birth_utc,
+                lat=lat,
+                lon=lon,
+                sidereal_settings={"mode": "true_sidereal_user_defined"}
+            )
+        except ComputeIntegrityError as e:
+            # Compute layer failed - return error WITHOUT invoking LLM
+            logger.error(f"[HD_DEEP_DIVE] ComputeIntegrityError for user {user_id}: {e.errors}")
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": e.errors,
+                "action": "Human Design deep dive paused until compute payload is complete.",
+                "sections": [],
+                "mirror_prompt": None,
+                "partial_data": e.partial_data
+            }
+        except Exception as e:
+            logger.error(f"[HD_DEEP_DIVE] Unexpected compute error for user {user_id}: {e}")
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": [str(e)],
+                "action": "Human Design deep dive paused due to compute error.",
+                "sections": [],
+                "mirror_prompt": None
+            }
+        
+        # =====================================================================
+        # HD INTEGRITY ASSERTIONS AT HANDOFF (MANDATORY)
+        # =====================================================================
+        assertion_errors = []
+        
+        hd_type = canonical_hd.get('type')
+        authority = canonical_hd.get('authority')
+        defined_centers = canonical_hd.get('defined_centers', [])
+        profile = canonical_hd.get('profile')
+        incarnation_cross = canonical_hd.get('incarnation_cross', {})
+        
+        if not hd_type or hd_type == 'Unknown':
+            assertion_errors.append("Type: missing or invalid")
+        if not authority:
+            assertion_errors.append("Authority: missing")
+        if not profile:
+            assertion_errors.append("Profile: missing")
+        if not isinstance(incarnation_cross, dict) or not incarnation_cross.get('name'):
+            assertion_errors.append("Incarnation Cross: missing name")
+        
+        if assertion_errors:
+            logger.error(f"[HD_DEEP_DIVE] Assertion failed for user {user_id}: {assertion_errors}")
+            return {
+                "success": False,
+                "error": "compute_integrity_error",
+                "title": "Compute Integrity Error",
+                "missing": assertion_errors,
+                "action": "Human Design deep dive paused. Core mechanics not fully computed.",
+                "sections": [],
+                "mirror_prompt": None
+            }
+        
+        # =====================================================================
+        # TEMPORARY DEBUG LOG (for verification)
+        # =====================================================================
+        logger.info(f"[HD_DEEP_DIVE_HANDOFF] user={user_id}")
+        logger.info(f"  type: {hd_type}")
+        logger.info(f"  authority: {authority}")
+        logger.info(f"  profile: {profile}")
+        logger.info(f"  incarnation_cross: {incarnation_cross.get('name')}")
+        logger.info(f"  defined_centers: {len(defined_centers)}")
+        logger.info(f"  handoff_ok: true")
+        
+        # =====================================================================
+        # PREPARE CANONICAL HD JSON FOR ASSISTANT CONTEXT
+        # =====================================================================
+        strategy_desc = canonical_hd.get('strategy', 'Unique engagement pattern')
+        
+        # Format channels for string representation
+        channels = canonical_hd.get('defined_channels', [])
         if channels and isinstance(channels[0], dict):
-            # Format as "35-36, 37-40"
             defined_channels_str = ", ".join([f"{ch.get('gate1')}-{ch.get('gate2')}" for ch in channels])
         elif channels:
             defined_channels_str = ", ".join(str(ch) for ch in channels)
         else:
             defined_channels_str = "None identified"
         
-        # =====================================================================
-        # PREPARE FULL HD JSON FOR ASSISTANT CONTEXT
-        # =====================================================================
+        defined_centers_str = ", ".join(defined_centers) or "None"
+        
+        # Build canonical payload for LLM context
         full_hd_summary = {
-            "type": hd_data.get('type'),
+            "type": hd_type,
             "strategy": strategy_desc,
-            "authority": hd_data.get('authority'),
-            "profile": hd_data.get('profile'),
-            "definition": hd_data.get('definition'),
-            "incarnation_cross": hd_data.get('incarnation_cross'),
-            "defined_centers": hd_data.get('defined_centers', []),
-            "undefined_centers": hd_data.get('undefined_centers', []),
+            "authority": authority,
+            "profile": profile,
+            "definition": canonical_hd.get('definition'),
+            "incarnation_cross": incarnation_cross,
+            "defined_centers": defined_centers,
+            "undefined_centers": canonical_hd.get('undefined_centers', []),
             "defined_channels": [
                 f"{ch.get('gate1')}-{ch.get('gate2')}" if isinstance(ch, dict) else str(ch)
                 for ch in channels
             ],
-            "active_gates": hd_data.get('active_gates', []),
-            "variables": hd_data.get('variables', {}),
+            "active_gates": canonical_hd.get('active_gates', []),
+            "variables": canonical_hd.get('variables', {}),
+            "compute_integrity": canonical_hd.get('compute_integrity', {})
         }
         
-        import json as json_module_for_hd
-        full_hd_json_str = json_module_for_hd.dumps(full_hd_summary, indent=2)
+        full_hd_json_str = json_module.dumps(full_hd_summary, indent=2)
         
         # Build full prompt with all available HD data
         system_prompt = HUMAN_DESIGN_GLOBAL_PROMPT + "\n\n" + HUMAN_DESIGN_DEEP_DIVE_PROMPT.format(
