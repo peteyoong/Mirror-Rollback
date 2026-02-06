@@ -350,21 +350,22 @@ const CORE_MOTIVATION_QUESTIONS: LikertQuestion[] = [
   },
 
   // TYPE 7 - The Enthusiast
+  // UPDATED: Pursuit/expansion framing, no avoidance language
   {
     id: 'Q19',
-    text: 'I orient toward keeping options open and avoiding situations that feel confining or heavy.',
+    text: 'I am energised by new possibilities and quickly move toward the next interesting thing.',
     type: 'likert',
     typeMapping: 7,
   },
   {
     id: 'Q20',
-    text: 'I become restless when life feels predictable, restricted, or emotionally dense.',
+    text: 'I prefer to keep multiple projects or plans active so I can switch between them freely.',
     type: 'likert',
     typeMapping: 7,
   },
   {
     id: 'Q21',
-    text: 'I instinctively reframe difficulties to preserve a sense of possibility or optimism.',
+    text: 'I naturally focus on what could go right and find ways to make situations more enjoyable.',
     type: 'likert',
     typeMapping: 7,
   },
