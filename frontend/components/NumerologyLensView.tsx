@@ -229,23 +229,43 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   };
 
   const renderUnlockPrompt = () => {
-    if (!data?.unlock_prompt) return null;
-
-    return (
-      <TouchableOpacity 
-        style={styles.unlockCard}
-        onPress={() => {
-          setUnlockStep('consent');
-          setUnlockModalVisible(true);
-        }}
-      >
-        <Ionicons name="key-outline" size={20} color={Colors.accent} />
-        <View style={styles.unlockTextContainer}>
-          <Text style={styles.unlockText}>{data.unlock_prompt}</Text>
-          <Text style={styles.unlockCta}>Tap to learn more →</Text>
+    // If unlock is not required, show the full name if available
+    if (!data?.unlock_required && data?.full_birth_name) {
+      return (
+        <View style={styles.fullNameCard}>
+          <Ionicons name="person-outline" size={18} color={Colors.textSecondary} />
+          <View style={styles.fullNameTextContainer}>
+            <Text style={styles.fullNameLabel}>Full Birth Name</Text>
+            <Text style={styles.fullNameValue}>{data.full_birth_name}</Text>
+          </View>
         </View>
-      </TouchableOpacity>
-    );
+      );
+    }
+    
+    // If unlock is required, show a prominent button
+    if (data?.unlock_required || data?.unlock_prompt) {
+      return (
+        <TouchableOpacity 
+          style={styles.unlockButton}
+          onPress={() => {
+            setUnlockStep('consent');
+            setUnlockModalVisible(true);
+          }}
+          activeOpacity={0.8}
+        >
+          <View style={styles.unlockButtonContent}>
+            <Ionicons name="add-circle-outline" size={22} color={Colors.text} />
+            <View style={styles.unlockButtonText}>
+              <Text style={styles.unlockButtonTitle}>Add Full Birth Name</Text>
+              <Text style={styles.unlockButtonSubtitle}>Unlock Expression, Soul Urge & Personality numbers</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
+        </TouchableOpacity>
+      );
+    }
+    
+    return null;
   };
 
   // Handle unlock flow
