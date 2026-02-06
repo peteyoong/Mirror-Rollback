@@ -1,6 +1,19 @@
-"""Numerology calculations"""
+"""Numerology calculations
+
+===============================================================================
+DETERMINISTIC COMPUTATION CORE - FROZEN
+===============================================================================
+This file is part of Project Mirror's deterministic computation core.
+Outputs must remain stable across versions.
+Do NOT modify without updating regression tests and bumping computation_version.
+
+Current version: mirror-deterministic-v1
+===============================================================================
+"""
 from datetime import datetime
-from typing import Dict
+from typing import Dict, List, Optional
+from .astrology import ComputeIntegrityError
+
 
 def reduce_to_single_digit(number: int, allow_master: bool = True) -> int:
     """Reduce number to single digit (or master number 11, 22, 33)"""
