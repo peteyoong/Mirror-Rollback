@@ -622,6 +622,249 @@ BOOK CONTEXT:
 
 
 # ============================================================================
+# TRAIT CARDS DATA CLASS
+# ============================================================================
+
+@dataclass
+class TraitCard:
+    """A trait card derived from book content."""
+    card_id: str
+    title: str
+    body: str
+    citation: Optional[Dict[str, Any]] = None
+    suggested_question: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        result = {
+            "card_id": self.card_id,
+            "title": self.title,
+            "body": self.body,
+        }
+        if self.citation:
+            result["citation"] = self.citation
+        if self.suggested_question:
+            result["suggested_question"] = self.suggested_question
+        return result
+
+
+# ============================================================================
+# STATIC TRAIT CARDS (Fallback when KB unavailable)
+# ============================================================================
+
+# Compact, grounded trait cards for each type - used as fallback
+STATIC_TRAIT_CARDS: Dict[int, List[Dict[str, str]]] = {
+    1: [
+        {"title": "The Inner Critic", "body": "A relentless internal voice measuring everything against how it 'should' be. Notice when you're judging yourself before others do."},
+        {"title": "Resentment Pattern", "body": "Unexpressed frustration builds when you feel you're carrying more than your share. The feeling is real—the story may not be."},
+        {"title": "Integrity Drive", "body": "A deep need to be good, do right, and improve. This isn't weakness—it's your anchor. The growth is learning flexibility."},
+    ],
+    2: [
+        {"title": "The Helper's Hook", "body": "Giving can become a way of earning love. Notice when generosity has strings attached—even invisible ones."},
+        {"title": "Need Blindness", "body": "Your own needs may become invisible to you, even as others' needs are crystal clear. This is learned, not permanent."},
+        {"title": "Pride in Being Needed", "body": "Being indispensable feels safe. The growth path includes allowing yourself to receive without giving back immediately."},
+    ],
+    3: [
+        {"title": "The Performer's Mask", "body": "Success can become a performance. Notice when you're achieving for applause versus genuine satisfaction."},
+        {"title": "Feeling Bypass", "body": "Productivity can be a way to avoid feeling. Slowing down may feel dangerous—but it's where authenticity lives."},
+        {"title": "Image Management", "body": "Adapting to be what's valued is efficient—but exhausting. The real you is more than your achievements."},
+    ],
+    4: [
+        {"title": "The Missing Piece", "body": "Something always seems lacking. This longing points to depth—but can also become a trap. What's already here, right now?"},
+        {"title": "Identity Through Feeling", "body": "Emotions feel like proof of existence. The intensity is real—but you exist even in ordinary moments."},
+        {"title": "Romanticizing Distance", "body": "What's absent often seems more meaningful. Notice if you're pushing away what's present to preserve longing."},
+    ],
+    5: [
+        {"title": "The Inner Retreat", "body": "Withdrawal feels safe—it preserves energy and clarity. But isolation can become its own kind of depletion."},
+        {"title": "Scarcity Mindset", "body": "There's a sense of having limited inner resources. Notice if hoarding time and energy actually creates more scarcity."},
+        {"title": "Observer Position", "body": "Understanding from a distance feels safer than participating. The growth edge is engagement before you feel 'ready.'"},
+    ],
+    6: [
+        {"title": "The Doubt Loop", "body": "Questioning everything can be wisdom or prison. Notice when vigilance is useful versus when it's just looping."},
+        {"title": "Authority Testing", "body": "You need to know if support is reliable. Testing loyalty makes sense—but it can push away what you're seeking."},
+        {"title": "Worst-Case Mapping", "body": "Anticipating problems feels protective. The cost is living in futures that may never arrive."},
+    ],
+    7: [
+        {"title": "The Escape Route", "body": "Options feel like freedom. But too many exits can prevent depth. What are you actually avoiding?"},
+        {"title": "Positive Reframing", "body": "Finding silver linings is a skill—until it becomes a way to skip the hard part entirely."},
+        {"title": "Future Focus", "body": "The next thing always seems better. But the present is the only place where satisfaction actually lives."},
+    ],
+    8: [
+        {"title": "The Armor", "body": "Strength protects—but it can also isolate. Notice what you're guarding. It might be softer than you think."},
+        {"title": "Intensity as Test", "body": "Pushing hard reveals who can be trusted. But not everyone speaks through confrontation."},
+        {"title": "Control Impulse", "body": "Taking charge feels safer than vulnerability. The growth is learning that letting go isn't the same as losing."},
+    ],
+    9: [
+        {"title": "The Merge", "body": "Blending with others feels peaceful. But where did your own preference go? It's still there, under the harmony."},
+        {"title": "Comfortable Numbing", "body": "Routine can become a gentle anaesthetic. Notice what you're avoiding by staying 'fine.'"},
+        {"title": "Passive Resistance", "body": "Saying yes while dragging feet is conflict avoidance. Your 'no' has value—consider using it directly."},
+    ],
+}
+
+
+# ============================================================================
+# TRAIT CARD GENERATION
+# ============================================================================
+
+async def get_trait_cards(
+    core_type: int,
+    wing: Optional[int] = None,
+    computed_details: Optional[Dict[str, Any]] = None,
+    llm_func = None,
+    max_cards: int = 3
+) -> List[TraitCard]:
+    """
+    Generate trait cards for a user's Enneagram type.
+    
+    If the knowledge base is ready and an LLM function is provided,
+    generates dynamic cards from book content.
+    Otherwise, falls back to static cards.
+    
+    Args:
+        core_type: The user's core Enneagram type (1-9)
+        wing: Optional wing number
+        computed_details: Optional enriched Enneagram details
+        llm_func: Optional async LLM function for summarization
+        max_cards: Maximum number of cards to return
+        
+    Returns:
+        List of TraitCard objects
+    """
+    if core_type < 1 or core_type > 9:
+        return []
+    
+    kb = get_knowledge_base()
+    
+    # If KB not ready or no LLM, use static cards
+    if not kb.is_ready or llm_func is None:
+        static = STATIC_TRAIT_CARDS.get(core_type, [])[:max_cards]
+        return [
+            TraitCard(
+                card_id=f"static_{core_type}_{i}",
+                title=card["title"],
+                body=card["body"],
+                citation=None,  # No citation for static cards
+                suggested_question=f"How does '{card['title'].lower()}' show up in my daily life?"
+            )
+            for i, card in enumerate(static)
+        ]
+    
+    # Build search queries based on type and computed details
+    type_names = TYPE_NAMES.get(core_type, [])
+    type_name_str = type_names[0] if type_names else f"type {core_type}"
+    
+    queries = [
+        f"enneagram type {core_type} {type_name_str} core patterns",
+        f"type {core_type} defense mechanism fixation",
+        f"type {core_type} growth integration",
+    ]
+    
+    # Add center-specific query if available
+    if computed_details:
+        center = computed_details.get("center")
+        if center:
+            queries.append(f"enneagram {center} center type {core_type}")
+    
+    # Retrieve chunks for each query
+    all_chunks = []
+    seen_chunk_ids = set()
+    
+    for query in queries[:3]:  # Limit to 3 queries
+        results = kb.retrieve(query, k=2)
+        for r in results:
+            if r.chunk.chunk_id not in seen_chunk_ids:
+                seen_chunk_ids.add(r.chunk.chunk_id)
+                all_chunks.append(r)
+    
+    # If no chunks found, fall back to static
+    if not all_chunks:
+        static = STATIC_TRAIT_CARDS.get(core_type, [])[:max_cards]
+        return [
+            TraitCard(
+                card_id=f"static_{core_type}_{i}",
+                title=card["title"],
+                body=card["body"],
+                citation=None,
+                suggested_question=f"How does '{card['title'].lower()}' show up in my daily life?"
+            )
+            for i, card in enumerate(static)
+        ]
+    
+    # Build context for LLM summarization
+    chunk_context = "\n\n".join([
+        f"[Source {i+1}, Page {r.chunk.pdf_page}]: {r.chunk.text[:600]}"
+        for i, r in enumerate(all_chunks[:5])
+    ])
+    
+    # Generate trait cards via LLM
+    system_prompt = f"""You are generating "From the Book" trait cards for an Enneagram Type {core_type} user.
+
+BOOK EXCERPTS:
+{chunk_context}
+
+TASK:
+Generate exactly {max_cards} trait cards based on the book content. Each card should:
+1. Have a short, evocative title (3-5 words)
+2. Have a body of 2-3 sentences that reflects something from the book
+3. Be grounded and reflective, not prescriptive
+4. Reference actual patterns or concepts from the excerpts
+
+TONE:
+- Mirror philosophy: descriptive, not prescriptive
+- No "you should" or "you need to"
+- Use "notice", "may experience", "often shows up as"
+
+Return ONLY valid JSON array:
+[
+  {{"title": "...", "body": "...", "source_page": <page_number>}},
+  {{"title": "...", "body": "...", "source_page": <page_number>}},
+  {{"title": "...", "body": "...", "source_page": <page_number>}}
+]
+"""
+    
+    try:
+        response = await llm_func(system_prompt, f"Generate {max_cards} trait cards for Type {core_type}")
+        
+        # Parse JSON response
+        import json
+        # Try to extract JSON from response
+        response_clean = response.strip()
+        if response_clean.startswith("```"):
+            # Remove markdown code blocks
+            lines = response_clean.split("\n")
+            response_clean = "\n".join(lines[1:-1])
+        
+        cards_data = json.loads(response_clean)
+        
+        cards = []
+        for i, card in enumerate(cards_data[:max_cards]):
+            source_page = card.get("source_page")
+            cards.append(TraitCard(
+                card_id=f"book_{core_type}_{i}",
+                title=card.get("title", f"Pattern {i+1}"),
+                body=card.get("body", ""),
+                citation={"source": "JOH Book 1", "page": source_page} if source_page else None,
+                suggested_question=f"How does this pattern show up for me?"
+            ))
+        
+        return cards if cards else STATIC_TRAIT_CARDS.get(core_type, [])[:max_cards]
+        
+    except Exception as e:
+        logger.error(f"[TraitCards] LLM generation failed: {e}")
+        # Fall back to static cards
+        static = STATIC_TRAIT_CARDS.get(core_type, [])[:max_cards]
+        return [
+            TraitCard(
+                card_id=f"static_{core_type}_{i}",
+                title=card["title"],
+                body=card["body"],
+                citation=None,
+                suggested_question=f"How does '{card['title'].lower()}' show up in my daily life?"
+            )
+            for i, card in enumerate(static)
+        ]
+
+
+# ============================================================================
 # SINGLETON INSTANCE
 # ============================================================================
 
