@@ -1074,7 +1074,12 @@ export default function EnneagramAssessment() {
   const hasLoggedValidationRowRef = useRef(false);
   
   // ============================================
-  // SCORING ALGORITHM
+  // SCORING ALGORITHM (v2 - Updated)
+  // Changes:
+  // - FC multiplier reduced from 1.5 → 1.0
+  // - New confidence tier rules with gap thresholds
+  // - Non-collapsing wing access logic
+  // - Extended debug data output
   // ============================================
   
   // Compute full scoring (call after all sections complete)
@@ -1092,17 +1097,20 @@ export default function EnneagramAssessment() {
     });
     
     const meanLikert: { [key: number]: number } = {};
+    const meanLikertOutput: { [key: string]: number } = {};
     for (let t = 1; t <= 9; t++) {
       const scores = typeLikertScores[t];
       meanLikert[t] = scores.length > 0 
         ? scores.reduce((sum, v) => sum + v, 0) / scores.length 
         : 0;
+      meanLikertOutput[String(t)] = Math.round(meanLikert[t] * 100) / 100;
     }
     
     // Step 2: Count forced-choice hits (Section 2)
     const forcedHits: { [key: number]: number } = {
       1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0,
     };
+    const forcedHitsOutput: { [key: string]: number } = {};
     
     responses.disambiguation.forEach(response => {
       const question = DISAMBIGUATION_QUESTIONS.find(q => q.id === response.questionId);
@@ -1112,10 +1120,15 @@ export default function EnneagramAssessment() {
       }
     });
     
-    // Step 3: Compute raw scores
+    for (let t = 1; t <= 9; t++) {
+      forcedHitsOutput[String(t)] = forcedHits[t];
+    }
+    
+    // Step 3: Compute raw scores (UPDATED: multiplier 1.5 → 1.0)
+    const FC_MULTIPLIER = 1.0; // Changed from 1.5
     const rawScores: { [key: string]: number } = {};
     for (let t = 1; t <= 9; t++) {
-      rawScores[String(t)] = meanLikert[t] + (1.5 * forcedHits[t]);
+      rawScores[String(t)] = meanLikert[t] + (FC_MULTIPLIER * forcedHits[t]);
     }
     
     // Step 4: Z-score normalization
@@ -1126,7 +1139,7 @@ export default function EnneagramAssessment() {
     
     const zScores: { [key: string]: number } = {};
     for (let t = 1; t <= 9; t++) {
-      zScores[String(t)] = (rawScores[String(t)] - mean) / stddev;
+      zScores[String(t)] = Math.round(((rawScores[String(t)] - mean) / stddev) * 100) / 100;
     }
     
     // Step 5: Softmax to probabilities
@@ -1134,29 +1147,38 @@ export default function EnneagramAssessment() {
     const sumExp = expValues.reduce((a, b) => a + b, 0);
     
     const probabilities: { type: number; probability: number }[] = [];
+    const probabilitiesOutput: { [key: string]: number } = {};
     for (let t = 1; t <= 9; t++) {
-      probabilities.push({
-        type: t,
-        probability: Math.exp(zScores[String(t)]) / sumExp
-      });
+      const prob = Math.exp(zScores[String(t)]) / sumExp;
+      probabilities.push({ type: t, probability: prob });
+      probabilitiesOutput[String(t)] = Math.round(prob * 10000) / 10000;
     }
     
     // Sort by probability descending
     probabilities.sort((a, b) => b.probability - a.probability);
     
     const inferred_core = probabilities[0].type;
-    const confidence = probabilities[0].probability;
-    const is_close = probabilities.length >= 2 && 
-      (probabilities[0].probability - probabilities[1].probability) < 0.08;
+    const topProb = probabilities[0].probability;
+    const secondProb = probabilities.length >= 2 ? probabilities[1].probability : 0;
+    const gap = topProb - secondProb;
     
+    // UPDATED: New confidence tier rules with gap thresholds
+    // High: top >= 0.45 AND gap >= 0.15
+    // Medium: top >= 0.33 AND gap >= 0.08
+    // Low: otherwise
     let confidence_tier: 'high' | 'medium' | 'low';
-    if (confidence >= 0.75) confidence_tier = 'high';
-    else if (confidence >= 0.60) confidence_tier = 'medium';
-    else confidence_tier = 'low';
+    if (topProb >= 0.45 && gap >= 0.15) {
+      confidence_tier = 'high';
+    } else if (topProb >= 0.33 && gap >= 0.08) {
+      confidence_tier = 'medium';
+    } else {
+      confidence_tier = 'low';
+    }
     
+    const is_close = gap < 0.08;
     const top_candidates = probabilities.slice(0, 3);
     
-    // Step 6: Wing scoring
+    // Step 6: Wing scoring with NON-COLLAPSING access rules
     const leftWing = inferred_core === 1 ? 9 : inferred_core - 1;
     const rightWing = inferred_core === 9 ? 1 : inferred_core + 1;
     
@@ -1192,30 +1214,69 @@ export default function EnneagramAssessment() {
     const leftMean = leftLikertCount > 0 ? leftLikertSum / leftLikertCount : 0;
     const rightMean = rightLikertCount > 0 ? rightLikertSum / rightLikertCount : 0;
     
-    const wing_left_score = leftMean + (1.25 * leftForcedHits);
-    const wing_right_score = rightMean + (1.25 * rightForcedHits);
+    // UPDATED: Wing FC multiplier also reduced to 1.0 (from 1.25)
+    const WING_FC_MULTIPLIER = 1.0;
+    const wing_left_score = leftMean + (WING_FC_MULTIPLIER * leftForcedHits);
+    const wing_right_score = rightMean + (WING_FC_MULTIPLIER * rightForcedHits);
     const wing_diff = Math.abs(wing_left_score - wing_right_score);
     
+    // UPDATED: Normalize wing scores to 0-1 range for access threshold calculation
+    // Max possible: 5 (likert max) + 2 (max FC hits) = 7
+    const maxWingScore = 7;
+    const normalizedLeft = wing_left_score / maxWingScore;
+    const normalizedRight = wing_right_score / maxWingScore;
+    
+    // Wing access rules:
+    // - Accessible if normalized score >= 0.20
+    // - Dominant if >= 0.25 AND difference >= 0.07
+    const LEFT_ACCESSIBLE = normalizedLeft >= 0.20;
+    const RIGHT_ACCESSIBLE = normalizedRight >= 0.20;
+    
     let inferred_wing: number | 'balanced';
-    if (wing_diff < 0.6) {
+    let dominant_wing: number | 'balanced' | 'none';
+    
+    const normalizedDiff = Math.abs(normalizedLeft - normalizedRight);
+    
+    if (normalizedDiff < 0.07) {
+      // Both wings are balanced - no dominant
       inferred_wing = 'balanced';
+      dominant_wing = 'balanced';
+    } else if (normalizedLeft >= 0.25 && normalizedLeft > normalizedRight) {
+      inferred_wing = leftWing;
+      dominant_wing = leftWing;
+    } else if (normalizedRight >= 0.25 && normalizedRight > normalizedLeft) {
+      inferred_wing = rightWing;
+      dominant_wing = rightWing;
     } else {
-      inferred_wing = wing_left_score > wing_right_score ? leftWing : rightWing;
+      // Neither wing is dominant enough
+      inferred_wing = 'balanced';
+      dominant_wing = 'none';
     }
     
     return {
       inferred_core,
       inferred_wing,
-      confidence,
+      confidence: topProb,
       confidence_tier,
       is_close,
       top_candidates,
       raw_scores: rawScores,
       z_scores: zScores,
       wing_scores: {
-        left: wing_left_score,
-        right: wing_right_score,
-        diff: wing_diff
+        left: Math.round(wing_left_score * 100) / 100,
+        right: Math.round(wing_right_score * 100) / 100,
+        diff: Math.round(wing_diff * 100) / 100
+      },
+      // Extended debug data (v2)
+      mean_likert: meanLikertOutput,
+      forced_hits: forcedHitsOutput,
+      probabilities: probabilitiesOutput,
+      wing_access: {
+        left_type: leftWing,
+        right_type: rightWing,
+        left_accessible: LEFT_ACCESSIBLE,
+        right_accessible: RIGHT_ACCESSIBLE,
+        dominant_wing: dominant_wing
       }
     };
   }, [responses]);
