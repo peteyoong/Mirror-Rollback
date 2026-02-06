@@ -37,9 +37,11 @@ interface NumerologyData {
   sections: NumerologySection[];
   mirror_prompt: string;
   unlock_prompt?: string | null;
+  unlock_required?: boolean;
   core_numbers?: CoreNumbers;
   cycles?: NumerologyCycles;
   date?: string;
+  full_birth_name?: string | null;
 }
 
 interface Props {
