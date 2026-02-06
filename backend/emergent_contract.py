@@ -1074,20 +1074,24 @@ async def emergent_generate(
     context: Optional[Dict[str, Any]] = None,
     additional_system_prompt: str = "",
     max_tokens: int = 800,
-    model: str = "gpt-4.1-mini"
+    model: str = "gpt-4.1-mini",
+    loc_band: Optional[str] = None,
+    loc_confidence: float = 0.5
 ) -> str:
     """
     The SINGLE entry point for ALL AI generation in Project Mirror.
     
     This function:
     1. Applies the Emergent! system contract
-    2. Appends the appropriate mode contract
-    3. Generates the response
-    4. Validates against contract
-    5. Auto-rewrites REWRITE-level violations
-    6. Regenerates for BLOCK-level violations
-    7. Falls back to safe response if regeneration fails
-    8. Logs all events for analytics
+    2. Applies LoC meta-governor throttling
+    3. Appends the appropriate mode contract
+    4. Generates the response
+    5. Validates against contract
+    6. Auto-rewrites REWRITE-level violations
+    7. Applies LoC output throttling
+    8. Regenerates for BLOCK-level violations
+    9. Falls back to safe response if regeneration fails
+    10. Logs all events for analytics
     
     Args:
         mode: One of the MODE_CONTRACTS keys (e.g., "reflection_chat", "daily_insight")
@@ -1098,9 +1102,11 @@ async def emergent_generate(
         additional_system_prompt: Any endpoint-specific prompt additions
         max_tokens: Maximum response tokens
         model: The LLM model to use
+        loc_band: Optional LoC band (survival/stabilizing/managing/expanding/integrative)
+        loc_confidence: Confidence in the LoC band (0.0-1.0)
     
     Returns:
-        str: The validated, contract-compliant response
+        str: The validated, contract-compliant, LoC-throttled response
     """
     EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
     
@@ -1108,11 +1114,16 @@ async def emergent_generate(
         logger.error("[EMERGENT_CONTRACT] No EMERGENT_LLM_KEY configured")
         return get_safe_fallback(mode)
     
+    # Determine LoC band and get instruction
+    loc = get_loc_band(loc_band, loc_confidence)
+    loc_instruction = get_loc_instruction(loc)
+    
     # Build the complete system prompt
     mode_contract = MODE_CONTRACTS.get(mode, MODE_CONTRACTS["general"])
     
     full_system_prompt = (
         EMERGENT_SYSTEM_CONTRACT +
+        "\n" + loc_instruction +
         "\n" + mode_contract +
         "\n" + additional_system_prompt
     )
@@ -1137,6 +1148,9 @@ async def emergent_generate(
         
         message = UserMessage(text=user_message)
         response = await chat.send_message(message)
+        
+        # Apply LoC throttling to response
+        response = apply_loc_throttle(response, loc)
         
         # Validate the response
         validation = validate_emergent_output(response)
