@@ -4964,36 +4964,37 @@ def get_incarnation_cross_label(cross_string: str) -> str:
     Extract a clean, human-friendly label from the incarnation cross string.
     
     Input formats:
-    - "Right Angle Cross of 23/43"
-    - "Left Angle Cross of Dedication"
-    - "Juxtaposition Cross of Crisis"
+    - "Right Angle Cross of 37/40" -> "Right Angle Cross of Migration"
+    - "Left Angle Cross of Dedication" -> "Left Angle Cross of Dedication"
+    - "Juxtaposition Cross of Crisis" -> "Juxtaposition Cross of Crisis"
     
     Output:
-    - "Right Angle Cross" (with type)
-    - Or just the name if it's a named cross
+    - Full named cross like "Right Angle Cross of Migration"
     """
+    from calculations.human_design import INCARNATION_CROSS_NAMES
+    
     if not cross_string or cross_string == 'Unknown':
         return 'Unknown'
     
-    # Clean up the label
-    # Remove gate numbers like "of 23/43" but keep named crosses like "of Dedication"
     import re
     
-    # Check if it's a numbered cross (e.g., "Right Angle Cross of 23/43")
-    numbered_pattern = r'^(.*?Cross)\s*of\s*\d+/\d+.*$'
+    # Check if it's a numbered cross (e.g., "Right Angle Cross of 37/40")
+    numbered_pattern = r'^(.*?Cross)\s*of\s*(\d+)\s*/\s*\d+.*$'
     match = re.match(numbered_pattern, cross_string)
     if match:
-        # Return just the cross type for numbered crosses
-        return match.group(1).strip()
+        cross_type = match.group(1).strip()  # "Right Angle Cross"
+        first_gate = int(match.group(2))  # 37
+        
+        # Look up the cross name from the gate number
+        cross_name = INCARNATION_CROSS_NAMES.get(first_gate, f"Gate {first_gate}")
+        return f"{cross_type} of {cross_name}"
     
-    # Check if it's a named cross (e.g., "Left Angle Cross of Dedication")
+    # Check if it's already a named cross (e.g., "Left Angle Cross of Dedication")
     named_pattern = r'^(.*?Cross)\s*of\s*(\w+.*)$'
     match = re.match(named_pattern, cross_string)
     if match:
-        cross_type = match.group(1).strip()  # "Left Angle Cross"
-        cross_name = match.group(2).strip()  # "Dedication"
-        # Return the name as a cleaner label
-        return f"{cross_type}: {cross_name}"
+        # Already named, return as-is
+        return cross_string
     
     # Fallback: return as-is
     return cross_string
