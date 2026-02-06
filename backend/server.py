@@ -5190,7 +5190,7 @@ Profile: {hd_data['profile']}
 
 
 @api_router.get("/human-design/deep-dive/{user_id}")
-async def get_human_design_deep_dive(user_id: str):
+async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
     """
     Generate Deep Dive - Full Human Design profile including Type, Strategy, Authority,
     Profile, Incarnation Cross, Definition, and Centers.
@@ -5207,9 +5207,10 @@ async def get_human_design_deep_dive(user_id: str):
         # =====================================================================
         # CHECK CACHE FIRST - instant response for repeat views
         # =====================================================================
-        cached_response = await get_cached_deep_dive(user_id, "human_design")
-        if cached_response:
-            return cached_response
+        if not force_refresh:
+            cached_response = await get_cached_deep_dive(user_id, "human_design")
+            if cached_response:
+                return cached_response
         
         user, chart = await get_user_astrology_data(user_id)
         hd_data = extract_human_design_data(chart)
