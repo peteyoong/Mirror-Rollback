@@ -6269,7 +6269,7 @@ async def compute_enneagram_convergence(user_id: str):
                 
                 location = user.get("birth_location", {})
                 astrology_data = get_full_natal_chart(
-                    utc_birth=utc_birth[0],  # resolve_birth_utc returns tuple, first element is datetime
+                    utc_birth=utc_result[0],  # resolve_birth_utc returns tuple, first element is datetime
                     latitude=location.get("latitude", 0),
                     longitude=location.get("longitude", 0),
                     sidereal_settings={
