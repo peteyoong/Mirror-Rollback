@@ -307,6 +307,12 @@ class EnneagramKnowledgeBase:
         Tries multiple PDF paths in order of preference.
         Returns True if successful, False otherwise.
         """
+        # Check if sklearn is available
+        if not SKLEARN_AVAILABLE:
+            self.load_error = "scikit-learn not available - KB features disabled"
+            logger.warning(f"[EnneagramKB] {self.load_error}")
+            return False
+            
         try:
             # Build list of paths to try
             paths_to_try = []
