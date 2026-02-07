@@ -6164,6 +6164,7 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
             
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse astrology deep dive JSON: {e}")
+            logger.error(f"[ASTRO_DEEP_DIVE] Raw response that failed to parse (first 500 chars): {clean_response[:500]}...")
             fallback_result = {
                 "success": True,  # Data is valid, just LLM parsing failed
                 "title": "Your Core Structure",
