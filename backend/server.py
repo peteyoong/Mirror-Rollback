@@ -1665,14 +1665,14 @@ FULL COMPUTED HD DATA (available on request):
 {full_hd_json}
 
 Generate a response with these sections:
-1. "Type: Your Energy Architecture" - How energy tends to flow and what rhythm feels natural (30-50 words)
-2. "Strategy: Your Engagement Pattern" - How life tends to work best when engaged with in a certain way (30-50 words)
-3. "Authority: Your Clarity Process" - How decisions tend to feel most aligned when given space (30-50 words)
-4. "Profile: Your Learning Style" - How you tend to learn and what your life theme may emphasize (30-50 words)
-5. "Incarnation Cross: Your Life Direction" - The broad theme or direction your life may orient around (30-50 words, only if cross is provided)
-6. "Definition & Centers" - How your energy connects and which themes are consistently emphasized (30-50 words)
+1. "Type: Your Energy Architecture" - How energy tends to flow and what rhythm feels natural (60-80 words)
+2. "Strategy: Your Engagement Pattern" - How life tends to work best when engaged with in a certain way (60-80 words)
+3. "Authority: Your Clarity Process" - How decisions tend to feel most aligned when given space (60-80 words)
+4. "Profile: Your Learning Style" - How you tend to learn and what your life theme may emphasize (60-80 words)
+5. "Incarnation Cross: Your Life Direction" - The broad theme or direction your life may orient around (60-80 words, only if cross is provided)
+6. "Definition & Centers" - How your energy connects and which themes are consistently emphasized (60-80 words)
 
-CRITICAL: Each section MUST be 30-50 words (2-3 sentences). Keep it concise but meaningful.
+CRITICAL: Each section MUST be 60-80 words (4-5 sentences). Provide meaningful depth.
 Return ONLY valid JSON:
 {{
   "title": "Your Human Design Profile",
