@@ -7357,6 +7357,62 @@ Your first phase is especially experimental—double the trial and error as both
 The shadow shows up as feeling you've failed too many times to ever become a role model, or as premature attempts at role model status before the work is done. Your path is messier than some, but that mess becomes your authority. What wisdom from your experiments are you integrating?"""
             }
             
+            strategy_descriptions_rich = {
+                "Generator": """Your strategy—to wait to respond—points to how you engage most effectively with life. This doesn't mean being passive or sitting around hoping things happen. It means recognizing that your sacral energy is designed to be sparked by something external—a question, an opportunity, a situation that provokes a gut-level response.
+
+When something in your environment triggers a genuine "yes" in your body, that's your signal. The energy becomes available. When nothing triggers, trying to force momentum through willpower alone typically leads to frustration. Your life tends to unfold not through initiating but through responding to what life brings. The question isn't "What should I do?" but "What is showing up that I have energy for?"
+
+Learning to trust this responsive process—especially when the mind says you should be doing more—is often the Generator's ongoing practice. What are you genuinely responding to right now?""",
+                
+                "Manifesting Generator": """Your strategy—to wait to respond, then inform before acting—acknowledges your hybrid nature. Like all Generators, your sustainable energy is unlocked through response rather than initiation. Unlike pure Generators, you also carry Manifestor energy that can move quickly once the response is clear.
+
+The sequence matters: respond first (feel the sacral yes), then inform the people who'll be affected before you take action or pivot. Skipping the response step leads to starts that fizzle. Skipping the informing step creates friction when your quick moves catch people off guard.
+
+Your path is naturally non-linear—you may pivot many times, leave things unfinished, circle back to old interests. This isn't inconsistency; it's efficiency. Each start, whether completed or not, teaches you something about what's actually correct for you. What's your gut responding to right now, and who needs to know before you move?""",
+                
+                "Projector": """Your strategy—to wait for recognition and invitation—points to how your guidance lands most effectively. This isn't about waiting passively or seeking approval; it's about positioning your insights where they can actually be received. Unsolicited advice, no matter how accurate, tends to bounce off.
+
+When you're genuinely recognized for what you see and invited to share, your guidance has impact. Without that recognition, the same words fall flat. This can feel frustrating in a culture that rewards self-promotion, but your power works differently.
+
+The invitation doesn't have to be formal—it can be as simple as someone genuinely asking your opinion. What matters is the recognition underneath: they see you, they value what you see, they want your input. Where are you being truly recognized and invited right now?""",
+                
+                "Manifestor": """Your strategy—to inform before acting—creates flow and reduces resistance. This isn't about asking permission or seeking consensus; it's about letting the people who'll be affected by your actions know what's coming. When you inform, you clear the path for your initiations to land without unnecessary friction.
+
+As the only type designed to initiate without waiting, you naturally make things happen that ripple outward. Others feel your impact whether they're ready for it or not. Informing gives them a heads-up and reduces the pushback that arises from surprise.
+
+This doesn't come naturally to most Manifestors—years of being told to ask permission, wait your turn, or slow down often suppress the informing reflex. The practice is letting people know, not asking if you can. What are you about to initiate, and who needs to be informed?""",
+                
+                "Reflector": """Your strategy—to wait a lunar cycle for major decisions—honors your unique relationship with time. Unlike other types who have consistent inner definition to rely on, your completely open design samples different energies as the moon moves through the gates of the Human Design wheel.
+
+This 28-day cycle gives you access to many perspectives on any question. What feels true on day 5 may feel different on day 15. What remains consistent across the entire cycle is more likely to be genuinely aligned for you.
+
+This isn't about waiting passively—it's about actively sampling a decision from many angles before committing. Not every decision requires a full cycle, but major ones benefit from this patience. What decision are you currently cycling through?"""
+            }
+            
+            cross_descriptions_rich = {
+                "Right Angle Cross": f"""Your {incarnation_cross.get('name', 'Incarnation Cross')} ({incarnation_cross.get('gates', '')}) carries what's called a personal destiny. The Right Angle orientation means your life theme is primarily about your own journey—the lessons, experiences, and growth that are specifically yours to navigate. Others are part of your story, but the story is fundamentally about you.
+
+The gates that make up your cross point to specific energies you're here to work with and express. These aren't tasks to complete but territories you'll likely find yourself drawn to throughout life. The cross doesn't dictate what you must do; it describes what tends to show up as significant, repeatedly and in various forms.
+
+You don't need to chase this theme—it tends to find you. The invitation is simply to notice where these energies already appear and to engage with them consciously.""",
+                
+                "Left Angle Cross": f"""Your {incarnation_cross.get('name', 'Incarnation Cross')} ({incarnation_cross.get('gates', '')}) carries what's called a transpersonal destiny. The Left Angle orientation means your life theme is fundamentally intertwined with others—your path involves and impacts people beyond your immediate circle. There's something you're here to bring through that serves more than just your personal journey.
+
+The gates of your cross point to specific energies that want to move through you into the world. This doesn't mean you're obligated to "help" or "serve"—it means your authentic expression naturally affects others as part of its design.
+
+This transpersonal element often becomes clearer after your Saturn return (around age 30), when the broader pattern of your life begins to reveal itself.""",
+                
+                "Juxtaposition Cross": f"""Your {incarnation_cross.get('name', 'Incarnation Cross')} ({incarnation_cross.get('gates', '')}) carries what's called a fixed fate. The Juxtaposition orientation—rarer than Right or Left Angle—means your life theme has a particularly defined quality. You're here to embody something specific, a particular expression that's more fixed than flexible.
+
+The gates of your cross describe the specific territory you're designed to inhabit. There's often less wiggle room with a Juxtaposition cross—you may feel a strong pull toward certain themes regardless of circumstances.
+
+This fixedness isn't a limitation; it's a clarity. Where others might explore many paths, you're here to go deep into yours. The specificity of your cross is part of what you have to offer."""
+            }
+            
+            # Determine cross type for rich description
+            cross_name = incarnation_cross.get('name', '')
+            cross_type_key = "Right Angle Cross" if "Right" in cross_name else "Left Angle Cross" if "Left" in cross_name else "Juxtaposition Cross" if "Juxtaposition" in cross_name else "Right Angle Cross"
+            
             fallback_result = {
                 "success": True,
                 "title": "Your Human Design Profile",
@@ -7371,10 +7427,10 @@ The shadow shows up as feeling you've failed too many times to ever become a rol
                 },
                 "sections": [
                     {"label": "Type: Your Energy Architecture", "body": type_descriptions.get(hd_type, f"As a {hd_type}, there's a particular way energy tends to move through you, with its own natural rhythm and pace.")},
-                    {"label": "Strategy: Your Engagement Pattern", "body": f"Your strategy—to {strategy_desc.lower()}—points to how you engage most effectively with life. This isn't about limitation or following rules; it's about recognizing the natural flow that works best for your particular energy architecture. When you honor this pattern rather than fighting it, you often find less resistance and more alignment in how opportunities and experiences come to you. The strategy isn't something you have to force—it's more like remembering what already works when you're not trying too hard."},
+                    {"label": "Strategy: Your Engagement Pattern", "body": strategy_descriptions_rich.get(hd_type, f"Your strategy—to {strategy_desc.lower()}—points to how you engage most effectively with life. This isn't about limitation or following rules; it's about recognizing the natural flow that works best for your particular energy architecture.")},
                     {"label": "Authority: Your Clarity Process", "body": authority_descriptions.get(authority, f"With {authority} authority, there's a specific way clarity tends to emerge for you, a particular signal to listen for when making decisions.")},
                     {"label": "Profile: Your Learning Style", "body": profile_descriptions.get(profile, f"Your {profile} profile suggests a particular way you tend to learn, grow, and engage with life themes over time.")},
-                    {"label": "Incarnation Cross: Your Life Direction", "body": f"Your {incarnation_cross.get('name', 'Incarnation Cross')} ({incarnation_cross.get('gates', '')}) points to a broad life theme—not a destiny you must fulfill, but a territory you may find yourself naturally drawn to explore repeatedly throughout your life. The gates of your cross (the specific numbers) carry particular energies and themes that inform your life's expression. You don't need to chase this theme; it tends to find you. The invitation is to notice where these energies already show up and to engage with them consciously rather than unconsciously."},
+                    {"label": "Incarnation Cross: Your Life Direction", "body": cross_descriptions_rich.get(cross_type_key, f"Your {incarnation_cross.get('name', 'Incarnation Cross')} ({incarnation_cross.get('gates', '')}) points to a broad life theme—not a destiny you must fulfill, but a territory you may find yourself naturally drawn to explore repeatedly throughout your life.")},
                     {"label": "Definition & Centers", "body": f"With {canonical_hd.get('definition', 'your')} definition, there's a particular way energy flows and connects within you—whether in one continuous circuit or in separate systems that connect through others. Your defined centers ({', '.join(defined_centers) if defined_centers else 'your key centers'}) represent consistent, reliable themes in your experience—these are where you have something to offer the world. Your undefined centers are where you take in and amplify the energy of others, making you sensitive and wise in those areas but also potentially conditioned by outside influence. Neither is better; both are part of your design."}
                 ],
                 "mirror_prompt": "Where do you notice these patterns playing out in your current experience?",
