@@ -261,13 +261,13 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
           activeOpacity={0.8}
         >
           <View style={styles.unlockButtonContent}>
-            <Ionicons name="add-circle-outline" size={22} color={Colors.text} />
+            <Ionicons name="add-circle-outline" size={22} color={Colors.surface} />
             <View style={styles.unlockButtonText}>
               <Text style={styles.unlockButtonTitle}>Add Full Birth Name</Text>
               <Text style={styles.unlockButtonSubtitle}>Unlock Expression, Soul Urge & Personality numbers</Text>
             </View>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
+          <Ionicons name="chevron-forward" size={20} color="rgba(255, 255, 255, 0.5)" />
         </TouchableOpacity>
       );
     }
