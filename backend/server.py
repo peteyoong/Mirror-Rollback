@@ -8750,65 +8750,69 @@ async def get_user_combined_lens_data(user_id: str) -> dict:
     }
     
     try:
-        # Get user
+        # Get user for birth date
         user = await db.users.find_one({"_id": ObjectId(user_id)})
         if not user:
             return combined
         
-        # Astrology data
-        astro = user.get("astrology", {})
-        if astro and isinstance(astro, dict):
-            planets = astro.get("planets", {})
-            houses = astro.get("houses", {})
-            nodes = astro.get("nodes", {})
+        # Get chart data (astrology, human design, numerology are stored in charts collection)
+        chart = await db.charts.find_one({"user_id": user_id})
+        
+        # Astrology data (from charts collection)
+        if chart:
+            astro = chart.get("astrology", {})
+            if astro and isinstance(astro, dict):
+                planets = astro.get("planets", {})
+                houses = astro.get("houses", {})
+                nodes = astro.get("nodes", {})
+                
+                combined["astrology"] = {
+                    "sun_sign": planets.get("Sun", {}).get("sign", "Unknown"),
+                    "moon_sign": planets.get("Moon", {}).get("sign", "Unknown"),
+                    "ascendant": houses.get("ascendant", "Unknown"),
+                    "sun_house": planets.get("Sun", {}).get("house"),
+                    "moon_house": planets.get("Moon", {}).get("house"),
+                    "north_node_sign": nodes.get("north", {}).get("sign") if isinstance(nodes.get("north"), dict) else None,
+                    "north_node_house": nodes.get("north", {}).get("house") if isinstance(nodes.get("north"), dict) else None,
+                }
+                combined["has_data"] = True
             
-            combined["astrology"] = {
-                "sun_sign": planets.get("Sun", {}).get("sign", "Unknown"),
-                "moon_sign": planets.get("Moon", {}).get("sign", "Unknown"),
-                "ascendant": houses.get("ascendant", "Unknown"),
-                "sun_house": planets.get("Sun", {}).get("house"),
-                "moon_house": planets.get("Moon", {}).get("house"),
-                "north_node_sign": nodes.get("north", {}).get("sign") if isinstance(nodes.get("north"), dict) else None,
-                "north_node_house": nodes.get("north", {}).get("house") if isinstance(nodes.get("north"), dict) else None,
-            }
-            combined["has_data"] = True
+            # Human Design data (from charts collection)
+            hd = chart.get("human_design", {})
+            if hd and isinstance(hd, dict) and hd.get("type"):
+                combined["human_design"] = {
+                    "type": hd.get("type", "Unknown"),
+                    "strategy": hd.get("strategy", "Unknown"),
+                    "authority": hd.get("authority", "Unknown"),
+                    "profile": hd.get("profile", "Unknown"),
+                    "definition": hd.get("definition", "Unknown"),
+                    "incarnation_cross": hd.get("incarnation_cross", "Unknown"),
+                    "defined_centers": hd.get("defined_centers", []),
+                    "undefined_centers": hd.get("undefined_centers", []),
+                }
+                combined["has_data"] = True
+            
+            # Numerology data (from charts collection)
+            numerology = chart.get("numerology", {})
+            if numerology and isinstance(numerology, dict) and numerology.get("life_path"):
+                combined["numerology"] = {
+                    "life_path": numerology.get("life_path"),
+                    "birthday_number": numerology.get("birthday_number"),
+                    "expression": numerology.get("expression") if numerology.get("expression") != "locked" else None,
+                    "soul_urge": numerology.get("soul_urge") if numerology.get("soul_urge") != "locked" else None,
+                    "personality": numerology.get("personality") if numerology.get("personality") != "locked" else None,
+                }
+                # Get current cycles
+                if user.get("birth_date"):
+                    try:
+                        cycles = get_numerology_cycles(user["birth_date"])
+                        combined["numerology"]["personal_year"] = cycles.get("personal_year")
+                        combined["numerology"]["personal_month"] = cycles.get("personal_month")
+                    except:
+                        pass
+                combined["has_data"] = True
         
-        # Human Design data
-        hd = user.get("human_design", {})
-        if hd and isinstance(hd, dict):
-            combined["human_design"] = {
-                "type": hd.get("type", "Unknown"),
-                "strategy": hd.get("strategy", "Unknown"),
-                "authority": hd.get("authority", "Unknown"),
-                "profile": hd.get("profile", "Unknown"),
-                "definition": hd.get("definition", "Unknown"),
-                "incarnation_cross": hd.get("incarnation_cross", "Unknown"),
-                "defined_centers": hd.get("defined_centers", []),
-                "undefined_centers": hd.get("undefined_centers", []),
-            }
-            combined["has_data"] = True
-        
-        # Numerology data
-        numerology = user.get("numerology", {})
-        if numerology and isinstance(numerology, dict):
-            combined["numerology"] = {
-                "life_path": numerology.get("life_path"),
-                "birthday_number": numerology.get("birthday_number"),
-                "expression": numerology.get("expression") if numerology.get("expression") != "locked" else None,
-                "soul_urge": numerology.get("soul_urge") if numerology.get("soul_urge") != "locked" else None,
-                "personality": numerology.get("personality") if numerology.get("personality") != "locked" else None,
-            }
-            # Get current cycles
-            if user.get("birth_date"):
-                try:
-                    cycles = get_numerology_cycles(user["birth_date"])
-                    combined["numerology"]["personal_year"] = cycles.get("personal_year")
-                    combined["numerology"]["personal_month"] = cycles.get("personal_month")
-                except:
-                    pass
-            combined["has_data"] = True
-        
-        # Enneagram data
+        # Enneagram data (from enneagram_results collection)
         enneagram = await db.enneagram_results.find_one({"user_id": user_id})
         if enneagram:
             combined["enneagram"] = {
