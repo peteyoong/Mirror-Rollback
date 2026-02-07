@@ -500,6 +500,22 @@ NODE_KEY_VARIANTS = [
 ]
 
 
+# Zodiac sign oppositions (for calculating South Node from North Node)
+ZODIAC_OPPOSITES = {
+    "Aries": "Libra", "Libra": "Aries",
+    "Taurus": "Scorpio", "Scorpio": "Taurus",
+    "Gemini": "Sagittarius", "Sagittarius": "Gemini",
+    "Cancer": "Capricorn", "Capricorn": "Cancer",
+    "Leo": "Aquarius", "Aquarius": "Leo",
+    "Virgo": "Pisces", "Pisces": "Virgo"
+}
+
+
+def get_opposite_sign(sign: str) -> str:
+    """Get the zodiac sign opposite to the given sign."""
+    return ZODIAC_OPPOSITES.get(sign, "")
+
+
 def validate_astrology_compute_integrity(chart_data: dict) -> tuple[bool, list[str]]:
     """
     Validate that the astrology compute payload contains all required objects.
