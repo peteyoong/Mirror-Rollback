@@ -1000,62 +1000,63 @@ export default function EnneagramLensView({ result, userId }: Props) {
   };
 
   const renderDeepDiveTab = () => {
-    const confidence = getConfidenceLabel();
-    const wingFlavorKey = getWingFlavorKey();
-    const wingFlavor = WING_FLAVORS[wingFlavorKey];
+    // Show loading state
+    if (deepDiveLoading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.textSecondary} />
+          <Text style={styles.loadingText}>Loading your Deep Dive...</Text>
+        </View>
+      );
+    }
+
+    // Use API data if available, fallback to local data
+    const data = deepDiveData;
+    const confidence = data?.confidence_tier || result.confidence_tier;
+    const typeLabel = data?.type_label || (wing !== 'balanced' ? `${core}w${wing}` : `Type ${core}`);
+    const typeName = data?.type_name || TYPE_NAMES[core];
 
     return (
       <>
-        {/* ===== 1. DEEP DIVE HEADER (ANCHOR) ===== */}
+        {/* ===== HEADER ===== */}
         <View style={styles.deepDiveHeader}>
           <View style={styles.deepDiveHeaderTop}>
-            <Text style={styles.deepDiveType}>Type {core}</Text>
+            <Text style={styles.deepDiveType}>{typeLabel}</Text>
             <View style={[
               styles.confidenceBadge,
-              confidence.tier === 'high' && styles.confidenceHigh,
-              confidence.tier === 'medium' && styles.confidenceMedium,
-              confidence.tier === 'low' && styles.confidenceLow,
+              confidence === 'high' && styles.confidenceHigh,
+              confidence === 'medium' && styles.confidenceMedium,
+              confidence === 'low' && styles.confidenceLow,
             ]}>
-              <Text style={styles.confidenceBadgeText}>{confidence.text}</Text>
+              <Text style={styles.confidenceBadgeText}>
+                {confidence === 'high' ? 'High' : confidence === 'medium' ? 'Moderate' : 'Exploratory'} Confidence
+              </Text>
             </View>
           </View>
-          <Text style={styles.deepDiveWingStance}>{getWingStanceLabel()}</Text>
-          <Text style={styles.deepDiveNote}>This lens reflects motivation, not mood.</Text>
+          <Text style={styles.deepDiveWingStance}>{typeName}</Text>
+          <Text style={styles.deepDiveNote}>This lens reflects strategy, not identity.</Text>
         </View>
 
-        {/* ===== 2. WING SECTION ===== */}
-        <View style={styles.wingSection}>
-          {isBalancedWings ? (
-            <>
-              <Text style={styles.wingSectionTitle}>Your Wing Access</Text>
-              <Text style={styles.wingSectionBody}>{BALANCED_WINGS_EXPLANATION}</Text>
-              <Text style={styles.wingGrowthNoteText}>{BALANCED_WINGS_GROWTH_NOTE}</Text>
-              <View style={styles.wingAccessHint}>
-                <Text style={styles.wingAccessHintText}>
-                  Both {core}w{wings.left} and {core}w{wings.right} are available to you.
-                </Text>
-              </View>
-            </>
-          ) : (
-            <>
-              <Text style={styles.wingSectionTitle}>Wing nuance: {core}w{wing}</Text>
-              <Text style={styles.wingSectionBody}>
-                {wingFlavor || `Your dominant wing of ${wing} colors how Type ${core} expresses in you.`}
-              </Text>
-              {typeof wing === 'number' && (
-                <View style={styles.wingGrowthHint}>
-                  <Ionicons name="leaf-outline" size={12} color={Colors.textTertiary} />
-                  <Text style={styles.wingGrowthHintText}>
-                    Growth edge: explore your {otherWing}-wing for balance
-                  </Text>
-                </View>
-              )}
-            </>
-          )}
-        </View>
+        {/* ===== DEEP DIVE SECTIONS (From API) ===== */}
+        {data?.sections && data.sections.map((section, index) => (
+          <View key={index} style={styles.deepDiveSection}>
+            <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+            <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
+          </View>
+        ))}
 
-        {/* ===== 3. ENNEAGRAM STRUCTURE (2×2 grid) ===== */}
-        {computedDetails && (
+        {/* ===== MIRROR PROMPT ===== */}
+        {data?.mirror_prompt && (
+          <View style={styles.mirrorPromptCard}>
+            <View style={styles.mirrorPromptHeader}>
+              <Text style={styles.mirrorPromptLabel}>REFLECT</Text>
+            </View>
+            <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
+          </View>
+        )}
+
+        {/* ===== ENNEAGRAM STRUCTURE (2×2 grid) ===== */}
+        {(data?.computed_details || computedDetails) && (
           <View style={styles.structureCard}>
             <Text style={styles.structureTitle}>ENNEAGRAM STRUCTURE</Text>
             
@@ -1064,13 +1065,13 @@ export default function EnneagramLensView({ result, userId }: Props) {
               <View style={styles.structureItem}>
                 <Ionicons name="radio-button-on-outline" size={14} color={Colors.textSecondary} />
                 <Text style={styles.structureLabel}>Center</Text>
-                <Text style={styles.structureValue}>{formatGroupLabel(computedDetails.center)}</Text>
+                <Text style={styles.structureValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.center)}</Text>
               </View>
               <View style={styles.structureDivider} />
               <View style={styles.structureItem}>
                 <Ionicons name="people-outline" size={14} color={Colors.textSecondary} />
                 <Text style={styles.structureLabel}>Social Style</Text>
-                <Text style={styles.structureValue}>{formatGroupLabel(computedDetails.hornevian_group)}</Text>
+                <Text style={styles.structureValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.hornevian_group)}</Text>
               </View>
             </View>
             
@@ -1079,75 +1080,32 @@ export default function EnneagramLensView({ result, userId }: Props) {
               <View style={styles.structureItem}>
                 <Ionicons name="arrow-down-outline" size={14} color={Colors.textSecondary} />
                 <Text style={styles.structureLabel}>Stress → Type</Text>
-                <Text style={styles.structureValue}>{computedDetails.stress_line_to || '—'}</Text>
+                <Text style={styles.structureValue}>{(data?.computed_details || computedDetails)?.stress_line_to || '—'}</Text>
               </View>
               <View style={styles.structureDivider} />
               <View style={styles.structureItem}>
                 <Ionicons name="arrow-up-outline" size={14} color={Colors.textSecondary} />
                 <Text style={styles.structureLabel}>Growth → Type</Text>
-                <Text style={styles.structureValue}>{computedDetails.growth_line_to || '—'}</Text>
+                <Text style={styles.structureValue}>{(data?.computed_details || computedDetails)?.growth_line_to || '—'}</Text>
               </View>
             </View>
           </View>
         )}
 
-        {/* ===== 4. PATTERN INSIGHTS (Trait Cards) ===== */}
-        {(traitCards.length > 0 || traitsLoading) && (
-          <View style={styles.traitCardsSection}>
-            {/* Faint divider before Pattern Insights */}
-            <View style={styles.sectionDivider} />
-            <View style={styles.traitCardsHeader}>
-              <Text style={styles.traitCardsTitle}>Pattern Insights</Text>
-              {traitsSource === 'book' && (
-                <View style={styles.traitCardsSourceBadge}>
-                  <Ionicons name="book-outline" size={10} color={Colors.textSecondary} />
-                  <Text style={styles.traitCardsSourceText}>From Book</Text>
-                </View>
-              )}
-            </View>
-            
-            {traitsLoading ? (
-              <View style={styles.traitCardsLoading}>
-                <ActivityIndicator size="small" color={Colors.textTertiary} />
-              </View>
-            ) : (
-              traitCards.map((card) => (
-                <View key={card.card_id} style={styles.traitCard}>
-                  <Text style={styles.traitCardTitle}>{card.title}</Text>
-                  <Text style={styles.traitCardBody}>{card.body}</Text>
-                  {card.citation && (
-                    <Text style={styles.traitCardCitation}>
-                      — {card.citation.source}{card.citation.page ? `, p.${card.citation.page}` : ''}
-                    </Text>
-                  )}
-                  {card.suggested_question && (
-                    <TouchableOpacity 
-                      style={styles.traitCardAsk}
-                      onPress={() => handleOpenQA(card.suggested_question)}
-                    >
-                      <Text style={styles.traitCardAskText}>Ask about this</Text>
-                      <Ionicons name="chatbubble-outline" size={11} color={Colors.text} />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              ))
-            )}
-          </View>
-        )}
-
-        {/* ===== 5. VERIFICATION (Near bottom) ===== */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Verification</Text>
-          <Text style={styles.cardBody}>
-            If you&apos;re unsure, these nearby patterns are sometimes explored:
-          </Text>
-          {result.top_candidates.slice(1, 3).map((candidate) => (
-            <View key={candidate.type} style={styles.verificationItem}>
-              <Text style={styles.verificationType}>
-                Type {candidate.type} — {TYPE_NAMES[candidate.type]}
-              </Text>
-              <Text style={styles.verificationPercent}>
-                {Math.round(candidate.probability * 100)}%
+        {/* ===== RETAKE LINK ===== */}
+        <TouchableOpacity
+          style={styles.retakeLink}
+          onPress={() => setShowRetakeModal(true)}
+        >
+          <Ionicons name="refresh-outline" size={16} color={Colors.textSecondary} />
+          <Text style={styles.retakeLinkText}>Retake Assessment</Text>
+        </TouchableOpacity>
+        
+        {/* Chat Box */}
+        {renderChatBox()}
+      </>
+    );
+  };
               </Text>
             </View>
           ))}
