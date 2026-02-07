@@ -1045,16 +1045,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </View>
         ))}
 
-        {/* ===== MIRROR PROMPT ===== */}
-        {data?.mirror_prompt && (
-          <View style={styles.mirrorPromptCard}>
-            <View style={styles.mirrorPromptHeader}>
-              <Text style={styles.mirrorPromptLabel}>REFLECT</Text>
-            </View>
-            <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
-          </View>
-        )}
-
         {/* ===== ENNEAGRAM STRUCTURE (2×2 grid) ===== */}
         {(data?.computed_details || computedDetails) && (
           <View style={styles.structureCard}>
