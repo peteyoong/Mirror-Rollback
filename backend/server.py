@@ -7596,20 +7596,140 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse numerology deep dive JSON: {e}")
             
-            # Rich fallback descriptions for life path numbers
+            # Rich fallback descriptions for life path numbers (150-200 words each)
             life_path_descriptions = {
-                1: "Life Path 1 suggests a recurring theme around independence, self-reliance, and pioneering energy. You may find yourself drawn to situations that require you to lead, initiate, or stand on your own two feet. The shadow side can show up as isolation or difficulty accepting help. What parts of your life feel like territory only you can navigate?",
-                2: "Life Path 2 points to themes of partnership, diplomacy, and sensitivity to others. You may naturally attune to the needs and feelings of those around you, often mediating or creating harmony. The shadow can appear as losing yourself in others' needs or avoiding conflict to your own detriment. Where do you notice this balancing act?",
-                3: "Life Path 3 brings themes of creative expression, joy, and communication. There's often a pull toward artistic endeavors or finding ways to share your voice with others. The shadow can show up as scattered energy or superficiality when the deeper work feels too heavy. How does creativity move through your life?",
-                4: "Life Path 4 suggests themes of building, structure, and practical foundation. You may be drawn to creating lasting things—whether physical structures, systems, or stable relationships. The shadow can appear as rigidity or getting stuck in routine. What are you building that will last?",
-                5: "Life Path 5 carries themes of freedom, change, and variety. You may find yourself needing more movement and adventure than most, feeling confined by too much routine. The shadow can show up as restlessness or avoiding commitment. Where do you find healthy freedom in your life?",
-                6: "Life Path 6 points to themes of responsibility, nurturing, and domestic harmony. There's often a pull toward caring for others and creating beauty in your environment. The shadow can appear as over-responsibility or martyrdom. How do you care for yourself while caring for others?",
-                7: "Life Path 7 suggests themes of seeking, analysis, and inner wisdom. You may be drawn to understanding life's deeper mysteries, needing time alone to process and reflect. The shadow can show up as isolation or overthinking. What questions are you trying to answer?",
-                8: "Life Path 8 brings themes of power, achievement, and material mastery. There's often a relationship with abundance—learning to both create it and handle it responsibly. The shadow can appear as workaholism or equating worth with success. What does true abundance mean to you?",
-                9: "Life Path 9 points to themes of completion, humanitarianism, and letting go. You may find yourself drawn to serving the greater good or facing lessons about release and closure. The shadow can show up as difficulty completing things or holding on too long. What are you ready to release?",
-                11: "Life Path 11/2 is a master number—carrying both the heightened sensitivity and intuition of 11, and the diplomatic, cooperative qualities of its base number 2. This dual energy often shows up as visionary perception balanced with partnership themes. The intensity can be challenging; learning to ground the 11 energy through the 2 qualities tends to help.",
-                22: "Life Path 22/4 is a master number—combining visionary building (22) with practical foundation (4). You may feel pulled to create something significant that serves many, though this can feel like immense pressure. The shadow is feeling overwhelmed by potential. What are you being called to build?",
-                33: "Life Path 33/6 is a master number—blending the nurturing 6 with master teacher energy. You may feel called to serve on a larger scale, teaching through your own example. The shadow can be self-sacrifice. How do you teach by being, not just doing?"
+                1: """Life Path 1 suggests a recurring theme around independence, self-reliance, and pioneering energy throughout your life. You may find yourself repeatedly drawn to situations that require you to lead, initiate, or stand on your own two feet—even when this isn't what you consciously choose. There's often a quality of needing to forge your own path rather than following established routes.
+
+The pioneering energy of 1 can show up as natural leadership ability, original thinking, and the courage to start things others wouldn't attempt. You may notice you're often the first to try something new in your circles, or that others look to you to make decisions and set direction.
+
+The shadow side of this pattern can appear as isolation, difficulty accepting help or collaboration, or an over-identification with being "the one who has to do it alone." There can be a tendency to push forward when rest or receptivity would serve better. The learning edge often involves discovering that true strength includes the ability to receive, not just give.
+
+What parts of your life feel like territory only you can navigate? And where might opening to support actually strengthen rather than diminish your path?""",
+
+                2: """Life Path 2 points to recurring themes of partnership, diplomacy, and deep sensitivity to others throughout your journey. You may find yourself naturally attuning to the needs, feelings, and dynamics around you—sometimes before others are even aware of what's happening. There's often an instinct for mediation, for finding the bridge between opposing positions.
+
+The receptive energy of 2 can show up as exceptional emotional intelligence, the ability to create harmony in difficult situations, and a gift for supporting others' success. You may notice you're often the one who sees both sides, who smooths tensions, who helps people feel heard and understood.
+
+The shadow side can appear as losing yourself in others' needs, difficulty knowing what you want separate from what others want, or avoiding necessary conflict to maintain peace at your own expense. There can be a pattern of over-giving or becoming invisible in relationships where your own voice matters.
+
+The learning edge often involves discovering that true partnership requires you to show up as a full self, not just a supporting presence. Your sensitivity is a gift, but it needs to include sensitivity to your own needs. Where do you notice the difference between healthy attunement and self-abandonment in your relationships?""",
+
+                3: """Life Path 3 brings recurring themes of creative expression, joy, communication, and finding your voice throughout your life. You may find yourself repeatedly drawn to situations that ask you to express, create, share, or perform—whether through words, art, music, or any medium that carries your unique perspective into the world.
+
+The expressive energy of 3 can show up as natural creativity, verbal facility, a magnetic or entertaining presence, and the ability to uplift others through your expression. You may notice that people respond to your words, that you can make people laugh, or that creative projects feel like essential rather than optional parts of your life.
+
+The shadow side can appear as scattered energy across too many creative pursuits, superficiality that avoids deeper emotional engagement, or using charm and performance to deflect from vulnerability. There can be patterns of starting creative projects with enthusiasm but struggling to complete them, or of entertaining others while feeling empty inside.
+
+The learning edge often involves discovering that true creative expression requires emotional depth, not just surface sparkle—that your most powerful creative work comes from being willing to go to the places that aren't easy or entertaining. How does creativity want to move through your life right now? What creative expression have you been avoiding because it would ask too much of you?""",
+
+                4: """Life Path 4 suggests recurring themes of building, structure, practical foundation, and creating things that last throughout your journey. You may find yourself repeatedly drawn to situations that require patience, methodical effort, and attention to the solid base that allows everything else to stand. There's often a natural understanding of how things need to be constructed step by step.
+
+The building energy of 4 can show up as reliability, practical skills, organizational ability, and the patience to do the hard work others skip. You may notice that you're the one who creates the systems, who follows through, who makes sure the foundation is solid before moving on to what's flashier.
+
+The shadow side can appear as rigidity, getting stuck in routine, resistance to change even when change is needed, or defining your worth entirely by your productivity. There can be patterns of overwork, of missing the forest for the trees, or of dismissing anything that can't be measured and systematized.
+
+The learning edge often involves discovering that true stability includes flexibility, that rest is part of the building process, and that some of life's most important things can't be constructed through effort alone. What are you building that will outlast you? And where might you be so focused on the structure that you're missing the life that wants to fill it?""",
+
+                5: """Life Path 5 carries recurring themes of freedom, change, variety, and experience throughout your life. You may find yourself repeatedly drawn to situations that offer adventure, movement, new horizons, and the chance to experience life's diversity. There's often a restlessness that arises when things become too routine or predictable.
+
+The freedom-seeking energy of 5 can show up as adaptability, resourcefulness in changing circumstances, natural curiosity about different ways of living, and the courage to embrace change that terrifies others. You may notice that you need more variety, stimulation, and freedom of movement than most people around you.
+
+The shadow side can appear as chronic restlessness, inability to commit or see things through, using constant change to avoid deeper engagement, or mistaking stimulation for meaning. There can be patterns of breaking free just when something was about to deepen, or of accumulating experiences without integrating them.
+
+The learning edge often involves discovering that true freedom includes the freedom to commit, that depth and variety aren't opposites, and that some of life's greatest adventures happen in one place over time. Where do you find healthy freedom in your life? And where might your restlessness be protecting you from the depth you actually long for?""",
+
+                6: """Life Path 6 points to recurring themes of responsibility, nurturing, care, and creating harmony in your environment throughout your journey. You may find yourself repeatedly drawn to situations that need your care—whether people, places, communities, or causes. There's often a natural instinct to beautify, heal, and bring things into better balance.
+
+The nurturing energy of 6 can show up as natural caregiving ability, an eye for beauty and harmony, strong sense of responsibility to family and community, and the capacity to create safe and beautiful spaces. You may notice that others come to you when they need support, that you feel things when your environment is discordant.
+
+The shadow side can appear as over-responsibility, martyrdom, attempting to fix things that aren't yours to fix, or neglecting your own needs while tending everyone else's. There can be patterns of resentment from over-giving, or of trying to control outcomes under the guise of caring.
+
+The learning edge often involves discovering that true care includes caring for yourself, that healthy responsibility has limits, and that sometimes the most loving thing is to let others struggle. How do you care for yourself with the same devotion you offer others? Where might your "helpfulness" actually be preventing someone's growth?""",
+
+                7: """Life Path 7 suggests recurring themes of seeking, analysis, inner wisdom, and understanding life's deeper mysteries throughout your life. You may find yourself repeatedly drawn to questions others don't ask, to solitude for processing, and to understanding that goes beneath the surface of things. There's often a quality of the seeker, the analyst, the one who needs to understand why.
+
+The seeking energy of 7 can show up as natural analytical ability, comfort with solitude, access to intuition and inner knowing, and the capacity to see beneath surface appearances. You may notice that you need more time alone than most, that superficial answers don't satisfy you, that you're drawn to fields that allow deep investigation.
+
+The shadow side can appear as excessive isolation, analysis paralysis, mistaking knowledge for wisdom, or spiritual bypassing that avoids embodied life. There can be patterns of withdrawing from connection under the guise of needing space, or of seeking endlessly without applying what you've found.
+
+The learning edge often involves discovering that true understanding includes the heart as well as the mind, that wisdom is lived not just known, and that connection with others can be part of the spiritual path rather than a distraction from it. What questions are you currently living with? And how might your seeking be both a gift and an escape?""",
+
+                8: """Life Path 8 brings recurring themes of power, achievement, material mastery, and learning to wield influence responsibly throughout your journey. You may find yourself repeatedly drawn to situations that involve authority, resources, achievement, and worldly success. There's often a natural understanding of how power and money work.
+
+The mastery energy of 8 can show up as business acumen, natural authority, the ability to manifest material results, and comfort with power that makes others uneasy. You may notice that abundance (or its lack) is a recurring theme, that you understand leverage and influence, that you're drawn to positions of responsibility.
+
+The shadow side can appear as workaholism, equating worth with achievement or wealth, power struggles, or fear of your own capacity for influence. There can be patterns of either avoiding power altogether or pursuing it at the expense of everything else.
+
+The learning edge often involves discovering that true abundance is more than material, that power used wisely serves more than the self, and that your worth isn't determined by what you achieve or accumulate. What does true abundance mean to you, beyond money and status? How do you want to use the influence you have?""",
+
+                9: """Life Path 9 points to recurring themes of completion, humanitarianism, wisdom through experience, and learning to let go throughout your life. You may find yourself repeatedly drawn to situations that ask you to serve something larger than yourself, to complete cycles, and to release what you've outgrown. There's often a quality of the old soul, of carrying wisdom from many experiences.
+
+The completion energy of 9 can show up as natural compassion for humanity, breadth of perspective that sees the bigger picture, ability to bring things to meaningful closure, and wisdom that comes from having lived many kinds of experience. You may notice themes of ending and beginning, of service beyond self-interest, of tolerance born from understanding.
+
+The shadow side can appear as difficulty completing things (paradoxically), holding on when release is needed, martyrdom or savior complexes in helping others, or being so focused on the universal that the personal is neglected. There can be patterns of giving until empty, or of accumulating unprocessed endings.
+
+The learning edge often involves discovering that true completion includes accepting incompleteness, that serving others requires first filling your own cup, and that sometimes the most powerful service is simply being fully alive. What are you being asked to release? What cycle is completing in your life right now?""",
+
+                11: """Life Path 11/2 is a master number carrying both the heightened sensitivity and intuitive capacity of 11, and the diplomatic, partnership-oriented qualities of its base number 2. This dual energy often creates a life experience of unusual perception and sensitivity, with recurring invitations to bring visionary insight into relationship and partnership contexts.
+
+The master energy of 11 can show up as psychic sensitivity, visionary perception, the ability to inspire others, and access to insight that seems to come from beyond ordinary knowing. Combined with the 2 energy, there's often a gift for bringing inspiration into relationships, for seeing what partnerships could become, for channeling something larger through connection with others.
+
+The shadow side can appear as being overwhelmed by sensitivity, struggling to ground visionary insight in practical reality, nervous energy that can't find outlet, or hiding your gifts because they feel too much to carry. The intensity of 11 combined with 2's tendency to defer can create patterns of having powerful insight but struggling to own or share it.
+
+The learning edge involves discovering that your sensitivity is a gift to be developed, not a burden to manage—that grounding the 11 energy through the 2's relational gifts actually allows you to be of greater service. The master number path asks more of you, but it also offers more. How do you honor your unusual sensitivity while staying grounded in ordinary life?""",
+
+                22: """Life Path 22/4 is a master number combining the visionary building capacity of 22 with the practical foundation energy of its base number 4. This creates a life path oriented toward manifesting something significant—building things that serve many people, creating lasting structures that make a real difference in the world.
+
+The master builder energy of 22 can show up as the ability to envision large-scale possibilities, practical genius for making visions real, understanding of how to organize resources and people toward significant goals, and the stamina to pursue long-term projects. Combined with 4's grounding, there's potential for turning dreams into reality in ways that others can't imagine.
+
+The shadow side can appear as being crushed by the weight of potential, overwhelmed by what you could build but haven't yet, or retreating into the simpler 4 energy to escape the demands of the 22. There can be patterns of grandiosity that can't land, or of playing small to avoid the responsibility of your gifts.
+
+The learning edge involves accepting that you're here to build something that matters while releasing attachment to the scale of your impact. Not every 22 builds a cathedral; some build the family or community or small project that was theirs to build. What are you being called to build? And what would it look like to build it without the pressure of "master number" expectations?""",
+
+                33: """Life Path 33/6 is a master number blending the nurturing, responsibility-oriented energy of 6 with the master teacher frequency of 33. This creates a life path oriented toward service and teaching at scale—healing, nurturing, and guiding others through the example of your own life rather than just through words or effort.
+
+The master teacher energy of 33 can show up as natural healing presence, the ability to uplift and guide others toward their potential, devotion to service that goes beyond personal return, and teaching through being rather than just doing. Combined with 6's nurturing quality, there's often a capacity to hold space for others' growth in ways that transform.
+
+The shadow side can appear as self-sacrifice that depletes rather than serves, carrying others' burdens as your own, or trying to teach lessons you haven't fully learned yourself. There can be patterns of burnout from over-giving, or of using service as an identity that avoids your own work.
+
+The learning edge involves discovering that your greatest teaching is your own wholeness, that self-care is part of the service, and that you can't give others what you haven't given yourself. The master teacher path asks you to walk your talk, to heal yourself as you help heal others. What are you teaching through the example of your life? And what would it look like to receive as generously as you give?"""
+            }
+            
+            # Rich descriptions for Expression, Soul Urge, and Personality numbers
+            expression_descriptions = {
+                1: "Your Expression 1 suggests that your natural mode of engaging with the world involves leading, initiating, and pioneering. When you're operating in flow, you tend to forge ahead, try new approaches, and take independent action. This isn't about ego or dominance—it's about the genuine creative energy that wants to come through you, to start things, to break new ground. The invitation is to lead without needing followers, to initiate because it's true for you, not to prove anything.",
+                2: "Your Expression 2 suggests that your natural mode of engaging with the world involves cooperation, diplomacy, and sensitivity to others. When you're operating in flow, you tend to create bridges, notice what's needed in relationships, and support others' success. This isn't weakness—it's a powerful form of presence that creates space for others to shine while contributing something essential to every collaboration.",
+                3: "Your Expression 3 suggests that your natural mode of engaging with the world involves creativity, communication, and joyful expression. When you're operating in flow, you tend to express, create, and uplift through your words and presence. There's often a quality of making things lighter, more beautiful, or more fun. Your creative gifts are meant to be shared, not hidden.",
+                4: "Your Expression 4 suggests that your natural mode of engaging with the world involves building, organizing, and creating practical structures. When you're operating in flow, you tend to bring order, follow through, and construct things that last. There's reliability in how you show up that others come to depend on.",
+                5: "Your Expression 5 suggests that your natural mode of engaging with the world involves freedom, adaptability, and embracing change. When you're operating in flow, you tend to bring fresh energy, explore new possibilities, and help others see beyond their limitations. Your versatility and resourcefulness are gifts.",
+                6: "Your Expression 6 suggests that your natural mode of engaging with the world involves nurturing, creating harmony, and taking responsibility. When you're operating in flow, you tend to care for others, beautify your environment, and bring balance to situations. Your capacity for love and care is a genuine gift.",
+                7: "Your Expression 7 suggests that your natural mode of engaging with the world involves analysis, seeking, and accessing inner wisdom. When you're operating in flow, you tend to question deeply, seek understanding, and bring insight to complex situations. Your capacity for depth and discernment is valuable.",
+                8: "Your Expression 8 suggests that your natural mode of engaging with the world involves leadership, material mastery, and wielding influence. When you're operating in flow, you tend to organize resources, create abundance, and exercise authority with confidence. Your capacity for manifestation is real.",
+                9: "Your Expression 9 suggests that your natural mode of engaging with the world involves compassion, completion, and service to the broader good. When you're operating in flow, you tend to see the big picture, help others, and bring things to meaningful closure. Your breadth of understanding is a gift."
+            }
+            
+            soul_urge_descriptions = {
+                1: "Your Soul Urge 1 reflects a deep inner drive toward independence, authenticity, and forging your own path. Beneath whatever face you show the world, there's a part of you that needs to know you're living your own life, making your own choices, walking your own road. This isn't selfishness—it's the soul's need for genuine self-expression and self-direction.",
+                2: "Your Soul Urge 2 reflects a deep inner drive toward connection, harmony, and loving partnership. Beneath whatever face you show the world, there's a part of you that yearns for true companionship, for being truly seen and valued by another, for creating peace and beauty together. Your heart leans toward love in its most partnered forms.",
+                3: "Your Soul Urge 3 reflects a deep inner drive toward creative expression, joy, and sharing your gifts. Beneath whatever face you show the world, there's a part of you that needs to express, create, and experience life's pleasures and beauty. Your heart leans toward creativity and joyful expression.",
+                4: "Your Soul Urge 4 reflects a deep inner drive toward security, stability, and building something solid. Beneath whatever face you show the world, there's a part of you that needs firm ground to stand on, that values reliability and order. Your heart leans toward what lasts and what can be trusted.",
+                5: "Your Soul Urge 5 reflects a deep inner drive toward freedom, adventure, and varied experience. Beneath whatever face you show the world, there's a part of you that needs to feel free, to explore, to not be pinned down. Your heart leans toward expansion and new horizons.",
+                6: "Your Soul Urge 6 reflects a deep inner drive toward love, family, and creating a beautiful home life. Beneath whatever face you show the world, there's a part of you that yearns to nurture and be nurtured, to create harmony and beauty in your closest relationships. Your heart leans toward domestic happiness.",
+                7: "Your Soul Urge 7 reflects a deep inner drive toward understanding, wisdom, and inner peace. Beneath whatever face you show the world, there's a part of you that needs solitude for reflection, that seeks truth and meaning beyond surface appearances. Your heart leans toward wisdom and spiritual insight.",
+                8: "Your Soul Urge 8 reflects a deep inner drive toward achievement, recognition, and material success. Beneath whatever face you show the world, there's a part of you that needs to accomplish, to be recognized, to wield influence and power. Your heart leans toward mastery and abundance.",
+                9: "Your Soul Urge 9 reflects a deep inner drive toward humanitarian service and universal love. Beneath whatever face you show the world, there's a part of you that cares deeply about the broader good, that yearns to make a difference beyond your personal life. Your heart leans toward service and compassion."
+            }
+            
+            personality_descriptions = {
+                1: "Your Personality 1 represents the first-impression energy you radiate—others tend to perceive you as independent, confident, and capable of leadership. This is the face you present to the world, whether or not it matches your inner experience. There's a quality of self-reliance and originality in how you come across.",
+                2: "Your Personality 2 represents the first-impression energy you radiate—others tend to perceive you as gentle, cooperative, and sensitive to others. This is the face you present to the world, creating an approachable quality that puts others at ease and invites connection.",
+                3: "Your Personality 3 represents the first-impression energy you radiate—others tend to perceive you as expressive, creative, and socially engaging. This is the face you present to the world, often creating a charming or entertaining first impression that draws people in.",
+                4: "Your Personality 4 represents the first-impression energy you radiate—others tend to perceive you as reliable, practical, and grounded. This is the face you present to the world, creating a trustworthy impression that suggests you can be counted on.",
+                5: "Your Personality 5 represents the first-impression energy you radiate—others tend to perceive you as versatile, adventurous, and dynamic. This is the face you present to the world, creating an exciting impression that suggests freedom and vitality.",
+                6: "Your Personality 6 represents the first-impression energy you radiate—others tend to perceive you as responsible, caring, and domestic. This is the face you present to the world, creating a warm impression that suggests nurturing and reliability.",
+                7: "Your Personality 7 represents the first-impression energy you radiate—others tend to perceive you as thoughtful, introspective, and somewhat mysterious. This is the face you present to the world, creating an impression of depth and intelligence.",
+                8: "Your Personality 8 represents the first-impression energy you radiate—others tend to perceive you as powerful, authoritative, and successful. This is the face you present to the world, creating an impression of capability and worldly competence.",
+                9: "Your Personality 9 represents the first-impression energy you radiate—others tend to perceive you as compassionate, sophisticated, and worldly. This is the face you present to the world, creating an impression of breadth and humanitarian concern."
             }
             
             # Build sections list with rich fallback content
@@ -7617,26 +7737,20 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
             
             sections = [
                 {"label": f"Life Path {life_path}", "body": life_path_body},
-                {"label": f"Birthday Number {birthday_number}", "body": f"Born on the {birthday_number} day of the month, there's a particular quality that adds texture to how you engage with life. This number offers a secondary emphasis—a flavor that colors your approach. It's not about defining you, but about recognizing patterns that tend to show up."},
+                {"label": f"Birthday Number {birthday_number}", "body": f"Born on the {birthday_number} day of the month, there's a particular quality that adds texture to how you engage with life. This secondary number colors your approach with its own distinct energy—think of it as a supporting theme that weaves through your experience, offering additional nuance to your primary Life Path patterns. It's not about defining you, but about recognizing another layer of pattern that tends to show up in your life."},
             ]
             
-            # Add name-based sections if available
+            # Add name-based sections if available (with rich content)
             if has_name:
                 if expression_number:
-                    sections.append({
-                        "label": f"Expression {expression_number}",
-                        "body": f"Your Expression number {expression_number} points to how your energy tends to move outward into the world—your natural talents and the way you're inclined to express yourself. Think of it as your operating style, the mode you tend to default to when engaging with external reality."
-                    })
+                    expr_body = expression_descriptions.get(expression_number, f"Your Expression number {expression_number} points to how your energy tends to move outward into the world—your natural talents and the way you're inclined to express yourself. Think of it as your operating style, the mode you tend to default to when engaging with external reality.")
+                    sections.append({"label": f"Expression {expression_number}", "body": expr_body})
                 if soul_urge_number:
-                    sections.append({
-                        "label": f"Soul Urge {soul_urge_number}",
-                        "body": f"Your Soul Urge number {soul_urge_number} reflects what drives you from within—your deeper emotional undertone and what your heart quietly leans toward. This isn't always visible to others, but it's the motivation beneath the surface of your choices."
-                    })
+                    soul_body = soul_urge_descriptions.get(soul_urge_number, f"Your Soul Urge number {soul_urge_number} reflects what drives you from within—your deeper emotional undertone and what your heart quietly leans toward. This isn't always visible to others, but it's the motivation beneath the surface of your choices.")
+                    sections.append({"label": f"Soul Urge {soul_urge_number}", "body": soul_body})
                 if personality_number:
-                    sections.append({
-                        "label": f"Personality {personality_number}",
-                        "body": f"Your Personality number {personality_number} represents the face you show the world—your first-impression energy and social-facing tone. It's not the whole picture, but it's often what others see before they know you deeper."
-                    })
+                    pers_body = personality_descriptions.get(personality_number, f"Your Personality number {personality_number} represents the face you show the world—your first-impression energy and social-facing tone. It's not the whole picture, but it's often what others see before they know you deeper.")
+                    sections.append({"label": f"Personality {personality_number}", "body": pers_body})
             
             fallback_result = {
                 "success": True,
