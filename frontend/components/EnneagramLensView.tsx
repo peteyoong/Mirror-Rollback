@@ -2138,6 +2138,61 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     fontStyle: 'italic',
   },
+
+  // Deep Dive Sections (new template)
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: Colors.textTertiary,
+  },
+  deepDiveSection: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+  },
+  deepDiveSectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 10,
+  },
+  deepDiveSectionBody: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: Colors.textSecondary,
+  },
+  mirrorPromptCard: {
+    backgroundColor: Colors.surfaceLight,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.textTertiary,
+  },
+  mirrorPromptHeader: {
+    marginBottom: 8,
+  },
+  mirrorPromptLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 0.5,
+  },
+  mirrorPromptText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.text,
+    fontStyle: 'italic',
+  },
+
   confidenceBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
