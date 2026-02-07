@@ -8507,6 +8507,587 @@ Keep it brief and practical. No essays."""
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =====================================================================
+# LIFE CONTEXT NET - Contextual Orientation Layer
+# =====================================================================
+# Life is a primary surface that translates self-knowledge into lived experience.
+# It combines all existing lenses (Astrology, Human Design, Numerology, Enneagram)
+# without naming them, providing contextual orientation.
+
+class LifeContextSection(BaseModel):
+    label: str
+    body: str
+
+
+class LifeContextResponse(BaseModel):
+    context: str  # "relationships", "work", "self"
+    title: str
+    sections: List[LifeContextSection]
+    generated_at: str
+    source_lenses: List[str] = []  # For internal debugging only
+
+
+# Life Context Prompt - The Core System Prompt for Life
+LIFE_CONTEXT_SYSTEM_PROMPT = """You are Emergent!, the AI interpretive engine for Project Mirror.
+
+A primary surface called "Life" has been introduced.
+Life is a contextual orientation layer that translates self-knowledge into lived experience.
+
+This prompt governs how you generate ALL outputs for the Life tab.
+
+=============================================================================
+WHAT "LIFE" IS
+=============================================================================
+Life is NOT a new lens, model, or belief system.
+
+Life answers:
+"How do I tend to meet this part of life — and what is being asked of me right now?"
+
+Life uses all existing lenses together (Astrology, Human Design, Numerology, Enneagram, Levels of Consciousness), but NEVER names them unless explicitly requested.
+
+Life is:
+- Contextual
+- Situational
+- Reflective
+- Non-prescriptive
+
+=============================================================================
+ABSOLUTE CONSTRAINTS (Non-Negotiable)
+=============================================================================
+You must NEVER in Life outputs:
+- Predict concrete events
+- Give advice or instructions
+- Diagnose other people
+- Remove user agency
+- Claim authority or final truth
+- Name the source frameworks (astrology, human design, etc.) unless asked
+
+If the user asks a certainty-seeking question:
+- Acknowledge the desire for clarity
+- Reframe into patterns, tendencies, or perspective
+- Return agency to the user
+
+=============================================================================
+TONE & FELT EXPERIENCE
+=============================================================================
+Life outputs should leave the user feeling:
+- Seen, not defined
+- Oriented, not foretold
+- Grounded, not activated
+- Curious, not dependent
+
+If an output feels:
+- instructional
+- predictive
+- conclusive
+- "too helpful"
+
+...it is WRONG.
+
+=============================================================================
+ADDITIONAL GUARDRAILS
+=============================================================================
+- Never exceed moderate length
+- Never include more than one synthesis sentence
+- Never stack multiple shadows
+- Always end sections calmly (no urgency)
+
+Life should feel:
+- steady
+- human
+- grounded
+- quietly insightful
+
+=============================================================================
+YOUR ROLE
+=============================================================================
+You are NOT telling users how to live.
+
+You are helping them:
+- See how they meet life
+- Notice recurring patterns
+- Relate differently
+- Choose consciously
+
+You are a mirror in context.
+
+Proceed accordingly.
+"""
+
+# Life Context Prompt Templates for each section
+LIFE_CONTEXT_OVERVIEW_TEMPLATE = """Generate the OVERVIEW section for Life → {context_name}.
+
+Purpose: Timeless orientation
+Question answered: "How do I tend to approach this area of life?"
+
+Rules:
+- Combine all lens data implicitly (DO NOT name the frameworks)
+- No framework labels
+- No advice
+- No fixing
+- No identity locking
+
+Tone:
+- Calm
+- Specific
+- Non-judgmental
+
+Pattern to follow:
+"Across the patterns that show up in your chart, a recurring theme in how you approach {context_name} is…"
+
+MUST end with:
+"This isn't a rule. It's a pattern you can notice and work with."
+
+USER'S COMBINED DATA:
+{user_data}
+
+Generate ONLY the body text for the Overview section (max 100 words).
+Do not include any labels or headers in your response.
+"""
+
+LIFE_CONTEXT_TODAY_TEMPLATE = """Generate the TODAY section for Life → {context_name}.
+
+Purpose: Daily contextual overlay
+Question answered: "Why does this area feel like this today?"
+
+Rules:
+- Time is allowed (today, this moment, right now)
+- Events are NOT allowed
+- Frame as energetic weather, NOT predictions
+- NEVER predict outcomes
+
+Language to use:
+- "may"
+- "might"
+- "tends to"
+- "you could notice"
+
+MUST include a reflection question at the end.
+
+Pattern to follow:
+"Today's energy may highlight…"
+
+TODAY'S DATE: {today_date}
+
+USER'S COMBINED DATA:
+{user_data}
+
+CURRENT TRANSITS/CYCLES (for context, not to name):
+{current_cycles}
+
+Generate ONLY the body text for the Today section (max 80 words).
+End with ONE reflection question.
+Do not include any labels or headers in your response.
+"""
+
+LIFE_CONTEXT_EXPLORE_TEMPLATE = """Generate the EXPLORE section for Life → {context_name}.
+
+Purpose: Contextual deep dive
+Question answered: "What strengths and frictions show up for me here?"
+
+Rules:
+- MUST include exactly:
+  * 1 strength (something that tends to support you in this area)
+  * 1 shadow/friction (a pattern that sometimes creates tension)
+- No advice
+- No prescriptions
+- No "you should"
+
+Frame shadows as patterns, not flaws.
+
+MUST end with:
+"Where does this show up most clearly in your current experience?"
+
+USER'S COMBINED DATA:
+{user_data}
+
+Generate ONLY the body text for the Explore section (max 120 words).
+Structure as:
+- First paragraph: The strength
+- Second paragraph: The friction/shadow
+- Final line: The reflection question
+Do not include any labels or headers in your response.
+"""
+
+LIFE_CONTEXT_REFLECT_TEMPLATE = """Generate the REFLECT section for Life → {context_name}.
+
+Purpose: Bridge to journaling
+Question answered: "What do I want to notice or explore further?"
+
+Rules:
+- Provide ONE pre-seeded journal prompt
+- The prompt MUST be context-specific to {context_name}
+- The prompt MUST be open-ended
+- NO advice, just an invitation to explore
+
+Example prompts by context:
+- Relationships: "A pattern I'm noticing in how I relate lately is…"
+- Work: "What feels most misaligned in my work right now is…"
+- Self: "Something I'm learning about myself in this phase is…"
+
+USER'S COMBINED DATA:
+{user_data}
+
+Generate ONLY ONE journal prompt sentence that invites open-ended reflection.
+The prompt should start the user's thought and end with "…" or be a question.
+Do not include any labels or headers in your response.
+"""
+
+
+async def get_user_combined_lens_data(user_id: str) -> dict:
+    """
+    Aggregate all lens data for a user into a combined payload.
+    This includes Astrology, Human Design, Numerology, and Enneagram.
+    
+    Returns a structured dict with all available data.
+    """
+    combined = {
+        "astrology": None,
+        "human_design": None,
+        "numerology": None,
+        "enneagram": None,
+        "has_data": False
+    }
+    
+    try:
+        # Get user
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            return combined
+        
+        # Astrology data
+        astro = user.get("astrology", {})
+        if astro and isinstance(astro, dict):
+            planets = astro.get("planets", {})
+            houses = astro.get("houses", {})
+            nodes = astro.get("nodes", {})
+            
+            combined["astrology"] = {
+                "sun_sign": planets.get("Sun", {}).get("sign", "Unknown"),
+                "moon_sign": planets.get("Moon", {}).get("sign", "Unknown"),
+                "ascendant": houses.get("ascendant", "Unknown"),
+                "sun_house": planets.get("Sun", {}).get("house"),
+                "moon_house": planets.get("Moon", {}).get("house"),
+                "north_node_sign": nodes.get("north", {}).get("sign") if isinstance(nodes.get("north"), dict) else None,
+                "north_node_house": nodes.get("north", {}).get("house") if isinstance(nodes.get("north"), dict) else None,
+            }
+            combined["has_data"] = True
+        
+        # Human Design data
+        hd = user.get("human_design", {})
+        if hd and isinstance(hd, dict):
+            combined["human_design"] = {
+                "type": hd.get("type", "Unknown"),
+                "strategy": hd.get("strategy", "Unknown"),
+                "authority": hd.get("authority", "Unknown"),
+                "profile": hd.get("profile", "Unknown"),
+                "definition": hd.get("definition", "Unknown"),
+                "incarnation_cross": hd.get("incarnation_cross", "Unknown"),
+                "defined_centers": hd.get("defined_centers", []),
+                "undefined_centers": hd.get("undefined_centers", []),
+            }
+            combined["has_data"] = True
+        
+        # Numerology data
+        numerology = user.get("numerology", {})
+        if numerology and isinstance(numerology, dict):
+            combined["numerology"] = {
+                "life_path": numerology.get("life_path"),
+                "birthday_number": numerology.get("birthday_number"),
+                "expression": numerology.get("expression") if numerology.get("expression") != "locked" else None,
+                "soul_urge": numerology.get("soul_urge") if numerology.get("soul_urge") != "locked" else None,
+                "personality": numerology.get("personality") if numerology.get("personality") != "locked" else None,
+            }
+            # Get current cycles
+            if user.get("birth_date"):
+                try:
+                    cycles = get_numerology_cycles(user["birth_date"])
+                    combined["numerology"]["personal_year"] = cycles.get("personal_year")
+                    combined["numerology"]["personal_month"] = cycles.get("personal_month")
+                except:
+                    pass
+            combined["has_data"] = True
+        
+        # Enneagram data
+        enneagram = await db.enneagram_results.find_one({"user_id": user_id})
+        if enneagram:
+            combined["enneagram"] = {
+                "type": enneagram.get("inferred_core"),
+                "wing": enneagram.get("inferred_wing"),
+                "confidence_tier": enneagram.get("confidence_tier"),
+            }
+            # Add computed details if available
+            computed = enneagram.get("enneagram_computed_details", {})
+            if computed:
+                combined["enneagram"]["center"] = computed.get("center")
+                combined["enneagram"]["stress_line"] = computed.get("stress_line_to")
+                combined["enneagram"]["growth_line"] = computed.get("growth_line_to")
+            combined["has_data"] = True
+        
+        return combined
+        
+    except Exception as e:
+        logger.error(f"[Life Context] Error fetching combined data for user {user_id}: {e}")
+        return combined
+
+
+async def get_current_transits_for_life() -> str:
+    """
+    Get current planetary transits for the Today section.
+    Returns a simple text description without naming astrology.
+    """
+    try:
+        from datetime import date
+        today = date.today()
+        
+        # Simple transit context based on day of week and rough planetary cycles
+        # This is a simplified version - in production, would use actual transit data
+        day_of_week = today.strftime("%A")
+        
+        # Generate contextual energy description
+        energies = {
+            "Monday": "receptive and reflective energy",
+            "Tuesday": "active and initiating energy", 
+            "Wednesday": "communicative and adaptable energy",
+            "Thursday": "expansive and philosophical energy",
+            "Friday": "connective and harmonizing energy",
+            "Saturday": "structured and consolidating energy",
+            "Sunday": "integrative and renewal energy",
+        }
+        
+        return energies.get(day_of_week, "neutral energy")
+        
+    except:
+        return "present moment awareness"
+
+
+def format_lens_data_for_prompt(combined_data: dict, context: str) -> str:
+    """
+    Format the combined lens data into a text description for the LLM prompt.
+    This formats WITHOUT naming the frameworks explicitly.
+    """
+    parts = []
+    
+    # Astrology (without naming it)
+    astro = combined_data.get("astrology")
+    if astro:
+        parts.append(f"Core orientation: {astro.get('sun_sign', 'Unknown')} essence, {astro.get('moon_sign', 'Unknown')} emotional texture, {astro.get('ascendant', 'Unknown')} approach to life")
+        if astro.get("north_node_sign"):
+            parts.append(f"Growth direction: moving toward {astro.get('north_node_sign')} qualities")
+    
+    # Human Design (without naming it)
+    hd = combined_data.get("human_design")
+    if hd:
+        parts.append(f"Energy type: {hd.get('type', 'Unknown')} - engages best through {hd.get('strategy', 'responding')}")
+        parts.append(f"Decision clarity: through {hd.get('authority', 'Unknown').lower()} awareness")
+        parts.append(f"Life theme: {hd.get('profile', 'Unknown')} learning pattern")
+        if hd.get("incarnation_cross") and hd.get("incarnation_cross") != "Unknown":
+            parts.append(f"Life direction: {hd.get('incarnation_cross')}")
+    
+    # Numerology (without naming it)
+    num = combined_data.get("numerology")
+    if num:
+        if num.get("life_path"):
+            parts.append(f"Life path pattern: {num.get('life_path')} vibration")
+        if num.get("personal_year"):
+            parts.append(f"Current yearly cycle: {num.get('personal_year')} phase")
+    
+    # Enneagram (without naming it)
+    enn = combined_data.get("enneagram")
+    if enn and enn.get("type"):
+        parts.append(f"Core motivation pattern: Type {enn.get('type')}{f'w{enn.get(\"wing\")}' if enn.get('wing') else ''}")
+        if enn.get("center"):
+            parts.append(f"Primary center: {enn.get('center').title()}")
+    
+    if not parts:
+        return "Limited data available - providing general patterns."
+    
+    return "\n".join(parts)
+
+
+@api_router.get("/life/{context}")
+async def get_life_context(context: str, user_id: str):
+    """
+    Life Context Net - Generate contextual orientation for a specific life area.
+    
+    Context options: relationships, work, self
+    
+    Returns the 4-section structure:
+    1. Overview - Timeless orientation
+    2. Today - Daily contextual overlay
+    3. Explore - Strength + friction
+    4. Reflect - Journal prompt
+    """
+    valid_contexts = ["relationships", "work", "self"]
+    if context.lower() not in valid_contexts:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid context. Must be one of: {', '.join(valid_contexts)}"
+        )
+    
+    context_name = context.lower()
+    context_display = {
+        "relationships": "Relationships",
+        "work": "Work",
+        "self": "Self & Inner World"
+    }
+    
+    try:
+        # Get combined lens data
+        combined_data = await get_user_combined_lens_data(user_id)
+        
+        if not combined_data.get("has_data"):
+            # Return a gentle fallback if no data
+            return LifeContextResponse(
+                context=context_name,
+                title=f"Life → {context_display[context_name]}",
+                sections=[
+                    LifeContextSection(
+                        label="Overview",
+                        body="To generate personalized insights for this area, we need to know more about you. Complete your profile and symbolic lenses to see how you tend to meet this part of life."
+                    ),
+                    LifeContextSection(
+                        label="Today",
+                        body="Once your profile is complete, this section will show you the quality of today's energy in relation to this context."
+                    ),
+                    LifeContextSection(
+                        label="Explore",
+                        body="Your unique strengths and patterns of friction in this area will appear here."
+                    ),
+                    LifeContextSection(
+                        label="Reflect",
+                        body="What's coming up for you in this area of life right now?"
+                    )
+                ],
+                generated_at=datetime.now(timezone.utc).isoformat(),
+                source_lenses=[]
+            )
+        
+        # Format data for prompt
+        user_data_text = format_lens_data_for_prompt(combined_data, context_name)
+        today_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        current_cycles = await get_current_transits_for_life()
+        
+        # Track which lenses have data
+        source_lenses = []
+        if combined_data.get("astrology"): source_lenses.append("astrology")
+        if combined_data.get("human_design"): source_lenses.append("human_design")
+        if combined_data.get("numerology"): source_lenses.append("numerology")
+        if combined_data.get("enneagram"): source_lenses.append("enneagram")
+        
+        # Initialize LLM chat
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="LLM key not configured")
+        
+        llm = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            system_prompt=LIFE_CONTEXT_SYSTEM_PROMPT
+        )
+        
+        sections = []
+        
+        # Generate each section
+        # 1. Overview
+        overview_prompt = LIFE_CONTEXT_OVERVIEW_TEMPLATE.format(
+            context_name=context_display[context_name],
+            user_data=user_data_text
+        )
+        overview_response = await llm.send_message_async(
+            message=UserMessage(text=overview_prompt),
+            model="gpt-4.1-mini"
+        )
+        sections.append(LifeContextSection(
+            label="Overview",
+            body=overview_response.strip()
+        ))
+        
+        # 2. Today
+        today_prompt = LIFE_CONTEXT_TODAY_TEMPLATE.format(
+            context_name=context_display[context_name],
+            today_date=today_date,
+            user_data=user_data_text,
+            current_cycles=current_cycles
+        )
+        today_response = await llm.send_message_async(
+            message=UserMessage(text=today_prompt),
+            model="gpt-4.1-mini"
+        )
+        sections.append(LifeContextSection(
+            label="Today",
+            body=today_response.strip()
+        ))
+        
+        # 3. Explore
+        explore_prompt = LIFE_CONTEXT_EXPLORE_TEMPLATE.format(
+            context_name=context_display[context_name],
+            user_data=user_data_text
+        )
+        explore_response = await llm.send_message_async(
+            message=UserMessage(text=explore_prompt),
+            model="gpt-4.1-mini"
+        )
+        sections.append(LifeContextSection(
+            label="Explore",
+            body=explore_response.strip()
+        ))
+        
+        # 4. Reflect
+        reflect_prompt = LIFE_CONTEXT_REFLECT_TEMPLATE.format(
+            context_name=context_display[context_name],
+            user_data=user_data_text
+        )
+        reflect_response = await llm.send_message_async(
+            message=UserMessage(text=reflect_prompt),
+            model="gpt-4.1-mini"
+        )
+        sections.append(LifeContextSection(
+            label="Reflect",
+            body=reflect_response.strip()
+        ))
+        
+        logger.info(f"[Life Context] Generated {context_name} for user {user_id} using lenses: {source_lenses}")
+        
+        return LifeContextResponse(
+            context=context_name,
+            title=f"Life → {context_display[context_name]}",
+            sections=sections,
+            generated_at=datetime.now(timezone.utc).isoformat(),
+            source_lenses=source_lenses
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Life Context] Error generating {context_name} for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/life/contexts/all")
+async def get_all_life_contexts(user_id: str):
+    """
+    Get all three Life contexts at once for the user.
+    Returns relationships, work, and self contexts.
+    
+    This is more efficient for the frontend to load all at once.
+    """
+    contexts = ["relationships", "work", "self"]
+    results = {}
+    
+    for ctx in contexts:
+        try:
+            result = await get_life_context(ctx, user_id)
+            results[ctx] = result
+        except Exception as e:
+            logger.error(f"[Life Context] Error getting {ctx} for user {user_id}: {e}")
+            results[ctx] = None
+    
+    return {
+        "user_id": user_id,
+        "contexts": results,
+        "generated_at": datetime.now(timezone.utc).isoformat()
+    }
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
