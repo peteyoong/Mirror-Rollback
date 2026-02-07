@@ -5826,7 +5826,7 @@ General atmosphere: supportive of inward focus.
 
 
 @api_router.get("/astrology/deep-dive/{user_id}")
-async def get_astrology_deep_dive(user_id: str):
+async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
     """
     Generate Deep Dive - Sun, Moon, Ascendant only.
     NO transits, NO timing, NO future implications.
@@ -5840,6 +5840,9 @@ async def get_astrology_deep_dive(user_id: str):
     Auto-migrates old chart formats before serving data.
     Returns success:false with error code if critical data missing.
     Uses caching for instant repeat views.
+    
+    Args:
+        force_refresh: If True, bypasses cache and regenerates content
     """
     import json as json_module
     
@@ -5848,11 +5851,15 @@ async def get_astrology_deep_dive(user_id: str):
             raise HTTPException(status_code=500, detail="AI service not configured")
         
         # =====================================================================
-        # CHECK CACHE FIRST - instant response for repeat views
+        # CHECK CACHE FIRST - instant response for repeat views (unless force_refresh)
         # =====================================================================
-        cached_response = await get_cached_deep_dive(user_id, "astrology")
-        if cached_response:
-            return cached_response
+        if not force_refresh:
+            cached_response = await get_cached_deep_dive(user_id, "astrology")
+            if cached_response:
+                logger.info(f"[CACHE HIT] Deep Dive astrology for user {user_id}")
+                return cached_response
+        else:
+            logger.info(f"[FORCE REFRESH] Bypassing cache for astrology deep dive, user {user_id}")
         
         # =====================================================================
         # AUTO-MIGRATION: Check and migrate old chart formats FIRST
