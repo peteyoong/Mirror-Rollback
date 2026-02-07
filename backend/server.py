@@ -6921,11 +6921,24 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
             
             result = json_module.loads(clean_response)
             
-            # Apply guardrails
+            # Apply guardrails with type safety
             for section in result.get("sections", []):
-                section["body"] = apply_human_design_guardrails(section["body"])
+                body = section.get("body")
+                if isinstance(body, str):
+                    section["body"] = apply_human_design_guardrails(body)
+                elif isinstance(body, dict):
+                    # Handle case where body is a dict (LLM formatting issue)
+                    section["body"] = apply_human_design_guardrails(str(body.get("text", body)))
+                else:
+                    section["body"] = str(body) if body else ""
             
-            result["mirror_prompt"] = apply_human_design_guardrails(result.get("mirror_prompt", ""))
+            mirror_prompt = result.get("mirror_prompt", "")
+            if isinstance(mirror_prompt, str):
+                result["mirror_prompt"] = apply_human_design_guardrails(mirror_prompt)
+            elif isinstance(mirror_prompt, dict):
+                result["mirror_prompt"] = apply_human_design_guardrails(str(mirror_prompt.get("text", mirror_prompt)))
+            else:
+                result["mirror_prompt"] = str(mirror_prompt) if mirror_prompt else ""
             
             # Ensure core_mechanics is included with consistent fields (using canonical data)
             result["core_mechanics"] = {
