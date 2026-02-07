@@ -6459,22 +6459,37 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
             except Exception as e2:
                 logger.error(f"[ASTRO_DEEP_DIVE] Retry error: {e2}")
             
-            # Fall back to generic content
+            # Fall back to RICH content using pre-written descriptions
+            logger.info(f"[ASTRO_DEEP_DIVE] Using rich fallback content for user {user_id}")
+            
+            # Get rich descriptions for each placement
+            sun_sign = placements['sun_sign']
+            moon_sign = placements['moon_sign']
+            rising_sign = placements['rising_sign']
+            
+            sun_body = ASTROLOGY_SUN_FALLBACK.get(sun_sign, f"With your Sun in {sun_sign}, there's a particular quality to how you express your sense of self and purpose. This placement shapes your core identity orientation and how you naturally engage with life's experiences. The Sun represents your essential vitality and the way you tend to shine in the world.")
+            moon_body = ASTROLOGY_MOON_FALLBACK.get(moon_sign, f"Your Moon in {moon_sign} shapes how you process feeling and what helps you feel emotionally at home. This placement reflects your inner emotional landscape and the patterns that bring you comfort or discomfort. The Moon represents your instinctive responses and what you need to feel nurtured.")
+            ascendant_body = ASTROLOGY_ASCENDANT_FALLBACK.get(rising_sign, f"{rising_sign} rising colours the lens through which you approach new situations and people. This is your instinctive first impression and how others initially perceive you. The Ascendant shapes your approach to the world and the mask you naturally wear in social situations.")
+            
             fallback_result = {
                 "success": True,  # Data is valid, just LLM parsing failed
                 "title": "Your Core Structure",
                 "core_placements": {
-                    "sun": placements['sun_sign'],
-                    "moon": placements['moon_sign'],
-                    "ascendant": placements['rising_sign']
+                    "sun": sun_sign,
+                    "moon": moon_sign,
+                    "ascendant": rising_sign
                 },
                 "sections": [
-                    {"label": "Sun: Your Core Orientation", "body": f"With your Sun in {placements['sun_sign']}, there's a particular quality to how you express your sense of self and purpose."},
-                    {"label": "Moon: Your Emotional Texture", "body": f"Your Moon in {placements['moon_sign']} shapes how you process feeling and what helps you feel emotionally at home."},
-                    {"label": "Ascendant: How You Meet the World", "body": f"{placements['rising_sign']} rising colours the lens through which you approach new situations and people."}
+                    {"label": "Sun: Your Core Orientation", "body": sun_body},
+                    {"label": "Moon: Your Emotional Texture", "body": moon_body},
+                    {"label": "Ascendant: How You Meet the World", "body": ascendant_body}
                 ],
-                "mirror_prompt": "What in these descriptions feels true to your lived experience?",
-                "debug_stamp": placements["debug_stamp"]
+                "mirror_prompt": "Where do you recognize these patterns in your daily experience? What feels familiar, and what surprised you?",
+                "deeper_data_available": True,
+                "debug_stamp": {
+                    **placements["debug_stamp"],
+                    "fallback_used": True
+                }
             }
             # Cache fallback too
             await set_cached_deep_dive(user_id, "astrology", fallback_result)
