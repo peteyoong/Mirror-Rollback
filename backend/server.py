@@ -870,6 +870,234 @@ Return ONLY valid JSON:
 }}
 """
 
+# =====================================================================
+# ASTROLOGY RICH FALLBACK CONTENT
+# =====================================================================
+# High-quality, pre-written descriptions for each zodiac sign
+# Used when LLM response fails to parse or is truncated
+
+ASTROLOGY_SUN_FALLBACK = {
+    "Aries": """With your Sun in Aries, there's often an immediate, action-oriented quality to how you engage with your sense of identity. You may find yourself drawn to starting things—new projects, conversations, experiences—and the initiation itself can feel more natural than the sustained follow-through. This isn't about being impatient; it's about carrying an energy that responds most authentically when it's moving forward.
+
+The Aries Sun often brings a directness that others notice quickly. You might find that you speak and act with a clarity that cuts through ambiguity, sometimes before you've fully thought things through. This can be both a strength—people know where you stand—and a growth edge when situations require more nuance or patience.
+
+There's often a courage here too, an willingness to go first, to face things head-on, to take risks that others might avoid. The shadow side can show up as reactivity, competitiveness, or frustration when things move too slowly. What might shift if you brought the same energy you give to starting things toward sustaining what you've already begun?""",
+
+    "Taurus": """With your Sun in Taurus, there's often a grounded, sensory quality to how you experience your core self. You may find that you connect most deeply with life through the tangible—taste, touch, comfort, the feel of earth beneath you. This isn't about being materialistic; it's about an orientation that trusts what's real, what's been proven, what endures.
+
+The Taurus Sun often brings a steadiness that others find reassuring. You might be the person friends come to when things feel chaotic, because your presence communicates stability. This reliability is genuine, though it can sometimes tip into resistance to change or holding onto things past their time.
+
+There's a natural appreciation here for quality over quantity, for building rather than acquiring, for depth rather than breadth. The shadow side can show up as stubbornness, possessiveness, or difficulty adapting when circumstances demand flexibility. What might become possible if you held your foundations just as firmly while allowing some structures to evolve?""",
+
+    "Gemini": """With your Sun in Gemini, there's often a curious, mentally agile quality to how you move through the world. You may find that ideas, conversations, and connections energize you—that you come alive when there's something new to learn, discuss, or explore. This isn't superficiality; it's an orientation that sees life as endlessly interesting.
+
+The Gemini Sun often brings a versatility that can adapt to many contexts. You might notice you can speak different languages—literal and metaphorical—bridging gaps between people or ideas that seem disconnected. This flexibility is a genuine gift, though it can sometimes feel like you're spread thin or struggle to commit deeply to any single path.
+
+There's often a restlessness here, a need for mental stimulation that can feel insatiable. The shadow side can show up as scattered attention, difficulty being present, or using wit to avoid emotional depth. What might happen if you brought the same curiosity you give to the external world toward your own inner landscape?""",
+
+    "Cancer": """With your Sun in Cancer, there's often an emotionally attuned, nurturing quality to how you express your core self. You may find that feelings, home, and belonging matter deeply to you—that you carry a kind of internal weather system that responds sensitively to your environment and the people in it.
+
+The Cancer Sun often brings a protective instinct, both toward yourself and those you care about. You might find that you create spaces—physical and emotional—where others feel held and safe. This capacity for care is genuine, though it can sometimes tip into over-identification with others' needs or using care as a way to maintain control.
+
+There's often a rich inner life here, a connection to memory, heritage, and the emotional threads that weave through generations. The shadow side can show up as moodiness, defensiveness, or difficulty letting go of past hurts. What might shift if you offered the same nurturing presence you give to others toward your own vulnerable parts?""",
+
+    "Leo": """With your Sun in Leo, there's often a warm, expressive quality to how you engage with your sense of identity. You may find that you come alive when you're creating, performing, or sharing something genuinely from your heart. This isn't ego; it's an orientation that needs to shine and often helps others find permission to shine too.
+
+The Leo Sun often brings a generous spirit and natural magnetism. You might notice that people are drawn to your presence, that you have a way of making others feel special and seen. This warmth is genuine, though it can sometimes mask a deep need for recognition or a fear of being overlooked.
+
+There's often courage here—a willingness to be visible, to put your heart on display, to lead from the front. The shadow side can show up as drama, pride, or difficulty when you're not the center of attention. What might become possible if you found the same validation you seek from others in your own acknowledgment of yourself?""",
+
+    "Virgo": """With your Sun in Virgo, there's often a discerning, service-oriented quality to how you express your core self. You may find that you notice details others miss, that improvement and refinement come naturally to you. This isn't perfectionism for its own sake; it's an orientation that genuinely wants things to work better.
+
+The Virgo Sun often brings a practical intelligence that can analyze and organize complex situations. You might be the person who sees what needs fixing, who can break down overwhelming tasks into manageable steps. This capacity is valuable, though it can sometimes tip into criticism—of self or others—when reality doesn't match your standards.
+
+There's often a genuine desire to help here, to be useful, to contribute something meaningful through your work and attention. The shadow side can show up as anxiety, over-analysis, or difficulty accepting "good enough." What might shift if you applied the same gentle, helpful attention you give to tasks toward accepting your own humanity?""",
+
+    "Libra": """With your Sun in Libra, there's often a relational, harmony-seeking quality to how you engage with your sense of identity. You may find that connection, balance, and beauty matter deeply to you—that you come alive in the space between people, in dialogue and partnership. This isn't codependency; it's an orientation that naturally thinks in terms of "we."
+
+The Libra Sun often brings a diplomatic intelligence that can see multiple perspectives simultaneously. You might be the person others come to for fair judgment, who can hold space for conflicting viewpoints without losing your center. This capacity is genuine, though it can sometimes show up as indecision or difficulty claiming your own needs.
+
+There's often a natural aesthetic sense here, an appreciation for beauty, grace, and the art of living well. The shadow side can show up as people-pleasing, conflict avoidance, or losing yourself in what others want. What might become possible if you brought the same attention to balance that you give to relationships toward the relationship with yourself?""",
+
+    "Scorpio": """With your Sun in Scorpio, there's often an intense, penetrating quality to how you express your core self. You may find that surfaces don't satisfy you—that you're drawn to what's hidden, to depth, to the transformative power that comes from facing what others avoid. This isn't about darkness; it's about truth without flinching.
+
+The Scorpio Sun often brings emotional depth and psychological insight. You might notice that you sense undercurrents others miss, that people either feel deeply seen by you or somewhat uncomfortable with your gaze. This perceptiveness is real, though it can sometimes tip into suspicion or difficulty letting things be simple.
+
+There's often resilience here, a capacity to face crisis and emerge changed but stronger. You understand endings, letting go, and the regeneration that follows. The shadow side can show up as control, jealousy, or holding onto resentments. What might shift if you brought the same willingness you have for others' transformations toward your own process of releasing what no longer serves?""",
+
+    "Sagittarius": """With your Sun in Sagittarius, there's often an expansive, meaning-seeking quality to how you engage with your sense of identity. You may find that exploration—of ideas, places, philosophies—feels essential to who you are. This isn't restlessness; it's an orientation that needs room to grow and questions to pursue.
+
+The Sagittarius Sun often brings optimism and a gift for seeing the bigger picture. You might be the person who can find meaning in difficulty, who naturally inspires others with your enthusiasm and vision. This perspective is genuine, though it can sometimes mean glossing over details or commitments that feel constraining.
+
+There's often a philosophical bent here, a need to understand why things are the way they are and what it all means. The shadow side can show up as over-promising, tactlessness, or difficulty staying present when the immediate moment feels too small. What might become possible if you brought the same passion for distant horizons toward what's already here?""",
+
+    "Capricorn": """With your Sun in Capricorn, there's often an ambitious, structured quality to how you express your core self. You may find that achievement, mastery, and building something that lasts feel essential to who you are. This isn't mere ambition; it's an orientation that understands the value of effort and the satisfaction of earned success.
+
+The Capricorn Sun often brings discipline and a long-term perspective. You might be the person who can delay gratification, who builds steadily toward goals while others burn out or lose interest. This persistence is real, though it can sometimes tip into workaholism or difficulty relaxing when rest is actually needed.
+
+There's often an old soul quality here, a sense that you were born knowing something about responsibility and the weight of time. The shadow side can show up as rigidity, pessimism, or using achievement to avoid vulnerability. What might shift if you brought the same commitment you give to external accomplishment toward acknowledging what you've already achieved within?""",
+
+    "Aquarius": """With your Sun in Aquarius, there's often an innovative, independent quality to how you engage with your sense of identity. You may find that you think differently from those around you, that conventional paths feel confining. This isn't mere rebellion; it's an orientation that naturally sees possibilities others can't imagine.
+
+The Aquarius Sun often brings a humanitarian perspective and intellectual originality. You might be the person who questions assumptions, who champions the outsider, who sees how things could be better for everyone. This vision is genuine, though it can sometimes come with detachment or difficulty in more intimate, emotional contexts.
+
+There's often an idealistic streak here, a belief in progress and human potential that can inspire others to think bigger. The shadow side can show up as emotional distance, stubbornness about ideas, or feeling alienated even when surrounded by people. What might become possible if you brought the same care you have for humanity toward your own human need for belonging?""",
+
+    "Pisces": """With your Sun in Pisces, there's often a fluid, intuitive quality to how you experience your core self. You may find that boundaries feel porous—between you and others, between dreams and waking life, between what's felt and what's known. This isn't weakness; it's an orientation that perceives in ways rational frameworks can't capture.
+
+The Pisces Sun often brings deep empathy and creative sensitivity. You might notice that you absorb the moods around you, that art, music, or nature touch you in profound ways, that you sometimes know things without knowing how you know them. This perceptiveness is real, though it can sometimes feel overwhelming or make it hard to distinguish your feelings from others'.
+
+There's often a spiritual or transcendent impulse here, a sense that there's more to life than what's visible. The shadow side can show up as escapism, boundary confusion, or victim patterns. What might shift if you brought the same compassion you naturally feel for others toward protecting and honoring your own needs?"""
+}
+
+ASTROLOGY_MOON_FALLBACK = {
+    "Aries": """Your Moon in Aries suggests an emotional style that's direct, immediate, and action-oriented. When feelings arise, you may experience them as urgent—something that needs to be expressed or acted upon now rather than processed slowly. This can bring a refreshing honesty to your emotional life, though it can also mean you're quick to react before you've fully understood what you're feeling.
+
+There's often a need for independence in your emotional world. You might feel stifled in relationships or situations that require too much emotional negotiation or caretaking. Your comfort comes through movement, action, even healthy conflict—anything that lets you express and release emotional energy directly.
+
+The shadow of this placement can show up as reactivity, impatience with your own or others' emotional needs, or a pattern of blazing through feelings without integrating them. What you might discover is that allowing some emotions to exist without immediate action can reveal depths that speed would have missed.""",
+
+    "Taurus": """Your Moon in Taurus suggests an emotional style that seeks stability, comfort, and sensory grounding. When life feels chaotic, you may naturally turn toward what's tangible—good food, physical comfort, nature, routines that have proven reliable. This isn't about avoiding feelings; it's about needing a stable foundation from which to feel safely.
+
+There's often a deep loyalty in your emotional attachments. Once you've committed to something or someone, you tend to stay—sometimes well past when others would have moved on. Your comfort comes through consistency and the gradual building of trust over time.
+
+The shadow of this placement can show up as emotional resistance to change, possessiveness, or using comfort as a way to avoid difficult feelings. What you might discover is that your capacity for steadiness is a gift, but it can coexist with allowing yourself—and others—room to grow and change.""",
+
+    "Gemini": """Your Moon in Gemini suggests an emotional style that processes feelings through thought, conversation, and mental activity. When something stirs you emotionally, you may find yourself wanting to talk about it, research it, or understand it intellectually before (or instead of) simply feeling it. This isn't emotional avoidance; it's how your particular system makes sense of feelings.
+
+There's often a need for mental stimulation in your emotional life. Boredom can feel emotionally uncomfortable for you, and you may seek variety, new information, or interesting people to feel emotionally alive. Your comfort comes through connection, communication, and the movement of ideas.
+
+The shadow of this placement can show up as emotional restlessness, difficulty sitting with feelings that can't be explained, or using wit and words to keep emotional depth at a distance. What you might discover is that some feelings ask to be felt without understanding them first.""",
+
+    "Cancer": """Your Moon in Cancer (its home sign) suggests an emotional style that's deeply attuned, nurturing, and protective. You may feel things intensely and remember emotional experiences vividly—both the comforting and the painful ones. This sensitivity isn't a weakness; it's a capacity for emotional depth that allows for genuine connection and care.
+
+There's often a strong need for emotional security and a sense of home—whether that's a physical space, a relationship, or an inner sanctuary. You may find yourself naturally tending to others' emotional needs, sometimes before you've fully attended to your own. Your comfort comes through feeling safe, held, and connected to what feels like family.
+
+The shadow of this placement can show up as moodiness, over-identification with others' emotions, or difficulty setting boundaries when care becomes caretaking. What you might discover is that the same nurturing you offer others can be offered to yourself—and that protecting your emotional energy isn't selfish but necessary.""",
+
+    "Leo": """Your Moon in Leo suggests an emotional style that needs to be seen, appreciated, and able to express itself openly. Your feelings may have a dramatic quality—not in the sense of being exaggerated, but in needing space to be fully felt and witnessed. This isn't ego; it's a heart that genuinely expands when it can shine.
+
+There's often a warmth and generosity in how you express emotions. You may naturally make others feel special, championing those you love and taking genuine pleasure in their successes. Your comfort comes through creative expression, play, and relationships where you feel celebrated for who you really are.
+
+The shadow of this placement can show up as emotional neediness disguised as confidence, difficulty when you're not the center of attention, or using performance to avoid vulnerability. What you might discover is that the recognition you seek from others ultimately needs to come from within.""",
+
+    "Virgo": """Your Moon in Virgo suggests an emotional style that processes feelings through analysis, practical action, and attention to detail. When emotions arise, you may find yourself trying to understand them, improve the situation, or do something useful rather than simply sitting with the feeling. This isn't avoidance; it's how you naturally metabolize emotional experience.
+
+There's often a need for order in your emotional life. Chaos or messiness—external or internal—can feel genuinely distressing. You may find comfort in routines, in being helpful, in the satisfaction of work well done. Your care for others often shows up through practical assistance rather than emotional expressions.
+
+The shadow of this placement can show up as anxiety, self-criticism, or difficulty accepting emotions that don't have clear solutions. What you might discover is that some feelings just ask to be held with compassion rather than fixed or improved.""",
+
+    "Libra": """Your Moon in Libra suggests an emotional style that's oriented toward harmony, connection, and balance. You may process feelings best in dialogue, and loneliness can feel particularly uncomfortable. This isn't about avoiding yourself; it's about an emotional nature that genuinely thinks and feels in relational terms.
+
+There's often a need for peace and aesthetic beauty in your emotional environment. Conflict or harsh atmospheres can feel genuinely destabilizing, and you may work to smooth things over—sometimes at the cost of your own emotional truth. Your comfort comes through harmonious connections and environments that feel beautiful and balanced.
+
+The shadow of this placement can show up as people-pleasing, difficulty expressing anger or disagreement, or losing your emotional center in the effort to maintain peace. What you might discover is that your needs matter as much as others'—and that true harmony includes your authentic feelings, not just pleasant ones.""",
+
+    "Scorpio": """Your Moon in Scorpio suggests an emotional style that's intense, deep, and transformative. You may feel things profoundly and have difficulty with surfaces or small talk when it comes to emotional matters. This isn't excessive; it's an emotional nature that naturally seeks what's true, even when truth is difficult.
+
+There's often an all-or-nothing quality to your emotional attachments. You may prefer fewer, deeper connections over many casual ones, and betrayal or emotional dishonesty can cut particularly deep. Your comfort comes through genuine intimacy, control over your own emotional space, and relationships where the depth is matched.
+
+The shadow of this placement can show up as jealousy, control patterns, or difficulty letting go of emotional wounds. What you might discover is that the same intensity you bring to feeling can be channeled toward releasing what no longer serves you.""",
+
+    "Sagittarius": """Your Moon in Sagittarius suggests an emotional style that needs freedom, meaning, and room to explore. You may process feelings by putting them in a larger context, seeking the lesson or the purpose behind emotional experiences. This isn't avoiding feelings; it's how you naturally metabolize them—through expansion rather than contraction.
+
+There's often a restlessness in your emotional life, a need for growth and new horizons. Routine or emotional heaviness can feel particularly burdensome, and you may instinctively seek the bright side or the bigger picture when things feel difficult. Your comfort comes through adventure, learning, and spaces where you're not confined.
+
+The shadow of this placement can show up as emotional avoidance through positivity, difficulty staying present with uncomfortable feelings, or a pattern of leaving when things get emotionally complex. What you might discover is that some feelings ask you to stay rather than search for meaning elsewhere.""",
+
+    "Capricorn": """Your Moon in Capricorn suggests an emotional style that processes feelings through structure, achievement, and a sense of responsibility. You may have learned early to handle your emotions privately, to be the capable one, to manage feelings rather than be overwhelmed by them. This isn't coldness; it's a different kind of emotional strength.
+
+There's often a seriousness to your inner emotional life, even when your outer demeanor is warmer. You may carry a sense of duty around emotions—your own and others'—and find comfort in being competent, in achieving, in building something that lasts. Your emotional security often ties to your sense of accomplishment.
+
+The shadow of this placement can show up as emotional suppression, difficulty asking for support, or using work to avoid feelings. What you might discover is that your capacity to hold it together is admirable, but you don't always have to.""",
+
+    "Aquarius": """Your Moon in Aquarius suggests an emotional style that's somewhat detached, observational, and oriented toward understanding feelings rather than being swept away by them. You may step back from emotional experiences to see them clearly, which can feel like freedom or like disconnection, depending on the moment.
+
+There's often a need for emotional independence and space. You may feel stifled by too much emotional intensity or demands, preferring relationships where both parties have breathing room. Your comfort comes through mental understanding, friendship that doesn't demand too much, and the freedom to be yourself.
+
+The shadow of this placement can show up as emotional distancing, difficulty in intimate contexts, or rationalizing feelings instead of feeling them. What you might discover is that your capacity for objectivity is valuable, but sometimes emotions ask to be felt before they're understood.""",
+
+    "Pisces": """Your Moon in Pisces suggests an emotional style that's deeply sensitive, empathic, and permeable. You may feel not just your own emotions but those around you, and distinguishing where you end and others begin can sometimes be genuinely confusing. This isn't weakness; it's a capacity for emotional attunement that's both gift and challenge.
+
+There's often a need for escape, retreat, and time alone to process the emotional input you absorb. Art, music, nature, sleep, or spiritual practice may serve as necessary refuges. Your comfort comes through softness, acceptance, and environments that don't demand you be more boundaried than you naturally are.
+
+The shadow of this placement can show up as emotional overwhelm, victim patterns, or escapism that avoids rather than processes. What you might discover is that protecting your emotional energy isn't about building walls but about honoring your sensitivity as the gift it is."""
+}
+
+ASTROLOGY_ASCENDANT_FALLBACK = {
+    "Aries": """With Aries rising, you likely approach new situations with directness and a willingness to take the lead. Others may perceive you as confident, energetic, or even competitive—someone who isn't afraid to go first or make things happen. This initial impression isn't necessarily who you are at your core, but it's the lens through which you naturally engage the world.
+
+There's often an immediacy to how you begin things—relationships, projects, conversations. You may prefer to act rather than deliberate, and waiting can feel frustrating. This pioneering energy serves you when initiative is needed, though it can sometimes create friction when situations require patience or diplomacy.
+
+The growth edge with this rising sign often involves learning that not everything needs to be approached as a challenge or competition, and that the vulnerability underneath your boldness is also part of what makes you compelling.""",
+
+    "Taurus": """With Taurus rising, you likely approach new situations with calm steadiness and a grounded presence. Others may perceive you as reliable, perhaps a bit reserved, and someone whose reactions can be trusted not to be impulsive or dramatic. This initial impression isn't necessarily who you are at your core, but it's how you naturally move into the world.
+
+There's often a deliberate quality to how you begin things—you take time to assess, to feel your way in, to establish comfort before fully engaging. You may prefer familiar environments and approaches over constant novelty, and your presence can feel settling to others.
+
+The growth edge with this rising sign often involves learning when to speed up, when to embrace change that feels uncomfortable, and recognizing that your need for stability sometimes limits experiences that could nourish you.""",
+
+    "Gemini": """With Gemini rising, you likely approach new situations with curiosity, adaptability, and mental quickness. Others may perceive you as friendly, talkative, interested—someone easy to engage in conversation and able to connect on many topics. This initial impression isn't necessarily who you are at your core, but it's how you naturally meet the world.
+
+There's often a versatility to how you present yourself—you can shift registers, speak different languages (literal and metaphorical), and adapt to different social contexts with relative ease. You may find yourself gathering information, asking questions, and keeping things light on first encounter.
+
+The growth edge with this rising sign often involves learning when to go deep instead of wide, when to commit instead of keeping options open, and recognizing that people sometimes need more consistency from you than you naturally offer.""",
+
+    "Cancer": """With Cancer rising, you likely approach new situations with emotional attunement and a somewhat cautious, protective stance. Others may perceive you as caring, perhaps a bit guarded, and someone who creates a sense of comfort or home wherever you go. This initial impression isn't necessarily who you are at your core, but it's how you naturally move into the world.
+
+There's often a sensitivity to atmosphere and mood in how you engage new environments. You may pick up on others' emotional states quickly and respond to them, sometimes before you've fully arrived in your own experience. Your approach tends to be nurturing, though self-protective until trust is established.
+
+The growth edge with this rising sign often involves learning to hold your center while remaining open, recognizing that not every environment is threatening, and understanding that your sensitivity is a gift that requires protection rather than suppression.""",
+
+    "Leo": """With Leo rising, you likely approach new situations with warmth, presence, and a natural expressiveness. Others may perceive you as confident, charismatic, perhaps even dramatic—someone who doesn't fade into the background easily. This initial impression isn't necessarily who you are at your core, but it's how you naturally engage the world.
+
+There's often a generosity in how you meet people—you may make others feel seen and appreciated, naturally championing those around you even in casual encounters. Your presence tends to be noticed, which can feel like both gift and burden depending on the moment.
+
+The growth edge with this rising sign often involves learning that you don't always need to perform or shine, that quiet presence has its own value, and that the validation you seek from being seen ultimately needs to come from self-recognition.""",
+
+    "Virgo": """With Virgo rising, you likely approach new situations with a discerning, somewhat reserved stance. Others may perceive you as thoughtful, perhaps critical (in the analytical sense), and someone who notices details others miss. This initial impression isn't necessarily who you are at your core, but it's how you naturally move into the world.
+
+There's often a quality of helpful observation in how you engage—you may quickly assess how something could work better, what needs attention, or how you might be useful in a situation. Your approach tends to be modest rather than attention-seeking, practical rather than dramatic.
+
+The growth edge with this rising sign often involves learning when to accept rather than improve, when to trust rather than analyze, and recognizing that your critical eye serves best when balanced with compassion—especially toward yourself.""",
+
+    "Libra": """With Libra rising, you likely approach new situations with grace, diplomacy, and an awareness of social dynamics. Others may perceive you as charming, fair-minded, and someone who creates harmony in their environment. This initial impression isn't necessarily who you are at your core, but it's how you naturally engage the world.
+
+There's often an awareness of relationship and balance in how you meet new people and situations. You may naturally consider others' perspectives, seek to understand before asserting, and create connections through genuine interest in finding common ground.
+
+The growth edge with this rising sign often involves learning when to assert your own position rather than seek consensus, when conflict is necessary rather than smoothed over, and recognizing that your desire for harmony sometimes comes at the cost of your own authentic expression.""",
+
+    "Scorpio": """With Scorpio rising, you likely approach new situations with intensity, observation, and a certain magnetic quality. Others may perceive you as deep, perhaps mysterious, and someone who sees beneath surfaces. This initial impression isn't necessarily who you are at your core, but it's how you naturally move into the world.
+
+There's often a quality of penetrating awareness in how you engage—you may quickly sense what's unsaid, what's hidden, what's really going on underneath the social niceties. Your approach tends to be probing rather than superficial, which some find compelling and others find uncomfortable.
+
+The growth edge with this rising sign often involves learning when lightness is appropriate, when surfaces don't need to be penetrated, and recognizing that your intensity—while a gift—can sometimes create walls where bridges would serve better.""",
+
+    "Sagittarius": """With Sagittarius rising, you likely approach new situations with optimism, openness, and a sense of adventure. Others may perceive you as friendly, enthusiastic, perhaps restless—someone who brings expansive energy and a desire to explore. This initial impression isn't necessarily who you are at your core, but it's how you naturally engage the world.
+
+There's often a quality of seeking in how you meet new people and situations. You may naturally look for what's interesting, what can be learned, what possibilities exist. Your approach tends to be open and forward-moving, sometimes to the point of glossing over complexities.
+
+The growth edge with this rising sign often involves learning when to focus and commit rather than explore, when to deal with details rather than big pictures, and recognizing that your optimism, while a gift, sometimes needs the balance of realistic assessment.""",
+
+    "Capricorn": """With Capricorn rising, you likely approach new situations with seriousness, composure, and a sense of practical assessment. Others may perceive you as capable, perhaps reserved, and someone who doesn't waste time or energy on frivolity. This initial impression isn't necessarily who you are at your core, but it's how you naturally move into the world.
+
+There's often a quality of measured evaluation in how you engage—you may quickly assess what's viable, what's the long-term potential, what's worth investing in. Your approach tends to be professional and boundaried, with warmth that emerges once trust is established.
+
+The growth edge with this rising sign often involves learning when to lighten up, when playfulness is appropriate, and recognizing that the seriousness you carry as a default sometimes keeps out experiences and connections that could nourish you.""",
+
+    "Aquarius": """With Aquarius rising, you likely approach new situations with a friendly but somewhat detached quality. Others may perceive you as unique, perhaps unconventional, and someone who maintains their individuality regardless of social pressure. This initial impression isn't necessarily who you are at your core, but it's how you naturally engage the world.
+
+There's often a quality of observation and independent thinking in how you meet new people and situations. You may quickly notice what's unusual, what needs changing, what could be done differently. Your approach tends to be egalitarian but somewhat distanced, interested in ideas as much as individuals.
+
+The growth edge with this rising sign often involves learning when to connect emotionally rather than intellectually, when to belong rather than differentiate, and recognizing that your independence, while authentic, sometimes creates isolation where connection would serve.""",
+
+    "Pisces": """With Pisces rising, you likely approach new situations with sensitivity, adaptability, and a certain ethereal quality. Others may perceive you as gentle, perhaps dreamy, and someone whose boundaries are more permeable than most. This initial impression isn't necessarily who you are at your core, but it's how you naturally move into the world.
+
+There's often a quality of absorption in how you engage—you may take in the atmosphere, the moods, the unspoken elements of a situation before you've consciously assessed them. Your approach tends to be soft and receptive, meeting others where they are rather than asserting where you are.
+
+The growth edge with this rising sign often involves learning when to firm up, when to assert rather than adapt, and recognizing that your permeability—while a gift of empathy—sometimes requires protection so you don't lose yourself in every environment you enter."""
+}
+
 # TAB/TASK PROMPT: DEEP DIVE
 ASTROLOGY_DEEP_DIVE_PROMPT = """Explain the user's core astrology structure.
 
