@@ -6131,6 +6131,7 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
         # Parse JSON response
         try:
             clean_response = response_text.strip()
+            logger.debug(f"[ASTRO_DEEP_DIVE] Raw response length: {len(clean_response)} chars")
             if clean_response.startswith("```"):
                 lines = clean_response.split("\n")
                 clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
