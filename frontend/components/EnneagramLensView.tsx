@@ -1106,23 +1106,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
       </>
     );
   };
-              </Text>
-            </View>
-          ))}
-          <TouchableOpacity
-            style={styles.retakeLink}
-            onPress={() => setShowRetakeModal(true)}
-          >
-            <Ionicons name="refresh-outline" size={16} color={Colors.textSecondary} />
-            <Text style={styles.retakeLinkText}>Retake Assessment</Text>
-          </TouchableOpacity>
-        </View>
-        
-        {/* Chat Box */}
-        {renderChatBox()}
-      </>
-    );
-  };
 
   // ============================================
   // RETAKE MODAL
