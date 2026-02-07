@@ -8635,8 +8635,13 @@ Tone:
 Pattern to follow:
 "Across the patterns that show up in your chart, a recurring theme in how you approach {context_name} is…"
 
-MUST end with:
-"This isn't a rule. It's a pattern you can notice and work with."
+Include this subtle confidence signal (naturally woven in, not as a separate sentence):
+"When multiple perspectives point in the same direction, this theme tends to stand out."
+
+MUST end with ONE of these closing lines (rotate, don't always use the same one):
+- "This isn't a rule — just a pattern you might notice."
+- "Think of this as a pattern, not a prescription."
+- "It's a pattern to work with, not something you have to follow."
 
 USER'S COMBINED DATA:
 {user_data}
