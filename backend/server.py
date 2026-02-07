@@ -2121,13 +2121,13 @@ MASTER NUMBER HANDLING (IMPORTANT):
 
 Structure the content in expandable sections:
 
-1) Life Path - Describe as a long-term learning or growth theme. Emphasize patterns that tend to recur over time. Avoid identity or destiny language. For master numbers, discuss BOTH the master number AND its reduction. (80-120 words)
-2) Birthday Number (if available) - Describe as a secondary flavour or emphasis. (60-80 words)
-3) Expression (only if available) - Describe as outward style, strengths, or how energy tends to be expressed. Grounded and descriptive. (80-120 words)
-4) Soul Urge (only if available) - Describe as inner motivation or emotional tone. Avoid romanticized phrasing. (80-120 words)
-5) Personality (only if available) - Describe as first-impression or social-facing tone. (60-80 words)
+1) Life Path - Describe as a long-term learning or growth theme. Emphasize patterns that tend to recur over time. Avoid identity or destiny language. For master numbers, discuss BOTH the master number AND its reduction. (50-70 words)
+2) Birthday Number (if available) - Describe as a secondary flavour or emphasis. (40-50 words)
+3) Expression (only if available) - Describe as outward style, strengths, or how energy tends to be expressed. Grounded and descriptive. (50-70 words)
+4) Soul Urge (only if available) - Describe as inner motivation or emotional tone. Avoid romanticized phrasing. (50-70 words)
+5) Personality (only if available) - Describe as first-impression or social-facing tone. (40-50 words)
 
-IMPORTANT: Each section body MUST meet the specified word count. Do NOT give brief one-sentence descriptions.
+IMPORTANT: Each section body MUST meet the specified word count. Keep it meaningful but concise.
 Speak to the felt experience of having these numbers, not just generic trait lists.
 
 Rules:
