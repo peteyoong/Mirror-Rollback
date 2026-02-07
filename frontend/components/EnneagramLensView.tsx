@@ -2182,6 +2182,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
   },
+  confidenceText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.text,
+  },
   confidenceHigh: {
     backgroundColor: 'rgba(76, 175, 80, 0.15)',
   },
