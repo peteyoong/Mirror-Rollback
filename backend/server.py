@@ -1372,61 +1372,7 @@ End most responses with:
 """
 
 
-def apply_human_design_guardrails(response_text: str) -> str:
-    """Check Human Design response for forbidden patterns and reframe if needed.
-    
-    Enforces the Symbolic Systems Doctrine:
-    - No fate/destiny framing
-    - No predictive claims
-    - No authority language
-    - No spiritualized assertions
-    - No therapeutic directives
-    """
-    forbidden_patterns = [
-        # Predictive claims
-        (r"\bwill happen\b", "may be experienced as"),
-        (r"\byou will\b", "you may notice"),
-        (r"\bthis will\b", "this can"),
-        (r"\bthis leads to\b", "this sometimes correlates with"),
-        
-        # Authority language
-        (r"\bthis means you are\b", "this can feel like being"),
-        (r"\bthis means\b", "this often shows up as"),
-        (r"\bthis shows that you must\b", "this may suggest"),
-        (r"\byou must\b", "you might"),
-        (r"\byou are a\b", "you may experience yourself as"),
-        
-        # Fate/destiny framing
-        (r"\bdestiny\b", "pattern"),
-        (r"\bfate\b", "tendency"),
-        (r"\bmeant to\b", "inclined toward"),
-        (r"\byour purpose is\b", "one possible orientation is"),
-        (r"\byou are destined\b", "you may be drawn"),
-        (r"\bdesigned to\b", "configured for"),
-        (r"\byou are here to\b", "you may find resonance with"),
-        
-        # Spiritualized assertions
-        (r"\bsoul contract\b", "inner pattern"),
-        (r"\bkarmic duty\b", "recurring theme"),
-        (r"\bkarmic\b", "recurring"),
-        (r"\bhigher calling\b", "deeper inclination"),
-        (r"\bspiritual mission\b", "underlying orientation"),
-        (r"\blife purpose\b", "core orientation"),
-        
-        # Therapeutic/coaching directives
-        (r"\byou should\b", "you might explore"),
-        (r"\byou need to\b", "it may help to"),
-        (r"\byou should work on\b", "you might notice"),
-        (r"\btry to heal\b", "consider exploring"),
-        (r"\bthe lesson is\b", "one pattern that emerges is"),
-        (r"\byou need to learn\b", "you may find value in exploring"),
-    ]
-    
-    result = response_text
-    for pattern, replacement in forbidden_patterns:
-        result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
-    
-    return result
+# Removed duplicate function - using the type-safe version below
 
 
 # TAB/TASK PROMPT: SUMMARY
