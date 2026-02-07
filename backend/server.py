@@ -6163,9 +6163,57 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
             return result
             
         except json_module.JSONDecodeError as e:
-            logger.error(f"Failed to parse astrology deep dive JSON: {e}")
+            logger.error(f"Failed to parse astrology deep dive JSON (attempt 1): {e}")
             logger.error(f"[ASTRO_DEEP_DIVE] Raw response length: {len(clean_response)} chars")
-            logger.error(f"[ASTRO_DEEP_DIVE] Raw response that failed to parse (last 200 chars): ...{clean_response[-200:]}")
+            
+            # =====================================================================
+            # RETRY ONCE - sometimes JSON gets truncated on first attempt
+            # =====================================================================
+            logger.info(f"[ASTRO_DEEP_DIVE] Retrying generation for user {user_id}")
+            try:
+                retry_response = await emergent_generate(
+                    user_message="Generate the Deep Dive for this user's natal chart. IMPORTANT: Return a COMPLETE, VALID JSON object with all sections fully formed. Do not truncate any text.",
+                    endpoint="astrology_deep_dive_retry",
+                    user_id=user_id,
+                    context={
+                        "lens": "astrology",
+                        "sun": placements['sun_sign'],
+                        "moon": placements['moon_sign'],
+                        "rising": placements['rising_sign']
+                    },
+                    additional_system_prompt=system_prompt,
+                    model="gpt-4.1-mini",
+                    max_tokens=4000
+                )
+                
+                retry_clean = retry_response.strip()
+                if retry_clean.startswith("```"):
+                    lines = retry_clean.split("\n")
+                    retry_clean = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+                
+                result = json_module.loads(retry_clean)
+                
+                for section in result.get("sections", []):
+                    section["body"] = apply_astrology_guardrails(section["body"])
+                result["mirror_prompt"] = apply_astrology_guardrails(result.get("mirror_prompt", ""))
+                result["core_placements"] = {
+                    "sun": placements['sun_sign'],
+                    "moon": placements['moon_sign'],
+                    "ascendant": placements['rising_sign']
+                }
+                result["success"] = True
+                result["debug_stamp"] = placements["debug_stamp"]
+                
+                await set_cached_deep_dive(user_id, "astrology", result)
+                logger.info(f"[ASTRO_DEEP_DIVE] Retry succeeded for user {user_id}")
+                return result
+                
+            except json_module.JSONDecodeError as e2:
+                logger.error(f"[ASTRO_DEEP_DIVE] Retry also failed: {e2}")
+            except Exception as e2:
+                logger.error(f"[ASTRO_DEEP_DIVE] Retry error: {e2}")
+            
+            # Fall back to generic content
             fallback_result = {
                 "success": True,  # Data is valid, just LLM parsing failed
                 "title": "Your Core Structure",
