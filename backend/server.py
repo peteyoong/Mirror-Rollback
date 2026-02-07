@@ -3996,6 +3996,37 @@ async def mirror_chat(request: MirrorChatRequest):
                         planet = planets.get(planet_name, {})
                         if planet:
                             context_parts.append(f"{planet_name}: {planet.get('formatted', 'Unknown')}")
+                    
+                    # Add Lunar Nodes - CRITICAL for complete astrology readings
+                    nodes = astro.get('nodes', {})
+                    north_node = nodes.get('north', {})
+                    south_node = nodes.get('south', {})
+                    
+                    if north_node and north_node.get('sign'):
+                        context_parts.append(f"North Node: {north_node.get('formatted', north_node.get('sign', 'Unknown'))} (House {north_node.get('house', 'Unknown')})")
+                    if south_node and south_node.get('sign'):
+                        context_parts.append(f"South Node: {south_node.get('formatted', south_node.get('sign', 'Unknown'))} (House {south_node.get('house', 'Unknown')})")
+                    
+                    # If nodes not in new format, check legacy formats
+                    if not north_node.get('sign'):
+                        # Check lunar_nodes format
+                        lunar_nodes = astro.get('lunar_nodes', {})
+                        if lunar_nodes:
+                            nn = lunar_nodes.get('north_node', {}) or lunar_nodes.get('north', {})
+                            sn = lunar_nodes.get('south_node', {}) or lunar_nodes.get('south', {})
+                            if nn.get('sign'):
+                                context_parts.append(f"North Node: {nn.get('sign')} ({nn.get('degree', 0):.0f}°)")
+                            if sn.get('sign'):
+                                context_parts.append(f"South Node: {sn.get('sign')} ({sn.get('degree', 0):.0f}°)")
+                        else:
+                            # Check if North Node is in planets
+                            nn_planet = planets.get('North Node', {}) or planets.get('True Node', {}) or planets.get('GC', {})
+                            if nn_planet.get('sign'):
+                                context_parts.append(f"North Node: {nn_planet.get('formatted', nn_planet.get('sign', 'Unknown'))}")
+                                # Calculate South Node
+                                south_sign = get_opposite_sign(nn_planet.get('sign', ''))
+                                if south_sign:
+                                    context_parts.append(f"South Node: {south_sign}")
             
             # Human Design context
             hd = chart.get('human_design', {})
