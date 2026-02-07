@@ -6987,14 +6987,53 @@ The shadow of Reflector energy is disappointment—the deflation that comes from
             }
             
             authority_descriptions = {
-                "Sacral": "With Sacral authority, your clearest guidance comes through immediate gut responses—the 'uh-huh' or 'unh-unh' that arises before your mind has time to rationalize. Learning to trust these body sounds and sensations, rather than overriding them with logic, tends to lead to more aligned decisions. Notice how your body responds in the moment.",
-                "Emotional": "With Emotional authority, clarity tends to ride a wave—there's an emotional high, a low, and eventually a settling point where you can see more clearly. Rushing decisions during emotional peaks or valleys often leads to regret. Giving yourself time to feel through something, to sleep on it, to wait until the charge settles, reveals what's truly aligned.",
-                "Splenic": "With Splenic authority, your clearest guidance comes as spontaneous intuitive hits—a flash of knowing that arrives once and doesn't repeat. These subtle signals can be easy to override with logic, but they're often right. Learning to catch and trust these in-the-moment flashes, even when they don't make rational sense, tends to serve you well.",
-                "Ego": "With Ego authority, the question to ask is 'Do I have the will for this?' or 'Do I genuinely want this?' Your commitment must feel real in your heart and will. Making promises you don't have the energy to keep tends to deplete you. Notice what you actually have desire and willpower for.",
-                "Self-Projected": "With Self-Projected authority, clarity comes through hearing yourself talk. Discussing decisions out loud with trusted people—not for their advice, but to hear your own voice—reveals what's true for you. Pay attention to what sounds right when you say it, rather than what others suggest.",
-                "Mental": "With Mental authority, you're designed to talk things through externally. Your clarity comes from processing with trusted others, bouncing ideas off different people and environments. The key is not to take their advice, but to notice what resonates and what doesn't as you discuss.",
-                "Lunar": "With Lunar authority, your consistency comes from the 28+ day cycle. For major decisions, waiting a full lunar cycle allows you to experience the choice from many angles. Notice what remains consistently true across the whole cycle rather than making snap decisions.",
-                "None": "With Environmental authority, the spaces you're in matter deeply. Your clarity comes from noticing how different environments affect you. Pay attention to where you feel most yourself, most clear, most healthy—those places support your best decisions."
+                "Sacral": """With Sacral authority, your most reliable guidance system lives in your gut—not your mind. The sacral center communicates through sounds and physical sensations that arise before thought has time to intervene. These responses are binary: either there's energy available for something (the "uh-huh," the pull toward, the excitement in the belly) or there isn't (the "unh-unh," the flatness, the turning away).
+
+Learning to trust these gut responses over mental reasoning is often a lifelong practice, especially if you were taught to explain and justify your decisions with logic. The sacral doesn't work that way—it knows before you know why it knows. Yes/no questions help clarify sacral response; open-ended questions can leave the sacral silent.
+
+The shadow of not trusting sacral authority shows up as saying yes to things your gut said no to, then feeling drained, resentful, or stuck. Your body keeps score. What would it look like to let your gut guide more of your decisions, even when you can't explain why?""",
+
+                "Emotional": """With Emotional authority, clarity doesn't come in an instant—it rides a wave. Your emotional solar plexus creates a continuous cycle of emotional highs and lows that color every decision you consider. The key isn't to decide at the high (when everything seems wonderful) or the low (when everything seems terrible), but to wait for the wave to settle into something more neutral, where you can see more clearly.
+
+This waiting can feel frustrating in a culture that values quick decisions, but rushing the emotional wave almost always leads to choices you regret. "Sleep on it" is literal advice for you—often multiple nights. The practice is to feel your way through a decision over time, noticing how it sits with you at different points in your emotional cycle.
+
+The shadow of emotional authority shows up as impulsive decisions made in the heat of feeling, followed by the crash of regret when the wave shifts. Your emotions are not a problem to solve; they're a navigation system to learn. What decision are you currently riding the wave on?""",
+
+                "Splenic": """With Splenic authority, your guidance comes as spontaneous, in-the-moment intuitive hits—a flash of knowing that arrives once, quietly, and doesn't repeat. The spleen is the oldest awareness center in Human Design, connected to survival instincts, health, and well-being. Its voice is subtle, often drowned out by louder mental chatter or emotional waves, but it's remarkably accurate when you learn to catch it.
+
+Unlike emotional authority, splenic knowing is immediate—there's no wave to wait out. The hit comes in the moment and is relevant to that moment. If you miss it or override it with logic, it won't come back to argue with you. This means developing a practice of catching these subtle signals before the mind has time to rationalize them away.
+
+The shadow of splenic authority shows up as overriding your intuitive hits with "good reasons," then discovering later that your first instinct was right. Learning to distinguish between intuitive no and fear-based avoidance is part of the splenic journey. What does your intuition sound like when it speaks?""",
+
+                "Ego": """With Ego authority (also called Heart authority), your decisions need to pass through the filter of genuine willpower and desire. The question isn't "Should I do this?" but "Do I actually have the will for this? Do I genuinely want this?" Your ego center is about commitment, follow-through, and promises—but only for things you truly have energy to commit to.
+
+Making promises you don't have the will to keep depletes your heart energy and erodes self-trust. This means learning to be honest with yourself about what you actually want, not what you think you should want or what others expect.
+
+The shadow of ego authority shows up as overcommitting to prove your worth, then burning out or breaking promises. Your willpower is a resource to be invested wisely, not spent proving yourself. What do you genuinely have the will and desire for right now?""",
+
+                "Self-Projected": """With Self-Projected authority, clarity comes through hearing yourself speak. This doesn't mean thinking out loud or asking for advice—it means using trusted sounding boards to hear your own truth reflected back. When you talk through a decision with someone you trust, pay attention not to what they say but to what sounds true when you say it.
+
+Your identity and direction are expressed through your voice. Something magical happens when you articulate your thoughts out loud: you hear what's aligned and what isn't. The other person doesn't need to give advice; they just need to listen.
+
+The shadow of self-projected authority shows up as seeking external validation instead of listening to your own voice, or as isolation that cuts you off from the sounding boards you need. Who in your life can you talk things through with, not for their opinion but to hear yourself?""",
+
+                "Mental": """With Mental authority (also called Sounding Board authority), your clarity comes from discussing decisions in different environments with different people. Unlike self-projected authority, which is about hearing yourself, mental authority is about noticing how ideas land differently depending on context.
+
+This doesn't mean taking advice or seeking consensus—it means paying attention to your own inner response as you discuss. Some environments and conversations will make a choice feel more clear; others will muddy it.
+
+The shadow shows up as either decision paralysis from too many perspectives, or impulsive choices made to escape the discomfort of not knowing. Trusting your process—which requires time and conversation—is the practice. What would it look like to give yourself full permission to talk through decisions before committing?""",
+
+                "Lunar": """With Lunar authority (unique to Reflectors), your decision-making process is tied to the moon's 28-day cycle through the Human Design wheel. During this cycle, the transiting planets activate different parts of your completely open design, giving you access to different perspectives and experiences.
+
+This isn't about astrology in the traditional sense—it's about giving yourself enough time to sample a decision from many angles. What remains consistently true across the whole cycle is more likely to be aligned.
+
+The shadow of lunar authority shows up as making rushed decisions that don't hold up over time, or as paralysis from waiting too long. Learning which decisions require a full cycle and which can be made more quickly is part of your journey. What would it look like to truly honor your need for time?""",
+
+                "None": """With Environmental authority (also called No Inner Authority), your clarity comes from the spaces and people around you rather than from a defined inner mechanism. This doesn't mean you're dependent on others' opinions—it means you're designed to notice how different environments affect your sense of clarity.
+
+Some places make you feel more yourself, more clear, more healthy. Others drain you or cloud your thinking. Learning to read these environmental signals is your decision-making superpower. Before making major choices, consider: Where am I when I think about this?
+
+The shadow shows up as ignoring environmental signals in favor of logic, or as instability from being in the wrong places. Your sensitivity to space is a gift, not a weakness. What environments support your clearest thinking?"""
             }
             
             profile_descriptions = {
