@@ -1331,28 +1331,6 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 
-  // Confidence Badge
-  confidenceBadge: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: Colors.border,
-  },
-  confidenceHigh: {
-    backgroundColor: '#D4EDDA',
-  },
-  confidenceMedium: {
-    backgroundColor: '#FFF3CD',
-  },
-  confidenceLow: {
-    backgroundColor: '#F8D7DA',
-  },
-  confidenceText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.text,
-  },
-
   // Cards
   card: {
     backgroundColor: Colors.surface,
