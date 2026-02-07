@@ -958,9 +958,12 @@ FULL COMPUTED CHART DATA (available on request):
 {full_chart_json}
 
 Generate a response with these sections:
-1. "Sun: Your Core Orientation" - How their sense of self tends to express
-2. "Moon: Your Emotional Texture" - How they process feeling and find comfort
-3. "Ascendant: How You Meet the World" - The lens through which they approach new situations
+1. "Sun: Your Core Orientation" - How their sense of self tends to express (80-120 words, specific to their sign)
+2. "Moon: Your Emotional Texture" - How they process feeling and find comfort (80-120 words, specific to their sign)
+3. "Ascendant: How You Meet the World" - The lens through which they approach new situations (80-120 words, specific to their sign)
+
+IMPORTANT: Each section body MUST be 80-120 words. Do NOT give brief one-sentence descriptions.
+Speak to the felt experience of having this placement, not just generic traits.
 
 Return ONLY valid JSON:
 {{
