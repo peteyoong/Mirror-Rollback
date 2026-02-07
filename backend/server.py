@@ -8891,7 +8891,544 @@ async def get_enneagram_kb_status():
     return get_kb_status()
 
 
-@api_router.get("/enneagram/traits/{user_id}")
+# =====================================================================
+# ENNEAGRAM DEEP DIVE - PROJECT MIRROR TEMPLATE
+# =====================================================================
+# Rich pre-written content for each Enneagram type following the
+# Project Mirror Deep Dive Template structure
+
+ENNEAGRAM_CORE_STRATEGY = {
+    1: """Your core pattern organizes around an internal standard of how things should be done—and a persistent awareness of the gap between that standard and what is. This isn't perfectionism in the colloquial sense; it's more like an ongoing internal audit that rarely takes a break.
+
+You likely notice errors, inconsistencies, and areas for improvement automatically—in systems, in work, in yourself. This perceptual filter runs in the background even when you're not trying to evaluate. The result is often high-quality output and genuine integrity, but also a kind of inner tension that doesn't fully resolve even when external standards are met.
+
+The strategy isn't conscious most of the time. It feels like simply seeing what's true—the gap between what is and what should be. The challenge is that the "should" keeps moving, and the inner critic rarely acknowledges completion.""",
+
+    2: """Your core pattern organizes around relational connection and being needed. You tend to orient toward others' emotional states and needs, often sensing what people want before they've fully articulated it. This attunement isn't manipulation—it's a genuine capacity for empathic tracking.
+
+The strategy involves creating value through help, warmth, and interpersonal responsiveness. You may find yourself naturally adapting to different relationships, bringing out different facets of yourself depending on who you're with. The underlying logic is: connection through contribution.
+
+What can go unnoticed is how your own needs operate—they tend to route through others rather than being acknowledged directly. The pattern creates real bonds and genuine helpfulness, but can also lead to an unclear relationship with what you actually want independent of others' responses.""",
+
+    3: """Your core pattern organizes around achievement, image, and demonstrating value through accomplishment. You tend to read environments quickly for what success looks like and orient toward that target with efficiency. This isn't vanity—it's a deep alignment between identity and doing.
+
+The strategy involves becoming what works: adapting presentation, accelerating toward goals, and maintaining an image of competence and success. You likely move through tasks efficiently and can shift personas to match different contexts. The underlying logic is: worth through achievement and recognition.
+
+What can fade from awareness is the felt experience underneath the achieving—emotions, authentic preferences, states that don't serve the current objective. The pattern produces genuine accomplishment but can create distance from the question of what you actually value versus what you're good at pursuing.""",
+
+    4: """Your core pattern organizes around authenticity, emotional depth, and a felt sense of personal significance. You tend to track internal experience with unusual precision, noticing emotional nuances that others might miss or dismiss. This isn't drama—it's a genuine orientation toward what feels real.
+
+The strategy involves creating identity through differentiation: finding what makes you distinct, original, or uniquely expressed. You may be drawn to aesthetics, meaning, and the deeper textures of experience. The underlying logic is: worth through being genuinely yourself, unlike anyone else.
+
+What can intensify is the sense of deficiency or longing—a feeling that something essential is missing or that others have access to an ease you lack. The pattern produces genuine depth and creative insight but can create suffering around comparison and an elusive sense of completeness.""",
+
+    5: """Your core pattern organizes around understanding, competence, and maintaining sufficient internal resources. You tend to observe before engaging, gathering information and building mental models of how things work. This isn't coldness—it's a genuine need to feel capable before acting.
+
+The strategy involves creating security through knowledge and self-sufficiency. You likely conserve energy, minimize unnecessary demands, and invest deeply in areas of genuine interest. The underlying logic is: safety through understanding and having enough inner resources to handle what comes.
+
+What can contract is engagement with the world and your own embodied experience—life lived at some remove, through concepts rather than direct contact. The pattern produces genuine expertise and insight but can create isolation and a sense that you need to know more before you're ready to participate.""",
+
+    6: """Your core pattern organizes around security, contingency, and navigating uncertainty. You tend to scan for potential problems, worst-case scenarios, and hidden threats—not from pessimism but from a genuine drive to be prepared. This is vigilance in service of safety.
+
+The strategy involves creating stability through anticipation and questioning: testing ideas, checking for consistency, building trusted relationships and systems. You likely think through consequences that others overlook and value reliability. The underlying logic is: safety through foresight and having something solid to trust.
+
+What can amplify is doubt itself—the questioning that serves protection can become self-perpetuating, finding new concerns as fast as old ones resolve. The pattern produces genuine loyalty and valuable risk assessment but can create anxiety and difficulty resting in certainty.""",
+
+    7: """Your core pattern organizes around possibility, stimulation, and maintaining access to positive options. You tend to see opportunities, connections between ideas, and potential pathways where others see constraints. This isn't avoidance—it's a genuine orientation toward what could be.
+
+The strategy involves creating freedom through expansion: keeping options open, reframing limitations as opportunities, and moving toward whatever feels interesting or promising. You likely generate energy, synthesize ideas quickly, and resist being pinned down. The underlying logic is: satisfaction through possibility and forward motion.
+
+What can slip away is depth, completion, and the full weight of difficult emotions—the tendency to move on before fully digesting what's here. The pattern produces genuine optimism and creativity but can create a life that's broad rather than deep, and difficulty with experiences that can't be reframed positively.""",
+
+    8: """Your core pattern organizes around strength, impact, and maintaining control over your environment. You tend to move toward challenges directly, preferring to confront rather than accommodate. This isn't aggression—it's a genuine drive to engage with what's real and substantial.
+
+The strategy involves creating safety through power and self-reliance: taking up space, protecting what matters, and refusing to be controlled or diminished. You likely have strong instincts about fairness, respond intensely to injustice, and prefer direct communication. The underlying logic is: safety through strength and not being vulnerable to others' power.
+
+What can recede from awareness is vulnerability itself—the softer emotions, the need for others, the places where you're not as invincible as you present. The pattern produces genuine leadership and protective capacity but can create intensity that overwhelms and difficulty with the dependence inherent in intimacy.""",
+
+    9: """Your core pattern organizes around harmony, stability, and maintaining inner peace. You tend to see multiple perspectives, find areas of agreement, and create comfortable environments. This isn't passivity—it's a genuine capacity for acceptance and a strong aversion to conflict.
+
+The strategy involves creating peace through merging and accommodation: going along to get along, diffusing tension, minimizing your own agenda to maintain connection. You likely bring a calming presence and can hold space for different viewpoints. The underlying logic is: comfort through harmony and not rocking the boat.
+
+What can disappear is your own position, preferences, and vitality—the self getting lost in service of not creating friction. The pattern produces genuine warmth and diplomatic skill but can create inertia, difficulty with assertion, and a life shaped more by others' agendas than your own."""
+}
+
+ENNEAGRAM_WORKS_WELL = {
+    1: """This pattern works well in situations requiring discernment, quality control, and principled decision-making. You're often the person who catches what others miss—the error in the document, the flaw in the plan, the inconsistency in the argument. This perceptual acuity is genuinely valuable.
+
+The pattern excels when standards matter: ethical questions, quality assurance, process improvement, teaching, editing, or any domain where getting it right has real consequences. Your internal compass for "how it should be" can serve as a reliable guide when others are cutting corners.
+
+The pattern also serves well in self-improvement contexts. You likely have capacity for genuine growth because you don't let yourself off the hook easily. The same mechanism that creates inner tension also drives real development.""",
+
+    2: """This pattern works well in situations requiring emotional intelligence, relationship-building, and responsive support. You're often the person who notices when someone is struggling before they've said anything—the colleague who needs encouragement, the friend going through something, the client who needs extra attention.
+
+The pattern excels in caregiving, hospitality, sales, counseling, or any domain where reading people and responding to their needs creates value. Your attunement is a genuine skill, not just a personality trait. You pick up on signals that others miss and can adapt your approach accordingly.
+
+The pattern also serves well in building networks and maintaining relationships. The connections you create are real; the care you extend has genuine impact. People remember how you made them feel.""",
+
+    3: """This pattern works well in situations requiring achievement, efficiency, and effective presentation. You're often the person who can identify what success looks like in a given context and orient toward it with minimal wasted motion. This adaptability is genuinely useful.
+
+The pattern excels in goal-driven environments: business, performance, leadership, marketing, or any domain where results matter and image influences outcomes. Your capacity to read what works and become it quickly is a real competitive advantage.
+
+The pattern also serves well in motivating others and embodying possibility. Your energy and focus can be contagious; your accomplishments demonstrate what's achievable. When you succeed, it often opens doors for others too.""",
+
+    4: """This pattern works well in situations requiring emotional depth, aesthetic sensitivity, and authentic expression. You're often the person who can articulate what others are feeling but can't name—the nuance in the room, the unspoken tension, the beautiful detail everyone else overlooked.
+
+The pattern excels in creative fields, counseling, writing, design, or any domain where originality and emotional truth create value. Your capacity to access and express genuine feeling is a real gift, not just intensity.
+
+The pattern also serves well in creating meaning and depth in relationships and work. You don't settle for surface-level when something deeper is available. This insistence on authenticity can elevate conversations, projects, and connections.""",
+
+    5: """This pattern works well in situations requiring deep analysis, specialized knowledge, and independent thinking. You're often the person who has actually thought something through—the researcher who followed the thread, the specialist who understands the mechanism, the analyst who sees what the data actually shows.
+
+The pattern excels in knowledge work, research, technical fields, strategy, or any domain where understanding complexity creates value. Your capacity to go deep without getting distracted by social dynamics or superficial engagement is genuinely productive.
+
+The pattern also serves well when independence is required. You don't need hand-holding, external validation, or constant interaction to do good work. You can sustain focus and build expertise in ways that others find difficult.""",
+
+    6: """This pattern works well in situations requiring risk assessment, contingency planning, and building reliable systems. You're often the person who thinks through what could go wrong before it does—the voice that asks the uncomfortable question, the planner who has a backup for the backup.
+
+The pattern excels in security, compliance, project management, troubleshooting, or any domain where anticipating problems prevents them. Your vigilance catches risks that optimists miss.
+
+The pattern also serves well in building genuine trust. Because you don't commit easily, your commitments mean something. The relationships and systems you've tested and found reliable become genuine anchors—for you and for others who benefit from what you've vetted.""",
+
+    7: """This pattern works well in situations requiring vision, synthesis, and energizing possibility. You're often the person who can see how disparate things connect—the opportunity others overlooked, the reframe that makes a problem exciting, the next adventure that keeps momentum going.
+
+The pattern excels in entrepreneurship, brainstorming, teaching, entertainment, or any domain where generating options and maintaining enthusiasm creates value. Your capacity to stay interested and make things interesting is genuinely useful.
+
+The pattern also serves well in resilience contexts. When things get hard, your instinct to find silver linings and alternative paths can prevent despair from taking hold—for you and for others who benefit from your optimism.""",
+
+    8: """This pattern works well in situations requiring decisive action, protection, and direct engagement with difficult realities. You're often the person who can cut through ambiguity, make the call, and handle confrontation that others avoid. This capacity for impact is genuinely valuable.
+
+The pattern excels in leadership, crisis management, advocacy, or any domain where someone needs to take charge and not back down. Your willingness to be the bad guy when necessary, to absorb pushback, to hold ground—these are real contributions.
+
+The pattern also serves well in protection. When something or someone matters to you, you become a formidable advocate. The intensity that can overwhelm in casual contexts becomes exactly what's needed when stakes are high.""",
+
+    9: """This pattern works well in situations requiring mediation, patience, and holding space for different perspectives. You're often the person who can hear all sides without getting triggered—the natural diplomat, the steady presence that doesn't escalate, the listener who helps others feel heard.
+
+The pattern excels in counseling, mediation, team-building, or any domain where reducing friction and creating buy-in creates value. Your capacity to merge and accommodate, while it can disappear you, also genuinely helps groups function.
+
+The pattern also serves well in maintaining stability. In chaotic environments, your unhurried quality becomes an anchor. You don't panic easily, you don't create unnecessary drama, and you can absorb a lot before breaking."""
+}
+
+ENNEAGRAM_TRADEOFF = {
+    1: """The tradeoff to watch: the same internal standard that drives quality can become a persistent source of self-criticism and tension. The inner critic doesn't take vacations.
+
+You may notice that completion rarely brings the relief you'd expect—there's usually something that could have been better, or attention shifts immediately to the next imperfection. The bar keeps rising.
+
+This pattern can create difficulty with rest, play, and accepting "good enough." It can also generate frustration with others who don't share your standards, and a rigidity that struggles when flexibility is actually the better response.
+
+The tradeoff isn't something to fix but to recognize: your standards create value AND they create pressure. Both are true.""",
+
+    2: """The tradeoff to watch: the same relational attunement that creates genuine connection can also blur the line between others' needs and your own. It can become difficult to know what you want independent of what would help someone else.
+
+You may notice that you're better at identifying what others need than what you need—and that asking directly for yourself feels uncomfortable or even manipulative, when the same request from someone else would seem perfectly reasonable.
+
+This pattern can create exhaustion from over-giving, resentment when help isn't reciprocated, and relationships where you're valued for your function more than your full self. It can also make it hard to receive.
+
+The tradeoff isn't something to fix but to recognize: your care creates real value AND it can obscure your own needs. Both are true.""",
+
+    3: """The tradeoff to watch: the same efficiency and image-awareness that drives achievement can also create distance from authentic experience. It can become difficult to know what you actually feel versus what's useful to feel.
+
+You may notice that you adapt so smoothly to different contexts that there isn't always a clear "you" underneath the performance—or that emotions feel like obstacles to productivity rather than information to integrate.
+
+This pattern can create a life that looks impressive but feels empty, relationships where you're valued for what you accomplish more than who you are, and a vulnerability to external validation determining your worth.
+
+The tradeoff isn't something to fix but to recognize: your achievement creates real value AND it can operate at the expense of presence. Both are true.""",
+
+    4: """The tradeoff to watch: the same depth and authenticity-orientation that creates meaning can also amplify suffering. Emotional intensity becomes the proof of being real, and ordinary contentment can feel like it doesn't count.
+
+You may notice that you're drawn to what's missing rather than what's present—that comparison comes easily, that longing has become familiar, that others seem to have an ease or stability you can't access.
+
+This pattern can create chronic dissatisfaction, relationships shadowed by idealization and disappointment, and difficulty with contentment that doesn't feel like settling. It can also make "ordinary" hard to tolerate.
+
+The tradeoff isn't something to fix but to recognize: your depth creates real value AND it can amplify what's lacking. Both are true.""",
+
+    5: """The tradeoff to watch: the same self-sufficiency and analytical capacity that builds expertise can also create isolation. The world observed from a safe distance is not the same as life fully lived.
+
+You may notice that you need to understand before you can engage—that spontaneous participation feels risky, that you'd rather have more information before committing. The preparation can become indefinite.
+
+This pattern can create a contracted life, relationships that stay more intellectual than intimate, and a sense of needing to earn the right to participate through sufficient knowledge. It can also drain vitality through excessive withdrawal.
+
+The tradeoff isn't something to fix but to recognize: your independence creates real value AND it can operate at the expense of engagement. Both are true.""",
+
+    6: """The tradeoff to watch: the same vigilance and questioning that provides security can also become self-perpetuating. The scanning for threats doesn't stop when threats are addressed—it finds new ones.
+
+You may notice that certainty is elusive—that even when evidence points one direction, doubt finds another angle. Trust, once established, can be undermined by the same questioning that vetted it in the first place.
+
+This pattern can create chronic anxiety, difficulty enjoying what's going well, and relationships where testing becomes exhausting for everyone. It can also lead to paralysis when decisions don't offer guaranteed safety.
+
+The tradeoff isn't something to fix but to recognize: your vigilance creates real value AND it can perpetuate the very anxiety it's trying to resolve. Both are true.""",
+
+    7: """The tradeoff to watch: the same optimism and possibility-seeking that generates energy can also prevent full engagement with what's actually here. The next thing becomes more compelling than completing this one.
+
+You may notice that depth comes harder than breadth—that staying with one thing, especially when it gets difficult or boring, triggers the urge to move on. The pattern is always toward more, toward next.
+
+This pattern can create unfinished projects, relationships that are broad but not deep, and difficulty with experiences that can't be reframed into something positive. It can also mean pain gets bypassed rather than processed.
+
+The tradeoff isn't something to fix but to recognize: your expansion creates real value AND it can operate at the expense of depth. Both are true.""",
+
+    8: """The tradeoff to watch: the same strength and directness that creates impact can also overwhelm situations that call for subtlety. The intensity that protects can also intimidate.
+
+You may notice that vulnerability is uncomfortable—that showing soft emotions or needing others feels dangerous. The armor that provides protection can also prevent intimacy and make it hard for others to offer support.
+
+This pattern can create relationships where people are either with you or against you, environments where others don't share fully because the response might be too intense, and a loneliness underneath the self-sufficiency.
+
+The tradeoff isn't something to fix but to recognize: your strength creates real value AND it can operate at the expense of softness. Both are true.""",
+
+    9: """The tradeoff to watch: the same peacemaking and accommodation that creates harmony can also mean losing yourself. The merger that maintains connection can blur into not knowing what you actually want.
+
+You may notice that your opinions are easier to identify in opposition to others' than on their own—that you know what you don't want more clearly than what you do. Your agenda can disappear in service of keeping the peace.
+
+This pattern can create a life shaped by others' priorities, relationships where you're pleasant but not fully present, and an accumulating resentment that eventually surfaces in stubborn resistance.
+
+The tradeoff isn't something to fix but to recognize: your harmony creates real value AND it can operate at the expense of your own presence. Both are true."""
+}
+
+ENNEAGRAM_WING_INFLUENCE = {
+    (1, 9): """Your 9 wing softens some of Type 1's sharper edges. Where the One alone might press harder for correction, the Nine influence adds patience, acceptance, and a capacity to let things be. You may be more tolerant of ambiguity and less driven to immediately fix what's wrong.
+
+This wing can bring a more philosophical quality to your standards—an ability to see the bigger picture and not sweat every detail. It can also add warmth and approachability that pure One energy sometimes lacks.
+
+The shadow is that the Nine's resistance to conflict can mute the One's necessary truth-telling. You might avoid confrontation even when correction is genuinely needed.""",
+
+    (1, 2): """Your 2 wing adds relational warmth to Type 1's principled stance. Where the One alone might focus primarily on standards, the Two influence brings awareness of people and a desire to help others improve, not just point out where they're falling short.
+
+This wing can make your corrections feel more supportive—you're not just identifying problems, you're invested in people succeeding. It can also add emotional intelligence to your ethical clarity.
+
+The shadow is that the Two's need to be needed can compromise the One's objectivity. You might soften standards for people you care about, or become resentful when your help isn't appreciated.""",
+
+    (2, 1): """Your 1 wing adds principled structure to Type 2's relational focus. Where the Two alone might help indiscriminately, the One influence brings discernment about when help is actually useful and a commitment to doing things the right way.
+
+This wing can make your helping more effective—you're not just giving people what they want, you're genuinely trying to serve their development. It adds standards to your care.
+
+The shadow is that the One's critical eye can turn toward those you're helping—or toward yourself when help doesn't produce the desired results. You might become judgmental about how others receive your support.""",
+
+    (2, 3): """Your 3 wing adds achievement-orientation to Type 2's relational focus. Where the Two alone might help quietly, the Three influence brings awareness of image, effectiveness, and the value of being seen as successful at helping.
+
+This wing can make your support more polished and effective—you're not just caring, you're making things happen. It adds ambition and energy to your relational gifts.
+
+The shadow is that the Three's image-consciousness can make your helping more about being seen as helpful than actually serving. You might track whether your generosity is noticed and valued.""",
+
+    (3, 2): """Your 2 wing adds relational warmth to Type 3's achievement focus. Where the Three alone might optimize for results, the Two influence brings genuine care for people and a desire to succeed in ways that also help others.
+
+This wing can make your achievements feel less cold—you're not just winning, you're bringing people along. It adds heart to your effectiveness and makes success more personally meaningful.
+
+The shadow is that the Two's need for appreciation can make you dependent on others' validation of your achievements. Success that isn't recognized might not feel like success.""",
+
+    (3, 4): """Your 4 wing adds emotional depth to Type 3's achievement focus. Where the Three alone might optimize for external success, the Four influence brings awareness of authenticity, uniqueness, and whether achievements actually reflect who you really are.
+
+This wing can make your success more meaningful—you're not just achieving what's valued, you're creating something that feels personally significant. It adds soul to your ambition.
+
+The shadow is that the Four's comparison tendency can create doubt about your achievements. Even when you succeed, you might wonder if it was the "real" you who accomplished it.""",
+
+    (4, 3): """Your 3 wing adds practical effectiveness to Type 4's depth-seeking. Where the Four alone might dwell in feeling, the Three influence brings capacity to package and present authentic experience in ways that land with others.
+
+This wing can make your creativity more productive—you're not just feeling deeply, you're channeling that depth into visible accomplishment. It adds polish and ambition to your emotional gifts.
+
+The shadow is that the Three's image-awareness can compromise authenticity—the very thing you value most. You might present a curated version of depth rather than the messy real thing.""",
+
+    (4, 5): """Your 5 wing adds intellectual structure to Type 4's emotional depth. Where the Four alone might swim in feeling, the Five influence brings analytical capacity and a desire to understand the patterns beneath emotional experience.
+
+This wing can make your depth more articulate—you're not just feeling things, you're developing frameworks for what you perceive. It adds thinking to your feeling.
+
+The shadow is that the Five's withdrawal tendency can amplify the Four's sense of being different and alone. You might retreat into private analysis rather than risking authentic emotional connection.""",
+
+    (5, 4): """Your 4 wing adds emotional depth to Type 5's analytical nature. Where the Five alone might stay purely intellectual, the Four influence brings awareness of feeling, aesthetics, and personal significance beneath the analysis.
+
+This wing can make your understanding more nuanced—you're not just thinking, you're perceiving with emotional intelligence. It adds heart to your head.
+
+The shadow is that the Four's intensity can amplify isolation. You might feel too different to connect, and the emotional coloring of your analysis might make it feel more personal than the Five would typically allow.""",
+
+    (5, 6): """Your 6 wing adds security-awareness to Type 5's knowledge-seeking. Where the Five alone might pursue understanding for its own sake, the Six influence brings attention to reliability, contingency, and practical application of what you know.
+
+This wing can make your expertise more grounded—you're not just accumulating knowledge, you're building something you can depend on. It adds vigilance to your investigation.
+
+The shadow is that the Six's doubt can compromise confidence in what you know. You might need more certainty before trusting your own conclusions, leading to analysis paralysis.""",
+
+    (6, 5): """Your 5 wing adds analytical independence to Type 6's security-seeking. Where the Six alone might look outward for reassurance, the Five influence brings capacity to trust your own thinking and build internal foundations of understanding.
+
+This wing can make your questioning more productive—you're not just doubting, you're investigating. It adds intellectual self-sufficiency to your vigilance.
+
+The shadow is that the Five's withdrawal can amplify isolation when you're anxious. You might retreat into your head rather than reaching out for support that would actually help.""",
+
+    (6, 7): """Your 7 wing adds optimism and possibility-seeking to Type 6's security focus. Where the Six alone might dwell on what could go wrong, the Seven influence brings capacity to see opportunities and maintain enthusiasm even when uncertain.
+
+This wing can make your vigilance more dynamic—you're not just scanning for threats, you're also scanning for possibilities. It adds levity and forward motion to your caution.
+
+The shadow is that the Seven's avoidance can prevent fully processing anxiety. You might skip to the bright side before genuinely addressing the concerns your Six perceives.""",
+
+    (7, 6): """Your 6 wing adds grounding and follow-through to Type 7's expansive energy. Where the Seven alone might chase novelty indefinitely, the Six influence brings awareness of risks, commitment to what's proven, and capacity to stay with things.
+
+This wing can make your enthusiasm more sustainable—you're not just generating ideas, you're sometimes sticking around to implement them. It adds reliability to your creativity.
+
+The shadow is that the Six's doubt can create anxiety about your choices. The very commitment that grounds you can also trigger fear about missing out on other options.""",
+
+    (7, 8): """Your 8 wing adds intensity and directness to Type 7's expansive energy. Where the Seven alone might keep things light, the Eight influence brings willingness to confront, to take up space, and to pursue what you want with force.
+
+This wing can make your enthusiasm more powerful—you're not just interested in possibilities, you're willing to make them happen. It adds impact to your vision.
+
+The shadow is that the Eight's intensity can overwhelm situations that call for lightness. Your pursuit of stimulation can become aggressive, and you might bulldoze when charm would work better.""",
+
+    (8, 7): """Your 7 wing adds optimism and versatility to Type 8's forceful energy. Where the Eight alone might confront relentlessly, the Seven influence brings capacity to reframe, to find alternatives, and to keep things from getting too heavy.
+
+This wing can make your strength more appealing—you're not just powerful, you're also fun. It adds charm and mental agility to your direct approach.
+
+The shadow is that the Seven's avoidance can prevent full engagement with difficult emotions. You might use activity and new projects to bypass the vulnerability that intimacy requires.""",
+
+    (8, 9): """Your 9 wing adds patience and receptivity to Type 8's forceful energy. Where the Eight alone might push constantly, the Nine influence brings capacity to wait, to receive, and to let things unfold without forcing every outcome.
+
+This wing can make your strength more sustainable—you're not just powerful, you know when to conserve energy. It adds strategic patience to your directness.
+
+The shadow is that the Nine's conflict-avoidance can create internal tension when merged with Eight energy. You might swing between forceful engagement and stubborn withdrawal, rather than finding a middle ground.""",
+
+    (9, 8): """Your 8 wing adds force and boundary-clarity to Type 9's accommodating nature. Where the Nine alone might merge and disappear, the Eight influence brings capacity to assert, to claim space, and to say no when necessary.
+
+This wing can make your peace-making more effective—you're not just harmonizing, you can also draw lines when needed. It adds backbone to your flexibility.
+
+The shadow is that the Eight's intensity can erupt suddenly after extended accommodation. You might suppress and suppress until the force comes out sideways, surprising everyone including yourself.""",
+
+    (9, 1): """Your 1 wing adds principled clarity to Type 9's harmonizing nature. Where the Nine alone might go along to get along, the One influence brings awareness of standards, opinions about how things should be, and capacity to take a position.
+
+This wing can make your diplomacy more grounded—you're not just keeping the peace, you have actual views about what's right. It adds ethical structure to your acceptance.
+
+The shadow is that the One's critical eye can create internal tension when merged with Nine's desire for peace. You might have strong judgments you don't express, creating resentment that leaks out indirectly."""
+}
+
+ENNEAGRAM_NEARBY_STRATEGIES = {
+    1: """Your data shows Type 8 and Type 3 as secondary strategies you sometimes access.
+
+**Type 8 (8w7, likely)**: In some contexts, you shift from internal standards to external assertion. Rather than critiquing toward an ideal, you move toward impact—taking charge, confronting what needs confronting, protecting what matters. This Eight energy can serve as an outlet when controlled refinement isn't working.
+
+**Type 3 (3w4, likely)**: At times, you shift from principled correctness to achievement and effectiveness. Rather than focusing on how things should be done, you focus on getting results, adapting to what works in the current context. This Three energy can bring flexibility when standards become rigid.""",
+
+    2: """Your data shows Type 3 and Type 4 as secondary strategies you sometimes access.
+
+**Type 3 (3w2, likely)**: In some contexts, you shift from relational focus to achievement focus. Rather than attuning to others' needs, you orient toward goals and visible success. This Three energy can serve when pure helping isn't enough—when you need to accomplish something tangible.
+
+**Type 4 (4w3, likely)**: At times, you shift from adaptive helpfulness to authentic self-expression. Rather than shaping yourself to others' needs, you become more aware of your own uniqueness and emotional depth. This Four energy can surface when the helper role feels too constraining.""",
+
+    3: """Your data shows Type 7 and Type 8 as secondary strategies you sometimes access.
+
+**Type 7 (7w8, likely)**: In some contexts, you shift from focused achievement to expansive possibility-seeking. Rather than optimizing for the current goal, you explore options, generate ideas, and maintain enthusiasm. This Seven energy can serve as regeneration between intensive performance periods.
+
+**Type 8 (8w7, likely)**: At times, you shift from image-management to direct assertion. Rather than adapting to what works, you push through with force, taking charge and confronting obstacles directly. This Eight energy can surface when charm and adaptation aren't getting results.""",
+
+    4: """Your data shows Type 2 and Type 5 as secondary strategies you sometimes access.
+
+**Type 2 (2w3, likely)**: In some contexts, you shift from self-focused authenticity to other-focused helpfulness. Rather than dwelling in your own emotional landscape, you attune to others' needs and find identity through connection. This Two energy can serve as a bridge out of isolation.
+
+**Type 5 (5w4, likely)**: At times, you shift from emotional immersion to analytical withdrawal. Rather than feeling everything intensely, you observe from a distance, building understanding through detachment. This Five energy can surface when emotional intensity becomes overwhelming.""",
+
+    5: """Your data shows Type 6 and Type 7 as secondary strategies you sometimes access.
+
+**Type 6 (6w5, likely)**: In some contexts, you shift from pure observation to security-seeking. Rather than staying in neutral analytical mode, you start tracking threats, building contingencies, and seeking reliable ground. This Six energy can surface when uncertainty feels dangerous rather than interesting.
+
+**Type 7 (7w6, likely)**: At times, you shift from focused depth to scattered exploration. Rather than going deep into one topic, you seek stimulation across many areas, maintaining energy through variety. This Seven energy can serve as an escape from the intensity of concentrated investigation.""",
+
+    6: """Your data shows Type 5 and Type 7 as secondary strategies you sometimes access.
+
+**Type 5 (5w6, likely)**: In some contexts, you shift from anxious questioning to detached analysis. Rather than seeking external reassurance, you withdraw into your own thinking, building internal frameworks of understanding. This Five energy can serve when social doubt becomes exhausting.
+
+**Type 7 (7w6, likely)**: At times, you shift from worst-case scanning to best-case imagining. Rather than preparing for what could go wrong, you seek out what could go right, maintaining optimism against the current of doubt. This Seven energy can surface as counterbalance to anxiety.""",
+
+    7: """Your data shows Type 8 and Type 3 as secondary strategies you sometimes access.
+
+**Type 8 (8w7, likely)**: In some contexts, you shift from charming possibility-seeking to forceful assertion. Rather than keeping things light and reframing limitations, you confront directly and take what you want. This Eight energy can surface when charm isn't getting results.
+
+**Type 3 (3w4, likely)**: At times, you shift from scattered exploration to focused achievement. Rather than maintaining optionality, you orient toward specific goals and adapt your presentation to succeed. This Three energy can serve when enthusiasm needs to become accomplishment.""",
+
+    8: """Your data shows Type 7 and Type 3 as secondary strategies you sometimes access.
+
+**Type 7 (7w8, likely)**: In some contexts, you shift from direct confrontation to expansive reframing. Rather than pushing through obstacles, you go around them, finding alternative paths and maintaining optimism. This Seven energy can serve as recovery from intense engagement.
+
+**Type 3 (3w4, likely)**: At times, you shift from raw assertion to strategic achievement. Rather than taking space through force alone, you adapt your presentation to what works in the current context. This Three energy can surface when pure power isn't achieving results.""",
+
+    9: """Your data shows Type 1 and Type 6 as secondary strategies you sometimes access.
+
+**Type 1 (1w9, likely)**: In some contexts, you shift from accepting accommodation to principled criticism. Rather than going along, you notice what's wrong and feel compelled to address it—often surprising others (and yourself) with the strength of your standards.
+
+**Type 6 (6w5, likely)**: At times, you shift from trusting peace to vigilant questioning. Rather than assuming things are fine, you start scanning for problems, testing reliability, building contingencies. This Six energy can surface when the peace you've maintained no longer feels safe."""
+}
+
+def get_cross_lens_alignment(convergence_summary: Optional[str], supported_types: List[int], core_type: int) -> Optional[str]:
+    """Generate cross-lens alignment sentence if meaningful convergence exists."""
+    if not convergence_summary:
+        return None
+    
+    # Check if multiple lenses align
+    if len(supported_types) < 2:
+        return None
+    
+    # Generate alignment sentence based on convergence
+    type_names = {
+        1: "One", 2: "Two", 3: "Three", 4: "Four", 5: "Five",
+        6: "Six", 7: "Seven", 8: "Eight", 9: "Nine"
+    }
+    
+    core_name = type_names.get(core_type, str(core_type))
+    
+    return f"Multiple symbolic lenses point toward Type {core_name} patterns in your data."
+
+
+@api_router.get("/enneagram/deep-dive/{user_id}")
+async def get_enneagram_deep_dive(user_id: str):
+    """
+    Generate Enneagram Deep Dive using the Project Mirror template.
+    
+    Uses assessment v2 output as primary source, with rich pre-written content
+    following the Mirror tone: descriptive, neutral, grounded.
+    
+    Sections:
+    1. Your Core Strategy
+    2. Where This Pattern Works Well
+    3. The Tradeoff to Watch
+    4. How Your Wing Shapes This
+    5. Nearby Strategies You Sometimes Use
+    6. Cross-Lens Alignment (optional)
+    """
+    try:
+        # Get user's Enneagram result
+        result = await db.enneagram_results.find_one({"user_id": user_id})
+        
+        if not result:
+            return {
+                "success": False,
+                "error": "NO_ASSESSMENT",
+                "message": "Complete the Enneagram assessment to access your Deep Dive.",
+                "sections": []
+            }
+        
+        core_type = result.get("inferred_core")
+        wing = result.get("inferred_wing")
+        confidence = result.get("confidence", 0)
+        confidence_tier = result.get("confidence_tier", "low")
+        top_candidates = result.get("top_candidates", [])
+        convergence_summary = result.get("convergence_summary")
+        supported_types = result.get("supported_types", [])
+        computed_details = result.get("enneagram_computed_details", {})
+        debug_scores = result.get("debug_scores", {})
+        
+        if not core_type:
+            return {
+                "success": False,
+                "error": "TYPE_NOT_DETERMINED",
+                "message": "Enneagram type could not be determined from assessment.",
+                "sections": []
+            }
+        
+        # Get nearby strategies (second and third highest probabilities)
+        nearby = []
+        if len(top_candidates) >= 2:
+            for candidate in top_candidates[1:3]:  # Skip first (core type)
+                if candidate.get("probability", 0) > 0.05:  # Only include if significant
+                    nearby.append(candidate.get("type"))
+        
+        # Build wing key
+        wing_key = (core_type, wing) if wing else None
+        
+        # Get content from fallback dictionaries
+        core_strategy = ENNEAGRAM_CORE_STRATEGY.get(core_type, f"Your core pattern centers around Type {core_type} dynamics.")
+        works_well = ENNEAGRAM_WORKS_WELL.get(core_type, f"This Type {core_type} pattern has particular strengths in specific contexts.")
+        tradeoff = ENNEAGRAM_TRADEOFF.get(core_type, f"The tradeoff involves the shadow side of Type {core_type} patterns.")
+        
+        # Get wing influence
+        wing_influence = None
+        if wing_key:
+            wing_influence = ENNEAGRAM_WING_INFLUENCE.get(wing_key)
+        if not wing_influence and wing:
+            # Generic wing description
+            wing_influence = f"Your {wing} wing adds qualities from Type {wing} to your core Type {core_type} pattern. This creates a particular flavor of {core_type}w{wing} that blends the primary strategy with adjacent energies."
+        
+        # Get nearby strategies
+        nearby_strategies = ENNEAGRAM_NEARBY_STRATEGIES.get(core_type)
+        if not nearby_strategies and nearby:
+            nearby_strategies = f"Your assessment data suggests access to Type {nearby[0]} and Type {nearby[1] if len(nearby) > 1 else nearby[0]} as secondary strategies."
+        
+        # Get cross-lens alignment
+        cross_lens = get_cross_lens_alignment(convergence_summary, supported_types, core_type)
+        
+        # Build sections
+        sections = [
+            {
+                "label": "Your Core Strategy",
+                "body": core_strategy
+            },
+            {
+                "label": "Where This Pattern Works Well",
+                "body": works_well
+            },
+            {
+                "label": "The Tradeoff to Watch",
+                "body": tradeoff
+            }
+        ]
+        
+        # Add wing section if wing is determined
+        if wing_influence:
+            sections.append({
+                "label": "How Your Wing Shapes This",
+                "body": wing_influence
+            })
+        
+        # Add nearby strategies if available
+        if nearby_strategies:
+            sections.append({
+                "label": "Nearby Strategies You Sometimes Use",
+                "body": nearby_strategies
+            })
+        
+        # Add cross-lens alignment if meaningful
+        if cross_lens:
+            sections.append({
+                "label": "Cross-Lens Alignment",
+                "body": cross_lens
+            })
+        
+        # Build type description
+        type_names = {
+            1: "The Perfectionist", 2: "The Helper", 3: "The Achiever",
+            4: "The Individualist", 5: "The Investigator", 6: "The Loyalist",
+            7: "The Enthusiast", 8: "The Challenger", 9: "The Peacemaker"
+        }
+        
+        type_label = f"{core_type}w{wing}" if wing else str(core_type)
+        type_name = type_names.get(core_type, "Unknown")
+        
+        # Build mirror prompt
+        mirror_prompts = {
+            1: "Where do you notice the inner standard operating—and where might it be serving you versus constraining you?",
+            2: "When you're helping, how much of that is genuine response to need versus habit or identity?",
+            3: "What would it feel like to be valued for who you are rather than what you accomplish?",
+            4: "What would change if you allowed yourself to be ordinary for a while?",
+            5: "What would it take to feel you know enough to engage fully?",
+            6: "What would it feel like to trust without constant verification?",
+            7: "What might you discover if you stayed with one thing until it got uncomfortable?",
+            8: "Where does the armor protect something worth protecting—and where does it just keep things out?",
+            9: "What happens when you allow your own preferences to matter as much as others'?"
+        }
+        
+        return {
+            "success": True,
+            "title": f"Type {type_label}: {type_name}",
+            "type": core_type,
+            "wing": wing,
+            "type_label": type_label,
+            "type_name": type_name,
+            "confidence": round(confidence, 2),
+            "confidence_tier": confidence_tier,
+            "sections": sections,
+            "mirror_prompt": mirror_prompts.get(core_type, "What patterns do you recognize in your daily experience?"),
+            "computed_details": computed_details,
+            "debug_stamp": {
+                "assessment_version": result.get("version", "v1"),
+                "convergence_applied": convergence_summary is not None,
+                "supported_types": supported_types,
+                "top_candidates": top_candidates[:3] if top_candidates else []
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"[ENNEAGRAM_DEEP_DIVE] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 async def get_enneagram_traits(user_id: str):
     """
     Get trait cards for a user's Enneagram type.
