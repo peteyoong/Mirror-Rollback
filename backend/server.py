@@ -6117,7 +6117,8 @@ async def get_astrology_deep_dive(user_id: str):
                 "node_mode": node_mode
             },
             additional_system_prompt=system_prompt,
-            model="gpt-5.2"
+            model="gpt-5.2",
+            max_tokens=2000  # Deep dives need more tokens for detailed sections
         )
         
         # Parse JSON response
@@ -6755,7 +6756,8 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
                 "compute_integrity_valid": canonical_hd.get('compute_integrity', {}).get('valid', False)
             },
             additional_system_prompt=system_prompt,
-            model="gpt-5.2"
+            model="gpt-5.2",
+            max_tokens=2000  # Deep dives need more tokens for detailed sections
         )
         
         # Parse JSON response
@@ -7334,7 +7336,8 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
                 "compute_integrity_valid": canonical_num.get('compute_integrity', {}).get('valid', False)
             },
             additional_system_prompt=system_prompt,
-            model="gpt-5.2"
+            model="gpt-5.2",
+            max_tokens=2000  # Deep dives need more tokens for detailed sections
         )
         
         # Parse JSON response
@@ -8481,7 +8484,8 @@ Keep it brief and practical. No essays."""
                 "active_card": ctx.active_card_context
             },
             additional_system_prompt=system_prompt,
-            model="gpt-5.2"
+            model="gpt-5.2",
+            max_tokens=2000  # Deep dives need more tokens for detailed sections
         )
         
         # Add assistant message to history
