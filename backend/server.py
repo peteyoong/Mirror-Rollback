@@ -6174,6 +6174,7 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
                 retry_response = await emergent_generate(
                     user_message="Generate the Deep Dive for this user's natal chart. IMPORTANT: Return a COMPLETE, VALID JSON object with all sections fully formed. Do not truncate any text.",
                     endpoint="astrology_deep_dive_retry",
+                    mode="deep_dive",
                     user_id=user_id,
                     context={
                         "lens": "astrology",
