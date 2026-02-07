@@ -579,12 +579,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
     };
     loadDeepDive();
   }, [userId, activeTab, deepDiveData]);
-      } finally {
-        setTraitsLoading(false);
-      }
-    };
-    loadTraitCards();
-  }, [userId]);
 
   // Handle Q&A question submission
   const handleAskQuestion = useCallback(async (question?: string) => {
