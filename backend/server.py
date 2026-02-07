@@ -9048,9 +9048,6 @@ async def get_life_context(context: str, user_id: str):
         )
         reflect_chat.with_model("openai", "gpt-4.1-mini")
         reflect_response = await reflect_chat.send_message(UserMessage(text=reflect_prompt))
-            message=UserMessage(text=reflect_prompt),
-            model="gpt-4.1-mini"
-        )
         sections.append(LifeContextSection(
             label="Reflect",
             body=reflect_response.strip()
