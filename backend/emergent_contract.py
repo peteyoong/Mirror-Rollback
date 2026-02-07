@@ -1152,6 +1152,7 @@ async def emergent_generate(
             system_message=full_system_prompt
         )
         chat.with_model("openai", model)
+        chat.with_params(max_tokens=max_tokens)  # Apply max_tokens parameter
         
         message = UserMessage(text=user_message)
         response = await chat.send_message(message)
