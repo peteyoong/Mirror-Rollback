@@ -6570,19 +6570,25 @@ Profile: {hd_data['profile']}
                 body = section.get("body")
                 if isinstance(body, str):
                     section["body"] = apply_human_design_guardrails(body)
-                elif isinstance(body, dict):
-                    # Handle case where body is a dict (LLM formatting issue)
-                    section["body"] = apply_human_design_guardrails(str(body.get("text", body)))
                 else:
-                    section["body"] = str(body) if body else ""
+                    # Convert any non-string to string first
+                    if isinstance(body, dict):
+                        # Handle case where body is a dict (LLM formatting issue)
+                        body_str = str(body.get("text", body))
+                    else:
+                        body_str = str(body) if body is not None else ""
+                    section["body"] = apply_human_design_guardrails(body_str)
             
             mirror_prompt = result.get("mirror_prompt", "")
             if isinstance(mirror_prompt, str):
                 result["mirror_prompt"] = apply_human_design_guardrails(mirror_prompt)
-            elif isinstance(mirror_prompt, dict):
-                result["mirror_prompt"] = apply_human_design_guardrails(str(mirror_prompt.get("text", mirror_prompt)))
             else:
-                result["mirror_prompt"] = str(mirror_prompt) if mirror_prompt else ""
+                # Convert any non-string to string first
+                if isinstance(mirror_prompt, dict):
+                    mirror_prompt_str = str(mirror_prompt.get("text", mirror_prompt))
+                else:
+                    mirror_prompt_str = str(mirror_prompt) if mirror_prompt is not None else ""
+                result["mirror_prompt"] = apply_human_design_guardrails(mirror_prompt_str)
             result["date"] = today_date
             
             return result
