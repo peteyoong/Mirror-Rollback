@@ -450,11 +450,10 @@ REQUIRED STRUCTURE per section:
 1. ONE CRISP RESONANT STATEMENT - Something specific that might land as "that's me"
 2. ONE SHADOW/PATTERN - A tension or growth edge
 3. ONE REFLECTIVE QUESTION - Invites self-recognition
-4. ONE AGENCY ANCHOR - Reminds them this is a lens, they steer the ship
 
 CRITICAL CONTENT LENGTH RULE:
-- Each section body MUST be 50-70 words (approximately 3-4 sentences)
-- Keep it concise but meaningful
+- Each section body MUST be 40-60 words (approximately 3 sentences)
+- Keep it meaningful and specific
 - Speak to the felt experience, not just trait lists
 
 This structure creates the "that's me" effect WITHOUT slipping into prophecy.
