@@ -1146,6 +1146,8 @@ async def emergent_generate(
         # Generate initial response
         session_id = f"{endpoint}_{user_id}_{datetime.now().timestamp()}" if user_id else f"{endpoint}_{datetime.now().timestamp()}"
         
+        logger.info(f"[EMERGENT_CONTRACT] Generating with model={model}, max_tokens={max_tokens}")
+        
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
             session_id=session_id,
