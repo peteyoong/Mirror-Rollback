@@ -3984,6 +3984,16 @@ async def mirror_chat(request: MirrorChatRequest):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
+        # Auto-migrate chart if needed (e.g., missing nodes)
+        if chart and (request.lens == "astrology" or request.lens is None):
+            try:
+                migration_performed, migration_status, migrated_chart = await check_and_migrate_astrology_chart(request.user_id)
+                if migration_performed:
+                    logger.info(f"[MIRROR_CHAT] Auto-migrated chart for user {request.user_id}: {migration_status}")
+                    chart = migrated_chart
+            except Exception as e:
+                logger.error(f"[MIRROR_CHAT] Migration check failed for user {request.user_id}: {e}")
+        
         # Build context from chart data
         context_parts = []
         
