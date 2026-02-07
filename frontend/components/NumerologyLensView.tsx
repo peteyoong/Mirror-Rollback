@@ -939,17 +939,16 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     fontStyle: 'italic',
   },
-  // Unlock Button Styles (prominent dark button)
+  // Unlock Button Styles (prominent BLACK button)
   unlockButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.text,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.accent,
+    borderWidth: 0,
   },
   unlockButtonContent: {
     flexDirection: 'row',
@@ -963,12 +962,12 @@ const styles = StyleSheet.create({
   unlockButtonTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.text,
+    color: Colors.surface,
     marginBottom: 2,
   },
   unlockButtonSubtitle: {
     fontSize: 13,
-    color: Colors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   // Full Name Display (when entered)
   fullNameCard: {
