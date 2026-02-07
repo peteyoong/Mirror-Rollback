@@ -1780,6 +1780,12 @@ def apply_human_design_guardrails(response_text: str) -> str:
     - No prescriptive advice
     - No claims of missing data when data exists
     """
+    # Type safety - ensure we have a string
+    if not isinstance(response_text, str):
+        if response_text is None:
+            return ""
+        response_text = str(response_text)
+    
     forbidden_patterns = [
         # =================================================================
         # MISSING DATA CLAIMS (CRITICAL - Never claim we don't have data)
