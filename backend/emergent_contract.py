@@ -442,16 +442,23 @@ MODE: Timeline/Transit View
 
     "deep_dive": """
 MODE: Deep Dive / Core Profile
-- Provide depth WITHOUT destiny language
+- Provide SUBSTANTIAL DEPTH WITHOUT destiny language
 - Treat traits as patterns to recognize, not boxes
 - Use "this often shows up as" not "you are"
+- EACH SECTION MUST BE 80-120 WORDS - not brief one-liners
 
 REQUIRED STRUCTURE ("Aha without prediction"):
-Your response MUST include these 4 elements:
+Your response MUST include these 4 elements in EACH section:
 1. ONE CRISP RESONANT STATEMENT - Something specific that might land as "that's me" (but framed as pattern, not identity)
 2. ONE SHADOW/PATTERN - A tension or growth edge, stated non-judgmentally ("Sometimes this pattern also includes...")
 3. ONE REFLECTIVE QUESTION - Invites self-recognition, not advice-seeking
 4. ONE AGENCY ANCHOR - Reminds them this is a lens, they steer the ship ("What you do with this pattern is yours to explore")
+
+CRITICAL CONTENT LENGTH RULE:
+- Each section body MUST be 80-120 words (approximately 4-6 sentences)
+- Do NOT give brief one-sentence placeholders
+- Speak to the felt experience, not just list generic traits
+- Provide enough depth that users feel truly seen
 
 This structure creates the "holy sh*t that's me" effect WITHOUT slipping into prophecy.
 - End with reflection prompts, not conclusions
