@@ -9416,7 +9416,6 @@ async def get_enneagram_deep_dive(user_id: str):
             "confidence": round(confidence, 2),
             "confidence_tier": confidence_tier,
             "sections": sections,
-            "mirror_prompt": mirror_prompts.get(core_type, "What patterns do you recognize in your daily experience?"),
             "computed_details": computed_details,
             "debug_stamp": {
                 "assessment_version": result.get("version", "v1"),
