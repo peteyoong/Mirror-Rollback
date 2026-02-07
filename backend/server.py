@@ -6445,30 +6445,30 @@ Incarnation Cross: {incarnation_cross}
             
             result = json_module.loads(clean_response)
             
-            # Apply guardrails with type safety
-            for section in result.get("sections", []):
-                body = section.get("body")
-                if isinstance(body, str):
-                    section["body"] = apply_human_design_guardrails(body)
-                else:
-                    # Convert any non-string to string first
-                    if isinstance(body, dict):
-                        # Handle case where body is a dict (LLM formatting issue)
-                        body_str = str(body.get("text", body))
-                    else:
-                        body_str = str(body) if body is not None else ""
-                    section["body"] = apply_human_design_guardrails(body_str)
+            # Apply guardrails with type safety - TEMPORARILY DISABLED FOR DEBUGGING
+            # for section in result.get("sections", []):
+            #     body = section.get("body")
+            #     if isinstance(body, str):
+            #         section["body"] = apply_human_design_guardrails(body)
+            #     else:
+            #         # Convert any non-string to string first
+            #         if isinstance(body, dict):
+            #             # Handle case where body is a dict (LLM formatting issue)
+            #             body_str = str(body.get("text", body))
+            #         else:
+            #             body_str = str(body) if body is not None else ""
+            #         section["body"] = apply_human_design_guardrails(body_str)
             
-            mirror_prompt = result.get("mirror_prompt", "")
-            if isinstance(mirror_prompt, str):
-                result["mirror_prompt"] = apply_human_design_guardrails(mirror_prompt)
-            else:
-                # Convert any non-string to string first
-                if isinstance(mirror_prompt, dict):
-                    mirror_prompt_str = str(mirror_prompt.get("text", mirror_prompt))
-                else:
-                    mirror_prompt_str = str(mirror_prompt) if mirror_prompt is not None else ""
-                result["mirror_prompt"] = apply_human_design_guardrails(mirror_prompt_str)
+            # mirror_prompt = result.get("mirror_prompt", "")
+            # if isinstance(mirror_prompt, str):
+            #     result["mirror_prompt"] = apply_human_design_guardrails(mirror_prompt)
+            # else:
+            #     # Convert any non-string to string first
+            #     if isinstance(mirror_prompt, dict):
+            #         mirror_prompt_str = str(mirror_prompt.get("text", mirror_prompt))
+            #     else:
+            #         mirror_prompt_str = str(mirror_prompt) if mirror_prompt is not None else ""
+            #     result["mirror_prompt"] = apply_human_design_guardrails(mirror_prompt_str)
             
             # ALWAYS include core_mechanics anchor - this is the fix for the regression
             result["core_mechanics"] = {
