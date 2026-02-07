@@ -19,8 +19,11 @@ import {
   sendEnneagramChat, 
   getEnneagramTraits,
   askEnneagramQuestion,
+  getEnneagramDeepDive,
   EnneagramTraitCard,
-  EnneagramComputedDetails 
+  EnneagramComputedDetails,
+  EnneagramDeepDiveSection,
+  EnneagramDeepDiveResponse
 } from '../services/api';
 
 // ============================================
