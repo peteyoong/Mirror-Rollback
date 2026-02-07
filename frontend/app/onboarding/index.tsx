@@ -53,7 +53,7 @@ export default function Onboarding() {
 
   // Use ref to track if we just selected a location (synchronous, not batched)
   const justSelectedRef = useRef(false);
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSearchQueryRef = useRef<string>('');
 
   const handleSearchLocation = useCallback(async (query: string) => {
