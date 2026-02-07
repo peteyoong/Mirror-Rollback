@@ -9010,77 +9010,77 @@ The pattern also serves well in maintaining stability. In chaotic environments, 
 }
 
 ENNEAGRAM_TRADEOFF = {
-    1: """The tradeoff to watch: the same internal standard that drives quality can become a persistent source of self-criticism and tension. The inner critic doesn't take vacations.
+    1: """The same internal standard that drives quality can also become a persistent source of self-criticism and tension. The internal audit doesn't take vacations.
 
-You may notice that completion rarely brings the relief you'd expect—there's usually something that could have been better, or attention shifts immediately to the next imperfection. The bar keeps rising.
+You may notice that completion rarely brings the relief you'd expect—there's usually something that could have been better, or attention shifts immediately to the next imperfection. The bar often keeps rising.
 
-This pattern can create difficulty with rest, play, and accepting "good enough." It can also generate frustration with others who don't share your standards, and a rigidity that struggles when flexibility is actually the better response.
+This pattern tends to create difficulty with rest, play, and accepting "good enough." It can also generate frustration with others who don't share your standards, and a rigidity that struggles when flexibility would serve better.
 
-The tradeoff isn't something to fix but to recognize: your standards create value AND they create pressure. Both are true.""",
+Your standards create value, and they create pressure. Both are present.""",
 
-    2: """The tradeoff to watch: the same relational attunement that creates genuine connection can also blur the line between others' needs and your own. It can become difficult to know what you want independent of what would help someone else.
+    2: """The same relational attunement that creates genuine connection can also blur the line between others' needs and your own. It can become difficult to know what you want independent of what would help someone else.
 
-You may notice that you're better at identifying what others need than what you need—and that asking directly for yourself feels uncomfortable or even manipulative, when the same request from someone else would seem perfectly reasonable.
+You may notice that you're better at identifying what others need than what you need—and that asking directly for yourself feels uncomfortable, when the same request from someone else would seem perfectly reasonable.
 
-This pattern can create exhaustion from over-giving, resentment when help isn't reciprocated, and relationships where you're valued for your function more than your full self. It can also make it hard to receive.
+This pattern tends to create exhaustion from over-giving, resentment when help isn't reciprocated, and relationships where you're valued for your function more than your full self. It can also make receiving difficult.
 
-The tradeoff isn't something to fix but to recognize: your care creates real value AND it can obscure your own needs. Both are true.""",
+Your care creates real value, and it can obscure your own needs. Both are present.""",
 
-    3: """The tradeoff to watch: the same efficiency and image-awareness that drives achievement can also create distance from authentic experience. It can become difficult to know what you actually feel versus what's useful to feel.
+    3: """The same efficiency and image-awareness that drives achievement can also create distance from authentic experience. It can become difficult to know what you actually feel versus what's useful to feel.
 
 You may notice that you adapt so smoothly to different contexts that there isn't always a clear "you" underneath the performance—or that emotions feel like obstacles to productivity rather than information to integrate.
 
-This pattern can create a life that looks impressive but feels empty, relationships where you're valued for what you accomplish more than who you are, and a vulnerability to external validation determining your worth.
+This pattern tends to create a life that looks impressive but feels empty, relationships where you're valued for what you accomplish more than who you are, and a vulnerability to external validation determining your worth.
 
-The tradeoff isn't something to fix but to recognize: your achievement creates real value AND it can operate at the expense of presence. Both are true.""",
+Your achievement creates real value, and it can operate at the expense of presence. Both are present.""",
 
-    4: """The tradeoff to watch: the same depth and authenticity-orientation that creates meaning can also amplify suffering. Emotional intensity becomes the proof of being real, and ordinary contentment can feel like it doesn't count.
+    4: """The same depth and authenticity-orientation that creates meaning can also amplify suffering. Emotional intensity becomes the proof of being real, and ordinary contentment can feel like it doesn't count.
 
 You may notice that you're drawn to what's missing rather than what's present—that comparison comes easily, that longing has become familiar, that others seem to have an ease or stability you can't access.
 
-This pattern can create chronic dissatisfaction, relationships shadowed by idealization and disappointment, and difficulty with contentment that doesn't feel like settling. It can also make "ordinary" hard to tolerate.
+This pattern tends to create chronic dissatisfaction, relationships accompanied by idealization and disappointment, and difficulty with contentment that doesn't feel like settling. It can also make "ordinary" hard to tolerate.
 
-The tradeoff isn't something to fix but to recognize: your depth creates real value AND it can amplify what's lacking. Both are true.""",
+Your depth creates real value, and it can amplify what's lacking. Both are present.""",
 
-    5: """The tradeoff to watch: the same self-sufficiency and analytical capacity that builds expertise can also create isolation. The world observed from a safe distance is not the same as life fully lived.
+    5: """The same self-sufficiency and analytical capacity that builds expertise can also create isolation. The world observed from a safe distance is not the same as life fully lived.
 
 You may notice that you need to understand before you can engage—that spontaneous participation feels risky, that you'd rather have more information before committing. The preparation can become indefinite.
 
-This pattern can create a contracted life, relationships that stay more intellectual than intimate, and a sense of needing to earn the right to participate through sufficient knowledge. It can also drain vitality through excessive withdrawal.
+This pattern tends to create a contracted life, relationships that stay more intellectual than intimate, and a sense of needing to earn the right to participate through sufficient knowledge. It can also drain vitality through excessive withdrawal.
 
-The tradeoff isn't something to fix but to recognize: your independence creates real value AND it can operate at the expense of engagement. Both are true.""",
+Your independence creates real value, and it can operate at the expense of engagement. Both are present.""",
 
-    6: """The tradeoff to watch: the same vigilance and questioning that provides security can also become self-perpetuating. The scanning for threats doesn't stop when threats are addressed—it finds new ones.
+    6: """The same vigilance and questioning that provides security can also become self-perpetuating. The scanning for threats doesn't stop when threats are addressed—it finds new ones.
 
 You may notice that certainty is elusive—that even when evidence points one direction, doubt finds another angle. Trust, once established, can be undermined by the same questioning that vetted it in the first place.
 
-This pattern can create chronic anxiety, difficulty enjoying what's going well, and relationships where testing becomes exhausting for everyone. It can also lead to paralysis when decisions don't offer guaranteed safety.
+This pattern tends to create chronic anxiety, difficulty enjoying what's going well, and relationships where testing becomes exhausting for everyone. It can also lead to paralysis when decisions don't offer guaranteed safety.
 
-The tradeoff isn't something to fix but to recognize: your vigilance creates real value AND it can perpetuate the very anxiety it's trying to resolve. Both are true.""",
+Your vigilance creates real value, and it can perpetuate the very anxiety it's trying to resolve. Both are present.""",
 
-    7: """The tradeoff to watch: the same optimism and possibility-seeking that generates energy can also prevent full engagement with what's actually here. The next thing becomes more compelling than completing this one.
+    7: """The same optimism and possibility-seeking that generates energy can also prevent full engagement with what's actually here. The next thing becomes more compelling than completing this one.
 
 You may notice that depth comes harder than breadth—that staying with one thing, especially when it gets difficult or boring, triggers the urge to move on. The pattern is always toward more, toward next.
 
-This pattern can create unfinished projects, relationships that are broad but not deep, and difficulty with experiences that can't be reframed into something positive. It can also mean pain gets bypassed rather than processed.
+This pattern tends to create unfinished projects, relationships that are broad but not deep, and difficulty with experiences that can't be reframed into something positive. It can also mean pain gets bypassed rather than processed.
 
-The tradeoff isn't something to fix but to recognize: your expansion creates real value AND it can operate at the expense of depth. Both are true.""",
+Your expansion creates real value, and it can operate at the expense of depth. Both are present.""",
 
-    8: """The tradeoff to watch: the same strength and directness that creates impact can also overwhelm situations that call for subtlety. The intensity that protects can also intimidate.
+    8: """The same strength and directness that creates impact can also overwhelm situations that call for subtlety. The intensity that protects can also intimidate.
 
 You may notice that vulnerability is uncomfortable—that showing soft emotions or needing others feels dangerous. The armor that provides protection can also prevent intimacy and make it hard for others to offer support.
 
-This pattern can create relationships where people are either with you or against you, environments where others don't share fully because the response might be too intense, and a loneliness underneath the self-sufficiency.
+This pattern tends to create relationships where people are either with you or against you, environments where others don't share fully because the response might be too intense, and a loneliness underneath the self-sufficiency.
 
-The tradeoff isn't something to fix but to recognize: your strength creates real value AND it can operate at the expense of softness. Both are true.""",
+Your strength creates real value, and it can operate at the expense of softness. Both are present.""",
 
-    9: """The tradeoff to watch: the same peacemaking and accommodation that creates harmony can also mean losing yourself. The merger that maintains connection can blur into not knowing what you actually want.
+    9: """The same peacemaking and accommodation that creates harmony can also mean losing yourself. The merger that maintains connection can blur into not knowing what you actually want.
 
 You may notice that your opinions are easier to identify in opposition to others' than on their own—that you know what you don't want more clearly than what you do. Your agenda can disappear in service of keeping the peace.
 
-This pattern can create a life shaped by others' priorities, relationships where you're pleasant but not fully present, and an accumulating resentment that eventually surfaces in stubborn resistance.
+This pattern tends to create a life shaped by others' priorities, relationships where you're pleasant but not fully present, and an accumulating resentment that eventually surfaces in stubborn resistance.
 
-The tradeoff isn't something to fix but to recognize: your harmony creates real value AND it can operate at the expense of your own presence. Both are true."""
+Your harmony creates real value, and it can operate at the expense of your own presence. Both are present."""
 }
 
 ENNEAGRAM_WING_INFLUENCE = {
