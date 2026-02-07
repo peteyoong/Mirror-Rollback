@@ -9086,111 +9086,111 @@ Your harmony creates real value, and it can operate at the expense of your own p
 ENNEAGRAM_WING_INFLUENCE = {
     (1, 9): """Your 9 wing softens some of Type 1's sharper edges. Where the One alone might press harder for correction, the Nine influence adds patience, acceptance, and a capacity to let things be. You may be more tolerant of ambiguity and less driven to immediately fix what's wrong.
 
-This wing can bring a more philosophical quality to your standards—an ability to see the bigger picture and not sweat every detail. It can also add warmth and approachability that pure One energy sometimes lacks.
+This wing tends to bring a more philosophical quality to your standards—an ability to see the bigger picture and not sweat every detail. It can also add warmth and approachability that pure One energy sometimes lacks.
 
-The shadow is that the Nine's resistance to conflict can mute the One's necessary truth-telling. You might avoid confrontation even when correction is genuinely needed.""",
+The Nine's resistance to conflict can also mute the One's truth-telling. Confrontation may be avoided even when correction would serve.""",
 
     (1, 2): """Your 2 wing adds relational warmth to Type 1's principled stance. Where the One alone might focus primarily on standards, the Two influence brings awareness of people and a desire to help others improve, not just point out where they're falling short.
 
-This wing can make your corrections feel more supportive—you're not just identifying problems, you're invested in people succeeding. It can also add emotional intelligence to your ethical clarity.
+This wing tends to make corrections feel more supportive—you're not just identifying problems, you're invested in people succeeding. It can also add emotional intelligence to your ethical clarity.
 
-The shadow is that the Two's need to be needed can compromise the One's objectivity. You might soften standards for people you care about, or become resentful when your help isn't appreciated.""",
+The Two's need to be needed can also compromise the One's objectivity. Standards may soften for people you care about, and resentment can surface when help isn't appreciated.""",
 
     (2, 1): """Your 1 wing adds principled structure to Type 2's relational focus. Where the Two alone might help indiscriminately, the One influence brings discernment about when help is actually useful and a commitment to doing things the right way.
 
-This wing can make your helping more effective—you're not just giving people what they want, you're genuinely trying to serve their development. It adds standards to your care.
+This wing tends to make your helping more effective—you're not just giving people what they want, you're genuinely trying to serve their development. It adds standards to your care.
 
-The shadow is that the One's critical eye can turn toward those you're helping—or toward yourself when help doesn't produce the desired results. You might become judgmental about how others receive your support.""",
+The One's critical eye can also turn toward those you're helping—or toward yourself when help doesn't produce the desired results. Judgment about how others receive your support may emerge.""",
 
     (2, 3): """Your 3 wing adds achievement-orientation to Type 2's relational focus. Where the Two alone might help quietly, the Three influence brings awareness of image, effectiveness, and the value of being seen as successful at helping.
 
-This wing can make your support more polished and effective—you're not just caring, you're making things happen. It adds ambition and energy to your relational gifts.
+This wing tends to make your support more polished and effective—you're not just caring, you're making things happen. It adds ambition and energy to your relational gifts.
 
-The shadow is that the Three's image-consciousness can make your helping more about being seen as helpful than actually serving. You might track whether your generosity is noticed and valued.""",
+The Three's image-consciousness can also make helping more about being seen as helpful than actually serving. Tracking whether your generosity is noticed and valued may become prominent.""",
 
     (3, 2): """Your 2 wing adds relational warmth to Type 3's achievement focus. Where the Three alone might optimize for results, the Two influence brings genuine care for people and a desire to succeed in ways that also help others.
 
-This wing can make your achievements feel less cold—you're not just winning, you're bringing people along. It adds heart to your effectiveness and makes success more personally meaningful.
+This wing tends to make achievements feel less cold—you're not just winning, you're bringing people along. It adds heart to your effectiveness and makes success more personally meaningful.
 
-The shadow is that the Two's need for appreciation can make you dependent on others' validation of your achievements. Success that isn't recognized might not feel like success.""",
+The Two's need for appreciation can also create dependence on others' validation of your achievements. Success that isn't recognized may not register as success.""",
 
     (3, 4): """Your 4 wing adds emotional depth to Type 3's achievement focus. Where the Three alone might optimize for external success, the Four influence brings awareness of authenticity, uniqueness, and whether achievements actually reflect who you really are.
 
-This wing can make your success more meaningful—you're not just achieving what's valued, you're creating something that feels personally significant. It adds soul to your ambition.
+This wing tends to make success more meaningful—you're not just achieving what's valued, you're creating something that feels personally significant. It adds soul to your ambition.
 
-The shadow is that the Four's comparison tendency can create doubt about your achievements. Even when you succeed, you might wonder if it was the "real" you who accomplished it.""",
+The Four's comparison tendency can also create doubt about your achievements. Even when you succeed, wondering whether it was the "real" you who accomplished it may surface.""",
 
     (4, 3): """Your 3 wing adds practical effectiveness to Type 4's depth-seeking. Where the Four alone might dwell in feeling, the Three influence brings capacity to package and present authentic experience in ways that land with others.
 
-This wing can make your creativity more productive—you're not just feeling deeply, you're channeling that depth into visible accomplishment. It adds polish and ambition to your emotional gifts.
+This wing tends to make creativity more productive—you're not just feeling deeply, you're channeling that depth into visible accomplishment. It adds polish and ambition to your emotional gifts.
 
-The shadow is that the Three's image-awareness can compromise authenticity—the very thing you value most. You might present a curated version of depth rather than the messy real thing.""",
+The Three's image-awareness can also compromise authenticity—the very thing you value most. A curated version of depth rather than the messy real thing may emerge.""",
 
     (4, 5): """Your 5 wing adds intellectual structure to Type 4's emotional depth. Where the Four alone might swim in feeling, the Five influence brings analytical capacity and a desire to understand the patterns beneath emotional experience.
 
-This wing can make your depth more articulate—you're not just feeling things, you're developing frameworks for what you perceive. It adds thinking to your feeling.
+This wing tends to make depth more articulate—you're not just feeling things, you're developing frameworks for what you perceive. It adds thinking to your feeling.
 
-The shadow is that the Five's withdrawal tendency can amplify the Four's sense of being different and alone. You might retreat into private analysis rather than risking authentic emotional connection.""",
+The Five's withdrawal tendency can also amplify the Four's sense of being different and alone. Retreating into private analysis rather than risking authentic emotional connection may become prominent.""",
 
     (5, 4): """Your 4 wing adds emotional depth to Type 5's analytical nature. Where the Five alone might stay purely intellectual, the Four influence brings awareness of feeling, aesthetics, and personal significance beneath the analysis.
 
-This wing can make your understanding more nuanced—you're not just thinking, you're perceiving with emotional intelligence. It adds heart to your head.
+This wing tends to make understanding more nuanced—you're not just thinking, you're perceiving with emotional intelligence. It adds heart to your head.
 
-The shadow is that the Four's intensity can amplify isolation. You might feel too different to connect, and the emotional coloring of your analysis might make it feel more personal than the Five would typically allow.""",
+The Four's intensity can also amplify isolation. Feeling too different to connect may surface, and the emotional coloring of your analysis might make it feel more personal than the Five would typically allow.""",
 
     (5, 6): """Your 6 wing adds security-awareness to Type 5's knowledge-seeking. Where the Five alone might pursue understanding for its own sake, the Six influence brings attention to reliability, contingency, and practical application of what you know.
 
-This wing can make your expertise more grounded—you're not just accumulating knowledge, you're building something you can depend on. It adds vigilance to your investigation.
+This wing tends to make expertise more grounded—you're not just accumulating knowledge, you're building something you can depend on. It adds vigilance to your investigation.
 
-The shadow is that the Six's doubt can compromise confidence in what you know. You might need more certainty before trusting your own conclusions, leading to analysis paralysis.""",
+The Six's doubt can also compromise confidence in what you know. Needing more certainty before trusting your own conclusions, leading to analysis paralysis, may emerge.""",
 
     (6, 5): """Your 5 wing adds analytical independence to Type 6's security-seeking. Where the Six alone might look outward for reassurance, the Five influence brings capacity to trust your own thinking and build internal foundations of understanding.
 
-This wing can make your questioning more productive—you're not just doubting, you're investigating. It adds intellectual self-sufficiency to your vigilance.
+This wing tends to make questioning more productive—you're not just doubting, you're investigating. It adds intellectual self-sufficiency to your vigilance.
 
-The shadow is that the Five's withdrawal can amplify isolation when you're anxious. You might retreat into your head rather than reaching out for support that would actually help.""",
+The Five's withdrawal can also amplify isolation when you're anxious. Retreating into your head rather than reaching out for support that would actually help may become prominent.""",
 
     (6, 7): """Your 7 wing adds optimism and possibility-seeking to Type 6's security focus. Where the Six alone might dwell on what could go wrong, the Seven influence brings capacity to see opportunities and maintain enthusiasm even when uncertain.
 
-This wing can make your vigilance more dynamic—you're not just scanning for threats, you're also scanning for possibilities. It adds levity and forward motion to your caution.
+This wing tends to make vigilance more dynamic—you're not just scanning for threats, you're also scanning for possibilities. It adds levity and forward motion to your caution.
 
-The shadow is that the Seven's avoidance can prevent fully processing anxiety. You might skip to the bright side before genuinely addressing the concerns your Six perceives.""",
+The Seven's avoidance can also prevent fully processing anxiety. Skipping to the bright side before genuinely addressing the concerns your Six perceives may emerge.""",
 
     (7, 6): """Your 6 wing adds grounding and follow-through to Type 7's expansive energy. Where the Seven alone might chase novelty indefinitely, the Six influence brings awareness of risks, commitment to what's proven, and capacity to stay with things.
 
-This wing can make your enthusiasm more sustainable—you're not just generating ideas, you're sometimes sticking around to implement them. It adds reliability to your creativity.
+This wing tends to make enthusiasm more sustainable—you're not just generating ideas, you're sometimes sticking around to implement them. It adds reliability to your creativity.
 
-The shadow is that the Six's doubt can create anxiety about your choices. The very commitment that grounds you can also trigger fear about missing out on other options.""",
+The Six's doubt can also create anxiety about your choices. The very commitment that grounds you can also trigger fear about missing out on other options.""",
 
     (7, 8): """Your 8 wing adds intensity and directness to Type 7's expansive energy. Where the Seven alone might keep things light, the Eight influence brings willingness to confront, to take up space, and to pursue what you want with force.
 
-This wing can make your enthusiasm more powerful—you're not just interested in possibilities, you're willing to make them happen. It adds impact to your vision.
+This wing tends to make enthusiasm more powerful—you're not just interested in possibilities, you're willing to make them happen. It adds impact to your vision.
 
-The shadow is that the Eight's intensity can overwhelm situations that call for lightness. Your pursuit of stimulation can become aggressive, and you might bulldoze when charm would work better.""",
+The Eight's intensity can also overwhelm situations that call for lightness. Your pursuit of stimulation can become aggressive, and bulldozing when charm would work better may emerge.""",
 
     (8, 7): """Your 7 wing adds optimism and versatility to Type 8's forceful energy. Where the Eight alone might confront relentlessly, the Seven influence brings capacity to reframe, to find alternatives, and to keep things from getting too heavy.
 
-This wing can make your strength more appealing—you're not just powerful, you're also fun. It adds charm and mental agility to your direct approach.
+This wing tends to make strength more appealing—you're not just powerful, you're also fun. It adds charm and mental agility to your direct approach.
 
-The shadow is that the Seven's avoidance can prevent full engagement with difficult emotions. You might use activity and new projects to bypass the vulnerability that intimacy requires.""",
+The Seven's avoidance can also prevent full engagement with difficult emotions. Using activity and new projects to bypass the vulnerability that intimacy requires may emerge.""",
 
     (8, 9): """Your 9 wing adds patience and receptivity to Type 8's forceful energy. Where the Eight alone might push constantly, the Nine influence brings capacity to wait, to receive, and to let things unfold without forcing every outcome.
 
-This wing can make your strength more sustainable—you're not just powerful, you know when to conserve energy. It adds strategic patience to your directness.
+This wing tends to make strength more sustainable—you're not just powerful, you know when to conserve energy. It adds strategic patience to your directness.
 
-The shadow is that the Nine's conflict-avoidance can create internal tension when merged with Eight energy. You might swing between forceful engagement and stubborn withdrawal, rather than finding a middle ground.""",
+The Nine's conflict-avoidance can also create internal tension when merged with Eight energy. Swinging between forceful engagement and stubborn withdrawal, rather than finding a middle ground, may emerge.""",
 
     (9, 8): """Your 8 wing adds force and boundary-clarity to Type 9's accommodating nature. Where the Nine alone might merge and disappear, the Eight influence brings capacity to assert, to claim space, and to say no when necessary.
 
-This wing can make your peace-making more effective—you're not just harmonizing, you can also draw lines when needed. It adds backbone to your flexibility.
+This wing tends to make peace-making more effective—you're not just harmonizing, you can also draw lines when needed. It adds backbone to your flexibility.
 
-The shadow is that the Eight's intensity can erupt suddenly after extended accommodation. You might suppress and suppress until the force comes out sideways, surprising everyone including yourself.""",
+The Eight's intensity can also erupt suddenly after extended accommodation. Suppressing and suppressing until the force comes out sideways, surprising everyone including yourself, may emerge.""",
 
     (9, 1): """Your 1 wing adds principled clarity to Type 9's harmonizing nature. Where the Nine alone might go along to get along, the One influence brings awareness of standards, opinions about how things should be, and capacity to take a position.
 
-This wing can make your diplomacy more grounded—you're not just keeping the peace, you have actual views about what's right. It adds ethical structure to your acceptance.
+This wing tends to make diplomacy more grounded—you're not just keeping the peace, you have actual views about what's right. It adds ethical structure to your acceptance.
 
-The shadow is that the One's critical eye can create internal tension when merged with Nine's desire for peace. You might have strong judgments you don't express, creating resentment that leaks out indirectly."""
+The One's critical eye can also create internal tension when merged with Nine's desire for peace. Strong judgments that don't get expressed may surface, creating resentment that leaks out indirectly."""
 }
 
 ENNEAGRAM_NEARBY_STRATEGIES = {
