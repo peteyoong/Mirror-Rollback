@@ -562,6 +562,30 @@ export default function EnneagramLensView({ result, userId }: Props) {
     loadTraitCards();
   }, [userId]);
 
+  // Load Deep Dive data when tab is selected
+  useEffect(() => {
+    const loadDeepDive = async () => {
+      if (!userId || activeTab !== 'deep_dive' || deepDiveData) return;
+      
+      setDeepDiveLoading(true);
+      try {
+        const response = await getEnneagramDeepDive(userId);
+        setDeepDiveData(response);
+      } catch (error) {
+        console.error('Failed to load deep dive:', error);
+      } finally {
+        setDeepDiveLoading(false);
+      }
+    };
+    loadDeepDive();
+  }, [userId, activeTab, deepDiveData]);
+      } finally {
+        setTraitsLoading(false);
+      }
+    };
+    loadTraitCards();
+  }, [userId]);
+
   // Handle Q&A question submission
   const handleAskQuestion = useCallback(async (question?: string) => {
     const questionToAsk = question || qaQuestion;
