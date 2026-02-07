@@ -6265,17 +6265,42 @@ def extract_human_design_data(chart: dict) -> dict:
     hd = chart.get('human_design', {})
     
     # Parse incarnation cross to extract gates
-    incarnation_cross = hd.get('incarnation_cross', 'Unknown')
+    incarnation_cross_raw = hd.get('incarnation_cross', 'Unknown')
     incarnation_cross_gates = []
     
-    # Try to extract gate numbers from incarnation cross string
-    # Format: "Right Angle Cross of 23/43" or "LAX Migration (37/5 | 40/35)"
-    if incarnation_cross and incarnation_cross != 'Unknown':
-        # Look for patterns like "23/43" or "37/5" (gate numbers separated by /)
-        gate_pattern = re.findall(r'(\d+)\s*/\s*(\d+)', incarnation_cross)
-        if gate_pattern:
-            for pair in gate_pattern:
-                incarnation_cross_gates.extend([int(g) for g in pair])
+    # Handle dict format (new format): {'name': 'LAX Migration', 'gates': '37/40 | 5/35', ...}
+    if isinstance(incarnation_cross_raw, dict):
+        incarnation_cross = incarnation_cross_raw.get('name', 'Unknown')
+        gates_str = incarnation_cross_raw.get('gates', '')
+        
+        # Extract gates from dict - check for pre-computed gate numbers
+        if 'personality_sun' in incarnation_cross_raw:
+            incarnation_cross_gates = [
+                incarnation_cross_raw.get('personality_sun'),
+                incarnation_cross_raw.get('design_sun'),
+                incarnation_cross_raw.get('personality_earth'),
+                incarnation_cross_raw.get('design_earth')
+            ]
+            # Filter out None values
+            incarnation_cross_gates = [g for g in incarnation_cross_gates if g is not None]
+        elif gates_str:
+            # Parse from gates string like "37/40 | 5/35"
+            gate_pattern = re.findall(r'(\d+)\s*/\s*(\d+)', gates_str)
+            if gate_pattern:
+                for pair in gate_pattern:
+                    incarnation_cross_gates.extend([int(g) for g in pair])
+    else:
+        # Handle string format (legacy format)
+        incarnation_cross = str(incarnation_cross_raw) if incarnation_cross_raw else 'Unknown'
+        
+        # Try to extract gate numbers from incarnation cross string
+        # Format: "Right Angle Cross of 23/43" or "LAX Migration (37/5 | 40/35)"
+        if incarnation_cross and incarnation_cross != 'Unknown':
+            # Look for patterns like "23/43" or "37/5" (gate numbers separated by /)
+            gate_pattern = re.findall(r'(\d+)\s*/\s*(\d+)', incarnation_cross)
+            if gate_pattern:
+                for pair in gate_pattern:
+                    incarnation_cross_gates.extend([int(g) for g in pair])
     
     # If no gates found in cross string, derive from personality/design gates
     # The incarnation cross consists of 4 gates:
