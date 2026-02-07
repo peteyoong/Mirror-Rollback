@@ -6958,9 +6958,45 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
             
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse HD deep dive JSON: {e}")
+            
+            # Generate rich fallback content based on actual HD data
+            type_descriptions = {
+                "Generator": "As a Generator, your energy often feels like a sustainable hum—available and responsive when life brings something that lights you up. You may notice that when you wait to respond rather than initiate, things tend to flow more smoothly. Your sacral response (gut sounds, body sensations) can be a reliable compass when you tune into it. The shadow side of this pattern can show up as frustration when you push through without genuine response.",
+                "Manifesting Generator": "As a Manifesting Generator, your energy tends to move in efficient bursts—you're built for speed and multi-tasking once something genuinely excites you. Waiting to respond before acting, then informing others before you pivot, tends to reduce friction. Your sacral gut response combined with your quick-moving nature creates a unique rhythm. The shadow can appear as scattered energy when you skip the response step.",
+                "Projector": "As a Projector, your energy architecture is different—designed for guiding rather than doing, for seeing deeply into systems and people. When you wait for genuine recognition and invitation, your wisdom lands more powerfully. Your natural gift for seeing others clearly is most effective when received. The shadow can show up as bitterness when you offer guidance that wasn't asked for.",
+                "Manifestor": "As a Manifestor, your energy tends to move in powerful initiating bursts—you're built to start things, to catalyze and impact. Informing others before you act isn't about asking permission, but about reducing the resistance that naturally arises when people are surprised by your movements. The shadow can appear as anger when you feel constrained or when your impact isn't understood.",
+                "Reflector": "As a Reflector, your energy architecture is uniquely open—designed to sample and reflect the health of your environment. Your consistency comes from the lunar cycle rather than fixed inner mechanics. Waiting a full 28 days for major decisions allows you to see what remains true across the whole cycle. The shadow can show up as disappointment when you're in the wrong environment."
+            }
+            
+            authority_descriptions = {
+                "Sacral": "With Sacral authority, your clearest guidance comes through immediate gut responses—the 'uh-huh' or 'unh-unh' that arises before your mind has time to rationalize. Learning to trust these body sounds and sensations, rather than overriding them with logic, tends to lead to more aligned decisions. Notice how your body responds in the moment.",
+                "Emotional": "With Emotional authority, clarity tends to ride a wave—there's an emotional high, a low, and eventually a settling point where you can see more clearly. Rushing decisions during emotional peaks or valleys often leads to regret. Giving yourself time to feel through something, to sleep on it, to wait until the charge settles, reveals what's truly aligned.",
+                "Splenic": "With Splenic authority, your clearest guidance comes as spontaneous intuitive hits—a flash of knowing that arrives once and doesn't repeat. These subtle signals can be easy to override with logic, but they're often right. Learning to catch and trust these in-the-moment flashes, even when they don't make rational sense, tends to serve you well.",
+                "Ego": "With Ego authority, the question to ask is 'Do I have the will for this?' or 'Do I genuinely want this?' Your commitment must feel real in your heart and will. Making promises you don't have the energy to keep tends to deplete you. Notice what you actually have desire and willpower for.",
+                "Self-Projected": "With Self-Projected authority, clarity comes through hearing yourself talk. Discussing decisions out loud with trusted people—not for their advice, but to hear your own voice—reveals what's true for you. Pay attention to what sounds right when you say it, rather than what others suggest.",
+                "Mental": "With Mental authority, you're designed to talk things through externally. Your clarity comes from processing with trusted others, bouncing ideas off different people and environments. The key is not to take their advice, but to notice what resonates and what doesn't as you discuss.",
+                "Lunar": "With Lunar authority, your consistency comes from the 28+ day cycle. For major decisions, waiting a full lunar cycle allows you to experience the choice from many angles. Notice what remains consistently true across the whole cycle rather than making snap decisions.",
+                "None": "With Environmental authority, the spaces you're in matter deeply. Your clarity comes from noticing how different environments affect you. Pay attention to where you feel most yourself, most clear, most healthy—those places support your best decisions."
+            }
+            
+            profile_descriptions = {
+                "1/3": "Your 1/3 profile suggests you learn by building solid foundations (the 1) and through trial and error (the 3). You may need to investigate and understand things deeply before feeling secure, and you learn what works by trying things and discovering what doesn't. This combination creates a practical investigator who knows from experience.",
+                "1/4": "Your 1/4 profile blends a need for deep investigation (the 1) with influence through close networks (the 4). You tend to build expertise through thorough research, and your impact flows through your personal relationships. Trust your need to understand things fully before sharing with your community.",
+                "2/4": "Your 2/4 profile combines natural talent that emerges when called out (the 2) with influence through your network (the 4). You may have gifts you don't fully see until others recognize them, and your impact tends to spread through people who know you personally.",
+                "2/5": "Your 2/5 profile pairs natural hermit tendencies and inherent gifts (the 2) with a universalizing, practical energy others project onto (the 5). You may need alone time to develop your talents, while others often seek you out for practical solutions.",
+                "3/5": "Your 3/5 profile combines learning through trial and error (the 3) with practical problem-solving that others project onto (the 5). Your experience becomes wisdom that others seek, though they may have unrealistic expectations of what you can solve.",
+                "3/6": "Your 3/6 profile moves through phases—the trial and error of the 3 in early life, then a period of observation, eventually emerging as a role model. Your lived experience, including the bumps and discoveries, becomes the foundation of your eventual wisdom.",
+                "4/1": "Your 4/1 profile blends influence through networks (the 4) with a need for deep investigation (the 1). You tend to share your expertise through close relationships, building your influence on a solid foundation of understanding.",
+                "4/6": "Your 4/6 profile combines network influence (the 4) with the three-phase role model journey (the 6). Your wisdom emerges through phases of experience, observation, and eventually stepping into a position where others look to you.",
+                "5/1": "Your 5/1 profile pairs practical problem-solving energy (the 5) with investigative depth (the 1). Others may project expectations onto you as a practical solver, while you're driven to understand things thoroughly from the foundation up.",
+                "5/2": "Your 5/2 profile combines the practical, universalizing energy others project onto (the 5) with natural talents that may go unnoticed by you (the 2). You may be called out to solve problems while needing hermit time to develop your gifts.",
+                "6/2": "Your 6/2 profile brings together the role model journey (the 6) with natural talents (the 2). You move through phases of experience and observation, with inherent gifts that others may recognize before you fully see them yourself.",
+                "6/3": "Your 6/3 profile combines the role model journey (the 6) with learning through trial and error (the 3). Your path to wisdom includes many experiments and discoveries, with phases of stepping back to observe before fully embodying your role."
+            }
+            
             fallback_result = {
-                "success": True,  # Data is valid, just LLM parsing failed
-                "title": "Your Core Mechanics",
+                "success": True,
+                "title": "Your Human Design Profile",
                 "core_mechanics": {
                     "type": hd_type,
                     "strategy": strategy_desc,
@@ -6971,19 +7007,21 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
                     "definition": canonical_hd.get('definition', 'Unknown')
                 },
                 "sections": [
-                    {"label": "Type: Your Energy Architecture", "body": f"As a {hd_type}, there's a particular way energy tends to move through you."},
-                    {"label": "Strategy: Your Engagement Pattern", "body": f"Your design suggests {strategy_desc.lower()}."},
-                    {"label": "Authority: Your Clarity Process", "body": f"With {authority} authority, clarity tends to come in a specific way."},
-                    {"label": "Profile: Your Learning Style", "body": f"Your {profile} profile suggests a particular way you tend to learn and engage with life."},
-                    {"label": "Incarnation Cross: Your Life Direction", "body": f"Your {incarnation_cross.get('name', 'Unknown')} points to a broad life theme you may find yourself oriented around."},
-                    {"label": "Definition & Centers", "body": f"With {canonical_hd.get('definition', 'Unknown')} definition and {', '.join(defined_centers) or 'key'} centers defined, there's a particular way your energy connects."}
+                    {"label": "Type: Your Energy Architecture", "body": type_descriptions.get(hd_type, f"As a {hd_type}, there's a particular way energy tends to move through you, with its own natural rhythm and pace.")},
+                    {"label": "Strategy: Your Engagement Pattern", "body": f"Your strategy to {strategy_desc.lower()} points to how you tend to engage most effectively with life. This isn't about limiting yourself, but about noticing what flow feels like when you honor this pattern."},
+                    {"label": "Authority: Your Clarity Process", "body": authority_descriptions.get(authority, f"With {authority} authority, there's a specific way clarity tends to emerge for you, a particular signal to listen for when making decisions.")},
+                    {"label": "Profile: Your Learning Style", "body": profile_descriptions.get(profile, f"Your {profile} profile suggests a particular way you tend to learn, grow, and engage with life themes over time.")},
+                    {"label": "Incarnation Cross: Your Life Direction", "body": f"Your {incarnation_cross.get('name', 'Incarnation Cross')} ({incarnation_cross.get('gates', '')}) points to a broad life theme—not a destiny, but a territory you may find yourself exploring repeatedly."},
+                    {"label": "Definition & Centers", "body": f"With {canonical_hd.get('definition', 'your')} definition connecting {', '.join(defined_centers) if defined_centers else 'your key'} centers, there's a particular way your energy flows and connects within you."}
                 ],
-                "mirror_prompt": "What would be a small, low-stakes way to experiment with this today?",
+                "mirror_prompt": "Where do you notice these patterns playing out in your current experience?",
+                "deeper_data_available": True,
                 "debug_stamp": {
-                    "compute_integrity_valid": canonical_hd.get('compute_integrity', {}).get('valid', False)
+                    "compute_integrity_valid": canonical_hd.get('compute_integrity', {}).get('valid', False),
+                    "fallback_used": True
                 }
             }
-            # Cache fallback too
+            # Cache fallback
             await set_cached_deep_dive(user_id, "human_design", fallback_result)
             return fallback_result
     
