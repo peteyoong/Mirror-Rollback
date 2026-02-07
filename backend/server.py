@@ -5476,6 +5476,12 @@ async def check_and_migrate_astrology_chart(user_id: str) -> Tuple[bool, str, di
         elif len(houses.get('cusps', [])) != 12:
             needs_migration = True
             migration_reason = "incomplete_houses"
+        
+        # Case 2b: Missing nodes (canonical structure)
+        nodes = astro.get('nodes', {})
+        if not nodes or not nodes.get('north', {}).get('sign'):
+            needs_migration = True
+            migration_reason = "missing_nodes"
     
     # Case 3: Empty astrology data
     elif not astro:
