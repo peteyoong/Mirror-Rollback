@@ -649,12 +649,14 @@ const styles = StyleSheet.create({
   timeInput: {
     backgroundColor: Colors.surface,
     borderRadius: 12,
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
     fontSize: 18,
     color: Colors.text,
     borderWidth: 1,
     borderColor: Colors.border,
     textAlign: 'center',
+    minHeight: 52,
   },
   timeSeparator: {
     fontSize: 24,
