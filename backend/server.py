@@ -8898,59 +8898,59 @@ async def get_enneagram_kb_status():
 # Project Mirror Deep Dive Template structure
 
 ENNEAGRAM_CORE_STRATEGY = {
-    1: """Your core pattern organizes around an internal standard of how things should be done—and a persistent awareness of the gap between that standard and what is. This isn't perfectionism in the colloquial sense; it's more like an ongoing internal audit that rarely takes a break.
+    1: """Your core pattern organizes around an internal standard of how things should be done—and a persistent awareness of the gap between that standard and what is. This often looks like an ongoing internal audit that rarely takes a break.
 
-You likely notice errors, inconsistencies, and areas for improvement automatically—in systems, in work, in yourself. This perceptual filter runs in the background even when you're not trying to evaluate. The result is often high-quality output and genuine integrity, but also a kind of inner tension that doesn't fully resolve even when external standards are met.
+You likely notice errors, inconsistencies, and areas for improvement automatically—in systems, in work, in yourself. This perceptual filter tends to run in the background even when you're not trying to evaluate. The result is often high-quality output and genuine integrity, alongside a kind of inner tension that doesn't fully resolve even when external standards are met.
 
-The strategy isn't conscious most of the time. It feels like simply seeing what's true—the gap between what is and what should be. The challenge is that the "should" keeps moving, and the inner critic rarely acknowledges completion.""",
+The pattern tends to feel like simply seeing what's true—the gap between what is and what should be. The "should" often keeps moving, and completion rarely registers as complete.""",
 
-    2: """Your core pattern organizes around relational connection and being needed. You tend to orient toward others' emotional states and needs, often sensing what people want before they've fully articulated it. This attunement isn't manipulation—it's a genuine capacity for empathic tracking.
+    2: """Your core pattern organizes around relational connection and being needed. You tend to orient toward others' emotional states and needs, often sensing what people want before they've fully articulated it. This attunement shows up as a genuine capacity for empathic tracking.
 
-The strategy involves creating value through help, warmth, and interpersonal responsiveness. You may find yourself naturally adapting to different relationships, bringing out different facets of yourself depending on who you're with. The underlying logic is: connection through contribution.
+The pattern involves creating value through help, warmth, and interpersonal responsiveness. You may find yourself naturally adapting to different relationships, bringing out different facets of yourself depending on who you're with. Connection often routes through contribution.
 
-What can go unnoticed is how your own needs operate—they tend to route through others rather than being acknowledged directly. The pattern creates real bonds and genuine helpfulness, but can also lead to an unclear relationship with what you actually want independent of others' responses.""",
+Your own needs tend to operate less visibly—they often route through others rather than being acknowledged directly. The pattern creates real bonds and genuine helpfulness, and can also lead to an unclear relationship with what you actually want independent of others' responses.""",
 
-    3: """Your core pattern organizes around achievement, image, and demonstrating value through accomplishment. You tend to read environments quickly for what success looks like and orient toward that target with efficiency. This isn't vanity—it's a deep alignment between identity and doing.
+    3: """Your core pattern organizes around achievement, image, and demonstrating value through accomplishment. You tend to read environments quickly for what success looks like and orient toward that target with efficiency. This shows up as a deep alignment between identity and doing.
 
-The strategy involves becoming what works: adapting presentation, accelerating toward goals, and maintaining an image of competence and success. You likely move through tasks efficiently and can shift personas to match different contexts. The underlying logic is: worth through achievement and recognition.
+The pattern involves becoming what works: adapting presentation, accelerating toward goals, and maintaining an image of competence and success. You likely move through tasks efficiently and can shift personas to match different contexts. Worth often registers through achievement and recognition.
 
-What can fade from awareness is the felt experience underneath the achieving—emotions, authentic preferences, states that don't serve the current objective. The pattern produces genuine accomplishment but can create distance from the question of what you actually value versus what you're good at pursuing.""",
+The felt experience underneath the achieving—emotions, authentic preferences, states that don't serve the current objective—tends to fade from immediate awareness. The pattern produces genuine accomplishment and can also create distance from questions of personal value versus demonstrated competence.""",
 
-    4: """Your core pattern organizes around authenticity, emotional depth, and a felt sense of personal significance. You tend to track internal experience with unusual precision, noticing emotional nuances that others might miss or dismiss. This isn't drama—it's a genuine orientation toward what feels real.
+    4: """Your core pattern organizes around authenticity, emotional depth, and a felt sense of personal significance. You tend to track internal experience with unusual precision, noticing emotional nuances that others might miss or dismiss. This shows up as a genuine orientation toward what feels real.
 
-The strategy involves creating identity through differentiation: finding what makes you distinct, original, or uniquely expressed. You may be drawn to aesthetics, meaning, and the deeper textures of experience. The underlying logic is: worth through being genuinely yourself, unlike anyone else.
+The pattern involves creating identity through differentiation: finding what makes you distinct, original, or uniquely expressed. You may be drawn to aesthetics, meaning, and the deeper textures of experience. Worth often registers through being genuinely yourself, unlike anyone else.
 
-What can intensify is the sense of deficiency or longing—a feeling that something essential is missing or that others have access to an ease you lack. The pattern produces genuine depth and creative insight but can create suffering around comparison and an elusive sense of completeness.""",
+A sense of deficiency or longing—a feeling that something essential is missing or that others have access to an ease you lack—tends to be present. The pattern produces genuine depth and creative insight, and comparison and an elusive sense of completeness often accompany it.""",
 
-    5: """Your core pattern organizes around understanding, competence, and maintaining sufficient internal resources. You tend to observe before engaging, gathering information and building mental models of how things work. This isn't coldness—it's a genuine need to feel capable before acting.
+    5: """Your core pattern organizes around understanding, competence, and maintaining sufficient internal resources. You tend to observe before engaging, gathering information and building mental models of how things work. This shows up as a need to feel capable before acting.
 
-The strategy involves creating security through knowledge and self-sufficiency. You likely conserve energy, minimize unnecessary demands, and invest deeply in areas of genuine interest. The underlying logic is: safety through understanding and having enough inner resources to handle what comes.
+The pattern involves creating security through knowledge and self-sufficiency. You likely conserve energy, minimize unnecessary demands, and invest deeply in areas of genuine interest. Safety often registers through understanding and having enough inner resources to handle what comes.
 
-What can contract is engagement with the world and your own embodied experience—life lived at some remove, through concepts rather than direct contact. The pattern produces genuine expertise and insight but can create isolation and a sense that you need to know more before you're ready to participate.""",
+Engagement with the world and your own embodied experience tends to contract—life lived at some remove, through concepts rather than direct contact. The pattern produces genuine expertise and insight, and isolation and a sense of needing to know more before participating often accompany it.""",
 
-    6: """Your core pattern organizes around security, contingency, and navigating uncertainty. You tend to scan for potential problems, worst-case scenarios, and hidden threats—not from pessimism but from a genuine drive to be prepared. This is vigilance in service of safety.
+    6: """Your core pattern organizes around security, contingency, and navigating uncertainty. You tend to scan for potential problems, worst-case scenarios, and hidden threats. This shows up as vigilance and a genuine drive to be prepared.
 
-The strategy involves creating stability through anticipation and questioning: testing ideas, checking for consistency, building trusted relationships and systems. You likely think through consequences that others overlook and value reliability. The underlying logic is: safety through foresight and having something solid to trust.
+The pattern involves creating stability through anticipation and questioning: testing ideas, checking for consistency, building trusted relationships and systems. You likely think through consequences that others overlook and value reliability. Safety often registers through foresight and having something solid to trust.
 
-What can amplify is doubt itself—the questioning that serves protection can become self-perpetuating, finding new concerns as fast as old ones resolve. The pattern produces genuine loyalty and valuable risk assessment but can create anxiety and difficulty resting in certainty.""",
+Doubt itself tends to amplify—the questioning that serves protection can become self-perpetuating, finding new concerns as fast as old ones resolve. The pattern produces genuine loyalty and valuable risk assessment, and anxiety and difficulty resting in certainty often accompany it.""",
 
-    7: """Your core pattern organizes around possibility, stimulation, and maintaining access to positive options. You tend to see opportunities, connections between ideas, and potential pathways where others see constraints. This isn't avoidance—it's a genuine orientation toward what could be.
+    7: """Your core pattern organizes around possibility, stimulation, and maintaining access to positive options. You tend to see opportunities, connections between ideas, and potential pathways where others see constraints. This shows up as a genuine orientation toward what could be.
 
-The strategy involves creating freedom through expansion: keeping options open, reframing limitations as opportunities, and moving toward whatever feels interesting or promising. You likely generate energy, synthesize ideas quickly, and resist being pinned down. The underlying logic is: satisfaction through possibility and forward motion.
+The pattern involves creating freedom through expansion: keeping options open, reframing limitations as opportunities, and moving toward whatever feels interesting or promising. You likely generate energy, synthesize ideas quickly, and resist being pinned down. Satisfaction often registers through possibility and forward motion.
 
-What can slip away is depth, completion, and the full weight of difficult emotions—the tendency to move on before fully digesting what's here. The pattern produces genuine optimism and creativity but can create a life that's broad rather than deep, and difficulty with experiences that can't be reframed positively.""",
+Depth, completion, and the full weight of difficult emotions tend to slip away—a tendency to move on before fully digesting what's here. The pattern produces genuine optimism and creativity, and a life that's broad rather than deep often accompanies it.""",
 
-    8: """Your core pattern organizes around strength, impact, and maintaining control over your environment. You tend to move toward challenges directly, preferring to confront rather than accommodate. This isn't aggression—it's a genuine drive to engage with what's real and substantial.
+    8: """Your core pattern organizes around strength, impact, and maintaining control over your environment. You tend to move toward challenges directly, preferring to confront rather than accommodate. This shows up as a genuine drive to engage with what's real and substantial.
 
-The strategy involves creating safety through power and self-reliance: taking up space, protecting what matters, and refusing to be controlled or diminished. You likely have strong instincts about fairness, respond intensely to injustice, and prefer direct communication. The underlying logic is: safety through strength and not being vulnerable to others' power.
+The pattern involves creating safety through power and self-reliance: taking up space, protecting what matters, and refusing to be controlled or diminished. You likely have strong instincts about fairness, respond intensely to injustice, and prefer direct communication. Safety often registers through strength and self-sufficiency.
 
-What can recede from awareness is vulnerability itself—the softer emotions, the need for others, the places where you're not as invincible as you present. The pattern produces genuine leadership and protective capacity but can create intensity that overwhelms and difficulty with the dependence inherent in intimacy.""",
+Vulnerability—the softer emotions, the need for others, the places where invincibility doesn't hold—tends to recede from awareness. The pattern produces genuine leadership and protective capacity, and intensity that overwhelms and difficulty with dependence often accompany it.""",
 
-    9: """Your core pattern organizes around harmony, stability, and maintaining inner peace. You tend to see multiple perspectives, find areas of agreement, and create comfortable environments. This isn't passivity—it's a genuine capacity for acceptance and a strong aversion to conflict.
+    9: """Your core pattern organizes around harmony, stability, and maintaining inner peace. You tend to see multiple perspectives, find areas of agreement, and create comfortable environments. This shows up as a genuine capacity for acceptance and a strong aversion to conflict.
 
-The strategy involves creating peace through merging and accommodation: going along to get along, diffusing tension, minimizing your own agenda to maintain connection. You likely bring a calming presence and can hold space for different viewpoints. The underlying logic is: comfort through harmony and not rocking the boat.
+The pattern involves creating peace through merging and accommodation: going along to get along, diffusing tension, minimizing your own agenda to maintain connection. You likely bring a calming presence and can hold space for different viewpoints. Comfort often registers through harmony and not rocking the boat.
 
-What can disappear is your own position, preferences, and vitality—the self getting lost in service of not creating friction. The pattern produces genuine warmth and diplomatic skill but can create inertia, difficulty with assertion, and a life shaped more by others' agendas than your own."""
+Your own position, preferences, and vitality tend to disappear—the self getting lost in service of not creating friction. The pattern produces genuine warmth and diplomatic skill, and inertia, difficulty with assertion, and a life shaped more by others' agendas often accompany it."""
 }
 
 ENNEAGRAM_WORKS_WELL = {
