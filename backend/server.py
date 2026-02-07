@@ -8738,6 +8738,9 @@ The prompt should start the user's thought and end with "…" or be a question.
 Do not include any labels or headers in your response.
 """
 
+# Soft CTA for journal handoff (used in frontend)
+LIFE_REFLECT_CTA = "Save this reflection to your Journal"
+
 
 async def get_user_combined_lens_data(user_id: str) -> dict:
     """
