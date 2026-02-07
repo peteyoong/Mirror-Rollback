@@ -59,6 +59,27 @@ app = FastAPI()
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Root endpoint for health check and info
+@app.get("/")
+async def root():
+    """Root endpoint - provides API info and health status."""
+    return {
+        "status": "healthy",
+        "app": "Project Mirror",
+        "version": "1.0.0",
+        "message": "API is running. Use /api/* endpoints for data access.",
+        "endpoints": {
+            "health": "/api/health",
+            "lenses": "/api/lenses",
+            "users": "/api/users"
+        }
+    }
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for deployment verification."""
+    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
