@@ -61,6 +61,13 @@ app = FastAPI()
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Configure logging first
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 # Path to the Expo web build
 WEB_BUILD_PATH = Path(__file__).parent.parent / "frontend" / "dist"
 
@@ -118,12 +125,7 @@ else:
             }
         }
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Remove duplicate logging configuration below
 
 # ===========================
 # PYDANTIC MODELS
