@@ -350,6 +350,8 @@ export default function Onboarding() {
                       placeholderTextColor={Colors.textTertiary}
                       keyboardType="number-pad"
                       maxLength={2}
+                      editable={true}
+                      selectTextOnFocus={true}
                     />
                     <Text style={styles.dateLabel}>Hour</Text>
                   </View>
@@ -363,6 +365,8 @@ export default function Onboarding() {
                       placeholderTextColor={Colors.textTertiary}
                       keyboardType="number-pad"
                       maxLength={2}
+                      editable={true}
+                      selectTextOnFocus={true}
                     />
                     <Text style={styles.dateLabel}>Min</Text>
                   </View>
