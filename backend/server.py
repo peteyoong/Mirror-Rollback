@@ -8895,7 +8895,8 @@ def format_lens_data_for_prompt(combined_data: dict, context: str) -> str:
     # Enneagram (without naming it)
     enn = combined_data.get("enneagram")
     if enn and enn.get("type"):
-        parts.append(f"Core motivation pattern: Type {enn.get('type')}{f'w{enn.get(\"wing\")}' if enn.get('wing') else ''}")
+        wing_str = f"w{enn.get('wing')}" if enn.get('wing') else ""
+        parts.append(f"Core motivation pattern: Type {enn.get('type')}{wing_str}")
         if enn.get("center"):
             parts.append(f"Primary center: {enn.get('center').title()}")
     
