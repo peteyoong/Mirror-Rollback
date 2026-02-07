@@ -392,6 +392,47 @@ export const getEnneagramTraits = async (userId: string): Promise<EnneagramTrait
   return response.data;
 };
 
+// Life Context APIs
+export interface LifeContextSection {
+  label: string;
+  body: string;
+}
+
+export interface LifeContextResponse {
+  context: string;
+  title: string;
+  sections: LifeContextSection[];
+  generated_at: string;
+  source_lenses: string[];
+}
+
+export type LifeContextType = 'relationships' | 'work' | 'self';
+
+export const getLifeContext = async (
+  userId: string,
+  context: LifeContextType
+): Promise<LifeContextResponse> => {
+  const response = await apiWithRetry.get(`/life/${context}`, {
+    params: { user_id: userId }
+  });
+  return response.data;
+};
+
+export const getAllLifeContexts = async (userId: string): Promise<{
+  user_id: string;
+  contexts: {
+    relationships: LifeContextResponse | null;
+    work: LifeContextResponse | null;
+    self: LifeContextResponse | null;
+  };
+  generated_at: string;
+}> => {
+  const response = await apiWithRetry.get('/life/contexts/all', {
+    params: { user_id: userId }
+  });
+  return response.data;
+};
+
 // Export both the raw api instance and the retry-wrapped version
 export { apiWithRetry };
 export default api;
