@@ -348,10 +348,11 @@ export default function Onboarding() {
                       onChangeText={(text) => setBirthHour(text.replace(/[^0-9]/g, '').slice(0, 2))}
                       placeholder="HH"
                       placeholderTextColor={Colors.textTertiary}
-                      keyboardType="number-pad"
+                      keyboardType="numeric"
                       maxLength={2}
                       editable={true}
                       selectTextOnFocus={true}
+                      returnKeyType="done"
                     />
                     <Text style={styles.dateLabel}>Hour</Text>
                   </View>
@@ -363,10 +364,11 @@ export default function Onboarding() {
                       onChangeText={(text) => setBirthMinute(text.replace(/[^0-9]/g, '').slice(0, 2))}
                       placeholder="MM"
                       placeholderTextColor={Colors.textTertiary}
-                      keyboardType="number-pad"
+                      keyboardType="numeric"
                       maxLength={2}
                       editable={true}
                       selectTextOnFocus={true}
+                      returnKeyType="done"
                     />
                     <Text style={styles.dateLabel}>Min</Text>
                   </View>
