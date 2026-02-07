@@ -44,6 +44,7 @@ const SECTION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 export default function LifeContextView({ userId, initialContext = 'relationships' }: Props) {
+  const router = useRouter();
   const [activeContext, setActiveContext] = useState<LifeContextType>(initialContext);
   const [data, setData] = useState<LifeContextResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
