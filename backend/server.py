@@ -9393,19 +9393,6 @@ async def get_enneagram_deep_dive(user_id: str):
         type_label = f"{core_type}w{wing}" if wing else str(core_type)
         type_name = type_names.get(core_type, "Unknown")
         
-        # Build mirror prompt
-        mirror_prompts = {
-            1: "Where do you notice the inner standard operating—and where might it be serving you versus constraining you?",
-            2: "When you're helping, how much of that is genuine response to need versus habit or identity?",
-            3: "What would it feel like to be valued for who you are rather than what you accomplish?",
-            4: "What would change if you allowed yourself to be ordinary for a while?",
-            5: "What would it take to feel you know enough to engage fully?",
-            6: "What would it feel like to trust without constant verification?",
-            7: "What might you discover if you stayed with one thing until it got uncomfortable?",
-            8: "Where does the armor protect something worth protecting—and where does it just keep things out?",
-            9: "What happens when you allow your own preferences to matter as much as others'?"
-        }
-        
         return {
             "success": True,
             "title": f"Type {type_label}: {type_name}",
