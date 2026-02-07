@@ -126,4 +126,3 @@ websockets==15.0.1
 yarl==1.22.0
 zipp==3.23.0
 PyMuPDF==1.26.7
-scikit-learn==1.8.0
