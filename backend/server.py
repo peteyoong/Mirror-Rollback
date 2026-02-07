@@ -7578,10 +7578,28 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse numerology deep dive JSON: {e}")
             
-            # Build sections list - always include Life Path and Birthday
+            # Rich fallback descriptions for life path numbers
+            life_path_descriptions = {
+                1: "Life Path 1 suggests a recurring theme around independence, self-reliance, and pioneering energy. You may find yourself drawn to situations that require you to lead, initiate, or stand on your own two feet. The shadow side can show up as isolation or difficulty accepting help. What parts of your life feel like territory only you can navigate?",
+                2: "Life Path 2 points to themes of partnership, diplomacy, and sensitivity to others. You may naturally attune to the needs and feelings of those around you, often mediating or creating harmony. The shadow can appear as losing yourself in others' needs or avoiding conflict to your own detriment. Where do you notice this balancing act?",
+                3: "Life Path 3 brings themes of creative expression, joy, and communication. There's often a pull toward artistic endeavors or finding ways to share your voice with others. The shadow can show up as scattered energy or superficiality when the deeper work feels too heavy. How does creativity move through your life?",
+                4: "Life Path 4 suggests themes of building, structure, and practical foundation. You may be drawn to creating lasting things—whether physical structures, systems, or stable relationships. The shadow can appear as rigidity or getting stuck in routine. What are you building that will last?",
+                5: "Life Path 5 carries themes of freedom, change, and variety. You may find yourself needing more movement and adventure than most, feeling confined by too much routine. The shadow can show up as restlessness or avoiding commitment. Where do you find healthy freedom in your life?",
+                6: "Life Path 6 points to themes of responsibility, nurturing, and domestic harmony. There's often a pull toward caring for others and creating beauty in your environment. The shadow can appear as over-responsibility or martyrdom. How do you care for yourself while caring for others?",
+                7: "Life Path 7 suggests themes of seeking, analysis, and inner wisdom. You may be drawn to understanding life's deeper mysteries, needing time alone to process and reflect. The shadow can show up as isolation or overthinking. What questions are you trying to answer?",
+                8: "Life Path 8 brings themes of power, achievement, and material mastery. There's often a relationship with abundance—learning to both create it and handle it responsibly. The shadow can appear as workaholism or equating worth with success. What does true abundance mean to you?",
+                9: "Life Path 9 points to themes of completion, humanitarianism, and letting go. You may find yourself drawn to serving the greater good or facing lessons about release and closure. The shadow can show up as difficulty completing things or holding on too long. What are you ready to release?",
+                11: "Life Path 11/2 is a master number—carrying both the heightened sensitivity and intuition of 11, and the diplomatic, cooperative qualities of its base number 2. This dual energy often shows up as visionary perception balanced with partnership themes. The intensity can be challenging; learning to ground the 11 energy through the 2 qualities tends to help.",
+                22: "Life Path 22/4 is a master number—combining visionary building (22) with practical foundation (4). You may feel pulled to create something significant that serves many, though this can feel like immense pressure. The shadow is feeling overwhelmed by potential. What are you being called to build?",
+                33: "Life Path 33/6 is a master number—blending the nurturing 6 with master teacher energy. You may feel called to serve on a larger scale, teaching through your own example. The shadow can be self-sacrifice. How do you teach by being, not just doing?"
+            }
+            
+            # Build sections list with rich fallback content
+            life_path_body = life_path_descriptions.get(life_path, f"Your Life Path {life_path} suggests particular themes and lessons that tend to recur throughout your journey. This number points to territory you're here to explore, not a destiny to fulfill.")
+            
             sections = [
-                {"label": f"Life Path {life_path}", "body": f"Your Life Path {life_path} suggests {core.get('life_path_description', 'a particular orientation toward life')}. This number points to recurring themes and lessons that tend to show up throughout your journey."},
-                {"label": f"Birthday Number {birthday_number}", "body": f"Born on the {birthday_number} day, there's {core.get('birthday_description', 'a specific quality to how you engage')}. This adds a secondary emphasis to how you approach things."},
+                {"label": f"Life Path {life_path}", "body": life_path_body},
+                {"label": f"Birthday Number {birthday_number}", "body": f"Born on the {birthday_number} day of the month, there's a particular quality that adds texture to how you engage with life. This number offers a secondary emphasis—a flavor that colors your approach. It's not about defining you, but about recognizing patterns that tend to show up."},
             ]
             
             # Add name-based sections if available
@@ -7589,21 +7607,21 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
                 if expression_number:
                     sections.append({
                         "label": f"Expression {expression_number}",
-                        "body": f"Your Expression number {expression_number} ({core.get('expression_description', 'suggests patterns in how you tend to express yourself')}) points to your outward style and how your energy tends to be expressed in the world."
+                        "body": f"Your Expression number {expression_number} points to how your energy tends to move outward into the world—your natural talents and the way you're inclined to express yourself. Think of it as your operating style, the mode you tend to default to when engaging with external reality."
                     })
                 if soul_urge_number:
                     sections.append({
                         "label": f"Soul Urge {soul_urge_number}",
-                        "body": f"Your Soul Urge number {soul_urge_number} ({core.get('soul_urge_description', 'reflects inner motivations')}) describes what tends to drive you from within—your emotional undertone and deeper motivations."
+                        "body": f"Your Soul Urge number {soul_urge_number} reflects what drives you from within—your deeper emotional undertone and what your heart quietly leans toward. This isn't always visible to others, but it's the motivation beneath the surface of your choices."
                     })
                 if personality_number:
                     sections.append({
                         "label": f"Personality {personality_number}",
-                        "body": f"Your Personality number {personality_number} ({core.get('personality_description', 'shapes first impressions')}) reflects the face you tend to show the world—your first-impression energy and social-facing tone."
+                        "body": f"Your Personality number {personality_number} represents the face you show the world—your first-impression energy and social-facing tone. It's not the whole picture, but it's often what others see before they know you deeper."
                     })
             
             fallback_result = {
-                "success": True,  # Data is valid, just LLM parsing failed
+                "success": True,
                 "title": "Your Core Numbers",
                 "core_numbers": {
                     "life_path": life_path,
@@ -7613,7 +7631,7 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
                     "personality": personality_number if has_name else None
                 },
                 "sections": sections,
-                "mirror_prompt": "Where do you see these patterns showing up in your life?",
+                "mirror_prompt": "Where do you see these patterns showing up in your current experience?",
                 "unlock_required": not has_name,
                 "unlock_prompt": "Add your full birth name to unlock deeper numerology." if not has_name else None,
                 "debug_stamp": {
@@ -7622,7 +7640,7 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
                     "fallback_used": True
                 }
             }
-            # Cache fallback too
+            # Cache fallback
             await set_cached_deep_dive(user_id, "numerology", fallback_result)
             return fallback_result
     
