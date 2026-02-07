@@ -8980,23 +8980,21 @@ async def get_life_context(context: str, user_id: str):
         if not EMERGENT_LLM_KEY:
             raise HTTPException(status_code=500, detail="LLM key not configured")
         
-        llm = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            system_prompt=LIFE_CONTEXT_SYSTEM_PROMPT
-        )
-        
         sections = []
         
-        # Generate each section
+        # Generate each section using separate LLM calls with proper system message
         # 1. Overview
         overview_prompt = LIFE_CONTEXT_OVERVIEW_TEMPLATE.format(
             context_name=context_display[context_name],
             user_data=user_data_text
         )
-        overview_response = await llm.send_message_async(
-            message=UserMessage(text=overview_prompt),
-            model="gpt-4.1-mini"
+        overview_chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"life_overview_{user_id}_{context_name}",
+            system_message=LIFE_CONTEXT_SYSTEM_PROMPT
         )
+        overview_chat.with_model("openai", "gpt-4.1-mini")
+        overview_response = await overview_chat.send_message(UserMessage(text=overview_prompt))
         sections.append(LifeContextSection(
             label="Overview",
             body=overview_response.strip()
@@ -9009,10 +9007,13 @@ async def get_life_context(context: str, user_id: str):
             user_data=user_data_text,
             current_cycles=current_cycles
         )
-        today_response = await llm.send_message_async(
-            message=UserMessage(text=today_prompt),
-            model="gpt-4.1-mini"
+        today_chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"life_today_{user_id}_{context_name}",
+            system_message=LIFE_CONTEXT_SYSTEM_PROMPT
         )
+        today_chat.with_model("openai", "gpt-4.1-mini")
+        today_response = await today_chat.send_message(UserMessage(text=today_prompt))
         sections.append(LifeContextSection(
             label="Today",
             body=today_response.strip()
@@ -9023,10 +9024,13 @@ async def get_life_context(context: str, user_id: str):
             context_name=context_display[context_name],
             user_data=user_data_text
         )
-        explore_response = await llm.send_message_async(
-            message=UserMessage(text=explore_prompt),
-            model="gpt-4.1-mini"
+        explore_chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"life_explore_{user_id}_{context_name}",
+            system_message=LIFE_CONTEXT_SYSTEM_PROMPT
         )
+        explore_chat.with_model("openai", "gpt-4.1-mini")
+        explore_response = await explore_chat.send_message(UserMessage(text=explore_prompt))
         sections.append(LifeContextSection(
             label="Explore",
             body=explore_response.strip()
@@ -9037,7 +9041,13 @@ async def get_life_context(context: str, user_id: str):
             context_name=context_display[context_name],
             user_data=user_data_text
         )
-        reflect_response = await llm.send_message_async(
+        reflect_chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"life_reflect_{user_id}_{context_name}",
+            system_message=LIFE_CONTEXT_SYSTEM_PROMPT
+        )
+        reflect_chat.with_model("openai", "gpt-4.1-mini")
+        reflect_response = await reflect_chat.send_message(UserMessage(text=reflect_prompt))
             message=UserMessage(text=reflect_prompt),
             model="gpt-4.1-mini"
         )
