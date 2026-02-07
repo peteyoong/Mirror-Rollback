@@ -392,6 +392,39 @@ export const getEnneagramTraits = async (userId: string): Promise<EnneagramTrait
   return response.data;
 };
 
+// Enneagram Deep Dive API
+export interface EnneagramDeepDiveSection {
+  label: string;
+  body: string;
+}
+
+export interface EnneagramDeepDiveResponse {
+  success: boolean;
+  title: string;
+  type: number;
+  wing: number | null;
+  type_label: string;
+  type_name: string;
+  confidence: number;
+  confidence_tier: string;
+  sections: EnneagramDeepDiveSection[];
+  mirror_prompt: string;
+  computed_details?: EnneagramComputedDetails;
+  error?: string;
+  message?: string;
+  debug_stamp?: {
+    assessment_version: string;
+    convergence_applied: boolean;
+    supported_types: number[];
+    top_candidates: { type: number; probability: number }[];
+  };
+}
+
+export const getEnneagramDeepDive = async (userId: string): Promise<EnneagramDeepDiveResponse> => {
+  const response = await apiWithRetry.get(`/enneagram/deep-dive/${userId}`);
+  return response.data;
+};
+
 // Life Context APIs
 export interface LifeContextSection {
   label: string;
