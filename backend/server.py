@@ -6125,7 +6125,7 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
             },
             additional_system_prompt=system_prompt,
             model="gpt-5.2",
-            max_tokens=2000  # Deep dives need more tokens for detailed sections
+            max_tokens=4000  # Deep dives need many tokens for detailed sections
         )
         
         # Parse JSON response
@@ -6764,7 +6764,7 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
             },
             additional_system_prompt=system_prompt,
             model="gpt-5.2",
-            max_tokens=2000  # Deep dives need more tokens for detailed sections
+            max_tokens=4000  # Deep dives need many tokens for detailed sections
         )
         
         # Parse JSON response
@@ -7344,7 +7344,7 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
             },
             additional_system_prompt=system_prompt,
             model="gpt-5.2",
-            max_tokens=2000  # Deep dives need more tokens for detailed sections
+            max_tokens=4000  # Deep dives need many tokens for detailed sections
         )
         
         # Parse JSON response
@@ -8492,7 +8492,7 @@ Keep it brief and practical. No essays."""
             },
             additional_system_prompt=system_prompt,
             model="gpt-5.2",
-            max_tokens=2000  # Deep dives need more tokens for detailed sections
+            max_tokens=4000  # Deep dives need many tokens for detailed sections
         )
         
         # Add assistant message to history
