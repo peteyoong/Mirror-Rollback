@@ -108,9 +108,18 @@ export default function LifeContextView({ userId, initialContext = 'relationship
     </View>
   );
 
+  const handleSaveToJournal = (prompt: string) => {
+    // Navigate to journal with pre-filled prompt
+    router.push({
+      pathname: '/(tabs)/journal',
+      params: { prefill: prompt }
+    });
+  };
+
   const renderSection = (section: { label: string; body: string }, index: number) => {
     const isExpanded = expandedSection === section.label;
     const icon = SECTION_ICONS[section.label] || 'ellipse-outline';
+    const isReflect = section.label === 'Reflect';
 
     return (
       <View key={section.label} style={styles.sectionContainer}>
@@ -132,6 +141,16 @@ export default function LifeContextView({ userId, initialContext = 'relationship
         {isExpanded && (
           <View style={styles.sectionContent}>
             <Text style={styles.sectionBody}>{section.body}</Text>
+            {isReflect && (
+              <TouchableOpacity
+                style={styles.journalCTA}
+                onPress={() => handleSaveToJournal(section.body)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="book-outline" size={16} color={Colors.accent} />
+                <Text style={styles.journalCTAText}>Save this reflection to your Journal</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </View>
