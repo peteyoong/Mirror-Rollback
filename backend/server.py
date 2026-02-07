@@ -7037,18 +7037,77 @@ The shadow shows up as ignoring environmental signals in favor of logic, or as i
             }
             
             profile_descriptions = {
-                "1/3": "Your 1/3 profile suggests you learn by building solid foundations (the 1) and through trial and error (the 3). You may need to investigate and understand things deeply before feeling secure, and you learn what works by trying things and discovering what doesn't. This combination creates a practical investigator who knows from experience.",
-                "1/4": "Your 1/4 profile blends a need for deep investigation (the 1) with influence through close networks (the 4). You tend to build expertise through thorough research, and your impact flows through your personal relationships. Trust your need to understand things fully before sharing with your community.",
-                "2/4": "Your 2/4 profile combines natural talent that emerges when called out (the 2) with influence through your network (the 4). You may have gifts you don't fully see until others recognize them, and your impact tends to spread through people who know you personally.",
-                "2/5": "Your 2/5 profile pairs natural hermit tendencies and inherent gifts (the 2) with a universalizing, practical energy others project onto (the 5). You may need alone time to develop your talents, while others often seek you out for practical solutions.",
-                "3/5": "Your 3/5 profile combines learning through trial and error (the 3) with practical problem-solving that others project onto (the 5). Your experience becomes wisdom that others seek, though they may have unrealistic expectations of what you can solve.",
-                "3/6": "Your 3/6 profile moves through phases—the trial and error of the 3 in early life, then a period of observation, eventually emerging as a role model. Your lived experience, including the bumps and discoveries, becomes the foundation of your eventual wisdom.",
-                "4/1": "Your 4/1 profile blends influence through networks (the 4) with a need for deep investigation (the 1). You tend to share your expertise through close relationships, building your influence on a solid foundation of understanding.",
-                "4/6": "Your 4/6 profile combines network influence (the 4) with the three-phase role model journey (the 6). Your wisdom emerges through phases of experience, observation, and eventually stepping into a position where others look to you.",
-                "5/1": "Your 5/1 profile pairs practical problem-solving energy (the 5) with investigative depth (the 1). Others may project expectations onto you as a practical solver, while you're driven to understand things thoroughly from the foundation up.",
-                "5/2": "Your 5/2 profile combines the practical, universalizing energy others project onto (the 5) with natural talents that may go unnoticed by you (the 2). You may be called out to solve problems while needing hermit time to develop your gifts.",
-                "6/2": "Your 6/2 profile brings together the role model journey (the 6) with natural talents (the 2). You move through phases of experience and observation, with inherent gifts that others may recognize before you fully see them yourself.",
-                "6/3": "Your 6/3 profile combines the role model journey (the 6) with learning through trial and error (the 3). Your path to wisdom includes many experiments and discoveries, with phases of stepping back to observe before fully embodying your role."
+                "1/3": """Your 1/3 profile combines the Investigator (Line 1) with the Martyr (Line 3), creating a life path marked by deep research and hands-on experimentation. The 1 in you needs to understand things thoroughly before feeling secure—you build foundations of knowledge that become your bedrock. The 3 in you learns through trial and error, discovering what works by finding out what doesn't.
+
+Together, these create a powerful practical wisdom: you research deeply, then test your findings in real life. Your failures aren't actually failures—they're essential data points. The 3 energy means your path will include many experiments, pivots, and discoveries that only come from direct experience.
+
+The shadow can show up as insecurity when you don't have enough information (the 1's fear of the unknown) or as feeling like you've messed up too many times (the 3's accumulation of "failures"). Neither is true—your process of investigating and experimenting is exactly how you're designed to learn. What are you currently investigating, and what experiments are you running?""",
+
+                "1/4": """Your 1/4 profile blends the Investigator (Line 1) with the Opportunist (Line 4), creating a life path where deep expertise flows through personal networks. The 1 in you needs to build secure foundations of understanding—you don't feel confident sharing until you've thoroughly researched. The 4 in you influences through close relationships rather than strangers.
+
+This combination often creates someone who becomes a trusted expert within their community. You build deep knowledge (1), then share it through personal connections where your influence naturally flows (4). Your network is your platform; cold outreach typically doesn't work as well for you as warm introductions.
+
+The shadow can show up as withholding your expertise until you feel you know "enough" (the 1's insecurity) or as stagnation when your network isn't bringing opportunities (the 4's dependence on connections). Your foundations are probably more solid than you think. What expertise are you ready to share with your people?""",
+
+                "2/4": """Your 2/4 profile combines the Hermit (Line 2) with the Opportunist (Line 4), creating an interesting tension between needing alone time and thriving through relationships. The 2 in you has natural talents that you may not fully recognize—gifts that others often see before you do. The 4 in you influences through personal networks and close connections.
+
+The dance of 2/4 often involves being called out of your hermit cave by your network. You need time alone to develop and recharge, but your gifts are meant to be shared through your relationships. Others may see your talents more clearly than you do and help bring them into the world.
+
+The shadow can show up as hiding your gifts because you don't recognize their value (the 2's blind spot) or as over-giving to your network at the expense of hermit time (the 4's social nature). Both your solitude and your connections are essential. What talents do others see in you that you might be undervaluing?""",
+
+                "2/5": """Your 2/5 profile pairs the Hermit (Line 2) with the Heretic (Line 5), creating a dynamic where you have natural gifts that attract universal projections. The 2 in you has inherent talents that may be invisible to you—abilities that just come naturally. The 5 in you carries an energy that others project practical solutions onto.
+
+This combination can feel intense: you may not feel special (the 2's blind spot to its own gifts), yet others treat you like you have answers they need (the 5's projection field). Managing expectations becomes important—you can't be the universal solver others might want you to be, but you do have genuine gifts.
+
+The shadow shows up as either hiding from the projections (retreating into 2's hermit mode) or trying to live up to unrealistic expectations. Your gifts are real, even if you don't see them clearly. What would it look like to share your natural talents without carrying others' projections?""",
+
+                "3/5": """Your 3/5 profile combines the Martyr (Line 3) with the Heretic (Line 5), creating a life path where experiential wisdom meets universal projection. The 3 in you learns through trial and error—you discover what works by finding out what doesn't. The 5 in you attracts projections from others who see you as a practical problem-solver.
+
+Your experiments and "failures" become wisdom that others seek. The 3's hands-on experience combined with the 5's projection field can position you as someone who has figured things out through real-world testing. But the projections can also be unrealistic.
+
+The shadow shows up as feeling like a fraud (the 3's accumulation of experiments meeting the 5's unrealistic projections) or as avoiding putting yourself out there. Your experience is valuable precisely because it includes mistakes. What hard-won wisdom from your experiments is actually ready to be shared?""",
+
+                "3/6": """Your 3/6 profile combines the Martyr (Line 3) with the Role Model (Line 6), creating a life path that moves through distinct phases. The 3 in you learns through trial and error, especially in the first part of life. The 6 brings a three-part journey: experimentation (roughly until age 30), observation and healing (30-50), and role model energy (after 50).
+
+In your first phase, you're deep in 3 energy—trying things, making mistakes, learning from experience. Around your Saturn return, you may feel pulled to step back and integrate what you've learned. The third phase invites you to become a living example of wisdom earned through experience.
+
+The shadow can show up as feeling exhausted by the 3's experiments, or as premature attempts to be a role model before you've done the work. Your bumpy path isn't a sign of failure—it's the curriculum. What phase of your 3/6 journey are you in, and what is it teaching you?""",
+
+                "4/1": """Your 4/1 profile blends the Opportunist (Line 4) with the Investigator (Line 1), creating a fixed pattern where your network carries your deeply researched expertise. The 4 in you influences through personal relationships—your opportunities come through who you know. The 1 in you needs to build solid foundations of understanding before feeling secure.
+
+This combination often creates someone who becomes a foundational expert for their community. You research and understand deeply (1), then share through trusted relationships (4). Your path is fairly fixed—you're here to go deep in your area and share it with your people.
+
+The shadow shows up as holding back expertise until you feel authoritative enough (the 1's insecurity) or as stagnation when relationships aren't flowing (the 4's network dependence). Your foundations support your community, and your community gives your foundations purpose. What expertise does your network need from you?""",
+
+                "4/6": """Your 4/6 profile combines the Opportunist (Line 4) with the Role Model (Line 6), creating a life path where network influence meets the three-phase role model journey. The 4 in you connects and influences through personal relationships. The 6 moves through phases: experimenting (to ~30), observing (30-50), and stepping into role model energy (after 50).
+
+Your journey involves building and maintaining close networks through all three phases, with the nature of your influence shifting over time. In the first phase, you're experiencing life alongside your network. In the second, you may step back while maintaining key connections. In the third, you become a role model for your community.
+
+The shadow shows up as using your network to hide from your own growth (4's externalization) or as isolation during the roof phase that damages connections. Your people walk with you through your phases. How are your relationships supporting your current stage?""",
+
+                "5/1": """Your 5/1 profile pairs the Heretic (Line 5) with the Investigator (Line 1), creating a transpersonal pattern where universal projections meet deep expertise. The 5 in you carries a projection field—others see you as a practical problem-solver with universal solutions. The 1 in you needs to deeply investigate and understand before feeling secure.
+
+This combination can create pressure: others project expectations onto you (5), while you feel you need more research before you're ready (1). But when you build genuine expertise in your area, you have something solid to offer against the projections. Your foundations give you ground to stand on when expectations become unrealistic.
+
+The shadow shows up as either hiding behind endless research to avoid the projection field, or stepping into projections before your foundations are solid. Your expertise is real and worth sharing. What have you investigated deeply enough to stand behind, regardless of external expectations?""",
+
+                "5/2": """Your 5/2 profile combines the Heretic (Line 5) with the Hermit (Line 2), creating a dynamic where universal projections meet natural, often unrecognized gifts. The 5 in you attracts others who see you as someone who can solve their problems. The 2 in you has inherent talents that you may not fully see or value.
+
+The dance of 5/2 involves being called out to share gifts you might not recognize, while managing projections you didn't ask for. Others may see your talents more clearly than you do and call you into service. But they may also project expectations that don't match your actual abilities.
+
+The shadow shows up as either retreating into hermit mode to escape projections, or burning out trying to be what others project. Your natural gifts are real, separate from others' projections about them. What talents do others consistently call you out for?""",
+
+                "6/2": """Your 6/2 profile blends the Role Model (Line 6) with the Hermit (Line 2), creating a life path where the three-phase role model journey meets natural, often unrecognized talents. The 6 moves through phases: experiencing (~to 30), observing (30-50), and stepping into role model energy (after 50). The 2 carries inherent gifts that others may see before you do.
+
+Your journey involves developing and eventually embodying your natural talents through distinct life phases. In the first phase, you experiment with your gifts. In the second, you may retreat and observe. In the third, you become a living example of your gifts fully expressed.
+
+The shadow shows up as not recognizing your gifts during any phase, or as trying to be a role model before you've done the necessary roof time. Your talents are real, even when you don't see them. What natural abilities have followed you through your life phases?""",
+
+                "6/3": """Your 6/3 profile combines the Role Model (Line 6) with the Martyr (Line 3), creating a life path where the role model journey includes significant trial and error. The 6 moves through three phases: experimenting, observing, and eventually becoming an authentic role model. The 3 learns through trying things and discovering what doesn't work.
+
+Your first phase is especially experimental—double the trial and error as both 6 and 3 energy are engaged in learning through experience. The roof phase may be a time of healing from these experiments. Your eventual role model expression will be deeply informed by what you've lived through.
+
+The shadow shows up as feeling you've failed too many times to ever become a role model, or as premature attempts at role model status before the work is done. Your path is messier than some, but that mess becomes your authority. What wisdom from your experiments are you integrating?"""
             }
             
             fallback_result = {
