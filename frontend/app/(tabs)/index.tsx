@@ -285,6 +285,9 @@ export default function MirrorScreen() {
           </Text>
         </View>
 
+        {/* Debug: Compute Inputs Panel - only visible when DEBUG_MIRROR=true */}
+        {user?.id && <DebugComputeInputs userId={user.id} />}
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
     </SafeAreaView>
