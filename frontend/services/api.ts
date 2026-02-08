@@ -254,7 +254,15 @@ export const saveEnneagramResult = async (data: {
   debug_scores: {
     raw_scores: { [key: string]: number };
     z_scores: { [key: string]: number };
-    wing_scores: { left: number; right: number; diff: number };
+    wing_scores: { 
+      left: number; 
+      right: number; 
+      diff: number;
+      // Enhanced debug fields
+      left_type?: number;
+      right_type?: number;
+      has_wing_data?: boolean;
+    };
     // Extended debug data (v2 - optional)
     mean_likert?: { [key: string]: number };
     forced_hits?: { [key: string]: number };
@@ -264,7 +272,7 @@ export const saveEnneagramResult = async (data: {
       right_type: number;
       left_accessible: boolean;
       right_accessible: boolean;
-      dominant_wing: number | string;
+      dominant_wing: number | string | null;
     };
   };
 }) => {
