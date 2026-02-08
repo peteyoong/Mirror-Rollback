@@ -9493,6 +9493,9 @@ async def get_enneagram_deep_dive(user_id: str):
     except Exception as e:
         logger.error(f"[ENNEAGRAM_DEEP_DIVE] Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/enneagram/traits/{user_id}")
 async def get_enneagram_traits(user_id: str):
     """
     Get trait cards for a user's Enneagram type.
