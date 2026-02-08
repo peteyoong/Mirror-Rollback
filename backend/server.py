@@ -4250,7 +4250,12 @@ async def get_lenses():
 @api_router.get("/health")
 async def api_health_check():
     """Health check endpoint under /api prefix for deployment verification."""
-    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {
+        "ok": True,
+        "service": "backend",
+        "status": "healthy",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
 
 
 # ============================================
