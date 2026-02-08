@@ -6471,6 +6471,7 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
             # =====================================================================
             await set_cached_deep_dive(user_id, "astrology", result)
             
+            log_deep_dive_response("astrology", user_id, result, "LLM_SUCCESS")
             return result
             
         except json_module.JSONDecodeError as e:
