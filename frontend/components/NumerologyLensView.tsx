@@ -478,10 +478,15 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
           <TouchableOpacity 
             style={styles.editNameButton}
             onPress={() => {
-              // Pre-fill modal with existing name for editing
+              // EDIT mode: Pre-fill modal with existing name
+              setModalMode('edit');
               setModalInputName(profile.numerology_full_name || '');
-              setUnlockStep('input');
+              setUnlockStep('input'); // Skip consent, go directly to input
+              setInputRendered(false); // Reset debug flag
               setUnlockModalVisible(true);
+              if (isDebugEnabled()) {
+                console.log('[DEBUG_MIRROR] Opening modal in EDIT mode');
+              }
             }}
           >
             <Ionicons name="pencil-outline" size={16} color={Colors.accent} />
@@ -495,9 +500,15 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
       <TouchableOpacity 
         style={styles.unlockButton}
         onPress={() => {
-          setModalInputName(''); // Start fresh
-          setUnlockStep('consent');
+          // ADD mode: Start fresh
+          setModalMode('add');
+          setModalInputName('');
+          setUnlockStep('input'); // Go directly to input - skip consent for better UX
+          setInputRendered(false); // Reset debug flag
           setUnlockModalVisible(true);
+          if (isDebugEnabled()) {
+            console.log('[DEBUG_MIRROR] Opening modal in ADD mode');
+          }
         }}
         activeOpacity={0.8}
       >
