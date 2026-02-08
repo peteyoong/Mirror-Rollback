@@ -7577,35 +7577,29 @@ This fixedness isn't a limitation; it's a clarity. Where others might explore ma
             cross_name = incarnation_cross.get('name', '')
             cross_type_key = "Right Angle Cross" if "Right" in cross_name else "Left Angle Cross" if "Left" in cross_name else "Juxtaposition Cross" if "Juxtaposition" in cross_name else "Right Angle Cross"
             
-            fallback_result = {
-                "success": True,
-                "title": "Your Human Design Profile",
-                "core_mechanics": {
-                    "type": hd_type,
-                    "strategy": strategy_desc,
-                    "authority": authority,
-                    "profile": profile,
-                    "incarnation_cross": incarnation_cross.get('name', 'Unknown'),
-                    "incarnation_cross_gates": incarnation_cross.get('gates'),
-                    "definition": canonical_hd.get('definition', 'Unknown')
-                },
-                "sections": [
-                    {"label": "Type: Your Energy Architecture", "body": type_descriptions.get(hd_type, f"As a {hd_type}, there's a particular way energy tends to move through you, with its own natural rhythm and pace.")},
-                    {"label": "Strategy: Your Engagement Pattern", "body": strategy_descriptions_rich.get(hd_type, f"Your strategy—to {strategy_desc.lower()}—points to how you engage most effectively with life. This isn't about limitation or following rules; it's about recognizing the natural flow that works best for your particular energy architecture.")},
-                    {"label": "Authority: Your Clarity Process", "body": authority_descriptions.get(authority, f"With {authority} authority, there's a specific way clarity tends to emerge for you, a particular signal to listen for when making decisions.")},
-                    {"label": "Profile: Your Learning Style", "body": profile_descriptions.get(profile, f"Your {profile} profile suggests a particular way you tend to learn, grow, and engage with life themes over time.")},
-                    {"label": "Incarnation Cross: Your Life Direction", "body": cross_descriptions_rich.get(cross_type_key, f"Your {incarnation_cross.get('name', 'Incarnation Cross')} ({incarnation_cross.get('gates', '')}) points to a broad life theme—not a destiny you must fulfill, but a territory you may find yourself naturally drawn to explore repeatedly throughout your life.")},
-                    {"label": "Definition & Centers", "body": f"With {canonical_hd.get('definition', 'your')} definition, there's a particular way energy flows and connects within you—whether in one continuous circuit or in separate systems that connect through others. Your defined centers ({', '.join(defined_centers) if defined_centers else 'your key centers'}) represent consistent, reliable themes in your experience—these are where you have something to offer the world. Your undefined centers are where you take in and amplify the energy of others, making you sensitive and wise in those areas but also potentially conditioned by outside influence. Neither is better; both are part of your design."}
+            # Calculate totals for debug
+            sections_list = fallback_result.get("sections", [])
+            total_chars = sum(len(s.get("body", "")) for s in sections_list)
+            total_words = sum(len(s.get("body", "").split()) for s in sections_list)
+            
+            fallback_result["debug_stamp"] = create_deep_dive_debug_stamp(
+                source="FALLBACK",
+                fallback_reason=FallbackReason.JSON_TRUNCATED,
+                llm_attempted=True,
+                llm_error={"message": str(e), "type": "JSON_TRUNCATED"},
+                computed_fields_present=["hd_type", "strategy", "authority", "profile", "incarnation_cross"],
+                computed_fields_missing=[],
+                section_traces=[
+                    {"section_id": s.get("label", f"section_{i}"), "status": "ok", "source": "fallback",
+                     "char_count": len(s.get("body", "")), "word_count": len(s.get("body", "").split())}
+                    for i, s in enumerate(sections_list)
                 ],
-                "mirror_prompt": "Where do you notice these patterns playing out in your current experience?",
-                "deeper_data_available": True,
-                "debug_stamp": {
-                    "compute_integrity_valid": canonical_hd.get('compute_integrity', {}).get('valid', False),
-                    "fallback_used": True
-                }
-            }
+                total_chars=total_chars,
+                total_words=total_words
+            )
             # Cache fallback
             await set_cached_deep_dive(user_id, "human_design", fallback_result)
+            log_deep_dive_request("human_design", fallback_result["debug_stamp"]["source"], fallback_result["debug_stamp"]["fallback_reason"], total_chars, user_id)
             return fallback_result
     
     except HTTPException:
