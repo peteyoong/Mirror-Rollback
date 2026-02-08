@@ -913,6 +913,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
+  userIdChangedBanner: {
+    backgroundColor: '#FF9800',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  userIdChangedBannerText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
