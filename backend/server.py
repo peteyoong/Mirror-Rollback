@@ -6560,6 +6560,7 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
             }
             # Cache fallback too
             await set_cached_deep_dive(user_id, "astrology", fallback_result)
+            log_deep_dive_response("astrology", user_id, fallback_result, "FALLBACK")
             return fallback_result
     
     except HTTPException:
