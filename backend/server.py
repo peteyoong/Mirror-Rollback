@@ -7489,16 +7489,57 @@ You're essentially here for one thing. The specific gates of your cross describe
             "definition": ("Definition & Centers", definition_desc)
         }
         
-        parse_result = parse_plain_text_sections(
-            response_text,
-            expected_sections=["type", "strategy", "authority", "profile", "cross", "definition"],
-            fallback_content=fallback_content,
-            min_body_length=100
-        )
+            # Parse sections
+            parse_result = parse_plain_text_sections(
+                response_text,
+                expected_sections=["type", "strategy", "authority", "profile", "cross", "definition"],
+                fallback_content=fallback_content,
+                min_body_length=100
+            )
+            
+            logger.info(f"[HD_DEEP_DIVE] Attempt {attempt + 1}: source={parse_result.source}, sections={len(parse_result.sections)}")
+            
+            # Build sections list for quality check
+            sections_for_check = [
+                {"label": s.label, "body": s.body, "section_id": s.section_id}
+                for s in parse_result.sections
+            ]
+            
+            # Check quality
+            gate_result = gate.check(sections_for_check)
+            
+            if gate_result.passed:
+                logger.info(f"[HD_DEEP_DIVE] Quality gate passed on attempt {attempt + 1}")
+                break
+            
+            quality_gate_debug["quality_gate_triggered"] = True
+            quality_gate_debug["short_sections"] = [s.to_dict() for s in gate_result.short_sections]
+            
+            # If we have retries left, prepare expand prompt
+            if attempt < max_retries and gate_result.short_sections:
+                expand_prompt = gate.get_expand_prompt(gate_result.short_sections)
+                current_prompt = base_system_prompt + "\n\n" + expand_prompt
+                logger.info(f"[HD_DEEP_DIVE] Retry with expand prompt for {len(gate_result.short_sections)} short sections")
         
-        logger.info(f"[HD_DEEP_DIVE] Parsed: source={parse_result.source}, sections={len(parse_result.sections)}, truncated={parse_result.truncated}")
+        # After retries, augment any remaining short sections
+        if not gate_result.passed and gate_result.short_sections:
+            short_ids = [s.section_id for s in gate_result.short_sections]
+            augmented_sections, augmented_ids = augment_short_sections(
+                sections_for_check, short_ids, fallback_content
+            )
+            quality_gate_debug["augmented_sections"] = augmented_ids
+            
+            # Update parse result sections with augmented content
+            for aug_section in augmented_sections:
+                for parsed in parse_result.sections:
+                    if parsed.section_id == aug_section.get("section_id"):
+                        parsed.body = aug_section["body"]
+                        parsed.char_count = len(aug_section["body"])
+                        parsed.word_count = len(aug_section["body"].split())
+            
+            logger.info(f"[HD_DEEP_DIVE] Augmented {len(augmented_ids)} sections after retry")
         
-        # Apply guardrails to parsed sections
+        # Apply guardrails to final sections
         for section in parse_result.sections:
             section.body = apply_human_design_guardrails(section.body)
         
