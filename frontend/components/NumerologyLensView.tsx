@@ -764,6 +764,14 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
         </View>
       )}
       
+      {/* User ID Changed Banner - visible when DEBUG_MIRROR is on and user ID changed */}
+      {isDebugEnabled() && userIdChanged && (
+        <View style={styles.userIdChangedBanner}>
+          <Ionicons name="swap-horizontal" size={16} color="#fff" />
+          <Text style={styles.userIdChangedBannerText}>User ID changed — profile will appear empty</Text>
+        </View>
+      )}
+      
       {renderTabs()}
 
       <ScrollView
