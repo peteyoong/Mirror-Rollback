@@ -8176,19 +8176,22 @@ How does this secondary theme complement or sometimes contrast with your Life Pa
             total_words = sum(len(s.get("body", "").split()) for s in sections_list)
             
             result["debug_stamp"] = create_deep_dive_debug_stamp(
-                source="LLM",
-                fallback_reason=FallbackReason.NONE,
+                source="LLM" if not quality_gate_debug["augmented_sections"] else "LLM_AUGMENTED",
+                fallback_reason=FallbackReason.NONE if not quality_gate_debug["augmented_sections"] else "QUALITY_GATE_AUGMENT",
                 llm_attempted=True,
                 computed_fields_present=["life_path", "birthday_number"] + (["expression", "soul_urge", "personality"] if has_name else []),
                 computed_fields_missing=[] if has_name else ["full_birth_name"],
                 section_traces=[
-                    {"section_id": s.get("label", f"section_{i}"), "status": "ok", "source": "llm",
+                    {"section_id": s.get("label", f"section_{i}"), "status": "ok", "source": "llm" if not quality_gate_debug["augmented_sections"] else "augmented",
                      "char_count": len(s.get("body", "")), "word_count": len(s.get("body", "").split())}
                     for i, s in enumerate(sections_list)
                 ],
                 total_chars=total_chars,
                 total_words=total_words
             )
+            
+            # Add quality gate debug info
+            result["debug_stamp"]["quality_gate"] = quality_gate_debug
             
             # =====================================================================
             # CACHE THE RESPONSE for instant repeat views
