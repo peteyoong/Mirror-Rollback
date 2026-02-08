@@ -295,15 +295,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         return true;
       }
       
-      // If no local data, try to fetch from API using persisted user ID
-      const userId = await storage.getItem(SESSION_USER_ID_KEY);
+      // If no local data, try to fetch from API using STABLE user ID
+      // This ensures the same user ID is used across sessions
+      const userId = await getStableUserId();
       
-      if (!userId) {
-        console.log('[SessionRestore] No persisted userId found - fresh user');
-        return false;
-      }
+      console.log('[SessionRestore] Using stable userId:', maskUserId(userId));
       
-      console.log('[SessionRestore] Found persisted userId:', userId);
+      // Run assertion check in debug mode
+      await assertUserIdStable();
       
       // Fetch user data
       let userData: User | null = null;
