@@ -109,6 +109,43 @@ export default function MirrorScreen() {
     router.push('/(tabs)/journal?view=mirror&fromKeystone=true');
   };
 
+  // Handler for logout action sheet
+  const handleUserPress = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Log out'],
+          destructiveButtonIndex: 1,
+          cancelButtonIndex: 0,
+          title: user?.name || 'Account',
+        },
+        async (buttonIndex) => {
+          if (buttonIndex === 1) {
+            await clearUser();
+            router.replace('/welcome');
+          }
+        }
+      );
+    } else {
+      // Android/Web fallback using Alert
+      Alert.alert(
+        user?.name || 'Account',
+        'What would you like to do?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Log out', 
+            style: 'destructive',
+            onPress: async () => {
+              await clearUser();
+              router.replace('/welcome');
+            }
+          },
+        ]
+      );
+    }
+  };
+
   // Check for date change on focus/visibility
   useEffect(() => {
     const checkDateChange = () => {
