@@ -158,6 +158,67 @@ user_problem_statement: |
 
 
 backend:
+  - task: "Numerology Full Name Persistence End-to-End Testing"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          NUMEROLOGY FULL NAME PERSISTENCE END-TO-END TESTING COMPLETE ✅
+          
+          🧪 COMPREHENSIVE TESTING PERFORMED (6/6 TESTS PASSED):
+          
+          1. ✅ INITIAL PROFILE STATE (GET /api/profile/6971c81f2b40fd5ef501d375):
+             - Status: 200 OK
+             - numerology_full_name: "Updated Integration Name" (from previous test)
+             - Profile endpoint accessible and returning correct data
+          
+          2. ✅ NAME UNLOCK FIRST TIME (POST /api/numerology/unlock-name/6971c81f2b40fd5ef501d375):
+             - Payload: {"full_birth_name": "Test Integration Name"}
+             - Status: 200 OK, Success: true
+             - Response Structure: unlocked_numbers with expression, soul_urge, personality
+             - Computed Numbers: Expression: 4, Soul Urge: 5, Personality: 8
+             - Backend logs confirm: "[Numerology] Name-based numbers unlocked for user 6971c81f2b40fd5ef501d375"
+          
+          3. ✅ READ-AFTER-WRITE VERIFICATION (GET /api/profile/6971c81f2b40fd5ef501d375):
+             - Status: 200 OK
+             - numerology_full_name correctly persisted: "Test Integration Name"
+             - Persistence working correctly with 1-second delay verification
+          
+          4. ✅ NAME UPDATE WITH DIFFERENT VALUE (POST /api/numerology/unlock-name/6971c81f2b40fd5ef501d375):
+             - Payload: {"full_birth_name": "Updated Integration Name"}
+             - Status: 200 OK, Success: true
+             - New Computed Numbers: Expression: 2, Soul Urge: 9, Personality: 11
+             - Numbers correctly recalculated for different name
+          
+          5. ✅ UPDATE PERSISTENCE VERIFICATION (GET /api/profile/6971c81f2b40fd5ef501d375):
+             - Status: 200 OK
+             - Updated numerology_full_name correctly persisted: "Updated Integration Name"
+             - Update persistence working correctly
+          
+          6. ✅ NUMEROLOGY SUMMARY INCLUDES NAME-BASED NUMBERS (GET /api/numerology/summary/6971c81f2b40fd5ef501d375):
+             - Status: 200 OK
+             - Name-based numbers present in summary text: Expression 2, Soul Urge 9, Personality 11
+             - unlock_required: false (correctly shows name is unlocked)
+             - Summary endpoint correctly includes computed name-based numbers in narrative
+          
+          🔧 BACKEND INTEGRATION VERIFIED:
+          - All endpoints accessible via public URL (https://lensview-update.preview.emergentagent.com/api)
+          - No HTTP errors or timeouts
+          - Response times acceptable (< 2 seconds)
+          - Backend logs confirm successful processing and cache invalidation
+          - Data persistence working correctly across read-after-write scenarios
+          - Name updates correctly recalculate numerology numbers
+          
+          📊 TEST RESULTS: 6/6 TESTS PASSED (100% SUCCESS RATE)
+          
+          CONCLUSION: Numerology full name persistence is fully functional end-to-end. All expected functionality working correctly: name storage, number calculation, persistence verification, updates, and integration with summary endpoint.
+
   - task: "Numerology Full Name Gate Fix"
     implemented: true
     working: true
