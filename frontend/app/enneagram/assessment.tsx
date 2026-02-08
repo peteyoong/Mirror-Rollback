@@ -1270,7 +1270,7 @@ export default function EnneagramAssessment() {
       inferred_core,
       inferred_wing,
       confidence: topProb,
-      confidence_tier,
+      confidence_tier: !hasWingData ? 'low' : confidence_tier, // Reduce confidence if no wing data
       is_close,
       top_candidates,
       raw_scores: rawScores,
@@ -1278,7 +1278,11 @@ export default function EnneagramAssessment() {
       wing_scores: {
         left: Math.round(wing_left_score * 100) / 100,
         right: Math.round(wing_right_score * 100) / 100,
-        diff: Math.round(wing_diff * 100) / 100
+        diff: Math.round(wing_diff * 100) / 100,
+        // ENHANCED DEBUG: Explicit wing type mapping
+        left_type: leftWing,
+        right_type: rightWing,
+        has_wing_data: hasWingData
       },
       // Extended debug data (v2)
       mean_likert: meanLikertOutput,
