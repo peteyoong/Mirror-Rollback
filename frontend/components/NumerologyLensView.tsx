@@ -603,9 +603,11 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
 
   const closeUnlockModal = () => {
     setUnlockModalVisible(false);
-    setUnlockStep('consent');
+    setUnlockStep('input'); // Default to input step for next open
+    setModalMode('add'); // Reset mode
     setModalInputName(''); // Clear transient input
     setUnlockError(null);
+    setInputRendered(false);
   };
 
   // Render the unlock modal
