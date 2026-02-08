@@ -25,7 +25,7 @@ export default function ReflectionEntry({ onPress }: ReflectionEntryProps) {
       <TouchableOpacity
         style={styles.entry}
         onPress={onPress}
-        activeOpacity={0.7}
+        activeOpacity={0.6}
       >
         <Text style={styles.entryText}>Reflect</Text>
       </TouchableOpacity>
@@ -35,19 +35,19 @@ export default function ReflectionEntry({ onPress }: ReflectionEntryProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 16,
-    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
   entry: {
-    paddingVertical: 12,
-    paddingHorizontal: 32,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    alignSelf: 'flex-start',
   },
   entryText: {
-    fontSize: 15,
-    color: Colors.textSecondary,
+    fontSize: 14,
+    color: Colors.textTertiary,
     fontWeight: '400',
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
 });
