@@ -789,14 +789,12 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                 source={data.debug_stamp?.source}
                 rawDataLength={rawDataLength}
                 debugStamp={data.debug_stamp}
-                extraDebug={profile ? {
+                extraDebug={{
                   backend_base_url: BACKEND_BASE_URL || '(relative)',
-                  profile_loaded: true,
-                  numerology_full_name: profile.numerology_full_name || '(none)',
-                  profile_updated_at: profile.updated_at || '(never)'
-                } : {
-                  backend_base_url: BACKEND_BASE_URL || '(relative)',
-                  profile_loaded: false
+                  backend_health_ok: backendHealthOk === null ? 'checking...' : backendHealthOk ? 'YES' : 'NO',
+                  profile_loaded: profile ? 'YES' : 'NO',
+                  numerology_full_name: profile?.numerology_full_name || '(none)',
+                  profile_updated_at: profile?.updated_at || '(never)'
                 }}
               />
             )}
