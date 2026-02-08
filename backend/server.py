@@ -6525,9 +6525,26 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
                 "ascendant": placements['rising_sign']
             }
             
+            # Calculate totals for debug
+            total_chars = sum(len(s.get("body", "")) for s in result.get("sections", []))
+            total_words = sum(len(s.get("body", "").split()) for s in result.get("sections", []))
+            
             # Add success flag and debug stamp
             result["success"] = True
-            result["debug_stamp"] = placements["debug_stamp"]
+            result["debug_stamp"] = create_deep_dive_debug_stamp(
+                source="LLM",
+                fallback_reason=FallbackReason.NONE,
+                llm_attempted=True,
+                computed_fields_present=["sun_sign", "moon_sign", "rising_sign"],
+                computed_fields_missing=[],
+                section_traces=[
+                    {"section_id": s.get("label", f"section_{i}"), "status": "ok", "source": "llm", 
+                     "char_count": len(s.get("body", "")), "word_count": len(s.get("body", "").split())}
+                    for i, s in enumerate(result.get("sections", []))
+                ],
+                total_chars=total_chars,
+                total_words=total_words
+            )
             
             # =====================================================================
             # CACHE THE RESPONSE for instant repeat views
