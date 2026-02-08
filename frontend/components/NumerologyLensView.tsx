@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,8 +13,49 @@ import {
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import Constants from 'expo-constants';
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
+
+// === V1-SAFE DEV FALLBACK FOR BACKEND URL ===
+// Web preview proxy /api is unreliable, so we need a direct backend URL fallback
+const DEV_BACKEND_FALLBACK = 'http://localhost:8001'; // Direct backend in dev
+
+function getBackendBaseUrl(): string {
+  // 1. Try EXPO_PUBLIC_BACKEND_URL from env (works for native builds)
+  const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.length > 0) {
+    return envUrl;
+  }
+  
+  // 2. Try expo-constants extra config
+  const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
+  if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
+    return extraUrl;
+  }
+  
+  // 3. For web platform, check if we're in dev/preview mode
+  if (Platform.OS === 'web') {
+    // Check if hostname indicates local dev or preview environment
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isLocalDev = hostname === 'localhost' || hostname === '127.0.0.1';
+    const isPreview = hostname.includes('preview') || hostname.includes('emergent');
+    
+    if (isLocalDev || isPreview) {
+      // Use direct backend URL to bypass unreliable proxy
+      return DEV_BACKEND_FALLBACK;
+    }
+    // Production web: use relative URL (proxy should work)
+    return '';
+  }
+  
+  // 4. Native fallback
+  return DEV_BACKEND_FALLBACK;
+}
+
+// Resolved backend base URL (computed once)
+const BACKEND_BASE_URL = getBackendBaseUrl();
 
 interface NumerologySection {
   label: string;
