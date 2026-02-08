@@ -10780,12 +10780,21 @@ else:
     
     @app.get("/")
     async def root_fallback():
-        """Root endpoint when no web build is available."""
-        return {
-            "status": "healthy",
-            "app": "Project Mirror",
-            "message": "API is running. Web build not available."
-        }
+        """Root endpoint when no web build is available - redirect to health for EAS apps."""
+        from fastapi.responses import RedirectResponse
+        # For EAS Expo deployments, the frontend is served via Expo's update system
+        # Redirect root to /api/health to confirm backend is running
+        return RedirectResponse(url="/api/health", status_code=302)
+    
+    @app.get("/{full_path:path}")
+    async def catch_all_fallback(full_path: str):
+        """Catch-all for non-API routes when web build is not available."""
+        # Don't intercept /api routes
+        if full_path.startswith("api"):
+            raise HTTPException(status_code=404, detail="Not found")
+        # For all other routes, redirect to health check
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url="/api/health", status_code=302)
 
 
 app.add_middleware(
