@@ -741,10 +741,14 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                 rawDataLength={rawDataLength}
                 debugStamp={data.debug_stamp}
                 extraDebug={profile ? {
+                  backend_base_url: BACKEND_BASE_URL || '(relative)',
                   profile_loaded: true,
                   numerology_full_name: profile.numerology_full_name || '(none)',
                   profile_updated_at: profile.updated_at || '(never)'
-                } : undefined}
+                } : {
+                  backend_base_url: BACKEND_BASE_URL || '(relative)',
+                  profile_loaded: false
+                }}
               />
             )}
           </>
