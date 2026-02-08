@@ -10770,29 +10770,33 @@ app.include_router(api_router)
 # STATIC FILE SERVING FOR WEB BUILD
 # This MUST be after api_router is included to ensure API routes take precedence
 # =====================================================================
-if WEB_BUILD_PATH.exists():
-    logger.info(f"[Startup] Serving web build from {WEB_BUILD_PATH}")
+if ACTUAL_WEB_BUILD_PATH:
+    logger.info(f"[Startup] Serving web build from {ACTUAL_WEB_BUILD_PATH}")
     
     # Mount static assets
-    if (WEB_BUILD_PATH / "_expo").exists():
-        app.mount("/_expo", StaticFiles(directory=str(WEB_BUILD_PATH / "_expo")), name="expo_static")
+    if (ACTUAL_WEB_BUILD_PATH / "_expo").exists():
+        app.mount("/_expo", StaticFiles(directory=str(ACTUAL_WEB_BUILD_PATH / "_expo")), name="expo_static")
+    
+    # Mount assets folder if it exists
+    if (ACTUAL_WEB_BUILD_PATH / "assets").exists():
+        app.mount("/assets", StaticFiles(directory=str(ACTUAL_WEB_BUILD_PATH / "assets")), name="assets")
     
     # Serve index.html for root
     @app.get("/")
     async def serve_root():
-        return FileResponse(str(WEB_BUILD_PATH / "index.html"))
+        return FileResponse(str(ACTUAL_WEB_BUILD_PATH / "index.html"))
     
     # Catch-all route for SPA - serves index.html for all non-API routes
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         """Serve the SPA for all non-API, non-static routes."""
         # Check if it's a static file
-        file_path = WEB_BUILD_PATH / full_path
+        file_path = ACTUAL_WEB_BUILD_PATH / full_path
         if file_path.exists() and file_path.is_file():
             return FileResponse(str(file_path))
         
         # For all other routes, serve index.html (SPA routing)
-        return FileResponse(str(WEB_BUILD_PATH / "index.html"))
+        return FileResponse(str(ACTUAL_WEB_BUILD_PATH / "index.html"))
 else:
     logger.warning(f"[Startup] Web build not found at {WEB_BUILD_PATH}")
     
