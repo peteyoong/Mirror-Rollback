@@ -133,10 +133,19 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
 
   // === PROFILE HYDRATION FROM SERVER ===
   // Fetch profile from GET /api/profile/{user_id} - this is the canonical source
+  // Uses direct backend URL to bypass unreliable web preview proxy
   const hydrateProfile = useCallback(async () => {
     setProfileLoading(true);
     try {
-      const response = await api.get(`/profile/${userId}`);
+      const profileUrl = BACKEND_BASE_URL 
+        ? `${BACKEND_BASE_URL}/api/profile/${userId}`
+        : `/api/profile/${userId}`;
+      
+      if (isDebugEnabled()) {
+        console.log('[DEBUG_MIRROR] Fetching profile from:', profileUrl);
+      }
+      
+      const response = await axios.get(profileUrl, { timeout: 10000 });
       const serverProfile: UserProfile = response.data;
       setProfile(serverProfile);
       
@@ -145,7 +154,8 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
           user_id: userId,
           numerology_full_name: serverProfile.numerology_full_name,
           updated_at: serverProfile.updated_at,
-          exists: serverProfile.exists
+          exists: serverProfile.exists,
+          backend_base_url: BACKEND_BASE_URL || '(relative)'
         });
       }
     } catch (err) {
