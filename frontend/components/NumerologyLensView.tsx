@@ -458,12 +458,53 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
     );
   };
 
+  // === OPEN MODAL HANDLER ===
+  // Determines mode based on latest profile.numerology_full_name
+  // If profile is loading, defaults to 'add' mode
+  const openUnlockModal = useCallback(() => {
+    // Determine mode from latest profile state
+    const hasName = profile?.numerology_full_name && profile.numerology_full_name.length > 0;
+    const mode: 'add' | 'edit' = hasName ? 'edit' : 'add';
+    
+    // Set modal state
+    setModalMode(mode);
+    setModalInputName(hasName ? (profile?.numerology_full_name || '') : '');
+    setUnlockStep('input'); // Always go directly to input - never show info-only step
+    setInputRendered(false); // Reset debug flag
+    setUnlockError(null);
+    setUnlockModalVisible(true);
+    
+    if (isDebugEnabled()) {
+      console.log('[DEBUG_MIRROR] Opening modal:', {
+        mode,
+        profile_loading: profileLoading,
+        has_name: hasName,
+        prefill_name: hasName ? maskUserId(profile?.numerology_full_name || '') : '(empty)'
+      });
+    }
+  }, [profile, profileLoading]);
+
   // === RENDER NAME CARD OR CTA ===
   // Driven SOLELY by profile.numerology_full_name from server
   const renderNameSection = () => {
-    // Still loading profile - show nothing yet
+    // Still loading profile - show CTA that opens in 'add' mode
     if (profileLoading) {
-      return null;
+      return (
+        <TouchableOpacity 
+          style={styles.unlockButton}
+          onPress={openUnlockModal}
+          activeOpacity={0.8}
+        >
+          <View style={styles.unlockButtonContent}>
+            <Ionicons name="add-circle-outline" size={22} color={Colors.surface} />
+            <View style={styles.unlockButtonText}>
+              <Text style={styles.unlockButtonTitle}>Add Full Birth Name</Text>
+              <Text style={styles.unlockButtonSubtitle}>Loading profile...</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="rgba(255, 255, 255, 0.5)" />
+        </TouchableOpacity>
+      );
     }
     
     // Name EXISTS in server profile → Show name with Edit button
@@ -477,17 +518,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
           </View>
           <TouchableOpacity 
             style={styles.editNameButton}
-            onPress={() => {
-              // EDIT mode: Pre-fill modal with existing name
-              setModalMode('edit');
-              setModalInputName(profile.numerology_full_name || '');
-              setUnlockStep('input'); // Skip consent, go directly to input
-              setInputRendered(false); // Reset debug flag
-              setUnlockModalVisible(true);
-              if (isDebugEnabled()) {
-                console.log('[DEBUG_MIRROR] Opening modal in EDIT mode');
-              }
-            }}
+            onPress={openUnlockModal}
           >
             <Ionicons name="pencil-outline" size={16} color={Colors.accent} />
           </TouchableOpacity>
@@ -499,17 +530,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
     return (
       <TouchableOpacity 
         style={styles.unlockButton}
-        onPress={() => {
-          // ADD mode: Start fresh
-          setModalMode('add');
-          setModalInputName('');
-          setUnlockStep('input'); // Go directly to input - skip consent for better UX
-          setInputRendered(false); // Reset debug flag
-          setUnlockModalVisible(true);
-          if (isDebugEnabled()) {
-            console.log('[DEBUG_MIRROR] Opening modal in ADD mode');
-          }
-        }}
+        onPress={openUnlockModal}
         activeOpacity={0.8}
       >
         <View style={styles.unlockButtonContent}>
