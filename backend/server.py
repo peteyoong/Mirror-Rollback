@@ -8795,6 +8795,23 @@ async def save_enneagram_result(request: EnneagramResultSave):
             response["result"]["supported_types"] = convergence_data.get("supported_types", [])
             response["result"]["adjusted_tier"] = adjusted_tier
         
+        # =====================================================
+        # DEBUG OBJECT (behind DEBUG_MIRROR flag)
+        # =====================================================
+        if DEBUG_MIRROR:
+            response["debug_enneagram"] = {
+                "user_id": request.user_id,
+                "raw_scores": raw_scores,
+                "primary_type": request.inferred_core,
+                "wing_scores": {
+                    "left": request.debug_scores.wing_scores.left if request.debug_scores and request.debug_scores.wing_scores else 0,
+                    "right": request.debug_scores.wing_scores.right if request.debug_scores and request.debug_scores.wing_scores else 0
+                },
+                "confidence": request.confidence_tier,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            logger.info(f"[ENNEAGRAM_DEBUG] Response includes debug_enneagram for user {request.user_id}")
+        
         return response
     
     except HTTPException:
