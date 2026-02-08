@@ -68,8 +68,26 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Path to the Expo web build
+# Path to the Expo web build - try multiple locations
 WEB_BUILD_PATH = Path(__file__).parent.parent / "frontend" / "dist"
+# Fallback paths in case the deployment structure is different
+FALLBACK_WEB_PATHS = [
+    Path("/app/frontend/dist"),
+    Path(__file__).parent / "frontend" / "dist",  # /app/backend/frontend/dist
+    Path(__file__).parent.parent / "dist",  # /app/dist
+]
+
+def find_web_build():
+    """Find the web build in various possible locations."""
+    if WEB_BUILD_PATH.exists() and (WEB_BUILD_PATH / "index.html").exists():
+        return WEB_BUILD_PATH
+    for path in FALLBACK_WEB_PATHS:
+        if path.exists() and (path / "index.html").exists():
+            logger.info(f"[Startup] Found web build at fallback path: {path}")
+            return path
+    return None
+
+ACTUAL_WEB_BUILD_PATH = find_web_build()
 
 # Root endpoint for health check
 @app.get("/health")
