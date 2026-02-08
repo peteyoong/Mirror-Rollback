@@ -43,6 +43,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.background,
     gap: 16,
+    maxWidth: 400,
+    alignSelf: 'center',
   },
   loadingText: {
     fontSize: 16,
