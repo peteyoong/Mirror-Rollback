@@ -71,59 +71,14 @@ logger = logging.getLogger(__name__)
 # Path to the Expo web build
 WEB_BUILD_PATH = Path(__file__).parent.parent / "frontend" / "dist"
 
-# Root endpoint for health check and info (fallback if no web build)
+# Root endpoint for health check
 @app.get("/health")
 async def health_check():
     """Health check endpoint for deployment verification."""
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
-# Serve static files from Expo web build if it exists
-if WEB_BUILD_PATH.exists():
-    logger.info(f"[Startup] Serving web build from {WEB_BUILD_PATH}")
-    
-    # Mount static assets
-    app.mount("/_expo", StaticFiles(directory=str(WEB_BUILD_PATH / "_expo")), name="expo_static")
-    
-    # Serve index.html for all non-API routes (SPA routing)
-    @app.get("/")
-    async def serve_root():
-        return FileResponse(str(WEB_BUILD_PATH / "index.html"))
-    
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        """Serve the SPA for all non-API routes."""
-        # Don't intercept API routes
-        if full_path.startswith("api/"):
-            raise HTTPException(status_code=404, detail="Not Found")
-        
-        # Check if it's a static file
-        file_path = WEB_BUILD_PATH / full_path
-        if file_path.exists() and file_path.is_file():
-            return FileResponse(str(file_path))
-        
-        # For all other routes, serve index.html (SPA routing)
-        index_path = WEB_BUILD_PATH / "index.html"
-        if index_path.exists():
-            return FileResponse(str(index_path))
-        
-        raise HTTPException(status_code=404, detail="Not Found")
-else:
-    logger.warning(f"[Startup] Web build not found at {WEB_BUILD_PATH}")
-    
-    @app.get("/")
-    async def root():
-        """Root endpoint - provides API info when no web build is available."""
-        return {
-            "status": "healthy",
-            "app": "Project Mirror",
-            "version": "1.0.0",
-            "message": "API is running. Web build not available - use Expo Go app.",
-            "endpoints": {
-                "health": "/api/health",
-                "lenses": "/api/lenses",
-                "users": "/api/users"
-            }
-        }
+# Note: Static file serving will be added at the END of the file, AFTER the api_router is included
+# This ensures API routes take precedence over the catch-all static file handler
 
 # Remove duplicate logging configuration below
 
