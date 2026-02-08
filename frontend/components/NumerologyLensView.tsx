@@ -360,9 +360,11 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Handle unlock flow
+  // === HANDLE NAME SAVE WITH READ-AFTER-WRITE ===
   const handleUnlockSubmit = async () => {
-    if (!fullBirthName.trim()) {
+    const nameToSave = modalInputName.trim();
+    
+    if (!nameToSave) {
       setUnlockError('Please enter your full birth name');
       return;
     }
@@ -371,19 +373,51 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
     setUnlockError(null);
 
     try {
-      await api.post(`/numerology/unlock-name/${userId}`, {
-        full_birth_name: fullBirthName.trim()
+      // POST to save the name
+      const saveResponse = await api.post(`/numerology/unlock-name/${userId}`, {
+        full_birth_name: nameToSave
       });
       
+      if (isDebugEnabled()) {
+        console.log('[DEBUG_MIRROR] Name save response:', saveResponse.data);
+      }
+      
+      // === READ-AFTER-WRITE: Immediately re-fetch profile to confirm persistence ===
+      const profileResponse = await api.get(`/profile/${userId}`);
+      const updatedProfile: UserProfile = profileResponse.data;
+      
+      if (isDebugEnabled()) {
+        console.log('[DEBUG_MIRROR] Read-after-write verification:', {
+          saved_name: nameToSave,
+          server_name: updatedProfile.numerology_full_name,
+          match: updatedProfile.numerology_full_name === nameToSave
+        });
+      }
+      
+      // Verify the write succeeded
+      if (updatedProfile.numerology_full_name !== nameToSave) {
+        console.error('[PROFILE] Read-after-write mismatch!', {
+          expected: nameToSave,
+          got: updatedProfile.numerology_full_name
+        });
+        setUnlockError('Save may have failed. Please try again.');
+        setIsUnlocking(false);
+        return;
+      }
+      
+      // Update local profile state with server-confirmed data
+      setProfile(updatedProfile);
+      
+      // Show success step
       setUnlockStep('success');
       
-      // Refresh data after a short delay
+      // Refresh tab data after a short delay to show updated numbers
       setTimeout(() => {
         loadTabData(activeTab);
-      }, 2000);
+      }, 1500);
       
     } catch (err: any) {
-      console.error('Unlock error:', err);
+      console.error('[PROFILE] Save error:', err);
       setUnlockError('Something went wrong. Please try again.');
     } finally {
       setIsUnlocking(false);
