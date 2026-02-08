@@ -314,6 +314,17 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <Text style={styles.footer}>
               A lens for understanding energy patterns, not a definition of who you are.
             </Text>
+            
+            {/* Debug Footer - only shows when DEBUG_MIRROR is enabled */}
+            {activeTab === 'deep_dive' && data.sections && (
+              <DebugFooter 
+                lens="Human Design"
+                sections={data.sections}
+                source={data.debug_stamp?.source}
+                rawDataLength={rawDataLength}
+                debugStamp={data.debug_stamp}
+              />
+            )}
           </>
         ) : null}
       </ScrollView>
