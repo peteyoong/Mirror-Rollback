@@ -8162,12 +8162,25 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
             result["unlock_required"] = not has_name
             result["unlock_prompt"] = "Add your full birth name to unlock deeper numerology (Expression, Soul Urge, Personality)." if not has_name else None
             
-            result["debug_stamp"] = {
-                "compute_integrity_valid": canonical_num.get('compute_integrity', {}).get('valid', False),
-                "life_path_valid": isinstance(life_path, int),
-                "cycles_valid": isinstance(personal_year, int),
-                "has_name_numbers": has_name
-            }
+            # Calculate totals for debug
+            sections_list = result.get("sections", [])
+            total_chars = sum(len(s.get("body", "")) for s in sections_list)
+            total_words = sum(len(s.get("body", "").split()) for s in sections_list)
+            
+            result["debug_stamp"] = create_deep_dive_debug_stamp(
+                source="LLM",
+                fallback_reason=FallbackReason.NONE,
+                llm_attempted=True,
+                computed_fields_present=["life_path", "birthday_number"] + (["expression", "soul_urge", "personality"] if has_name else []),
+                computed_fields_missing=[] if has_name else ["full_birth_name"],
+                section_traces=[
+                    {"section_id": s.get("label", f"section_{i}"), "status": "ok", "source": "llm",
+                     "char_count": len(s.get("body", "")), "word_count": len(s.get("body", "").split())}
+                    for i, s in enumerate(sections_list)
+                ],
+                total_chars=total_chars,
+                total_words=total_words
+            )
             
             # =====================================================================
             # CACHE THE RESPONSE for instant repeat views
