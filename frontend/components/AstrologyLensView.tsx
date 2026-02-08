@@ -55,6 +55,9 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showChartModal, setShowChartModal] = useState(false);
   const [isRecomputing, setIsRecomputing] = useState(false);
+  
+  // Debug: track raw API response length
+  const [rawDataLength, setRawDataLength] = useState<number>(0);
 
   useEffect(() => {
     loadTabData(activeTab);
