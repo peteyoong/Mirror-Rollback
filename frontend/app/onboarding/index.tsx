@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
   FlatList,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -17,6 +18,9 @@ import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import { createUser, searchLocations, calculateChart } from '../../services/api';
+
+// Debug flag for touch diagnostics
+const DEBUG_TOUCHES = __DEV__;
 
 interface Location {
   city: string;
