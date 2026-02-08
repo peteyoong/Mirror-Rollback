@@ -8461,21 +8461,33 @@ async def unlock_numerology_name(user_id: str, request: NumerologyUnlockRequest)
             {"$set": numerology_update}
         )
         
-        # Also store in user document for future chart recalculations
+        # Store in user document for future chart recalculations
+        update_time = datetime.now(timezone.utc)
         await db.users.update_one(
             {"_id": ObjectId(user_id)},
-            {"$set": {"numerology_full_name": full_name}}
+            {"$set": {
+                "numerology_full_name": full_name,
+                "updated_at": update_time
+            }}
         )
+        
+        # Read-after-write verification for DEBUG
+        if DEBUG_MIRROR:
+            verify_user = await db.users.find_one({"_id": ObjectId(user_id)})
+            stored_name = verify_user.get("numerology_full_name") if verify_user else None
+            readback_match = stored_name == full_name
+            logger.info(f"[PROFILE] UPDATE numerology_name user={user_id} write_ok=true readback_match={readback_match}")
         
         logger.info(f"[Numerology] Name-based numbers unlocked for user {user_id}")
         
         # CRITICAL: Invalidate cached deep dive response since numerology data changed
         await invalidate_deep_dive_cache(user_id, "numerology")
         
-        # Return the new numbers (without echoing the name back)
+        # Return the new numbers AND the stored name (for frontend hydration)
         return {
             "success": True,
             "message": "Deeper numerology has been unlocked.",
+            "numerology_full_name": full_name,  # Echo back for frontend confirmation
             "unlocked_numbers": {
                 "expression": {
                     "number": expression["number"],
