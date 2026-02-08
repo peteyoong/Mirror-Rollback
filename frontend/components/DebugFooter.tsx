@@ -29,6 +29,7 @@ interface Props {
   source?: string;  // 'cache', 'llm', 'fallback'
   rawDataLength?: number;  // Total chars from API response
   debugStamp?: DebugStamp;
+  extraDebug?: Record<string, any>;  // Additional debug info
 }
 
 // Individual Section Debug - shows inline with each section
