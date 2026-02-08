@@ -7571,9 +7571,11 @@ You're essentially here for one thing. The specific gates of your cross describe
             fallback_reason = FallbackReason.LLM_ERROR
         elif parse_result.truncated:
             fallback_reason = FallbackReason.JSON_TRUNCATED
+        elif quality_gate_debug["augmented_sections"]:
+            fallback_reason = "QUALITY_GATE_AUGMENT"
         
         result["debug_stamp"] = create_deep_dive_debug_stamp(
-            source=parse_result.source,
+            source=parse_result.source if not quality_gate_debug["augmented_sections"] else "LLM_AUGMENTED",
             fallback_reason=fallback_reason,
             llm_attempted=True,
             computed_fields_present=["hd_type", "strategy", "authority", "profile", "incarnation_cross"],
@@ -7582,6 +7584,9 @@ You're essentially here for one thing. The specific gates of your cross describe
             total_chars=total_chars,
             total_words=total_words
         )
+        
+        # Add quality gate debug info
+        result["debug_stamp"]["quality_gate"] = quality_gate_debug
         
         # =====================================================================
         # CACHE THE RESPONSE for instant repeat views
