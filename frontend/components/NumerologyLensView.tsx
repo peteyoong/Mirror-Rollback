@@ -144,8 +144,9 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   const [backendHealthOk, setBackendHealthOk] = useState<boolean | null>(null); // null = not checked yet
   
   // === USER ID STABILITY CHECK STATE (DEBUG_MIRROR only) ===
-  const [lastUserId, setLastUserIdState] = useState<string | null>(null);
+  const [stableUserId, setStableUserIdState] = useState<string | null>(null);
   const [userIdChanged, setUserIdChanged] = useState<boolean>(false);
+  const [userIdDebugInfo, setUserIdDebugInfo] = useState<any>(null);
   
   // Modal-only transient state (for input flow, not persistence)
   const [unlockModalVisible, setUnlockModalVisible] = useState(false);
@@ -157,33 +158,41 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
 
-  // === USER ID STABILITY CHECK (DEBUG_MIRROR only) ===
+  // === USER ID STABILITY CHECK using centralized utility ===
   useEffect(() => {
-    if (!isDebugEnabled()) return;
-    
     const checkUserIdStability = async () => {
       try {
-        const storedUserId = await getLastUserId();
-        setLastUserIdState(storedUserId);
+        // Get the stable user ID from centralized utility
+        const stableId = await getStableUserId();
+        setStableUserIdState(stableId);
         
-        if (storedUserId && storedUserId !== userId) {
-          // User ID changed!
+        // Check if prop userId matches stable ID
+        if (stableId !== userId) {
           setUserIdChanged(true);
-          console.log('[DEBUG_MIRROR] ⚠️ USER ID CHANGED!', {
-            previous: maskUserId(storedUserId),
-            current: maskUserId(userId)
-          });
+          if (isDebugEnabled()) {
+            console.log('[DEBUG_MIRROR] ⚠️ PROP USER ID DIFFERS FROM STABLE ID!', {
+              prop_id: maskUserId(userId),
+              stable_id: maskUserId(stableId)
+            });
+          }
         } else {
           setUserIdChanged(false);
-          if (!storedUserId) {
-            console.log('[DEBUG_MIRROR] First launch - storing user ID:', maskUserId(userId));
-          } else {
-            console.log('[DEBUG_MIRROR] User ID stable:', maskUserId(userId));
+          if (isDebugEnabled()) {
+            console.log('[DEBUG_MIRROR] ✓ User ID matches stable ID:', maskUserId(userId));
           }
         }
         
-        // Always update stored user ID to current
-        await setLastUserId(userId);
+        // Run assertion check
+        const isStable = await assertUserIdStable();
+        if (!isStable && isDebugEnabled()) {
+          console.error('[DEBUG_MIRROR] ❌ User ID stability assertion FAILED');
+        }
+        
+        // Get debug info for DebugFooter
+        if (isDebugEnabled()) {
+          const debugInfo = await getDebugUserIdInfo();
+          setUserIdDebugInfo(debugInfo);
+        }
       } catch (err) {
         console.error('[DEBUG_MIRROR] User ID stability check failed:', err);
       }
