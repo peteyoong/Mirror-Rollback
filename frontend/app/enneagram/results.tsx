@@ -616,6 +616,9 @@ export default function EnneagramResults() {
           </TouchableOpacity>
         </View>
         
+        {/* Tester Debug Panel (DEBUG_MIRROR only) */}
+        {renderTesterDebugPanel()}
+        
         {/* Debug Panel (Dev Only) */}
         {renderDebugPanel()}
         
