@@ -128,6 +128,13 @@ interface EnneagramResult {
   created_at?: string;
 }
 
+// Helper to compute adjacent wing types (handles wraparound 9→1, 1→9)
+function getWingTypes(coreType: number): { left: number; right: number } {
+  const left = coreType === 1 ? 9 : coreType - 1;
+  const right = coreType === 9 ? 1 : coreType + 1;
+  return { left, right };
+}
+
 export default function EnneagramResults() {
   const router = useRouter();
   const { user } = useAppStore();
