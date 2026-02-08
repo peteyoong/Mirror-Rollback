@@ -459,3 +459,128 @@ def run_parser_tests():
 
 if __name__ == "__main__":
     run_parser_tests()
+
+
+# ============================================================================
+# ADDITIONAL REGRESSION TESTS FOR TRUNCATION HANDLING
+# ============================================================================
+
+def test_severely_truncated_input():
+    """Test handling of severely truncated input (mid-word cut)"""
+    severely_truncated = """---SECTION:sun---
+Sun: Your Core Orientation
+---BODY---
+With your Sun in Aries, there's a pioneering qua"""  # Cut mid-word
+    
+    fallback_content = {
+        "sun": ("Sun: Your Core Orientation", "Full fallback sun content that is substantial and meets the minimum length requirement for proper display."),
+        "moon": ("Moon: Your Emotional Texture", "Full fallback moon content that provides adequate information about the lunar placement."),
+    }
+    
+    result = parse_plain_text_sections(
+        severely_truncated,
+        expected_sections=["sun", "moon"],
+        fallback_content=fallback_content,
+        min_body_length=50
+    )
+    
+    # Should get sections even with severe truncation
+    assert len(result.sections) >= 1, f"Should have at least 1 section, got {len(result.sections)}"
+    assert result.truncated == True, "Should detect truncation"
+    
+    # Sun should be partial (augmented with fallback)
+    sun_section = next((s for s in result.sections if s.section_id == "sun"), None)
+    if sun_section:
+        assert len(sun_section.body) > 50, "Sun section should have fallback content"
+    
+    print("✅ Severely truncated input test PASSED")
+    return True
+
+
+def test_empty_response():
+    """Test handling of empty/null LLM response"""
+    empty_inputs = ["", None, "   ", "\n\n"]
+    
+    fallback_content = {
+        "test": ("Test Section", "Fallback content that should be used when LLM returns nothing."),
+    }
+    
+    for empty_input in empty_inputs:
+        result = parse_plain_text_sections(
+            empty_input,
+            expected_sections=["test"],
+            fallback_content=fallback_content
+        )
+        
+        assert result.source == "FALLBACK", f"Empty input should result in FALLBACK source"
+        assert len(result.sections) >= 1, "Should have fallback section"
+    
+    print("✅ Empty response test PASSED")
+    return True
+
+
+def test_partial_with_complete_sections():
+    """Test that complete sections are preserved even when response is truncated"""
+    partial_with_complete = """---SECTION:first---
+First Complete Section
+---BODY---
+This is a complete first section with enough content to be considered valid and useful. It contains multiple sentences and provides substantial information about the topic at hand. This section should be marked as complete.
+
+---SECTION:second---
+Second Complete Section
+---BODY---
+This is also a complete second section with adequate content. It has enough words to pass the minimum threshold and should be treated as a valid, complete section with proper status.
+
+---SECTION:third---
+Third Section - Trun"""  # Truncated mid-title
+    
+    result = parse_plain_text_sections(
+        partial_with_complete,
+        expected_sections=["first", "second", "third"],
+        min_body_length=30
+    )
+    
+    # First two sections should be OK
+    ok_sections = [s for s in result.sections if s.status == SectionStatus.OK]
+    assert len(ok_sections) >= 2, f"Should have at least 2 OK sections, got {len(ok_sections)}"
+    
+    # Source should be LLM_PARTIAL (not full FALLBACK)
+    assert result.source in ("LLM", "LLM_PARTIAL"), f"Source should be LLM or LLM_PARTIAL, got {result.source}"
+    
+    print("✅ Partial with complete sections test PASSED")
+    return True
+
+
+def run_all_parser_tests():
+    """Run all parser tests including new truncation tests"""
+    print("\n" + "="*60)
+    print("🧪 COMPLETE SECTION PARSER REGRESSION TESTS")
+    print("="*60 + "\n")
+    
+    tests = [
+        ("Truncated Parsing", test_truncated_parsing),
+        ("Complete Parsing", test_complete_parsing),
+        ("Severely Truncated Input", test_severely_truncated_input),
+        ("Empty Response", test_empty_response),
+        ("Partial with Complete Sections", test_partial_with_complete_sections),
+    ]
+    
+    passed = 0
+    failed = 0
+    
+    for name, test_func in tests:
+        try:
+            test_func()
+            passed += 1
+        except AssertionError as e:
+            print(f"❌ {name} FAILED: {e}")
+            failed += 1
+        except Exception as e:
+            print(f"❌ {name} ERROR: {e}")
+            failed += 1
+    
+    print(f"\n{'='*60}")
+    print(f"Results: {passed} passed, {failed} failed")
+    print("="*60)
+    
+    return failed == 0
