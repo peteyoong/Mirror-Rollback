@@ -559,18 +559,22 @@ export default function EnneagramResults() {
             {TYPE_NAMES[result.inferred_core]}
           </Text>
           
-          {/* Confidence */}
+          {/* Confidence Badge - Tappable for hidden debug gesture */}
           <View style={styles.confidenceRow}>
-            <View style={[
-              styles.confidenceBadge,
-              result.confidence_tier === 'high' && styles.confidenceHigh,
-              result.confidence_tier === 'medium' && styles.confidenceMedium,
-              result.confidence_tier === 'low' && styles.confidenceLow,
-            ]}>
+            <TouchableOpacity 
+              onPress={handleConfidenceTap}
+              activeOpacity={0.8}
+              style={[
+                styles.confidenceBadge,
+                result.confidence_tier === 'high' && styles.confidenceHigh,
+                result.confidence_tier === 'medium' && styles.confidenceMedium,
+                result.confidence_tier === 'low' && styles.confidenceLow,
+              ]}
+            >
               <Text style={styles.confidenceText}>
                 Confidence: {confidenceLabel}
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
         
