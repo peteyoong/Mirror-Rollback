@@ -384,6 +384,42 @@ export default function EnneagramResults() {
     );
   };
   
+  // Render tester debug panel (DEBUG_MIRROR only - plain text)
+  const renderTesterDebugPanel = () => {
+    if (!DEBUG_MIRROR || !result) return null;
+    
+    const { top_candidates, debug_scores, inferred_core } = result;
+    const wingTypes = getWingTypes(inferred_core);
+    
+    // Get primary and second type from top_candidates
+    const primaryType = top_candidates[0]?.type ?? '-';
+    const primaryScore = top_candidates[0]?.probability != null 
+      ? (top_candidates[0].probability * 100).toFixed(1) + '%' 
+      : '-';
+    const secondType = top_candidates[1]?.type ?? '-';
+    const secondScore = top_candidates[1]?.probability != null 
+      ? (top_candidates[1].probability * 100).toFixed(1) + '%' 
+      : '-';
+    
+    // Get wing scores
+    const leftWingScore = debug_scores?.wing_scores?.left != null
+      ? debug_scores.wing_scores.left.toFixed(3)
+      : '-';
+    const rightWingScore = debug_scores?.wing_scores?.right != null
+      ? debug_scores.wing_scores.right.toFixed(3)
+      : '-';
+    
+    return (
+      <View style={styles.testerDebugContainer}>
+        <Text style={styles.testerDebugTitle}>[DEBUG_MIRROR] Scoring Data</Text>
+        <Text style={styles.testerDebugText}>primary_type: {primaryType} (score: {primaryScore})</Text>
+        <Text style={styles.testerDebugText}>second_type: {secondType} (score: {secondScore})</Text>
+        <Text style={styles.testerDebugText}>left_wing_type: {wingTypes.left} (score: {leftWingScore})</Text>
+        <Text style={styles.testerDebugText}>right_wing_type: {wingTypes.right} (score: {rightWingScore})</Text>
+      </View>
+    );
+  };
+  
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
