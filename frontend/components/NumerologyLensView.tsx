@@ -573,6 +573,17 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
             <Text style={styles.footer}>
               A lens for noticing patterns, not a prediction of outcomes.
             </Text>
+            
+            {/* Debug Footer - only shows when DEBUG_MIRROR is enabled */}
+            {activeTab === 'deep_dive' && data.sections && (
+              <DebugFooter 
+                lens="Numerology"
+                sections={data.sections}
+                source={data.debug_stamp?.source}
+                rawDataLength={rawDataLength}
+                debugStamp={data.debug_stamp}
+              />
+            )}
           </>
         ) : null}
       </ScrollView>
