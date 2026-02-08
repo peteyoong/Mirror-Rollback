@@ -6471,6 +6471,7 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
         # Build full prompt with full chart data (canonical payload)
         # NOTE: Using PLAIN TEXT format to avoid JSON truncation issues
         from section_parser import parse_plain_text_sections, generate_section_prompt_format
+        from quality_gate import QualityGate, augment_short_sections
         
         astrology_sections = [
             {"id": "sun", "label": "Sun: Your Core Orientation", "description": "Core identity, ego, life force"},
@@ -6480,7 +6481,7 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
         
         section_format_instructions = generate_section_prompt_format(astrology_sections)
         
-        system_prompt = ASTROLOGY_GLOBAL_PROMPT + "\n\n" + ASTROLOGY_DEEP_DIVE_PROMPT.format(
+        base_system_prompt = ASTROLOGY_GLOBAL_PROMPT + "\n\n" + ASTROLOGY_DEEP_DIVE_PROMPT.format(
             sun_sign=placements['sun_sign'],
             sun_house=placements['sun_house'] or "Unknown",
             moon_sign=placements['moon_sign'],
@@ -6489,54 +6490,109 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
             full_chart_json=full_chart_json_str
         ) + "\n\n" + section_format_instructions
         
-        # ===== USE EMERGENT CONTRACT =====
-        from emergent_contract import emergent_generate, log_direct_llm_usage
-        
-        # Generate using contract-enforced wrapper
-        response_text = await emergent_generate(
-            mode="deep_dive",
-            user_message="Generate the Deep Dive for this user's core structure. Use the PLAIN TEXT section format with ---SECTION:id--- markers. Do NOT return JSON.",
-            endpoint="astrology_deep_dive",
-            user_id=user_id,
-            context={
-                "lens": "astrology",
-                "sun_sign": placements['sun_sign'],
-                "moon_sign": placements['moon_sign'],
-                "rising_sign": placements['rising_sign'],
-                "full_chart_available": True,
-                "houses_computed": placements["debug_stamp"].get("houses_computed", False),
-                "nodes_available": True,  # Guaranteed by assertion
-                "node_mode": node_mode
-            },
-            additional_system_prompt=system_prompt,
-            model="gpt-4.1-mini",
-            max_tokens=4000  # Deep dives need many tokens for detailed sections
-        )
-        
-        # =====================================================================
-        # PARSE PLAIN TEXT RESPONSE (resilient to truncation)
-        # =====================================================================
         # Prepare fallback content for each section
         sun_sign = placements['sun_sign']
         moon_sign = placements['moon_sign']
         rising_sign = placements['rising_sign']
         
         fallback_content = {
-            "sun": ("Sun: Your Core Orientation", ASTROLOGY_SUN_FALLBACK.get(sun_sign, f"With your Sun in {sun_sign}, there's a particular quality to how you express your sense of self and purpose. This placement shapes your core identity orientation.")),
-            "moon": ("Moon: Your Emotional Texture", ASTROLOGY_MOON_FALLBACK.get(moon_sign, f"Your Moon in {moon_sign} shapes how you process feeling and what helps you feel emotionally at home.")),
-            "ascendant": ("Ascendant: How You Meet the World", ASTROLOGY_ASCENDANT_FALLBACK.get(rising_sign, f"{rising_sign} rising colours the lens through which you approach new situations and people."))
+            "sun": ("Sun: Your Core Orientation", ASTROLOGY_SUN_FALLBACK.get(sun_sign, f"With your Sun in {sun_sign}, there's a particular quality to how you express your sense of self and purpose. This placement shapes your core identity orientation and how you naturally engage with life's experiences. The Sun represents your essential vitality and the way you tend to shine in the world.")),
+            "moon": ("Moon: Your Emotional Texture", ASTROLOGY_MOON_FALLBACK.get(moon_sign, f"Your Moon in {moon_sign} shapes how you process feeling and what helps you feel emotionally at home. This placement reflects your inner emotional landscape and the patterns that bring you comfort or discomfort.")),
+            "ascendant": ("Ascendant: How You Meet the World", ASTROLOGY_ASCENDANT_FALLBACK.get(rising_sign, f"{rising_sign} rising colours the lens through which you approach new situations and people. This is your instinctive first impression and how others initially perceive you."))
         }
         
-        parse_result = parse_plain_text_sections(
-            response_text,
-            expected_sections=["sun", "moon", "ascendant"],
-            fallback_content=fallback_content,
-            min_body_length=100
-        )
+        # =====================================================================
+        # QUALITY GATE PIPELINE: Generate → Check → Retry if short → Augment
+        # =====================================================================
+        from emergent_contract import emergent_generate
         
-        logger.info(f"[ASTRO_DEEP_DIVE] Parsed: source={parse_result.source}, sections={len(parse_result.sections)}, truncated={parse_result.truncated}")
+        gate = QualityGate(lens="astrology")
+        quality_gate_debug = {
+            "quality_gate_triggered": False,
+            "retry_count": 0,
+            "short_sections": [],
+            "augmented_sections": []
+        }
         
-        # Apply guardrails to parsed sections
+        current_prompt = base_system_prompt
+        max_retries = 1
+        
+        for attempt in range(max_retries + 1):
+            quality_gate_debug["retry_count"] = attempt
+            
+            # Generate using contract-enforced wrapper
+            response_text = await emergent_generate(
+                mode="deep_dive",
+                user_message="Generate the Deep Dive for this user's core structure. Use the PLAIN TEXT section format with ---SECTION:id--- markers. Do NOT return JSON. Write at least 150 words per section.",
+                endpoint="astrology_deep_dive" + (f"_retry{attempt}" if attempt > 0 else ""),
+                user_id=user_id,
+                context={
+                    "lens": "astrology",
+                    "sun_sign": placements['sun_sign'],
+                    "moon_sign": placements['moon_sign'],
+                    "rising_sign": placements['rising_sign'],
+                    "full_chart_available": True,
+                    "houses_computed": placements["debug_stamp"].get("houses_computed", False),
+                    "nodes_available": True,
+                    "node_mode": node_mode,
+                    "retry_attempt": attempt
+                },
+                additional_system_prompt=current_prompt,
+                model="gpt-4.1-mini",
+                max_tokens=4000
+            )
+            
+            # Parse sections
+            parse_result = parse_plain_text_sections(
+                response_text,
+                expected_sections=["sun", "moon", "ascendant"],
+                fallback_content=fallback_content,
+                min_body_length=100
+            )
+            
+            logger.info(f"[ASTRO_DEEP_DIVE] Attempt {attempt + 1}: source={parse_result.source}, sections={len(parse_result.sections)}")
+            
+            # Build sections list for quality check
+            sections_for_check = [
+                {"label": s.label, "body": s.body, "section_id": s.section_id}
+                for s in parse_result.sections
+            ]
+            
+            # Check quality
+            gate_result = gate.check(sections_for_check)
+            
+            if gate_result.passed:
+                logger.info(f"[ASTRO_DEEP_DIVE] Quality gate passed on attempt {attempt + 1}")
+                break
+            
+            quality_gate_debug["quality_gate_triggered"] = True
+            quality_gate_debug["short_sections"] = [s.to_dict() for s in gate_result.short_sections]
+            
+            # If we have retries left, prepare expand prompt
+            if attempt < max_retries and gate_result.short_sections:
+                expand_prompt = gate.get_expand_prompt(gate_result.short_sections)
+                current_prompt = base_system_prompt + "\n\n" + expand_prompt
+                logger.info(f"[ASTRO_DEEP_DIVE] Retry with expand prompt for {len(gate_result.short_sections)} short sections")
+        
+        # After retries, augment any remaining short sections
+        if not gate_result.passed and gate_result.short_sections:
+            short_ids = [s.section_id for s in gate_result.short_sections]
+            augmented_sections, augmented_ids = augment_short_sections(
+                sections_for_check, short_ids, fallback_content
+            )
+            quality_gate_debug["augmented_sections"] = augmented_ids
+            
+            # Update parse result sections with augmented content
+            for aug_section in augmented_sections:
+                for parsed in parse_result.sections:
+                    if parsed.section_id == aug_section.get("section_id"):
+                        parsed.body = aug_section["body"]
+                        parsed.char_count = len(aug_section["body"])
+                        parsed.word_count = len(aug_section["body"].split())
+            
+            logger.info(f"[ASTRO_DEEP_DIVE] Augmented {len(augmented_ids)} sections after retry")
+        
+        # Apply guardrails to final sections
         for section in parse_result.sections:
             section.body = apply_astrology_guardrails(section.body)
         
@@ -6563,10 +6619,12 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
         if parse_result.source == "FALLBACK":
             fallback_reason = FallbackReason.LLM_ERROR
         elif parse_result.truncated:
-            fallback_reason = FallbackReason.JSON_TRUNCATED  # Using same enum for truncation
+            fallback_reason = FallbackReason.JSON_TRUNCATED
+        elif quality_gate_debug["augmented_sections"]:
+            fallback_reason = "QUALITY_GATE_AUGMENT"
         
         result["debug_stamp"] = create_deep_dive_debug_stamp(
-            source=parse_result.source,
+            source=parse_result.source if not quality_gate_debug["augmented_sections"] else "LLM_AUGMENTED",
             fallback_reason=fallback_reason,
             llm_attempted=True,
             computed_fields_present=["sun_sign", "moon_sign", "rising_sign"],
@@ -6575,6 +6633,9 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
             total_chars=total_chars,
             total_words=total_words
         )
+        
+        # Add quality gate debug info
+        result["debug_stamp"]["quality_gate"] = quality_gate_debug
         
         # =====================================================================
         # CACHE THE RESPONSE for instant repeat views
