@@ -8511,6 +8511,54 @@ async def unlock_numerology_name(user_id: str, request: NumerologyUnlockRequest)
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+# =====================================================================
+# PROFILE ENDPOINT - Canonical read path for user profile data
+# =====================================================================
+
+@api_router.get("/profile/{user_id}")
+async def get_user_profile(user_id: str):
+    """
+    Get user profile from persistent DB.
+    
+    Returns:
+        - user_id
+        - preferred_name  
+        - numerology_full_name (nullable)
+        - updated_at
+        - debug info (if DEBUG_MIRROR=true)
+    """
+    try:
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        result = {
+            "user_id": str(user.get("_id")),
+            "preferred_name": user.get("name") or user.get("preferred_name"),
+            "numerology_full_name": user.get("numerology_full_name"),
+            "updated_at": user.get("updated_at").isoformat() if user.get("updated_at") else None,
+        }
+        
+        if DEBUG_MIRROR:
+            result["debug"] = {
+                "db_row_id": str(user.get("_id")),
+                "has_numerology_name": bool(user.get("numerology_full_name")),
+                "name_length": len(user.get("numerology_full_name", "")) if user.get("numerology_full_name") else 0,
+                "user_id_queried": user_id
+            }
+            logger.info(f"[PROFILE] GET user={user_id} numerology_name_present={bool(user.get('numerology_full_name'))}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Profile fetch error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ============================================
 # ENNEAGRAM ENDPOINTS
 # ============================================
