@@ -6601,6 +6601,10 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
             moon_body = ASTROLOGY_MOON_FALLBACK.get(moon_sign, f"Your Moon in {moon_sign} shapes how you process feeling and what helps you feel emotionally at home. This placement reflects your inner emotional landscape and the patterns that bring you comfort or discomfort. The Moon represents your instinctive responses and what you need to feel nurtured.")
             ascendant_body = ASTROLOGY_ASCENDANT_FALLBACK.get(rising_sign, f"{rising_sign} rising colours the lens through which you approach new situations and people. This is your instinctive first impression and how others initially perceive you. The Ascendant shapes your approach to the world and the mask you naturally wear in social situations.")
             
+            # Calculate totals for debug
+            total_chars = len(sun_body) + len(moon_body) + len(ascendant_body)
+            total_words = len(sun_body.split()) + len(moon_body.split()) + len(ascendant_body.split())
+            
             fallback_result = {
                 "success": True,  # Data is valid, just LLM parsing failed
                 "title": "Your Core Structure",
@@ -6616,13 +6620,25 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
                 ],
                 "mirror_prompt": "Where do you recognize these patterns in your daily experience? What feels familiar, and what surprised you?",
                 "deeper_data_available": True,
-                "debug_stamp": {
-                    **placements["debug_stamp"],
-                    "fallback_used": True
-                }
+                "debug_stamp": create_deep_dive_debug_stamp(
+                    source="FALLBACK",
+                    fallback_reason=FallbackReason.JSON_TRUNCATED,
+                    llm_attempted=True,
+                    llm_error={"message": str(e), "type": "JSON_TRUNCATED"},
+                    computed_fields_present=["sun_sign", "moon_sign", "rising_sign"],
+                    computed_fields_missing=[],
+                    section_traces=[
+                        {"section_id": "sun", "status": "ok", "source": "fallback", "char_count": len(sun_body), "word_count": len(sun_body.split())},
+                        {"section_id": "moon", "status": "ok", "source": "fallback", "char_count": len(moon_body), "word_count": len(moon_body.split())},
+                        {"section_id": "ascendant", "status": "ok", "source": "fallback", "char_count": len(ascendant_body), "word_count": len(ascendant_body.split())}
+                    ],
+                    total_chars=total_chars,
+                    total_words=total_words
+                )
             }
             # Cache fallback too
             await set_cached_deep_dive(user_id, "astrology", fallback_result)
+            log_deep_dive_request("astrology", fallback_result["debug_stamp"]["source"], fallback_result["debug_stamp"]["fallback_reason"], total_chars, user_id)
             log_deep_dive_response("astrology", user_id, fallback_result, "FALLBACK")
             return fallback_result
     
