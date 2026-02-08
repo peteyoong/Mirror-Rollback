@@ -30,6 +30,13 @@ interface HumanDesignData {
     incarnation_cross_gates?: string;
   };
   date?: string;
+  // Debug fields from API
+  debug_stamp?: {
+    fallback_used?: boolean;
+    source?: string;
+    timestamp?: string;
+    cached?: boolean;
+  };
 }
 
 interface Props {
