@@ -412,6 +412,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   };
 
   // === HANDLE NAME SAVE WITH READ-AFTER-WRITE ===
+  // Uses direct backend URL to bypass unreliable web preview proxy
   const handleUnlockSubmit = async () => {
     const nameToSave = modalInputName.trim();
     
@@ -424,17 +425,29 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
     setUnlockError(null);
 
     try {
+      // Build URLs with backend base URL
+      const unlockUrl = BACKEND_BASE_URL 
+        ? `${BACKEND_BASE_URL}/api/numerology/unlock-name/${userId}`
+        : `/api/numerology/unlock-name/${userId}`;
+      const profileUrl = BACKEND_BASE_URL 
+        ? `${BACKEND_BASE_URL}/api/profile/${userId}`
+        : `/api/profile/${userId}`;
+      
+      if (isDebugEnabled()) {
+        console.log('[DEBUG_MIRROR] Saving name via:', unlockUrl);
+      }
+      
       // POST to save the name
-      const saveResponse = await api.post(`/numerology/unlock-name/${userId}`, {
+      const saveResponse = await axios.post(unlockUrl, {
         full_birth_name: nameToSave
-      });
+      }, { timeout: 15000 });
       
       if (isDebugEnabled()) {
         console.log('[DEBUG_MIRROR] Name save response:', saveResponse.data);
       }
       
       // === READ-AFTER-WRITE: Immediately re-fetch profile to confirm persistence ===
-      const profileResponse = await api.get(`/profile/${userId}`);
+      const profileResponse = await axios.get(profileUrl, { timeout: 10000 });
       const updatedProfile: UserProfile = profileResponse.data;
       
       if (isDebugEnabled()) {
