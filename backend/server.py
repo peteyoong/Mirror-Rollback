@@ -8576,12 +8576,27 @@ async def save_enneagram_result(request: EnneagramResultSave):
     using True Sidereal Astrology and Human Design data (if available).
     """
     try:
+        # =====================================================
+        # INSTRUMENTATION: Log all Enneagram submission details
+        # =====================================================
+        raw_scores = request.debug_scores.raw_scores if request.debug_scores else {}
+        logger.info(f"[ENNEAGRAM_SUBMISSION] ========================================")
+        logger.info(f"[ENNEAGRAM_SUBMISSION] user_id: {request.user_id}")
+        logger.info(f"[ENNEAGRAM_SUBMISSION] raw_scores: {raw_scores}")
+        logger.info(f"[ENNEAGRAM_SUBMISSION] primary_type: {request.inferred_core}")
+        logger.info(f"[ENNEAGRAM_SUBMISSION] wing: {request.inferred_wing}")
+        logger.info(f"[ENNEAGRAM_SUBMISSION] wing_scores: left={request.debug_scores.wing_scores.left if request.debug_scores and request.debug_scores.wing_scores else 0}, right={request.debug_scores.wing_scores.right if request.debug_scores and request.debug_scores.wing_scores else 0}")
+        logger.info(f"[ENNEAGRAM_SUBMISSION] confidence: {request.confidence} ({request.confidence_tier})")
+        logger.info(f"[ENNEAGRAM_SUBMISSION] top_candidates: {[(c.type, c.probability) for c in request.top_candidates]}")
+        logger.info(f"[ENNEAGRAM_SUBMISSION] ========================================")
+        
         # Validate user exists
         user = await db.users.find_one({"_id": ObjectId(request.user_id)})
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
         # Compute enriched Enneagram details (triads, lines, groups)
+        # NOTE: This is a PURE FUNCTION - no shared state, computed fresh per call
         enneagram_computed_details = compute_enneagram_details(
             core_type=request.inferred_core,
             wing=request.inferred_wing if isinstance(request.inferred_wing, int) else 0,
