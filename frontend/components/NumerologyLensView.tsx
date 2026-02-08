@@ -875,6 +875,9 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                 extraDebug={{
                   backend_base_url: BACKEND_BASE_URL || '(relative)',
                   backend_health_ok: backendHealthOk === null ? 'checking...' : backendHealthOk ? 'YES' : 'NO',
+                  current_user_id: maskUserId(userId),
+                  last_user_id: maskUserId(lastUserId),
+                  user_id_changed: userIdChanged ? 'YES ⚠️' : 'NO',
                   profile_loaded: profile ? 'YES' : 'NO',
                   numerology_full_name: profile?.numerology_full_name || '(none)',
                   profile_updated_at: profile?.updated_at || '(never)'
