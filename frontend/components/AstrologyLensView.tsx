@@ -230,7 +230,11 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           )}
         </TouchableOpacity>
         {isExpanded && (
-          <Text style={styles.sectionBody}>{section.body}</Text>
+          <>
+            <Text style={styles.sectionBody}>{section.body}</Text>
+            {/* Debug: Show section-level metrics */}
+            <SectionDebug label={section.label} body={section.body} index={index} />
+          </>
         )}
       </View>
     );
