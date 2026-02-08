@@ -8895,6 +8895,21 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
             if debug:
                 response_result["convergence"] = convergence
         
+        # =====================================================
+        # DEBUG OBJECT (behind DEBUG_MIRROR flag or debug=true)
+        # =====================================================
+        if DEBUG_MIRROR or debug:
+            debug_scores = result.get("debug_scores", {})
+            response_result["debug_enneagram"] = {
+                "user_id": user_id,
+                "raw_scores": debug_scores.get("raw_scores", {}),
+                "primary_type": result.get("inferred_core"),
+                "wing_scores": debug_scores.get("wing_scores", {}),
+                "confidence": result.get("confidence_tier"),
+                "db_record_id": str(result.get("_id", "")),
+                "created_at": result["created_at"].isoformat() if result.get("created_at") else None
+            }
+        
         return {
             "has_result": True,
             "result": response_result
