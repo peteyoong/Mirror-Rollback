@@ -123,31 +123,75 @@ export default function DebugFooter({ lens, sections, source, rawDataLength, deb
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    padding: 8,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    padding: 12,
     marginTop: 16,
+    marginBottom: 8,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#00FF00',
   },
   header: {
     color: '#00FF00',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   info: {
     color: '#FFFFFF',
-    fontSize: 10,
-    marginBottom: 2,
+    fontSize: 11,
+    marginBottom: 3,
+  },
+  warningLine: {
+    color: '#FFAA00',
+    fontSize: 11,
+    fontWeight: 'bold',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  sectionsContainer: {
+    marginTop: 6,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.2)',
   },
   section: {
     color: '#AAAAAA',
-    fontSize: 9,
-    marginLeft: 8,
+    fontSize: 10,
+    marginLeft: 4,
+    marginBottom: 2,
   },
   warning: {
     color: '#FFAA00',
   },
   error: {
+    color: '#FF0000',
+    fontWeight: 'bold',
+  },
+  timestamp: {
+    color: '#666666',
+    fontSize: 9,
+    marginTop: 6,
+    fontStyle: 'italic',
+  },
+  // Section-level inline debug
+  sectionDebug: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+  },
+  sectionDebugText: {
+    color: '#00FF00',
+    fontSize: 9,
+    fontFamily: 'monospace',
+  },
+  sectionDebugWarning: {
+    color: '#FFAA00',
+  },
+  sectionDebugError: {
     color: '#FF0000',
   },
 });
