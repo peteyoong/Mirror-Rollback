@@ -133,6 +133,9 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   
+  // === BACKEND HEALTH CHECK STATE ===
+  const [backendHealthOk, setBackendHealthOk] = useState<boolean | null>(null); // null = not checked yet
+  
   // Modal-only transient state (for input flow, not persistence)
   const [unlockModalVisible, setUnlockModalVisible] = useState(false);
   const [unlockStep, setUnlockStep] = useState<'consent' | 'input' | 'success'>('consent');
@@ -142,6 +145,32 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
+
+  // === BACKEND HEALTH CHECK (DEBUG_MIRROR only) ===
+  useEffect(() => {
+    if (!isDebugEnabled()) return;
+    
+    const checkHealth = async () => {
+      try {
+        const healthUrl = BACKEND_BASE_URL 
+          ? `${BACKEND_BASE_URL}/api/health`
+          : `/api/health`;
+        
+        console.log('[DEBUG_MIRROR] Checking backend health:', healthUrl);
+        
+        const response = await axios.get(healthUrl, { timeout: 5000 });
+        const isOk = response.data?.ok === true && response.data?.service === 'backend';
+        
+        setBackendHealthOk(isOk);
+        console.log('[DEBUG_MIRROR] Backend health check:', isOk ? '✅ OK' : '❌ FAILED', response.data);
+      } catch (err) {
+        console.error('[DEBUG_MIRROR] Backend health check failed:', err);
+        setBackendHealthOk(false);
+      }
+    };
+    
+    checkHealth();
+  }, []); // Run once on mount
 
   // === PROFILE HYDRATION FROM SERVER ===
   // Fetch profile from GET /api/profile/{user_id} - this is the canonical source
