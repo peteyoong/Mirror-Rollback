@@ -73,8 +73,41 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
   
+  // Server-driven profile state (not transient modal state)
+  const [serverProfile, setServerProfile] = useState<{
+    numerology_full_name: string | null;
+    name_source: 'server' | 'cache' | 'none';
+  }>({ numerology_full_name: null, name_source: 'none' });
+  
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
+
+  // Fetch profile from server on mount and after save
+  const fetchServerProfile = async () => {
+    try {
+      const response = await api.get(`/profile/${userId}`);
+      const profile = response.data;
+      setServerProfile({
+        numerology_full_name: profile.numerology_full_name || null,
+        name_source: profile.numerology_full_name ? 'server' : 'none'
+      });
+      
+      if (isDebugEnabled()) {
+        console.log('[DEBUG_MIRROR] Profile fetched:', {
+          user_id: userId,
+          name_present: !!profile.numerology_full_name,
+          name_length: profile.numerology_full_name?.length || 0
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch profile:', err);
+    }
+  };
+
+  // Initial profile fetch
+  useEffect(() => {
+    fetchServerProfile();
+  }, [userId]);
 
   useEffect(() => {
     loadTabData(activeTab);
