@@ -73,6 +73,16 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
       const response = await api.get(endpoint);
       setData(response.data);
+      
+      // Debug: Calculate raw data length for comparison
+      if (isDebugEnabled() && response.data?.sections) {
+        const totalChars = response.data.sections.reduce(
+          (sum: number, s: HumanDesignSection) => sum + (s.body?.length || 0), 
+          0
+        );
+        setRawDataLength(totalChars);
+        console.log(`[DEBUG_MIRROR] HumanDesign ${tab}: API returned ${totalChars} chars across ${response.data.sections.length} sections`);
+      }
     } catch (err: any) {
       console.error(`Human Design ${tab} error:`, err);
       setError('Unable to load this view right now.');
