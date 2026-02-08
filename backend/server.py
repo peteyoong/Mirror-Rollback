@@ -7318,11 +7318,11 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
             max_tokens=4000
         )
         
-            # =====================================================================
-            # PARSE PLAIN TEXT RESPONSE (inside the retry loop)
-            # =====================================================================
-            # Prepare rich fallback content for each section
-            type_descriptions = {
+        # =====================================================================
+        # PARSE PLAIN TEXT RESPONSE
+        # =====================================================================
+        # Prepare rich fallback content for each section
+        type_descriptions = {
             "Generator": """As a Generator, your energy architecture is built around sustainable life force. This means you have consistent access to sacral energy when you're engaged in work that lights you up. The key pattern here is responding to what genuinely excites you rather than initiating from mental decisions alone.
 
 Your aura is open and enveloping—it literally draws life to you. This can create confusion when the mind wants to "make things happen" rather than waiting to respond to what shows up. The generator frustration often comes from either not being asked (and therefore not being able to respond) or from saying yes to things that don't actually light you up.
