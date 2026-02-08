@@ -193,26 +193,31 @@ class NumerologyPersistenceTest:
             self.log_test("Numerology Summary", "FAIL", f"Status: {status_code}, Response: {response}")
             return {}
         
-        # Check if name-based numbers are included and not "locked"
-        expression = response.get("expression")
-        soul_urge = response.get("soul_urge")
-        personality = response.get("personality")
+        # Check if name-based numbers are included in the summary text
+        sections = response.get("sections", [])
+        summary_text = ""
+        for section in sections:
+            summary_text += section.get("body", "") + " "
         
-        # These should be actual numbers, not "locked"
-        if expression == "locked" or soul_urge == "locked" or personality == "locked":
-            self.log_test("Numerology Summary", "FAIL", f"Numbers still locked - Expression: {expression}, Soul Urge: {soul_urge}, Personality: {personality}")
+        summary_text = summary_text.lower()
+        
+        # Look for the name-based numbers in the text
+        has_expression = "expression" in summary_text and any(f"expression {i}" in summary_text for i in range(1, 12))
+        has_soul_urge = "soul urge" in summary_text and any(f"soul urge {i}" in summary_text for i in range(1, 12))
+        has_personality = "personality" in summary_text and any(f"personality {i}" in summary_text for i in range(1, 12))
+        
+        # Check if unlock_required is false (meaning name is unlocked)
+        unlock_required = response.get("unlock_required", True)
+        
+        if not has_expression or not has_soul_urge or not has_personality:
+            self.log_test("Numerology Summary", "FAIL", f"Name-based numbers missing from summary text. Expression: {has_expression}, Soul Urge: {has_soul_urge}, Personality: {has_personality}")
             return {}
         
-        # Check if they are actual numeric values
-        try:
-            expr_num = int(expression) if expression != "locked" else None
-            soul_num = int(soul_urge) if soul_urge != "locked" else None
-            pers_num = int(personality) if personality != "locked" else None
-        except (ValueError, TypeError):
-            self.log_test("Numerology Summary", "FAIL", f"Numbers not numeric - Expression: {expression}, Soul Urge: {soul_urge}, Personality: {personality}")
+        if unlock_required:
+            self.log_test("Numerology Summary", "FAIL", f"unlock_required is still True, should be False when name is unlocked")
             return {}
         
-        details = f"Name-based numbers present - Expression: {expression}, Soul Urge: {soul_urge}, Personality: {personality}"
+        details = f"Name-based numbers present in summary text - Expression: {has_expression}, Soul Urge: {has_soul_urge}, Personality: {has_personality}, unlock_required: {unlock_required}"
         self.log_test("Numerology Summary", "PASS", details)
         
         return response
