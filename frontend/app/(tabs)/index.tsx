@@ -245,18 +245,21 @@ export default function MirrorScreen() {
       <StatusBar style="dark" />
       
       {/* Compact Header: "THE MIRROR" on left, User name + chevron on right */}
-      <View style={styles.header}>
+      <Pressable 
+        style={styles.header}
+        onPress={handleUserPress}
+      >
         <Text style={styles.headerTitle}>THE MIRROR</Text>
-        <Pressable 
-          style={styles.userButton}
-          onPress={handleUserPress}
-        >
-          <Text style={styles.userName} numberOfLines={1}>
+        <View style={styles.userCluster}>
+          <Text style={styles.userName} numberOfLines={1} ellipsizeMode="tail">
             {user?.name || 'Account'}
           </Text>
-          <Ionicons name="chevron-forward" size={16} color={Colors.textTertiary} />
-        </Pressable>
-      </View>
+          <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
+        </View>
+      </Pressable>
+      
+      {/* Subtle header separation */}
+      <View style={styles.headerDivider} />
       
       <ScrollView
         contentContainerStyle={styles.scrollContent}
