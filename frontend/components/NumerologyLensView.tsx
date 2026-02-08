@@ -72,6 +72,9 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   const [fullBirthName, setFullBirthName] = useState('');
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
+  
+  // Debug: track raw API response length
+  const [rawDataLength, setRawDataLength] = useState<number>(0);
 
   useEffect(() => {
     loadTabData(activeTab);
