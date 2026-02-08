@@ -813,6 +813,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  healthBanner: {
+    backgroundColor: '#D32F2F',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  healthBannerText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
