@@ -11,48 +11,19 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import Constants from 'expo-constants';
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
-
-// === USER ID STABILITY STORAGE KEY ===
-const LAST_USER_ID_KEY = 'DEBUG_LAST_USER_ID';
-
-// === CROSS-PLATFORM STORAGE HELPERS ===
-async function getLastUserId(): Promise<string | null> {
-  try {
-    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
-      return window.localStorage.getItem(LAST_USER_ID_KEY);
-    }
-    return await AsyncStorage.getItem(LAST_USER_ID_KEY);
-  } catch (err) {
-    console.error('[DEBUG_MIRROR] Failed to get last user ID:', err);
-    return null;
-  }
-}
-
-async function setLastUserId(userId: string): Promise<void> {
-  try {
-    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(LAST_USER_ID_KEY, userId);
-      return;
-    }
-    await AsyncStorage.setItem(LAST_USER_ID_KEY, userId);
-  } catch (err) {
-    console.error('[DEBUG_MIRROR] Failed to set last user ID:', err);
-  }
-}
-
-// Mask user ID for display: show first 4 and last 4 chars
-function maskUserId(userId: string | null): string {
-  if (!userId) return '(none)';
-  if (userId.length <= 8) return userId;
-  return `${userId.slice(0, 4)}...${userId.slice(-4)}`;
-}
+import { 
+  getStableUserId, 
+  getStableUserIdSync,
+  assertUserIdStable, 
+  maskUserId,
+  getDebugUserIdInfo 
+} from '../utils/stableUserId';
 
 // === V1-SAFE DEV FALLBACK FOR BACKEND URL ===
 // Web preview proxy /api is unreliable, so we need a direct backend URL fallback
