@@ -8833,13 +8833,33 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
     Full convergence signals only returned when debug=true.
     """
     try:
+        # =====================================================
+        # INSTRUMENTATION: Log retrieval request
+        # =====================================================
+        logger.info(f"[ENNEAGRAM_RETRIEVAL] ========================================")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL] user_id: {user_id}")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL] debug_mode: {debug}")
+        
         # Validate user exists
         user = await db.users.find_one({"_id": ObjectId(user_id)})
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Get the result
+        # Get the result - ALWAYS filtered by user_id (no shared cache)
         result = await db.enneagram_results.find_one({"user_id": user_id})
+        
+        if not result:
+            logger.info(f"[ENNEAGRAM_RETRIEVAL] No result found for user {user_id}")
+            return {"has_result": False, "result": None}
+        
+        # Log retrieved data for verification
+        raw_scores = result.get("debug_scores", {}).get("raw_scores", {})
+        logger.info(f"[ENNEAGRAM_RETRIEVAL] Retrieved result for user {user_id}:")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL]   primary_type: {result.get('inferred_core')}")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL]   wing: {result.get('inferred_wing')}")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL]   raw_scores: {raw_scores}")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL]   confidence: {result.get('confidence_tier')}")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL] ========================================")
         
         if not result:
             return {"has_result": False, "result": None}
