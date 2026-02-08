@@ -48,7 +48,7 @@ const getLocalDateString = (): string => {
 };
 
 export default function MirrorScreen() {
-  const { user, hasTriedSessionRestore, isRestoringSession } = useAppStore();
+  const { user, hasTriedSessionRestore, isRestoringSession, clearUser } = useAppStore();
   const router = useRouter();
   const [keystone, setKeystone] = useState<DailyKeystone | null>(null);
   const [isLoading, setIsLoading] = useState(true);
