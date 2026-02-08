@@ -6167,6 +6167,7 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
             cached_response = await get_cached_deep_dive(user_id, "astrology")
             if cached_response:
                 logger.info(f"[CACHE HIT] Deep Dive astrology for user {user_id}")
+                log_deep_dive_response("astrology", user_id, cached_response, "CACHE_HIT")
                 return cached_response
         else:
             logger.info(f"[FORCE REFRESH] Bypassing cache for astrology deep dive, user {user_id}")
