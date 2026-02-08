@@ -427,7 +427,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   const closeUnlockModal = () => {
     setUnlockModalVisible(false);
     setUnlockStep('consent');
-    setFullBirthName('');
+    setModalInputName(''); // Clear transient input
     setUnlockError(null);
   };
 
