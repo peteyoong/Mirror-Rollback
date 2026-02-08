@@ -567,6 +567,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 24,
+    paddingBottom: 100, // Extra padding to prevent footer overlap with inputs
   },
   header: {
     marginBottom: 32,
