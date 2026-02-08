@@ -80,6 +80,49 @@ async def health_check():
 # Note: Static file serving will be added at the END of the file, AFTER the api_router is included
 # This ensures API routes take precedence over the catch-all static file handler
 
+# =====================================================================
+# DEBUG INSTRUMENTATION FOR DEEP DIVE TRUNCATION
+# Set DEBUG_MIRROR=true in environment to enable detailed logging
+# =====================================================================
+DEBUG_MIRROR = os.environ.get('DEBUG_MIRROR', 'false').lower() == 'true'
+
+def log_deep_dive_response(lens: str, user_id: str, response: dict, stage: str = "final"):
+    """Log deep dive response details for debugging truncation issues."""
+    if not DEBUG_MIRROR:
+        return
+    
+    sections = response.get('sections', [])
+    logger.info(f"[DEBUG_MIRROR] [{lens.upper()}] [{stage}] user={user_id}")
+    logger.info(f"[DEBUG_MIRROR] [{lens.upper()}] Total sections: {len(sections)}")
+    
+    total_chars = 0
+    for i, section in enumerate(sections):
+        label = section.get('label', 'N/A')
+        body = section.get('body', '')
+        char_count = len(body)
+        word_count = len(body.split())
+        total_chars += char_count
+        
+        # Check for any truncation indicators
+        truncated = body.endswith('...') or body.endswith('…')
+        
+        logger.info(f"[DEBUG_MIRROR] [{lens.upper()}] Section {i+1}: '{label[:30]}...' | chars={char_count} | words={word_count} | truncated={truncated}")
+        
+        # Log first 100 and last 50 chars of each section for verification
+        if char_count > 150:
+            logger.info(f"[DEBUG_MIRROR] [{lens.upper()}]   START: '{body[:100]}...'")
+            logger.info(f"[DEBUG_MIRROR] [{lens.upper()}]   END: '...{body[-50:]}'")
+        else:
+            logger.info(f"[DEBUG_MIRROR] [{lens.upper()}]   FULL: '{body}'")
+    
+    logger.info(f"[DEBUG_MIRROR] [{lens.upper()}] TOTAL: {total_chars} chars across {len(sections)} sections")
+    
+    # Check for fallback usage
+    debug_stamp = response.get('debug_stamp', {})
+    if debug_stamp:
+        fallback_used = debug_stamp.get('fallback_used', False)
+        logger.info(f"[DEBUG_MIRROR] [{lens.upper()}] Fallback used: {fallback_used}")
+
 # Remove duplicate logging configuration below
 
 # ===========================
