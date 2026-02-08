@@ -52,6 +52,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  
+  // Debug: track raw API response length
+  const [rawDataLength, setRawDataLength] = useState<number>(0);
 
   useEffect(() => {
     loadTabData(activeTab);
