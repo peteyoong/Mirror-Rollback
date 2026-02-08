@@ -442,9 +442,16 @@ export default function EnneagramResults() {
     );
   };
   
-  // Render tester debug panel (DEBUG_MIRROR only - plain text)
+  // ============================================
+  // TESTER DEBUG PANEL
+  // ============================================
+  // Renders ONLY when: showDebug === true
+  // showDebug = DEBUG_MIRROR_ENV && (urlDebugParam || tapCount >= 7)
+  // Returns null (no layout space) when conditions not met
+  // ============================================
   const renderTesterDebugPanel = () => {
-    if (!DEBUG_MIRROR || !result) return null;
+    // Guard: Do not render if conditions not met (no empty space)
+    if (!showDebug || !result) return null;
     
     const { top_candidates, debug_scores, inferred_core } = result;
     const wingTypes = getWingTypes(inferred_core);
