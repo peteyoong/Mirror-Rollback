@@ -54,7 +54,7 @@ export function SectionDebug({ label, body, index }: { label: string; body: stri
   );
 }
 
-export default function DebugFooter({ lens, sections, source, rawDataLength, debugStamp }: Props) {
+export default function DebugFooter({ lens, sections, source, rawDataLength, debugStamp, extraDebug }: Props) {
   if (!DEBUG_MIRROR) return null;
 
   const totalChars = sections.reduce((sum, s) => sum + (s.body?.length || 0), 0);
@@ -87,6 +87,17 @@ export default function DebugFooter({ lens, sections, source, rawDataLength, deb
           API Response: {rawDataLength}c | Rendered: {totalChars}c | 
           {dataMismatch ? ' ⚠️ MISMATCH!' : ' ✓ Match'}
         </Text>
+      )}
+      
+      {/* Extra debug info (e.g., profile data) */}
+      {extraDebug && (
+        <View style={styles.extraDebugContainer}>
+          {Object.entries(extraDebug).map(([key, value]) => (
+            <Text key={key} style={styles.extraDebugLine}>
+              {key}: {String(value)}
+            </Text>
+          ))}
+        </View>
       )}
       
       {/* Warnings summary */}
