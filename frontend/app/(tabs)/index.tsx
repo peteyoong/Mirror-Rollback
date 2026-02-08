@@ -241,8 +241,23 @@ export default function MirrorScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
+      
+      {/* Compact Header: "THE MIRROR" on left, User name + chevron on right */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>THE MIRROR</Text>
+        <Pressable 
+          style={styles.userButton}
+          onPress={handleUserPress}
+        >
+          <Text style={styles.userName} numberOfLines={1}>
+            {user?.name || 'Account'}
+          </Text>
+          <Ionicons name="chevron-forward" size={16} color={Colors.textTertiary} />
+        </Pressable>
+      </View>
+      
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -254,16 +269,6 @@ export default function MirrorScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Spacer for breathing room */}
-        <View style={styles.topSpacer} />
-
-        {/* User greeting */}
-        <View style={styles.greetingContainer}>
-          <Text style={styles.greeting}>
-            {user.name || 'Welcome'}
-          </Text>
-        </View>
-
         {/* Daily Focus Card - Context Surfacing */}
         <DailyFocusCard 
           userId={user.id} 
