@@ -80,11 +80,6 @@ export default function Onboarding() {
     minuteInputRef.current?.focus();
   }, []);
 
-  // Use ref to track if we just selected a location (synchronous, not batched)
-  const justSelectedRef = useRef(false);
-  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastSearchQueryRef = useRef<string>('');
-
   const handleSearchLocation = useCallback(async (query: string) => {
     // If we just selected a location, don't search again
     if (justSelectedRef.current) {
