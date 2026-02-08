@@ -86,6 +86,66 @@ async def health_check():
 # =====================================================================
 DEBUG_MIRROR = os.environ.get('DEBUG_MIRROR', 'false').lower() == 'true'
 
+# Fallback reason enum values
+class FallbackReason:
+    NONE = "NONE"
+    LLM_CONFIG_MISSING = "LLM_CONFIG_MISSING"
+    LLM_AUTH_ERROR = "LLM_AUTH_ERROR"
+    LLM_TIMEOUT = "LLM_TIMEOUT"
+    LLM_RATE_LIMITED = "LLM_RATE_LIMITED"
+    LLM_ERROR = "LLM_ERROR"
+    JSON_PARSE_ERROR = "JSON_PARSE_ERROR"
+    JSON_TRUNCATED = "JSON_TRUNCATED"
+    MISSING_REQUIRED_FIELD = "MISSING_REQUIRED_FIELD"
+    CONTRACT_VIOLATION = "CONTRACT_VIOLATION"
+    CACHE_ERROR = "CACHE_ERROR"
+    UNKNOWN_ERROR = "UNKNOWN_ERROR"
+
+
+def create_deep_dive_debug_stamp(
+    source: str,
+    fallback_reason: str = FallbackReason.NONE,
+    llm_attempted: bool = False,
+    llm_error: dict = None,
+    cache_hit: bool = False,
+    computed_fields_present: list = None,
+    computed_fields_missing: list = None,
+    section_traces: list = None,
+    total_chars: int = 0,
+    total_words: int = 0
+) -> dict:
+    """Create a comprehensive debug stamp for deep dive responses."""
+    stamp = {
+        "source": source,
+        "fallback_reason": fallback_reason,
+        "llm_attempted": llm_attempted,
+        "cache_hit": cache_hit,
+        "fallback_used": source in ("FALLBACK", "PARTIAL"),
+        "cached": source == "CACHE",
+        "total_chars": total_chars,
+        "total_words": total_words,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Only include detailed debug info when DEBUG_MIRROR is enabled
+    if DEBUG_MIRROR:
+        stamp["llm_error"] = llm_error
+        stamp["computed_fields_present"] = computed_fields_present or []
+        stamp["computed_fields_missing"] = computed_fields_missing or []
+        stamp["section_generation_trace"] = section_traces or []
+    
+    return stamp
+
+
+def log_deep_dive_request(lens: str, source: str, reason: str, total_chars: int, user_id: str = None):
+    """
+    Staging/prod-safe log line per request.
+    Format: deep_dive lens=<x> source=<y> reason=<z> total_chars=<n>
+    """
+    user_part = f" user={user_id}" if user_id else ""
+    logger.info(f"deep_dive lens={lens} source={source} reason={reason} total_chars={total_chars}{user_part}")
+
+
 def log_deep_dive_response(lens: str, user_id: str, response: dict, stage: str = "final"):
     """Log deep dive response details for debugging truncation issues."""
     if not DEBUG_MIRROR:
@@ -120,8 +180,9 @@ def log_deep_dive_response(lens: str, user_id: str, response: dict, stage: str =
     # Check for fallback usage
     debug_stamp = response.get('debug_stamp', {})
     if debug_stamp:
-        fallback_used = debug_stamp.get('fallback_used', False)
-        logger.info(f"[DEBUG_MIRROR] [{lens.upper()}] Fallback used: {fallback_used}")
+        source = debug_stamp.get('source', 'unknown')
+        fallback_reason = debug_stamp.get('fallback_reason', 'unknown')
+        logger.info(f"[DEBUG_MIRROR] [{lens.upper()}] Source: {source}, Fallback reason: {fallback_reason}")
 
 # Remove duplicate logging configuration below
 
