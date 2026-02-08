@@ -568,24 +568,28 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
         : `/api/profile/${userId}`;
       
       if (isDebugEnabled()) {
-        console.log('[DEBUG_MIRROR] Saving name via:', unlockUrl);
+        console.log('[DEBUG_MIRROR] Step 1: POST unlock-name to:', unlockUrl);
       }
       
-      // POST to save the name
+      // === STEP 1: POST to save the name ===
       const saveResponse = await axios.post(unlockUrl, {
         full_birth_name: nameToSave
       }, { timeout: 15000 });
       
       if (isDebugEnabled()) {
-        console.log('[DEBUG_MIRROR] Name save response:', saveResponse.data);
+        console.log('[DEBUG_MIRROR] Step 1 complete. Response:', saveResponse.data);
       }
       
-      // === READ-AFTER-WRITE: Immediately re-fetch profile to confirm persistence ===
+      // === STEP 2: GET profile to confirm persistence ===
+      if (isDebugEnabled()) {
+        console.log('[DEBUG_MIRROR] Step 2: GET profile from:', profileUrl);
+      }
+      
       const profileResponse = await axios.get(profileUrl, { timeout: 10000 });
       const updatedProfile: UserProfile = profileResponse.data;
       
       if (isDebugEnabled()) {
-        console.log('[DEBUG_MIRROR] Read-after-write verification:', {
+        console.log('[DEBUG_MIRROR] Step 2 complete. Profile:', {
           saved_name: nameToSave,
           server_name: updatedProfile.numerology_full_name,
           match: updatedProfile.numerology_full_name === nameToSave
@@ -603,21 +607,28 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
         return;
       }
       
-      // Update local profile state with server-confirmed data
+      // === STEP 3: setProfile with GET response ===
+      if (isDebugEnabled()) {
+        console.log('[DEBUG_MIRROR] Step 3: setProfile with confirmed data');
+      }
       setProfile(updatedProfile);
       
-      // Show success step
-      setUnlockStep('success');
+      // === STEP 4: Close modal (only after GET completes) ===
+      if (isDebugEnabled()) {
+        console.log('[DEBUG_MIRROR] Step 4: Closing modal');
+      }
+      setIsUnlocking(false);
+      setUnlockModalVisible(false);
+      setUnlockStep('input'); // Reset for next open
+      setModalInputName(''); // Clear input
+      setUnlockError(null);
       
-      // Refresh tab data after a short delay to show updated numbers
-      setTimeout(() => {
-        loadTabData(activeTab);
-      }, 1500);
+      // Refresh tab data to show updated numbers
+      loadTabData(activeTab);
       
     } catch (err: any) {
       console.error('[PROFILE] Save error:', err);
       setUnlockError('Something went wrong. Please try again.');
-    } finally {
       setIsUnlocking(false);
     }
   };
