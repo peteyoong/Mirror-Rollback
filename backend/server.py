@@ -10465,6 +10465,14 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     """Initialize resources at server startup"""
+    # Clear deep dive cache on startup to ensure fresh content
+    logger.info("[Startup] Clearing deep dive cache to ensure fresh content...")
+    try:
+        result = await db.deep_dive_cache.delete_many({})
+        logger.info(f"[Startup] Cleared {result.deleted_count} cached deep dive entries")
+    except Exception as e:
+        logger.warning(f"[Startup] Could not clear cache: {e}")
+    
     # Initialize Enneagram Knowledge Base
     pdf_path = os.environ.get('ENNEAGRAM_PDF_PATH', '/app/backend/data/JOH_Book_1.pdf')
     kb_ready = initialize_knowledge_base(pdf_path)
