@@ -90,10 +90,11 @@ class NumerologyPersistenceTest:
             self.log_test("Name Unlock (First)", "FAIL", f"Success: {success}, Response: {response}")
             return {}
         
-        # Check if computed numbers are returned
-        expression = response.get("expression")
-        soul_urge = response.get("soul_urge") 
-        personality = response.get("personality")
+        # Check if computed numbers are returned in unlocked_numbers structure
+        unlocked_numbers = response.get("unlocked_numbers", {})
+        expression = unlocked_numbers.get("expression", {}).get("number") if unlocked_numbers else None
+        soul_urge = unlocked_numbers.get("soul_urge", {}).get("number") if unlocked_numbers else None
+        personality = unlocked_numbers.get("personality", {}).get("number") if unlocked_numbers else None
         
         details = f"Success: {success}, Expression: {expression}, Soul Urge: {soul_urge}, Personality: {personality}"
         self.log_test("Name Unlock (First)", "PASS", details)
