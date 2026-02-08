@@ -1232,25 +1232,38 @@ export default function EnneagramAssessment() {
     const LEFT_ACCESSIBLE = normalizedLeft >= 0.20;
     const RIGHT_ACCESSIBLE = normalizedRight >= 0.20;
     
-    let inferred_wing: number | 'balanced';
-    let dominant_wing: number | 'balanced' | 'none';
+    let inferred_wing: number | 'balanced' | null;
+    let dominant_wing: number | 'balanced' | 'none' | null;
     
     const normalizedDiff = Math.abs(normalizedLeft - normalizedRight);
     
-    if (normalizedDiff < 0.07) {
-      // Both wings are balanced - no dominant
+    // ROBUSTNESS FIX: Check if we have valid wing data
+    // If both scores are 0 or very close to 0, we don't have enough data
+    const hasWingData = (wing_left_score > 0.1) || (wing_right_score > 0.1);
+    
+    if (!hasWingData) {
+      // No wing data available - cannot determine wing
+      inferred_wing = null;
+      dominant_wing = null;
+      console.log('[EnneagramScoring] Wing calculation: No wing data (scores too low), setting wing=null');
+    } else if (normalizedDiff < 0.07) {
+      // Both wings have data AND are balanced - this is a TRUE "balanced" result
       inferred_wing = 'balanced';
       dominant_wing = 'balanced';
+      console.log('[EnneagramScoring] Wing calculation: Balanced (diff < 0.07 with valid data)');
     } else if (normalizedLeft >= 0.25 && normalizedLeft > normalizedRight) {
       inferred_wing = leftWing;
       dominant_wing = leftWing;
+      console.log(`[EnneagramScoring] Wing calculation: Left wing ${leftWing} dominant`);
     } else if (normalizedRight >= 0.25 && normalizedRight > normalizedLeft) {
       inferred_wing = rightWing;
       dominant_wing = rightWing;
+      console.log(`[EnneagramScoring] Wing calculation: Right wing ${rightWing} dominant`);
     } else {
-      // Neither wing is dominant enough
+      // Has data but neither wing is dominant enough
       inferred_wing = 'balanced';
       dominant_wing = 'none';
+      console.log('[EnneagramScoring] Wing calculation: Neither dominant enough, balanced');
     }
     
     return {
