@@ -7288,43 +7288,35 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
         
         base_system_prompt = system_prompt + "\n\n" + section_format_instructions
         
-        # =====================================================================
-        # QUALITY GATE PIPELINE: Generate → Check → Retry if short → Augment
-        # =====================================================================
-        gate = QualityGate(lens="human_design")  # 4000 char minimum
+        # Initialize quality gate debug info
         quality_gate_debug = {
             "quality_gate_triggered": False,
             "retry_count": 0,
             "short_sections": [],
             "augmented_sections": []
         }
+        gate = QualityGate(lens="human_design")  # 4000 char minimum
         
-        current_prompt = base_system_prompt
-        max_retries = 1
-        
-        for attempt in range(max_retries + 1):
-            quality_gate_debug["retry_count"] = attempt
-            
-            response_text = await emergent_generate(
-                mode="deep_dive",
-                user_message="Generate the Deep Dive for this user's Human Design mechanics. Use PLAIN TEXT section format with ---SECTION:id--- markers. Do NOT return JSON. Write at least 150 words per section.",
-                endpoint="human_design_deep_dive" + (f"_retry{attempt}" if attempt > 0 else ""),
-                user_id=user_id,
-                context={
-                    "lens": "human_design",
-                    "type": hd_type,
-                    "authority": authority,
-                    "profile": profile,
-                    "full_chart_available": True,
-                    "gates_available": bool(full_hd_summary.get("active_gates")),
-                    "channels_available": bool(full_hd_summary.get("defined_channels")),
-                    "compute_integrity_valid": canonical_hd.get('compute_integrity', {}).get('valid', False),
-                    "retry_attempt": attempt
-                },
-                additional_system_prompt=current_prompt,
-                model="gpt-4.1-mini",
-                max_tokens=4000
-            )
+        # Generate LLM response
+        response_text = await emergent_generate(
+            mode="deep_dive",
+            user_message="Generate the Deep Dive for this user's Human Design mechanics. Use PLAIN TEXT section format with ---SECTION:id--- markers. Do NOT return JSON. Write at least 150 words per section.",
+            endpoint="human_design_deep_dive",
+            user_id=user_id,
+            context={
+                "lens": "human_design",
+                "type": hd_type,
+                "authority": authority,
+                "profile": profile,
+                "full_chart_available": True,
+                "gates_available": bool(full_hd_summary.get("active_gates")),
+                "channels_available": bool(full_hd_summary.get("defined_channels")),
+                "compute_integrity_valid": canonical_hd.get('compute_integrity', {}).get('valid', False)
+            },
+            additional_system_prompt=base_system_prompt,
+            model="gpt-4.1-mini",
+            max_tokens=4000
+        )
         
             # =====================================================================
             # PARSE PLAIN TEXT RESPONSE (inside the retry loop)
