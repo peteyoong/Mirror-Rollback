@@ -17,6 +17,7 @@ import api from '../../services/api';
 import { storage } from '../../store';
 import DailyFocusCard, { DailyFocusState } from '../../components/DailyFocusCard';
 import ReflectionEntry from '../../components/ReflectionEntry';
+import DebugComputeInputs from '../../components/DebugComputeInputs';
 
 interface DailyKeystone {
   date: string;
