@@ -920,14 +920,15 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   nameInput: {
-    backgroundColor: Colors.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: Colors.text,
+    color: '#000000',
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.surfaceLight,
+    borderColor: '#E0E0E0',
+    minHeight: 52,
   },
   unlockErrorText: {
     fontSize: 13,
