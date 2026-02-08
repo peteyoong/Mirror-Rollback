@@ -908,8 +908,14 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                   user_id_stable: userIdDebugInfo?.is_stable ? 'YES ✓' : 'NO ⚠️',
                   assertion_count: userIdDebugInfo?.assertion_count || 0,
                   profile_loaded: profile ? 'YES' : 'NO',
+                  profile_loading: profileLoading ? 'YES' : 'NO',
                   numerology_full_name: profile?.numerology_full_name || '(none)',
-                  profile_updated_at: profile?.updated_at || '(never)'
+                  profile_updated_at: profile?.updated_at || '(never)',
+                  '--- MODAL ---': '---',
+                  modal_open: unlockModalVisible ? 'YES' : 'NO',
+                  modal_mode: modalMode,
+                  unlock_step: unlockStep,
+                  input_rendered: inputRendered ? 'YES' : 'NO'
                 }}
               />
             )}
