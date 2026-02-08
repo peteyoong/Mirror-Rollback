@@ -21,9 +21,29 @@ import * as Clipboard from 'expo-clipboard';
 // Check if we're in development mode
 const IS_DEV = process.env.NODE_ENV !== 'production' || __DEV__;
 
-// Check for DEBUG_MIRROR mode (env var or URL param)
-const DEBUG_MIRROR = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true' || 
-  (typeof window !== 'undefined' && new URLSearchParams(window.location?.search || '').get('debug') === 'true');
+// ============================================
+// DEBUG PANEL ACTIVATION CONDITIONS
+// ============================================
+// The tester debug panel renders ONLY if ALL conditions are true:
+//   1. Server env flag: EXPO_PUBLIC_DEBUG_MIRROR === 'true'
+//   2. Client-side trigger (one of):
+//      a. URL query param: ?debug=1
+//      b. Hidden gesture: Tap Confidence badge 7 times
+//
+// Logic: showDebug = DEBUG_MIRROR_ENV && (urlDebugParam || tapCount >= 7)
+// ============================================
+
+// Server-side environment flag (must be 'true' to enable debug capability)
+const DEBUG_MIRROR_ENV = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
+
+// Client-side URL param check (?debug=1)
+const getUrlDebugParam = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location?.search || '').get('debug') === '1';
+};
+
+// Required tap count for hidden gesture activation
+const DEBUG_TAP_THRESHOLD = 7;
 
 // Feedback types
 type FeedbackValue = 'yes' | 'mostly' | 'no' | null;
