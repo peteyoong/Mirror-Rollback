@@ -759,21 +759,6 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
       </Modal>
     );
   };
-                </Text>
-              </View>
-
-              <TouchableOpacity 
-                style={styles.modalPrimaryButton}
-                onPress={closeUnlockModal}
-              >
-                <Text style={styles.modalPrimaryButtonText}>Continue</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
 
   return (
     <View style={styles.container}>
