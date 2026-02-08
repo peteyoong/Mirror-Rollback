@@ -8348,15 +8348,31 @@ The learning edge involves discovering that your greatest teaching is your own w
                 "sections": sections,
                 "mirror_prompt": "Where do you see these patterns showing up in your current experience?",
                 "unlock_required": not has_name,
-                "unlock_prompt": "Add your full birth name to unlock deeper numerology." if not has_name else None,
-                "debug_stamp": {
-                    "compute_integrity_valid": canonical_num.get('compute_integrity', {}).get('valid', False),
-                    "has_name_numbers": has_name,
-                    "fallback_used": True
-                }
+                "unlock_prompt": "Add your full birth name to unlock deeper numerology." if not has_name else None
             }
+            
+            # Calculate totals for debug
+            total_chars = sum(len(s.get("body", "")) for s in sections)
+            total_words = sum(len(s.get("body", "").split()) for s in sections)
+            
+            fallback_result["debug_stamp"] = create_deep_dive_debug_stamp(
+                source="FALLBACK",
+                fallback_reason=FallbackReason.JSON_TRUNCATED,
+                llm_attempted=True,
+                llm_error={"message": str(e), "type": "JSON_TRUNCATED"},
+                computed_fields_present=["life_path", "birthday_number"] + (["expression", "soul_urge", "personality"] if has_name else []),
+                computed_fields_missing=[] if has_name else ["full_birth_name"],
+                section_traces=[
+                    {"section_id": s.get("label", f"section_{i}"), "status": "ok", "source": "fallback",
+                     "char_count": len(s.get("body", "")), "word_count": len(s.get("body", "").split())}
+                    for i, s in enumerate(sections)
+                ],
+                total_chars=total_chars,
+                total_words=total_words
+            )
             # Cache fallback
             await set_cached_deep_dive(user_id, "numerology", fallback_result)
+            log_deep_dive_request("numerology", fallback_result["debug_stamp"]["source"], fallback_result["debug_stamp"]["fallback_reason"], total_chars, user_id)
             return fallback_result
     
     except HTTPException:
