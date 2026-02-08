@@ -55,6 +55,31 @@ export default function Onboarding() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Refs for time inputs - to enforce focus on tap
+  const hourInputRef = useRef<TextInput>(null);
+  const minuteInputRef = useRef<TextInput>(null);
+
+  // Use ref to track if we just selected a location (synchronous, not batched)
+  const justSelectedRef = useRef(false);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSearchQueryRef = useRef<string>('');
+
+  // Handler to focus hour input
+  const handleHourPress = useCallback(() => {
+    if (DEBUG_TOUCHES) {
+      console.log('[ONBOARDING] HH pressed - focusing hour input');
+    }
+    hourInputRef.current?.focus();
+  }, []);
+
+  // Handler to focus minute input
+  const handleMinutePress = useCallback(() => {
+    if (DEBUG_TOUCHES) {
+      console.log('[ONBOARDING] MM pressed - focusing minute input');
+    }
+    minuteInputRef.current?.focus();
+  }, []);
+
   // Use ref to track if we just selected a location (synchronous, not batched)
   const justSelectedRef = useRef(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
