@@ -23,15 +23,21 @@ import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 const DEV_BACKEND_FALLBACK = 'http://localhost:8001'; // Direct backend in dev
 
 function getBackendBaseUrl(): string {
-  // 1. Try EXPO_PUBLIC_BACKEND_URL from env (works for native builds)
+  // 1. Try EXPO_PUBLIC_BACKEND_URL from env (works for all builds)
   const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
   if (envUrl && typeof envUrl === 'string' && envUrl.length > 0) {
+    if (__DEV__) {
+      console.log('[NumerologyLensView] Using EXPO_PUBLIC_BACKEND_URL:', envUrl);
+    }
     return envUrl;
   }
   
   // 2. Try expo-constants extra config
   const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
   if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
+    if (__DEV__) {
+      console.log('[NumerologyLensView] Using Constants extra URL:', extraUrl);
+    }
     return extraUrl;
   }
   
@@ -44,6 +50,9 @@ function getBackendBaseUrl(): string {
     
     if (isLocalDev || isPreview) {
       // Use direct backend URL to bypass unreliable proxy
+      if (__DEV__) {
+        console.log('[NumerologyLensView] Using DEV_BACKEND_FALLBACK:', DEV_BACKEND_FALLBACK);
+      }
       return DEV_BACKEND_FALLBACK;
     }
     // Production web: use relative URL (proxy should work)
@@ -56,6 +65,9 @@ function getBackendBaseUrl(): string {
 
 // Resolved backend base URL (computed once)
 const BACKEND_BASE_URL = getBackendBaseUrl();
+if (__DEV__) {
+  console.log('[NumerologyLensView] BACKEND_BASE_URL resolved to:', BACKEND_BASE_URL || '(relative)')
+}
 
 interface NumerologySection {
   label: string;
