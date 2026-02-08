@@ -14,6 +14,7 @@ import {
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 
 interface NumerologySection {
   label: string;
