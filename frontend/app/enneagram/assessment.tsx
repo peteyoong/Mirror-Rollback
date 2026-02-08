@@ -85,7 +85,7 @@ interface ValidationRowData {
   participant_id: string;
   timestamp: string;
   pred_core: number;
-  pred_wing: number | 'balanced';
+  pred_wing: number | 'balanced' | null;
   pred_confidence: number;
   pred_top2: string;
   pred_top3: string;
@@ -104,7 +104,7 @@ function logEnneagramValidationRow(
   userId: string | undefined,
   scoring: {
     inferred_core: number;
-    inferred_wing: number | 'balanced';
+    inferred_wing: number | 'balanced' | null;
     confidence: number;
     is_close: boolean;
     top_candidates: { type: number; probability: number }[];
