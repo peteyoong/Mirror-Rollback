@@ -1,48 +1,122 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import Constants from 'expo-constants';
 
-// Enable debug mode via environment variable
+// Enable debug mode via environment variable - GATED behind DEBUG_MIRROR
+// To enable: set DEBUG_MIRROR=true in environment
 const DEBUG_MIRROR = Constants.expoConfig?.extra?.DEBUG_MIRROR === 'true' || 
-                     process.env.DEBUG_MIRROR === 'true' ||
-                     __DEV__;  // Always show in development
+                     process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true' ||
+                     process.env.DEBUG_MIRROR === 'true';
+
+// Export for use in other components
+export const isDebugEnabled = () => DEBUG_MIRROR;
 
 interface SectionDebugInfo {
   label: string;
   body: string;
 }
 
+interface DebugStamp {
+  fallback_used?: boolean;
+  source?: string;
+  timestamp?: string;
+  cached?: boolean;
+}
+
 interface Props {
   lens: string;
   sections: SectionDebugInfo[];
   source?: string;  // 'cache', 'llm', 'fallback'
+  rawDataLength?: number;  // Total chars from API response
+  debugStamp?: DebugStamp;
 }
 
-export default function DebugFooter({ lens, sections, source }: Props) {
+// Individual Section Debug - shows inline with each section
+export function SectionDebug({ label, body, index }: { label: string; body: string; index: number }) {
+  if (!DEBUG_MIRROR) return null;
+  
+  const chars = body?.length || 0;
+  const words = body?.split(' ').length || 0;
+  const truncated = body?.endsWith('...') || body?.endsWith('…');
+  const short = words < 100;
+  
+  return (
+    <View style={styles.sectionDebug}>
+      <Text style={[
+        styles.sectionDebugText,
+        short && styles.sectionDebugWarning,
+        truncated && styles.sectionDebugError
+      ]}>
+        [{index+1}] {chars}c / {words}w {truncated ? '⚠️TRUNC' : ''} {short ? '⚠️SHORT' : '✓'}
+      </Text>
+    </View>
+  );
+}
+
+export default function DebugFooter({ lens, sections, source, rawDataLength, debugStamp }: Props) {
   if (!DEBUG_MIRROR) return null;
 
   const totalChars = sections.reduce((sum, s) => sum + (s.body?.length || 0), 0);
   const totalWords = sections.reduce((sum, s) => sum + (s.body?.split(' ').length || 0), 0);
+  const shortSections = sections.filter(s => (s.body?.split(' ').length || 0) < 100).length;
+  const truncatedSections = sections.filter(s => s.body?.endsWith('...') || s.body?.endsWith('…')).length;
+
+  // Calculate if there's a mismatch between raw API data and rendered data
+  const dataMismatch = rawDataLength && Math.abs(rawDataLength - totalChars) > 50;
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>🔍 DEBUG: {lens.toUpperCase()}</Text>
-      <Text style={styles.info}>Source: {source || 'unknown'} | Sections: {sections.length}</Text>
-      <Text style={styles.info}>Total: {totalChars} chars / {totalWords} words</Text>
-      {sections.map((section, i) => {
-        const chars = section.body?.length || 0;
-        const words = section.body?.split(' ').length || 0;
-        const truncated = section.body?.endsWith('...') || section.body?.endsWith('…');
-        const short = words < 100;
-        return (
-          <Text 
-            key={i} 
-            style={[styles.section, short && styles.warning, truncated && styles.error]}
-          >
-            {i+1}. {section.label?.substring(0, 25)}... | {chars}c/{words}w {truncated ? '⚠️TRUNCATED' : ''} {short ? '⚠️SHORT' : ''}
-          </Text>
-        );
-      })}
+      
+      {/* Source info */}
+      <Text style={styles.info}>
+        Source: {debugStamp?.source || source || 'unknown'} | 
+        Cached: {debugStamp?.cached ? 'YES' : 'NO'} | 
+        Fallback: {debugStamp?.fallback_used ? 'YES' : 'NO'}
+      </Text>
+      
+      {/* Summary stats */}
+      <Text style={styles.info}>
+        Sections: {sections.length} | Total: {totalChars}c / {totalWords}w
+      </Text>
+      
+      {/* Data integrity check */}
+      {rawDataLength && (
+        <Text style={[styles.info, dataMismatch && styles.error]}>
+          API Response: {rawDataLength}c | Rendered: {totalChars}c | 
+          {dataMismatch ? ' ⚠️ MISMATCH!' : ' ✓ Match'}
+        </Text>
+      )}
+      
+      {/* Warnings summary */}
+      {(shortSections > 0 || truncatedSections > 0) && (
+        <Text style={styles.warningLine}>
+          ⚠️ Issues: {shortSections} short, {truncatedSections} truncated
+        </Text>
+      )}
+      
+      {/* Per-section breakdown */}
+      <View style={styles.sectionsContainer}>
+        {sections.map((section, i) => {
+          const chars = section.body?.length || 0;
+          const words = section.body?.split(' ').length || 0;
+          const truncated = section.body?.endsWith('...') || section.body?.endsWith('…');
+          const short = words < 100;
+          return (
+            <Text 
+              key={i} 
+              style={[styles.section, short && styles.warning, truncated && styles.error]}
+            >
+              {i+1}. {section.label?.substring(0, 20)}.. | {chars}c/{words}w {truncated ? '⛔' : ''} {short ? '⚠️' : '✓'}
+            </Text>
+          );
+        })}
+      </View>
+      
+      {/* Timestamp */}
+      {debugStamp?.timestamp && (
+        <Text style={styles.timestamp}>Generated: {debugStamp.timestamp}</Text>
+      )}
     </View>
   );
 }
