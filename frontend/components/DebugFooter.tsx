@@ -206,4 +206,15 @@ const styles = StyleSheet.create({
   sectionDebugError: {
     color: '#FF0000',
   },
+  extraDebugContainer: {
+    marginTop: 4,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,255,255,0.3)',
+  },
+  extraDebugLine: {
+    color: '#00FFFF',
+    fontSize: 10,
+    marginBottom: 2,
+  },
 });
