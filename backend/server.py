@@ -72,6 +72,7 @@ logger = logging.getLogger(__name__)
 WEB_BUILD_PATH = Path(__file__).parent.parent / "frontend" / "dist"
 # Fallback paths in case the deployment structure is different
 FALLBACK_WEB_PATHS = [
+    Path(__file__).parent / "web_dist",  # /app/backend/web_dist (DEPLOYED WITH BACKEND)
     Path("/app/frontend/dist"),
     Path(__file__).parent / "frontend" / "dist",  # /app/backend/frontend/dist
     Path(__file__).parent.parent / "dist",  # /app/dist
