@@ -6581,7 +6581,7 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
         # =====================================================================
         await set_cached_deep_dive(user_id, "astrology", result)
         
-        log_deep_dive_request("astrology", parse_result.source, fallback_reason.value if fallback_reason != FallbackReason.NONE else "NONE", total_chars, user_id)
+        log_deep_dive_request("astrology", parse_result.source, fallback_reason if fallback_reason != FallbackReason.NONE else "NONE", total_chars, user_id)
         log_deep_dive_response("astrology", user_id, result, parse_result.source)
         return result
     
