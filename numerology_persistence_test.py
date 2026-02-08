@@ -147,9 +147,10 @@ class NumerologyPersistenceTest:
             return {}
         
         # Check if computed numbers are returned (should be different)
-        expression = response.get("expression")
-        soul_urge = response.get("soul_urge")
-        personality = response.get("personality")
+        unlocked_numbers = response.get("unlocked_numbers", {})
+        expression = unlocked_numbers.get("expression", {}).get("number") if unlocked_numbers else None
+        soul_urge = unlocked_numbers.get("soul_urge", {}).get("number") if unlocked_numbers else None
+        personality = unlocked_numbers.get("personality", {}).get("number") if unlocked_numbers else None
         
         details = f"Success: {success}, New Expression: {expression}, Soul Urge: {soul_urge}, Personality: {personality}"
         self.log_test("Name Update", "PASS", details)
