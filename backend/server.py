@@ -7209,12 +7209,26 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
             full_hd_json=full_hd_json_str
         )
         
-        # ===== USE EMERGENT CONTRACT =====
+        # ===== USE EMERGENT CONTRACT WITH PLAIN TEXT FORMAT =====
         from emergent_contract import emergent_generate
+        from section_parser import parse_plain_text_sections, generate_section_prompt_format
+        
+        hd_sections = [
+            {"id": "type", "label": "Type: Your Energy Architecture", "description": "Energy type and how it flows"},
+            {"id": "strategy", "label": "Strategy: Your Engagement Pattern", "description": "How to engage with life effectively"},
+            {"id": "authority", "label": "Authority: Your Clarity Process", "description": "Decision-making process"},
+            {"id": "profile", "label": "Profile: Your Learning Style", "description": "How you grow and interact"},
+            {"id": "cross", "label": "Incarnation Cross: Your Life Direction", "description": "Life theme and purpose"},
+            {"id": "definition", "label": "Definition & Centers", "description": "Energy flow and center dynamics"}
+        ]
+        
+        section_format_instructions = generate_section_prompt_format(hd_sections)
+        
+        system_prompt_with_format = system_prompt + "\n\n" + section_format_instructions
         
         response_text = await emergent_generate(
             mode="deep_dive",
-            user_message="Generate the Deep Dive for this user's Human Design mechanics. Return ONLY valid JSON.",
+            user_message="Generate the Deep Dive for this user's Human Design mechanics. Use PLAIN TEXT section format with ---SECTION:id--- markers. Do NOT return JSON.",
             endpoint="human_design_deep_dive",
             user_id=user_id,
             context={
@@ -7227,47 +7241,192 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
                 "channels_available": bool(full_hd_summary.get("defined_channels")),
                 "compute_integrity_valid": canonical_hd.get('compute_integrity', {}).get('valid', False)
             },
-            additional_system_prompt=system_prompt,
+            additional_system_prompt=system_prompt_with_format,
             model="gpt-4.1-mini",
-            max_tokens=4000  # Deep dives need many tokens for detailed sections
+            max_tokens=4000
         )
         
-        # Parse JSON response
-        try:
-            clean_response = response_text.strip()
-            if clean_response.startswith("```"):
-                lines = clean_response.split("\n")
-                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
-            
-            result = json_module.loads(clean_response)
-            
-            # Apply guardrails with type safety
-            for section in result.get("sections", []):
-                body = section.get("body")
-                if isinstance(body, str):
-                    section["body"] = apply_human_design_guardrails(body)
-                else:
-                    # Convert any non-string to string first
-                    if isinstance(body, dict):
-                        # Handle case where body is a dict (LLM formatting issue)
-                        body_str = str(body.get("text", body))
-                    else:
-                        body_str = str(body) if body is not None else ""
-                    section["body"] = apply_human_design_guardrails(body_str)
-            
-            mirror_prompt = result.get("mirror_prompt", "")
-            if isinstance(mirror_prompt, str):
-                result["mirror_prompt"] = apply_human_design_guardrails(mirror_prompt)
-            else:
-                # Convert any non-string to string first
-                if isinstance(mirror_prompt, dict):
-                    mirror_prompt_str = str(mirror_prompt.get("text", mirror_prompt))
-                else:
-                    mirror_prompt_str = str(mirror_prompt) if mirror_prompt is not None else ""
-                result["mirror_prompt"] = apply_human_design_guardrails(mirror_prompt_str)
-            
-            # Ensure core_mechanics is included with consistent fields (using canonical data)
-            result["core_mechanics"] = {
+        # =====================================================================
+        # PARSE PLAIN TEXT RESPONSE (resilient to truncation)
+        # =====================================================================
+        # Prepare rich fallback content for each section
+        type_descriptions = {
+            "Generator": """As a Generator, your energy architecture is built around sustainable life force. This means you have consistent access to sacral energy when you're engaged in work that lights you up. The key pattern here is responding to what genuinely excites you rather than initiating from mental decisions alone.
+
+Your aura is open and enveloping—it literally draws life to you. This can create confusion when the mind wants to "make things happen" rather than waiting to respond to what shows up. The generator frustration often comes from either not being asked (and therefore not being able to respond) or from saying yes to things that don't actually light you up.
+
+When you're doing work you love, you can go and go. When you're doing work that doesn't engage your sacral, you'll feel depleted regardless of how "important" the work seems. The sacral doesn't care about importance—it cares about genuine engagement.""",
+
+            "Manifesting Generator": """As a Manifesting Generator, you carry a unique hybrid energy—the sustainable power of the Generator combined with the initiating capacity of the Manifestor. This creates a multi-passionate nature that wants to do many things, often simultaneously.
+
+Your energy moves faster than pure Generators. You're designed to skip steps, find shortcuts, and move efficiently toward what lights you up. The challenge is that your mind might judge this as being scattered or unfocused. It's not—it's your design.
+
+Like all Generator types, your strategy is to respond rather than initiate. But once you respond to something that excites you, you have more capacity to inform others and move quickly than other types. The key is still waiting for that sacral response before leaping.""",
+
+            "Projector": """As a Projector, your energy architecture is fundamentally different from the Generator types that make up about 70% of the population. You don't have sustainable sacral energy—instead, you have a penetrating aura that can see deeply into others and systems.
+
+Your design is to guide and direct energy rather than generate it. This means you need recognition and invitation to share your insights effectively. Without invitation, your guidance—no matter how accurate—tends to meet resistance.
+
+The Projector bitterness often comes from over-giving or working in the Generator paradigm (consistent effort = success). Your success comes from studying, mastering systems, and waiting for the right invitations to share your gifts.""",
+
+            "Manifestor": """As a Manifestor, you're here to initiate and impact. Your closed, repelling aura is designed to move through life independently, starting things without waiting for permission or invitation.
+
+Your strategy—to inform before you act—isn't about asking permission. It's about reducing resistance by letting others know what's coming. When you don't inform, people feel steamrolled or blindsided, which creates the anger that Manifestors know well.
+
+You're not designed for sustained work in the traditional sense. Your energy comes in bursts. You initiate, others respond and continue the work, and you move on to the next initiation.""",
+
+            "Reflector": """As a Reflector, you're the rarest type—about 1% of the population. With all centers undefined, you're designed to sample and reflect the energy of your environment and community.
+
+Your openness is not a weakness—it's your superpower. You can sense what's healthy and unhealthy in systems, communities, and individuals because you take in and amplify all energy around you.
+
+Your strategy of waiting a lunar cycle (about 28 days) for major decisions honors your unique relationship with the moon's influence. This isn't about being slow—it's about ensuring your decisions aren't based on conditioning from whoever you were around that day."""
+        }
+        
+        strategy_descriptions_rich = {
+            "Generator": """Your strategy—to wait to respond—points to how you engage most effectively with life. This isn't about being passive or never initiating conversation. It's about recognizing that your energy works best when something from the external world sparks your sacral response first.
+
+The wait isn't always long. It can be as quick as someone asking "want to grab lunch?" and feeling that gut response. Or it can be seeing an opportunity and noticing whether your body says "uh-huh" (yes) or "unh-unh" (no).
+
+The mind will always have opinions about what you "should" do. The sacral just knows what's correct for you in that moment.""",
+
+            "Manifesting Generator": """Your strategy—to wait to respond, then inform—combines the Generator's waiting with the Manifestor's need to inform. Once something sparks your sacral response, you can move quickly—but letting key people know what you're doing reduces friction.
+
+The response doesn't have to be verbal. It can be a gut feeling, a sound, or just that sense of being pulled toward something. Trust it, even when the mind is skeptical.""",
+
+            "Projector": """Your strategy—to wait for invitation—applies specifically to the big things: career, relationships, where you live. In daily life, you don't need an invitation to share thoughts or opinions.
+
+Recognition is the predecessor to invitation. People need to see you before they can invite you. This is why Projectors often do well when they study, develop expertise, and become known for their gifts.
+
+The bitter feeling comes when you give guidance without being asked, or when you enter situations that haven't truly invited your presence.""",
+
+            "Manifestor": """Your strategy—to inform—isn't about asking permission. It's about letting people know what you're about to do so they're not blindsided by your powerful initiating energy.
+
+You don't need to explain or justify. "I'm going to..." or "I've decided to..." followed by your action is enough. The informing smooths the path and reduces the anger that comes from constant resistance.""",
+
+            "Reflector": """Your strategy—to wait a lunar cycle—honors your unique connection to the moon and your need to sample different perspectives over time. A lunar cycle (about 28 days) allows you to experience a decision from multiple angles as the moon moves through different gates.
+
+This isn't about being slow or indecisive. It's about ensuring your clarity isn't just reflecting whoever you were around that day."""
+        }
+        
+        authority_descriptions = {
+            "Sacral": """With Sacral Authority, your clarity comes through your gut response. This isn't about thinking your way to decisions—it's about feeling the yes or no in your body. The sacral center communicates through sounds and sensations: the "uh-huh" of excitement or the "unh-unh" of disinterest.
+
+Learning to trust this embodied knowing over mental reasoning is often a lifelong practice. Your body knows before your mind does. The challenge is that we're conditioned to believe that good decisions come from careful analysis. For you, good decisions come from honoring that gut response.""",
+
+            "Emotional": """With Emotional Authority, you're designed to ride your emotional wave before making decisions. There's no truth in the now—your clarity comes over time as you experience how you feel about something at different points in your wave.
+
+This isn't about being emotional or irrational. It's about recognizing that your wave provides important information. A decision that feels great at a high point might feel terrible at a low point (or vice versa). Wait until you feel a sense of calm knowing, neither high nor low.""",
+
+            "Splenic": """With Splenic Authority, your clarity is instant and in-the-moment. The spleen communicates through intuitive hits, physical sensations, or a quiet inner knowing. It speaks once and doesn't repeat.
+
+The challenge is that splenic knowing is subtle. It can be easily overridden by the mind or emotional reactions. Learning to catch and trust these instant hits—especially when they don't "make sense"—is your practice.""",
+
+            "Ego/Heart": """With Ego/Heart Authority (whether Manifested or Projected), your clarity comes through what your heart or willpower is truly committed to. This isn't about what you think you should do—it's about what you genuinely have the will to follow through on.
+
+Ask yourself: "What do I really want? What am I willing to put my energy into?" The heart knows what it's committed to, even when the mind has other ideas.""",
+
+            "Self-Projected": """With Self-Projected Authority, your clarity comes through expressing yourself and hearing your own voice. Talking through decisions with trusted others helps you hear what's true for you.
+
+This isn't about getting advice or validation—it's about the process of articulation helping your truth emerge. Pay attention to what you hear yourself saying.""",
+
+            "Mental/None": """With Mental (Outer) Authority—also called "None" or "Sounding Board"—you don't have a consistent inner authority. Instead, your clarity comes through talking things out with different people over time.
+
+This doesn't mean you can't make decisions. It means you need to hear yourself talk about decisions in various environments before clarity emerges. The lunar cycle strategy (for Reflectors) or waiting to respond (for Projectors with this authority) is especially important."""
+        }
+        
+        profile_descriptions = {
+            "1/3": """Your 1/3 profile combines the Investigator (1) with the Martyr (3). You're here to build solid foundations through research AND trial-and-error. The first line wants to understand thoroughly before acting. The third line learns through doing and making mistakes.
+
+This creates an interesting dance: part of you wants to know everything first, while another part needs to just try things. Both are correct. Your foundation-building is supported by what you learn from experimentation.""",
+
+            "1/4": """Your 1/4 profile combines the Investigator (1) with the Opportunist (4). You build deep foundations of knowledge and share them through your network. The first line researches and understands. The fourth line connects and influences through relationships.
+
+Your impact comes through mastering something AND having the relationships to share it. You're not designed to influence strangers—your power is in your existing network.""",
+
+            "2/4": """Your 2/4 profile combines the Hermit (2) with the Opportunist (4). You have natural gifts that others can see (even when you can't), and you share them through your network. The second line needs alone time to develop. The fourth line needs social connection.
+
+This creates a rhythm of withdrawal and engagement. Honor both needs. Your gifts develop in solitude but express through relationships.""",
+
+            "2/5": """Your 2/5 profile combines the Hermit (2) with the Heretic (5). You have natural talents that attract attention and projection from others. People may see you as having solutions to their problems—whether you do or not.
+
+Managing expectations is key. You need time alone to develop your gifts, but you'll be called out to help others. Choose carefully which calls you answer.""",
+
+            "3/5": """Your 3/5 profile combines the Martyr (3) with the Heretic (5). You learn through trial and error, and others project onto you as having solutions. Your life may feel like a series of experiments—some successful, some not.
+
+The fifth line projections can create pressure to be a savior. Your third line knows that "failure" is just data. Together, you learn what doesn't work and share practical wisdom with those who see you as having answers.""",
+
+            "3/6": """Your 3/6 profile moves through distinct phases. Until around age 30, you're in trial-and-error mode. From 30-50, you move onto the "roof"—observing, integrating lessons. After 50, you embody wisdom through lived experience.
+
+The third line learns from mistakes. The sixth line eventually becomes a role model. Your authority comes from having tried things yourself, not from theory.""",
+
+            "4/6": """Your 4/6 profile combines the Opportunist (4) with the Role Model (6). You influence through your network and eventually become a living example. The fourth line connects deeply with fixed relationships. The sixth line goes through phases of engagement, withdrawal, and modeling.
+
+Your life has distinct chapters. Early on, you're building your network and testing things. Later, you step back to gain perspective. Eventually, you emerge as someone who embodies wisdom through both connection and experience.""",
+
+            "4/1": """Your 4/1 profile combines the Opportunist (4) with the Investigator (1). You influence through relationships built on solid foundations of knowledge. The fourth line creates opportunity through connection. The first line researches deeply.
+
+Your power is in becoming a trusted resource within your network. People come to you because you've done the work to understand something deeply AND you're someone they want in their life.""",
+
+            "5/1": """Your 5/1 profile combines the Heretic (5) with the Investigator (1). Others project onto you as having solutions, and you have the research capacity to actually deliver. The fifth line attracts expectations. The first line builds the foundation to meet them.
+
+You can become a practical problem-solver for others, but you need to study first. Without the first line foundation, the fifth line projections become exhausting.""",
+
+            "5/2": """Your 5/2 profile combines the Heretic (5) with the Hermit (2). You attract projections as a savior or solver, but you need significant alone time. The fifth line is called out to help. The second line needs to withdraw.
+
+Managing this rhythm is essential. You can't be constantly available to meet others' projections. Your natural gifts develop in solitude and should be shared selectively.""",
+
+            "6/2": """Your 6/2 profile combines the Role Model (6) with the Hermit (2). You move through life phases and have natural talents that develop in solitude. The sixth line evolves through trial, observation, and wisdom. The second line needs space to develop gifts.
+
+Your early life may feel experimental. Your middle years are for stepping back and integrating. Later, you emerge as someone who naturally embodies wisdom—shared selectively, not broadcast.""",
+
+            "6/3": """Your 6/3 profile combines the Role Model (6) with the Martyr (3). You move through life phases with significant trial-and-error throughout. Both lines have experimental qualities—the third through direct experience, the sixth through phases.
+
+Your authority comes from having lived through things, made mistakes, and gained perspective. You're not here to offer untested theory. You're here to share wisdom earned through experience."""
+        }
+        
+        cross_descriptions_rich = {
+            "Right Angle Cross": """Your Right Angle Cross indicates a personal destiny path—you're working out your own individual karma and themes in this life. This isn't selfish; it's how you're designed. Your life lessons are primarily about your own journey.
+
+The specific gates of your cross describe particular themes you'll encounter repeatedly. These aren't predictions—they're territories you'll likely explore many times in different ways.""",
+
+            "Left Angle Cross": """Your Left Angle Cross indicates a transpersonal path—you're here to work with and through others' karma and themes as much as your own. Your life has a strong relational or collective component.
+
+The specific gates of your cross point to themes that play out in relationship to others. Your individual journey is interwoven with the journeys of those you meet.""",
+
+            "Juxtaposition Cross": """Your Juxtaposition Cross indicates a fixed path—you have a very specific trajectory in this life with less flexibility than other cross types. This can feel limiting OR it can provide tremendous focus.
+
+You're essentially here for one thing. The specific gates of your cross describe that theme with unusual precision for your design."""
+        }
+        
+        definition_desc = f"With {canonical_hd.get('definition', 'your')} definition, there's a particular way energy flows and connects within you—whether in one continuous circuit or in separate systems that connect through others. Your defined centers ({', '.join(defined_centers) if defined_centers else 'your key centers'}) represent consistent, reliable themes in your experience. Your undefined centers are where you take in and amplify the energy of others."
+        
+        fallback_content = {
+            "type": ("Type: Your Energy Architecture", type_descriptions.get(hd_type, f"As a {hd_type}, there's a particular way energy tends to move through you.")),
+            "strategy": ("Strategy: Your Engagement Pattern", strategy_descriptions_rich.get(hd_type, f"Your strategy points to how you engage most effectively with life.")),
+            "authority": ("Authority: Your Clarity Process", authority_descriptions.get(authority, f"With {authority} authority, there's a specific way clarity tends to emerge for you.")),
+            "profile": ("Profile: Your Learning Style", profile_descriptions.get(profile, f"Your {profile} profile suggests a particular way you tend to learn and grow.")),
+            "cross": ("Incarnation Cross: Your Life Direction", cross_descriptions_rich.get("Right Angle Cross" if "Right" in incarnation_cross.get('name', '') else "Left Angle Cross" if "Left" in incarnation_cross.get('name', '') else "Juxtaposition Cross" if "Juxtaposition" in incarnation_cross.get('name', '') else "Right Angle Cross", f"Your incarnation cross points to a broad life theme.")),
+            "definition": ("Definition & Centers", definition_desc)
+        }
+        
+        parse_result = parse_plain_text_sections(
+            response_text,
+            expected_sections=["type", "strategy", "authority", "profile", "cross", "definition"],
+            fallback_content=fallback_content,
+            min_body_length=100
+        )
+        
+        logger.info(f"[HD_DEEP_DIVE] Parsed: source={parse_result.source}, sections={len(parse_result.sections)}, truncated={parse_result.truncated}")
+        
+        # Apply guardrails to parsed sections
+        for section in parse_result.sections:
+            section.body = apply_human_design_guardrails(section.body)
+        
+        # Build result from parsed sections
+        result = {
+            "success": True,
+            "title": "Your Human Design Profile",
+            "core_mechanics": {
                 "type": hd_type,
                 "strategy": strategy_desc,
                 "authority": authority,
@@ -7275,19 +7434,42 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
                 "incarnation_cross": incarnation_cross.get('name', 'Unknown'),
                 "incarnation_cross_gates": incarnation_cross.get('gates'),
                 "definition": canonical_hd.get('definition', 'Unknown')
-            }
-            
-            # Add success flag and debug info
-            result["success"] = True
-            result["debug_stamp"] = {
-                "compute_integrity_valid": canonical_hd.get('compute_integrity', {}).get('valid', False),
-                "type_valid": bool(hd_type),
-                "authority_valid": bool(authority),
-                "gates_count": len(canonical_hd.get('active_gates', []))
-            }
-            
-            # =====================================================================
-            # CACHE THE RESPONSE for instant repeat views
+            },
+            "sections": parse_result.to_sections_list(),
+            "mirror_prompt": apply_human_design_guardrails("Where do you notice these patterns playing out in your current experience?"),
+            "deeper_data_available": True
+        }
+        
+        # Calculate totals
+        total_chars = sum(len(s.get("body", "")) for s in result["sections"])
+        total_words = sum(len(s.get("body", "").split()) for s in result["sections"])
+        
+        # Determine fallback reason
+        fallback_reason = FallbackReason.NONE
+        if parse_result.source == "FALLBACK":
+            fallback_reason = FallbackReason.LLM_ERROR
+        elif parse_result.truncated:
+            fallback_reason = FallbackReason.JSON_TRUNCATED
+        
+        result["debug_stamp"] = create_deep_dive_debug_stamp(
+            source=parse_result.source,
+            fallback_reason=fallback_reason,
+            llm_attempted=True,
+            computed_fields_present=["hd_type", "strategy", "authority", "profile", "incarnation_cross"],
+            computed_fields_missing=[],
+            section_traces=parse_result.get_trace(),
+            total_chars=total_chars,
+            total_words=total_words
+        )
+        
+        # =====================================================================
+        # CACHE THE RESPONSE for instant repeat views
+        # =====================================================================
+        await set_cached_deep_dive(user_id, "human_design", result)
+        
+        log_deep_dive_request("human_design", parse_result.source, fallback_reason if fallback_reason != FallbackReason.NONE else "NONE", total_chars, user_id)
+        log_deep_dive_response("human_design", user_id, result, parse_result.source)
+        return result
             # =====================================================================
             await set_cached_deep_dive(user_id, "human_design", result)
             
