@@ -252,15 +252,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+    // Center content on web for wider screens
+    alignItems: 'center',
   },
   keyboardView: {
     flex: 1,
+    width: '100%',
+    maxWidth: 500, // Mobile-like width on desktop
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+    width: '100%',
+    maxWidth: 500, // Mobile-like width on desktop
   },
   header: {
     marginBottom: 48,
