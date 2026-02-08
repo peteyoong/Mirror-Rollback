@@ -758,34 +758,6 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                 )}
               </>
             )}
-
-            {/* SUCCESS STEP */}
-            {unlockStep === 'success' && (
-              <>
-                <View style={styles.modalIconContainer}>
-                  <Ionicons name="checkmark-circle" size={48} color={Colors.accent} />
-                </View>
-                <Text style={styles.modalTitle}>
-                  {modalMode === 'edit' ? 'Updated' : 'Unlocked'}
-                </Text>
-                <Text style={styles.modalSubtitle}>
-                  {modalMode === 'edit' ? 'Your name has been updated' : 'Deeper numerology is now available'}
-                </Text>
-                
-                <View style={styles.modalBody}>
-                  <Text style={styles.modalText}>
-                    Your Expression, Soul Urge, and Personality numbers have been calculated. The view will refresh momentarily.
-                  </Text>
-                </View>
-
-                <TouchableOpacity 
-                  style={styles.modalPrimaryButton}
-                  onPress={closeUnlockModal}
-                >
-                  <Text style={styles.modalPrimaryButtonText}>Done</Text>
-                </TouchableOpacity>
-              </>
-            )}
           </View>
         </KeyboardAvoidingView>
       </Modal>
