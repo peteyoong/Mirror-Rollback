@@ -21,6 +21,10 @@ import * as Clipboard from 'expo-clipboard';
 // Check if we're in development mode
 const IS_DEV = process.env.NODE_ENV !== 'production' || __DEV__;
 
+// Check for DEBUG_MIRROR mode (env var or URL param)
+const DEBUG_MIRROR = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true' || 
+  (typeof window !== 'undefined' && new URLSearchParams(window.location?.search || '').get('debug') === 'true');
+
 // Feedback types
 type FeedbackValue = 'yes' | 'mostly' | 'no' | null;
 
