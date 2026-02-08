@@ -7270,9 +7270,10 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
             full_hd_json=full_hd_json_str
         )
         
-        # ===== USE EMERGENT CONTRACT WITH PLAIN TEXT FORMAT =====
+        # ===== USE EMERGENT CONTRACT WITH PLAIN TEXT FORMAT + QUALITY GATE =====
         from emergent_contract import emergent_generate
         from section_parser import parse_plain_text_sections, generate_section_prompt_format
+        from quality_gate import QualityGate, augment_short_sections
         
         hd_sections = [
             {"id": "type", "label": "Type: Your Energy Architecture", "description": "Energy type and how it flows"},
@@ -7285,7 +7286,7 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
         
         section_format_instructions = generate_section_prompt_format(hd_sections)
         
-        system_prompt_with_format = system_prompt + "\n\n" + section_format_instructions
+        base_system_prompt = system_prompt + "\n\n" + section_format_instructions
         
         response_text = await emergent_generate(
             mode="deep_dive",
