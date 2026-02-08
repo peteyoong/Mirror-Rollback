@@ -148,8 +148,11 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   const [userIdChanged, setUserIdChanged] = useState<boolean>(false);
   const [userIdDebugInfo, setUserIdDebugInfo] = useState<any>(null);
   
-  // Modal-only transient state (for input flow, not persistence)
+  // === MODAL STATE ===
+  // Explicit mode: 'add' = no name exists, 'edit' = editing existing name
+  type ModalMode = 'add' | 'edit';
   const [unlockModalVisible, setUnlockModalVisible] = useState(false);
+  const [modalMode, setModalMode] = useState<ModalMode>('add');
   const [unlockStep, setUnlockStep] = useState<'consent' | 'input' | 'success'>('consent');
   const [modalInputName, setModalInputName] = useState(''); // Transient input only
   const [isUnlocking, setIsUnlocking] = useState(false);
@@ -157,6 +160,9 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
+  
+  // Debug: track if TextInput was rendered
+  const [inputRendered, setInputRendered] = useState(false);
 
   // === USER ID STABILITY CHECK using centralized utility ===
   useEffect(() => {
