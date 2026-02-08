@@ -8101,6 +8101,49 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
             
             result["mirror_prompt"] = apply_numerology_guardrails(result.get("mirror_prompt", ""))
             
+            # =====================================================================
+            # QUALITY GATE CHECK AND AUGMENTATION
+            # =====================================================================
+            from quality_gate import QualityGate, augment_short_sections
+            
+            gate = QualityGate(lens="numerology")  # 3000 char minimum
+            quality_gate_debug = {
+                "quality_gate_triggered": False,
+                "retry_count": 0,
+                "short_sections": [],
+                "augmented_sections": []
+            }
+            
+            sections_for_check = [
+                {"label": s.get("label", f"section_{i}"), "body": s.get("body", ""), "section_id": s.get("label", f"section_{i}").lower().replace(" ", "_")[:20]}
+                for i, s in enumerate(result.get("sections", []))
+            ]
+            
+            gate_result = gate.check(sections_for_check)
+            
+            if not gate_result.passed:
+                quality_gate_debug["quality_gate_triggered"] = True
+                quality_gate_debug["short_sections"] = [s.to_dict() for s in gate_result.short_sections]
+                
+                # Prepare fallback content
+                fallback_content = {
+                    "life_path": ("Life Path: Your Learning Theme", life_path_descriptions.get(life_path, f"Life Path {life_path} suggests recurring themes of growth and learning in your journey.")),
+                    "birthday": ("Birthday: Your Secondary Flavour", birthday_descriptions.get(birthday_number, f"Birthday number {birthday_number} adds a secondary flavour to your numerological profile."))
+                }
+                
+                short_ids = [s.section_id for s in gate_result.short_sections]
+                augmented_sections, augmented_ids = augment_short_sections(
+                    sections_for_check, short_ids, fallback_content
+                )
+                quality_gate_debug["augmented_sections"] = augmented_ids
+                
+                # Update result sections with augmented content
+                for i, aug_section in enumerate(augmented_sections):
+                    if i < len(result.get("sections", [])):
+                        result["sections"][i]["body"] = aug_section.get("body", "")
+                
+                logger.info(f"[NUM_DEEP_DIVE] Augmented {len(augmented_ids)} sections")
+            
             # Ensure core numbers are present - use null for locked fields (UI renders 🔒)
             result["core_numbers"] = {
                 "life_path": life_path,
