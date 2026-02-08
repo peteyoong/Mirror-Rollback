@@ -610,133 +610,155 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
     setInputRendered(false);
   };
 
-  // Render the unlock modal
-  const renderUnlockModal = () => (
-    <Modal
-      visible={unlockModalVisible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={closeUnlockModal}
-    >
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.modalOverlay}
+  // Render the unlock modal - ALWAYS shows TextInput when in 'input' step
+  const renderUnlockModal = () => {
+    // Log when modal renders
+    if (isDebugEnabled() && unlockModalVisible) {
+      console.log('[DEBUG_MIRROR] Modal rendering:', {
+        visible: unlockModalVisible,
+        mode: modalMode,
+        step: unlockStep,
+        inputRendered: inputRendered
+      });
+    }
+    
+    return (
+      <Modal
+        visible={unlockModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closeUnlockModal}
       >
-        <View style={styles.unlockModalContainer}>
-          {/* Close button */}
-          <TouchableOpacity 
-            style={styles.modalCloseButton}
-            onPress={closeUnlockModal}
-          >
-            <Ionicons name="close" size={24} color={Colors.textSecondary} />
-          </TouchableOpacity>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.unlockModalContainer}>
+            {/* Close button */}
+            <TouchableOpacity 
+              style={styles.modalCloseButton}
+              onPress={closeUnlockModal}
+            >
+              <Ionicons name="close" size={24} color={Colors.textSecondary} />
+            </TouchableOpacity>
 
-          {unlockStep === 'consent' && (
-            <>
-              <View style={styles.modalIconContainer}>
-                <Ionicons name="key-outline" size={32} color={Colors.accent} />
-              </View>
-              <Text style={styles.modalTitle}>Deeper Numerology</Text>
-              <Text style={styles.modalSubtitle}>This is optional</Text>
-              
-              <View style={styles.modalBody}>
-                <Text style={styles.modalText}>
-                  If you'd like, you can add your full birth name to unlock additional symbolic themes:
+            {/* INPUT STEP - Always show TextInput for add/edit */}
+            {unlockStep === 'input' && (
+              <>
+                <View style={styles.modalIconContainer}>
+                  <Ionicons name="person-outline" size={32} color={Colors.accent} />
+                </View>
+                <Text style={styles.modalTitle}>
+                  {modalMode === 'edit' ? 'Edit Your Name' : 'Your Full Birth Name'}
+                </Text>
+                <Text style={styles.modalSubtitle}>
+                  {modalMode === 'edit' ? 'Update your birth name' : 'As given at birth'}
                 </Text>
                 
-                <View style={styles.bulletList}>
-                  <Text style={styles.bulletItem}>• Expression — how you tend to operate outwardly</Text>
-                  <Text style={styles.bulletItem}>• Soul Urge — your inner motivation</Text>
-                  <Text style={styles.bulletItem}>• Personality — first impressions you tend to create</Text>
+                <View style={styles.modalBody}>
+                  <Text style={styles.modalText}>
+                    {modalMode === 'edit' 
+                      ? 'Update the name used for numerology calculations.'
+                      : 'Enter your full birth name to unlock Expression, Soul Urge, and Personality numbers.'
+                    }
+                  </Text>
+                  
+                  {/* TEXTINPUT - Always rendered when step === 'input' */}
+                  {(() => {
+                    // Log when TextInput mounts
+                    if (!inputRendered) {
+                      console.log('[DEBUG_MIRROR] 📝 TextInput MOUNTING - mode:', modalMode);
+                      // Use setTimeout to avoid state update during render
+                      setTimeout(() => setInputRendered(true), 0);
+                    }
+                    return (
+                      <TextInput
+                        style={styles.nameInput}
+                        placeholder="Enter your full birth name"
+                        placeholderTextColor={Colors.textTertiary}
+                        value={modalInputName}
+                        onChangeText={setModalInputName}
+                        autoCapitalize="words"
+                        autoCorrect={false}
+                        autoFocus={true}
+                      />
+                    );
+                  })()}
+                  
+                  {unlockError && (
+                    <Text style={styles.unlockErrorText}>{unlockError}</Text>
+                  )}
+                  
+                  <Text style={styles.privacyNote}>
+                    Your name is stored securely and used only for these calculations.
+                  </Text>
+                </View>
+
+                <View style={styles.modalActions}>
+                  <TouchableOpacity 
+                    style={styles.modalSecondaryButton}
+                    onPress={closeUnlockModal}
+                  >
+                    <Text style={styles.modalSecondaryButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.modalPrimaryButton, isUnlocking && styles.disabledButton]}
+                    onPress={handleUnlockSubmit}
+                    disabled={isUnlocking}
+                  >
+                    {isUnlocking ? (
+                      <ActivityIndicator size="small" color={Colors.surface} />
+                    ) : (
+                      <Text style={styles.modalPrimaryButtonText}>
+                        {modalMode === 'edit' ? 'Save' : 'Unlock'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
                 </View>
                 
-                <Text style={styles.modalNote}>
-                  Your name is used only for numerology calculations. You can continue without this — everything else remains fully available.
-                </Text>
-              </View>
+                {/* Debug info at bottom of modal */}
+                {isDebugEnabled() && (
+                  <View style={styles.modalDebug}>
+                    <Text style={styles.modalDebugText}>
+                      mode: {modalMode} | input_rendered: {inputRendered ? 'YES' : 'NO'}
+                    </Text>
+                  </View>
+                )}
+              </>
+            )}
 
-              <View style={styles.modalActions}>
-                <TouchableOpacity 
-                  style={styles.modalSecondaryButton}
-                  onPress={closeUnlockModal}
-                >
-                  <Text style={styles.modalSecondaryButtonText}>Maybe later</Text>
-                </TouchableOpacity>
+            {/* SUCCESS STEP */}
+            {unlockStep === 'success' && (
+              <>
+                <View style={styles.modalIconContainer}>
+                  <Ionicons name="checkmark-circle" size={48} color={Colors.accent} />
+                </View>
+                <Text style={styles.modalTitle}>
+                  {modalMode === 'edit' ? 'Updated' : 'Unlocked'}
+                </Text>
+                <Text style={styles.modalSubtitle}>
+                  {modalMode === 'edit' ? 'Your name has been updated' : 'Deeper numerology is now available'}
+                </Text>
+                
+                <View style={styles.modalBody}>
+                  <Text style={styles.modalText}>
+                    Your Expression, Soul Urge, and Personality numbers have been calculated. The view will refresh momentarily.
+                  </Text>
+                </View>
+
                 <TouchableOpacity 
                   style={styles.modalPrimaryButton}
-                  onPress={() => setUnlockStep('input')}
+                  onPress={closeUnlockModal}
                 >
-                  <Text style={styles.modalPrimaryButtonText}>Add my name</Text>
+                  <Text style={styles.modalPrimaryButtonText}>Done</Text>
                 </TouchableOpacity>
-              </View>
-            </>
-          )}
-
-          {unlockStep === 'input' && (
-            <>
-              <View style={styles.modalIconContainer}>
-                <Ionicons name="person-outline" size={32} color={Colors.accent} />
-              </View>
-              <Text style={styles.modalTitle}>Your Full Birth Name</Text>
-              <Text style={styles.modalSubtitle}>As given at birth</Text>
-              
-              <View style={styles.modalBody}>
-                <Text style={styles.modalText}>
-                  Please enter your name exactly as it appears on your birth certificate.
-                </Text>
-                
-                <TextInput
-                  style={styles.nameInput}
-                  placeholder="Full birth name"
-                  placeholderTextColor={Colors.textTertiary}
-                  value={modalInputName}
-                  onChangeText={setModalInputName}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                />
-                
-                {unlockError && (
-                  <Text style={styles.unlockErrorText}>{unlockError}</Text>
-                )}
-                
-                <Text style={styles.privacyNote}>
-                  Your name is stored securely and used only for these calculations.
-                </Text>
-              </View>
-
-              <View style={styles.modalActions}>
-                <TouchableOpacity 
-                  style={styles.modalSecondaryButton}
-                  onPress={() => setUnlockStep('consent')}
-                >
-                  <Text style={styles.modalSecondaryButtonText}>Back</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.modalPrimaryButton, isUnlocking && styles.disabledButton]}
-                  onPress={handleUnlockSubmit}
-                  disabled={isUnlocking}
-                >
-                  {isUnlocking ? (
-                    <ActivityIndicator size="small" color={Colors.surface} />
-                  ) : (
-                    <Text style={styles.modalPrimaryButtonText}>Unlock</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-
-          {unlockStep === 'success' && (
-            <>
-              <View style={styles.modalIconContainer}>
-                <Ionicons name="checkmark-circle" size={48} color={Colors.accent} />
-              </View>
-              <Text style={styles.modalTitle}>Unlocked</Text>
-              <Text style={styles.modalSubtitle}>Deeper numerology is now available</Text>
-              
-              <View style={styles.modalBody}>
-                <Text style={styles.modalText}>
-                  Your Expression, Soul Urge, and Personality numbers have been calculated. The view will refresh momentarily.
+              </>
+            )}
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+    );
+  };
                 </Text>
               </View>
 
