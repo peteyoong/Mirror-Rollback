@@ -510,8 +510,8 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                   style={styles.nameInput}
                   placeholder="Full birth name"
                   placeholderTextColor={Colors.textTertiary}
-                  value={fullBirthName}
-                  onChangeText={setFullBirthName}
+                  value={modalInputName}
+                  onChangeText={setModalInputName}
                   autoCapitalize="words"
                   autoCorrect={false}
                 />
