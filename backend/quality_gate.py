@@ -455,8 +455,15 @@ def test_augmentation_after_retry():
     
     short_section_ids = ["sun"]
     
+    # Create substantial fallback content (900+ chars)
+    fallback_sun_content = """This is the fallback sun content that provides substantial depth for the deep dive section. With your Sun placement, there's a particular quality to how you express your sense of self and engage with life's central themes. This placement shapes your core identity orientation and the way you naturally approach situations that call for leadership, self-expression, or creative initiative.
+
+The Sun represents your essential vitality—the light you carry and the way you tend to shine in the world. It's not about who you should be, but about noticing patterns in how you already operate when you're most yourself. Some find this placement brings a natural orientation toward certain kinds of challenges or creative expressions, while others notice it more in their relationship to authority, visibility, or personal power.
+
+The shadow aspects of this placement might show up as tendencies toward ego-identification, excessive need for recognition, or difficulty sharing the spotlight. These aren't flaws to fix but patterns to notice with curiosity."""
+    
     fallback_content = {
-        "sun": ("Sun: Your Core Orientation", "This is the fallback sun content that is substantial and provides the depth needed for a proper deep dive section. It contains multiple sentences and explores the topic with appropriate nuance and detail. The sun represents your core identity and this fallback ensures users get valuable content even when the LLM is brief." + " More content here." * 20),
+        "sun": ("Sun: Your Core Orientation", fallback_sun_content),
     }
     
     augmented, augmented_ids = augment_short_sections(
