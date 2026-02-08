@@ -476,7 +476,7 @@ export default function EnneagramResults() {
     
     return (
       <View style={styles.testerDebugContainer}>
-        <Text style={styles.testerDebugTitle}>[DEBUG_MIRROR] Scoring Data</Text>
+        <Text style={styles.testerDebugTitle}>Debug (Test Mode Only)</Text>
         <Text style={styles.testerDebugText}>primary_type: {primaryType} (score: {primaryScore})</Text>
         <Text style={styles.testerDebugText}>second_type: {secondType} (score: {secondScore})</Text>
         <Text style={styles.testerDebugText}>left_wing_type: {wingTypes.left} (score: {leftWingScore})</Text>
