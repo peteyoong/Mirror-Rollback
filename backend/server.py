@@ -7520,9 +7520,6 @@ You're essentially here for one thing. The specific gates of your cross describe
                 expand_prompt = gate.get_expand_prompt(gate_result.short_sections)
                 current_prompt = base_system_prompt + "\n\n" + expand_prompt
                 logger.info(f"[HD_DEEP_DIVE] Retry with expand prompt for {len(gate_result.short_sections)} short sections")
-        
-        # After retries, augment any remaining short sections
-        if not gate_result.passed and gate_result.short_sections:
             short_ids = [s.section_id for s in gate_result.short_sections]
             augmented_sections, augmented_ids = augment_short_sections(
                 sections_for_check, short_ids, fallback_content
