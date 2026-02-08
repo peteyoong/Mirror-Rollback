@@ -855,9 +855,11 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                 extraDebug={{
                   backend_base_url: BACKEND_BASE_URL || '(relative)',
                   backend_health_ok: backendHealthOk === null ? 'checking...' : backendHealthOk ? 'YES' : 'NO',
-                  current_user_id: maskUserId(userId),
-                  last_user_id: maskUserId(lastUserId),
-                  user_id_changed: userIdChanged ? 'YES ⚠️' : 'NO',
+                  prop_user_id: maskUserId(userId),
+                  stable_user_id: maskUserId(stableUserId),
+                  user_id_match: userId === stableUserId ? 'YES ✓' : 'NO ⚠️',
+                  user_id_stable: userIdDebugInfo?.is_stable ? 'YES ✓' : 'NO ⚠️',
+                  assertion_count: userIdDebugInfo?.assertion_count || 0,
                   profile_loaded: profile ? 'YES' : 'NO',
                   numerology_full_name: profile?.numerology_full_name || '(none)',
                   profile_updated_at: profile?.updated_at || '(never)'
