@@ -393,6 +393,17 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
                 <Text style={styles.footer}>
                   A lens for understanding patterns, not a definition of identity.
                 </Text>
+                
+                {/* Debug Footer - only shows when DEBUG_MIRROR is enabled */}
+                {activeTab === 'deep_dive' && data.sections && (
+                  <DebugFooter 
+                    lens="Astrology"
+                    sections={data.sections}
+                    source={data.debug_stamp?.source}
+                    rawDataLength={rawDataLength}
+                    debugStamp={data.debug_stamp}
+                  />
+                )}
               </>
             )}
           </>
