@@ -2875,7 +2875,9 @@ async def get_cached_deep_dive(user_id: str, lens: str, cache_key: str = None) -
         if cache_doc:
             # Check if cache is still valid (optional: add TTL check here)
             logger.info(f"[CACHE HIT] Deep Dive {lens} for user {user_id}")
-            return cache_doc.get("response")
+            cached_response = cache_doc.get("response")
+            log_deep_dive_response(lens, user_id, cached_response, "CACHE_HIT")
+            return cached_response
         
         return None
     except Exception as e:
