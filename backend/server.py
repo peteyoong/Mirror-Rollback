@@ -6469,6 +6469,17 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
             }
         
         # Build full prompt with full chart data (canonical payload)
+        # NOTE: Using PLAIN TEXT format to avoid JSON truncation issues
+        from section_parser import parse_plain_text_sections, generate_section_prompt_format
+        
+        astrology_sections = [
+            {"id": "sun", "label": "Sun: Your Core Orientation", "description": "Core identity, ego, life force"},
+            {"id": "moon", "label": "Moon: Your Emotional Texture", "description": "Emotional patterns, inner needs, comfort"},
+            {"id": "ascendant", "label": "Ascendant: How You Meet the World", "description": "First impressions, approach to life, outer persona"}
+        ]
+        
+        section_format_instructions = generate_section_prompt_format(astrology_sections)
+        
         system_prompt = ASTROLOGY_GLOBAL_PROMPT + "\n\n" + ASTROLOGY_DEEP_DIVE_PROMPT.format(
             sun_sign=placements['sun_sign'],
             sun_house=placements['sun_house'] or "Unknown",
@@ -6476,7 +6487,7 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
             moon_house=placements['moon_house'] or "Unknown",
             rising_sign=placements['rising_sign'],
             full_chart_json=full_chart_json_str
-        )
+        ) + "\n\n" + section_format_instructions
         
         # ===== USE EMERGENT CONTRACT =====
         from emergent_contract import emergent_generate, log_direct_llm_usage
@@ -6484,7 +6495,7 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
         # Generate using contract-enforced wrapper
         response_text = await emergent_generate(
             mode="deep_dive",
-            user_message="Generate the Deep Dive for this user's core structure. Return ONLY valid JSON.",
+            user_message="Generate the Deep Dive for this user's core structure. Use the PLAIN TEXT section format with ---SECTION:id--- markers. Do NOT return JSON.",
             endpoint="astrology_deep_dive",
             user_id=user_id,
             context={
@@ -6502,52 +6513,77 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
             max_tokens=4000  # Deep dives need many tokens for detailed sections
         )
         
-        # Parse JSON response
-        try:
-            clean_response = response_text.strip()
-            logger.debug(f"[ASTRO_DEEP_DIVE] Raw response length: {len(clean_response)} chars")
-            if clean_response.startswith("```"):
-                lines = clean_response.split("\n")
-                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
-            
-            result = json_module.loads(clean_response)
-            
-            # Apply guardrails
-            for section in result.get("sections", []):
-                section["body"] = apply_astrology_guardrails(section["body"])
-            
-            result["mirror_prompt"] = apply_astrology_guardrails(result.get("mirror_prompt", ""))
-            
-            # Ensure core_placements is included
-            result["core_placements"] = {
+        # =====================================================================
+        # PARSE PLAIN TEXT RESPONSE (resilient to truncation)
+        # =====================================================================
+        # Prepare fallback content for each section
+        sun_sign = placements['sun_sign']
+        moon_sign = placements['moon_sign']
+        rising_sign = placements['rising_sign']
+        
+        fallback_content = {
+            "sun": ("Sun: Your Core Orientation", ASTROLOGY_SUN_FALLBACK.get(sun_sign, f"With your Sun in {sun_sign}, there's a particular quality to how you express your sense of self and purpose. This placement shapes your core identity orientation.")),
+            "moon": ("Moon: Your Emotional Texture", ASTROLOGY_MOON_FALLBACK.get(moon_sign, f"Your Moon in {moon_sign} shapes how you process feeling and what helps you feel emotionally at home.")),
+            "ascendant": ("Ascendant: How You Meet the World", ASTROLOGY_ASCENDANT_FALLBACK.get(rising_sign, f"{rising_sign} rising colours the lens through which you approach new situations and people."))
+        }
+        
+        parse_result = parse_plain_text_sections(
+            response_text,
+            expected_sections=["sun", "moon", "ascendant"],
+            fallback_content=fallback_content,
+            min_body_length=100
+        )
+        
+        logger.info(f"[ASTRO_DEEP_DIVE] Parsed: source={parse_result.source}, sections={len(parse_result.sections)}, truncated={parse_result.truncated}")
+        
+        # Apply guardrails to parsed sections
+        for section in parse_result.sections:
+            section.body = apply_astrology_guardrails(section.body)
+        
+        # Build result from parsed sections
+        result = {
+            "success": True,
+            "title": "Your Core Structure",
+            "core_placements": {
                 "sun": placements['sun_sign'],
                 "moon": placements['moon_sign'],
                 "ascendant": placements['rising_sign']
-            }
-            
-            # Calculate totals for debug
-            total_chars = sum(len(s.get("body", "")) for s in result.get("sections", []))
-            total_words = sum(len(s.get("body", "").split()) for s in result.get("sections", []))
-            
-            # Add success flag and debug stamp
-            result["success"] = True
-            result["debug_stamp"] = create_deep_dive_debug_stamp(
-                source="LLM",
-                fallback_reason=FallbackReason.NONE,
-                llm_attempted=True,
-                computed_fields_present=["sun_sign", "moon_sign", "rising_sign"],
-                computed_fields_missing=[],
-                section_traces=[
-                    {"section_id": s.get("label", f"section_{i}"), "status": "ok", "source": "llm", 
-                     "char_count": len(s.get("body", "")), "word_count": len(s.get("body", "").split())}
-                    for i, s in enumerate(result.get("sections", []))
-                ],
-                total_chars=total_chars,
-                total_words=total_words
-            )
-            
-            # =====================================================================
-            # CACHE THE RESPONSE for instant repeat views
+            },
+            "sections": parse_result.to_sections_list(),
+            "mirror_prompt": apply_astrology_guardrails("Where do you recognize these patterns in your daily experience? What feels familiar, and what surprised you?"),
+            "deeper_data_available": True
+        }
+        
+        # Calculate totals
+        total_chars = sum(len(s.get("body", "")) for s in result["sections"])
+        total_words = sum(len(s.get("body", "").split()) for s in result["sections"])
+        
+        # Determine fallback reason
+        fallback_reason = FallbackReason.NONE
+        if parse_result.source == "FALLBACK":
+            fallback_reason = FallbackReason.LLM_ERROR
+        elif parse_result.truncated:
+            fallback_reason = FallbackReason.JSON_TRUNCATED  # Using same enum for truncation
+        
+        result["debug_stamp"] = create_deep_dive_debug_stamp(
+            source=parse_result.source,
+            fallback_reason=fallback_reason,
+            llm_attempted=True,
+            computed_fields_present=["sun_sign", "moon_sign", "rising_sign"],
+            computed_fields_missing=[],
+            section_traces=parse_result.get_trace(),
+            total_chars=total_chars,
+            total_words=total_words
+        )
+        
+        # =====================================================================
+        # CACHE THE RESPONSE for instant repeat views
+        # =====================================================================
+        await set_cached_deep_dive(user_id, "astrology", result)
+        
+        log_deep_dive_request("astrology", parse_result.source, fallback_reason.value if fallback_reason != FallbackReason.NONE else "NONE", total_chars, user_id)
+        log_deep_dive_response("astrology", user_id, result, parse_result.source)
+        return result
             # =====================================================================
             await set_cached_deep_dive(user_id, "astrology", result)
             
