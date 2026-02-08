@@ -1096,4 +1096,25 @@ const styles = StyleSheet.create({
   debugCopySuccess: {
     color: '#4CAF50',
   },
+  
+  // Tester Debug Panel (DEBUG_MIRROR only)
+  testerDebugContainer: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+  },
+  testerDebugTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 8,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  testerDebugText: {
+    fontSize: 11,
+    color: '#333',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    lineHeight: 18,
+  },
 });
