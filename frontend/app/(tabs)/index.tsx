@@ -346,9 +346,35 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    height: 52,
+  },
+  headerTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.text,
+    letterSpacing: 1.5,
+  },
+  userButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 6,
+    paddingLeft: 12,
+  },
+  userName: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    maxWidth: 150,
+  },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 28,
+    paddingHorizontal: 20,
   },
   centered: {
     flex: 1,
@@ -360,18 +386,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textTertiary,
     marginTop: 8,
-  },
-  topSpacer: {
-    height: 60,
-  },
-  greetingContainer: {
-    marginBottom: 32,
-  },
-  greeting: {
-    fontSize: 26,
-    fontWeight: '500',
-    color: Colors.text,
-    letterSpacing: -0.3,
   },
   loadingContainer: {
     paddingVertical: 60,
