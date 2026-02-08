@@ -8115,7 +8115,7 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
             }
             
             sections_for_check = [
-                {"label": s.get("label", f"section_{i}"), "body": s.get("body", ""), "section_id": s.get("label", f"section_{i}").lower().replace(" ", "_")[:20]}
+                {"label": s.get("label", f"section_{i}"), "body": s.get("body", ""), "section_id": s.get("label", f"section_{i}").lower().replace(" ", "_").replace(":", "")[:20]}
                 for i, s in enumerate(result.get("sections", []))
             ]
             
@@ -8125,10 +8125,22 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
                 quality_gate_debug["quality_gate_triggered"] = True
                 quality_gate_debug["short_sections"] = [s.to_dict() for s in gate_result.short_sections]
                 
-                # Prepare fallback content
+                # Prepare fallback content for life path
+                life_path_fallback = f"""Life Path {life_path} suggests recurring themes of growth and learning in your journey. This number reflects a core pattern that may show up throughout your life in various forms—sometimes as natural gifts, sometimes as challenges that push you to evolve. The specific flavour of {life_path} tends to orient your experiences around particular kinds of lessons and opportunities.
+
+Notice where this number's energy shows up most strongly in your current life. What situations seem to repeatedly draw you toward similar themes? The learning edge often involves recognizing these patterns not as obstacles but as invitations to develop qualities you're here to embody.
+
+What aspects of your current circumstances feel connected to this core numerological theme? Where do you find yourself naturally expressing this energy, and where does it feel like more of a stretch?"""
+                
+                birthday_fallback = f"""Your Birthday number {birthday_number} adds a secondary flavour to your numerological profile—think of it as a supplementary gift or talent that supports your Life Path journey. While the Life Path reflects your broader arc of development, the Birthday number often shows up as specific abilities or approaches that feel more immediately accessible.
+
+This number can point to natural skills, particular ways of problem-solving, or areas where you may find easier success. It's less about who you're becoming and more about tools you already have available. Many people find their Birthday number energy easier to access in practical, day-to-day situations.
+
+How does this secondary theme complement or sometimes contrast with your Life Path energy?"""
+                
                 fallback_content = {
-                    "life_path": ("Life Path: Your Learning Theme", life_path_descriptions.get(life_path, f"Life Path {life_path} suggests recurring themes of growth and learning in your journey.")),
-                    "birthday": ("Birthday: Your Secondary Flavour", birthday_descriptions.get(birthday_number, f"Birthday number {birthday_number} adds a secondary flavour to your numerological profile."))
+                    "life_path": ("Life Path: Your Learning Theme", life_path_fallback),
+                    "birthday": ("Birthday: Your Secondary Flavour", birthday_fallback)
                 }
                 
                 short_ids = [s.section_id for s in gate_result.short_sections]
