@@ -305,44 +305,59 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  const renderUnlockPrompt = () => {
-    // If unlock is not required, show the full name if available
-    if (!data?.unlock_required && data?.full_birth_name) {
+  // === RENDER NAME CARD OR CTA ===
+  // Driven SOLELY by profile.numerology_full_name from server
+  const renderNameSection = () => {
+    // Still loading profile - show nothing yet
+    if (profileLoading) {
+      return null;
+    }
+    
+    // Name EXISTS in server profile → Show name with Edit button
+    if (profile?.numerology_full_name) {
       return (
         <View style={styles.fullNameCard}>
           <Ionicons name="person-outline" size={18} color={Colors.textSecondary} />
           <View style={styles.fullNameTextContainer}>
             <Text style={styles.fullNameLabel}>Full Birth Name</Text>
-            <Text style={styles.fullNameValue}>{data.full_birth_name}</Text>
+            <Text style={styles.fullNameValue}>{profile.numerology_full_name}</Text>
           </View>
+          <TouchableOpacity 
+            style={styles.editNameButton}
+            onPress={() => {
+              // Pre-fill modal with existing name for editing
+              setModalInputName(profile.numerology_full_name || '');
+              setUnlockStep('input');
+              setUnlockModalVisible(true);
+            }}
+          >
+            <Ionicons name="pencil-outline" size={16} color={Colors.accent} />
+          </TouchableOpacity>
         </View>
       );
     }
     
-    // If unlock is required, show a prominent button
-    if (data?.unlock_required || data?.unlock_prompt) {
-      return (
-        <TouchableOpacity 
-          style={styles.unlockButton}
-          onPress={() => {
-            setUnlockStep('consent');
-            setUnlockModalVisible(true);
-          }}
-          activeOpacity={0.8}
-        >
-          <View style={styles.unlockButtonContent}>
-            <Ionicons name="add-circle-outline" size={22} color={Colors.surface} />
-            <View style={styles.unlockButtonText}>
-              <Text style={styles.unlockButtonTitle}>Add Full Birth Name</Text>
-              <Text style={styles.unlockButtonSubtitle}>Unlock Expression, Soul Urge & Personality numbers</Text>
-            </View>
+    // Name ABSENT → Show CTA button to add name
+    return (
+      <TouchableOpacity 
+        style={styles.unlockButton}
+        onPress={() => {
+          setModalInputName(''); // Start fresh
+          setUnlockStep('consent');
+          setUnlockModalVisible(true);
+        }}
+        activeOpacity={0.8}
+      >
+        <View style={styles.unlockButtonContent}>
+          <Ionicons name="add-circle-outline" size={22} color={Colors.surface} />
+          <View style={styles.unlockButtonText}>
+            <Text style={styles.unlockButtonTitle}>Add Full Birth Name</Text>
+            <Text style={styles.unlockButtonSubtitle}>Unlock Expression, Soul Urge & Personality numbers</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="rgba(255, 255, 255, 0.5)" />
-        </TouchableOpacity>
-      );
-    }
-    
-    return null;
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="rgba(255, 255, 255, 0.5)" />
+      </TouchableOpacity>
+    );
   };
 
   // Handle unlock flow
