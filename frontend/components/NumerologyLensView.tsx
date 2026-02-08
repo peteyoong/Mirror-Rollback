@@ -172,6 +172,10 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   // === BACKEND HEALTH CHECK STATE ===
   const [backendHealthOk, setBackendHealthOk] = useState<boolean | null>(null); // null = not checked yet
   
+  // === USER ID STABILITY CHECK STATE (DEBUG_MIRROR only) ===
+  const [lastUserId, setLastUserIdState] = useState<string | null>(null);
+  const [userIdChanged, setUserIdChanged] = useState<boolean>(false);
+  
   // Modal-only transient state (for input flow, not persistence)
   const [unlockModalVisible, setUnlockModalVisible] = useState(false);
   const [unlockStep, setUnlockStep] = useState<'consent' | 'input' | 'success'>('consent');
@@ -181,6 +185,41 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
+
+  // === USER ID STABILITY CHECK (DEBUG_MIRROR only) ===
+  useEffect(() => {
+    if (!isDebugEnabled()) return;
+    
+    const checkUserIdStability = async () => {
+      try {
+        const storedUserId = await getLastUserId();
+        setLastUserIdState(storedUserId);
+        
+        if (storedUserId && storedUserId !== userId) {
+          // User ID changed!
+          setUserIdChanged(true);
+          console.log('[DEBUG_MIRROR] ⚠️ USER ID CHANGED!', {
+            previous: maskUserId(storedUserId),
+            current: maskUserId(userId)
+          });
+        } else {
+          setUserIdChanged(false);
+          if (!storedUserId) {
+            console.log('[DEBUG_MIRROR] First launch - storing user ID:', maskUserId(userId));
+          } else {
+            console.log('[DEBUG_MIRROR] User ID stable:', maskUserId(userId));
+          }
+        }
+        
+        // Always update stored user ID to current
+        await setLastUserId(userId);
+      } catch (err) {
+        console.error('[DEBUG_MIRROR] User ID stability check failed:', err);
+      }
+    };
+    
+    checkUserIdStability();
+  }, [userId]);
 
   // === BACKEND HEALTH CHECK (DEBUG_MIRROR only) ===
   useEffect(() => {
