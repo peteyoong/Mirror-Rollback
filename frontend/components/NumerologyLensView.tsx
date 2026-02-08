@@ -43,6 +43,13 @@ interface NumerologyData {
   cycles?: NumerologyCycles;
   date?: string;
   full_birth_name?: string | null;
+  // Debug fields from API
+  debug_stamp?: {
+    fallback_used?: boolean;
+    source?: string;
+    timestamp?: string;
+    cached?: boolean;
+  };
 }
 
 interface Props {
