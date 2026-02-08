@@ -163,6 +163,44 @@ export default function EnneagramResults() {
   const [showRetakeModal, setShowRetakeModal] = useState(false);
   const [debugExpanded, setDebugExpanded] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  
+  // ============================================
+  // DEBUG PANEL STATE
+  // ============================================
+  // Tap counter for hidden gesture activation (tap Confidence badge 7 times)
+  const [debugTapCount, setDebugTapCount] = useState(0);
+  const debugTapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Computed: Should debug panel be shown?
+  // Formula: showDebug = DEBUG_MIRROR_ENV && (urlDebugParam || tapCount >= 7)
+  const showDebug = DEBUG_MIRROR_ENV && (getUrlDebugParam() || debugTapCount >= DEBUG_TAP_THRESHOLD);
+  
+  // Handler for Confidence badge taps (hidden gesture)
+  const handleConfidenceTap = () => {
+    // Only track taps if DEBUG_MIRROR_ENV is enabled
+    if (!DEBUG_MIRROR_ENV) return;
+    
+    // Reset timeout on each tap (taps must be within 3 seconds)
+    if (debugTapTimeoutRef.current) {
+      clearTimeout(debugTapTimeoutRef.current);
+    }
+    
+    setDebugTapCount(prev => prev + 1);
+    
+    // Reset tap count after 3 seconds of inactivity
+    debugTapTimeoutRef.current = setTimeout(() => {
+      setDebugTapCount(0);
+    }, 3000);
+  };
+  
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debugTapTimeoutRef.current) {
+        clearTimeout(debugTapTimeoutRef.current);
+      }
+    };
+  }, []);
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackValue>(null);
   const hasSubmittedFeedbackRef = useRef(false);
   
