@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -52,6 +52,15 @@ interface NumerologyData {
   };
 }
 
+// Profile data from GET /api/profile/{user_id}
+interface UserProfile {
+  user_id: string;
+  preferred_name: string | null;
+  numerology_full_name: string | null;
+  updated_at: string | null;
+  exists?: boolean;
+}
+
 interface Props {
   userId: string;
   onOpenChat: () => void;
@@ -66,48 +75,51 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   
-  // Unlock flow state
+  // === CANONICAL PROFILE STATE (single source of truth) ===
+  // This is the ONLY state for the user's numerology name - driven entirely by server
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  
+  // Modal-only transient state (for input flow, not persistence)
   const [unlockModalVisible, setUnlockModalVisible] = useState(false);
   const [unlockStep, setUnlockStep] = useState<'consent' | 'input' | 'success'>('consent');
-  const [fullBirthName, setFullBirthName] = useState('');
+  const [modalInputName, setModalInputName] = useState(''); // Transient input only
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
-  
-  // Server-driven profile state (not transient modal state)
-  const [serverProfile, setServerProfile] = useState<{
-    numerology_full_name: string | null;
-    name_source: 'server' | 'cache' | 'none';
-  }>({ numerology_full_name: null, name_source: 'none' });
   
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
 
-  // Fetch profile from server on mount and after save
-  const fetchServerProfile = async () => {
+  // === PROFILE HYDRATION FROM SERVER ===
+  // Fetch profile from GET /api/profile/{user_id} - this is the canonical source
+  const hydrateProfile = useCallback(async () => {
+    setProfileLoading(true);
     try {
       const response = await api.get(`/profile/${userId}`);
-      const profile = response.data;
-      setServerProfile({
-        numerology_full_name: profile.numerology_full_name || null,
-        name_source: profile.numerology_full_name ? 'server' : 'none'
-      });
+      const serverProfile: UserProfile = response.data;
+      setProfile(serverProfile);
       
       if (isDebugEnabled()) {
-        console.log('[DEBUG_MIRROR] Profile fetched:', {
+        console.log('[DEBUG_MIRROR] Profile hydrated from server:', {
           user_id: userId,
-          name_present: !!profile.numerology_full_name,
-          name_length: profile.numerology_full_name?.length || 0
+          numerology_full_name: serverProfile.numerology_full_name,
+          updated_at: serverProfile.updated_at,
+          exists: serverProfile.exists
         });
       }
     } catch (err) {
-      console.error('Failed to fetch profile:', err);
+      console.error('[PROFILE] Failed to hydrate profile:', err);
+      // Set empty profile on error - UI will show CTA
+      setProfile({ user_id: userId, preferred_name: null, numerology_full_name: null, updated_at: null, exists: false });
+    } finally {
+      setProfileLoading(false);
     }
-  };
-
-  // Initial profile fetch
-  useEffect(() => {
-    fetchServerProfile();
   }, [userId]);
+
+  // Initial profile hydration on mount
+  useEffect(() => {
+    hydrateProfile();
+  }, [hydrateProfile]);
 
   useEffect(() => {
     loadTabData(activeTab);
