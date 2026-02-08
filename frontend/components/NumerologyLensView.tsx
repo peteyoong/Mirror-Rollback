@@ -1374,4 +1374,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: Colors.surfaceLight,
   },
+  modalDebug: {
+    marginTop: 12,
+    padding: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: 6,
+  },
+  modalDebugText: {
+    fontSize: 10,
+    color: Colors.textTertiary,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
 });
