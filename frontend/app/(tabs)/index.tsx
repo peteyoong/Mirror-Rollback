@@ -466,16 +466,16 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: 'auto',
-    paddingTop: 40,
-    paddingBottom: 20,
+    paddingTop: 32,
+    paddingBottom: 12,
+    paddingHorizontal: 20,
   },
   footerText: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.textTertiary,
-    textAlign: 'center',
-    opacity: 0.5,
+    opacity: 0.4,
   },
   bottomSpacer: {
-    height: 40,
+    height: 24,
   },
 });
