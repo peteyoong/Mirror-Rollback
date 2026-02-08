@@ -1025,7 +1025,15 @@ export interface ScoringResult {
   top_candidates: { type: number; probability: number }[];
   raw_scores: { [key: string]: number };
   z_scores: { [key: string]: number };
-  wing_scores: { left: number; right: number; diff: number };
+  wing_scores: { 
+    left: number; 
+    right: number; 
+    diff: number;
+    // Enhanced debug fields
+    left_type: number;
+    right_type: number;
+    has_wing_data: boolean;
+  };
   // Extended debug data (v2)
   mean_likert: { [key: string]: number };
   forced_hits: { [key: string]: number };
@@ -1036,7 +1044,7 @@ export interface ScoringResult {
     right_type: number;
     left_accessible: boolean;
     right_accessible: boolean;
-    dominant_wing: number | 'balanced' | 'none';
+    dominant_wing: number | 'balanced' | 'none' | null;
   };
 }
 
