@@ -651,8 +651,8 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
               </View>
             )}
 
-            {/* Unlock Prompt (if name-based numbers locked) */}
-            {renderUnlockPrompt()}
+            {/* Name Section - driven by profile.numerology_full_name */}
+            {renderNameSection()}
 
             {/* Ask Mirror Button */}
             <TouchableOpacity
