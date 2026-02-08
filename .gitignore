@@ -27,8 +27,9 @@ next-env.d.ts
 
 # Production builds
 /build
-dist/
-dist
+# Allow frontend/dist for Expo web build deployment
+!frontend/dist/
+!frontend/dist/**
 
 # Environment files (comprehensive coverage)
 
