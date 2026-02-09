@@ -267,8 +267,7 @@ export default function WingStatesDebugPage() {
               {/* Technical Details */}
               <View style={styles.techDetails}>
                 <Text style={styles.techText}>
-                  wing: {mockWing === null ? 'null' : JSON.stringify(mockWing)} | 
-                  confidence_tier: "{config.confidenceTier}"
+                  wing_state: {state} | wing: {mockWing === null ? '(none)' : JSON.stringify(mockWing)} | confidence_tier: "{config.confidenceTier}"
                 </Text>
               </View>
             </View>
