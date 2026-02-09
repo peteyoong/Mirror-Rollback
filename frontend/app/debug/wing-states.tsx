@@ -110,7 +110,7 @@ function getWingDisplayInfo(
 interface MockConfig {
   label: string;
   description: string;
-  wing: number | 'balanced' | null;
+  getWing: (coreType: number) => number | 'balanced' | null;
   confidenceTier: string;
 }
 
@@ -118,25 +118,25 @@ const MOCK_CONFIGS: Record<WingDisplayState, MockConfig> = {
   dominant: {
     label: 'A) Dominant Wing',
     description: 'High confidence - clear wing',
-    wing: 6,  // Type 7w6
+    getWing: (coreType) => coreType === 1 ? 9 : coreType - 1,  // Left wing
     confidenceTier: 'high',
   },
   leaning: {
     label: 'B) Leaning Wing',
     description: 'Medium confidence - slightly stronger wing',
-    wing: 6,  // Type 7 — leaning toward Wing 6
+    getWing: (coreType) => coreType === 1 ? 9 : coreType - 1,  // Left wing
     confidenceTier: 'medium',
   },
   balanced: {
     label: 'C) Balanced Wings',
     description: 'Both wings equally active',
-    wing: 'balanced',
+    getWing: () => 'balanced',
     confidenceTier: 'low',
   },
   not_clear: {
     label: 'D) Wing Not Yet Clear',
     description: 'Insufficient data for wing determination',
-    wing: null,
+    getWing: () => null,
     confidenceTier: 'low',
   },
 };
