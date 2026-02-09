@@ -4,6 +4,7 @@ import { View, Text, ActivityIndicator, StyleSheet, Platform, useWindowDimension
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
 import { DebugViewportOverlay } from '../components/DebugViewportOverlay';
+import { AddToHomeScreenBanner } from '../components/AddToHomeScreenBanner';
 
 export default function RootLayout() {
   const { 
