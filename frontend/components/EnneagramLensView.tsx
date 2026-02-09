@@ -1407,6 +1407,16 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginBottom: 12,
   },
+  heroHelperText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 4,
+    paddingHorizontal: 12,
+  },
   heroDisclaimer: {
     fontSize: 12,
     color: Colors.textTertiary,
