@@ -1,0 +1,347 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Cross-Lens Bayesian Weighting Schema",
+  "description": "Data models for Astrology + Human Design as soft priors to Enneagram",
+  
+  "definitions": {
+    
+    "CrossLensSource": {
+      "type": "string",
+      "enum": ["astrology", "human_design"]
+    },
+    
+    "AstrologySignalName": {
+      "type": "string",
+      "enum": [
+        "saturn_dominance",
+        "jupiter_dominance",
+        "mars_dominance",
+        "moon_saturn_hard_aspect",
+        "moon_jupiter_aspect",
+        "heavy_mutable_emphasis",
+        "heavy_fixed_emphasis",
+        "angular_planets",
+        "12th_house_emphasis",
+        "8th_house_emphasis",
+        "pluto_dominance",
+        "neptune_dominance",
+        "uranus_dominance",
+        "venus_dominance",
+        "mercury_dominance"
+      ]
+    },
+    
+    "HumanDesignSignalName": {
+      "type": "string",
+      "enum": [
+        "defined_head_ajna",
+        "undefined_head_ajna",
+        "defined_root",
+        "undefined_root",
+        "emotional_authority",
+        "splenic_authority",
+        "sacral_authority",
+        "self_projected_authority",
+        "ego_authority",
+        "manifestor_type",
+        "generator_type",
+        "manifesting_generator_type",
+        "projector_type",
+        "reflector_type",
+        "defined_solar_plexus",
+        "undefined_solar_plexus",
+        "defined_sacral",
+        "undefined_sacral",
+        "defined_spleen",
+        "undefined_spleen",
+        "defined_heart_ego",
+        "undefined_heart_ego",
+        "defined_throat",
+        "defined_g_center",
+        "undefined_g_center"
+      ]
+    },
+    
+    "Signal": {
+      "type": "object",
+      "required": ["name", "strength"],
+      "properties": {
+        "name": { "type": "string" },
+        "strength": { 
+          "type": "number", 
+          "minimum": 0.0, 
+          "maximum": 1.0,
+          "description": "Signal strength from 0 (absent) to 1 (very strong)"
+        },
+        "description": { 
+          "type": "string",
+          "description": "Human-readable description of the signal source"
+        }
+      }
+    },
+    
+    "AstrologyInput": {
+      "type": "object",
+      "required": ["available"],
+      "properties": {
+        "available": { "type": "boolean" },
+        "signals": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Signal" }
+        },
+        "computed_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    
+    "HumanDesignInput": {
+      "type": "object",
+      "required": ["available"],
+      "properties": {
+        "available": { "type": "boolean" },
+        "signals": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Signal" }
+        },
+        "type": {
+          "type": "string",
+          "enum": ["Manifestor", "Generator", "Manifesting Generator", "Projector", "Reflector"]
+        },
+        "authority": {
+          "type": "string",
+          "enum": ["Emotional", "Sacral", "Splenic", "Ego", "Self-Projected", "Mental", "Lunar"]
+        },
+        "computed_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    
+    "CrossLensInput": {
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string" },
+        "astrology": { "$ref": "#/definitions/AstrologyInput" },
+        "human_design": { "$ref": "#/definitions/HumanDesignInput" },
+        "longitudinal_signals": { 
+          "type": "boolean",
+          "default": false,
+          "description": "Whether user has longitudinal data (multiple assessments over time)"
+        }
+      }
+    },
+    
+    "TypeProbabilities": {
+      "type": "object",
+      "required": ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+      "properties": {
+        "1": { "type": "number", "minimum": 0, "maximum": 1 },
+        "2": { "type": "number", "minimum": 0, "maximum": 1 },
+        "3": { "type": "number", "minimum": 0, "maximum": 1 },
+        "4": { "type": "number", "minimum": 0, "maximum": 1 },
+        "5": { "type": "number", "minimum": 0, "maximum": 1 },
+        "6": { "type": "number", "minimum": 0, "maximum": 1 },
+        "7": { "type": "number", "minimum": 0, "maximum": 1 },
+        "8": { "type": "number", "minimum": 0, "maximum": 1 },
+        "9": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    
+    "TypeAdjustments": {
+      "type": "object",
+      "description": "Per-type probability adjustments (positive or negative)",
+      "additionalProperties": { 
+        "type": "number",
+        "minimum": -0.05,
+        "maximum": 0.05
+      }
+    },
+    
+    "EligibilityResult": {
+      "type": "object",
+      "required": ["eligible"],
+      "properties": {
+        "eligible": { "type": "boolean" },
+        "reason": { 
+          "type": "string",
+          "description": "Explanation if not eligible"
+        },
+        "confidence_tier": {
+          "type": "string",
+          "enum": ["high", "moderate", "low"]
+        },
+        "top_2_gap": { 
+          "type": "number",
+          "description": "Difference between top two type probabilities"
+        },
+        "assessment_depth": {
+          "type": "string",
+          "enum": ["short", "deep"]
+        },
+        "cross_lens_sources": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/CrossLensSource" }
+        }
+      }
+    },
+    
+    "AdjustmentDetails": {
+      "type": "object",
+      "properties": {
+        "astrology_adjustments": { "$ref": "#/definitions/TypeAdjustments" },
+        "human_design_adjustments": { "$ref": "#/definitions/TypeAdjustments" },
+        "combined_adjustments": { "$ref": "#/definitions/TypeAdjustments" },
+        "total_redistribution": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.10,
+          "description": "Total probability mass moved (bounded at 0.10)"
+        }
+      }
+    },
+    
+    "EnneagramResult": {
+      "type": "object",
+      "required": ["type_probabilities", "top_types", "confidence_tier"],
+      "properties": {
+        "type_probabilities": { "$ref": "#/definitions/TypeProbabilities" },
+        "top_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "probability"],
+            "properties": {
+              "type": { "type": "integer", "minimum": 1, "maximum": 9 },
+              "probability": { "type": "number", "minimum": 0, "maximum": 1 }
+            }
+          }
+        },
+        "confidence_tier": {
+          "type": "string",
+          "enum": ["high", "moderate", "low"]
+        }
+      }
+    },
+    
+    "CrossLensAdjustmentResult": {
+      "type": "object",
+      "required": [
+        "user_id",
+        "computed_at",
+        "eligibility",
+        "enneagram_raw",
+        "adjustment_applied"
+      ],
+      "properties": {
+        "user_id": { "type": "string" },
+        "computed_at": { "type": "string", "format": "date-time" },
+        
+        "eligibility": { "$ref": "#/definitions/EligibilityResult" },
+        
+        "enneagram_raw": { "$ref": "#/definitions/EnneagramResult" },
+        
+        "adjustment_applied": { "type": "boolean" },
+        
+        "adjustment_details": { 
+          "$ref": "#/definitions/AdjustmentDetails",
+          "description": "Only present if adjustment_applied = true"
+        },
+        
+        "enneagram_adjusted": { 
+          "$ref": "#/definitions/EnneagramResult",
+          "description": "Only present if adjustment_applied = true"
+        },
+        
+        "adjustment_sources": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/CrossLensSource" }
+        },
+        
+        "adjustment_rationale": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Human-readable explanations for adjustments"
+        },
+        
+        "narrative_hint": {
+          "type": ["string", "null"],
+          "description": "Optional narrative text for UI (soft language only)"
+        },
+        
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "version": { "type": "string" },
+            "constraints_applied": {
+              "type": "object",
+              "properties": {
+                "per_type_bounded": { "type": "boolean" },
+                "total_redistribution_bounded": { "type": "boolean" },
+                "renormalized": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    },
+    
+    "SignalAffinityMapping": {
+      "type": "object",
+      "description": "Maps a signal to its type affinities",
+      "required": ["signal_name", "signal_source", "affinities"],
+      "properties": {
+        "signal_name": { "type": "string" },
+        "signal_source": { "$ref": "#/definitions/CrossLensSource" },
+        "affinities": {
+          "type": "object",
+          "description": "Maps Enneagram type (as string) to affinity weight (0-1)",
+          "additionalProperties": { 
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "notes": { "type": "string" }
+      }
+    },
+    
+    "CrossLensConstraints": {
+      "type": "object",
+      "description": "Configurable constraint thresholds",
+      "properties": {
+        "max_adjustment_per_type": {
+          "type": "number",
+          "default": 0.05,
+          "description": "Maximum ±adjustment for any single type"
+        },
+        "max_total_redistribution": {
+          "type": "number",
+          "default": 0.10,
+          "description": "Maximum total probability mass movement"
+        },
+        "top_2_gap_threshold": {
+          "type": "number",
+          "default": 0.12,
+          "description": "Only adjust when top-2 gap is at or below this"
+        },
+        "min_probability_floor": {
+          "type": "number",
+          "default": 0.001,
+          "description": "No type probability can go below this"
+        },
+        "max_signal_contribution": {
+          "type": "number",
+          "default": 0.025,
+          "description": "Maximum contribution from a single signal"
+        },
+        "signal_strength_threshold": {
+          "type": "number",
+          "default": 0.3,
+          "description": "Ignore signals below this strength"
+        },
+        "concordance_bonus": {
+          "type": "number",
+          "default": 1.2,
+          "description": "Multiplier when multiple lenses agree"
+        }
+      }
+    }
+  }
+}
