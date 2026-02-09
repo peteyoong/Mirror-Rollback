@@ -18,7 +18,7 @@ import EnneagramLensView from '../../components/EnneagramLensView';
 
 interface EnneagramResult {
   inferred_core: number;
-  inferred_wing: number | 'balanced';
+  inferred_wing: number | 'balanced' | null;
   confidence: number;
   confidence_tier: string;
   is_close?: boolean;
