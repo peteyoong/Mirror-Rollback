@@ -306,6 +306,13 @@ export default function EnneagramResults() {
   // Formula: showDebug = DEBUG_MIRROR_ENV && (urlDebugParam || tapCount >= 7)
   const showDebug = DEBUG_MIRROR_ENV && (getUrlDebugParam() || debugTapCount >= DEBUG_TAP_THRESHOLD);
   
+  // ============================================
+  // DEBUG WING STATE OVERRIDE
+  // ============================================
+  // For visual verification of P0 Wing UX Fix
+  // Only active when DEBUG_MIRROR_ENV === true
+  const [debugWingState, setDebugWingState] = useState<DebugWingState>('off');
+  
   // Handler for Confidence badge taps (hidden gesture)
   const handleConfidenceTap = () => {
     // Only track taps if DEBUG_MIRROR_ENV is enabled
