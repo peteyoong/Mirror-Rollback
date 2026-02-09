@@ -285,6 +285,136 @@ export const getEnneagramResult = async (userId: string) => {
   return response.data;
 };
 
+// ============================================
+// P1: DEEP ENNEAGRAM ASSESSMENT API
+// ============================================
+
+// Types for deep assessment
+export interface DeepAssessmentQuestion {
+  id: string;
+  type: 'forced_choice' | 'likert' | 'ranked';
+  section: number;
+  stem: string;
+  options?: Array<{
+    id: string;
+    text: string;
+    primary_type: number;
+    secondary_type?: number | null;
+    weight?: number;
+    weight_multipliers?: Record<string, number>;
+  }>;
+  scale?: {
+    min: number;
+    max: number;
+    labels?: string[];
+  };
+  scoring?: {
+    primary_type: number;
+    secondary_type?: number | null;
+    direction: 'positive' | 'negative';
+    weight: number;
+  };
+  pair_focus?: number[];
+  dimension?: string;
+}
+
+export interface DeepAssessmentSection {
+  id: number;
+  title: string;
+  question_count: number;
+}
+
+export interface DeepAssessmentResponse {
+  type: 'forced_choice' | 'likert' | 'ranked';
+  value: string | number | string[];
+}
+
+export interface DeepAssessmentSession {
+  session_id: string;
+  user_id?: string;
+  question_set_id: string;
+  status: 'in_progress' | 'completed' | 'abandoned';
+  current_index: number;
+  total_questions: number;
+  questions: DeepAssessmentQuestion[];
+  sections: DeepAssessmentSection[];
+  responses: Array<{
+    question_id: string;
+    response: DeepAssessmentResponse;
+    answered_at: string;
+  }>;
+  result?: DeepAssessmentResult;
+  resumed?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface DeepAssessmentResult {
+  type_probabilities: Record<string, number>;
+  top_types: Array<{ type: number; probability: number }>;
+  confidence_tier: 'low' | 'moderate' | 'high';
+  assessment_depth: 'deep';
+  wing_analysis: {
+    wing_state: 'dominant' | 'leaning' | 'balanced' | 'not_clear';
+    inferred_wing: number | null;
+    adjacent_scores: {
+      left: number;
+      right: number;
+      left_type?: number;
+      right_type?: number;
+    };
+  };
+  scoring_metadata?: {
+    questions_total: number;
+    questions_answered: number;
+    completeness: number;
+    raw_scores?: Record<string, number>;
+  };
+  completed_at: string;
+}
+
+// Start a new deep assessment session
+export const startDeepAssessment = async (userId: string): Promise<DeepAssessmentSession> => {
+  const response = await apiWithRetry.post(`/enneagram/deep/start/${userId}`);
+  return response.data;
+};
+
+// Get existing session state
+export const getDeepAssessmentSession = async (sessionId: string): Promise<DeepAssessmentSession> => {
+  const response = await apiWithRetry.get(`/enneagram/deep/session/${sessionId}`);
+  return response.data;
+};
+
+// Submit an answer
+export const submitDeepAssessmentAnswer = async (
+  sessionId: string,
+  questionId: string,
+  response: DeepAssessmentResponse
+): Promise<{
+  success: boolean;
+  session_id: string;
+  question_id: string;
+  current_index: number;
+  total_answered: number;
+  total_questions: number;
+}> => {
+  const result = await apiWithRetry.post(`/enneagram/deep/answer/${sessionId}`, {
+    question_id: questionId,
+    response
+  });
+  return result.data;
+};
+
+// Complete the assessment and get results
+export const completeDeepAssessment = async (sessionId: string): Promise<{
+  success: boolean;
+  already_completed: boolean;
+  result: DeepAssessmentResult;
+}> => {
+  const response = await apiWithRetry.post(`/enneagram/deep/complete/${sessionId}`);
+  return response.data;
+};
+
 // Enneagram Chat API
 export const sendEnneagramChat = async (data: {
   user_id: string;
