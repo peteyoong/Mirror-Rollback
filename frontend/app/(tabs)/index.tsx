@@ -400,6 +400,7 @@ const styles = StyleSheet.create({
   },
   keystoneContainer: {
     paddingVertical: 8,
+    paddingHorizontal: 20, // Add horizontal padding for content
   },
   keystoneTitle: {
     fontSize: 11,
