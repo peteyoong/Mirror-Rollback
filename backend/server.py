@@ -8842,6 +8842,51 @@ async def save_enneagram_result(request: EnneagramResultSave):
             }
             logger.info(f"[ENNEAGRAM_DEBUG] Response includes debug_enneagram for user {request.user_id}")
         
+        # =====================================================
+        # P5: EMIT LONGITUDINAL EVIDENCE (Shadow Wiring)
+        # =====================================================
+        # This captures derived signals from the assessment result
+        # for longitudinal pattern analysis. Does NOT affect user-facing results.
+        try:
+            # Determine source based on assessment type
+            assessment_source = EvidenceSource.ENNEAGRAM_SHORT.value
+            if request.version == "v2":
+                # v2 is the "deep" assessment
+                assessment_source = EvidenceSource.ENNEAGRAM_DEEP.value
+            
+            # Derive signals from result
+            enn_result_for_signals = {
+                "inferred_core": request.inferred_core,
+                "inferred_wing": request.inferred_wing,
+                "confidence_tier": request.confidence_tier,
+                "top_candidates": [{"type": c.type, "probability": c.probability} for c in request.top_candidates],
+                "debug_scores": {
+                    "wing_scores": {
+                        "left": request.debug_scores.wing_scores.left if request.debug_scores and request.debug_scores.wing_scores else 0,
+                        "right": request.debug_scores.wing_scores.right if request.debug_scores and request.debug_scores.wing_scores else 0
+                    }
+                }
+            }
+            
+            signals = derive_signals_from_enneagram_result(
+                enn_result_for_signals,
+                "deep" if request.version == "v2" else "short"
+            )
+            
+            # Create and store evidence document
+            evidence_doc = create_evidence_document(
+                user_id=request.user_id,
+                source=assessment_source,
+                signals=signals
+            )
+            
+            await db.longitudinal_evidence_events.insert_one(evidence_doc)
+            logger.info(f"[P5_LONGITUDINAL] Emitted evidence from Enneagram assessment for user {request.user_id} (source: {assessment_source})")
+            
+        except Exception as e:
+            # Non-critical - log but don't fail the main request
+            logger.warning(f"[P5_LONGITUDINAL] Failed to emit evidence for {request.user_id}: {e}")
+        
         return response
     
     except HTTPException:
