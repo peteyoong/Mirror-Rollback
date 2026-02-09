@@ -222,7 +222,8 @@ export default function WingStatesDebugPage() {
         
         {WING_STATES.map((state) => {
           const config = MOCK_CONFIGS[state];
-          const wingInfo = getWingDisplayInfo(coreType, config.wing, config.confidenceTier);
+          const mockWing = config.getWing(coreType);
+          const wingInfo = getWingDisplayInfo(coreType, mockWing, config.confidenceTier);
           
           return (
             <View key={state} style={styles.stateCard}>
@@ -266,7 +267,7 @@ export default function WingStatesDebugPage() {
               {/* Technical Details */}
               <View style={styles.techDetails}>
                 <Text style={styles.techText}>
-                  wing: {config.wing === null ? 'null' : JSON.stringify(config.wing)} | 
+                  wing: {mockWing === null ? 'null' : JSON.stringify(mockWing)} | 
                   confidence_tier: "{config.confidenceTier}"
                 </Text>
               </View>
