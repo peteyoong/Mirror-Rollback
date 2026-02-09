@@ -9945,6 +9945,31 @@ class EnneagramFeedbackRequest(BaseModel):
     answer_frame: Optional[str] = None
 
 
+# ============================================
+# P5: LONGITUDINAL EVIDENCE API MODELS
+# ============================================
+
+class LongitudinalSignals(BaseModel):
+    """Signal schema for longitudinal evidence events."""
+    type_affinities: Dict[str, float] = Field(default_factory=dict, description="Type affinities keyed by type number (1-9)")
+    wing_affinities: Dict[str, float] = Field(default_factory=dict, description="Wing affinities keyed by wing number")
+    stress_style: Optional[str] = Field(None, description="vigilance | reframing | withdrawal | control | other | null")
+    avoidance_style: Optional[str] = Field(None, description="uncertainty | conflict | limitation | intensity | other | null")
+    confidence_hint: float = Field(0.0, ge=0.0, le=1.0, description="Confidence hint 0-1")
+
+class LongitudinalEvidenceRequest(BaseModel):
+    """Request body for storing longitudinal evidence."""
+    user_id: str = Field(..., description="User identifier")
+    source: str = Field(..., description="reflection_chat | journal | enneagram_short | enneagram_deep")
+    signals: LongitudinalSignals = Field(..., description="Signal data")
+
+class LongitudinalEvidenceResponse(BaseModel):
+    """Response for evidence storage."""
+    success: bool
+    event_id: str
+    stored_at: str
+
+
 # Questionnaire Persistence Models
 class QuestionnaireRequest(BaseModel):
     user_id: str
