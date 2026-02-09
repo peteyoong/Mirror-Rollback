@@ -10024,6 +10024,26 @@ class LongitudinalEvidenceResponse(BaseModel):
     stored_at: str
 
 
+# ============================================
+# P1: DEEP ASSESSMENT API MODELS
+# ============================================
+
+class DeepAssessmentResponse(BaseModel):
+    """Response type for deep assessment answers."""
+    type: str = Field(..., description="forced_choice | likert | ranked")
+    value: Any = Field(..., description="Response value matching question type")
+
+class DeepAssessmentAnswerRequest(BaseModel):
+    """Request body for submitting an answer."""
+    question_id: str = Field(..., description="Question ID being answered")
+    response: DeepAssessmentResponse = Field(..., description="Response data")
+
+class DeepAssessmentSessionStatus(str, Enum):
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    ABANDONED = "abandoned"
+
+
 # Questionnaire Persistence Models
 class QuestionnaireRequest(BaseModel):
     user_id: str
