@@ -313,6 +313,22 @@ export default function EnneagramResults() {
   // Only active when DEBUG_MIRROR_ENV === true
   const [debugWingState, setDebugWingState] = useState<DebugWingState>('off');
   
+  // ============================================
+  // P5: LONGITUDINAL DATA (DEBUG-only)
+  // ============================================
+  // Shadow system data - never affects user-facing results
+  interface LongitudinalSummary {
+    enabled: boolean;
+    type_stability: number;
+    wing_stability: number;
+    evidence_volume: { total: number; last_30_days: number };
+    top_types_over_time: Array<{ type: number; share: number }>;
+    confidence_modifier: string;
+    recommended_next_step: string;
+  }
+  const [longitudinalData, setLongitudinalData] = useState<LongitudinalSummary | null>(null);
+  const [longitudinalLoading, setLongitudinalLoading] = useState(false);
+
   // Handler for Confidence badge taps (hidden gesture)
   const handleConfidenceTap = () => {
     // Only track taps if DEBUG_MIRROR_ENV is enabled
