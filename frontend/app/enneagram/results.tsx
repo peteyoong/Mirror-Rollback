@@ -46,6 +46,56 @@ const getUrlDebugParam = (): boolean => {
 // Required tap count for hidden gesture activation
 const DEBUG_TAP_THRESHOLD = 7;
 
+// ============================================
+// DEBUG WING STATE OVERRIDE SYSTEM
+// ============================================
+// Purpose: Visual verification of P0 Wing UX Fix
+// Active only when DEBUG_MIRROR_ENV === true
+// UI-only, no backend, no persistence
+// Zero impact on production logic
+// ============================================
+
+type DebugWingState = 'off' | 'dominant' | 'leaning' | 'balanced' | 'not_clear';
+
+interface DebugWingOverride {
+  state: DebugWingState;
+  mockWing: number | 'balanced' | null;
+  mockConfidenceTier: string;
+}
+
+// Mock data generator for each wing state
+const getDebugWingOverride = (
+  coreType: number,
+  selectedState: DebugWingState
+): DebugWingOverride | null => {
+  if (selectedState === 'off') return null;
+  
+  // Use wing 6 as example for Type 7 (or left wing for other types)
+  const leftWing = coreType === 1 ? 9 : coreType - 1;
+  
+  switch (selectedState) {
+    case 'dominant':
+      return { state: 'dominant', mockWing: leftWing, mockConfidenceTier: 'high' };
+    case 'leaning':
+      return { state: 'leaning', mockWing: leftWing, mockConfidenceTier: 'medium' };
+    case 'balanced':
+      return { state: 'balanced', mockWing: 'balanced', mockConfidenceTier: 'low' };
+    case 'not_clear':
+      return { state: 'not_clear', mockWing: null, mockConfidenceTier: 'low' };
+    default:
+      return null;
+  }
+};
+
+// Debug state labels for UI
+const DEBUG_WING_STATE_LABELS: Record<DebugWingState, string> = {
+  off: 'OFF (Real Data)',
+  dominant: 'Dominant Wing',
+  leaning: 'Leaning Wing',
+  balanced: 'Balanced Wings',
+  not_clear: 'Wing Not Clear',
+};
+
 // Feedback types
 type FeedbackValue = 'yes' | 'mostly' | 'no' | null;
 
