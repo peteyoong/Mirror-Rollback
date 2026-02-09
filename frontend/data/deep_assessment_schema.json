@@ -1,0 +1,423 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Enneagram Deep Assessment Schema",
+  "description": "Data models for the Deep Enneagram Assessment system",
+  
+  "definitions": {
+    
+    "QuestionType": {
+      "type": "string",
+      "enum": ["forced_choice", "likert", "ranked"]
+    },
+    
+    "TypePair": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[1-9]$" },
+      "minItems": 2,
+      "maxItems": 3
+    },
+    
+    "Dimension": {
+      "type": "string",
+      "enum": [
+        "fear_response",
+        "uncertainty_management", 
+        "stress_response",
+        "anxiety_management",
+        "achievement_motivation",
+        "image_orientation",
+        "withdrawal_pattern",
+        "intensity_relationship",
+        "control_need",
+        "autonomy_drive",
+        "conflict_engagement",
+        "authority_relationship",
+        "connection_style",
+        "identity_search",
+        "avoidance_pattern"
+      ]
+    },
+    
+    "ForcedChoiceQuestion": {
+      "type": "object",
+      "required": ["id", "type", "section", "stem", "options", "pair_focus", "dimension"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^deep_fc_[0-9]{3}$" },
+        "type": { "const": "forced_choice" },
+        "section": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "stem": { "type": "string", "minLength": 20 },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "text", "primary_type", "weight"],
+            "properties": {
+              "id": { "type": "string", "enum": ["A", "B"] },
+              "text": { "type": "string", "minLength": 20 },
+              "primary_type": { "type": "integer", "minimum": 1, "maximum": 9 },
+              "secondary_type": { "type": ["integer", "null"], "minimum": 1, "maximum": 9 },
+              "weight": { "type": "number", "minimum": 0.1, "maximum": 2.0 }
+            }
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "pair_focus": { "$ref": "#/definitions/TypePair" },
+        "dimension": { "$ref": "#/definitions/Dimension" }
+      }
+    },
+    
+    "LikertQuestion": {
+      "type": "object",
+      "required": ["id", "type", "section", "stem", "scale", "scoring", "pair_focus", "dimension"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^deep_ls_[0-9]{3}$" },
+        "type": { "const": "likert" },
+        "section": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "stem": { "type": "string", "minLength": 20 },
+        "scale": {
+          "type": "object",
+          "required": ["min", "max", "labels"],
+          "properties": {
+            "min": { "const": 1 },
+            "max": { "const": 5 },
+            "labels": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 5,
+              "maxItems": 5
+            }
+          }
+        },
+        "scoring": {
+          "type": "object",
+          "required": ["primary_type", "direction", "weight"],
+          "properties": {
+            "primary_type": { "type": "integer", "minimum": 1, "maximum": 9 },
+            "secondary_type": { "type": ["integer", "null"], "minimum": 1, "maximum": 9 },
+            "direction": { "type": "string", "enum": ["positive", "negative"] },
+            "weight": { "type": "number", "minimum": 0.1, "maximum": 2.0 }
+          }
+        },
+        "pair_focus": { "$ref": "#/definitions/TypePair" },
+        "dimension": { "$ref": "#/definitions/Dimension" }
+      }
+    },
+    
+    "RankedQuestion": {
+      "type": "object",
+      "required": ["id", "type", "section", "stem", "options", "pair_focus", "dimension"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^deep_rp_[0-9]{3}$" },
+        "type": { "const": "ranked" },
+        "section": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "stem": { "type": "string", "minLength": 20 },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "text", "primary_type", "weight_multipliers"],
+            "properties": {
+              "id": { "type": "string", "enum": ["A", "B", "C"] },
+              "text": { "type": "string", "minLength": 15 },
+              "primary_type": { "type": "integer", "minimum": 1, "maximum": 9 },
+              "weight_multipliers": {
+                "type": "object",
+                "required": ["rank_1", "rank_2", "rank_3"],
+                "properties": {
+                  "rank_1": { "type": "number" },
+                  "rank_2": { "type": "number" },
+                  "rank_3": { "type": "number" }
+                }
+              }
+            }
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "pair_focus": { "$ref": "#/definitions/TypePair" },
+        "dimension": { "$ref": "#/definitions/Dimension" }
+      }
+    },
+    
+    "Question": {
+      "oneOf": [
+        { "$ref": "#/definitions/ForcedChoiceQuestion" },
+        { "$ref": "#/definitions/LikertQuestion" },
+        { "$ref": "#/definitions/RankedQuestion" }
+      ]
+    },
+    
+    "ForcedChoiceResponse": {
+      "type": "object",
+      "required": ["question_id", "question_type", "response", "section"],
+      "properties": {
+        "question_id": { "type": "string" },
+        "question_type": { "const": "forced_choice" },
+        "response": { "type": "string", "enum": ["A", "B"] },
+        "response_time_ms": { "type": "integer", "minimum": 0 },
+        "section": { "type": "integer", "minimum": 1, "maximum": 9 }
+      }
+    },
+    
+    "LikertResponse": {
+      "type": "object",
+      "required": ["question_id", "question_type", "response", "section"],
+      "properties": {
+        "question_id": { "type": "string" },
+        "question_type": { "const": "likert" },
+        "response": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "response_time_ms": { "type": "integer", "minimum": 0 },
+        "section": { "type": "integer", "minimum": 1, "maximum": 9 }
+      }
+    },
+    
+    "RankedResponse": {
+      "type": "object",
+      "required": ["question_id", "question_type", "response", "section"],
+      "properties": {
+        "question_id": { "type": "string" },
+        "question_type": { "const": "ranked" },
+        "response": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["A", "B", "C"] },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "response_time_ms": { "type": "integer", "minimum": 0 },
+        "section": { "type": "integer", "minimum": 1, "maximum": 9 }
+      }
+    },
+    
+    "Response": {
+      "oneOf": [
+        { "$ref": "#/definitions/ForcedChoiceResponse" },
+        { "$ref": "#/definitions/LikertResponse" },
+        { "$ref": "#/definitions/RankedResponse" }
+      ]
+    },
+    
+    "AssessmentSession": {
+      "type": "object",
+      "required": ["assessment_id", "user_id", "assessment_type", "version", "started_at", "responses"],
+      "properties": {
+        "assessment_id": { "type": "string", "format": "uuid" },
+        "user_id": { "type": "string" },
+        "assessment_type": { "const": "deep" },
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+        "started_at": { "type": "string", "format": "date-time" },
+        "completed_at": { "type": ["string", "null"], "format": "date-time" },
+        "state_calibration": {
+          "type": "object",
+          "properties": {
+            "energy_state": { "type": "string", "enum": ["low", "neutral", "high"] },
+            "life_context": { "type": "string", "enum": ["surviving", "managing", "expanding"] },
+            "answer_frame": { "type": "string", "enum": ["best_self", "recent_self"] }
+          }
+        },
+        "responses": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Response" }
+        }
+      }
+    },
+    
+    "TypeProbabilities": {
+      "type": "object",
+      "required": ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+      "properties": {
+        "1": { "type": "number", "minimum": 0, "maximum": 1 },
+        "2": { "type": "number", "minimum": 0, "maximum": 1 },
+        "3": { "type": "number", "minimum": 0, "maximum": 1 },
+        "4": { "type": "number", "minimum": 0, "maximum": 1 },
+        "5": { "type": "number", "minimum": 0, "maximum": 1 },
+        "6": { "type": "number", "minimum": 0, "maximum": 1 },
+        "7": { "type": "number", "minimum": 0, "maximum": 1 },
+        "8": { "type": "number", "minimum": 0, "maximum": 1 },
+        "9": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    },
+    
+    "WingState": {
+      "type": "string",
+      "enum": ["dominant", "leaning", "balanced", "not_clear"]
+    },
+    
+    "ConfidenceTier": {
+      "type": "string",
+      "enum": ["high", "moderate", "low"]
+    },
+    
+    "ScoringResult": {
+      "type": "object",
+      "required": [
+        "assessment_id",
+        "user_id", 
+        "assessment_depth",
+        "computed_at",
+        "type_probabilities",
+        "top_types",
+        "confidence",
+        "wing_analysis"
+      ],
+      "properties": {
+        "assessment_id": { "type": "string", "format": "uuid" },
+        "user_id": { "type": "string" },
+        "assessment_depth": { "const": "deep" },
+        "computed_at": { "type": "string", "format": "date-time" },
+        
+        "type_probabilities": { "$ref": "#/definitions/TypeProbabilities" },
+        
+        "top_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "probability"],
+            "properties": {
+              "type": { "type": "integer", "minimum": 1, "maximum": 9 },
+              "probability": { "type": "number", "minimum": 0, "maximum": 1 }
+            }
+          },
+          "minItems": 1,
+          "maxItems": 3
+        },
+        
+        "type_discrimination": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "leaning": { "type": "integer", "minimum": 1, "maximum": 9 },
+              "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+              "key_differentiators": {
+                "type": "array",
+                "items": { "$ref": "#/definitions/Dimension" }
+              }
+            }
+          }
+        },
+        
+        "confidence": {
+          "type": "object",
+          "required": ["tier", "score"],
+          "properties": {
+            "tier": { "$ref": "#/definitions/ConfidenceTier" },
+            "score": { "type": "number", "minimum": 0, "maximum": 1 },
+            "factors": {
+              "type": "object",
+              "properties": {
+                "response_consistency": { "type": "number" },
+                "pair_discrimination": { "type": "number" },
+                "top_type_separation": { "type": "number" }
+              }
+            }
+          }
+        },
+        
+        "wing_analysis": {
+          "type": "object",
+          "required": ["core_type", "adjacent_types", "wing_scores", "wing_state"],
+          "properties": {
+            "core_type": { "type": "integer", "minimum": 1, "maximum": 9 },
+            "adjacent_types": {
+              "type": "array",
+              "items": { "type": "integer", "minimum": 1, "maximum": 9 },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "wing_scores": {
+              "type": "object",
+              "additionalProperties": { "type": "number" }
+            },
+            "wing_state": { "$ref": "#/definitions/WingState" },
+            "inferred_wing": { "type": ["integer", "null"], "minimum": 1, "maximum": 9 },
+            "wing_confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        
+        "integration_with_phase1": {
+          "type": "object",
+          "properties": {
+            "phase1_top_type": { "type": "integer", "minimum": 1, "maximum": 9 },
+            "phase1_confidence": { "type": "number" },
+            "type_shift": { "type": "boolean" },
+            "shift_explanation": { "type": "string" }
+          }
+        },
+        
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "questions_answered": { "type": "integer" },
+            "avg_response_time_ms": { "type": "number" },
+            "sections_completed": { "type": "integer" },
+            "flagged_inconsistencies": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+    
+    "CombinedResult": {
+      "type": "object",
+      "required": ["user_id", "assessment_complete", "final_result", "type_probabilities", "top_candidates", "display"],
+      "properties": {
+        "user_id": { "type": "string" },
+        "assessment_complete": { "type": "boolean" },
+        
+        "final_result": {
+          "type": "object",
+          "required": ["inferred_core", "wing_state", "confidence_tier", "assessment_depth"],
+          "properties": {
+            "inferred_core": { "type": "integer", "minimum": 1, "maximum": 9 },
+            "inferred_wing": { "type": ["integer", "null"], "minimum": 1, "maximum": 9 },
+            "wing_state": { "$ref": "#/definitions/WingState" },
+            "confidence_tier": { "$ref": "#/definitions/ConfidenceTier" },
+            "confidence_score": { "type": "number", "minimum": 0, "maximum": 1 },
+            "assessment_depth": { "type": "string", "enum": ["short", "deep"] }
+          }
+        },
+        
+        "type_probabilities": { "$ref": "#/definitions/TypeProbabilities" },
+        
+        "top_candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "probability", "name"],
+            "properties": {
+              "type": { "type": "integer", "minimum": 1, "maximum": 9 },
+              "probability": { "type": "number", "minimum": 0, "maximum": 1 },
+              "name": { "type": "string" }
+            }
+          }
+        },
+        
+        "close_call": { "type": "boolean" },
+        "close_call_types": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1, "maximum": 9 }
+        },
+        
+        "display": {
+          "type": "object",
+          "required": ["type_label", "type_name", "confidence_badge"],
+          "properties": {
+            "type_label": { "type": "string" },
+            "type_name": { "type": "string" },
+            "confidence_badge": { "type": "string", "enum": ["High", "Exploratory", "Low"] },
+            "helper_text": { "type": ["string", "null"] }
+          }
+        },
+        
+        "phase_data": {
+          "type": "object",
+          "properties": {
+            "phase1": { "type": "object" },
+            "phase2": { "$ref": "#/definitions/ScoringResult" }
+          }
+        }
+      }
+    }
+  }
+}
