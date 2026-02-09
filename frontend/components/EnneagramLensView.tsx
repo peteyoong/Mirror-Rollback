@@ -825,11 +825,27 @@ export default function EnneagramLensView({ result, userId }: Props) {
         <View style={styles.heroBadge}>
           <Text style={styles.heroBadgeText}>{core}</Text>
         </View>
-        <Text style={styles.heroTitle}>Type {core}</Text>
+        <Text style={styles.heroTitle}>{wingInfo.typeLabel}</Text>
         <Text style={styles.heroSubtitle}>
-          {wing === 'balanced' ? 'Balanced wings' : `Wing ${wing}`}
+          {TYPE_NAMES[core]}
         </Text>
-        {renderConfidenceBadge()}
+        {/* Confidence Badge with new system */}
+        <View style={[
+          styles.confidenceBadge,
+          wingInfo.confidenceBadge === 'High' && styles.confidenceHigh,
+          wingInfo.confidenceBadge === 'Exploratory' && styles.confidenceMedium,
+          wingInfo.confidenceBadge === 'Low' && styles.confidenceLow,
+        ]}>
+          <Text style={styles.confidenceText}>
+            {wingInfo.confidenceBadge}
+          </Text>
+        </View>
+        {/* Helper text for non-dominant wing states */}
+        {wingInfo.helperText && (
+          <Text style={styles.heroHelperText}>
+            {wingInfo.helperText}
+          </Text>
+        )}
         <Text style={styles.heroDisclaimer}>
           This lens reflects motivation, not mood.
         </Text>
@@ -846,14 +862,16 @@ export default function EnneagramLensView({ result, userId }: Props) {
       {/* Wing Access Card */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Your Wing Access</Text>
-        {wing !== 'balanced' ? (
+        {wingInfo.state === 'dominant' || wingInfo.state === 'leaning' ? (
           <>
             <Text style={styles.cardBody}>
               Wings are access paths — capacities you can develop. The quieter wing often holds untapped potential.
             </Text>
             <View style={styles.wingRow}>
               <View style={styles.wingItem}>
-                <Text style={styles.wingLabel}>Dominant</Text>
+                <Text style={styles.wingLabel}>
+                  {wingInfo.state === 'dominant' ? 'Dominant' : 'Leaning'}
+                </Text>
                 <Text style={styles.wingValue}>Wing {wing}</Text>
               </View>
               <View style={styles.wingDivider} />
@@ -863,9 +881,13 @@ export default function EnneagramLensView({ result, userId }: Props) {
               </View>
             </View>
           </>
+        ) : wingInfo.state === 'balanced' ? (
+          <Text style={styles.cardBody}>
+            You show access to both wings ({wings.left} & {wings.right}). Balance comes from choosing consciously based on the situation, not defaulting to one pattern.
+          </Text>
         ) : (
           <Text style={styles.cardBody}>
-            You show access to both wings. Balance comes from choosing consciously based on the situation, not defaulting to one pattern.
+            Your wing pattern is still emerging. Both adjacent types ({wings.left} & {wings.right}) are available to you, and clarity often develops through more reflection and experience.
           </Text>
         )}
       </View>
