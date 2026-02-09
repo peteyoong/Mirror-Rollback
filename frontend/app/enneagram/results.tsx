@@ -660,13 +660,27 @@ export default function EnneagramResults() {
     ? 'Balanced Wings' 
     : `Wing ${result.inferred_wing}`;
   
+  // ============================================
+  // COMPUTE WING INFO (with debug override support)
+  // ============================================
+  // If debug override is active, use mock data
+  // Otherwise use real result data
+  const debugOverride = DEBUG_MIRROR_ENV ? getDebugWingOverride(result.inferred_core, debugWingState) : null;
+  
   // Get comprehensive wing display info
-  const wingInfo = getWingDisplayInfo(
-    result.inferred_core,
-    result.inferred_wing,
-    result.confidence_tier,
-    result.debug_scores
-  );
+  const wingInfo = debugOverride 
+    ? getWingDisplayInfo(
+        result.inferred_core,
+        debugOverride.mockWing,
+        debugOverride.mockConfidenceTier,
+        result.debug_scores
+      )
+    : getWingDisplayInfo(
+        result.inferred_core,
+        result.inferred_wing,
+        result.confidence_tier,
+        result.debug_scores
+      );
   
   const confidenceLabel = result.confidence_tier === 'high' 
     ? 'High' 
