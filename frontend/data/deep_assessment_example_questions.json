@@ -1,0 +1,469 @@
+{
+  "version": "1.0",
+  "title": "Enneagram Deep Assessment - Example Questions",
+  "description": "Draft questions for type-pair discrimination. Final copy to be polished later.",
+  "total_questions": 45,
+  "sections": 9,
+  
+  "section_intros": {
+    "1": "These questions explore how you respond when things feel uncertain or potentially threatening.",
+    "2": "Now we'll look at patterns around achievement, recognition, and how you present yourself.",
+    "3": "The following questions explore your relationship with intensity, withdrawal, and inner experience.",
+    "4": "These questions focus on control, autonomy, and how you assert yourself in the world.",
+    "5": "Now we'll explore patterns around anxiety, optimism, and how you manage discomfort.",
+    "6": "The following questions look at identity, authenticity, and your sense of self.",
+    "7": "These questions explore your relationship with authority, trust, and guidance.",
+    "8": "Now we'll look at connection, independence, and how you relate to others.",
+    "9": "Finally, these questions explore how you respond under stress and pressure."
+  },
+  
+  "example_questions": {
+    
+    "6_vs_7": {
+      "pair_name": "Loyalist vs. Enthusiast",
+      "core_distinction": "Sixes lean into anxiety to manage it; Sevens reframe away from it",
+      "questions": [
+        {
+          "id": "deep_fc_001",
+          "type": "forced_choice",
+          "section": 1,
+          "stem": "When facing an uncertain situation, which internal experience is more familiar?",
+          "options": [
+            {
+              "id": "A",
+              "text": "My mind runs through possible problems, preparing for what might go wrong",
+              "primary_type": 6,
+              "secondary_type": null,
+              "weight": 1.0
+            },
+            {
+              "id": "B",
+              "text": "I focus on the possibilities and trust I'll figure it out when I get there",
+              "primary_type": 7,
+              "secondary_type": null,
+              "weight": 1.0
+            }
+          ],
+          "pair_focus": ["6", "7"],
+          "dimension": "uncertainty_management"
+        },
+        {
+          "id": "deep_ls_001",
+          "type": "likert",
+          "section": 5,
+          "stem": "When something exciting is about to happen, I often find myself thinking about what could go wrong.",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]
+          },
+          "scoring": {
+            "primary_type": 6,
+            "secondary_type": 1,
+            "direction": "positive",
+            "weight": 0.9
+          },
+          "pair_focus": ["6", "7"],
+          "dimension": "anxiety_management"
+        },
+        {
+          "id": "deep_fc_002",
+          "type": "forced_choice",
+          "section": 5,
+          "stem": "When you're feeling overwhelmed, which response feels more natural?",
+          "options": [
+            {
+              "id": "A",
+              "text": "I seek out trusted people to talk through my concerns and get their perspective",
+              "primary_type": 6,
+              "secondary_type": 2,
+              "weight": 1.0
+            },
+            {
+              "id": "B",
+              "text": "I look for something stimulating or enjoyable to shift my focus and energy",
+              "primary_type": 7,
+              "secondary_type": null,
+              "weight": 1.0
+            }
+          ],
+          "pair_focus": ["6", "7"],
+          "dimension": "stress_response"
+        }
+      ]
+    },
+    
+    "6_vs_9": {
+      "pair_name": "Loyalist vs. Peacemaker",
+      "core_distinction": "Sixes scan for threat externally; Nines avoid noticing threat by numbing",
+      "questions": [
+        {
+          "id": "deep_fc_003",
+          "type": "forced_choice",
+          "section": 1,
+          "stem": "When conflict arises in a group you're part of, which is more typical for you?",
+          "options": [
+            {
+              "id": "A",
+              "text": "I notice the tension immediately and start thinking about what it might mean",
+              "primary_type": 6,
+              "secondary_type": null,
+              "weight": 1.0
+            },
+            {
+              "id": "B",
+              "text": "I tend to minimize it or hope it resolves itself without intervention",
+              "primary_type": 9,
+              "secondary_type": null,
+              "weight": 1.0
+            }
+          ],
+          "pair_focus": ["6", "9"],
+          "dimension": "conflict_engagement"
+        },
+        {
+          "id": "deep_ls_002",
+          "type": "likert",
+          "section": 1,
+          "stem": "I often find myself scanning situations for potential problems or threats.",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]
+          },
+          "scoring": {
+            "primary_type": 6,
+            "secondary_type": null,
+            "direction": "positive",
+            "weight": 1.0
+          },
+          "pair_focus": ["6", "9"],
+          "dimension": "fear_response"
+        },
+        {
+          "id": "deep_rp_001",
+          "type": "ranked",
+          "section": 1,
+          "stem": "When you sense something is wrong but no one is talking about it, rank these responses (1 = most like me):",
+          "options": [
+            {
+              "id": "A",
+              "text": "I bring it up directly to address what feels unspoken",
+              "primary_type": 8,
+              "weight_multipliers": { "rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2 }
+            },
+            {
+              "id": "B",
+              "text": "I quietly investigate to understand what's really happening",
+              "primary_type": 6,
+              "weight_multipliers": { "rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2 }
+            },
+            {
+              "id": "C",
+              "text": "I wait it out, assuming it will resolve or become clearer eventually",
+              "primary_type": 9,
+              "weight_multipliers": { "rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2 }
+            }
+          ],
+          "pair_focus": ["6", "9", "8"],
+          "dimension": "conflict_engagement"
+        }
+      ]
+    },
+    
+    "3_vs_7": {
+      "pair_name": "Achiever vs. Enthusiast",
+      "core_distinction": "Threes achieve to prove worth; Sevens achieve for stimulation and freedom",
+      "questions": [
+        {
+          "id": "deep_fc_004",
+          "type": "forced_choice",
+          "section": 2,
+          "stem": "When you accomplish something significant, which feeling is stronger?",
+          "options": [
+            {
+              "id": "A",
+              "text": "Satisfaction that others will see my capability and value",
+              "primary_type": 3,
+              "secondary_type": null,
+              "weight": 1.0
+            },
+            {
+              "id": "B",
+              "text": "Excitement about what new doors this opens and what's next",
+              "primary_type": 7,
+              "secondary_type": null,
+              "weight": 1.0
+            }
+          ],
+          "pair_focus": ["3", "7"],
+          "dimension": "achievement_motivation"
+        },
+        {
+          "id": "deep_ls_003",
+          "type": "likert",
+          "section": 2,
+          "stem": "When I fail at something publicly, it affects how I see my overall worth.",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]
+          },
+          "scoring": {
+            "primary_type": 3,
+            "secondary_type": 4,
+            "direction": "positive",
+            "weight": 1.0
+          },
+          "pair_focus": ["3", "7"],
+          "dimension": "image_orientation"
+        },
+        {
+          "id": "deep_fc_005",
+          "type": "forced_choice",
+          "section": 2,
+          "stem": "If you had to choose between these two professional situations:",
+          "options": [
+            {
+              "id": "A",
+              "text": "A prestigious role with high visibility and clear metrics for success",
+              "primary_type": 3,
+              "secondary_type": 8,
+              "weight": 1.0
+            },
+            {
+              "id": "B",
+              "text": "A varied role with lots of autonomy and opportunities to explore new areas",
+              "primary_type": 7,
+              "secondary_type": null,
+              "weight": 1.0
+            }
+          ],
+          "pair_focus": ["3", "7"],
+          "dimension": "achievement_motivation"
+        }
+      ]
+    },
+    
+    "4_vs_5": {
+      "pair_name": "Individualist vs. Investigator",
+      "core_distinction": "Fours process through feeling; Fives process through thinking",
+      "questions": [
+        {
+          "id": "deep_fc_006",
+          "type": "forced_choice",
+          "section": 3,
+          "stem": "When something deeply affects you, which is your more typical first response?",
+          "options": [
+            {
+              "id": "A",
+              "text": "I need to fully feel and express what's happening inside me",
+              "primary_type": 4,
+              "secondary_type": null,
+              "weight": 1.0
+            },
+            {
+              "id": "B",
+              "text": "I need space to think through and understand what's happening",
+              "primary_type": 5,
+              "secondary_type": null,
+              "weight": 1.0
+            }
+          ],
+          "pair_focus": ["4", "5"],
+          "dimension": "withdrawal_pattern"
+        },
+        {
+          "id": "deep_ls_004",
+          "type": "likert",
+          "section": 3,
+          "stem": "My emotions often feel like the most real and important part of my experience.",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]
+          },
+          "scoring": {
+            "primary_type": 4,
+            "secondary_type": 2,
+            "direction": "positive",
+            "weight": 1.0
+          },
+          "pair_focus": ["4", "5"],
+          "dimension": "intensity_relationship"
+        },
+        {
+          "id": "deep_rp_002",
+          "type": "ranked",
+          "section": 3,
+          "stem": "When you withdraw from the world, what are you most seeking? Rank 1-3:",
+          "options": [
+            {
+              "id": "A",
+              "text": "Time to process my feelings and reconnect with what's meaningful",
+              "primary_type": 4,
+              "weight_multipliers": { "rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2 }
+            },
+            {
+              "id": "B",
+              "text": "Mental space to think, analyze, and replenish my inner resources",
+              "primary_type": 5,
+              "weight_multipliers": { "rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2 }
+            },
+            {
+              "id": "C",
+              "text": "Relief from external demands and a chance to just be still",
+              "primary_type": 9,
+              "weight_multipliers": { "rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2 }
+            }
+          ],
+          "pair_focus": ["4", "5", "9"],
+          "dimension": "withdrawal_pattern"
+        }
+      ]
+    },
+    
+    "8_vs_1": {
+      "pair_name": "Challenger vs. Perfectionist",
+      "core_distinction": "Eights assert to protect autonomy; Ones control to achieve correctness",
+      "questions": [
+        {
+          "id": "deep_fc_007",
+          "type": "forced_choice",
+          "section": 4,
+          "stem": "When you see something being done wrong, which impulse is stronger?",
+          "options": [
+            {
+              "id": "A",
+              "text": "To take over and make sure it gets done effectively",
+              "primary_type": 8,
+              "secondary_type": 3,
+              "weight": 1.0
+            },
+            {
+              "id": "B",
+              "text": "To correct the process so it's done properly",
+              "primary_type": 1,
+              "secondary_type": null,
+              "weight": 1.0
+            }
+          ],
+          "pair_focus": ["8", "1"],
+          "dimension": "control_need"
+        },
+        {
+          "id": "deep_ls_005",
+          "type": "likert",
+          "section": 4,
+          "stem": "I feel angry when people don't follow the rules they agreed to.",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]
+          },
+          "scoring": {
+            "primary_type": 1,
+            "secondary_type": 6,
+            "direction": "positive",
+            "weight": 0.9
+          },
+          "pair_focus": ["8", "1"],
+          "dimension": "authority_relationship"
+        },
+        {
+          "id": "deep_fc_008",
+          "type": "forced_choice",
+          "section": 4,
+          "stem": "When you feel angry, which is more true?",
+          "options": [
+            {
+              "id": "A",
+              "text": "I express it directly—people know where I stand",
+              "primary_type": 8,
+              "secondary_type": null,
+              "weight": 1.0
+            },
+            {
+              "id": "B",
+              "text": "I try to contain it because anger often feels inappropriate or uncontrolled",
+              "primary_type": 1,
+              "secondary_type": 9,
+              "weight": 1.0
+            }
+          ],
+          "pair_focus": ["8", "1"],
+          "dimension": "autonomy_drive"
+        }
+      ]
+    }
+  },
+  
+  "additional_type_pairs": {
+    "3_vs_8": {
+      "pair_name": "Achiever vs. Challenger",
+      "core_distinction": "Power through image vs. power through force",
+      "example_stem": "When you want to influence a situation, do you prefer to inspire and impress, or to take direct control?"
+    },
+    "7_vs_9": {
+      "pair_name": "Enthusiast vs. Peacemaker",
+      "core_distinction": "Active avoidance vs. passive avoidance",
+      "example_stem": "When something painful comes up, do you instinctively look for something better to focus on, or do you find yourself going numb and disengaging?"
+    },
+    "4_vs_9": {
+      "pair_name": "Individualist vs. Peacemaker",
+      "core_distinction": "Longing for what's missing vs. contentment with what is",
+      "example_stem": "Do you tend to feel that something essential is missing in your life, or do you generally feel that things are okay as they are?"
+    },
+    "2_vs_9": {
+      "pair_name": "Helper vs. Peacemaker",
+      "core_distinction": "Merging to help vs. merging to avoid conflict",
+      "example_stem": "When you put others' needs first, is it more because you want to be helpful, or because it's easier than asserting your own preferences?"
+    },
+    "1_vs_6": {
+      "pair_name": "Perfectionist vs. Loyalist",
+      "core_distinction": "Internal critic vs. external authority focus",
+      "example_stem": "When you're uncertain about a decision, do you primarily consult your own sense of right and wrong, or do you look to trusted authorities or rules?"
+    }
+  },
+  
+  "stress_validation_questions": [
+    {
+      "id": "deep_rp_009",
+      "type": "ranked",
+      "section": 9,
+      "stem": "When you're under significant stress, rank which pattern emerges most strongly (1 = most typical):",
+      "options": [
+        {
+          "id": "A",
+          "text": "I become more critical and rigid, judging myself and others harshly",
+          "primary_type": 1,
+          "secondary_type": 4,
+          "weight_multipliers": { "rank_1": 0.8, "rank_2": 0.4, "rank_3": 0.1 }
+        },
+        {
+          "id": "B",
+          "text": "I become more scattered and impulsive, seeking escape or stimulation",
+          "primary_type": 7,
+          "secondary_type": null,
+          "weight_multipliers": { "rank_1": 0.8, "rank_2": 0.4, "rank_3": 0.1 }
+        },
+        {
+          "id": "C",
+          "text": "I withdraw and become more detached, conserving my energy",
+          "primary_type": 5,
+          "secondary_type": 9,
+          "weight_multipliers": { "rank_1": 0.8, "rank_2": 0.4, "rank_3": 0.1 }
+        }
+      ],
+      "pair_focus": ["1", "5", "7"],
+      "dimension": "stress_response",
+      "note": "Validates stress arrow patterns"
+    }
+  ],
+  
+  "notes": {
+    "copy_status": "DRAFT - Final copy polish pending",
+    "weight_status": "PLACEHOLDER - Weights to be tuned based on validation data",
+    "coverage": "Primary pairs covered with 2-3 examples each. Full 45-question bank to be completed in implementation phase."
+  }
+}
