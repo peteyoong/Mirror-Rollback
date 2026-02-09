@@ -640,9 +640,9 @@ export default function EnneagramResults() {
             <Text style={styles.typeNumber}>{result.inferred_core}</Text>
           </View>
           
-          {/* Type Title */}
+          {/* Type Title - Using new wing display system */}
           <Text style={styles.typeTitle}>
-            Type {result.inferred_core} with {wingDisplay}
+            {wingInfo.typeLabel}
           </Text>
           <Text style={styles.typeName}>
             {TYPE_NAMES[result.inferred_core]}
@@ -655,16 +655,23 @@ export default function EnneagramResults() {
               activeOpacity={0.8}
               style={[
                 styles.confidenceBadge,
-                result.confidence_tier === 'high' && styles.confidenceHigh,
-                result.confidence_tier === 'medium' && styles.confidenceMedium,
-                result.confidence_tier === 'low' && styles.confidenceLow,
+                wingInfo.confidenceBadge === 'High' && styles.confidenceHigh,
+                wingInfo.confidenceBadge === 'Exploratory' && styles.confidenceMedium,
+                wingInfo.confidenceBadge === 'Low' && styles.confidenceLow,
               ]}
             >
               <Text style={styles.confidenceText}>
-                Confidence: {confidenceLabel}
+                {wingInfo.confidenceBadge}
               </Text>
             </TouchableOpacity>
           </View>
+          
+          {/* Helper text for non-dominant wing states */}
+          {wingInfo.helperText && (
+            <Text style={styles.wingHelperText}>
+              {wingInfo.helperText}
+            </Text>
+          )}
         </View>
         
         {/* Feedback Card */}
