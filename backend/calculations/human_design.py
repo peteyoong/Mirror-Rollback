@@ -928,34 +928,86 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
             e.partial_data
         )
     
-    # Extract key planets for Human Design
-    hd_planets = ['Sun', 'Earth', 'North Node', 'South Node', 'Moon']
+    # ==========================================================================
+    # FULL 13-PLANET ACTIVATIONS (Human Design Standard)
+    # ==========================================================================
+    # Human Design uses 13 celestial bodies for gate activations:
+    # Sun, Earth, Moon, North Node, South Node, Mercury, Venus, Mars,
+    # Jupiter, Saturn, Uranus, Neptune, Pluto
+    # Each body activates a gate in both Personality (birth) and Design (88° prior)
+    # Total: 26 activations (13 per side)
+    
+    HD_PLANETS_FULL = [
+        'Sun', 'Earth', 'Moon', 'North Node', 'South Node',
+        'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn',
+        'Uranus', 'Neptune', 'Pluto'
+    ]
     
     personality_data = {}
     design_data = {}
     
-    for planet in hd_planets:
-        # Personality
+    for planet in HD_PLANETS_FULL:
+        # Personality (Conscious) - at birth
         p_pos = personality_chart['planets'].get(planet)
         if not p_pos:
+            # Try nodes structure for North/South Node
+            if planet == 'North Node':
+                node_data = personality_chart.get('nodes', {}).get('north', {})
+                if node_data.get('longitude') is not None:
+                    p_pos = {
+                        'longitude': node_data['longitude'],
+                        'sign': node_data.get('sign'),
+                        'degree': node_data.get('degree')
+                    }
+            elif planet == 'South Node':
+                node_data = personality_chart.get('nodes', {}).get('south', {})
+                if node_data.get('longitude') is not None:
+                    p_pos = {
+                        'longitude': node_data['longitude'],
+                        'sign': node_data.get('sign'),
+                        'degree': node_data.get('degree')
+                    }
+        
+        if not p_pos:
             raise ComputeIntegrityError([f"HD Personality: {planet} missing"])
+        
         personality_data[planet] = {
             'position': p_pos,
             'gate': longitude_to_gate(p_pos['longitude'])
         }
         
-        # Design
+        # Design (Unconscious) - at design date (88° before birth Sun)
         d_pos = design_chart['planets'].get(planet)
         if not d_pos:
+            # Try nodes structure for North/South Node
+            if planet == 'North Node':
+                node_data = design_chart.get('nodes', {}).get('north', {})
+                if node_data.get('longitude') is not None:
+                    d_pos = {
+                        'longitude': node_data['longitude'],
+                        'sign': node_data.get('sign'),
+                        'degree': node_data.get('degree')
+                    }
+            elif planet == 'South Node':
+                node_data = design_chart.get('nodes', {}).get('south', {})
+                if node_data.get('longitude') is not None:
+                    d_pos = {
+                        'longitude': node_data['longitude'],
+                        'sign': node_data.get('sign'),
+                        'degree': node_data.get('degree')
+                    }
+        
+        if not d_pos:
             raise ComputeIntegrityError([f"HD Design: {planet} missing"])
+        
         design_data[planet] = {
             'position': d_pos,
             'gate': longitude_to_gate(d_pos['longitude'])
         }
     
-    # Get all gates (gate numbers only)
-    personality_gates = [personality_data[p]['gate']['gate'] for p in hd_planets]
-    design_gates = [design_data[p]['gate']['gate'] for p in hd_planets]
+    # Get all gates (gate numbers only) - 13 per side = 26 total activations
+    personality_gates = [personality_data[p]['gate']['gate'] for p in HD_PLANETS_FULL]
+    design_gates = [design_data[p]['gate']['gate'] for p in HD_PLANETS_FULL]
     all_gates = set(personality_gates + design_gates)
     
     # NEW CORRECT LOGIC: Calculate channels first, then centers
