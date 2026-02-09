@@ -662,7 +662,7 @@ export default function EnneagramResults() {
           <Text style={styles.testerDebugText}>second_type: {secondType} (score: {secondScore})</Text>
           <Text style={styles.testerDebugText}>left_wing_type: {wingTypes.left} (score: {leftWingScore})</Text>
           <Text style={styles.testerDebugText}>right_wing_type: {wingTypes.right} (score: {rightWingScore})</Text>
-          <Text style={styles.testerDebugText}>inferred_wing (real): {String(result.inferred_wing)}</Text>
+          <Text style={styles.testerDebugText}>inferred_wing (real): {result.inferred_wing === null ? '(none)' : String(result.inferred_wing)}</Text>
           <Text style={styles.testerDebugText}>confidence_tier (real): {result.confidence_tier}</Text>
         </View>
       </View>
