@@ -4,27 +4,35 @@ import { Platform } from 'react-native';
 
 // Resolve API base URL with proper fallback chain for Expo
 const getApiBaseUrl = (): string => {
-  // 1. For web preview, ALWAYS use relative URL (same origin)
-  // This is the most reliable approach as it avoids DNS/hostname issues
-  // The ingress will route /api/* to the backend
-  if (Platform.OS === 'web') {
-    return '';
-  }
-  
-  // 2. Try expo-constants extra config (for native builds)
-  const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
-  if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
-    return extraUrl;
-  }
-  
-  // 3. Try process.env (works in Expo with EXPO_PUBLIC_ prefix)
+  // 1. Try process.env first (works in Expo with EXPO_PUBLIC_ prefix)
+  // This takes priority for all platforms to ensure deployed/preview environments work
   const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
   if (envUrl && typeof envUrl === 'string' && envUrl.length > 0) {
-    return envUrl;
+    // For web preview, use relative URL if the backend is on the same domain
+    // For deployed builds, use the full URL
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const currentHost = window.location?.host || '';
+      // If we're on the same domain as the backend URL, use relative path
+      if (envUrl.includes(currentHost)) {
+        return '/api';
+      }
+    }
+    return envUrl + '/api';
+  }
+  
+  // 2. For web without env URL, try relative (same origin for local dev)
+  if (Platform.OS === 'web') {
+    return '/api';
+  }
+  
+  // 3. Try expo-constants extra config (for native builds)
+  const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
+  if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
+    return extraUrl + '/api';
   }
   
   // 4. Fallback for native development
-  return 'http://localhost:8001';
+  return 'http://localhost:8001/api';
 };
 
 const API_BASE_URL = getApiBaseUrl();
