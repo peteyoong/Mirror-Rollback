@@ -55,6 +55,15 @@ from longitudinal_aggregator import (
     SIGNAL_SCHEMA_VERSION
 )
 
+# Import P1 Deep Assessment Scoring Engine
+from deep_assessment_scoring import (
+    score_deep_assessment,
+    validate_response_type,
+    validate_result_contract,
+    WingState,
+    ConfidenceTier
+)
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
