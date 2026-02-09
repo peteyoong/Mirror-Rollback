@@ -17,6 +17,27 @@ interface HumanDesignSection {
   body: string;
 }
 
+interface IncarnationCrossCanonical {
+  canonical_key?: string;
+  gates_key?: string;
+  angle?: string;
+  angle_full?: string;
+  internal_name?: string;
+  internal_label?: string;
+  display_label?: string;
+  vendor_labels?: {
+    emergent?: string;
+    genetic_matrix?: string;
+    jovian_archive?: string;
+  };
+}
+
+interface ActivationsCount {
+  personality?: number;
+  design?: number;
+  total_unique_gates?: number;
+}
+
 interface HumanDesignData {
   title: string;
   sections: HumanDesignSection[];
@@ -28,6 +49,8 @@ interface HumanDesignData {
     profile?: string;
     incarnation_cross?: string;
     incarnation_cross_gates?: string;
+    incarnation_cross_canonical?: IncarnationCrossCanonical;
+    activations_count?: ActivationsCount;
   };
   date?: string;
   // Debug fields from API
