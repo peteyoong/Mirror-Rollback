@@ -950,6 +950,30 @@ export default function EnneagramResults() {
           </View>
         )}
         
+        {/* ============================================
+            DEEP ASSESSMENT CTA
+            ============================================
+            Show only when:
+            - confidence_tier is not 'high' OR
+            - assessment_depth is 'short' (or undefined)
+        */}
+        {(result.confidence_tier !== 'high' || !result.assessment_depth || result.assessment_depth === 'short') && (
+          <View style={styles.deepAssessmentCTA}>
+            <Ionicons name="layers-outline" size={24} color={Colors.text} style={{ marginBottom: 8 }} />
+            <Text style={styles.deepAssessmentTitle}>Want a clearer mirror?</Text>
+            <Text style={styles.deepAssessmentText}>
+              Take a more in-depth assessment (~15 min) for a more accurate reading.
+            </Text>
+            <TouchableOpacity
+              style={styles.deepAssessmentButton}
+              onPress={() => router.push('/enneagram/deep-assessment')}
+            >
+              <Text style={styles.deepAssessmentButtonText}>Explore Deeper</Text>
+              <Ionicons name="arrow-forward" size={16} color={Colors.background} />
+            </TouchableOpacity>
+          </View>
+        )}
+        
         {/* Action Buttons */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity style={styles.primaryButton} onPress={handleViewLens}>
