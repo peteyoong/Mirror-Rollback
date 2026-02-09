@@ -99,15 +99,18 @@ export function AddToHomeScreenBanner() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Ionicons name="phone-portrait-outline" size={20} color={Colors.text} />
+        <Ionicons name="phone-portrait-outline" size={24} color={Colors.text} />
         <View style={styles.textContainer}>
-          <Text style={styles.title}>Full-screen mode available</Text>
+          <Text style={styles.title}>📱 Get full-screen mode!</Text>
           <Text style={styles.subtitle}>
-            Tap <Ionicons name="share-outline" size={12} color={Colors.textSecondary} /> Share → "Add to Home Screen"
+            {isIOS 
+              ? 'Tap Share ⬆️ → "Add to Home Screen"'
+              : 'Tap Menu ⋮ → "Add to Home Screen"'
+            }
           </Text>
         </View>
         <TouchableOpacity onPress={handleDismiss} style={styles.closeButton}>
-          <Ionicons name="close" size={20} color={Colors.textTertiary} />
+          <Ionicons name="close" size={24} color={Colors.textTertiary} />
         </TouchableOpacity>
       </View>
     </View>
