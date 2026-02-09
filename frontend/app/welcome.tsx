@@ -253,21 +253,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    // Center content on web for wider screens
-    alignItems: 'center',
+    // Full width - no centering that causes overflow
+    width: '100%',
   },
   keyboardView: {
     flex: 1,
     width: '100%',
-    maxWidth: 500, // Mobile-like width on desktop
+    // Remove maxWidth - handled dynamically in component
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 24, // Reduced from 32 to prevent overflow
     width: '100%',
-    maxWidth: 500, // Mobile-like width on desktop
+    // Remove maxWidth - handled dynamically in component
   },
   header: {
     marginBottom: 48,
