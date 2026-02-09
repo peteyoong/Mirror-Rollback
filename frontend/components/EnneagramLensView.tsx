@@ -1068,11 +1068,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // Determine if wings are balanced
   const isBalancedWings = wing === 'balanced' || computedDetails?.wing_balance_label === 'balanced';
   
-  // Get wing stance display string
+  // Get wing stance display string - NOW USING wingInfo
   const getWingStanceLabel = (): string => {
-    if (isBalancedWings) return 'Balanced wings';
-    if (typeof wing === 'number') return `${core}w${wing}`;
-    return `Type ${core}`;
+    return wingInfo.typeLabel;
   };
 
   // Get wing flavor key for lookup
@@ -1081,12 +1079,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
     return '';
   };
 
-  // Get confidence label from top candidate
+  // Get confidence label from wing info - replaces old logic
   const getConfidenceLabel = (): { text: string; tier: 'high' | 'medium' | 'low' } => {
-    const topProb = result.top_candidates[0]?.probability || 0;
-    if (topProb >= 0.7) return { text: 'High confidence', tier: 'high' };
-    if (topProb >= 0.5) return { text: 'Moderate confidence', tier: 'medium' };
-    return { text: 'Exploratory', tier: 'low' };
+    if (wingInfo.confidenceBadge === 'High') return { text: 'High', tier: 'high' };
+    if (wingInfo.confidenceBadge === 'Exploratory') return { text: 'Exploratory', tier: 'medium' };
+    return { text: 'Low', tier: 'low' };
   };
 
   const renderDeepDiveTab = () => {
@@ -1100,11 +1097,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
       );
     }
 
-    // Use API data if available, fallback to local data
+    // Use API data if available, fallback to wingInfo system
     const data = deepDiveData;
-    const confidence = data?.confidence_tier || result.confidence_tier;
-    const typeLabel = data?.type_label || (wing !== 'balanced' ? `${core}w${wing}` : `Type ${core}`);
+    const typeLabel = data?.type_label || wingInfo.typeLabel;
     const typeName = data?.type_name || TYPE_NAMES[core];
+    const confidence = getConfidenceLabel();
 
     return (
       <>
@@ -1114,16 +1111,22 @@ export default function EnneagramLensView({ result, userId }: Props) {
             <Text style={styles.deepDiveType}>{typeLabel}</Text>
             <View style={[
               styles.confidenceBadge,
-              confidence === 'high' && styles.confidenceHigh,
-              confidence === 'medium' && styles.confidenceMedium,
-              confidence === 'low' && styles.confidenceLow,
+              wingInfo.confidenceBadge === 'High' && styles.confidenceHigh,
+              wingInfo.confidenceBadge === 'Exploratory' && styles.confidenceMedium,
+              wingInfo.confidenceBadge === 'Low' && styles.confidenceLow,
             ]}>
               <Text style={styles.confidenceBadgeText}>
-                {confidence === 'high' ? 'High' : confidence === 'medium' ? 'Moderate' : 'Exploratory'} Confidence
+                {wingInfo.confidenceBadge}
               </Text>
             </View>
           </View>
           <Text style={styles.deepDiveWingStance}>{typeName}</Text>
+          {/* Helper text for non-dominant wing states */}
+          {wingInfo.helperText && (
+            <Text style={styles.deepDiveHelperText}>
+              {wingInfo.helperText}
+            </Text>
+          )}
           <Text style={styles.deepDiveNote}>This lens reflects strategy, not identity.</Text>
         </View>
 
