@@ -3,31 +3,66 @@ import type { PropsWithChildren } from 'react';
 
 /**
  * Custom HTML document for web builds
- * Implements web layout hardening for mobile Safari compatibility
+ * Implements iOS PWA standalone support and web layout hardening
  */
 export default function Root({ children }: PropsWithChildren) {
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        {/* 
-          Viewport meta with viewport-fit=cover for iPhone safe areas
-          This is critical for full-screen mobile Safari support
-        */}
+        
+        {/* ============================================
+            VIEWPORT - Critical for iOS PWA
+            ============================================ */}
         <meta 
           name="viewport" 
-          content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover, user-scalable=no, maximum-scale=1" 
+          content="width=device-width, initial-scale=1, viewport-fit=cover" 
         />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         
-        {/* PWA / Mobile App meta tags */}
-        <meta name="mobile-web-app-capable" content="yes" />
+        {/* ============================================
+            iOS PWA STANDALONE SUPPORT
+            ============================================ */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Project Mirror" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        
+        {/* Theme color for browser chrome */}
         <meta name="theme-color" content="#FAF9F7" />
         
         {/* Prevent phone number detection on iOS */}
         <meta name="format-detection" content="telephone=no" />
+        
+        {/* ============================================
+            PWA MANIFEST
+            ============================================ */}
+        <link rel="manifest" href="/manifest.webmanifest" />
+        
+        {/* ============================================
+            APPLE TOUCH ICONS
+            ============================================ */}
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png" />
+        
+        {/* iOS Splash Screens */}
+        <link 
+          rel="apple-touch-startup-image" 
+          href="/splash-1170x2532.png"
+          media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)"
+        />
+        <link 
+          rel="apple-touch-startup-image" 
+          href="/splash-1125x2436.png"
+          media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)"
+        />
+        <link 
+          rel="apple-touch-startup-image" 
+          href="/splash-1242x2688.png"
+          media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)"
+        />
         
         {/* 
           Critical inline CSS for web layout hardening
