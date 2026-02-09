@@ -1,0 +1,540 @@
+{
+  "question_set_id": "deep_v1_45q",
+  "version": "1.0",
+  "title": "Enneagram Deep Assessment V1",
+  "description": "45-question type-pair discrimination assessment for accurate Enneagram typing",
+  "total_questions": 45,
+  "estimated_minutes": 18,
+  "sections": [
+    {"id": 1, "title": "Uncertainty & Threat Response", "question_count": 5},
+    {"id": 2, "title": "Achievement & Recognition", "question_count": 5},
+    {"id": 3, "title": "Intensity & Inner Experience", "question_count": 5},
+    {"id": 4, "title": "Control & Autonomy", "question_count": 5},
+    {"id": 5, "title": "Anxiety & Discomfort Management", "question_count": 5},
+    {"id": 6, "title": "Identity & Authenticity", "question_count": 5},
+    {"id": 7, "title": "Authority & Trust", "question_count": 5},
+    {"id": 8, "title": "Connection & Independence", "question_count": 5},
+    {"id": 9, "title": "Stress & Pressure Response", "question_count": 5}
+  ],
+  "questions": [
+    {
+      "id": "deep_001",
+      "type": "forced_choice",
+      "section": 1,
+      "stem": "When facing an uncertain situation, which internal experience is more familiar?",
+      "options": [
+        {"id": "A", "text": "My mind runs through possible problems, preparing for what might go wrong", "primary_type": 6, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I focus on the possibilities and trust I'll figure it out when I get there", "primary_type": 7, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [6, 7],
+      "dimension": "uncertainty_management"
+    },
+    {
+      "id": "deep_002",
+      "type": "forced_choice",
+      "section": 1,
+      "stem": "When conflict arises in a group you're part of, which is more typical for you?",
+      "options": [
+        {"id": "A", "text": "I notice the tension immediately and start thinking about what it might mean", "primary_type": 6, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I tend to minimize it or hope it resolves itself without intervention", "primary_type": 9, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [6, 9],
+      "dimension": "conflict_engagement"
+    },
+    {
+      "id": "deep_003",
+      "type": "likert",
+      "section": 1,
+      "stem": "I often find myself scanning situations for potential problems or threats.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 6, "secondary_type": 1, "direction": "positive", "weight": 1.0},
+      "pair_focus": [6, 9],
+      "dimension": "vigilance"
+    },
+    {
+      "id": "deep_004",
+      "type": "ranked",
+      "section": 1,
+      "stem": "When you sense something is wrong but no one is talking about it, rank these responses (1 = most like me):",
+      "options": [
+        {"id": "A", "text": "I bring it up directly to address what feels unspoken", "primary_type": 8, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}},
+        {"id": "B", "text": "I quietly investigate to understand what's really happening", "primary_type": 6, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}},
+        {"id": "C", "text": "I wait it out, assuming it will resolve or become clearer eventually", "primary_type": 9, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}}
+      ],
+      "pair_focus": [6, 8, 9],
+      "dimension": "conflict_engagement"
+    },
+    {
+      "id": "deep_005",
+      "type": "forced_choice",
+      "section": 1,
+      "stem": "When something feels 'off' in a relationship, what do you typically do?",
+      "options": [
+        {"id": "A", "text": "I analyze what might have gone wrong and consider whether I can trust them", "primary_type": 6, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I try to keep things smooth and avoid making it a bigger issue", "primary_type": 9, "secondary_type": 2, "weight": 1.0}
+      ],
+      "pair_focus": [6, 9],
+      "dimension": "relationship_vigilance"
+    },
+    {
+      "id": "deep_006",
+      "type": "forced_choice",
+      "section": 2,
+      "stem": "When you accomplish something significant, which feeling is stronger?",
+      "options": [
+        {"id": "A", "text": "Satisfaction that others will see my capability and value", "primary_type": 3, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "Excitement about what new doors this opens and what's next", "primary_type": 7, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [3, 7],
+      "dimension": "achievement_motivation"
+    },
+    {
+      "id": "deep_007",
+      "type": "likert",
+      "section": 2,
+      "stem": "When I fail at something publicly, it affects how I see my overall worth.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 3, "secondary_type": 4, "direction": "positive", "weight": 1.0},
+      "pair_focus": [3, 7],
+      "dimension": "image_orientation"
+    },
+    {
+      "id": "deep_008",
+      "type": "forced_choice",
+      "section": 2,
+      "stem": "If you had to choose between these two professional situations:",
+      "options": [
+        {"id": "A", "text": "A prestigious role with high visibility and clear metrics for success", "primary_type": 3, "secondary_type": 8, "weight": 1.0},
+        {"id": "B", "text": "A varied role with lots of autonomy and opportunities to explore new areas", "primary_type": 7, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [3, 7],
+      "dimension": "achievement_motivation"
+    },
+    {
+      "id": "deep_009",
+      "type": "forced_choice",
+      "section": 2,
+      "stem": "When you want to influence a situation, which approach feels more natural?",
+      "options": [
+        {"id": "A", "text": "I adapt my presentation to inspire confidence and admiration", "primary_type": 3, "secondary_type": 2, "weight": 1.0},
+        {"id": "B", "text": "I take direct control and make my intentions clear", "primary_type": 8, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [3, 8],
+      "dimension": "influence_style"
+    },
+    {
+      "id": "deep_010",
+      "type": "likert",
+      "section": 2,
+      "stem": "I often adjust how I present myself based on who I'm with to be more effective.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 3, "secondary_type": 2, "direction": "positive", "weight": 0.9},
+      "pair_focus": [3, 8],
+      "dimension": "adaptability"
+    },
+    {
+      "id": "deep_011",
+      "type": "forced_choice",
+      "section": 3,
+      "stem": "When something deeply affects you, which is your more typical first response?",
+      "options": [
+        {"id": "A", "text": "I need to fully feel and express what's happening inside me", "primary_type": 4, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I need space to think through and understand what's happening", "primary_type": 5, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [4, 5],
+      "dimension": "withdrawal_pattern"
+    },
+    {
+      "id": "deep_012",
+      "type": "likert",
+      "section": 3,
+      "stem": "My emotions often feel like the most real and important part of my experience.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 4, "secondary_type": 2, "direction": "positive", "weight": 1.0},
+      "pair_focus": [4, 5],
+      "dimension": "emotional_centrality"
+    },
+    {
+      "id": "deep_013",
+      "type": "ranked",
+      "section": 3,
+      "stem": "When you withdraw from the world, what are you most seeking? Rank 1-3:",
+      "options": [
+        {"id": "A", "text": "Time to process my feelings and reconnect with what's meaningful", "primary_type": 4, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}},
+        {"id": "B", "text": "Mental space to think, analyze, and replenish my inner resources", "primary_type": 5, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}},
+        {"id": "C", "text": "Relief from external demands and a chance to just be still", "primary_type": 9, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}}
+      ],
+      "pair_focus": [4, 5, 9],
+      "dimension": "withdrawal_pattern"
+    },
+    {
+      "id": "deep_014",
+      "type": "forced_choice",
+      "section": 3,
+      "stem": "In conversations about feelings, which is more true for you?",
+      "options": [
+        {"id": "A", "text": "I often feel misunderstood, like others can't grasp the depth of my experience", "primary_type": 4, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I prefer to observe and analyze rather than share what's happening for me", "primary_type": 5, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [4, 5],
+      "dimension": "emotional_sharing"
+    },
+    {
+      "id": "deep_015",
+      "type": "likert",
+      "section": 3,
+      "stem": "I often feel that something essential is missing in my life that others seem to have.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 4, "secondary_type": null, "direction": "positive", "weight": 1.0},
+      "pair_focus": [4, 9],
+      "dimension": "longing"
+    },
+    {
+      "id": "deep_016",
+      "type": "forced_choice",
+      "section": 4,
+      "stem": "When you see something being done wrong, which impulse is stronger?",
+      "options": [
+        {"id": "A", "text": "To take over and make sure it gets done effectively", "primary_type": 8, "secondary_type": 3, "weight": 1.0},
+        {"id": "B", "text": "To correct the process so it's done properly", "primary_type": 1, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [8, 1],
+      "dimension": "control_need"
+    },
+    {
+      "id": "deep_017",
+      "type": "likert",
+      "section": 4,
+      "stem": "I feel angry when people don't follow the rules they agreed to.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 1, "secondary_type": 6, "direction": "positive", "weight": 0.9},
+      "pair_focus": [8, 1],
+      "dimension": "rule_adherence"
+    },
+    {
+      "id": "deep_018",
+      "type": "forced_choice",
+      "section": 4,
+      "stem": "When you feel angry, which is more true?",
+      "options": [
+        {"id": "A", "text": "I express it directly—people know where I stand", "primary_type": 8, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I try to contain it because anger often feels inappropriate or uncontrolled", "primary_type": 1, "secondary_type": 9, "weight": 1.0}
+      ],
+      "pair_focus": [8, 1],
+      "dimension": "anger_expression"
+    },
+    {
+      "id": "deep_019",
+      "type": "forced_choice",
+      "section": 4,
+      "stem": "When someone challenges your authority or decisions:",
+      "options": [
+        {"id": "A", "text": "I confront them directly and establish my position", "primary_type": 8, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I explain my reasoning and try to show why I'm right", "primary_type": 1, "secondary_type": 5, "weight": 1.0}
+      ],
+      "pair_focus": [8, 1],
+      "dimension": "authority_defense"
+    },
+    {
+      "id": "deep_020",
+      "type": "likert",
+      "section": 4,
+      "stem": "I have a strong inner critic that judges my actions against high standards.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 1, "secondary_type": 3, "direction": "positive", "weight": 1.0},
+      "pair_focus": [1, 8],
+      "dimension": "inner_critic"
+    },
+    {
+      "id": "deep_021",
+      "type": "forced_choice",
+      "section": 5,
+      "stem": "When you're feeling overwhelmed, which response feels more natural?",
+      "options": [
+        {"id": "A", "text": "I seek out trusted people to talk through my concerns and get their perspective", "primary_type": 6, "secondary_type": 2, "weight": 1.0},
+        {"id": "B", "text": "I look for something stimulating or enjoyable to shift my focus and energy", "primary_type": 7, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [6, 7],
+      "dimension": "stress_response"
+    },
+    {
+      "id": "deep_022",
+      "type": "likert",
+      "section": 5,
+      "stem": "When something exciting is about to happen, I often find myself thinking about what could go wrong.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 6, "secondary_type": 1, "direction": "positive", "weight": 0.9},
+      "pair_focus": [6, 7],
+      "dimension": "anticipatory_anxiety"
+    },
+    {
+      "id": "deep_023",
+      "type": "forced_choice",
+      "section": 5,
+      "stem": "When something painful comes up, which response is more automatic?",
+      "options": [
+        {"id": "A", "text": "I instinctively look for something better to focus on", "primary_type": 7, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I find myself going numb and disengaging", "primary_type": 9, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [7, 9],
+      "dimension": "pain_avoidance"
+    },
+    {
+      "id": "deep_024",
+      "type": "likert",
+      "section": 5,
+      "stem": "I tend to keep multiple options open rather than committing to one path.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 7, "secondary_type": null, "direction": "positive", "weight": 1.0},
+      "pair_focus": [7, 6],
+      "dimension": "commitment_avoidance"
+    },
+    {
+      "id": "deep_025",
+      "type": "forced_choice",
+      "section": 5,
+      "stem": "When faced with a difficult emotion:",
+      "options": [
+        {"id": "A", "text": "I reframe it positively and look for the silver lining", "primary_type": 7, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I analyze it carefully to understand where it's coming from", "primary_type": 6, "secondary_type": 5, "weight": 1.0}
+      ],
+      "pair_focus": [7, 6],
+      "dimension": "emotional_processing"
+    },
+    {
+      "id": "deep_026",
+      "type": "forced_choice",
+      "section": 6,
+      "stem": "Which statement resonates more with your inner experience?",
+      "options": [
+        {"id": "A", "text": "I often feel different from others, like I don't quite fit in", "primary_type": 4, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I generally feel that things are okay as they are", "primary_type": 9, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [4, 9],
+      "dimension": "identity_experience"
+    },
+    {
+      "id": "deep_027",
+      "type": "likert",
+      "section": 6,
+      "stem": "I value being seen as unique and authentic more than fitting in.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 4, "secondary_type": null, "direction": "positive", "weight": 1.0},
+      "pair_focus": [4, 3],
+      "dimension": "authenticity"
+    },
+    {
+      "id": "deep_028",
+      "type": "forced_choice",
+      "section": 6,
+      "stem": "When considering how others perceive you:",
+      "options": [
+        {"id": "A", "text": "I want to be seen as capable and successful", "primary_type": 3, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I want to be seen as unique and deeply authentic", "primary_type": 4, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [3, 4],
+      "dimension": "image_focus"
+    },
+    {
+      "id": "deep_029",
+      "type": "ranked",
+      "section": 6,
+      "stem": "Which of these core fears resonates most strongly? Rank 1-3:",
+      "options": [
+        {"id": "A", "text": "Being worthless or without value unless I achieve", "primary_type": 3, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}},
+        {"id": "B", "text": "Being ordinary or without personal significance", "primary_type": 4, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}},
+        {"id": "C", "text": "Being incompetent or unable to handle situations", "primary_type": 5, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}}
+      ],
+      "pair_focus": [3, 4, 5],
+      "dimension": "core_fear"
+    },
+    {
+      "id": "deep_030",
+      "type": "likert",
+      "section": 6,
+      "stem": "I tend to lose myself in others' agendas and priorities rather than asserting my own.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 9, "secondary_type": 2, "direction": "positive", "weight": 1.0},
+      "pair_focus": [9, 4],
+      "dimension": "self_assertion"
+    },
+    {
+      "id": "deep_031",
+      "type": "forced_choice",
+      "section": 7,
+      "stem": "When you're uncertain about a decision, what do you primarily do?",
+      "options": [
+        {"id": "A", "text": "I consult trusted authorities or look to established rules", "primary_type": 6, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I rely on my own sense of right and wrong", "primary_type": 1, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [6, 1],
+      "dimension": "decision_authority"
+    },
+    {
+      "id": "deep_032",
+      "type": "likert",
+      "section": 7,
+      "stem": "I have a hard time trusting my own judgment without external validation.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 6, "secondary_type": null, "direction": "positive", "weight": 1.0},
+      "pair_focus": [6, 1],
+      "dimension": "self_trust"
+    },
+    {
+      "id": "deep_033",
+      "type": "forced_choice",
+      "section": 7,
+      "stem": "How do you relate to authority figures?",
+      "options": [
+        {"id": "A", "text": "I question them but also seek their guidance and approval", "primary_type": 6, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I prefer to be my own authority and resist being controlled", "primary_type": 8, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [6, 8],
+      "dimension": "authority_relationship"
+    },
+    {
+      "id": "deep_034",
+      "type": "likert",
+      "section": 7,
+      "stem": "I often test people to see if they're trustworthy before opening up.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 6, "secondary_type": null, "direction": "positive", "weight": 0.9},
+      "pair_focus": [6, 8],
+      "dimension": "trust_testing"
+    },
+    {
+      "id": "deep_035",
+      "type": "forced_choice",
+      "section": 7,
+      "stem": "When a leader or authority makes a decision you disagree with:",
+      "options": [
+        {"id": "A", "text": "I voice my concerns and engage with the reasoning", "primary_type": 6, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I go along with it to keep the peace, even if I have reservations", "primary_type": 9, "secondary_type": 2, "weight": 1.0}
+      ],
+      "pair_focus": [6, 9],
+      "dimension": "authority_engagement"
+    },
+    {
+      "id": "deep_036",
+      "type": "forced_choice",
+      "section": 8,
+      "stem": "When you put others' needs first, what's usually driving it?",
+      "options": [
+        {"id": "A", "text": "I genuinely want to help and feel good being needed", "primary_type": 2, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "It's easier than asserting my own preferences", "primary_type": 9, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [2, 9],
+      "dimension": "helping_motivation"
+    },
+    {
+      "id": "deep_037",
+      "type": "likert",
+      "section": 8,
+      "stem": "I often sense what others need before they express it, and I feel compelled to provide it.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 2, "secondary_type": null, "direction": "positive", "weight": 1.0},
+      "pair_focus": [2, 9],
+      "dimension": "empathic_giving"
+    },
+    {
+      "id": "deep_038",
+      "type": "forced_choice",
+      "section": 8,
+      "stem": "In close relationships, which pattern is more familiar?",
+      "options": [
+        {"id": "A", "text": "I tend to become indispensable to the people I care about", "primary_type": 2, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "I maintain some emotional distance to preserve my energy", "primary_type": 5, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [2, 5],
+      "dimension": "relationship_style"
+    },
+    {
+      "id": "deep_039",
+      "type": "likert",
+      "section": 8,
+      "stem": "I need significant alone time to recharge, even from people I love.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 5, "secondary_type": 4, "direction": "positive", "weight": 1.0},
+      "pair_focus": [5, 2],
+      "dimension": "solitude_need"
+    },
+    {
+      "id": "deep_040",
+      "type": "ranked",
+      "section": 8,
+      "stem": "What drives your need for connection? Rank 1-3:",
+      "options": [
+        {"id": "A", "text": "Being valued and needed by others", "primary_type": 2, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}},
+        {"id": "B", "text": "Security and belonging in a trusted group", "primary_type": 6, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}},
+        {"id": "C", "text": "Harmony and avoiding disconnection or conflict", "primary_type": 9, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}}
+      ],
+      "pair_focus": [2, 6, 9],
+      "dimension": "connection_motivation"
+    },
+    {
+      "id": "deep_041",
+      "type": "ranked",
+      "section": 9,
+      "stem": "When you're under significant stress, rank which pattern emerges most strongly (1 = most typical):",
+      "options": [
+        {"id": "A", "text": "I become more critical and rigid, judging myself and others harshly", "primary_type": 1, "weight_multipliers": {"rank_1": 0.8, "rank_2": 0.4, "rank_3": 0.1}},
+        {"id": "B", "text": "I become more scattered and impulsive, seeking escape or stimulation", "primary_type": 7, "weight_multipliers": {"rank_1": 0.8, "rank_2": 0.4, "rank_3": 0.1}},
+        {"id": "C", "text": "I withdraw and become more detached, conserving my energy", "primary_type": 5, "weight_multipliers": {"rank_1": 0.8, "rank_2": 0.4, "rank_3": 0.1}}
+      ],
+      "pair_focus": [1, 5, 7],
+      "dimension": "stress_response"
+    },
+    {
+      "id": "deep_042",
+      "type": "forced_choice",
+      "section": 9,
+      "stem": "When life gets really hard, I tend to:",
+      "options": [
+        {"id": "A", "text": "Push harder and take more control to fix things", "primary_type": 8, "secondary_type": 3, "weight": 1.0},
+        {"id": "B", "text": "Check out emotionally and lose motivation", "primary_type": 9, "secondary_type": null, "weight": 1.0}
+      ],
+      "pair_focus": [8, 9],
+      "dimension": "stress_direction"
+    },
+    {
+      "id": "deep_043",
+      "type": "likert",
+      "section": 9,
+      "stem": "Under pressure, I become more controlling and demanding of myself and others.",
+      "scale": {"min": 1, "max": 5, "labels": ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"]},
+      "scoring": {"primary_type": 1, "secondary_type": 8, "direction": "positive", "weight": 0.9},
+      "pair_focus": [1, 9],
+      "dimension": "stress_control"
+    },
+    {
+      "id": "deep_044",
+      "type": "forced_choice",
+      "section": 9,
+      "stem": "When overwhelmed, my energy tends to:",
+      "options": [
+        {"id": "A", "text": "Contract inward—I become more anxious, reactive, or self-doubting", "primary_type": 6, "secondary_type": null, "weight": 1.0},
+        {"id": "B", "text": "Disperse outward—I become scattered, unfocused, or overly busy", "primary_type": 7, "secondary_type": 3, "weight": 1.0}
+      ],
+      "pair_focus": [6, 7],
+      "dimension": "stress_energy"
+    },
+    {
+      "id": "deep_045",
+      "type": "ranked",
+      "section": 9,
+      "stem": "Which coping mechanism do you rely on most under stress? Rank 1-3:",
+      "options": [
+        {"id": "A", "text": "Seeking support and reassurance from trusted people", "primary_type": 6, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}},
+        {"id": "B", "text": "Finding distractions and focusing on something positive", "primary_type": 7, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}},
+        {"id": "C", "text": "Withdrawing to process and restore my energy", "primary_type": 5, "weight_multipliers": {"rank_1": 1.0, "rank_2": 0.5, "rank_3": 0.2}}
+      ],
+      "pair_focus": [5, 6, 7],
+      "dimension": "coping_style"
+    }
+  ],
+  "metadata": {
+    "copy_status": "DRAFT",
+    "weight_status": "BASELINE",
+    "last_updated": "2026-02-09"
+  }
+}
