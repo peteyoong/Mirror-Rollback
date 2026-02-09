@@ -317,15 +317,6 @@ export default function EnneagramResults() {
   // P5: LONGITUDINAL DATA (DEBUG-only)
   // ============================================
   // Shadow system data - never affects user-facing results
-  interface LongitudinalSummary {
-    enabled: boolean;
-    type_stability: number;
-    wing_stability: number;
-    evidence_volume: { total: number; last_30_days: number };
-    top_types_over_time: Array<{ type: number; share: number }>;
-    confidence_modifier: string;
-    recommended_next_step: string;
-  }
   const [longitudinalData, setLongitudinalData] = useState<LongitudinalSummary | null>(null);
   const [longitudinalLoading, setLongitudinalLoading] = useState(false);
 
