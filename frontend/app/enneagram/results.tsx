@@ -612,13 +612,59 @@ export default function EnneagramResults() {
       ? debug_scores.wing_scores.right.toFixed(3)
       : '-';
     
+    // All possible debug wing states for toggle
+    const debugWingStates: DebugWingState[] = ['off', 'dominant', 'leaning', 'balanced', 'not_clear'];
+    
     return (
       <View style={styles.testerDebugContainer}>
-        <Text style={styles.testerDebugTitle}>Debug (Test Mode Only)</Text>
-        <Text style={styles.testerDebugText}>primary_type: {primaryType} (score: {primaryScore})</Text>
-        <Text style={styles.testerDebugText}>second_type: {secondType} (score: {secondScore})</Text>
-        <Text style={styles.testerDebugText}>left_wing_type: {wingTypes.left} (score: {leftWingScore})</Text>
-        <Text style={styles.testerDebugText}>right_wing_type: {wingTypes.right} (score: {rightWingScore})</Text>
+        {/* DEBUG BADGE - clearly mark as mock data */}
+        <View style={styles.debugBadge}>
+          <Ionicons name="bug-outline" size={14} color="#FF6B6B" />
+          <Text style={styles.debugBadgeText}>DEBUG MODE — MOCK DATA</Text>
+        </View>
+        
+        {/* Wing State Override Section */}
+        <View style={styles.debugWingOverrideSection}>
+          <Text style={styles.debugSectionLabel}>WING STATE OVERRIDE (P0 Visual Test)</Text>
+          <View style={styles.debugWingToggleRow}>
+            {debugWingStates.map((state) => (
+              <TouchableOpacity
+                key={state}
+                style={[
+                  styles.debugWingToggleButton,
+                  debugWingState === state && styles.debugWingToggleButtonActive,
+                ]}
+                onPress={() => setDebugWingState(state)}
+              >
+                <Text style={[
+                  styles.debugWingToggleText,
+                  debugWingState === state && styles.debugWingToggleTextActive,
+                ]}>
+                  {DEBUG_WING_STATE_LABELS[state]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {debugWingState !== 'off' && (
+            <View style={styles.debugMockIndicator}>
+              <Ionicons name="information-circle" size={14} color="#FFB800" />
+              <Text style={styles.debugMockIndicatorText}>
+                UI above shows MOCK wing state: {DEBUG_WING_STATE_LABELS[debugWingState]}
+              </Text>
+            </View>
+          )}
+        </View>
+        
+        {/* Raw Data Section */}
+        <View style={styles.debugDataSection}>
+          <Text style={styles.debugSectionLabel}>RAW RESULT DATA</Text>
+          <Text style={styles.testerDebugText}>primary_type: {primaryType} (score: {primaryScore})</Text>
+          <Text style={styles.testerDebugText}>second_type: {secondType} (score: {secondScore})</Text>
+          <Text style={styles.testerDebugText}>left_wing_type: {wingTypes.left} (score: {leftWingScore})</Text>
+          <Text style={styles.testerDebugText}>right_wing_type: {wingTypes.right} (score: {rightWingScore})</Text>
+          <Text style={styles.testerDebugText}>inferred_wing (real): {String(result.inferred_wing)}</Text>
+          <Text style={styles.testerDebugText}>confidence_tier (real): {result.confidence_tier}</Text>
+        </View>
       </View>
     );
   };
