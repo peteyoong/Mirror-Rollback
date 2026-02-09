@@ -8,31 +8,22 @@ const getApiBaseUrl = (): string => {
   // This takes priority for all platforms to ensure deployed/preview environments work
   const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
   if (envUrl && typeof envUrl === 'string' && envUrl.length > 0) {
-    // For web preview, use relative URL if the backend is on the same domain
-    // For deployed builds, use the full URL
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      const currentHost = window.location?.host || '';
-      // If we're on the same domain as the backend URL, use relative path
-      if (envUrl.includes(currentHost)) {
-        return '/api';
-      }
-    }
-    return envUrl + '/api';
+    return envUrl;
   }
   
-  // 2. For web without env URL, try relative (same origin for local dev)
+  // 2. For web without env URL, use relative path for same-origin requests
   if (Platform.OS === 'web') {
-    return '/api';
+    return '';
   }
   
   // 3. Try expo-constants extra config (for native builds)
   const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
   if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
-    return extraUrl + '/api';
+    return extraUrl;
   }
   
   // 4. Fallback for native development
-  return 'http://localhost:8001/api';
+  return 'http://localhost:8001';
 };
 
 const API_BASE_URL = getApiBaseUrl();
