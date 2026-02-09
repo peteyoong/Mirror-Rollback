@@ -127,7 +127,7 @@ const TYPE_NAMES: { [key: number]: string } = {
 
 interface EnneagramResult {
   inferred_core: number;
-  inferred_wing: number | 'balanced';
+  inferred_wing: number | 'balanced' | null;
   confidence: number;
   confidence_tier: string;
   is_close: boolean;
@@ -154,6 +154,86 @@ function getWingTypes(coreType: number): { left: number; right: number } {
   const left = coreType === 1 ? 9 : coreType - 1;
   const right = coreType === 9 ? 1 : coreType + 1;
   return { left, right };
+}
+
+// ============================================
+// WING DISPLAY SYSTEM
+// ============================================
+// Implements 4 display states based on wing data and confidence:
+// A) Dominant Wing (high confidence) - "Type 7w6"
+// B) Leaning Wing (moderate confidence) - "Type 7 — leaning toward Wing 6"  
+// C) Balanced Wings (adjacent scores close) - "Type 7 — balanced wings (6 & 8)"
+// D) Wing Not Yet Clear (null/insufficient) - "Type 7 — wing not yet clear"
+// ============================================
+
+type WingDisplayState = 'dominant' | 'leaning' | 'balanced' | 'not_clear';
+
+interface WingDisplayInfo {
+  state: WingDisplayState;
+  typeLabel: string;           // e.g., "Type 7w6" or "Type 7 — leaning toward Wing 6"
+  confidenceBadge: 'High' | 'Exploratory' | 'Low';
+  helperText: string | null;   // Explanatory text for non-dominant states
+}
+
+function getWingDisplayInfo(
+  coreType: number,
+  wing: number | 'balanced' | null,
+  confidenceTier: string,
+  debugScores?: { wing_scores?: { left: number; right: number; diff: number } }
+): WingDisplayInfo {
+  const wingTypes = getWingTypes(coreType);
+  
+  // Case D: Wing Not Yet Clear (wing === null OR insufficient data)
+  if (wing === null || wing === undefined) {
+    return {
+      state: 'not_clear',
+      typeLabel: `Type ${coreType} — wing not yet clear`,
+      confidenceBadge: 'Low',
+      helperText: 'With more reflections or questions, a clearer wing may emerge.',
+    };
+  }
+  
+  // Case C: Balanced Wings
+  if (wing === 'balanced') {
+    return {
+      state: 'balanced',
+      typeLabel: `Type ${coreType} — balanced wings (${wingTypes.left} & ${wingTypes.right})`,
+      confidenceBadge: 'Low',
+      helperText: 'Both adjacent patterns appear active. This often clarifies over time.',
+    };
+  }
+  
+  // Wing is a number - determine if dominant or leaning based on confidence
+  const isHighConfidence = confidenceTier === 'high';
+  const isMediumConfidence = confidenceTier === 'medium';
+  
+  // Case A: Dominant Wing (high confidence)
+  if (isHighConfidence) {
+    return {
+      state: 'dominant',
+      typeLabel: `Type ${coreType}w${wing}`,
+      confidenceBadge: 'High',
+      helperText: null,
+    };
+  }
+  
+  // Case B: Leaning Wing (moderate confidence, wing exists but not decisive)
+  if (isMediumConfidence) {
+    return {
+      state: 'leaning',
+      typeLabel: `Type ${coreType} — leaning toward Wing ${wing}`,
+      confidenceBadge: 'Exploratory',
+      helperText: 'One adjacent pattern appears slightly stronger, though not yet decisive.',
+    };
+  }
+  
+  // Low confidence with a wing value - still treat as leaning
+  return {
+    state: 'leaning',
+    typeLabel: `Type ${coreType} — leaning toward Wing ${wing}`,
+    confidenceBadge: 'Exploratory',
+    helperText: 'One adjacent pattern appears slightly stronger, though not yet decisive.',
+  };
 }
 
 export default function EnneagramResults() {
