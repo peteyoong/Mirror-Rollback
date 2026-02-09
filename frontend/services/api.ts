@@ -8,11 +8,10 @@ const getApiBaseUrl = (): string => {
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
     const hostname = window.location?.hostname || '';
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      // Local development - use empty string for same-origin API calls
-      // The proxy should forward /api/* to the backend
-      return '';
+      // Local development - use the backend directly on port 8001
+      return 'http://localhost:8001';
     }
-    // Deployed web - use the same origin
+    // Deployed web - use the same origin (ingress handles routing)
     return '';
   }
   
