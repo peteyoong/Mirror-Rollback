@@ -1,4 +1,106 @@
-<!DOCTYPE html><html  lang="en"><head><title data-rh="true"></title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><style id="expo-reset">#root,body,html{height:100%}body{overflow:hidden}#root{display:flex}</style><style id="react-native-stylesheet">[stylesheet-group="0"]{}
+<!DOCTYPE html><html  lang="en"><head><title data-rh="true"></title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover, user-scalable=no, maximum-scale=1"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><meta name="mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="theme-color" content="#FAF9F7"/><meta name="format-detection" content="telephone=no"/><style>
+          /* ============================================
+             ROOT CONTAINER SIZING
+             ============================================ */
+          html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
+          }
+          
+          #root {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            /* Safe area padding for notch/home indicator */
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding-left: env(safe-area-inset-left, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
+          }
+          
+          /* ============================================
+             PREVENT 100vw OVERFLOW TRAP
+             ============================================ */
+          * {
+            box-sizing: border-box;
+          }
+          
+          body > * {
+            max-width: 100%;
+          }
+          
+          /* ============================================
+             DYNAMIC VIEWPORT HEIGHT
+             ============================================ */
+          .full-height {
+            min-height: 100vh;
+            min-height: 100dvh;
+          }
+          
+          @supports (min-height: 100dvh) {
+            #root {
+              min-height: 100dvh;
+            }
+          }
+          
+          /* ============================================
+             MOBILE-FIRST LAYOUT
+             ============================================ */
+          @media screen and (max-width: 768px) {
+            #root > div {
+              max-width: none !important;
+              width: 100% !important;
+            }
+          }
+          
+          /* ============================================
+             TOUCH IMPROVEMENTS
+             ============================================ */
+          button, a, [role="button"] {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+          }
+          
+          /* Hide scrollbars on mobile */
+          ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+          }
+          
+          /* ============================================
+             DEBUG VIEWPORT OVERLAY (DEBUG_MIRROR only)
+             ============================================ */
+          .debug-viewport-overlay {
+            position: fixed;
+            bottom: 70px;
+            left: 8px;
+            background: rgba(0, 0, 0, 0.9);
+            color: #00ff00;
+            font-family: monospace;
+            font-size: 10px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            z-index: 99999;
+            max-width: 180px;
+            pointer-events: none;
+            line-height: 1.4;
+          }
+          
+          .debug-viewport-overlay.has-overflow {
+            border: 2px solid #ff0000;
+            color: #ff6666;
+          }
+        </style><style id="expo-reset">#root,body,html{height:100%}body{overflow:hidden}#root{display:flex}</style><style id="react-native-stylesheet">[stylesheet-group="0"]{}
 body{margin:0;}
 button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0;}
 html{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:rgba(0,0,0,0);}
@@ -459,5 +561,5 @@ input::-webkit-search-cancel-button,input::-webkit-search-decoration,input::-web
 @keyframes r-1pzkwqh{0%{transform:translateY(100%);}100%{transform:translateY(0%);}}
 @keyframes r-imtty0{0%{opacity:0;}100%{opacity:1;}}
 @keyframes r-q67da2{0%{transform:translateX(-100%);}100%{transform:translateX(400%);}}
-@keyframes r-t2lo5v{0%{opacity:1;}100%{opacity:0;}}</style><script type="module">globalThis.__EXPO_ROUTER_HYDRATE__=true;</script><link rel="icon" href="/favicon.ico" /></head><body><div id="root"><div class="css-g5y9jx r-13awgt0"></div></div><script src="/_expo/static/js/web/entry-c67ddc0ab8dc4cdf2efaaf0d9f068789.js" defer></script>
+@keyframes r-t2lo5v{0%{opacity:1;}100%{opacity:0;}}</style><script type="module">globalThis.__EXPO_ROUTER_HYDRATE__=true;</script><link rel="icon" href="/favicon.ico" /></head><body><div id="root"><div class="css-g5y9jx r-13awgt0"></div></div><script src="/_expo/static/js/web/entry-63fd1562430f5280800dda812cc66c81.js" defer></script>
 </body></html>
