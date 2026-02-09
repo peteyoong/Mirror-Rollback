@@ -2204,6 +2204,13 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginBottom: 8,
   },
+  deepDiveHelperText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+    marginBottom: 8,
+  },
   deepDiveNote: {
     fontSize: 12,
     color: Colors.textTertiary,
