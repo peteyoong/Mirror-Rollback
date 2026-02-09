@@ -460,7 +460,7 @@ export default function EnneagramResults() {
               </View>
               <View style={styles.debugRow}>
                 <Text style={styles.debugLabel}>inferred_wing</Text>
-                <Text style={styles.debugValue}>{String(result.inferred_wing)}</Text>
+                <Text style={styles.debugValue}>{result.inferred_wing === null ? '(none)' : String(result.inferred_wing)}</Text>
               </View>
               <View style={styles.debugRow}>
                 <Text style={styles.debugLabel}>confidence</Text>
