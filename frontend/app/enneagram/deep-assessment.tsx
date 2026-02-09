@@ -174,7 +174,8 @@ const RankedQuestion: React.FC<RankedProps> = ({
   selectedValue,
   onSelect,
 }) => {
-  const ranking = selectedValue || [];
+  // Ensure ranking is always an array
+  const ranking = Array.isArray(selectedValue) ? selectedValue : [];
   const options = question.options || [];
   
   const handleOptionPress = (optionId: string) => {
