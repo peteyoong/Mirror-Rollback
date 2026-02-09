@@ -1297,6 +1297,45 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   
+  // Deep Assessment CTA
+  deepAssessmentCTA: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  deepAssessmentTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  deepAssessmentText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  deepAssessmentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.text,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+  },
+  deepAssessmentButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  
   // Actions
   actionsContainer: {
     gap: 12,
