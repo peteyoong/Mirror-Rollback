@@ -152,7 +152,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       authority: 'Unknown',
       profile: 'Unknown',
       incarnation_cross: 'Unknown',
-      incarnation_cross_gates: null
+      incarnation_cross_gates: null,
+      incarnation_cross_canonical: null,
+      activations_count: null
     };
 
     // Helper to format unknown gracefully
@@ -162,25 +164,33 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       return value.split('/')[0];
     };
 
-    // Format incarnation cross - show the full name
+    // Format incarnation cross - use display_label from canonical structure if available
+    // This hides JXP/RAX from production UI
     const formatCross = () => {
-      if (!mechanics.incarnation_cross || mechanics.incarnation_cross === 'Unknown') {
-        return '—';
+      // Priority 1: Use canonical display_label (e.g., "Tension (21/48 • 38/39)")
+      if (mechanics.incarnation_cross_canonical?.display_label) {
+        return mechanics.incarnation_cross_canonical.display_label;
       }
-      // If it's a numbered cross like "Right Angle Cross of 37/40", extract just the type
-      // If it's a named cross like "Right Angle Cross of Migration", show the full name
-      const numbered = /\s*of\s*\d+\/\d+/;
-      if (numbered.test(mechanics.incarnation_cross)) {
-        // It's still numbered (old format) - just show the cross type
-        return mechanics.incarnation_cross.replace(/\s*of\s*\d+\/\d+.*$/, '').trim();
+      
+      // Priority 2: Use incarnation_cross field directly (already formatted by backend)
+      if (mechanics.incarnation_cross && mechanics.incarnation_cross !== 'Unknown') {
+        return mechanics.incarnation_cross;
       }
-      // It's a named cross - show it fully (e.g., "Right Angle Cross of Migration")
-      return mechanics.incarnation_cross;
+      
+      return '—';
     };
 
     const getCrossGates = () => {
+      // If we have canonical structure with gates_key, use it
+      if (mechanics.incarnation_cross_canonical?.gates_key) {
+        return mechanics.incarnation_cross_canonical.gates_key.replace('|', ' • ');
+      }
       return mechanics.incarnation_cross_gates || '—';
     };
+
+    // Check if cross display already includes gates (display_label format)
+    const crossDisplay = formatCross();
+    const showGatesSeparately = !crossDisplay.includes('(') && !crossDisplay.includes('•');
 
     return (
       <View style={styles.coreMechanicsCard}>
@@ -212,10 +222,62 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <View style={styles.mechanicItem}>
             <Ionicons name="git-branch-outline" size={16} color={Colors.accent} />
             <Text style={styles.mechanicLabel}>Incarnation Cross</Text>
-            <Text style={[styles.mechanicValue, styles.mechanicValueSmall]}>{formatCross()}</Text>
-            <Text style={styles.mechanicGates}>{getCrossGates()}</Text>
+            <Text style={[styles.mechanicValue, styles.mechanicValueSmall]}>{crossDisplay}</Text>
+            {showGatesSeparately && (
+              <Text style={styles.mechanicGates}>{getCrossGates()}</Text>
+            )}
           </View>
         </View>
+        
+        {/* Debug Panel - only visible when DEBUG_MIRROR is enabled */}
+        {isDebugEnabled() && mechanics.incarnation_cross_canonical && (
+          <View style={styles.debugPanel}>
+            <Text style={styles.debugPanelTitle}>🔧 HD DEBUG (Parity Verification)</Text>
+            
+            {/* Activation Counts */}
+            {mechanics.activations_count && (
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>Activations:</Text>
+                <Text style={styles.debugValue}>
+                  P: {mechanics.activations_count.personality || 0}/13 | D: {mechanics.activations_count.design || 0}/13
+                </Text>
+              </View>
+            )}
+            
+            {/* Canonical Key */}
+            <View style={styles.debugRow}>
+              <Text style={styles.debugLabel}>Canonical Key:</Text>
+              <Text style={styles.debugValue}>{mechanics.incarnation_cross_canonical.canonical_key || '—'}</Text>
+            </View>
+            
+            {/* Gates Key */}
+            <View style={styles.debugRow}>
+              <Text style={styles.debugLabel}>Gates Key:</Text>
+              <Text style={styles.debugValue}>{mechanics.incarnation_cross_canonical.gates_key || '—'}</Text>
+            </View>
+            
+            {/* Angle */}
+            <View style={styles.debugRow}>
+              <Text style={styles.debugLabel}>Angle:</Text>
+              <Text style={styles.debugValue}>{mechanics.incarnation_cross_canonical.angle || '—'}</Text>
+            </View>
+            
+            {/* Vendor Labels */}
+            {mechanics.incarnation_cross_canonical.vendor_labels && (
+              <>
+                <Text style={[styles.debugLabel, { marginTop: 8 }]}>Vendor Labels:</Text>
+                <View style={styles.debugRow}>
+                  <Text style={styles.debugLabel}>  Emergent:</Text>
+                  <Text style={styles.debugValue}>{mechanics.incarnation_cross_canonical.vendor_labels.emergent || '—'}</Text>
+                </View>
+                <View style={styles.debugRow}>
+                  <Text style={styles.debugLabel}>  Genetic Matrix:</Text>
+                  <Text style={styles.debugValue}>{mechanics.incarnation_cross_canonical.vendor_labels.genetic_matrix || '—'}</Text>
+                </View>
+              </>
+            )}
+          </View>
+        )}
       </View>
     );
   };
