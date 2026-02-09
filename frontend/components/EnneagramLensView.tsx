@@ -568,6 +568,13 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const [selectedMasteryLevel, setSelectedMasteryLevel] = useState<MasteryLevel>('average');
   const [showRetakeModal, setShowRetakeModal] = useState(false);
   
+  // ============================================
+  // DEBUG WING STATE OVERRIDE
+  // ============================================
+  // For visual verification of P0 Wing UX Fix
+  // Only active when DEBUG_MIRROR_ENV === true
+  const [debugWingState, setDebugWingState] = useState<DebugWingState>('off');
+  
   // Chat state
   const [chatExpanded, setChatExpanded] = useState(false);
   const [chatInput, setChatInput] = useState('');
@@ -596,8 +603,17 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const wings = WING_NUMBERS[core];
   const otherWing = wing === wings.left ? wings.right : (wing === wings.right ? wings.left : wings.left);
   
+  // ============================================
+  // COMPUTE WING INFO (with debug override support)
+  // ============================================
+  // If debug override is active, use mock data
+  // Otherwise use real result data
+  const debugOverride = DEBUG_MIRROR_ENV ? getDebugWingOverride(core, debugWingState) : null;
+  
   // Get comprehensive wing display info
-  const wingInfo = getWingDisplayInfo(core, wing, result.confidence_tier);
+  const wingInfo = debugOverride 
+    ? getWingDisplayInfo(core, debugOverride.mockWing, debugOverride.mockConfidenceTier)
+    : getWingDisplayInfo(core, wing, result.confidence_tier);
   
   // Send chat message
   const handleSendChat = useCallback(async () => {
