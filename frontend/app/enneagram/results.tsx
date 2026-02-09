@@ -380,6 +380,31 @@ export default function EnneagramResults() {
     fetchResult();
   }, [user?.id]);
   
+  // ============================================
+  // P5: FETCH LONGITUDINAL DATA (DEBUG-only)
+  // ============================================
+  // Only fetch when debug mode is active to avoid unnecessary API calls
+  useEffect(() => {
+    const fetchLongitudinalData = async () => {
+      if (!user?.id || !showDebug) return;
+      
+      setLongitudinalLoading(true);
+      try {
+        const response = await fetch(`/api/longitudinal/summary/${user.id}?days=30`);
+        if (response.ok) {
+          const data = await response.json();
+          setLongitudinalData(data.longitudinal);
+        }
+      } catch (error) {
+        console.error('[P5_LONGITUDINAL] Error fetching data:', error);
+      } finally {
+        setLongitudinalLoading(false);
+      }
+    };
+    
+    fetchLongitudinalData();
+  }, [user?.id, showDebug]);
+
   // Redirect if no user
   if (!user) {
     router.replace('/onboarding');
