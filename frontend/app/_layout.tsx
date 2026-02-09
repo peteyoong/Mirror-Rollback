@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, Platform, useWindowDimensions } from 'react-native';
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
+import { DebugViewportOverlay } from '../components/DebugViewportOverlay';
 
 export default function RootLayout() {
   const { 
@@ -10,6 +11,9 @@ export default function RootLayout() {
     isRestoringSession, 
     hasTriedSessionRestore 
   } = useAppStore();
+  
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
 
   useEffect(() => {
     // Trigger session restore on app start
@@ -22,17 +26,29 @@ export default function RootLayout() {
   if (!hasTriedSessionRestore || isRestoringSession) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.textSecondary} />
-        <Text style={styles.loadingText}>Restoring your profile...</Text>
+        <View style={[
+          styles.loadingContainer,
+          // Only apply maxWidth on desktop web
+          Platform.OS === 'web' && !isMobile && styles.desktopMaxWidth
+        ]}>
+          <ActivityIndicator size="large" color={Colors.textSecondary} />
+          <Text style={styles.loadingText}>Restoring your profile...</Text>
+        </View>
+        {/* Debug viewport overlay for web */}
+        {Platform.OS === 'web' && <DebugViewportOverlay />}
       </View>
     );
   }
 
   return (
-    <Stack screenOptions={{
-      headerShown: false,
-      contentStyle: { backgroundColor: Colors.background },
-    }} />
+    <>
+      <Stack screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: Colors.background },
+      }} />
+      {/* Debug viewport overlay for web - always present when debug enabled */}
+      {Platform.OS === 'web' && <DebugViewportOverlay />}
+    </>
   );
 }
 
