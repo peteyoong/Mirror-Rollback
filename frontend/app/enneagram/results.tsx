@@ -603,6 +603,14 @@ export default function EnneagramResults() {
     ? 'Balanced Wings' 
     : `Wing ${result.inferred_wing}`;
   
+  // Get comprehensive wing display info
+  const wingInfo = getWingDisplayInfo(
+    result.inferred_core,
+    result.inferred_wing,
+    result.confidence_tier,
+    result.debug_scores
+  );
+  
   const confidenceLabel = result.confidence_tier === 'high' 
     ? 'High' 
     : result.confidence_tier === 'medium' 
