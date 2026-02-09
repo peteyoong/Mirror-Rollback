@@ -47,6 +47,8 @@ export default function RootLayout() {
         headerShown: false,
         contentStyle: { backgroundColor: Colors.background },
       }} />
+      {/* iOS Add to Home Screen Banner (browser only) */}
+      {Platform.OS === 'web' && <AddToHomeScreenBanner />}
       {/* Debug viewport overlay for web - always present when debug enabled */}
       {Platform.OS === 'web' && <DebugViewportOverlay />}
     </>
