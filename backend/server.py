@@ -10218,6 +10218,129 @@ class LifeContextResponse(BaseModel):
     source_lenses: List[str] = []  # For internal debugging only
 
 
+# ============================================
+# P5: LONGITUDINAL EVIDENCE API ENDPOINTS
+# ============================================
+# These endpoints implement the shadow longitudinal tracking system.
+# NO changes to user-facing Enneagram results - DEBUG-only output.
+# ============================================
+
+@api_router.post("/longitudinal/evidence", response_model=LongitudinalEvidenceResponse)
+async def store_longitudinal_evidence(request: LongitudinalEvidenceRequest):
+    """
+    Store a longitudinal evidence event.
+    
+    This endpoint accepts derived signals (no raw text) and stores them
+    for longitudinal pattern analysis. Events are validated and clamped
+    to ensure they don't exceed per-event contribution limits.
+    
+    Args:
+        request: LongitudinalEvidenceRequest with user_id, source, and signals
+        
+    Returns:
+        LongitudinalEvidenceResponse with success status and event_id
+    """
+    try:
+        # Convert Pydantic model to dict for validation
+        signals_dict = {
+            "type_affinities": request.signals.type_affinities,
+            "wing_affinities": request.signals.wing_affinities,
+            "stress_style": request.signals.stress_style,
+            "avoidance_style": request.signals.avoidance_style,
+            "confidence_hint": request.signals.confidence_hint
+        }
+        
+        # Create validated document (clamps affinities, validates enums)
+        event_doc = create_evidence_document(
+            user_id=request.user_id,
+            source=request.source,
+            signals=signals_dict
+        )
+        
+        # Store in MongoDB
+        result = await db.longitudinal_evidence_events.insert_one(event_doc)
+        event_id = str(result.inserted_id)
+        
+        logger.info(f"[P5_LONGITUDINAL] Stored evidence event {event_id} for user {request.user_id} (source: {request.source})")
+        
+        return LongitudinalEvidenceResponse(
+            success=True,
+            event_id=event_id,
+            stored_at=event_doc["created_at"]
+        )
+        
+    except ValueError as e:
+        logger.warning(f"[P5_LONGITUDINAL] Validation error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"[P5_LONGITUDINAL] Store evidence error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/longitudinal/summary/{user_id}")
+async def get_longitudinal_summary(user_id: str, days: int = 30):
+    """
+    Get aggregated longitudinal summary for a user.
+    
+    Computes stability metrics, top types over time, confidence modifier,
+    and recommended next step based on accumulated evidence.
+    
+    NOTE: This is a DEBUG-only endpoint. Results are NOT applied to
+    user-facing Enneagram results.
+    
+    Args:
+        user_id: User identifier
+        days: Time window for aggregation (default 30)
+        
+    Returns:
+        Longitudinal summary object
+    """
+    try:
+        # Fetch all evidence events for user
+        cursor = db.longitudinal_evidence_events.find({"user_id": user_id})
+        events = await cursor.to_list(length=1000)  # Cap at 1000 events
+        
+        if not events:
+            logger.debug(f"[P5_LONGITUDINAL] No evidence found for user {user_id}")
+            return get_empty_longitudinal_summary()
+        
+        # Compute summary
+        summary = compute_longitudinal_summary(events, days_window=days)
+        
+        logger.info(f"[P5_LONGITUDINAL] Summary for {user_id}: stability={summary['longitudinal']['type_stability']}, events={summary['longitudinal']['evidence_volume']['total']}")
+        
+        return summary
+        
+    except Exception as e:
+        logger.error(f"[P5_LONGITUDINAL] Get summary error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.delete("/longitudinal/evidence/{user_id}")
+async def clear_longitudinal_evidence(user_id: str):
+    """
+    Clear all longitudinal evidence for a user.
+    
+    DEBUG-only endpoint for testing purposes.
+    
+    Args:
+        user_id: User identifier
+        
+    Returns:
+        Deletion count
+    """
+    if not DEBUG_MIRROR:
+        raise HTTPException(status_code=403, detail="Only available in DEBUG mode")
+    
+    try:
+        result = await db.longitudinal_evidence_events.delete_many({"user_id": user_id})
+        logger.info(f"[P5_LONGITUDINAL] Cleared {result.deleted_count} events for user {user_id}")
+        return {"success": True, "deleted_count": result.deleted_count}
+    except Exception as e:
+        logger.error(f"[P5_LONGITUDINAL] Clear evidence error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Life Context Prompt - The Core System Prompt for Life
 LIFE_CONTEXT_SYSTEM_PROMPT = """You are Emergent!, the AI interpretive engine for Project Mirror.
 
