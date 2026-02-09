@@ -1,0 +1,247 @@
+{
+  "version": "1.0",
+  "description": "Narrative Synthesis Templates for Enneagram Results",
+  
+  "templates": {
+    
+    "low_short": {
+      "scenario": "Low confidence + Short assessment",
+      "narrative_style": "exploratory",
+      "uncertainty_visible": true,
+      
+      "pattern_summary": "A pattern around {CORE_THEME} seems to be emerging in your responses. At this early stage, this is more of a direction than a destination — {TYPE_NAME} themes are present, but not yet clearly dominant.",
+      
+      "confidence_framing": "This is still forming. Short assessments offer a starting point, not a conclusion — and that's exactly how they're designed. Clarity often arrives through reflection over time, not from answering more questions.",
+      
+      "cross_lens_context": null,
+      
+      "reflection_prompt": "This may become clearer as you notice when this pattern shows up in your daily life."
+    },
+    
+    "low_deep": {
+      "scenario": "Low confidence + Deep assessment",
+      "narrative_style": "exploratory",
+      "uncertainty_visible": true,
+      
+      "pattern_summary": "A pattern around {CORE_THEME} emerges from your responses, though it shares space with other active themes. {TYPE_NAME} tendencies — {MOTIVATION_HINT} — appear to be one significant thread among several.",
+      
+      "confidence_framing": "Even with a deeper exploration, this pattern remains fluid. That's not unusual — some people's core patterns take longer to surface clearly, and that ambiguity itself can be information worth noticing.",
+      
+      "cross_lens_context": null,
+      
+      "reflection_prompt": "Consider what resonates about this direction — and what doesn't. Both responses are valuable data."
+    },
+    
+    "moderate_short": {
+      "scenario": "Moderate confidence + Short assessment",
+      "narrative_style": "grounded",
+      "uncertainty_visible": true,
+      
+      "pattern_summary": "A pattern around {CORE_THEME} stands out in your responses. {TYPE_NAME} themes — {MOTIVATION_HINT} — appear to be a significant part of how you navigate the world.",
+      
+      "confidence_framing": "This pattern shows up consistently in your short assessment, though a deeper exploration would add more dimension. Many people find their initial pattern holds, while others discover nuances that shift the picture.",
+      
+      "cross_lens_context": null,
+      
+      "reflection_prompt": "You might notice when this pattern feels most active — and what's happening around you when it does."
+    },
+    
+    "moderate_deep": {
+      "scenario": "Moderate confidence + Deep assessment",
+      "narrative_style": "grounded",
+      "uncertainty_visible": true,
+      
+      "pattern_summary": "A pattern around {CORE_THEME} stands out consistently across your responses. {TYPE_NAME} themes — {MOTIVATION_HINT} — appear to be a significant part of how you navigate the world.",
+      
+      "confidence_framing": "This pattern appears reliably across your deep assessment, though it's not the only one present. Many people carry elements of nearby types, and that complexity is normal — not a sign of unclear results.",
+      
+      "cross_lens_context": null,
+      
+      "reflection_prompt": "You might notice when this pattern feels most active — and what happens when you're not in it."
+    },
+    
+    "moderate_deep_crosslens": {
+      "scenario": "Moderate confidence + Deep assessment + Cross-lens applied",
+      "narrative_style": "grounded",
+      "uncertainty_visible": true,
+      
+      "pattern_summary": "A pattern around {CORE_THEME} emerges from your responses, with {TYPE_NAME} themes appearing most prominent. This reflects how you answered, not who you are — though the two are often related.",
+      
+      "confidence_framing": "This pattern appears consistently, and other lenses gently support the same direction. That convergence adds context, not certainty — multiple perspectives pointing similarly is interesting, not definitive.",
+      
+      "cross_lens_context": "{CROSS_LENS_CONTEXT}",
+      
+      "reflection_prompt": "Notice whether this pattern resonates in your lived experience — that's the real test, not any assessment."
+    },
+    
+    "high_any": {
+      "scenario": "High confidence (any assessment depth)",
+      "narrative_style": "settled",
+      "uncertainty_visible": false,
+      
+      "pattern_summary": "{TYPE_NAME} patterns appear clearly and consistently in your responses. The core theme — {CORE_THEME} — shows up across different question types and contexts.",
+      
+      "confidence_framing": "This pattern appears with clarity. That doesn't make it a permanent label — all patterns are lenses, not cages — but the signal here is strong enough to work with directly.",
+      
+      "cross_lens_context": null,
+      
+      "reflection_prompt": "Pay attention to when this pattern serves you well — and when it might be worth loosening its grip."
+    },
+    
+    "wing_not_clear": {
+      "scenario": "Core type identified, wing unclear",
+      "narrative_style": "inherit",
+      "uncertainty_visible": true,
+      
+      "pattern_summary": "A pattern around {CORE_THEME} stands out in your responses. {TYPE_NAME} themes appear clearly, though your wing — the adjacent pattern that flavors your core — isn't yet defined.",
+      
+      "wing_context": "Both neighboring types ({WING_LEFT} and {WING_RIGHT}) may be accessible to you, or one may emerge more clearly over time. This ambiguity isn't a problem to solve; it's information about where you are right now.",
+      
+      "confidence_framing": "{INHERIT_FROM_CONFIDENCE}",
+      
+      "cross_lens_context": null,
+      
+      "reflection_prompt": "Notice which adjacent pattern — {WING_LEFT_THEME} or {WING_RIGHT_THEME} — feels more familiar in your daily life."
+    },
+    
+    "wing_balanced": {
+      "scenario": "Core type identified, wings balanced",
+      "narrative_style": "inherit",
+      "uncertainty_visible": true,
+      
+      "pattern_summary": "A pattern around {CORE_THEME} stands out in your responses. {TYPE_NAME} themes appear clearly, and you show access to both adjacent wings.",
+      
+      "wing_context": "You show access to both wings — {WING_LEFT} and {WING_RIGHT}. Rather than defaulting to one pattern, you may draw on different adjacent energies depending on context. Balance here isn't confusion; it's range.",
+      
+      "confidence_framing": "{INHERIT_FROM_CONFIDENCE}",
+      
+      "cross_lens_context": null,
+      
+      "reflection_prompt": "Observe when you lean toward {WING_LEFT_THEME} versus {WING_RIGHT_THEME}. The choice may be more conscious than you realize."
+    }
+  },
+  
+  "cross_lens_context_templates": {
+    "astrology_only": "Your birth chart echoes similar themes, adding texture without adding certainty.",
+    
+    "human_design_only": "Your Human Design configuration resonates with this pattern, offering another angle on the same question.",
+    
+    "both_sources": "Other lenses — your chart and design — gently point in a similar direction, though all of these remain exploratory.",
+    
+    "strong_concordance": "Multiple perspectives seem to converge here, which may be meaningful — though convergence isn't confirmation."
+  },
+  
+  "type_themes": {
+    "1": {
+      "name": "The Perfectionist",
+      "core_theme": "improvement and getting things right",
+      "motivation_hint": "a drive toward integrity and correctness",
+      "wing_left": 9,
+      "wing_right": 2,
+      "wing_left_theme": "acceptance and calm",
+      "wing_right_theme": "helpfulness and warmth"
+    },
+    "2": {
+      "name": "The Helper",
+      "core_theme": "connection and being needed",
+      "motivation_hint": "a need to be valued through caring",
+      "wing_left": 1,
+      "wing_right": 3,
+      "wing_left_theme": "principled service",
+      "wing_right_theme": "charming achievement"
+    },
+    "3": {
+      "name": "The Achiever",
+      "core_theme": "achievement and recognition",
+      "motivation_hint": "a drive to succeed and be seen as valuable",
+      "wing_left": 2,
+      "wing_right": 4,
+      "wing_left_theme": "relational warmth",
+      "wing_right_theme": "authentic depth"
+    },
+    "4": {
+      "name": "The Individualist",
+      "core_theme": "depth and authentic self-expression",
+      "motivation_hint": "a longing for significance and identity",
+      "wing_left": 3,
+      "wing_right": 5,
+      "wing_left_theme": "adaptive presentation",
+      "wing_right_theme": "intellectual withdrawal"
+    },
+    "5": {
+      "name": "The Investigator",
+      "core_theme": "understanding and preserving energy",
+      "motivation_hint": "a need to observe and comprehend",
+      "wing_left": 4,
+      "wing_right": 6,
+      "wing_left_theme": "emotional depth",
+      "wing_right_theme": "loyal skepticism"
+    },
+    "6": {
+      "name": "The Loyalist",
+      "core_theme": "security and anticipating what's ahead",
+      "motivation_hint": "a drive toward safety and preparedness",
+      "wing_left": 5,
+      "wing_right": 7,
+      "wing_left_theme": "analytical caution",
+      "wing_right_theme": "optimistic engagement"
+    },
+    "7": {
+      "name": "The Enthusiast",
+      "core_theme": "possibility and staying engaged",
+      "motivation_hint": "a need for stimulation and freedom",
+      "wing_left": 6,
+      "wing_right": 8,
+      "wing_left_theme": "loyal commitment",
+      "wing_right_theme": "assertive intensity"
+    },
+    "8": {
+      "name": "The Challenger",
+      "core_theme": "strength and maintaining autonomy",
+      "motivation_hint": "a drive to protect and control",
+      "wing_left": 7,
+      "wing_right": 9,
+      "wing_left_theme": "expansive adventure",
+      "wing_right_theme": "receptive groundedness"
+    },
+    "9": {
+      "name": "The Peacemaker",
+      "core_theme": "peace and avoiding disruption",
+      "motivation_hint": "a need for harmony and stability",
+      "wing_left": 8,
+      "wing_right": 1,
+      "wing_left_theme": "quiet strength",
+      "wing_right_theme": "principled idealism"
+    }
+  },
+  
+  "banned_phrases": [
+    "you are a type",
+    "this is your type",
+    "you're definitely",
+    "your personality is",
+    "this confirms",
+    "this proves",
+    "your astrology shows",
+    "your human design means",
+    "you should",
+    "you need to",
+    "try to",
+    "work on",
+    "you will always",
+    "you never",
+    "this is permanent",
+    "your destiny",
+    "diagnosis",
+    "symptoms of",
+    "treatment"
+  ],
+  
+  "required_language_qualities": [
+    "tentative (seems, appears, suggests, may)",
+    "observational (describes pattern, not person)",
+    "time-bound (right now, at this stage, currently)",
+    "non-instructional (no should, must, need to)",
+    "agency-preserving (user is observer, not object)"
+  ]
+}
