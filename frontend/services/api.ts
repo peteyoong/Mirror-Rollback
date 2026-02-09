@@ -4,25 +4,31 @@ import { Platform } from 'react-native';
 
 // Resolve API base URL with proper fallback chain for Expo
 const getApiBaseUrl = (): string => {
-  // 1. Try process.env first (works in Expo with EXPO_PUBLIC_ prefix)
-  // This takes priority for all platforms to ensure deployed/preview environments work
+  // For web, check if we're running locally (localhost/127.0.0.1)
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    const hostname = window.location?.hostname || '';
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      // Local development - use empty string for same-origin API calls
+      // The proxy should forward /api/* to the backend
+      return '';
+    }
+    // Deployed web - use the same origin
+    return '';
+  }
+  
+  // For native (iOS/Android), try environment variables
   const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
   if (envUrl && typeof envUrl === 'string' && envUrl.length > 0) {
     return envUrl;
   }
   
-  // 2. For web without env URL, use relative path for same-origin requests
-  if (Platform.OS === 'web') {
-    return '';
-  }
-  
-  // 3. Try expo-constants extra config (for native builds)
+  // Try expo-constants extra config (for native builds)
   const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
   if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
     return extraUrl;
   }
   
-  // 4. Fallback for native development
+  // Fallback for native development
   return 'http://localhost:8001';
 };
 
