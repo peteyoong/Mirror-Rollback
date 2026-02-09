@@ -6772,6 +6772,31 @@ def extract_human_design_data(chart: dict) -> dict:
     # Get human-friendly label for the cross
     incarnation_cross_label = get_incarnation_cross_label(incarnation_cross)
     
+    # =========================================================================
+    # NEW: Extract canonical incarnation cross structure (v2)
+    # =========================================================================
+    incarnation_cross_canonical = None
+    if isinstance(incarnation_cross_raw, dict):
+        # New canonical structure from v2 computation
+        incarnation_cross_canonical = {
+            "canonical_key": incarnation_cross_raw.get('canonical_key', ''),
+            "gates_key": incarnation_cross_raw.get('gates_key', ''),
+            "angle": incarnation_cross_raw.get('angle', ''),
+            "angle_full": incarnation_cross_raw.get('angle_full', ''),
+            "internal_name": incarnation_cross_raw.get('internal_name', ''),
+            "internal_label": incarnation_cross_raw.get('internal_label', ''),
+            "display_label": incarnation_cross_raw.get('display_label', ''),
+            "vendor_labels": incarnation_cross_raw.get('vendor_labels', {}),
+        }
+        # Use display_label as the primary label if available
+        if incarnation_cross_canonical.get('display_label'):
+            incarnation_cross_label = incarnation_cross_canonical['display_label']
+    
+    # =========================================================================
+    # NEW: Extract activation counts (v2)
+    # =========================================================================
+    activations_count = hd.get('activations_count', {})
+    
     return {
         "type": hd.get('type', 'Unknown'),
         "strategy": hd.get('strategy', 'Unknown'),
@@ -6781,6 +6806,8 @@ def extract_human_design_data(chart: dict) -> dict:
         "incarnation_cross": incarnation_cross,  # Full raw string
         "incarnation_cross_label": incarnation_cross_label,  # Human-friendly label
         "incarnation_cross_gates": gates_display,  # Formatted gates string for display (never null)
+        "incarnation_cross_canonical": incarnation_cross_canonical,  # NEW: Full canonical structure for debug
+        "activations_count": activations_count,  # NEW: Activation counts for debug
         "defined_centers": hd.get('defined_centers', []),
         "defined_channels": hd.get('defined_channels', []),
         "all_gates": hd.get('all_gates', []),
