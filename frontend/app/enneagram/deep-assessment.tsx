@@ -288,7 +288,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
 
 export default function DeepAssessmentScreen() {
   const router = useRouter();
-  const { user } = useUser();
+  const user = useAppStore((state) => state.user);
   const params = useLocalSearchParams();
   
   // State
