@@ -30,7 +30,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
-import { useUser } from '../../contexts/UserContext';
+import { useAppStore } from '../../store';
 import {
   startDeepAssessment,
   getDeepAssessmentSession,
