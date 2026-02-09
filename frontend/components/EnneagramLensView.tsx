@@ -544,7 +544,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const core = result.inferred_core;
   const wing = result.inferred_wing;
   const wings = WING_NUMBERS[core];
-  const otherWing = wing === wings.left ? wings.right : wings.left;
+  const otherWing = wing === wings.left ? wings.right : (wing === wings.right ? wings.left : wings.left);
+  
+  // Get comprehensive wing display info
+  const wingInfo = getWingDisplayInfo(core, wing, result.confidence_tier);
   
   // Send chat message
   const handleSendChat = useCallback(async () => {
