@@ -18,8 +18,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { getEnneagramResult, submitEnneagramFeedback } from '../../services/api';
 import * as Clipboard from 'expo-clipboard';
 
-// Check if we're in development mode
-const IS_DEV = process.env.NODE_ENV !== 'production' || __DEV__;
+// Check if we're in development mode - DISABLED for tester builds
+// const IS_DEV = process.env.NODE_ENV !== 'production' || __DEV__;
+const IS_DEV = false; // Disabled for tester release
 
 // ============================================
 // DEBUG PANEL ACTIVATION CONDITIONS
