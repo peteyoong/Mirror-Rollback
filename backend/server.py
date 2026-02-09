@@ -6965,13 +6965,21 @@ Incarnation Cross: {incarnation_cross}
             #     result["mirror_prompt"] = apply_human_design_guardrails(mirror_prompt_str)
             
             # ALWAYS include core_mechanics anchor - this is the fix for the regression
+            # Use display_label as primary cross display (hides JXP/RAX from UI)
+            cross_display = hd_data.get('incarnation_cross_label', incarnation_cross)
+            if hd_data.get('incarnation_cross_canonical') and hd_data['incarnation_cross_canonical'].get('display_label'):
+                cross_display = hd_data['incarnation_cross_canonical']['display_label']
+            
             result["core_mechanics"] = {
                 "type": hd_data['type'],
                 "strategy": strategy_desc,
                 "authority": hd_data['authority'],
                 "profile": hd_data.get('profile', 'Unknown'),
-                "incarnation_cross": hd_data.get('incarnation_cross_label', incarnation_cross),  # Use friendly label
-                "incarnation_cross_gates": cross_gates_str
+                "incarnation_cross": cross_display,  # Use display_label (hides angle)
+                "incarnation_cross_gates": cross_gates_str,
+                # Debug fields (only shown when debug enabled)
+                "incarnation_cross_canonical": hd_data.get('incarnation_cross_canonical'),
+                "activations_count": hd_data.get('activations_count')
             }
             
             return result
