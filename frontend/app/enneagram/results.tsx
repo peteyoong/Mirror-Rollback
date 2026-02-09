@@ -946,6 +946,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.text,
   },
+  wingHelperText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 12,
+    paddingHorizontal: 16,
+  },
   
   // Why Card
   // Feedback Card
