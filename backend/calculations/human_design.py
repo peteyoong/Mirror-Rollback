@@ -1034,14 +1034,29 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     design_sun_line = design_data['Sun']['gate']['line']
     profile = calculate_profile(personality_sun_line, design_sun_line)
     
-    # Calculate Incarnation Cross with proper naming
+    # ==========================================================================
+    # INCARNATION CROSS - Canonical Structure with Vendor Mapping
+    # ==========================================================================
     p_sun_gate = personality_data['Sun']['gate']['gate']
+    p_sun_line = personality_data['Sun']['gate']['line']
     p_earth_gate = personality_data['Earth']['gate']['gate']
+    p_earth_line = personality_data['Earth']['gate']['line']
     d_sun_gate = design_data['Sun']['gate']['gate']
+    d_sun_line = design_data['Sun']['gate']['line']
     d_earth_gate = design_data['Earth']['gate']['gate']
+    d_earth_line = design_data['Earth']['gate']['line']
     
-    # Get proper cross name (e.g., "RAX Migration" instead of "Right Angle Cross of 37/40")
-    incarnation_cross_name = get_incarnation_cross_name(p_sun_gate, personality_sun_line)
+    # Build canonical incarnation cross with vendor mapping
+    incarnation_cross = build_incarnation_cross_canonical(
+        p_sun_gate, p_sun_line,
+        p_earth_gate, p_earth_line,
+        d_sun_gate, d_sun_line,
+        d_earth_gate, d_earth_line,
+        personality_sun_line  # First profile line determines angle
+    )
+    
+    # Legacy format for backward compatibility
+    incarnation_cross_name = incarnation_cross['internal_label']
     incarnation_cross_gates = f"{p_sun_gate}/{p_earth_gate} | {d_sun_gate}/{d_earth_gate}"
     
     # Format channels for output
