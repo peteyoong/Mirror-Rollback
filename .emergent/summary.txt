@@ -1,116 +1,139 @@
 <analysis>
-**original_problem_statement**: The user's primary goal is to build a sophisticated, philosophically-grounded Enneagram application named Project Mirror. The work is divided into a series of phased prompts (P0-P5). The initial task (P0) was a UX fix, followed by a series of architecture-only tasks (P1-P5) to design the core systems before implementation.
 
-PRODUCT REQUIREMENTS:
-- **P0: Enneagram Wing UX & Copy Fix**: Eliminate all user-facing instances of  and replace them with clear, interpretive language (Dominant, Leaning, Balanced, Not Yet Clear) based on confidence levels. This has been implemented.
-- **P1: Enneagram Deep Assessment Architecture**: Design a long-form (15-20 min, 36-54 questions) assessment focused on type-pair discrimination to improve accuracy. The output should be probabilistic. This is an architecture task.
-- **P2: Cross-Lens Bayesian Weighting**: Design a layer where Astrology and Human Design data act as soft priors to gently nudge Enneagram probabilities, but only under specific, constrained conditions (e.g., not for high-confidence results). This is an architecture task.
-- **P3: Narrative Synthesis Layer**: Design a layer to translate the complex probabilistic results into human-readable, non-authoritative, and reflective text, with variants for different confidence levels and outcomes. This is an architecture task.
-- **P4: V1 Integrity Contract & Regression Guardrails**: Freeze the philosophical integrity of V1 by creating a formal contract, enforced by automated regression tests and runtime assertions, to prevent the app from becoming authoritative or deterministic.
-- **P5: Longitudinal Pattern Accumulation**: Design a V1-safe system to accumulate evidence from user interactions over time (reflections, journals) to evolve the confidence in their Enneagram results without violating the V1 contract. This is an architecture task.
+**original_problem_statement**: The user wants to build a sophisticated, philosophically-grounded Enneagram application named Project Mirror. The initial work involved a UX fix (P0) and designing the architecture for several features (P1-P5). The current session's goal shifted from new feature implementation to fixing critical bugs reported by the user in the web preview environment.
+
+The user's recent bug reports are the highest priority:
+1.  **Lenses Disappeared**: The  page is blank.
+2.  **Deep Assessment Crash**: The deep assessment screen crashes on ranked-choice questions.
+3.  **UI Blocked (Fixed, but was critical)**: A debug overlay was blocking UI elements.
+4.  **Deployed Version Broken (Investigation ongoing)**: The live deployed app is not working.
+5.  **App Stuck (In Progress)**: The preview app gets stuck on Restoring your profile....
 
 **User's preferred language**: English
 
 **what currently exists?**
-- The P0 Wing UX fix is fully implemented in the frontend. The UI no longer shows wing null and instead displays one of the four required states with appropriate helper text.
-- The architectural designs for P1 (Deep Assessment), P2 (Cross-Lens Weighting), P3 (Narrative Synthesis), P4 (Integrity Contract), and P5 (Longitudinal Patterns) are complete. This includes comprehensive markdown documents, JSON schemas for data contracts, and TypeScript type definitions.
-- For P4, a V1 Integrity Contract is codified in both a document and a set of validators, runtime assertion hooks, and a comprehensive regression test suite () to programmatically enforce the project's rules.
+- A debug-only page () was created to visually verify the P0 Wing UX Fix, successfully bypassing the authentication wall.
+- The P5 (Longitudinal Evidence) backend is fully implemented, including data models, API endpoints, and passing tests.
+- The P1 (Deep Assessment) backend is fully implemented, including data models, a 45-question bank, a scoring engine, API endpoints, and passing tests.
+- The P1 frontend flow () has been created but is buggy.
+- Critical bugs in the web preview are preventing further development and testing.
 
 **Last working item**:
-    - Last item agent was working: Designing the architecture for P5: Longitudinal Pattern Accumulation. The agent created the architecture document (), TypeScript types (), and a test suite file ().
-    - Status: IN PROGRESS (Design phase is complete; implementation has not begun).
-    - Agent Testing Done: N/A (This was an architecture task).
-    - Which testing method agent to use? N/A. The next step is to implement the designed architecture.
+    - Last item agent was working: Fixing a critical bug where the app gets stuck on Restoring your profile.... The root cause was identified as a faulty session restore logic that attempts to fetch a user with a locally generated UUID, which the backend rejects (expecting a MongoDB ObjectId), causing a failure loop.
+    - Status: IN PROGRESS
+    - Agent Testing Done: N
+    - Which testing method agent to use? manual testing by curl
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  Issue 1: (P1) Onboarding birth time input is unclickable on deployed native app.
+  Issue 1: Lenses page is empty (P0, CRITICAL BUG)
+  Issue 2: App gets stuck on Restoring your profile... (P0, CRITICAL BUG)
+  Issue 3: Deep assessment crashes on ranked questions (P1, BUG)
+  Issue 4: Onboarding birth time input is unclickable on native apps (P0, BUG)
 
   Issues Detail:
-  - Issue 1: 
-     - Attempted fixes: A fix was previously implemented in  by wrapping s in s. This was verified in web preview but not on a native device.
-     - Next debug checklist: This requires testing on a deployed native (iOS/Android) build. The issue remains pending user verification after a native app store deployment.
+  - Issue 1: **Lenses page is empty**
+     - Attempted fixes: The agent identified this is due to incorrect API routing in the Expo web preview. API calls to  were not being proxied to the backend. Several fixes were attempted in  to use the correct backend URL (), but these changes led to other state-related issues (Issue #2). This issue is a symptom of the same root cause as Issue #2.
+     - Next debug checklist:
+        1. Verify the fix for Issue #2 is working after a full frontend restart (expo: ERROR (not running)
+expo: started).
+        2. Once the app loads correctly, navigate to the  page and confirm the API call succeeds and lenses are displayed.
+        3. Check the browser's network tab and backend logs to ensure  is correctly routed to  and returns a 200 status with JSON data.
+     - Why fix this issue and what will be achieved with the fix? This is a critical regression that breaks a core feature of the app. Fixing it will restore basic functionality.
+     - Status:  IN PROGRESS
+     - Is recurring issue? Y
+     - Should Test frontend/backend/both after fix? Frontend
+     - Blocked on other issue: Issue 2
+
+  - Issue 2: **App gets stuck on Restoring your profile...**
+     - Attempted fixes: The agent correctly diagnosed that  generates a UUID on first load, which the  logic then tries to fetch from the backend. The backend returns an error (500) because it expects a MongoDB ObjectId, causing a blocking loop. The agent implemented a fix in  within the  function to check for a persisted user ID *before* attempting to fetch from the backend.
+     - Next debug checklist:
+        1. The fix has been written but not verified. The immediate next step is to restart the expo server (expo: stopped
+expo: started) to ensure the change is applied.
+        2. Clear browser  to simulate a first-time user.
+        3. Load the app and confirm it shows the Welcome screen instead of getting stuck.
+     - Why fix this issue and what will be achieved with the fix? This bug makes the web preview completely unusable. Fixing it is the highest priority to unblock all other frontend work and testing.
+     - Status:  IN PROGRESS
+     - Is recurring issue? Y
+     - Should Test frontend/backend/both after fix? Frontend
+     - Blocked on other issue: None
+
+  - Issue 3: **Deep assessment crashes on ranked questions**
+     - Attempted fixes: The agent identified a  error. It implemented two fixes in : one to ensure the response state is always an array, and a second safety check () in the  component itself.
+     - Next debug checklist:
+        1. Once Issues 1 & 2 are resolved, log in and start a deep assessment.
+        2. Proceed to a ranked question (e.g., question 4 in section 1).
+        3. Verify the component renders correctly and does not crash.
+     - Why fix this issue and what will be achieved with the fix? This bug blocks the testing and completion of the P1 deep assessment feature.
+     - Status:  TESTING PENDING
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? Frontend
+     - Blocked on other issue: Issue 1, Issue 2
+
+  - Issue 4: **Onboarding birth time input is unclickable on native apps**
+     - Attempted fixes: A previous fix was implemented but has not been verified on a native device.
+     - Next debug checklist: This requires a native build and deployment to be tested. It should be deferred until the critical web preview bugs are resolved.
      - Why fix this issue and what will be achieved with the fix? This is a P0 bug blocking new user onboarding on native apps.
      - Status:  USER VERIFICATION PENDING
      - Is recurring issue? Y
-     - Should Test frontend/backend/both after fix? Frontend (requires native deployment).
+     - Should Test frontend/backend/both after fix? Frontend (native)
      - Blocked on other issue: None
 
 **In progress Task List**:
-  There are no multi-step implementation tasks currently in progress. The agent has just finished the design phase for P5.
+- There are no new feature tasks in progress. All current work is focused on fixing the critical bugs listed above.
 
 **Upcoming and Future Tasks**
-The primary work for the next agent is to move from architecture to implementation for the features designed in P1-P5.
-
 - **Upcoming Tasks**:
-    - **(P0) Implement P1: Deep Enneagram Assessment**: This involves building the frontend UI for the multi-step assessment (36-54 questions) and the backend endpoint and scoring logic (using placeholder weights for now).
-    - **(P1) Implement P2: Cross-Lens Bayesian Weighting**: Implement the backend logic described in . This function will take raw Enneagram probabilities and optional Astrology/Human Design data, check eligibility against the V1 contract, and return an adjusted result.
-    - **(P2) Implement P3: Narrative Synthesis Layer**: Implement a backend service or frontend utility that takes the final data object (raw/adjusted probabilities, confidence, wing state, etc.) and generates the human-readable text based on the templates in .
-    - **(P3) Implement P5: Longitudinal Pattern Accumulation**: This is the highest priority new implementation. It requires creating the backend logic and database models to store  signals from user interactions, and an aggregation engine to compute stability and confidence modifiers over time.
-    - **(P4) Integrate P4: V1 Integrity Contract**: The test suite  should be run after each implementation step. The runtime hook  should be integrated into key frontend components (like ) to log warnings in debug mode.
-
-- **Future Tasks**:
-    - **(P1) Scoring & Weight Tuning**: Once the systems are implemented, a significant task will be to tune the scoring weights for the Deep Assessment, and the influence weights for the Cross-Lens and Longitudinal layers, likely requiring user data and validation.
-    - **(P2) UI/UX Polish**: The user has explicitly deferred all UI/UX design and polish for the new assessment flows and result displays.
-    - **(P3) Final Copywriting**: All question and narrative text is currently draft-quality. A full professional copywriting pass will be required before release.
+    - **(P0)** Stabilize the P1 Deep Assessment Frontend Flow: After fixing the bugs, the flow needs to be fully tested manually (start, resume, complete).
+    - **(P1)** Refactor : Extract the duplicated function from  and  into a shared utility.
+    - **(P2)** Implement P2: Cross-Lens Bayesian Weighting (Backend).
+    - **(P3)** Implement P3: Narrative Synthesis Layer (Backend/Frontend).
 
 **Completed work in this session**
-- **P0: Enneagram Wing UX Fix (Implemented)**:
-  - Correctly handled  wing values by creating a  helper.
-  - Updated UI in  and  to show dominant, leaning, balanced, or not yet clear based on confidence logic.
-- **P1-P5: Full System Architecture (Designed)**:
-  - Created comprehensive design documents, JSON schemas, and TypeScript types for all core V1 features: Deep Assessment, Cross-Lens Weighting, Narrative Synthesis, and Longitudinal Accumulation.
-- **P4: V1 Integrity Contract (Implemented)**:
-  - Created a  document.
-  - Implemented the contract in code via .
-  - Built a comprehensive regression test suite ( with 40+ tests) to enforce the contract's rules automatically.
-  - Created a runtime assertion hook () for debug-mode checks.
+- **P0 Visual Verification Tool**: Created a dedicated, unauthenticated debug page  to display all four wing states, successfully unblocking visual verification.
+- **P0 Debug UI Cleanup**: Removed all instances of the literal string null from debug UI panels, replacing them with more descriptive text like .
+- **P5 Backend Implementation**: Fully implemented the Longitudinal Evidence shadow system, including a new , new data models, API endpoints (), and passing backend tests.
+- **P1 Backend Implementation**: Fully implemented the Deep Assessment backend, including a new , a 45-question bank, data models, API endpoints (), and passing backend tests.
+- **P1 Frontend Scaffolding**: Created the file  and added the CTA to the results page.
+- **Bug Fix**: Disabled the  that was blocking the UI in the web preview by setting  in the  file.
 
 **Earlier issues found/mentioned but not fixed**
-   - **Issue 1**: Onboarding birth time input is unclickable on deployed native app.
-     - **Debug checklist**: This issue was noted in the previous handover but was not addressed in this session as the focus was on the user's P0-P5 prompts. It requires native device testing to verify the previous fix.
-     - **Why to solve this issue and what will be achieved with this?**: It is a critical bug blocking user onboarding on native applications.
-     - **Should Test frontend/backend/both after fix**: Frontend.
-     - **Is recurring issue?**: Y.
+   - Issue 1: Onboarding birth time input is unclickable on deployed native app. This is a known issue from a previous session, pending native testing.
 
 **Known issue recurrence from previous fork**
-  - **Issue recurrence in previous fork**: The onboarding birth time input bug was marked as recurring.
-  - **Recurrence count**: 1
-  - **Status**: USER VERIFICATION PENDING
+  - **Issue recurrence in previous fork**: The combination of API routing in the Expo web preview and user state management (UUID vs. ObjectId) has been a persistent, recurring problem throughout this session, causing multiple critical bugs.
+  - **Recurrence count**: 3+
+  - **Status**: IN PROGRESS
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Philosophical Guardrails**: The core concept of the project is building a system with explicit, tested constraints to prevent it from becoming authoritative, deterministic, or diagnostic.
-- **Layered Architecture**: The design follows a clear data processing pipeline: Raw Scoring -> Bayesian Adjustment -> Longitudinal Modification -> Narrative Synthesis.
-- **Contract-Driven Development**: Using markdown docs, JSON Schemas, and TypeScript to define and enforce the shape and behavior of data and logic throughout the system *before* implementation.
-- **Test-Driven Integrity**: Using an automated regression test suite () to enforce the project's core philosophical principles, failing the build if they are violated.
+- **Shadow System**: Implementing new data collection (P5 Longitudinal) and scoring (P1 Deep Assessment) on the backend without affecting the user-facing results until explicitly enabled.
+- **State Management**: Using Zustand () for global frontend state, including user session.
+- **API Routing (Web Preview)**: A major pain point. The correct configuration for local development is for the frontend to make requests directly to the backend service on port 8001 (e.g., ).
+- **User Identity Mismatch**: A critical issue where the frontend generates or caches a UUID for the user ID, while the backend expects a MongoDB ObjectId, causing API failures.
 
 **key DB schema**
-  - No DB schema changes were made. The design for P5 (Longitudinal Patterns) will require new database tables to store  events, but these have not been implemented.
+  - **longitudinal_evidence_events**:  (New)
+  - **deep_assessment_sessions**:  (New)
 
 **changes in tech stack**
-  - No changes to the tech stack.
+  - No changes to the core tech stack.
 
 **All files of reference**
-- : Contains the master architecture for all new features (P1-P5).
-- : Contains the code, tests, and hooks that enforce the V1 Integrity Contract (P4).
-- : Location of the implemented Wing UX Fix (P0).
-- : Second location of the implemented Wing UX Fix (P0).
-- The  and  directories contain all the data contracts and type definitions for the new architecture.
-
-**Areas that need refactoring**:
-- The helper function  was implemented in both  and . It could be extracted into a shared utility file inside a  or  directory to avoid code duplication.
-
-**key api endpoints**
-- No new API endpoints were created. The architectural designs for P1 and P5 will require new backend endpoints for submitting assessments and logging evidence signals.
+- : Contains the  logic that was just fixed. **Verification is the top priority.**
+- : Contains the API routing logic, a frequent source of problems.
+- : The location of the P1 frontend bugs.
+- : The page where the disappearing lenses bug is visible.
+- : Contains all new backend endpoints for P1 and P5.
 
 **Critical Info for New Agent**
-- **Architecture First, Implementation Second**: P1, P2, P3, and P5 have been fully designed but **not implemented**. Your primary task is to build the application logic based on the architecture defined in the  files.
-- **The V1 Contract is Law**: The rules defined in  and enforced by  are non-negotiable. All new implementation work must pass these tests.
-- **Start with P5 Implementation**: The last request was for P5 (Longitudinal Patterns). The logical next step is to begin the backend implementation for this feature.
-- **Code Duplication**: The  function is duplicated. Consider refactoring it into a shared utility as an initial code quality improvement.
+- **TOP PRIORITY**: The web preview is unstable and mostly unusable due to a cascade of bugs stemming from API routing and user ID mismatches. Your first task is to stabilize it.
+- **VERIFY THE LAST FIX**: The previous agent implemented a fix in  to solve the Restoring your profile... hang. You MUST restart the expo server (expo: stopped
+expo: started) and verify if this fix works. This is the key to unblocking everything else.
+- **API ROUTING**: For local web development, API calls must go to . The  file has been modified to reflect this, but due to caching, it has caused issues. Be mindful of this.
+- **USER ID MISMATCH**: The frontend has been incorrectly using UUIDs, while the backend uses MongoDB ObjectIds. The session restore fix is the first step. Clearing  in the browser is a useful debugging technique if you get stuck on user state issues.
 
 **documents created in this job**
 - 
@@ -120,42 +143,37 @@ The primary work for the next agent is to move from architecture to implementati
 - 
 - 
 - 
-- 
-- 
-- All  files inside  and .
 
 **Last 10 User Messages and any pending HUMAN messages**
-1. **User Request (P5)**: Define architecture for V1-safe Longitudinal Pattern Accumulation. **Status**: COMPLETED (Architecture designed).
-2. **User Request (P4)**: Define V1 Integrity Contract and regression guardrails. **Status**: COMPLETED (Architecture designed & tests created).
-3. **User Request (P4)**: Re-iteration of P4 request. **Status**: COMPLETED.
-4. **User Request (P3)**: Define Narrative Synthesis Layer. **Status**: COMPLETED (Architecture designed).
-5. **User Request (P2)**: Re-iteration of P2, asking for next steps. **Status**: COMPLETED.
-6. **User Request (P2)**: Re-iteration of P2. **Status**: COMPLETED.
-7. **User Request (P2)**: Re-iteration of P2. **Status**: COMPLETED.
-8. **User Request (P2)**: Define architecture for Cross-Lens Bayesian Weighting. **Status**: COMPLETED (Architecture designed).
-9. **User Request (P1)**: Define architecture for Enneagram Deep Assessment. **Status**: COMPLETED (Architecture designed).
-10. **Agent Summary**: Agent provided summary for P0 completion. **Status**: ACKNOWLEDGED.
+1.  **User Report (Bug):** All my lenses have disappeared! (screenshot provided). **Status**: PENDING
+2.  **User Report (Bug):** Deeper dive enneagram test showed an error page in Preview. (screenshot provided). **Status**: FIX ATTEMPTED, PENDING VERIFICATION
+3.  **User Report (Bug):** Deployed version is not working, and debug window is blocking the UI. **Status**: UI blocking is FIXED. Deployed version issue is pending.
+4.  **User Request:** Implement P1 Deep Assessment Frontend. **Status**: STARTED, NOW BLOCKED BY BUGS.
+5.  **User Request:** Implement P1 Deep Assessment Backend. **Status**: COMPLETED.
+6.  **User Request:** Implement P5 Longitudinal Evidence Store (Shadow Mode). **Status**: COMPLETED.
+7.  **User Request:** P0 Cleanup - remove null from debug UI. **Status**: COMPLETED.
+8.  **User Request:** Implement a DEBUG-only wing state override for visual verification. **Status**: COMPLETED (via a dedicated debug page).
 
 **Project Health Check:**
-- **Broken**: Nothing is broken from a code perspective.
-- **Mocked**: The entire system architecture for P1-P5 is effectively mocked through design documents and data contracts, pending implementation.
+- **Broken**: The web preview environment is critically broken. Key features like session restoration and API data fetching are not working, blocking all further development and testing.
 
 **3rd Party Integrations**
 - No new integrations were added.
 
 **Testing status**
-  - Testing agent used after significant changes: NO (Changes were either UX or architecture).
-  - Troubleshoot agent used after agent stuck in loop: NO.
+  - Testing agent used after significant changes: NO
+  - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created:
     - 
     - 
-  - Known regressions: None.
+  - Known regressions:
+    - The  page is not loading data.
+    - Session restoration is broken.
 
 **Credentials to test flow:**
-Not applicable.
+Not applicable. Onboarding creates a new user. The main challenge is making onboarding and session restore work first.
 
 **What agent forgot to execute**
-- The agent did not address the pre-existing unclickable birth time input bug from the initial handover, as the user immediately provided a new set of high-priority tasks (P0-P5).
-- The agent duplicated the  helper function instead of creating a single shared utility.
+- The agent was appropriately redirected by critical user-reported bugs. It did not forget to execute any tasks; priorities were shifted correctly.
 
 </analysis>
