@@ -631,4 +631,39 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     opacity: 0.7,
   },
+  // Debug Panel Styles (HD Parity Verification)
+  debugPanel: {
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+    backgroundColor: '#FFFBF0',
+    borderRadius: 8,
+    padding: 12,
+    marginHorizontal: -4,
+  },
+  debugPanelTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#8B6914',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  debugRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  debugLabel: {
+    fontSize: 10,
+    color: '#6B5A28',
+    fontFamily: 'monospace',
+  },
+  debugValue: {
+    fontSize: 10,
+    color: '#4A4A4A',
+    fontFamily: 'monospace',
+    fontWeight: '500',
+  },
 });
