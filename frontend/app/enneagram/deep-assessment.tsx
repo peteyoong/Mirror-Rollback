@@ -403,12 +403,23 @@ export default function DeepAssessmentScreen() {
   // Set initial response when question changes
   useEffect(() => {
     if (existingResponse) {
-      setCurrentResponse(existingResponse.response.value);
+      // Ensure ranked questions get an array
+      const value = existingResponse.response.value;
+      if (currentQuestion?.type === 'ranked' && !Array.isArray(value)) {
+        setCurrentResponse([]);
+      } else {
+        setCurrentResponse(value);
+      }
     } else {
-      setCurrentResponse(null);
+      // Initialize with appropriate default for question type
+      if (currentQuestion?.type === 'ranked') {
+        setCurrentResponse([]);
+      } else {
+        setCurrentResponse(null);
+      }
     }
     setSaveStatus('idle');
-  }, [currentQuestionIndex, existingResponse?.response?.value]);
+  }, [currentQuestionIndex, existingResponse?.response?.value, currentQuestion?.type]);
   
   const handleResponseChange = (value: any) => {
     setCurrentResponse(value);
