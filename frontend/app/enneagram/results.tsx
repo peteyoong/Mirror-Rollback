@@ -709,6 +709,28 @@ export default function EnneagramResults() {
           <Text style={styles.testerDebugText}>inferred_wing (real): {result.inferred_wing === null ? '(none)' : String(result.inferred_wing)}</Text>
           <Text style={styles.testerDebugText}>confidence_tier (real): {result.confidence_tier}</Text>
         </View>
+        
+        {/* P5 Longitudinal Section (SHADOW SYSTEM) */}
+        <View style={styles.debugDataSection}>
+          <Text style={styles.debugSectionLabel}>P5 LONGITUDINAL (SHADOW)</Text>
+          {longitudinalLoading ? (
+            <ActivityIndicator size="small" color="#aaaacc" />
+          ) : longitudinalData ? (
+            <>
+              <Text style={styles.testerDebugText}>type_stability: {longitudinalData.type_stability.toFixed(2)}</Text>
+              <Text style={styles.testerDebugText}>wing_stability: {longitudinalData.wing_stability.toFixed(2)}</Text>
+              <Text style={styles.testerDebugText}>evidence_count: {longitudinalData.evidence_volume.total} (last 30d: {longitudinalData.evidence_volume.last_30_days})</Text>
+              <Text style={styles.testerDebugText}>top_types: {longitudinalData.top_types_over_time.map(t => `${t.type}(${(t.share * 100).toFixed(0)}%)`).join(', ') || '(none)'}</Text>
+              <Text style={styles.testerDebugText}>confidence_modifier: {longitudinalData.confidence_modifier}</Text>
+              <Text style={styles.testerDebugText}>recommended_next: {longitudinalData.recommended_next_step}</Text>
+            </>
+          ) : (
+            <Text style={styles.testerDebugText}>No longitudinal data yet</Text>
+          )}
+          <Text style={[styles.testerDebugText, { marginTop: 6, color: '#888' }]}>
+            ⚠️ Shadow only - does NOT affect displayed results
+          </Text>
+        </View>
       </View>
     );
   };
