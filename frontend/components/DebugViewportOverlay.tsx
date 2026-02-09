@@ -14,6 +14,8 @@ interface ViewportInfo {
   scrollWidth: number;
   hasOverflow: boolean;
   devicePixelRatio: number;
+  isStandalone: boolean;
+  standaloneSource: string;
 }
 
 const DEBUG_MIRROR = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
@@ -32,6 +34,16 @@ export function DebugViewportOverlay() {
       const rootWidth = rootElement?.clientWidth || 0;
       const scrollWidth = document.body.scrollWidth;
       
+      // Check standalone mode
+      const isIOSStandalone = (window.navigator as any).standalone === true;
+      const isDisplayStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      const isFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
+      
+      let standaloneSource = 'browser';
+      if (isIOSStandalone) standaloneSource = 'iOS';
+      else if (isDisplayStandalone) standaloneSource = 'PWA';
+      else if (isFullscreen) standaloneSource = 'fullscreen';
+      
       setViewportInfo({
         innerWidth: window.innerWidth,
         innerHeight: window.innerHeight,
@@ -39,6 +51,8 @@ export function DebugViewportOverlay() {
         scrollWidth,
         hasOverflow: scrollWidth > window.innerWidth,
         devicePixelRatio: window.devicePixelRatio || 1,
+        isStandalone: isIOSStandalone || isDisplayStandalone || isFullscreen,
+        standaloneSource,
       });
     };
     
@@ -62,7 +76,7 @@ export function DebugViewportOverlay() {
     return null;
   }
   
-  const { innerWidth, innerHeight, rootWidth, scrollWidth, hasOverflow, devicePixelRatio } = viewportInfo;
+  const { innerWidth, innerHeight, rootWidth, scrollWidth, hasOverflow, devicePixelRatio, isStandalone, standaloneSource } = viewportInfo;
   
   return (
     <div 
@@ -78,7 +92,7 @@ export function DebugViewportOverlay() {
         padding: '8px 10px',
         borderRadius: 6,
         zIndex: 99999,
-        maxWidth: 180,
+        maxWidth: 200,
         pointerEvents: 'none',
         lineHeight: 1.4,
       }}
@@ -91,6 +105,12 @@ export function DebugViewportOverlay() {
       <div>rootW: {rootWidth}px</div>
       <div>scrollW: {scrollWidth}px</div>
       <div>DPR: {devicePixelRatio.toFixed(2)}</div>
+      <div style={{ marginTop: 4, borderTop: '1px solid #333', paddingTop: 4 }}>
+        <div style={{ fontWeight: 'bold' }}>
+          {isStandalone ? '📱 Standalone' : '🌐 Browser'}
+        </div>
+        <div style={{ fontSize: 9 }}>mode: {standaloneSource}</div>
+      </div>
       <div style={{ 
         marginTop: 4, 
         fontWeight: 'bold',
