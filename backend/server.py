@@ -10038,11 +10038,6 @@ class DeepAssessmentAnswerRequest(BaseModel):
     question_id: str = Field(..., description="Question ID being answered")
     response: DeepAssessmentResponse = Field(..., description="Response data")
 
-class DeepAssessmentSessionStatus(str, Enum):
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    ABANDONED = "abandoned"
-
 
 # Questionnaire Persistence Models
 class QuestionnaireRequest(BaseModel):
