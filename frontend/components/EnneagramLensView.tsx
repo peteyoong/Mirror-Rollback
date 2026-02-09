@@ -1434,6 +1434,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
+        {/* Debug Wing Override Panel - only shows when DEBUG_MIRROR_ENV=true */}
+        {renderDebugWingOverridePanel()}
+        
         {activeTab === 'summary' && renderSummaryTab()}
         {activeTab === 'today' && renderTodayTab()}
         {activeTab === 'deep_dive' && renderDeepDiveTab()}
