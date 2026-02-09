@@ -95,7 +95,6 @@ export function AddToHomeScreenBanner() {
   
   // Detect iOS for specific instructions
   const isIOS = typeof window !== 'undefined' && /iPad|iPhone|iPod/.test(window.navigator.userAgent);
-  }
   
   return (
     <View style={styles.container}>
