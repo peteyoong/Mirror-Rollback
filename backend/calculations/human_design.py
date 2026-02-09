@@ -1159,12 +1159,26 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
         'profile': profile,
         'definition': definition,
         'incarnation_cross': {
+            # New canonical structure
+            'canonical_key': incarnation_cross['canonical_key'],
+            'gates_key': incarnation_cross['gates_key'],
+            'angle': incarnation_cross['angle'],
+            'angle_full': incarnation_cross['angle_full'],
+            'internal_name': incarnation_cross['internal_name'],
+            'internal_label': incarnation_cross['internal_label'],
+            'display_label': incarnation_cross['display_label'],
+            'vendor_labels': incarnation_cross['vendor_labels'],
+            # Legacy fields for backward compatibility
             'name': incarnation_cross_name,
             'gates': incarnation_cross_gates,
             'personality_sun': p_sun_gate,
+            'personality_sun_line': p_sun_line,
             'personality_earth': p_earth_gate,
+            'personality_earth_line': p_earth_line,
             'design_sun': d_sun_gate,
-            'design_earth': d_earth_gate
+            'design_sun_line': d_sun_line,
+            'design_earth': d_earth_gate,
+            'design_earth_line': d_earth_line
         },
         'defined_centers': defined_centers,
         'undefined_centers': undefined_centers,
@@ -1172,11 +1186,18 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
         'active_gates': list(all_gates),
         'variables': {},  # Reserved for future PHS/Environment variables
         
-        # Extended data
+        # Extended data with full 13-planet activations
         'personality': personality_data,
         'design': design_data,
         'personality_gates': personality_gates,
         'design_gates': design_gates,
+        
+        # Activation counts for integrity verification
+        'activations_count': {
+            'personality': len(personality_gates),
+            'design': len(design_gates),
+            'total_unique_gates': len(all_gates)
+        },
         
         # Legacy fields for backward compatibility
         'incarnation_cross_legacy': incarnation_cross_name,  # Old flat format
@@ -1184,7 +1205,7 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
         
         # Metadata
         'chart_type': 'True Sidereal Human Design',
-        'computation_version': 'mirror-deterministic-v1',
+        'computation_version': 'mirror-deterministic-v2',  # Bumped for 13-planet update
         'design_datetime_utc_iso': design_datetime.isoformat() if hasattr(design_datetime, 'isoformat') else str(design_datetime),
         'design_offset_degrees': design_offset_degrees,
         'design_solver_debug': design_debug,
@@ -1198,7 +1219,9 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
             'definition_valid': definition in valid_definitions,
             'centers_count': total_centers,
             'gates_count': len(all_gates),
-            'channels_count': len(defined_channels)
+            'channels_count': len(defined_channels),
+            'personality_activations': len(personality_gates),
+            'design_activations': len(design_gates)
         }
     }
 
