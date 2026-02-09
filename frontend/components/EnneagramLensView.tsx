@@ -1369,6 +1369,59 @@ export default function EnneagramLensView({ result, userId }: Props) {
   );
 
   // ============================================
+  // DEBUG WING STATE OVERRIDE PANEL
+  // ============================================
+  // Renders ONLY when DEBUG_MIRROR_ENV === true
+  // Allows visual verification of all 4 wing display states
+  // ============================================
+  const renderDebugWingOverridePanel = () => {
+    if (!DEBUG_MIRROR_ENV) return null;
+    
+    const debugWingStates: DebugWingState[] = ['off', 'dominant', 'leaning', 'balanced', 'not_clear'];
+    
+    return (
+      <View style={styles.debugWingPanel}>
+        {/* DEBUG BADGE */}
+        <View style={styles.debugBadgeRow}>
+          <Ionicons name="bug-outline" size={14} color="#FF6B6B" />
+          <Text style={styles.debugBadgeLabel}>DEBUG — Wing State Override</Text>
+        </View>
+        
+        {/* Toggle Buttons */}
+        <View style={styles.debugToggleRow}>
+          {debugWingStates.map((state) => (
+            <TouchableOpacity
+              key={state}
+              style={[
+                styles.debugToggleBtn,
+                debugWingState === state && styles.debugToggleBtnActive,
+              ]}
+              onPress={() => setDebugWingState(state)}
+            >
+              <Text style={[
+                styles.debugToggleBtnText,
+                debugWingState === state && styles.debugToggleBtnTextActive,
+              ]}>
+                {DEBUG_WING_STATE_LABELS[state]}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        
+        {/* Mock indicator */}
+        {debugWingState !== 'off' && (
+          <View style={styles.debugMockAlert}>
+            <Ionicons name="information-circle" size={14} color="#FFB800" />
+            <Text style={styles.debugMockAlertText}>
+              Showing MOCK: {DEBUG_WING_STATE_LABELS[debugWingState]}
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  // ============================================
   // MAIN RENDER
   // ============================================
 
