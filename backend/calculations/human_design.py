@@ -210,8 +210,8 @@ def get_incarnation_cross_name(p_sun_gate: int, profile_line1: int) -> str:
     
     The cross angle (Right Angle, Left Angle, Juxtaposition) is determined by the
     first number of the profile:
-    - Lines 1, 2, 3, 4 = Right Angle Cross (RAX) - Personal destiny
-    - Line 4 with specific gates = Juxtaposition Cross (JXP) - Fixed fate
+    - Lines 1, 2, 3 = Right Angle Cross (RAX) - Personal destiny
+    - Line 4 = Juxtaposition Cross (JXP) - Fixed fate
     - Lines 5, 6 = Left Angle Cross (LAX) - Transpersonal karma
     
     Args:
@@ -234,6 +234,106 @@ def get_incarnation_cross_name(p_sun_gate: int, profile_line1: int) -> str:
         angle = "RAX"  # Default fallback
     
     return f"{angle} {cross_name}"
+
+
+# =============================================================================
+# INCARNATION CROSS - CANONICAL KEY AND VENDOR MAPPING
+# =============================================================================
+
+def build_incarnation_cross_canonical(
+    p_sun_gate: int, p_sun_line: int,
+    p_earth_gate: int, p_earth_line: int,
+    d_sun_gate: int, d_sun_line: int,
+    d_earth_gate: int, d_earth_line: int,
+    profile_line1: int
+) -> Dict:
+    """
+    Build canonical incarnation cross structure with vendor mapping support.
+    
+    Returns a structure that includes:
+    - canonical_key: "21.4/48.4|38.6/39.6" format for exact matching
+    - internal_label: Our computed label (e.g., "Tension")
+    - angle: RAX/JXP/LAX based on profile line 1
+    - display_label: UI-friendly format "Tension (21/48 • 38/39)"
+    - vendor_labels: Mapping layer for external system labels
+    
+    Args:
+        p_sun_gate, p_sun_line: Personality Sun gate and line
+        p_earth_gate, p_earth_line: Personality Earth gate and line
+        d_sun_gate, d_sun_line: Design Sun gate and line
+        d_earth_gate, d_earth_line: Design Earth gate and line
+        profile_line1: First line of profile (determines angle)
+    
+    Returns:
+        Dict with canonical cross structure
+    """
+    # Build canonical key: "gate.line/gate.line|gate.line/gate.line"
+    canonical_key = f"{p_sun_gate}.{p_sun_line}/{p_earth_gate}.{p_earth_line}|{d_sun_gate}.{d_sun_line}/{d_earth_gate}.{d_earth_line}"
+    
+    # Gates-only key for simpler matching
+    gates_key = f"{p_sun_gate}/{p_earth_gate}|{d_sun_gate}/{d_earth_gate}"
+    
+    # Get internal cross name from Sun gate
+    internal_name = INCARNATION_CROSS_NAMES.get(p_sun_gate, f"Gate {p_sun_gate}")
+    
+    # Determine angle from profile line 1
+    if profile_line1 in [1, 2, 3]:
+        angle = "RAX"
+        angle_full = "Right Angle Cross"
+    elif profile_line1 == 4:
+        angle = "JXP"
+        angle_full = "Juxtaposition Cross"
+    elif profile_line1 in [5, 6]:
+        angle = "LAX"
+        angle_full = "Left Angle Cross"
+    else:
+        angle = "RAX"
+        angle_full = "Right Angle Cross"
+    
+    # Internal label (our system)
+    internal_label = f"{angle} {internal_name}"
+    
+    # UI display label - avoids label disputes by showing gates
+    display_label = f"{internal_name} ({p_sun_gate}/{p_earth_gate} • {d_sun_gate}/{d_earth_gate})"
+    
+    # Vendor mapping layer - can be extended with known mappings
+    vendor_labels = {
+        "emergent": internal_label,
+        "genetic_matrix": _get_genetic_matrix_cross_label(p_sun_gate, angle, p_sun_line),
+        "jovian_archive": internal_label,  # Placeholder - add specific mapping if known
+    }
+    
+    return {
+        "canonical_key": canonical_key,
+        "gates_key": gates_key,
+        "angle": angle,
+        "angle_full": angle_full,
+        "internal_name": internal_name,
+        "internal_label": internal_label,
+        "display_label": display_label,
+        "vendor_labels": vendor_labels,
+        "gates": {
+            "personality_sun": {"gate": p_sun_gate, "line": p_sun_line},
+            "personality_earth": {"gate": p_earth_gate, "line": p_earth_line},
+            "design_sun": {"gate": d_sun_gate, "line": d_sun_line},
+            "design_earth": {"gate": d_earth_gate, "line": d_earth_line},
+        }
+    }
+
+
+def _get_genetic_matrix_cross_label(p_sun_gate: int, angle: str, line: int) -> str:
+    """
+    Generate Genetic Matrix-style cross label.
+    
+    Genetic Matrix uses format like "RAX Tension 1" where the number
+    indicates the specific variant based on the Sun line.
+    
+    Note: This is an approximation. For exact parity, a full mapping
+    table from Genetic Matrix would be needed.
+    """
+    cross_name = INCARNATION_CROSS_NAMES.get(p_sun_gate, f"Gate {p_sun_gate}")
+    # Genetic Matrix often appends the line number for variants
+    return f"{angle} {cross_name} {line}"
 
 
 def longitude_to_gate(longitude: float) -> Dict:
