@@ -44,6 +44,17 @@ from enneagram_convergence import (
     get_convergence_rules_table
 )
 
+# Import P5 Longitudinal Aggregator
+from longitudinal_aggregator import (
+    create_evidence_document,
+    validate_and_clamp_signals,
+    derive_signals_from_enneagram_result,
+    compute_longitudinal_summary,
+    get_empty_longitudinal_summary,
+    EvidenceSource,
+    SIGNAL_SCHEMA_VERSION
+)
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
