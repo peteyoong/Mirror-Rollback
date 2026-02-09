@@ -28,7 +28,8 @@ import Constants from 'expo-constants';
 import { getStableUserId, maskUserId } from '../utils/stableUserId';
 
 // Check if debug mode is enabled
-const DEBUG_MIRROR = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true' || __DEV__;
+// DISABLED FOR TESTER RELEASE
+const DEBUG_MIRROR = false;
 
 // Get backend URL (same logic as NumerologyLensView)
 const DEV_BACKEND_FALLBACK = 'http://localhost:8001';
