@@ -58,9 +58,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.background,
+    // Full width on all platforms - no maxWidth on mobile
+    width: '100%',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
     gap: 16,
+    padding: 20,
+  },
+  desktopMaxWidth: {
     maxWidth: 400,
-    alignSelf: 'center',
   },
   loadingText: {
     fontSize: 16,
