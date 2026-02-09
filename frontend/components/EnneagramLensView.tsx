@@ -1469,6 +1469,75 @@ const styles = StyleSheet.create({
     height: 40,
   },
 
+  // ============================================
+  // DEBUG WING OVERRIDE PANEL STYLES
+  // ============================================
+  debugWingPanel: {
+    backgroundColor: '#1a1a2e',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#FF6B6B',
+    borderStyle: 'dashed',
+  },
+  debugBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  debugBadgeLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FF6B6B',
+    letterSpacing: 0.5,
+  },
+  debugToggleRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    justifyContent: 'center',
+  },
+  debugToggleBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    backgroundColor: '#2d2d44',
+    borderWidth: 1,
+    borderColor: '#3d3d5c',
+  },
+  debugToggleBtnActive: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  debugToggleBtnText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#aaaacc',
+  },
+  debugToggleBtnTextActive: {
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  debugMockAlert: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 10,
+    padding: 8,
+    backgroundColor: 'rgba(255, 184, 0, 0.15)',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 184, 0, 0.3)',
+  },
+  debugMockAlertText: {
+    fontSize: 11,
+    color: '#FFB800',
+  },
+
   // Tabs
   tabContainer: {
     flexDirection: 'row',
