@@ -35,20 +35,33 @@ export default function Root({ children }: PropsWithChildren) {
         */}
         <style dangerouslySetInnerHTML={{ __html: `
           /* ============================================
-             ROOT CONTAINER SIZING
+             ROOT CONTAINER SIZING - FULL SCREEN
              ============================================ */
-          html, body {
+          html {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+          }
+          
+          body {
             height: 100%;
             width: 100%;
             margin: 0;
             padding: 0;
             overflow-x: hidden;
+            overflow-y: auto;
             overscroll-behavior: none;
             -webkit-overflow-scrolling: touch;
+            /* Use dvh for dynamic viewport on mobile */
+            min-height: 100vh;
+            min-height: 100dvh;
           }
           
           #root {
-            height: 100%;
+            min-height: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
             width: 100%;
             margin: 0;
             padding: 0;
@@ -60,6 +73,16 @@ export default function Root({ children }: PropsWithChildren) {
             padding-bottom: env(safe-area-inset-bottom, 0px);
             padding-left: env(safe-area-inset-left, 0px);
             padding-right: env(safe-area-inset-right, 0px);
+          }
+          
+          /* Ensure React Native Web containers fill height */
+          #root > div,
+          #root > div > div {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
           }
           
           /* ============================================
@@ -74,24 +97,12 @@ export default function Root({ children }: PropsWithChildren) {
           }
           
           /* ============================================
-             DYNAMIC VIEWPORT HEIGHT
-             ============================================ */
-          .full-height {
-            min-height: 100vh;
-            min-height: 100dvh;
-          }
-          
-          @supports (min-height: 100dvh) {
-            #root {
-              min-height: 100dvh;
-            }
-          }
-          
-          /* ============================================
              MOBILE-FIRST LAYOUT
              ============================================ */
           @media screen and (max-width: 768px) {
-            #root > div {
+            #root > div,
+            #root > div > div,
+            #root > div > div > div {
               max-width: none !important;
               width: 100% !important;
             }
@@ -105,8 +116,9 @@ export default function Root({ children }: PropsWithChildren) {
             touch-action: manipulation;
           }
           
-          /* Hide scrollbars on mobile */
-          ::-webkit-scrollbar {
+          /* Hide scrollbars on mobile but keep functionality */
+          body::-webkit-scrollbar,
+          #root::-webkit-scrollbar {
             width: 0;
             height: 0;
             display: none;
