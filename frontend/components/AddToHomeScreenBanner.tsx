@@ -34,35 +34,37 @@ export function useIsStandalone(): boolean {
 }
 
 /**
- * Check if running on iOS Safari (not in standalone mode)
+ * Check if running on mobile browser (iOS or Android)
  */
-function useIsIOSSafari(): boolean {
-  const [isIOSSafari, setIsIOSSafari] = useState(false);
+function useIsMobileBrowser(): boolean {
+  const [isMobile, setIsMobile] = useState(false);
   const isStandalone = useIsStandalone();
   
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') {
-      setIsIOSSafari(false);
+      setIsMobile(false);
       return;
     }
     
     const ua = window.navigator.userAgent;
-    const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
-    const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua) && !/CriOS/.test(ua);
+    const isIOS = /iPad|iPhone|iPod/.test(ua);
+    const isAndroid = /Android/.test(ua);
+    const isMobileDevice = isIOS || isAndroid || window.innerWidth < 768;
     
-    setIsIOSSafari(isIOS && (isSafari || /CriOS/.test(ua)) && !isStandalone);
+    setIsMobile(isMobileDevice && !isStandalone);
   }, [isStandalone]);
   
-  return isIOSSafari;
+  return isMobile;
 }
 
 /**
  * iOS Add to Home Screen Banner
- * Shows only on iOS browsers when not installed as PWA
+ * Shows on mobile browsers when not installed as PWA
  */
 export function AddToHomeScreenBanner() {
   const [visible, setVisible] = useState(false);
-  const isIOSSafari = useIsIOSSafari();
+  const [showAlways, setShowAlways] = useState(true); // For debugging - always show initially
+  const isMobileBrowser = useIsMobileBrowser();
   const isStandalone = useIsStandalone();
   
   useEffect(() => {
@@ -74,11 +76,12 @@ export function AddToHomeScreenBanner() {
     
     // Check if banner was dismissed
     AsyncStorage.getItem(BANNER_DISMISSED_KEY).then((dismissed) => {
-      if (dismissed !== 'true' && isIOSSafari && !isStandalone) {
+      // Show if not dismissed AND on mobile browser AND not standalone
+      if (dismissed !== 'true' && isMobileBrowser && !isStandalone) {
         setVisible(true);
       }
     });
-  }, [isIOSSafari, isStandalone]);
+  }, [isMobileBrowser, isStandalone]);
   
   const handleDismiss = async () => {
     setVisible(false);
@@ -88,6 +91,10 @@ export function AddToHomeScreenBanner() {
   // Don't render on native or if already standalone
   if (Platform.OS !== 'web' || !visible || isStandalone) {
     return null;
+  }
+  
+  // Detect iOS for specific instructions
+  const isIOS = typeof window !== 'undefined' && /iPad|iPhone|iPod/.test(window.navigator.userAgent);
   }
   
   return (
