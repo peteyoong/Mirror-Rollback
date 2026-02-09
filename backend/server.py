@@ -10415,6 +10415,398 @@ async def clear_longitudinal_evidence(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ============================================
+# P1: DEEP ASSESSMENT API ENDPOINTS
+# ============================================
+# These endpoints implement the 45-question deep Enneagram assessment.
+# Backend-only; UI not implemented yet.
+# ============================================
+
+# Load question set on startup
+import json
+DEEP_ASSESSMENT_QUESTIONS = None
+
+def load_deep_assessment_questions():
+    """Load the deep assessment question set from JSON file."""
+    global DEEP_ASSESSMENT_QUESTIONS
+    try:
+        with open(Path(__file__).parent / "data" / "deep_assessment_questions.json", "r") as f:
+            DEEP_ASSESSMENT_QUESTIONS = json.load(f)
+        logger.info(f"[P1_DEEP] Loaded question set: {DEEP_ASSESSMENT_QUESTIONS.get('question_set_id')}")
+    except Exception as e:
+        logger.error(f"[P1_DEEP] Failed to load question set: {e}")
+        DEEP_ASSESSMENT_QUESTIONS = None
+
+# Load on module import
+load_deep_assessment_questions()
+
+
+@api_router.post("/enneagram/deep/start/{user_id}")
+async def start_deep_assessment(user_id: str):
+    """
+    Start a new deep assessment session.
+    
+    Creates a new session in the database and returns the first questions.
+    If an in-progress session exists, returns it instead.
+    
+    Args:
+        user_id: User identifier
+        
+    Returns:
+        Session info with questions
+    """
+    try:
+        if not DEEP_ASSESSMENT_QUESTIONS:
+            raise HTTPException(status_code=500, detail="Question set not loaded")
+        
+        # Check for existing in-progress session
+        existing = await db.deep_assessment_sessions.find_one({
+            "user_id": user_id,
+            "status": "in_progress"
+        })
+        
+        if existing:
+            # Return existing session
+            logger.info(f"[P1_DEEP] Resuming existing session {existing['_id']} for user {user_id}")
+            return {
+                "session_id": str(existing["_id"]),
+                "question_set_id": existing["question_set_id"],
+                "status": existing["status"],
+                "current_index": existing["current_index"],
+                "total_questions": len(DEEP_ASSESSMENT_QUESTIONS.get("questions", [])),
+                "questions": DEEP_ASSESSMENT_QUESTIONS.get("questions", []),
+                "sections": DEEP_ASSESSMENT_QUESTIONS.get("sections", []),
+                "responses": existing.get("responses", []),
+                "resumed": True
+            }
+        
+        # Create new session
+        now = datetime.now(timezone.utc)
+        session_doc = {
+            "user_id": user_id,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+            "status": "in_progress",
+            "version": "1.0",
+            "question_set_id": DEEP_ASSESSMENT_QUESTIONS.get("question_set_id", "deep_v1_45q"),
+            "current_index": 0,
+            "responses": [],
+            "result": None
+        }
+        
+        result = await db.deep_assessment_sessions.insert_one(session_doc)
+        session_id = str(result.inserted_id)
+        
+        logger.info(f"[P1_DEEP] Created new session {session_id} for user {user_id}")
+        
+        return {
+            "session_id": session_id,
+            "question_set_id": session_doc["question_set_id"],
+            "status": "in_progress",
+            "current_index": 0,
+            "total_questions": len(DEEP_ASSESSMENT_QUESTIONS.get("questions", [])),
+            "questions": DEEP_ASSESSMENT_QUESTIONS.get("questions", []),
+            "sections": DEEP_ASSESSMENT_QUESTIONS.get("sections", []),
+            "responses": [],
+            "resumed": False
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[P1_DEEP] Start session error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/enneagram/deep/session/{session_id}")
+async def get_deep_assessment_session(session_id: str):
+    """
+    Get current state of a deep assessment session.
+    
+    Args:
+        session_id: Session identifier
+        
+    Returns:
+        Session state with questions and responses
+    """
+    try:
+        from bson import ObjectId
+        
+        session = await db.deep_assessment_sessions.find_one({"_id": ObjectId(session_id)})
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        return {
+            "session_id": str(session["_id"]),
+            "user_id": session["user_id"],
+            "question_set_id": session["question_set_id"],
+            "status": session["status"],
+            "current_index": session["current_index"],
+            "total_questions": len(DEEP_ASSESSMENT_QUESTIONS.get("questions", [])) if DEEP_ASSESSMENT_QUESTIONS else 0,
+            "questions": DEEP_ASSESSMENT_QUESTIONS.get("questions", []) if DEEP_ASSESSMENT_QUESTIONS else [],
+            "sections": DEEP_ASSESSMENT_QUESTIONS.get("sections", []) if DEEP_ASSESSMENT_QUESTIONS else [],
+            "responses": session.get("responses", []),
+            "result": session.get("result"),
+            "created_at": session.get("created_at"),
+            "updated_at": session.get("updated_at")
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[P1_DEEP] Get session error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/enneagram/deep/answer/{session_id}")
+async def submit_deep_assessment_answer(session_id: str, request: DeepAssessmentAnswerRequest):
+    """
+    Submit an answer for a deep assessment question.
+    
+    Validates the response against the question type and stores it.
+    
+    Args:
+        session_id: Session identifier
+        request: Answer request with question_id and response
+        
+    Returns:
+        Updated session state
+    """
+    try:
+        from bson import ObjectId
+        
+        if not DEEP_ASSESSMENT_QUESTIONS:
+            raise HTTPException(status_code=500, detail="Question set not loaded")
+        
+        # Get session
+        session = await db.deep_assessment_sessions.find_one({"_id": ObjectId(session_id)})
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        if session["status"] != "in_progress":
+            raise HTTPException(status_code=400, detail=f"Session is {session['status']}, cannot submit answers")
+        
+        # Find question
+        questions = DEEP_ASSESSMENT_QUESTIONS.get("questions", [])
+        question_lookup = {q["id"]: q for q in questions}
+        question = question_lookup.get(request.question_id)
+        
+        if not question:
+            raise HTTPException(status_code=400, detail=f"Unknown question_id: {request.question_id}")
+        
+        # Validate response type matches question type
+        response_dict = {"type": request.response.type, "value": request.response.value}
+        is_valid, error_msg = validate_response_type(question, response_dict)
+        
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        
+        # Update or add response
+        responses = session.get("responses", [])
+        existing_idx = None
+        for i, r in enumerate(responses):
+            if r.get("question_id") == request.question_id:
+                existing_idx = i
+                break
+        
+        response_record = {
+            "question_id": request.question_id,
+            "response": response_dict,
+            "answered_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        if existing_idx is not None:
+            responses[existing_idx] = response_record
+        else:
+            responses.append(response_record)
+        
+        # Calculate new current_index (next unanswered question)
+        answered_ids = {r["question_id"] for r in responses}
+        new_index = 0
+        for i, q in enumerate(questions):
+            if q["id"] not in answered_ids:
+                new_index = i
+                break
+            new_index = i + 1
+        
+        # Update session
+        await db.deep_assessment_sessions.update_one(
+            {"_id": ObjectId(session_id)},
+            {
+                "$set": {
+                    "responses": responses,
+                    "current_index": new_index,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        
+        logger.info(f"[P1_DEEP] Recorded answer for {request.question_id} in session {session_id}")
+        
+        return {
+            "success": True,
+            "session_id": session_id,
+            "question_id": request.question_id,
+            "current_index": new_index,
+            "total_answered": len(responses),
+            "total_questions": len(questions)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[P1_DEEP] Submit answer error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/enneagram/deep/complete/{session_id}")
+async def complete_deep_assessment(session_id: str):
+    """
+    Complete a deep assessment and generate scoring results.
+    
+    Requires all questions to be answered. Generates type probabilities,
+    wing analysis, and confidence tier. Also emits P5 longitudinal evidence.
+    
+    Args:
+        session_id: Session identifier
+        
+    Returns:
+        Scoring result
+    """
+    try:
+        from bson import ObjectId
+        
+        if not DEEP_ASSESSMENT_QUESTIONS:
+            raise HTTPException(status_code=500, detail="Question set not loaded")
+        
+        # Get session
+        session = await db.deep_assessment_sessions.find_one({"_id": ObjectId(session_id)})
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        if session["status"] == "completed":
+            # Return existing result
+            return {
+                "success": True,
+                "already_completed": True,
+                "result": session.get("result")
+            }
+        
+        if session["status"] != "in_progress":
+            raise HTTPException(status_code=400, detail=f"Session is {session['status']}, cannot complete")
+        
+        # Check all questions answered
+        questions = DEEP_ASSESSMENT_QUESTIONS.get("questions", [])
+        responses = session.get("responses", [])
+        
+        if len(responses) < len(questions):
+            raise HTTPException(
+                status_code=400, 
+                detail=f"All questions must be answered. Answered: {len(responses)}/{len(questions)}"
+            )
+        
+        # Score the assessment
+        scoring_result = score_deep_assessment(questions, responses)
+        
+        # Validate against P4 contract
+        is_valid, violations = validate_result_contract(scoring_result)
+        if not is_valid:
+            logger.error(f"[P1_DEEP] P4 contract violations: {violations}")
+            raise HTTPException(status_code=500, detail=f"Scoring result failed P4 contract: {violations}")
+        
+        # Update session with result
+        await db.deep_assessment_sessions.update_one(
+            {"_id": ObjectId(session_id)},
+            {
+                "$set": {
+                    "status": "completed",
+                    "result": scoring_result,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        
+        logger.info(f"[P1_DEEP] Completed session {session_id} with result: core={scoring_result['top_types'][0]['type']}, confidence={scoring_result['confidence_tier']}")
+        
+        # =====================================================
+        # P5: EMIT LONGITUDINAL EVIDENCE (Shadow Wiring)
+        # =====================================================
+        try:
+            # Derive signals from deep assessment result
+            enn_result_for_signals = {
+                "inferred_core": scoring_result["top_types"][0]["type"],
+                "inferred_wing": scoring_result["wing_analysis"]["inferred_wing"],
+                "confidence_tier": scoring_result["confidence_tier"],
+                "top_candidates": scoring_result["top_types"]
+            }
+            
+            signals = derive_signals_from_enneagram_result(enn_result_for_signals, "deep")
+            
+            evidence_doc = create_evidence_document(
+                user_id=session["user_id"],
+                source=EvidenceSource.ENNEAGRAM_DEEP.value,
+                signals=signals
+            )
+            
+            await db.longitudinal_evidence_events.insert_one(evidence_doc)
+            logger.info(f"[P5_LONGITUDINAL] Emitted evidence from deep assessment for user {session['user_id']}")
+            
+        except Exception as e:
+            logger.warning(f"[P5_LONGITUDINAL] Failed to emit evidence: {e}")
+        
+        return {
+            "success": True,
+            "already_completed": False,
+            "result": scoring_result
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[P1_DEEP] Complete assessment error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.delete("/enneagram/deep/session/{session_id}")
+async def abandon_deep_assessment(session_id: str):
+    """
+    Abandon a deep assessment session.
+    
+    DEBUG-only endpoint for testing purposes.
+    
+    Args:
+        session_id: Session identifier
+        
+    Returns:
+        Success status
+    """
+    if not DEBUG_MIRROR:
+        raise HTTPException(status_code=403, detail="Only available in DEBUG mode")
+    
+    try:
+        from bson import ObjectId
+        
+        result = await db.deep_assessment_sessions.update_one(
+            {"_id": ObjectId(session_id)},
+            {"$set": {"status": "abandoned", "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        logger.info(f"[P1_DEEP] Abandoned session {session_id}")
+        return {"success": True, "session_id": session_id, "status": "abandoned"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[P1_DEEP] Abandon session error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Life Context Prompt - The Core System Prompt for Life
 LIFE_CONTEXT_SYSTEM_PROMPT = """You are Emergent!, the AI interpretive engine for Project Mirror.
 
