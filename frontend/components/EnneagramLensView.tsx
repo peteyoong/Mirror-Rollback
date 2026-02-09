@@ -414,7 +414,7 @@ const renderBoldText = (text: string, style: any, boldStyle: any) => {
 
 interface EnneagramResult {
   inferred_core: number;
-  inferred_wing: number | 'balanced';
+  inferred_wing: number | 'balanced' | null;
   confidence: number;
   confidence_tier: string;
   is_close?: boolean;
@@ -423,6 +423,71 @@ interface EnneagramResult {
     energy_state: string;
     life_context: string;
     answer_frame: string;
+  };
+}
+
+// ============================================
+// WING DISPLAY SYSTEM
+// ============================================
+// Same logic as results.tsx - ensures consistency across all views
+// ============================================
+
+type WingDisplayState = 'dominant' | 'leaning' | 'balanced' | 'not_clear';
+
+interface WingDisplayInfo {
+  state: WingDisplayState;
+  typeLabel: string;
+  confidenceBadge: 'High' | 'Exploratory' | 'Low';
+  helperText: string | null;
+}
+
+function getWingDisplayInfo(
+  coreType: number,
+  wing: number | 'balanced' | null,
+  confidenceTier: string
+): WingDisplayInfo {
+  const wings = WING_NUMBERS[coreType];
+  
+  // Case D: Wing Not Yet Clear
+  if (wing === null || wing === undefined) {
+    return {
+      state: 'not_clear',
+      typeLabel: `Type ${coreType} — wing not yet clear`,
+      confidenceBadge: 'Low',
+      helperText: 'With more reflections or questions, a clearer wing may emerge.',
+    };
+  }
+  
+  // Case C: Balanced Wings
+  if (wing === 'balanced') {
+    return {
+      state: 'balanced',
+      typeLabel: `Type ${coreType} — balanced wings (${wings.left} & ${wings.right})`,
+      confidenceBadge: 'Low',
+      helperText: 'Both adjacent patterns appear active. This often clarifies over time.',
+    };
+  }
+  
+  // Wing is a number - determine if dominant or leaning
+  const isHighConfidence = confidenceTier === 'high';
+  const isMediumConfidence = confidenceTier === 'medium';
+  
+  // Case A: Dominant Wing (high confidence)
+  if (isHighConfidence) {
+    return {
+      state: 'dominant',
+      typeLabel: `Type ${coreType}w${wing}`,
+      confidenceBadge: 'High',
+      helperText: null,
+    };
+  }
+  
+  // Case B: Leaning Wing (moderate/low confidence)
+  return {
+    state: 'leaning',
+    typeLabel: `Type ${coreType} — leaning toward Wing ${wing}`,
+    confidenceBadge: isMediumConfidence ? 'Exploratory' : 'Exploratory',
+    helperText: 'One adjacent pattern appears slightly stronger, though not yet decisive.',
   };
 }
 
