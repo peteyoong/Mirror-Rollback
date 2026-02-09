@@ -4,9 +4,8 @@ import Constants from 'expo-constants';
 
 // Enable debug mode via environment variable - GATED behind DEBUG_MIRROR
 // To enable: set DEBUG_MIRROR=true in environment
-const DEBUG_MIRROR = Constants.expoConfig?.extra?.DEBUG_MIRROR === 'true' || 
-                     process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true' ||
-                     process.env.DEBUG_MIRROR === 'true';
+// DISABLED FOR TESTER RELEASE
+const DEBUG_MIRROR = false;
 
 // Export for use in other components
 export const isDebugEnabled = () => DEBUG_MIRROR;
