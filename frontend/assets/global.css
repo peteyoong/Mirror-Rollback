@@ -1,0 +1,159 @@
+/**
+ * Global CSS for Web Layout Hardening
+ * Fixes mobile Safari full-screen and overflow issues
+ */
+
+/* ============================================
+   1) ROOT CONTAINER SIZING
+   ============================================ */
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior: none;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* ============================================
+   2) AVOID 100vw OVERFLOW TRAP
+   Replace 100vw with 100% to prevent iOS scrollbar issues
+   ============================================ */
+* {
+  box-sizing: border-box;
+}
+
+/* Override any 100vw usage */
+[style*="100vw"] {
+  width: 100% !important;
+}
+
+/* ============================================
+   3) DYNAMIC VIEWPORT HEIGHT
+   Use dvh/svh for proper mobile viewport handling
+   ============================================ */
+.full-height {
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height - preferred */
+}
+
+@supports (min-height: 100dvh) {
+  .full-height {
+    min-height: 100dvh;
+  }
+}
+
+@supports not (min-height: 100dvh) {
+  .full-height {
+    min-height: 100svh;
+  }
+}
+
+/* ============================================
+   4) MOBILE-FIRST LAYOUT (Remove maxWidth on mobile)
+   ============================================ */
+@media screen and (max-width: 768px) {
+  .web-container {
+    max-width: none !important;
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  
+  /* Ensure full width on mobile */
+  #root > div {
+    max-width: none !important;
+    width: 100% !important;
+  }
+}
+
+/* Desktop centering - only on larger screens */
+@media screen and (min-width: 769px) {
+  .web-container-centered {
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* ============================================
+   5) SAFE AREA SUPPORT
+   Handle iPhone notch and home indicator
+   ============================================ */
+.safe-area-padding {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* Apply safe area to root for full coverage */
+#root {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* ============================================
+   6) PREVENT HORIZONTAL SCROLL
+   ============================================ */
+body {
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent any element from causing horizontal scroll */
+body > * {
+  max-width: 100%;
+}
+
+/* ============================================
+   7) TOUCH IMPROVEMENTS FOR MOBILE
+   ============================================ */
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ============================================
+   8) SCROLLBAR HIDING (optional, cleaner look)
+   ============================================ */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* ============================================
+   9) DEBUG OVERLAY STYLES (DEBUG_MIRROR only)
+   ============================================ */
+.debug-viewport-overlay {
+  position: fixed;
+  bottom: 60px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #00ff00;
+  font-family: monospace;
+  font-size: 10px;
+  padding: 8px;
+  border-radius: 4px;
+  z-index: 99999;
+  max-width: 200px;
+  pointer-events: none;
+}
+
+.debug-viewport-overlay.has-overflow {
+  border: 2px solid #ff0000;
+}
