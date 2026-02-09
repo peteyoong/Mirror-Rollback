@@ -19,7 +19,6 @@ import pytest
 from datetime import datetime, timezone
 
 from deep_assessment_scoring import (
-    clamp_affinity,
     score_forced_choice,
     score_likert,
     score_ranked,
