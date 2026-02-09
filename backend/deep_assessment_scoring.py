@@ -285,9 +285,22 @@ def normalize_to_probabilities(
         if probabilities[t] < PROBABILITY_FLOOR:
             probabilities[t] = PROBABILITY_FLOOR
     
-    # Re-normalize to sum to 1.0
+    # Re-normalize to sum to 1.0 after floor application
     total = sum(probabilities.values())
-    probabilities = {t: p / total for t, p in probabilities.items()}
+    if total != 1.0:
+        probabilities = {t: p / total for t, p in probabilities.items()}
+        
+        # Ensure floors are still maintained after renormalization
+        for t in probabilities:
+            if probabilities[t] < PROBABILITY_FLOOR:
+                probabilities[t] = PROBABILITY_FLOOR
+        
+        # Final normalization
+        total = sum(probabilities.values())
+        if abs(total - 1.0) > SUM_TOLERANCE:
+            # Force correction on largest value
+            largest = max(probabilities, key=probabilities.get)
+            probabilities[largest] += (1.0 - total)
     
     # Verify sum (P4 invariant)
     final_sum = sum(probabilities.values())
