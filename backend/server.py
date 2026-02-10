@@ -9007,7 +9007,10 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
             "state_calibration": result.get("state_calibration", {}),
             "debug_scores": result.get("debug_scores", {}),
             "enneagram_computed_details": result.get("enneagram_computed_details", {}),
-            "created_at": result["created_at"].isoformat() if result.get("created_at") else None
+            "created_at": result["created_at"].isoformat() if result.get("created_at") else None,
+            # P2: Version tracking for soft versioning UI
+            "assessment_depth": result.get("assessment_depth"),
+            "assessment_version": result.get("assessment_version"),
         }
         
         # Add convergence data if present (v2 records)
