@@ -934,9 +934,14 @@ export default function EnneagramResults() {
         </View>
         
         {/* Upgrade CTA - shown based on gate logic */}
-        {ctaCopy && (
+        {ctaCopy && gateState.cta_variant && (
           <EnneagramUpgradeCTA 
-            ctaCopy={ctaCopy} 
+            ctaCopy={ctaCopy}
+            surface="results"
+            ctaVariant={gateState.cta_variant}
+            assessmentDepth={gateInput.assessment_depth || null}
+            confidenceTier={gateInput.confidence_tier || null}
+            resultAgeDays={gateState.result_age_days}
             testID="upgrade-cta-results"
           />
         )}
