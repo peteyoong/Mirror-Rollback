@@ -45,6 +45,12 @@ export interface EnneagramGateState {
   show_cta: boolean;
   cta_type: 'retake' | 'upgrade' | 'refresh' | null;
   
+  // Analytics-friendly variant string
+  cta_variant: 'retake_low_confidence' | 'upgrade_short' | 'refresh_stale' | null;
+  
+  // Computed age for analytics
+  result_age_days: number | null;
+  
   // Debug info
   _debug: {
     input_depth: string | undefined;
