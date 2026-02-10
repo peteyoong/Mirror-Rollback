@@ -458,8 +458,10 @@ class TestQuestionBank:
         assert len(INSTINCT_POOL) == 12
     
     def test_consistency_pool_size(self):
-        """Verify consistency pool has 6 items."""
-        assert len(CONSISTENCY_POOL) == 6
+        """Verify consistency pool has 4 items (CON_01-04 after removal of CON_05/06)."""
+        # Note: CON_05 and CON_06 were removed as they broke immersion
+        # Silent reliability checks (response time, straightlining) replaced them
+        assert len(CONSISTENCY_POOL) == 4
 
 
 class TestPublicAPI:
