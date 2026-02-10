@@ -1180,20 +1180,23 @@ export default function EnneagramLensView({ result, userId }: Props) {
   };
 
   const renderDeepDiveTab = () => {
-    // Show loading state
-    if (deepDiveLoading) {
+    // Show loading state for both narrative and deep dive
+    if (narrativeLoading || deepDiveLoading) {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.textSecondary} />
-          <Text style={styles.loadingText}>Loading your Deep Dive...</Text>
+          <Text style={styles.loadingText}>
+            {narrativeLoading ? 'Generating your narrative...' : 'Loading your Deep Dive...'}
+          </Text>
         </View>
       );
     }
 
-    // Use API data if available, fallback to wingInfo system
-    const data = deepDiveData;
-    const typeLabel = data?.type_label || wingInfo.typeLabel;
-    const typeName = data?.type_name || TYPE_NAMES[core];
+    // Prefer narrative data if available, fallback to deepDiveData
+    const useNarrative = narrativeData?.success && narrativeData.sections.length > 0;
+    const data = useNarrative ? null : deepDiveData; // Use deep dive for structure only when narrative is available
+    const typeLabel = narrativeData?.type_label || data?.type_label || wingInfo.typeLabel;
+    const typeName = narrativeData?.type_name || data?.type_name || TYPE_NAMES[core];
     const confidence = getConfidenceLabel();
 
     return (
@@ -1223,8 +1226,24 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <Text style={styles.deepDiveNote}>This lens reflects strategy, not identity.</Text>
         </View>
 
-        {/* ===== DEEP DIVE SECTIONS (From API) ===== */}
-        {data?.sections && data.sections.map((section, index) => (
+        {/* ===== NARRATIVE SECTIONS (From Narrative Engine - preferred) ===== */}
+        {useNarrative && narrativeData.sections.map((section, index) => (
+          <View key={`narrative-${index}`} style={styles.deepDiveSection}>
+            {section.label ? (
+              <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+            ) : null}
+            <Text style={[
+              styles.deepDiveSectionBody,
+              // Special styling for closing reflection (no label)
+              !section.label && styles.closingReflection
+            ]}>
+              {section.body}
+            </Text>
+          </View>
+        ))}
+
+        {/* ===== FALLBACK: DEEP DIVE SECTIONS (From API) ===== */}
+        {!useNarrative && data?.sections && data.sections.map((section, index) => (
           <View key={index} style={styles.deepDiveSection}>
             <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
             <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
