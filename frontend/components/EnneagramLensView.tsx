@@ -20,10 +20,12 @@ import {
   getEnneagramTraits,
   askEnneagramQuestion,
   getEnneagramDeepDive,
+  getEnneagramNarrative,
   EnneagramTraitCard,
   EnneagramComputedDetails,
   EnneagramDeepDiveSection,
-  EnneagramDeepDiveResponse
+  EnneagramDeepDiveResponse,
+  EnneagramNarrativeResponse,
 } from '../services/api';
 
 // ============================================
