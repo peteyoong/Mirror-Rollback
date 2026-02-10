@@ -7561,21 +7561,26 @@ The specific gates in your cross describe themes you'll revisit over time. These
         definition_desc = f"With {canonical_hd.get('definition', 'your')} definition, there's a particular way energy flows and connects within you—whether in one continuous circuit or in separate systems that connect through others. Your defined centers ({', '.join(defined_centers) if defined_centers else 'your key centers'}) represent consistent, reliable themes in your experience. Your undefined centers are where you take in and amplify the energy of others."
         
         # =====================================================================
-        # DETERMINE CROSS TYPE - STRUCTURED DATA FIRST (HARDENED)
+        # DETERMINE CROSS TYPE - STRUCTURED DATA ONLY (HARDENED)
         # =====================================================================
         # Priority 1: Use structured 'angle' field from canonical computation
-        # Priority 2: Fallback to prefix detection (RAX/LAX/JXP) if angle missing
-        # Never use substring heuristics like "Right" in name
-        # Never default to Left Angle - use neutral fallback if unknown
+        # Priority 2: Strict prefix fallback (RAX/LAX/JXP at start of name) ONLY if angle is None
+        # 
+        # FORBIDDEN HEURISTICS (removed):
+        # - "Right" in cross_name  (substring check - unreliable)
+        # - "Left" in cross_angle_full (substring check - unreliable)
+        # - Any defaulting to Left/Right Angle when unknown
+        #
+        # If angle is None/unknown, use neutral fallback copy (no karma, no angle claims)
         
-        cross_angle = incarnation_cross.get('angle')  # "RAX", "LAX", "JXP"
-        cross_angle_full = incarnation_cross.get('angle_full')  # "Right Angle Cross", etc.
+        cross_angle = incarnation_cross.get('angle')  # "RAX", "LAX", "JXP", or None
+        cross_angle_source = incarnation_cross.get('angle_source', 'unknown')
         cross_name = incarnation_cross.get('name') or incarnation_cross.get('internal_label', '')
         
         cross_type_key = None
         detection_method = None
         
-        # Priority 1: Structured angle field
+        # Priority 1: Structured angle field (computed_rule source)
         if cross_angle == "RAX":
             cross_type_key = "Right Angle Cross"
             detection_method = "structured_angle"
@@ -7585,34 +7590,24 @@ The specific gates in your cross describe themes you'll revisit over time. These
         elif cross_angle == "JXP":
             cross_type_key = "Juxtaposition Cross"
             detection_method = "structured_angle"
-        elif cross_angle_full:
-            # Use angle_full if available
-            if "Right" in cross_angle_full:
-                cross_type_key = "Right Angle Cross"
-                detection_method = "angle_full"
-            elif "Left" in cross_angle_full:
-                cross_type_key = "Left Angle Cross"
-                detection_method = "angle_full"
-            elif "Juxtaposition" in cross_angle_full:
-                cross_type_key = "Juxtaposition Cross"
-                detection_method = "angle_full"
         
-        # Priority 2: Fallback - prefix detection only (RAX/LAX/JXP at start of name)
-        if not cross_type_key and cross_name:
-            if cross_name.startswith("RAX"):
+        # Priority 2: Strict prefix fallback - ONLY if angle is None AND name starts with RAX/LAX/JXP
+        # This is a safety net for legacy data that may not have structured angle
+        if cross_type_key is None and cross_angle is None and cross_name:
+            if cross_name.startswith("RAX ") or cross_name == "RAX":
                 cross_type_key = "Right Angle Cross"
                 detection_method = "prefix_fallback"
-            elif cross_name.startswith("LAX"):
+            elif cross_name.startswith("LAX ") or cross_name == "LAX":
                 cross_type_key = "Left Angle Cross"
                 detection_method = "prefix_fallback"
-            elif cross_name.startswith("JXP"):
+            elif cross_name.startswith("JXP ") or cross_name == "JXP":
                 cross_type_key = "Juxtaposition Cross"
                 detection_method = "prefix_fallback"
         
         # Log detection result
-        logger.info(f"[HD_DEEP_DIVE] Cross detection: angle='{cross_angle}' name='{cross_name}' -> type='{cross_type_key}' (method={detection_method})")
+        logger.info(f"[HD_DEEP_DIVE] Cross detection: angle='{cross_angle}' angle_source='{cross_angle_source}' name='{cross_name}' -> type='{cross_type_key}' (method={detection_method})")
         
-        # Neutral fallback for unknown cross type
+        # Neutral fallback for unknown cross type - no angle claims, no karma language
         neutral_cross_description = """Your Incarnation Cross highlights themes you may revisit over time. These aren't predictions — they're territories you may explore many times in different ways."""
         
         cross_description = cross_descriptions_rich.get(cross_type_key, neutral_cross_description) if cross_type_key else neutral_cross_description
