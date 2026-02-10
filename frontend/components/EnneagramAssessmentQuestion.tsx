@@ -245,6 +245,13 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     textAlign: 'center',
   },
+  helperText: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    marginTop: 12,
+    fontStyle: 'italic',
+  },
   // Likert Styles
   likertContainer: {
     flex: 1,
