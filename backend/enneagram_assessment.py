@@ -1735,6 +1735,10 @@ def start_assessment(user_id: str, user_computed_data: Optional[dict] = None) ->
     question = get_next_question(session)
     progress = get_progress(session)
     
+    # Track when question was sent for response time measurement
+    session["last_question_sent_at"] = time.time()
+    _update_session(session["session_id"], session)
+    
     return {
         "session_id": session["session_id"],
         "question": format_question_for_response(question) if question else None,
