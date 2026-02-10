@@ -181,19 +181,49 @@ def print_pretty_table(user_output: dict):
     print(f"Location: {user_output['user']['place']} ({user_output['user']['lat']}, {user_output['user']['lon']})")
     print("=" * 80)
     
-    # Section 1: Incarnation Cross
+    # Section 1: Incarnation Cross - FULL DIAGNOSTIC DUMP
     cross = user_output['1_incarnation_cross']
-    print("\n┌─ 1) INCARNATION CROSS ─────────────────────────────────────────────────────────┐")
-    print(f"│  Angle:           {cross['angle_code']} ({cross['angle_full']})")
-    print(f"│  Cross Name:      {cross['cross_name']}")
-    print(f"│  Canonical Label: {cross['canonical_label']}")
-    print(f"│  Gates Key:       {cross['gates_key']}")
-    print(f"│  Canonical Key:   {cross['canonical_key']}")
-    print(f"│  ┌───────────────────────────────────────────────────────────────────────────┐")
-    print(f"│  │  Personality Sun:   {cross['4_gates_lines']['personality_sun']:<8}  Design Sun:   {cross['4_gates_lines']['design_sun']:<8}")
-    print(f"│  │  Personality Earth: {cross['4_gates_lines']['personality_earth']:<8}  Design Earth: {cross['4_gates_lines']['design_earth']:<8}")
-    print(f"│  └───────────────────────────────────────────────────────────────────────────┘")
-    print(f"│  Angle Source: {cross['angle_source']}")
+    print("\n┌─ 1) INCARNATION CROSS - FULL DIAGNOSTIC ──────────────────────────────────────┐")
+    print(f"│")
+    print(f"│  === STORED ANGLE FIELDS (no inference) ===")
+    print(f"│  angle:           {cross.get('angle')}")
+    print(f"│  angle_full:      {cross.get('angle_full')}")
+    print(f"│  angle_source:    {cross.get('angle_source')}")
+    print(f"│")
+    print(f"│  === ANGLE PROOF OBJECT ===")
+    proof = cross.get('angle_proof', {})
+    if proof:
+        for k, v in proof.items():
+            print(f"│    {k}: {v}")
+    else:
+        print(f"│    (no proof object)")
+    print(f"│")
+    print(f"│  === CROSS NAME/LABEL FIELDS ===")
+    print(f"│  internal_name:   {cross.get('internal_name')}")
+    print(f"│  internal_label:  {cross.get('internal_label')}")
+    print(f"│  display_label:   {cross.get('display_label')}")
+    print(f"│  name_legacy:     {cross.get('name_legacy')}")
+    print(f"│")
+    print(f"│  === KEYS ===")
+    print(f"│  canonical_key:   {cross.get('canonical_key')}")
+    print(f"│  gates_key:       {cross.get('gates_key')}")
+    print(f"│  gates_legacy:    {cross.get('gates_legacy')}")
+    print(f"│")
+    print(f"│  === VENDOR LABELS ===")
+    vendor = cross.get('vendor_labels', {})
+    if vendor:
+        for k, v in vendor.items():
+            print(f"│    {k}: {v}")
+    else:
+        print(f"│    (no vendor labels)")
+    print(f"│")
+    print(f"│  === 4 CROSS GATES/LINES ===")
+    gates = cross.get('4_gates_lines', {})
+    print(f"│    Personality Sun:   {gates.get('personality_sun')}")
+    print(f"│    Personality Earth: {gates.get('personality_earth')}")
+    print(f"│    Design Sun:        {gates.get('design_sun')}")
+    print(f"│    Design Earth:      {gates.get('design_earth')}")
+    print(f"│")
     print(f"└────────────────────────────────────────────────────────────────────────────────┘")
     
     # Section 2: Core Attributes
