@@ -499,20 +499,39 @@ export default function P2DeepAssessment() {
   );
 
   // Render error state
-  const renderError = () => (
-    <View style={styles.errorContainer}>
-      <Ionicons name="alert-circle-outline" size={48} color={Colors.textSecondary} />
-      <Text style={styles.errorText}>{error}</Text>
-      <View style={styles.errorButtons}>
-        <Pressable style={styles.errorButton} onPress={handleRestart}>
-          <Text style={styles.errorButtonText}>Restart</Text>
-        </Pressable>
-        <Pressable style={[styles.errorButton, styles.errorButtonSecondary]} onPress={() => router.back()}>
-          <Text style={[styles.errorButtonText, styles.errorButtonTextSecondary]}>Go Back</Text>
-        </Pressable>
+  const renderError = () => {
+    // Specific copy for expired session
+    if (errorType === 'session_expired') {
+      return (
+        <View style={styles.errorContainer}>
+          <Ionicons name="refresh-outline" size={48} color={Colors.textSecondary} />
+          <Text style={styles.errorTitle}>Let's start fresh</Text>
+          <Text style={styles.errorText}>
+            Your previous session expired, so we'll restart to keep results accurate.
+          </Text>
+          <Pressable style={styles.errorButton} onPress={handleRestart}>
+            <Text style={styles.errorButtonText}>Start new assessment</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
+    // Generic error
+    return (
+      <View style={styles.errorContainer}>
+        <Ionicons name="alert-circle-outline" size={48} color={Colors.textSecondary} />
+        <Text style={styles.errorText}>{error}</Text>
+        <View style={styles.errorButtons}>
+          <Pressable style={styles.errorButton} onPress={handleRestart}>
+            <Text style={styles.errorButtonText}>Restart</Text>
+          </Pressable>
+          <Pressable style={[styles.errorButton, styles.errorButtonSecondary]} onPress={() => router.back()}>
+            <Text style={[styles.errorButtonText, styles.errorButtonTextSecondary]}>Go Back</Text>
+          </Pressable>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
