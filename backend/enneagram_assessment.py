@@ -1800,8 +1800,17 @@ def compute_silent_reliability_score(session: dict) -> tuple[float, dict]:
 # RESULT COMPUTATION
 # =============================================================================
 
-def compute_results(session: dict) -> dict:
-    """Compute final assessment results."""
+def compute_results(session: dict, include_debug: bool = False) -> dict:
+    """
+    Compute final assessment results.
+    
+    Args:
+        session: Assessment session dict
+        include_debug: If True and DEBUG_MIRROR is enabled, include confidence debug block
+    
+    Returns:
+        Results dict with type, wing, confidence, etc.
+    """
     # Get top type
     top_type, second_type, gap = get_top_type_gap(session["type_scores"])
     
@@ -1879,7 +1888,7 @@ def compute_results(session: dict) -> dict:
     else:
         confidence_tier = ConfidenceTier.EXPLORATORY.value
     
-    return {
+    result = {
         "core_type": top_type,
         "wing": wing,
         "instinct_primary": instinct_primary,
@@ -1890,7 +1899,7 @@ def compute_results(session: dict) -> dict:
         "assessment_version": "v2",  # Version marker for soft versioning
         "reliability": reliability,
         "created_at_iso": datetime.now(timezone.utc).isoformat(),
-        # Debug fields
+        # Debug fields (always included for internal use)
         "_debug": {
             "type_scores": session["type_scores"],
             "center_scores": session["center_scores"],
@@ -1905,6 +1914,38 @@ def compute_results(session: dict) -> dict:
             "neither_count": session.get("neither_count", 0)
         }
     }
+    
+    # ==========================================================================
+    # DEV-ONLY CONFIDENCE DEBUG OUTPUT (Task C)
+    # ==========================================================================
+    # This block is ONLY included when:
+    # 1. DEBUG_MIRROR environment variable is true
+    # 2. AND include_debug parameter is True (passed from API with ?debug=1)
+    #
+    # This block:
+    # - NEVER appears in production mode
+    # - Does NOT affect scoring (read-only diagnostics)
+    # - Provides visibility into confidence computation
+    # ==========================================================================
+    if DEBUG_MIRROR and include_debug:
+        result["_confidence_debug"] = {
+            "base_confidence": round(base_confidence, 4),
+            "silent_reliability": round(silent_reliability, 4),
+            "reliability_multiplier": round(reliability_multiplier, 4),
+            "final_confidence": round(confidence, 4),
+            "coherence_modifier": round(0.7 + 0.3 * coherence, 4),
+            "neither_penalty": round(neither_penalty, 4),
+            "components": {
+                "type_gap_factor": round(type_gap_factor, 4),
+                "wing_factor": round(wing_factor, 4),
+                "instinct_factor": round(instinct_factor, 4),
+                "consistency_score": round(consistency_score, 4)
+            },
+            "formula": "base * coherence_mod * reliability_mult - neither_penalty"
+        }
+        logger.debug(f"[ENNEAGRAM_DEBUG] Confidence debug: {result['_confidence_debug']}")
+    
+    return result
 
 # =============================================================================
 # PUBLIC API FUNCTIONS
