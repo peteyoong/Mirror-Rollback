@@ -148,28 +148,32 @@ def run_verification():
             # All 13 Planet Activations - Personality
             print("PERSONALITY ACTIVATIONS (Birth/Conscious)")
             print("-" * 40)
-            p_act = hd.get('personality_activations', {})
-            planet_order = ['sun', 'earth', 'moon', 'north_node', 'south_node', 
-                          'mercury', 'venus', 'mars', 'jupiter', 'saturn', 
-                          'uranus', 'neptune', 'pluto']
-            for planet in planet_order:
-                act = p_act.get(planet, {})
-                gate = act.get('gate', '?')
-                line = act.get('line', '?')
-                lon = act.get('longitude', 0)
-                print(f"  {planet.upper():12} {gate:2}.{line}  ({lon:.2f}°)")
+            p_data = hd.get('personality', {})
+            planet_labels = ['Sun', 'Earth', 'Moon', 'North Node', 'South Node', 
+                          'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 
+                          'Uranus', 'Neptune', 'Pluto']
+            for planet in planet_labels:
+                p_info = p_data.get(planet, {})
+                gate_info = p_info.get('gate', {})
+                pos_info = p_info.get('position', {})
+                gate = gate_info.get('gate', '?')
+                line = gate_info.get('line', '?')
+                lon = pos_info.get('longitude', 0)
+                print(f"  {planet:12} {gate:2}.{line}  ({lon:.2f}°)")
             print()
             
             # All 13 Planet Activations - Design
             print("DESIGN ACTIVATIONS (88° Prior/Unconscious)")
             print("-" * 40)
-            d_act = hd.get('design_activations', {})
-            for planet in planet_order:
-                act = d_act.get(planet, {})
-                gate = act.get('gate', '?')
-                line = act.get('line', '?')
-                lon = act.get('longitude', 0)
-                print(f"  {planet.upper():12} {gate:2}.{line}  ({lon:.2f}°)")
+            d_data = hd.get('design', {})
+            for planet in planet_labels:
+                d_info = d_data.get(planet, {})
+                gate_info = d_info.get('gate', {})
+                pos_info = d_info.get('position', {})
+                gate = gate_info.get('gate', '?')
+                line = gate_info.get('line', '?')
+                lon = pos_info.get('longitude', 0)
+                print(f"  {planet:12} {gate:2}.{line}  ({lon:.2f}°)")
             print()
             
         except Exception as e:
