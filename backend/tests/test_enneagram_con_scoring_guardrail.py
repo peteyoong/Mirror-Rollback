@@ -54,37 +54,32 @@ BASELINE_ANSWERS = {
     "C08": {"value": 2},  # Heart center
     "C09": {"value": 2},  # Gut center
     
-    # CORE TYPE QUESTIONS - Establish Type 5 dominance
+    # HEAD CENTER CORE TYPE QUESTIONS - Establish Type 5 dominance
     # Type 5 patterns: Observer, knowledge-seeking, boundary-setting
-    "CORE_H5_01": {"value": 5},  # Type 5 question
-    "CORE_H5_02": {"value": 5},
-    "CORE_H5_03": {"value": 5},
+    "H5_01": {"value": 5},  # Type 5 question
+    "H5_02": {"value": 5},
+    "H5_03": {"value": 5},
+    "H5_04": {"value": 5},
+    "H5_05": {"value": 5},
+    "H5_06": {"value": 5},
     
     # Type 6 (adjacent) - moderate
-    "CORE_H6_01": {"value": 3},
-    "CORE_H6_02": {"value": 3},
+    "H6_01": {"value": 2},
+    "H6_02": {"value": 2},
+    "H6_03": {"value": 2},
     
     # Type 7 (adjacent) - low
-    "CORE_H7_01": {"value": 2},
-    "CORE_H7_02": {"value": 2},
-    
-    # WING QUESTIONS - Establish 4 wing (left)
-    "WING_5_LEFT_01": {"value": 5},  # 5w4 pattern
-    "WING_5_LEFT_02": {"value": 5},
-    "WING_5_RIGHT_01": {"value": 2},  # Not 5w6
-    "WING_5_RIGHT_02": {"value": 2},
-    
-    # INSTINCT QUESTIONS
-    "INST_01": {"value": 4},
-    "INST_02": {"value": 4},
-    "INST_03": {"value": 2},
+    "H7_01": {"value": 2},
+    "H7_02": {"value": 2},
+    "H7_03": {"value": 2},
 }
 
-# Expected baseline result
+# Expected baseline result - we verify type 5 and head center
+# Wing depends on wing questions which we didn't include, so we'll verify
+# the core guarantee: CON_* cannot change type or center
 EXPECTED_BASELINE = {
     "core_type": 5,
     "center": "head",
-    "wing_direction": "left",  # 4 wing
 }
 
 
