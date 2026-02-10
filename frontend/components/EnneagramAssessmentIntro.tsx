@@ -192,62 +192,85 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Resume Prompt Styles
-  resumePromptCard: {
-    backgroundColor: Colors.surfaceLight,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.accent,
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    padding: 28,
+    alignItems: 'center',
     maxWidth: 340,
     width: '100%',
   },
-  resumeIcon: {
-    marginBottom: 8,
-  },
-  resumeTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  resumeBody: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: Colors.textSecondary,
-    textAlign: 'center',
+  modalIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.surfaceLight,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 16,
   },
-  resumeButtons: {
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalBody: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  modalButtons: {
     flexDirection: 'row',
     gap: 12,
+    marginBottom: 16,
   },
-  resumePrimaryButton: {
+  modalPrimaryButton: {
     backgroundColor: Colors.accent,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 12,
+    minWidth: 120,
+    alignItems: 'center',
   },
-  resumePrimaryButtonText: {
-    fontSize: 15,
+  modalPrimaryButtonText: {
+    fontSize: 16,
     fontWeight: '600',
     color: Colors.surface,
   },
-  resumeSecondaryButton: {
+  modalSecondaryButton: {
     backgroundColor: 'transparent',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.border,
+    minWidth: 110,
+    alignItems: 'center',
   },
-  resumeSecondaryButtonText: {
+  modalSecondaryButtonText: {
     fontSize: 15,
     fontWeight: '500',
     color: Colors.textSecondary,
+  },
+  modalTertiaryButton: {
+    paddingVertical: 8,
+  },
+  modalTertiaryButtonText: {
+    fontSize: 14,
+    color: Colors.textTertiary,
+    textDecorationLine: 'underline',
   },
   // Original Intro Styles
   iconContainer: {
