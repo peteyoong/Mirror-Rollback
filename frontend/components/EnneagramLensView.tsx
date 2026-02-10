@@ -1385,9 +1385,14 @@ export default function EnneagramLensView({ result, userId }: Props) {
         </View>
 
         {/* Upgrade CTA - shown based on gate logic */}
-        {ctaCopy && (
+        {ctaCopy && gateState.cta_variant && (
           <EnneagramUpgradeCTA 
-            ctaCopy={ctaCopy} 
+            ctaCopy={ctaCopy}
+            surface="deep_dive"
+            ctaVariant={gateState.cta_variant}
+            assessmentDepth={gateInput.assessment_depth || null}
+            confidenceTier={gateInput.confidence_tier || null}
+            resultAgeDays={gateState.result_age_days}
             testID="upgrade-cta-deep-dive"
           />
         )}
