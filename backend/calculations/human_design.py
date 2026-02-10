@@ -204,35 +204,104 @@ INCARNATION_CROSS_NAMES = {
     64: "Consciousness",
 }
 
-def get_incarnation_cross_name(p_sun_gate: int, profile_line1: int) -> str:
+# =============================================================================
+# INCARNATION CROSS ANGLE DETERMINATION
+# =============================================================================
+# The cross angle (RAX/LAX/JXP) is determined by the FULL PROFILE (both lines).
+# This is a fixed mapping based on the 12 possible profiles in Human Design.
+#
+# Right Angle (RAX) - Personal Destiny - 7 profiles:
+#   1/3, 1/4, 2/4, 2/5, 3/5, 3/6, 4/6
+#
+# Juxtaposition (JXP) - Fixed Fate - 1 profile only:
+#   4/1
+#
+# Left Angle (LAX) - Transpersonal Karma - 4 profiles:
+#   5/1, 5/2, 6/2, 6/3
+#
+# Source: Jovian Archive / Human Design System standard definitions
+# =============================================================================
+
+PROFILE_TO_ANGLE = {
+    # Right Angle profiles (Personal Destiny)
+    "1/3": ("RAX", "Right Angle Cross"),
+    "1/4": ("RAX", "Right Angle Cross"),
+    "2/4": ("RAX", "Right Angle Cross"),
+    "2/5": ("RAX", "Right Angle Cross"),
+    "3/5": ("RAX", "Right Angle Cross"),
+    "3/6": ("RAX", "Right Angle Cross"),
+    "4/6": ("RAX", "Right Angle Cross"),
+    
+    # Juxtaposition profile (Fixed Fate) - ONLY 4/1
+    "4/1": ("JXP", "Juxtaposition Cross"),
+    
+    # Left Angle profiles (Transpersonal Karma)
+    "5/1": ("LAX", "Left Angle Cross"),
+    "5/2": ("LAX", "Left Angle Cross"),
+    "6/2": ("LAX", "Left Angle Cross"),
+    "6/3": ("LAX", "Left Angle Cross"),
+}
+
+
+def get_angle_from_profile(profile: str) -> Tuple[str, str, Dict]:
+    """
+    Determine incarnation cross angle from the full profile string.
+    
+    The angle is NOT determined by just the first line of the profile.
+    It is a fixed mapping based on the complete profile combination.
+    
+    Args:
+        profile: Profile string in "X/Y" format (e.g., "4/6", "5/1")
+    
+    Returns:
+        Tuple of (angle_code, angle_full_name, proof_dict)
+        
+    The proof_dict contains:
+        - input_profile: The profile used for lookup
+        - rule_name: "profile_to_angle_mapping"
+        - lookup_table: Reference to the standard HD profile-angle mapping
+        - result: The determined angle
+    """
+    angle_data = PROFILE_TO_ANGLE.get(profile)
+    
+    if angle_data:
+        angle, angle_full = angle_data
+        proof = {
+            "input_profile": profile,
+            "rule_name": "profile_to_angle_mapping",
+            "lookup_table": "PROFILE_TO_ANGLE (HD standard)",
+            "matched_entry": f"{profile} -> {angle}",
+            "result": angle
+        }
+    else:
+        # Fallback for invalid profiles (should never happen with valid data)
+        angle = "RAX"
+        angle_full = "Right Angle Cross"
+        proof = {
+            "input_profile": profile,
+            "rule_name": "fallback_default",
+            "lookup_table": "N/A (profile not found)",
+            "matched_entry": None,
+            "result": angle,
+            "warning": f"Profile '{profile}' not in standard mapping, defaulted to RAX"
+        }
+    
+    return angle, angle_full, proof
+
+
+def get_incarnation_cross_name(p_sun_gate: int, profile: str) -> str:
     """
     Get the full incarnation cross name based on personality Sun gate and profile.
     
-    The cross angle (Right Angle, Left Angle, Juxtaposition) is determined by the
-    first number of the profile:
-    - Lines 1, 2, 3 = Right Angle Cross (RAX) - Personal destiny
-    - Line 4 = Juxtaposition Cross (JXP) - Fixed fate
-    - Lines 5, 6 = Left Angle Cross (LAX) - Transpersonal karma
-    
     Args:
         p_sun_gate: Personality Sun gate number
-        profile_line1: First line of the profile (1-6)
+        profile: Full profile string (e.g., "4/6")
     
     Returns:
         Full cross name like "RAX Migration" or "LAX Tension"
     """
     cross_name = INCARNATION_CROSS_NAMES.get(p_sun_gate, f"Cross of Gate {p_sun_gate}")
-    
-    # Determine cross angle from profile
-    if profile_line1 in [1, 2, 3]:
-        angle = "RAX"  # Right Angle Cross
-    elif profile_line1 == 4:
-        angle = "JXP"  # Juxtaposition Cross
-    elif profile_line1 in [5, 6]:
-        angle = "LAX"  # Left Angle Cross
-    else:
-        angle = "RAX"  # Default fallback
-    
+    angle, _, _ = get_angle_from_profile(profile)
     return f"{angle} {cross_name}"
 
 
