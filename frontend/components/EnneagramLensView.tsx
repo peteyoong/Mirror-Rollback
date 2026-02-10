@@ -1267,15 +1267,61 @@ export default function EnneagramLensView({ result, userId }: Props) {
 
         {/* ===== NARRATIVE SECTIONS (Story-only when available) ===== */}
         {useNarrative && narrativeData.sections.map((section, index) => {
-          // Check if this is the "Deeper Patterns" section (collapsible)
-          const isDeeperPatterns = section.id === 'deeper_patterns' || 
-            (section.label && section.label.toLowerCase().includes('deeper pattern'));
+          // Identify section types for collapsible behavior
+          const sectionId = section.id || '';
+          const labelLower = (section.label || '').toLowerCase();
           
-          // Closing reflection - no label, special styling
+          const isCoreStory = sectionId === 'core_story' || labelLower.includes('core story');
+          const isWingStory = sectionId === 'wing_story' || labelLower.includes('your wing');
+          const isOtherWing = sectionId === 'other_wing' || labelLower.includes('other wing');
+          const isDeeperPatterns = sectionId === 'deeper_patterns' || labelLower.includes('deeper pattern');
           const isClosing = !section.label;
           
+          // Core Story - always expanded (no collapsible)
+          if (isCoreStory) {
+            return (
+              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
+                <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+                <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
+              </View>
+            );
+          }
+          
+          // Core + Wing - always expanded (no collapsible)
+          if (isWingStory) {
+            return (
+              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
+                <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+                <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
+              </View>
+            );
+          }
+          
+          // The Other Wing - collapsible, collapsed by default
+          if (isOtherWing) {
+            return (
+              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
+                <TouchableOpacity 
+                  style={styles.collapsibleHeader}
+                  onPress={() => setOtherWingExpanded(!otherWingExpanded)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+                  <Ionicons 
+                    name={otherWingExpanded ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={Colors.textSecondary} 
+                  />
+                </TouchableOpacity>
+                {otherWingExpanded && (
+                  <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
+                )}
+              </View>
+            );
+          }
+          
+          // Deeper Patterns - collapsible, collapsed by default
           if (isDeeperPatterns) {
-            // Collapsible Deeper Patterns section
             return (
               <View key={`narrative-${index}`} style={styles.deepDiveSection}>
                 <TouchableOpacity 
@@ -1297,21 +1343,56 @@ export default function EnneagramLensView({ result, userId }: Props) {
             );
           }
           
-          // Regular narrative section
+          // Closing reflection - always visible, special styling
+          if (isClosing) {
+            return (
+              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
+                <Text style={styles.closingReflection}>{section.body}</Text>
+              </View>
+            );
+          }
+          
+          // Default: regular section
           return (
             <View key={`narrative-${index}`} style={styles.deepDiveSection}>
               {section.label && (
                 <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
               )}
-              <Text style={[
-                styles.deepDiveSectionBody,
-                isClosing && styles.closingReflection
-              ]}>
-                {section.body}
-              </Text>
+              <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
             </View>
           );
         })}
+        
+        {/* ===== ENERGETIC FLOW SECTION (Stress/Growth Movement) ===== */}
+        {useNarrative && computedDetails && (
+          <View style={styles.deepDiveSection}>
+            <TouchableOpacity 
+              style={styles.collapsibleHeader}
+              onPress={() => setEnergeticFlowExpanded(!energeticFlowExpanded)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.deepDiveSectionTitle}>Energetic Flow</Text>
+              <Ionicons 
+                name={energeticFlowExpanded ? "chevron-up" : "chevron-down"} 
+                size={20} 
+                color={Colors.textSecondary} 
+              />
+            </TouchableOpacity>
+            {energeticFlowExpanded && (
+              <View style={styles.energeticFlowContent}>
+                <Text style={styles.deepDiveSectionBody}>
+                  {`Under pressure, attention may shift toward Type ${computedDetails.stress_line_to || '?'} patterns — ${getStressDescription(core, computedDetails.stress_line_to)}`}
+                </Text>
+                <Text style={[styles.deepDiveSectionBody, { marginTop: 12 }]}>
+                  {`When resourced, there's often access to Type ${computedDetails.growth_line_to || '?'} qualities — ${getGrowthDescription(core, computedDetails.growth_line_to)}`}
+                </Text>
+                <Text style={styles.energeticFlowNote}>
+                  These aren't destinations — just movements you may notice.
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* ===== FALLBACK: Legacy Deep Dive (only when narrative unavailable) ===== */}
         {!useNarrative && narrativeStatus === 'error' && deepDiveData?.sections && (
