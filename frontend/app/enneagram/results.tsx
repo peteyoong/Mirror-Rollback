@@ -802,6 +802,14 @@ export default function EnneagramResults() {
       ? 'Medium' 
       : 'Low';
   
+  // ============================================
+  // VERSION CHECK - Determine if this is the latest assessment
+  // ============================================
+  // Latest assessment requires both v2 AND deep depth
+  const isLatestAssessment = 
+    result.assessment_version === 'v2' && 
+    result.assessment_depth === 'deep';
+  
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
