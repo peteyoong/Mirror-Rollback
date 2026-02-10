@@ -9345,6 +9345,173 @@ async def get_convergence_rules():
 
 
 # =============================================================================
+# ENNEAGRAM DEEP ASSESSMENT ENGINE (P2)
+# =============================================================================
+# Single-sitting (20-30 min) assessment that identifies:
+# - Core type (1-9)
+# - Wing (adjacent type)
+# - Instinctual stacking (sp/so/sx)
+#
+# Key Principles:
+# - User answers ALWAYS determine type (hidden validation never overrides)
+# - Hidden validation (HD/Astro) only adjusts confidence or triggers more questions
+
+class DeepAssessmentStartRequest(BaseModel):
+    user_id: str
+
+class DeepAssessmentAnswerRequest(BaseModel):
+    user_id: str
+    session_id: str
+    question_id: str
+    answer: Dict[str, Any]  # {"type": "likert"|"forced", "value": 1-5 or "A"|"B"|"both"|"neither"}
+
+@api_router.post("/enneagram/deep-assessment/start")
+async def start_deep_assessment(request: DeepAssessmentStartRequest):
+    """
+    Start a new deep Enneagram assessment session.
+    
+    Returns:
+        session_id: Unique session identifier
+        question: First question to answer
+        progress: Progress information
+    """
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(request.user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get user's computed data for hidden validation (if available)
+        chart = await db.charts.find_one({"user_id": request.user_id})
+        user_computed_data = None
+        if chart:
+            user_computed_data = {
+                "human_design": chart.get("human_design", {}),
+                "astrology": chart.get("astrology", {})
+            }
+        
+        # Start the assessment
+        result = ea_start_assessment(request.user_id, user_computed_data)
+        
+        logger.info(f"[DeepAssessment] Started session {result['session_id']} for user {request.user_id}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[DeepAssessment] Start error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/enneagram/deep-assessment/answer")
+async def submit_deep_assessment_answer(request: DeepAssessmentAnswerRequest):
+    """
+    Submit an answer to the current question.
+    
+    Request body:
+        user_id: User identifier
+        session_id: Assessment session ID
+        question_id: Question being answered
+        answer: {"type": "likert"|"forced", "value": 1-5 or "A"|"B"|"both"|"neither"}
+    
+    Returns either:
+        - Next question + progress (if more questions remain)
+        - Final results (if assessment complete)
+    """
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(request.user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get user's computed data for hidden validation
+        chart = await db.charts.find_one({"user_id": request.user_id})
+        user_computed_data = None
+        if chart:
+            user_computed_data = {
+                "human_design": chart.get("human_design", {}),
+                "astrology": chart.get("astrology", {})
+            }
+        
+        # Submit the answer
+        try:
+            result = ea_submit_answer(
+                request.user_id,
+                request.session_id,
+                request.question_id,
+                request.answer,
+                user_computed_data
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        
+        # If results are returned, save to user profile
+        if "results" in result:
+            # Include debug info based on environment flag
+            include_debug = os.environ.get("DEBUG_MIRROR", "false").lower() == "true"
+            profile_enneagram = format_profile_enneagram(result["results"], include_debug)
+            
+            # Update user profile
+            await db.users.update_one(
+                {"_id": ObjectId(request.user_id)},
+                {
+                    "$set": {
+                        "enneagram": profile_enneagram,
+                        "updated_at": datetime.now(timezone.utc)
+                    }
+                }
+            )
+            
+            # Also save to enneagram_results collection for consistency
+            await db.enneagram_results.update_one(
+                {"user_id": request.user_id},
+                {
+                    "$set": {
+                        "user_id": request.user_id,
+                        "assessment_type": "deep_v2",
+                        "results": profile_enneagram,
+                        "updated_at": datetime.now(timezone.utc)
+                    }
+                },
+                upsert=True
+            )
+            
+            logger.info(f"[DeepAssessment] Completed for user {request.user_id}: Type {profile_enneagram['core_type']}w{profile_enneagram['wing']}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[DeepAssessment] Answer error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/enneagram/deep-assessment/status/{session_id}")
+async def get_deep_assessment_status(session_id: str):
+    """
+    Get the current status of an assessment session.
+    
+    Returns session stage, progress, and timestamps.
+    """
+    try:
+        status = ea_get_session_status(session_id)
+        
+        if not status:
+            raise HTTPException(
+                status_code=404,
+                detail="Session not found or expired. Sessions expire after 2 hours."
+            )
+        
+        return status
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[DeepAssessment] Status error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
 # ENNEAGRAM Q&A ENDPOINT (Knowledge Base)
 # =============================================================================
 
