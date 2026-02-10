@@ -54,36 +54,75 @@ export const EnneagramAssessmentIntro: React.FC<Props> = ({
   showResumePrompt = false,
   onResume,
   onStartFresh,
+  onDismissResume,
+  resumeProgress,
 }) => {
+  // Build progress description for resume modal
+  const getProgressDescription = () => {
+    if (!resumeProgress) return 'You were partway through a deep assessment.';
+    
+    const { questionsAnswered, totalQuestions, stage } = resumeProgress;
+    let description = `You completed ${questionsAnswered} of ${totalQuestions} questions`;
+    
+    if (stage && STAGE_LABELS[stage]) {
+      description += `\nCurrently on: ${STAGE_LABELS[stage]}`;
+    }
+    
+    return description;
+  };
+
   return (
     <View style={styles.container}>
-      {/* Resume Prompt Card */}
-      {showResumePrompt && (
-        <View style={styles.resumePromptCard}>
-          <Ionicons name="bookmark-outline" size={24} color={Colors.accent} style={styles.resumeIcon} />
-          <Text style={styles.resumeTitle}>Pick up where you left off?</Text>
-          <Text style={styles.resumeBody}>
-            You were partway through a deep assessment.{'\n'}
-            You can continue, or start fresh.
-          </Text>
-          <View style={styles.resumeButtons}>
+      {/* Resume Prompt Modal */}
+      <Modal
+        visible={showResumePrompt}
+        transparent
+        animationType="fade"
+        onRequestClose={onDismissResume}
+      >
+        <Pressable style={styles.modalOverlay} onPress={onDismissResume}>
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.modalIconContainer}>
+              <Ionicons name="bookmark-outline" size={32} color={Colors.accent} />
+            </View>
+            
+            <Text style={styles.modalTitle}>Pick up where you left off?</Text>
+            
+            <Text style={styles.modalBody}>
+              {getProgressDescription()}
+            </Text>
+            
+            <View style={styles.modalButtons}>
+              {/* Primary: Continue */}
+              <TouchableOpacity
+                style={styles.modalPrimaryButton}
+                onPress={onResume}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.modalPrimaryButtonText}>Continue</Text>
+              </TouchableOpacity>
+              
+              {/* Secondary: Start fresh */}
+              <TouchableOpacity
+                style={styles.modalSecondaryButton}
+                onPress={onStartFresh}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.modalSecondaryButtonText}>Start fresh</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {/* Tertiary: Not now */}
             <TouchableOpacity
-              style={styles.resumePrimaryButton}
-              onPress={onResume}
-              activeOpacity={0.8}
+              style={styles.modalTertiaryButton}
+              onPress={onDismissResume}
+              activeOpacity={0.7}
             >
-              <Text style={styles.resumePrimaryButtonText}>Continue</Text>
+              <Text style={styles.modalTertiaryButtonText}>Not now</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.resumeSecondaryButton}
-              onPress={onStartFresh}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.resumeSecondaryButtonText}>Start over</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Header Icon */}
       <View style={styles.iconContainer}>
