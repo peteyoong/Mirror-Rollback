@@ -199,6 +199,7 @@ export const EnneagramAssessmentQuestion: React.FC<Props> = ({
       {/* Question Text */}
       <View style={styles.questionContainer}>
         <Text style={styles.questionText}>{question.prompt}</Text>
+        <Text style={styles.helperText}>{helperText}</Text>
       </View>
 
       {/* Answer Options */}
