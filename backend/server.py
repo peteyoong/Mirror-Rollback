@@ -7560,18 +7560,57 @@ The specific gates in your cross describe themes you'll revisit over time. These
         
         definition_desc = f"With {canonical_hd.get('definition', 'your')} definition, there's a particular way energy flows and connects within you—whether in one continuous circuit or in separate systems that connect through others. Your defined centers ({', '.join(defined_centers) if defined_centers else 'your key centers'}) represent consistent, reliable themes in your experience. Your undefined centers are where you take in and amplify the energy of others."
         
-        # Determine cross type from name (check for LAX/RAX/JXP prefixes and full names)
-        cross_name = incarnation_cross.get('name', '')
-        if "Right" in cross_name or cross_name.startswith("RAX"):
-            cross_type_key = "Right Angle Cross"
-        elif "Left" in cross_name or cross_name.startswith("LAX"):
-            cross_type_key = "Left Angle Cross"
-        elif "Juxtaposition" in cross_name or cross_name.startswith("JXP"):
-            cross_type_key = "Juxtaposition Cross"
-        else:
-            cross_type_key = None  # Unknown - use neutral fallback
+        # =====================================================================
+        # DETERMINE CROSS TYPE - STRUCTURED DATA FIRST (HARDENED)
+        # =====================================================================
+        # Priority 1: Use structured 'angle' field from canonical computation
+        # Priority 2: Fallback to prefix detection (RAX/LAX/JXP) if angle missing
+        # Never use substring heuristics like "Right" in name
+        # Never default to Left Angle - use neutral fallback if unknown
         
-        logger.info(f"[HD_DEEP_DIVE] Cross name: '{cross_name}' -> type: '{cross_type_key}'")
+        cross_angle = incarnation_cross.get('angle')  # "RAX", "LAX", "JXP"
+        cross_angle_full = incarnation_cross.get('angle_full')  # "Right Angle Cross", etc.
+        cross_name = incarnation_cross.get('name') or incarnation_cross.get('internal_label', '')
+        
+        cross_type_key = None
+        detection_method = None
+        
+        # Priority 1: Structured angle field
+        if cross_angle == "RAX":
+            cross_type_key = "Right Angle Cross"
+            detection_method = "structured_angle"
+        elif cross_angle == "LAX":
+            cross_type_key = "Left Angle Cross"
+            detection_method = "structured_angle"
+        elif cross_angle == "JXP":
+            cross_type_key = "Juxtaposition Cross"
+            detection_method = "structured_angle"
+        elif cross_angle_full:
+            # Use angle_full if available
+            if "Right" in cross_angle_full:
+                cross_type_key = "Right Angle Cross"
+                detection_method = "angle_full"
+            elif "Left" in cross_angle_full:
+                cross_type_key = "Left Angle Cross"
+                detection_method = "angle_full"
+            elif "Juxtaposition" in cross_angle_full:
+                cross_type_key = "Juxtaposition Cross"
+                detection_method = "angle_full"
+        
+        # Priority 2: Fallback - prefix detection only (RAX/LAX/JXP at start of name)
+        if not cross_type_key and cross_name:
+            if cross_name.startswith("RAX"):
+                cross_type_key = "Right Angle Cross"
+                detection_method = "prefix_fallback"
+            elif cross_name.startswith("LAX"):
+                cross_type_key = "Left Angle Cross"
+                detection_method = "prefix_fallback"
+            elif cross_name.startswith("JXP"):
+                cross_type_key = "Juxtaposition Cross"
+                detection_method = "prefix_fallback"
+        
+        # Log detection result
+        logger.info(f"[HD_DEEP_DIVE] Cross detection: angle='{cross_angle}' name='{cross_name}' -> type='{cross_type_key}' (method={detection_method})")
         
         # Neutral fallback for unknown cross type
         neutral_cross_description = """Your Incarnation Cross highlights themes you may revisit over time. These aren't predictions — they're territories you may explore many times in different ways."""
