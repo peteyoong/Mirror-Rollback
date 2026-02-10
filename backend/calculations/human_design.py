@@ -1109,12 +1109,13 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     d_earth_line = design_data['Earth']['gate']['line']
     
     # Build canonical incarnation cross with vendor mapping
+    # NOTE: Angle is determined by FULL PROFILE (e.g., "4/6"), not just line 1
     incarnation_cross = build_incarnation_cross_canonical(
         p_sun_gate, p_sun_line,
         p_earth_gate, p_earth_line,
         d_sun_gate, d_sun_line,
         d_earth_gate, d_earth_line,
-        personality_sun_line  # First profile line determines angle
+        profile  # Full profile string for angle lookup
     )
     
     # Legacy format for backward compatibility
