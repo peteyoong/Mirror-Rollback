@@ -17,6 +17,9 @@ import { useAppStore } from '../../store';
 import { Ionicons } from '@expo/vector-icons';
 import { getEnneagramResult, submitEnneagramFeedback } from '../../services/api';
 import * as Clipboard from 'expo-clipboard';
+import EnneagramUpgradeCTA from '../../components/EnneagramUpgradeCTA';
+import PreliminaryLabel from '../../components/PreliminaryLabel';
+import { getEnneagramUpgradeInfo, EnneagramGateInput } from '../../utils/enneagramGateLogic';
 
 // Check if we're in development mode - DISABLED for tester builds
 // const IS_DEV = process.env.NODE_ENV !== 'production' || __DEV__;
