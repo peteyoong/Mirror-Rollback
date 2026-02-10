@@ -190,6 +190,13 @@ export function computeEnneagramGateState(input: EnneagramGateInput): EnneagramG
     rule_applied = 'no_cta_needed';
   }
   
+  // Derive cta_variant for analytics
+  const cta_variant: 'retake_low_confidence' | 'upgrade_short' | 'refresh_stale' | null = 
+    cta_type === 'retake' ? 'retake_low_confidence' :
+    cta_type === 'upgrade' ? 'upgrade_short' :
+    cta_type === 'refresh' ? 'refresh_stale' :
+    null;
+  
   return {
     needs_deep_assessment,
     suggest_retake,
@@ -197,6 +204,8 @@ export function computeEnneagramGateState(input: EnneagramGateInput): EnneagramG
     suggest_refresh,
     show_cta: cta_type !== null,
     cta_type,
+    cta_variant,
+    result_age_days: ageDays,
     _debug: {
       input_depth: depth,
       input_tier: tier,
