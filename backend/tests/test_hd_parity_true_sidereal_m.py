@@ -11,8 +11,16 @@ These tests ensure:
 4. Incarnation cross angle + gates_key match fixtures
 5. Channels match fixtures
 6. Deterministic idempotency (compute twice yields same results)
+7. Angle source is "computed_rule" and angle_proof exists
 
 DO NOT modify fixtures without re-validating against reference tool.
+
+ANGLE DETERMINATION:
+The cross angle (RAX/LAX/JXP) is determined by the FULL PROFILE combination,
+NOT by just the first line of the profile. The mapping is:
+- RAX (Right Angle): 1/3, 1/4, 2/4, 2/5, 3/5, 3/6, 4/6
+- JXP (Juxtaposition): 4/1 ONLY
+- LAX (Left Angle): 5/1, 5/2, 6/2, 6/3
 """
 
 import sys
@@ -24,7 +32,7 @@ import pytest
 from datetime import datetime, timezone
 from pathlib import Path
 
-from calculations.human_design import get_human_design_chart
+from calculations.human_design import get_human_design_chart, PROFILE_TO_ANGLE
 
 # =============================================================================
 # TEST CONFIGURATION
@@ -111,11 +119,58 @@ class TestSettingsIntegrity:
 
 
 # =============================================================================
+# PROFILE TO ANGLE MAPPING TESTS
+# =============================================================================
+
+class TestProfileToAngleMapping:
+    """Verify the PROFILE_TO_ANGLE constant is correctly defined"""
+    
+    def test_all_12_profiles_mapped(self):
+        """All 12 HD profiles must be in the mapping"""
+        expected_profiles = [
+            "1/3", "1/4", "2/4", "2/5", "3/5", "3/6", "4/6",  # RAX
+            "4/1",  # JXP
+            "5/1", "5/2", "6/2", "6/3"  # LAX
+        ]
+        for profile in expected_profiles:
+            assert profile in PROFILE_TO_ANGLE, f"Profile {profile} missing from mapping"
+    
+    def test_rax_profiles_correct(self):
+        """RAX profiles: 1/3, 1/4, 2/4, 2/5, 3/5, 3/6, 4/6"""
+        rax_profiles = ["1/3", "1/4", "2/4", "2/5", "3/5", "3/6", "4/6"]
+        for profile in rax_profiles:
+            angle, _ = PROFILE_TO_ANGLE[profile]
+            assert angle == "RAX", f"Profile {profile} should be RAX, got {angle}"
+    
+    def test_jxp_only_4_1(self):
+        """Only profile 4/1 is JXP (Juxtaposition)"""
+        angle, _ = PROFILE_TO_ANGLE["4/1"]
+        assert angle == "JXP"
+        
+        # Verify no other profile is JXP
+        for profile, (angle, _) in PROFILE_TO_ANGLE.items():
+            if profile != "4/1":
+                assert angle != "JXP", f"Profile {profile} incorrectly mapped to JXP"
+    
+    def test_lax_profiles_correct(self):
+        """LAX profiles: 5/1, 5/2, 6/2, 6/3"""
+        lax_profiles = ["5/1", "5/2", "6/2", "6/3"]
+        for profile in lax_profiles:
+            angle, _ = PROFILE_TO_ANGLE[profile]
+            assert angle == "LAX", f"Profile {profile} should be LAX, got {angle}"
+    
+    def test_profile_4_6_is_rax_not_jxp(self):
+        """Critical: Profile 4/6 must be RAX, NOT JXP (common misconception)"""
+        angle, _ = PROFILE_TO_ANGLE["4/6"]
+        assert angle == "RAX", "Profile 4/6 must be RAX (Right Angle), not JXP"
+
+
+# =============================================================================
 # NATTALIA C TESTS
 # =============================================================================
 
 class TestNattaliaC:
-    """Regression tests for Nattalia C - JXP Tension"""
+    """Regression tests for Nattalia C - RAX Tension (profile 4/6)"""
     
     @pytest.fixture
     def fixture(self):
@@ -148,10 +203,26 @@ class TestNattaliaC:
         assert computed['definition'] == fixture['core_attributes']['definition']
     
     def test_cross_angle_matches(self, fixture, computed):
-        """Incarnation cross angle must match fixture (JXP for profile 4/X)"""
+        """Incarnation cross angle must match fixture (RAX for profile 4/6)"""
         assert computed['incarnation_cross']['angle'] == fixture['incarnation_cross']['angle']
-        # Critical: Nattalia must be JXP (profile line 4)
-        assert computed['incarnation_cross']['angle'] == 'JXP'
+        # Critical: Nattalia (profile 4/6) must be RAX, NOT JXP
+        assert computed['incarnation_cross']['angle'] == 'RAX'
+    
+    def test_cross_angle_source_is_computed_rule(self, fixture, computed):
+        """Angle source must be 'computed_rule'"""
+        assert computed['incarnation_cross']['angle_source'] == 'computed_rule'
+        assert fixture['incarnation_cross']['angle_source'] == 'computed_rule'
+    
+    def test_cross_angle_proof_exists(self, fixture, computed):
+        """Angle proof must exist and be non-empty"""
+        proof = computed['incarnation_cross']['angle_proof']
+        assert proof is not None
+        assert isinstance(proof, dict)
+        assert len(proof) > 0
+        assert 'input_profile' in proof
+        assert 'rule_name' in proof
+        assert proof['input_profile'] == '4/6'
+        assert proof['result'] == 'RAX'
     
     def test_cross_gates_key_matches(self, fixture, computed):
         """Cross gates_key must match fixture"""
@@ -195,7 +266,7 @@ class TestNattaliaC:
 # =============================================================================
 
 class TestPeteY:
-    """Regression tests for Pete Y - LAX Migration"""
+    """Regression tests for Pete Y - LAX Migration (profile 5/1)"""
     
     @pytest.fixture
     def fixture(self):
@@ -224,9 +295,22 @@ class TestPeteY:
         assert computed['definition'] == fixture['core_attributes']['definition']
     
     def test_cross_angle_matches(self, fixture, computed):
-        """Pete must be LAX (profile line 5)"""
+        """Pete must be LAX (profile 5/1)"""
         assert computed['incarnation_cross']['angle'] == fixture['incarnation_cross']['angle']
         assert computed['incarnation_cross']['angle'] == 'LAX'
+    
+    def test_cross_angle_source_is_computed_rule(self, fixture, computed):
+        """Angle source must be 'computed_rule'"""
+        assert computed['incarnation_cross']['angle_source'] == 'computed_rule'
+    
+    def test_cross_angle_proof_exists(self, fixture, computed):
+        """Angle proof must exist and be non-empty"""
+        proof = computed['incarnation_cross']['angle_proof']
+        assert proof is not None
+        assert isinstance(proof, dict)
+        assert len(proof) > 0
+        assert proof['input_profile'] == '5/1'
+        assert proof['result'] == 'LAX'
     
     def test_cross_gates_key_matches(self, fixture, computed):
         assert computed['incarnation_cross']['gates_key'] == fixture['incarnation_cross']['gates_key']
@@ -258,7 +342,7 @@ class TestPeteY:
 # =============================================================================
 
 class TestMelisaT:
-    """Regression tests for Melisa T - RAX Rulership (Reflector)"""
+    """Regression tests for Melisa T - RAX Rulership (Reflector, profile 3/5)"""
     
     @pytest.fixture
     def fixture(self):
@@ -291,9 +375,22 @@ class TestMelisaT:
         assert computed['definition'] == 'None'
     
     def test_cross_angle_matches(self, fixture, computed):
-        """Melisa must be RAX (profile line 3)"""
+        """Melisa must be RAX (profile 3/5)"""
         assert computed['incarnation_cross']['angle'] == fixture['incarnation_cross']['angle']
         assert computed['incarnation_cross']['angle'] == 'RAX'
+    
+    def test_cross_angle_source_is_computed_rule(self, fixture, computed):
+        """Angle source must be 'computed_rule'"""
+        assert computed['incarnation_cross']['angle_source'] == 'computed_rule'
+    
+    def test_cross_angle_proof_exists(self, fixture, computed):
+        """Angle proof must exist and be non-empty"""
+        proof = computed['incarnation_cross']['angle_proof']
+        assert proof is not None
+        assert isinstance(proof, dict)
+        assert len(proof) > 0
+        assert proof['input_profile'] == '3/5'
+        assert proof['result'] == 'RAX'
     
     def test_cross_gates_key_matches(self, fixture, computed):
         assert computed['incarnation_cross']['gates_key'] == fixture['incarnation_cross']['gates_key']
@@ -360,6 +457,8 @@ class TestDeterministicIdempotency:
         # Cross must be identical
         assert result1['incarnation_cross']['angle'] == result2['incarnation_cross']['angle']
         assert result1['incarnation_cross']['gates_key'] == result2['incarnation_cross']['gates_key']
+        assert result1['incarnation_cross']['angle_source'] == result2['incarnation_cross']['angle_source']
+        assert result1['incarnation_cross']['angle_proof'] == result2['incarnation_cross']['angle_proof']
         
         # All planet activations must be identical
         for planet in PLANET_ORDER:
@@ -378,11 +477,11 @@ class TestDeterministicIdempotency:
 # ANGLE DETERMINATION PROOF TESTS
 # =============================================================================
 
-class TestAngleDetermination:
+class TestAngleDeterminationProof:
     """Verify angle is determined from structured data, not heuristics"""
     
-    def test_nattalia_jxp_from_profile_4(self):
-        """Profile 4/6 → Line 4 → JXP (Juxtaposition)"""
+    def test_nattalia_rax_from_profile_4_6(self):
+        """Profile 4/6 → RAX (Right Angle, NOT JXP)"""
         user = TEST_USERS[0]
         result = get_human_design_chart(
             user['birth_utc'], user['lat'], user['lon'], SIDEREAL_SETTINGS
@@ -390,15 +489,17 @@ class TestAngleDetermination:
         
         profile = result['profile']
         angle = result['incarnation_cross']['angle']
+        angle_source = result['incarnation_cross']['angle_source']
+        angle_proof = result['incarnation_cross']['angle_proof']
         
         assert profile == '4/6'
-        assert angle == 'JXP'
-        # Verify it's derived from profile, not heuristics
-        p_sun_line = result['personality']['Sun']['gate']['line']
-        assert p_sun_line == 4  # Line 4 = JXP
+        assert angle == 'RAX'  # NOT JXP - this was the bug
+        assert angle_source == 'computed_rule'
+        assert angle_proof['input_profile'] == '4/6'
+        assert angle_proof['rule_name'] == 'profile_to_angle_mapping'
     
-    def test_pete_lax_from_profile_5(self):
-        """Profile 5/1 → Line 5 → LAX (Left Angle)"""
+    def test_pete_lax_from_profile_5_1(self):
+        """Profile 5/1 → LAX (Left Angle)"""
         user = TEST_USERS[1]
         result = get_human_design_chart(
             user['birth_utc'], user['lat'], user['lon'], SIDEREAL_SETTINGS
@@ -406,14 +507,16 @@ class TestAngleDetermination:
         
         profile = result['profile']
         angle = result['incarnation_cross']['angle']
+        angle_source = result['incarnation_cross']['angle_source']
+        angle_proof = result['incarnation_cross']['angle_proof']
         
         assert profile == '5/1'
         assert angle == 'LAX'
-        p_sun_line = result['personality']['Sun']['gate']['line']
-        assert p_sun_line == 5  # Line 5 = LAX
+        assert angle_source == 'computed_rule'
+        assert angle_proof['input_profile'] == '5/1'
     
-    def test_mel_rax_from_profile_3(self):
-        """Profile 3/5 → Line 3 → RAX (Right Angle)"""
+    def test_mel_rax_from_profile_3_5(self):
+        """Profile 3/5 → RAX (Right Angle)"""
         user = TEST_USERS[2]
         result = get_human_design_chart(
             user['birth_utc'], user['lat'], user['lon'], SIDEREAL_SETTINGS
@@ -421,11 +524,27 @@ class TestAngleDetermination:
         
         profile = result['profile']
         angle = result['incarnation_cross']['angle']
+        angle_source = result['incarnation_cross']['angle_source']
+        angle_proof = result['incarnation_cross']['angle_proof']
         
         assert profile == '3/5'
         assert angle == 'RAX'
-        p_sun_line = result['personality']['Sun']['gate']['line']
-        assert p_sun_line == 3  # Line 3 = RAX
+        assert angle_source == 'computed_rule'
+        assert angle_proof['input_profile'] == '3/5'
+    
+    def test_jxp_only_for_profile_4_1(self):
+        """Only profile 4/1 should produce JXP angle"""
+        # This is a unit test of the mapping, not user data
+        from calculations.human_design import get_angle_from_profile
+        
+        angle_4_1, _, proof_4_1 = get_angle_from_profile("4/1")
+        assert angle_4_1 == "JXP"
+        assert proof_4_1['result'] == "JXP"
+        
+        # Verify 4/6 is NOT JXP (common mistake)
+        angle_4_6, _, proof_4_6 = get_angle_from_profile("4/6")
+        assert angle_4_6 == "RAX"
+        assert angle_4_6 != "JXP"
 
 
 if __name__ == "__main__":
