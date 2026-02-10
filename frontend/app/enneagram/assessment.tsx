@@ -445,6 +445,9 @@ export default function P2DeepAssessment() {
           <EnneagramAssessmentIntro
             onBegin={handleBegin}
             isLoading={isLoading}
+            showResumePrompt={showResumePrompt}
+            onResume={handleResume}
+            onStartFresh={handleStartFresh}
           />
         )}
 
