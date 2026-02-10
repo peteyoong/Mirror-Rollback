@@ -94,6 +94,46 @@ const TYPE_NAMES: { [key: number]: string } = {
   9: 'The Peacemaker',
 };
 
+// Energetic Flow: Stress line descriptions (Mirror-safe)
+const STRESS_DESCRIPTIONS: { [key: number]: { [key: number]: string } } = {
+  1: { 4: "a pull toward feeling misunderstood, melancholic, or withdrawn." },
+  2: { 8: "more assertive, confrontational, or demanding of recognition." },
+  3: { 9: "checking out, numbing, or avoiding what feels overwhelming." },
+  4: { 2: "over-giving, people-pleasing, or seeking validation through connection." },
+  5: { 7: "scattered thinking, impulsive options, or escape into distraction." },
+  6: { 3: "performing, image-managing, or proving worth through achievement." },
+  7: { 1: "critical, perfectionistic, or rigidly focused on what's wrong." },
+  8: { 5: "withdrawal, isolation, or guarding resources and energy." },
+  9: { 6: "anxious, suspicious, or caught in worst-case thinking." },
+};
+
+// Energetic Flow: Growth line descriptions (Mirror-safe)
+const GROWTH_DESCRIPTIONS: { [key: number]: { [key: number]: string } } = {
+  1: { 7: "lightness, spontaneity, and permission to enjoy without judgment." },
+  2: { 4: "self-awareness, emotional depth, and honoring your own needs." },
+  3: { 6: "authenticity, loyalty, and connection beyond achievement." },
+  4: { 1: "groundedness, discernment, and constructive action." },
+  5: { 8: "embodiment, assertiveness, and direct engagement with the world." },
+  6: { 9: "calm, trust, and acceptance of uncertainty." },
+  7: { 5: "focus, depth, and comfort with stillness." },
+  8: { 2: "tenderness, openness, and genuine care for others." },
+  9: { 3: "purposeful action, self-assertion, and visible engagement." },
+};
+
+// Helper to get stress description text
+const getStressDescription = (coreType: number, stressTo: number | string | undefined): string => {
+  const stressNum = typeof stressTo === 'string' ? parseInt(stressTo, 10) : stressTo;
+  if (!stressNum || !STRESS_DESCRIPTIONS[coreType]) return "patterns that may feel unfamiliar.";
+  return STRESS_DESCRIPTIONS[coreType][stressNum] || "patterns that may feel unfamiliar.";
+};
+
+// Helper to get growth description text
+const getGrowthDescription = (coreType: number, growthTo: number | string | undefined): string => {
+  const growthNum = typeof growthTo === 'string' ? parseInt(growthTo, 10) : growthTo;
+  if (!growthNum || !GROWTH_DESCRIPTIONS[coreType]) return "expanded capacity and resourcefulness.";
+  return GROWTH_DESCRIPTIONS[coreType][growthNum] || "expanded capacity and resourcefulness.";
+};
+
 const CORE_MOTIVATIONS: { [key: number]: string } = {
   1: 'Driven by integrity and high standards — a desire to improve and do what is right.',
   2: 'Driven by connection through helping — a need to be needed and valued for giving.',
