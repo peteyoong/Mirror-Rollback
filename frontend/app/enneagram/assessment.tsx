@@ -319,18 +319,33 @@ export default function P2DeepAssessment() {
         await clearSession();
         setResults(response.results);
         setViewState('computing');
+        
+        // Analytics: assessment_completed
+        emitAnalytics('enneagram_assessment_completed', {
+          session_id: sessionId,
+          core_type: response.results.core_type,
+          confidence_tier: response.results.confidence_tier,
+        });
       } else if (response.question) {
-        // Next question - update session timestamp
+        // Next question - update session timestamp (updated_at only)
         setCurrentQuestion(response.question);
         setProgress(response.progress || null);
         setSelectedAnswer(null);
         
-        // Update session timestamp
+        // Update session updated_at_iso (preserves created_at)
+        const stored = await loadStoredSession();
         await saveSession({
           session_id: sessionId,
           user_id: user.id,
-          created_at_iso: new Date().toISOString(),
+          created_at_iso: stored?.created_at_iso || new Date().toISOString(),
           updated_at_iso: new Date().toISOString(),
+        });
+        
+        // Analytics: question_answered
+        emitAnalytics('enneagram_question_answered', {
+          session_id: sessionId,
+          question_id: currentQuestion.id,
+          stage: response.progress?.stage,
         });
       } else {
         // Unexpected state
@@ -343,15 +358,18 @@ export default function P2DeepAssessment() {
       // Check for session expiry
       if (err?.response?.status === 400 || err?.response?.status === 404) {
         await clearSession();
-        setError('This session has expired. You can restart the assessment.');
+        setError("This session has timed out. Let's start fresh.");
         setViewState('error');
+        
+        // Analytics: session_expired
+        emitAnalytics('enneagram_session_expired', { session_id: sessionId });
       } else {
         setError(err?.response?.data?.detail || 'Failed to submit answer. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
     }
-  }, [user?.id, sessionId, currentQuestion, selectedAnswer, clearSession, saveSession]);
+  }, [user?.id, sessionId, currentQuestion, selectedAnswer, clearSession, saveSession, loadStoredSession]);
 
   // Navigate to results after computing
   const handleComputingComplete = useCallback(() => {
