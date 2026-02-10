@@ -482,6 +482,16 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  // Loading State
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+  },
   // Error State
   errorContainer: {
     flex: 1,
