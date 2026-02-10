@@ -69,23 +69,40 @@ PLANET_ORDER = [
 def format_parity_output(user: dict, result: dict) -> dict:
     """Format HD result into clean parity output structure"""
     
-    # 1) Incarnation Cross
+    # 1) Incarnation Cross - FULL OBJECT DUMP for diagnostics
     cross = result['incarnation_cross']
+    
+    # Dump ALL fields from cross object - DO NOT infer anything
     incarnation_cross = {
-        "angle_code": cross['angle'],  # RAX / LAX / JXP
-        "angle_full": cross['angle_full'],  # Right Angle Cross / Left Angle Cross / Juxtaposition Cross
-        "cross_name": cross['internal_name'],  # e.g., "Tension", "Migration"
-        "canonical_label": cross['internal_label'],  # e.g., "RAX Tension"
-        "gates_key": cross['gates_key'],  # e.g., "21/48|38/39"
-        "canonical_key": cross['canonical_key'],  # e.g., "21.4/48.4|38.6/39.6"
+        # Raw stored fields - exactly as returned from compute
+        "_RAW_CROSS_OBJECT": cross,  # Full object for inspection
+        
+        # Structured extraction (no inference)
+        "angle": cross.get('angle'),  # RAX / LAX / JXP / None
+        "angle_full": cross.get('angle_full'),  # Full name or None
+        "angle_source": cross.get('angle_source'),  # computed_rule / unknown
+        "angle_proof": cross.get('angle_proof'),  # Full proof object
+        
+        "internal_name": cross.get('internal_name'),  # e.g., "Migration"
+        "internal_label": cross.get('internal_label'),  # e.g., "LAX Migration"
+        "display_label": cross.get('display_label'),  # UI format
+        
+        "canonical_key": cross.get('canonical_key'),  # e.g., "37.5/40.5|5.1/35.1"
+        "gates_key": cross.get('gates_key'),  # e.g., "37/40|5/35"
+        
+        "vendor_labels": cross.get('vendor_labels'),  # All vendor mappings
+        
+        # Legacy fields
+        "name_legacy": cross.get('name'),
+        "gates_legacy": cross.get('gates'),
+        
+        # 4 Cross Gates (explicit)
         "4_gates_lines": {
-            "personality_sun": f"{cross['personality_sun']}.{cross['personality_sun_line']}",
-            "personality_earth": f"{cross['personality_earth']}.{cross['personality_earth_line']}",
-            "design_sun": f"{cross['design_sun']}.{cross['design_sun_line']}",
-            "design_earth": f"{cross['design_earth']}.{cross['design_earth_line']}"
-        },
-        "angle_source": cross['angle_source'],
-        "angle_proof": cross['angle_proof']
+            "personality_sun": f"{cross.get('personality_sun')}.{cross.get('personality_sun_line')}",
+            "personality_earth": f"{cross.get('personality_earth')}.{cross.get('personality_earth_line')}",
+            "design_sun": f"{cross.get('design_sun')}.{cross.get('design_sun_line')}",
+            "design_earth": f"{cross.get('design_earth')}.{cross.get('design_earth_line')}"
+        }
     }
     
     # 2) Profile + Type + Authority
