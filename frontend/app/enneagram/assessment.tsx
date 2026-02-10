@@ -556,6 +556,8 @@ export default function P2DeepAssessment() {
             showResumePrompt={showResumePrompt}
             onResume={handleResume}
             onStartFresh={handleStartFresh}
+            onDismissResume={handleDismissResume}
+            resumeProgress={resumeProgress || undefined}
           />
         )}
 
