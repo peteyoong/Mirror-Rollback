@@ -688,6 +688,42 @@ export default function EnneagramLensView({ result, userId }: Props) {
   };
   const { gateState, ctaCopy, showPreliminaryLabel } = getEnneagramUpgradeInfo(gateInput);
   
+  // ============================================
+  // ANALYTICS: CTA Shown (once per surface per mount)
+  // ============================================
+  const hasEmittedSummaryCTA = useRef(false);
+  const hasEmittedDeepDiveCTA = useRef(false);
+  
+  // Emit "shown" for Summary tab (when CTA is visible)
+  useEffect(() => {
+    if (gateState.show_cta && gateState.cta_variant && activeTab === 'summary' && !hasEmittedSummaryCTA.current) {
+      emitEnneagramGateCTAShown({
+        variant: gateState.cta_variant,
+        surface: 'summary' as EnneagramGateSurface,
+        assessment_depth: gateInput.assessment_depth || null,
+        confidence_tier: gateInput.confidence_tier || null,
+        result_age_days: gateState.result_age_days,
+        has_saved_session: null, // Unknown at render time
+      });
+      hasEmittedSummaryCTA.current = true;
+    }
+  }, [gateState.show_cta, gateState.cta_variant, activeTab]);
+  
+  // Emit "shown" for Deep Dive tab (when CTA is visible)
+  useEffect(() => {
+    if (gateState.show_cta && gateState.cta_variant && activeTab === 'deep_dive' && !hasEmittedDeepDiveCTA.current) {
+      emitEnneagramGateCTAShown({
+        variant: gateState.cta_variant,
+        surface: 'deep_dive' as EnneagramGateSurface,
+        assessment_depth: gateInput.assessment_depth || null,
+        confidence_tier: gateInput.confidence_tier || null,
+        result_age_days: gateState.result_age_days,
+        has_saved_session: null, // Unknown at render time
+      });
+      hasEmittedDeepDiveCTA.current = true;
+    }
+  }, [gateState.show_cta, gateState.cta_variant, activeTab]);
+  
   // Send chat message
   const handleSendChat = useCallback(async () => {
     if (!chatInput.trim() || chatLoading) return;
