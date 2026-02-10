@@ -674,6 +674,19 @@ export default function EnneagramLensView({ result, userId }: Props) {
     ? getWingDisplayInfo(core, debugOverride.mockWing, debugOverride.mockConfidenceTier)
     : getWingDisplayInfo(core, wing, result.confidence_tier);
   
+  // ============================================
+  // ENNEAGRAM GATE STATE (Upgrade/Retake CTAs)
+  // ============================================
+  // Centralized logic for determining when to show upgrade CTAs
+  // See utils/enneagramGateLogic.ts for rules
+  const gateInput: EnneagramGateInput = {
+    assessment_depth: result.assessment_depth,
+    confidence_tier: result.confidence_tier,
+    confidence: result.confidence,
+    created_at_iso: result.created_at_iso,
+  };
+  const { gateState, ctaCopy, showPreliminaryLabel } = getEnneagramUpgradeInfo(gateInput);
+  
   // Send chat message
   const handleSendChat = useCallback(async () => {
     if (!chatInput.trim() || chatLoading) return;
