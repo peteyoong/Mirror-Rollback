@@ -249,6 +249,66 @@ Regenerate ALL sections, but focus extra attention on expanding the short ones.
         return [s.section_id for s in result.short_sections]
 
 
+def detect_duplicate_bodies(sections: List[Dict[str, Any]]) -> List[Tuple[str, str]]:
+    """
+    Detect sections with duplicate body content.
+    
+    Returns list of (section_id_1, section_id_2) tuples where bodies match.
+    Uses exact body match (after stripping whitespace).
+    """
+    duplicates = []
+    seen_bodies = {}  # normalized_body -> section_id
+    
+    for section in sections:
+        section_id = section.get("section_id", section.get("label", "unknown"))
+        body = section.get("body", "").strip()
+        
+        # Skip empty bodies
+        if not body:
+            continue
+        
+        # Normalize body for comparison (remove extra whitespace)
+        normalized = " ".join(body.split())
+        
+        if normalized in seen_bodies:
+            duplicates.append((seen_bodies[normalized], section_id))
+            logger.warning(f"[QUALITY_GATE] Duplicate body detected: '{seen_bodies[normalized]}' and '{section_id}'")
+        else:
+            seen_bodies[normalized] = section_id
+    
+    return duplicates
+
+
+def remove_duplicate_bodies(sections: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Remove sections with duplicate body content, keeping the first occurrence.
+    
+    Returns deduplicated list of sections.
+    """
+    seen_bodies = set()
+    deduplicated = []
+    
+    for section in sections:
+        body = section.get("body", "").strip()
+        
+        # Always keep sections with empty bodies (might be structural)
+        if not body:
+            deduplicated.append(section)
+            continue
+        
+        # Normalize body for comparison
+        normalized = " ".join(body.split())
+        
+        if normalized not in seen_bodies:
+            seen_bodies.add(normalized)
+            deduplicated.append(section)
+        else:
+            section_id = section.get("section_id", section.get("label", "unknown"))
+            logger.info(f"[QUALITY_GATE] Removed duplicate section '{section_id}' (body already exists)")
+    
+    return deduplicated
+
+
 def augment_short_sections(
     sections: List[Dict[str, Any]],
     short_section_ids: List[str],
