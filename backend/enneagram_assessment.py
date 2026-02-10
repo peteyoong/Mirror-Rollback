@@ -1698,6 +1698,7 @@ def compute_results(session: dict) -> dict:
         "confidence": round(confidence, 2),
         "confidence_tier": confidence_tier,
         "assessment_depth": "deep",
+        "assessment_version": "v2",  # Version marker for soft versioning
         "reliability": reliability,
         "created_at_iso": datetime.now(timezone.utc).isoformat(),
         # Debug fields
