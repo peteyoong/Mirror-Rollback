@@ -2695,6 +2695,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 4,
   },
+  // Energetic Flow section styles
+  energeticFlowContent: {
+    marginTop: 8,
+  },
+  energeticFlowNote: {
+    marginTop: 16,
+    fontSize: 14,
+    fontStyle: 'italic',
+    color: Colors.textTertiary,
+    textAlign: 'center',
+  },
   mirrorPromptCard: {
     backgroundColor: Colors.surfaceLight,
     borderRadius: 12,
