@@ -59,11 +59,11 @@ export const EnneagramAssessmentComputing: React.FC<Props> = ({
     return () => animation.stop();
   }, []);
 
-  // Cycle through messages
+  // Cycle through messages (~1s intervals)
   useEffect(() => {
     const interval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
-    }, 2500);
+    }, 1200);
     return () => clearInterval(interval);
   }, []);
 
