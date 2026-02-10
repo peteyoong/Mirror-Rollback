@@ -1190,8 +1190,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
   };
 
   const renderDeepDiveTab = () => {
-    // Show loading state for narrative (primary) or deep dive (fallback)
-    if (narrativeLoading) {
+    // =====================================================================
+    // LOADING STATE - Show while narrative is loading (prevents flicker)
+    // Never show legacy content while narrative is loading
+    // =====================================================================
+    if (narrativeStatus === 'loading' || narrativeStatus === 'idle') {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.textSecondary} />
@@ -1200,7 +1203,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
       );
     }
     
-    if (deepDiveLoading && !narrativeData) {
+    // =====================================================================
+    // FALLBACK: Legacy deep dive loading (only when narrative failed)
+    // =====================================================================
+    if (narrativeStatus === 'error' && deepDiveLoading) {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.textSecondary} />
@@ -1209,17 +1215,22 @@ export default function EnneagramLensView({ result, userId }: Props) {
       );
     }
 
-    // Prefer narrative data if available, fallback to deepDiveData
-    const useNarrative = narrativeData?.success && narrativeData.sections.length > 0;
-    console.log('[EnneagramLensView] useNarrative:', useNarrative, 'narrativeData:', !!narrativeData, 'sections:', narrativeData?.sections?.length);
-    const data = useNarrative ? null : deepDiveData; // Use deep dive for structure only when narrative is available
-    const typeLabel = narrativeData?.type_label || data?.type_label || wingInfo.typeLabel;
-    const typeName = narrativeData?.type_name || data?.type_name || TYPE_NAMES[core];
-    const confidence = getConfidenceLabel();
+    // =====================================================================
+    // CONTENT RENDERING - Mutually exclusive: narrative OR legacy
+    // =====================================================================
+    const useNarrative = narrativeStatus === 'ready' && narrativeData?.sections && narrativeData.sections.length > 0;
+    
+    // Consistent header data - prefer narrative data for type label
+    const typeLabel = useNarrative 
+      ? narrativeData.type_label 
+      : (deepDiveData?.type_label || wingInfo.typeLabel);
+    const typeName = useNarrative 
+      ? narrativeData.type_name 
+      : (deepDiveData?.type_name || TYPE_NAMES[core]);
 
     return (
       <>
-        {/* ===== HEADER ===== */}
+        {/* ===== HEADER (consistent, no flicker) ===== */}
         <View style={styles.deepDiveHeader}>
           <View style={styles.deepDiveHeaderTop}>
             <Text style={styles.deepDiveType}>{typeLabel}</Text>
@@ -1235,7 +1246,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
             </View>
           </View>
           <Text style={styles.deepDiveWingStance}>{typeName}</Text>
-          {/* Helper text for non-dominant wing states */}
           {wingInfo.helperText && (
             <Text style={styles.deepDiveHelperText}>
               {wingInfo.helperText}
@@ -1244,65 +1254,99 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <Text style={styles.deepDiveNote}>This lens reflects strategy, not identity.</Text>
         </View>
 
-        {/* ===== NARRATIVE SECTIONS (From Narrative Engine - preferred) ===== */}
-        {useNarrative && narrativeData.sections.map((section, index) => (
-          <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-            {section.label ? (
-              <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
-            ) : null}
-            <Text style={[
-              styles.deepDiveSectionBody,
-              // Special styling for closing reflection (no label)
-              !section.label && styles.closingReflection
-            ]}>
-              {section.body}
-            </Text>
-          </View>
-        ))}
-
-        {/* ===== FALLBACK: DEEP DIVE SECTIONS (From API) ===== */}
-        {!useNarrative && data?.sections && data.sections.map((section, index) => (
-          <View key={index} style={styles.deepDiveSection}>
-            <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
-            <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
-          </View>
-        ))}
-
-        {/* ===== ENNEAGRAM STRUCTURE (2×2 grid) ===== */}
-        {(data?.computed_details || computedDetails) && (
-          <View style={styles.structureCard}>
-            <Text style={styles.structureTitle}>ENNEAGRAM STRUCTURE</Text>
-            
-            {/* Row 1: Center + Hornevian Group */}
-            <View style={styles.structureGrid}>
-              <View style={styles.structureItem}>
-                <Ionicons name="radio-button-on-outline" size={14} color={Colors.textSecondary} />
-                <Text style={styles.structureLabel}>Center</Text>
-                <Text style={styles.structureValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.center)}</Text>
+        {/* ===== NARRATIVE SECTIONS (Story-only when available) ===== */}
+        {useNarrative && narrativeData.sections.map((section, index) => {
+          // Check if this is the "Deeper Patterns" section (collapsible)
+          const isDeeperPatterns = section.id === 'deeper_patterns' || 
+            (section.label && section.label.toLowerCase().includes('deeper pattern'));
+          
+          // Closing reflection - no label, special styling
+          const isClosing = !section.label;
+          
+          if (isDeeperPatterns) {
+            // Collapsible Deeper Patterns section
+            return (
+              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
+                <TouchableOpacity 
+                  style={styles.collapsibleHeader}
+                  onPress={() => setDeeperPatternsExpanded(!deeperPatternsExpanded)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+                  <Ionicons 
+                    name={deeperPatternsExpanded ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={Colors.textSecondary} 
+                  />
+                </TouchableOpacity>
+                {deeperPatternsExpanded && (
+                  <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
+                )}
               </View>
-              <View style={styles.structureDivider} />
-              <View style={styles.structureItem}>
-                <Ionicons name="people-outline" size={14} color={Colors.textSecondary} />
-                <Text style={styles.structureLabel}>Social Style</Text>
-                <Text style={styles.structureValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.hornevian_group)}</Text>
-              </View>
+            );
+          }
+          
+          // Regular narrative section
+          return (
+            <View key={`narrative-${index}`} style={styles.deepDiveSection}>
+              {section.label && (
+                <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+              )}
+              <Text style={[
+                styles.deepDiveSectionBody,
+                isClosing && styles.closingReflection
+              ]}>
+                {section.body}
+              </Text>
             </View>
+          );
+        })}
+
+        {/* ===== FALLBACK: Legacy Deep Dive (only when narrative unavailable) ===== */}
+        {!useNarrative && narrativeStatus === 'error' && deepDiveData?.sections && (
+          <>
+            {deepDiveData.sections.map((section, index) => (
+              <View key={index} style={styles.deepDiveSection}>
+                <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+                <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
+              </View>
+            ))}
             
-            {/* Row 2: Stress Line + Growth Line */}
-            <View style={[styles.structureGrid, { marginTop: 12 }]}>
-              <View style={styles.structureItem}>
-                <Ionicons name="arrow-down-outline" size={14} color={Colors.textSecondary} />
-                <Text style={styles.structureLabel}>Stress → Type</Text>
-                <Text style={styles.structureValue}>{(data?.computed_details || computedDetails)?.stress_line_to || '—'}</Text>
+            {/* Enneagram Structure grid - ONLY in legacy fallback mode */}
+            {(deepDiveData?.computed_details || computedDetails) && (
+              <View style={styles.structureCard}>
+                <Text style={styles.structureTitle}>ENNEAGRAM STRUCTURE</Text>
+                
+                <View style={styles.structureGrid}>
+                  <View style={styles.structureItem}>
+                    <Ionicons name="radio-button-on-outline" size={14} color={Colors.textSecondary} />
+                    <Text style={styles.structureLabel}>Center</Text>
+                    <Text style={styles.structureValue}>{formatGroupLabel((deepDiveData?.computed_details || computedDetails)?.center)}</Text>
+                  </View>
+                  <View style={styles.structureDivider} />
+                  <View style={styles.structureItem}>
+                    <Ionicons name="people-outline" size={14} color={Colors.textSecondary} />
+                    <Text style={styles.structureLabel}>Social Style</Text>
+                    <Text style={styles.structureValue}>{formatGroupLabel((deepDiveData?.computed_details || computedDetails)?.hornevian_group)}</Text>
+                  </View>
+                </View>
+                
+                <View style={[styles.structureGrid, { marginTop: 12 }]}>
+                  <View style={styles.structureItem}>
+                    <Ionicons name="arrow-down-outline" size={14} color={Colors.textSecondary} />
+                    <Text style={styles.structureLabel}>Stress → Type</Text>
+                    <Text style={styles.structureValue}>{(deepDiveData?.computed_details || computedDetails)?.stress_line_to || '—'}</Text>
+                  </View>
+                  <View style={styles.structureDivider} />
+                  <View style={styles.structureItem}>
+                    <Ionicons name="arrow-up-outline" size={14} color={Colors.textSecondary} />
+                    <Text style={styles.structureLabel}>Growth → Type</Text>
+                    <Text style={styles.structureValue}>{(deepDiveData?.computed_details || computedDetails)?.growth_line_to || '—'}</Text>
+                  </View>
+                </View>
               </View>
-              <View style={styles.structureDivider} />
-              <View style={styles.structureItem}>
-                <Ionicons name="arrow-up-outline" size={14} color={Colors.textSecondary} />
-                <Text style={styles.structureLabel}>Growth → Type</Text>
-                <Text style={styles.structureValue}>{(data?.computed_details || computedDetails)?.growth_line_to || '—'}</Text>
-              </View>
-            </View>
-          </View>
+            )}
+          </>
         )}
 
         {/* ===== RETAKE LINK ===== */}
@@ -1314,7 +1358,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <Text style={styles.retakeLinkText}>Retake Assessment</Text>
         </TouchableOpacity>
         
-        {/* Chat Box */}
+        {/* Chat Box - kept outside story flow */}
         {renderChatBox()}
       </>
     );
