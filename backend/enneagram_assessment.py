@@ -1771,6 +1771,9 @@ def compute_results(session: dict) -> dict:
     # Neither penalty
     neither_penalty = min(0.2, session.get("neither_count", 0) * 0.02)
     
+    # Silent reliability check (response time + straightlining)
+    silent_reliability, silent_debug = compute_silent_reliability_score(session)
+    
     # Compute base confidence
     base_confidence = (
         type_gap_factor * 0.4 +
@@ -1781,7 +1784,11 @@ def compute_results(session: dict) -> dict:
     
     # Apply coherence modifier (only reduces, never increases beyond base)
     coherence = session.get("coherence_score", 1.0)
-    confidence = base_confidence * (0.7 + 0.3 * coherence) - neither_penalty
+    
+    # Apply silent reliability as a multiplier (0.85-1.0 range to avoid harsh penalties)
+    reliability_multiplier = 0.85 + 0.15 * silent_reliability
+    
+    confidence = base_confidence * (0.7 + 0.3 * coherence) * reliability_multiplier - neither_penalty
     confidence = max(0.1, min(0.99, confidence))
     
     # Determine confidence tier
@@ -1811,6 +1818,8 @@ def compute_results(session: dict) -> dict:
             "instinct_scores": session["instinct_scores"],
             "consistency_score": consistency_score,
             "coherence_score": coherence,
+            "silent_reliability": silent_reliability,
+            "silent_reliability_debug": silent_debug,
             "type_gap": gap,
             "questions_asked": len(session["asked_question_ids"]),
             "neither_count": session.get("neither_count", 0)
