@@ -286,6 +286,12 @@ def augment_short_sections(
         )
         
         if needs_augment and len(body) < min_chars:
+            # Check if already augmented (idempotent guard)
+            if section.get("_augmented"):
+                augmented.append(section)
+                logger.info(f"[QUALITY_GATE] Section '{section_id}' already augmented (flag), skipping")
+                continue
+            
             # Find matching fallback
             fallback_body = None
             for fb_id, (fb_label, fb_body) in fallback_content.items():
@@ -294,22 +300,17 @@ def augment_short_sections(
                     break
             
             if fallback_body:
-                # Check if body is already the fallback content (prevent double-augmentation)
-                if body and fallback_body.strip() in body.strip():
-                    # Already has fallback content, don't duplicate
-                    augmented.append(section)
-                    logger.info(f"[QUALITY_GATE] Section '{section_id}' already contains fallback, skipping augment")
-                else:
-                    # Augment: keep LLM content, append fallback
-                    augmented_body = body + "\n\n" + fallback_body if body else fallback_body
-                    augmented.append({
-                        **section,
-                        "body": augmented_body,
-                        "augmented": True
-                    })
-                    augmented_ids.append(section_id)
-                    logger.info(f"[QUALITY_GATE] Augmented section '{section_id}': "
-                               f"{len(body)} -> {len(augmented_body)} chars")
+                # Augment: keep LLM content, append fallback
+                augmented_body = body + "\n\n" + fallback_body if body else fallback_body
+                augmented.append({
+                    **section,
+                    "body": augmented_body,
+                    "augmented": True,
+                    "_augmented": True  # Idempotent flag to prevent re-augmentation
+                })
+                augmented_ids.append(section_id)
+                logger.info(f"[QUALITY_GATE] Augmented section '{section_id}': "
+                           f"{len(body)} -> {len(augmented_body)} chars")
             else:
                 augmented.append(section)
         else:
