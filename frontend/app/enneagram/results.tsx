@@ -813,6 +813,19 @@ export default function EnneagramResults() {
     result.assessment_version === 'v2' && 
     result.assessment_depth === 'deep';
   
+  // ============================================
+  // ENNEAGRAM GATE STATE (Upgrade/Retake CTAs)
+  // ============================================
+  // Centralized logic for determining when to show upgrade CTAs
+  // See utils/enneagramGateLogic.ts for rules
+  const gateInput: EnneagramGateInput = {
+    assessment_depth: result.assessment_depth,
+    confidence_tier: result.confidence_tier,
+    confidence: result.confidence,
+    created_at_iso: result.created_at,
+  };
+  const { gateState, ctaCopy, showPreliminaryLabel } = getEnneagramUpgradeInfo(gateInput);
+  
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
