@@ -1180,14 +1180,21 @@ export default function EnneagramLensView({ result, userId }: Props) {
   };
 
   const renderDeepDiveTab = () => {
-    // Show loading state for both narrative and deep dive
-    if (narrativeLoading || deepDiveLoading) {
+    // Show loading state for narrative (primary) or deep dive (fallback)
+    if (narrativeLoading) {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.textSecondary} />
-          <Text style={styles.loadingText}>
-            {narrativeLoading ? 'Generating your narrative...' : 'Loading your Deep Dive...'}
-          </Text>
+          <Text style={styles.loadingText}>Generating your narrative...</Text>
+        </View>
+      );
+    }
+    
+    if (deepDiveLoading && !narrativeData) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.textSecondary} />
+          <Text style={styles.loadingText}>Loading your Deep Dive...</Text>
         </View>
       );
     }
