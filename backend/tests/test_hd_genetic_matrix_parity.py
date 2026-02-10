@@ -18,7 +18,7 @@ import sys
 sys.path.insert(0, '/app/backend')
 
 from datetime import datetime, timezone, timedelta
-from calculations.human_design import compute_human_design, calculate_design_date
+from calculations.human_design import get_human_design_chart, calculate_design_date
 from calculations.astrology import get_full_natal_chart
 
 # Test Users
