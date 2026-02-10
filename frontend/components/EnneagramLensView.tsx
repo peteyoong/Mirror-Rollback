@@ -1000,6 +1000,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
         <Text style={styles.heroSubtitle}>
           {TYPE_NAMES[core]}
         </Text>
+        {/* Preliminary Label - shown for short assessments */}
+        <PreliminaryLabel 
+          visible={showPreliminaryLabel} 
+          testID="preliminary-label-summary"
+        />
         {/* Confidence Badge with new system */}
         <View style={[
           styles.confidenceBadge,
@@ -1021,6 +1026,14 @@ export default function EnneagramLensView({ result, userId }: Props) {
           This lens reflects motivation, not mood.
         </Text>
       </View>
+
+      {/* Upgrade CTA - shown based on gate logic */}
+      {ctaCopy && (
+        <EnneagramUpgradeCTA 
+          ctaCopy={ctaCopy} 
+          testID="upgrade-cta-summary"
+        />
+      )}
 
       {/* Core Motivation Card */}
       <View style={styles.card}>
