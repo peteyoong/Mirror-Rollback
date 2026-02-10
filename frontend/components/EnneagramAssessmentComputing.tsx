@@ -102,7 +102,7 @@ export const EnneagramAssessmentComputing: React.FC<Props> = ({
 
       {/* Subtext */}
       <Text style={styles.subtext}>
-        This takes just a moment
+        This may take a moment.
       </Text>
     </Animated.View>
   );
