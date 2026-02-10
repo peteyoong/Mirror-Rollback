@@ -1046,21 +1046,10 @@ CONSISTENCY_POOL = [
         "format": "likert",
         "scoring": {"targets": [{"center": "heart", "weight": -1}], "check": "contradiction", "reference": "C05"}
     },
-    # Integrity checks (attention/engagement verification)
-    {
-        "id": "CON_05",
-        "stage": "consistency",
-        "prompt": "Please select 'Agree' to confirm you are reading each question carefully.",
-        "format": "likert",
-        "scoring": {"targets": [], "check": "integrity", "expected": 4}
-    },
-    {
-        "id": "CON_06",
-        "stage": "consistency",
-        "prompt": "Reflecting on the questions so far, I feel the assessment captures patterns I recognize in myself.",
-        "format": "likert",
-        "scoring": {"targets": [], "check": "integrity", "expected_range": [3, 5]}
-    }
+    # NOTE: Removed CON_05 and CON_06 ("select Agree" and "captures patterns" questions)
+    # These broke immersion and felt test-like. Reliability is now handled via silent checks:
+    # - Response time monitoring (too-fast answers reduce confidence)
+    # - Straightlining detection (excessive same-answer patterns reduce confidence)
 ]
 
 # =============================================================================
