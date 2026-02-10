@@ -320,6 +320,11 @@ export default function EnneagramResults() {
   const [debugTapCount, setDebugTapCount] = useState(0);
   const debugTapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
+  // ============================================
+  // ANALYTICS REFS (must be at top level)
+  // ============================================
+  const hasEmittedResultsCTA = useRef(false);
+  
   // Computed: Should debug panel be shown?
   // Formula: showDebug = DEBUG_MIRROR_ENV && (urlDebugParam || tapCount >= 7)
   const showDebug = DEBUG_MIRROR_ENV && (getUrlDebugParam() || debugTapCount >= DEBUG_TAP_THRESHOLD);
