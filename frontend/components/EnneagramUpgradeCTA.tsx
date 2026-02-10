@@ -8,9 +8,22 @@ import {
 import { useRouter } from 'expo-router';
 import { Colors } from '../constants/colors';
 import { EnneagramCTACopy } from '../utils/enneagramGateLogic';
+import { 
+  emitEnneagramGateCTAClicked, 
+  EnneagramGateCTAVariant, 
+  EnneagramGateSurface 
+} from '../utils/analytics';
 
 interface Props {
   ctaCopy: EnneagramCTACopy;
+  // Analytics props
+  surface: EnneagramGateSurface;
+  ctaVariant: EnneagramGateCTAVariant;
+  assessmentDepth: string | null;
+  confidenceTier: string | null;
+  resultAgeDays: number | null;
+  hasSavedSession?: boolean;
+  // Custom handler
   onPress?: () => void;
   testID?: string;
 }
@@ -25,11 +38,33 @@ interface Props {
  * - Secondary variant: Subtle styling
  * - Never blocks content (always dismissable)
  * - Mirror-safe copy (no coaching language)
+ * - Analytics: emits enneagram_gate_cta_clicked on press
  */
-export default function EnneagramUpgradeCTA({ ctaCopy, onPress, testID }: Props) {
+export default function EnneagramUpgradeCTA({ 
+  ctaCopy, 
+  surface,
+  ctaVariant,
+  assessmentDepth,
+  confidenceTier,
+  resultAgeDays,
+  hasSavedSession = false,
+  onPress, 
+  testID 
+}: Props) {
   const router = useRouter();
   
   const handlePress = () => {
+    // Emit analytics event
+    emitEnneagramGateCTAClicked({
+      variant: ctaVariant,
+      surface,
+      assessment_depth: assessmentDepth,
+      confidence_tier: confidenceTier,
+      result_age_days: resultAgeDays,
+      action: 'start_assessment',
+      has_saved_session: hasSavedSession,
+    });
+    
     if (onPress) {
       onPress();
     } else {
