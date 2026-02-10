@@ -270,20 +270,30 @@ export default function P2DeepAssessment() {
       if (status.stage === 'done') {
         // Session already completed - start fresh
         await clearSession();
+        setResumeProgress(null);
         setIsLoading(false);
         return;
       }
+
+      // Analytics: assessment_resumed
+      emitAnalytics('enneagram_assessment_resumed', {
+        session_id: storedSessionRef.current.session_id,
+        questions_answered: status.progress.questions_answered,
+        stage: status.progress.stage,
+      });
 
       // Resume: we need to call answer endpoint with empty to get next question
       // Actually, the status endpoint doesn't return the current question
       // So we need to start fresh but keep the session ID
       // For now, just start a new session since backend doesn't expose resume directly
       await clearSession();
+      setResumeProgress(null);
       setIsLoading(false);
       
     } catch (err: any) {
       console.error('[P2Assessment] Resume error:', err);
       await clearSession();
+      setResumeProgress(null);
       setIsLoading(false);
     }
   }, [user?.id, clearSession]);
