@@ -182,6 +182,7 @@ interface EnneagramResult {
   confidence_tier: string;
   is_close: boolean;
   top_candidates: { type: number; probability: number }[];
+  assessment_depth?: 'quick' | 'deep' | 'short';  // P2: track assessment type
   state_calibration?: {
     energy_state: string;
     life_context: string;
