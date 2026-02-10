@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "fixture_version": "1.0.0",
+    "computation_version": "mirror-deterministic-v2",
+    "purpose": "HD parity lock-in against Genetic Matrix (True Sidereal-M)"
+  },
+  "settings": {
+    "config": {
+      "mode": "true_sidereal_user_defined",
+      "svp_degrees": 31.2836,
+      "reference_year": 2000,
+      "yearly_increment": 0.0,
+      "nodes": "true_nodes",
+      "house_system": "equal",
+      "hd_mode": "midpoint"
+    },
+    "hash": "b5f3b052f5454f56"
+  },
+  "birth_input": {
+    "name": "Melisa T",
+    "local_datetime": "1981-07-13 07:25",
+    "timezone": "UTC+07:30",
+    "utc_datetime": "1981-07-12T23:55:00+00:00",
+    "latitude": 2.1889,
+    "longitude": 102.251,
+    "place": "Melaka, Malaysia"
+  },
+  "design_calculation": {
+    "method": "88_degree_solar_arc_binary_search",
+    "birth_sun_sidereal": 79.2272,
+    "target_sun_sidereal": 351.2272,
+    "design_sun_computed": 351.218,
+    "delta_days": 91.48,
+    "converged": true,
+    "tolerance_degrees": 0.01
+  },
+  "planetary_activations": {
+    "personality": {
+      "Sun": {"gate": 45, "line": 3, "gate_line": "45.3"},
+      "Earth": {"gate": 26, "line": 3, "gate_line": "26.3"},
+      "North Node": {"gate": 15, "line": 3, "gate_line": "15.3"},
+      "South Node": {"gate": 10, "line": 3, "gate_line": "10.3"},
+      "Moon": {"gate": 50, "line": 6, "gate_line": "50.6"},
+      "Mercury": {"gate": 8, "line": 5, "gate_line": "8.5"},
+      "Venus": {"gate": 39, "line": 6, "gate_line": "39.6"},
+      "Mars": {"gate": 8, "line": 1, "gate_line": "8.1"},
+      "Jupiter": {"gate": 59, "line": 3, "gate_line": "59.3"},
+      "Saturn": {"gate": 59, "line": 3, "gate_line": "59.3"},
+      "Uranus": {"gate": 32, "line": 5, "gate_line": "32.5"},
+      "Neptune": {"gate": 43, "line": 3, "gate_line": "43.3"},
+      "Pluto": {"gate": 47, "line": 4, "gate_line": "47.4"}
+    },
+    "design": {
+      "Sun": {"gate": 22, "line": 5, "gate_line": "22.5"},
+      "Earth": {"gate": 47, "line": 5, "gate_line": "47.5"},
+      "North Node": {"gate": 52, "line": 3, "gate_line": "52.3"},
+      "South Node": {"gate": 58, "line": 3, "gate_line": "58.3"},
+      "Moon": {"gate": 52, "line": 1, "gate_line": "52.1"},
+      "Mercury": {"gate": 37, "line": 1, "gate_line": "37.1"},
+      "Venus": {"gate": 22, "line": 6, "gate_line": "22.6"},
+      "Mars": {"gate": 22, "line": 3, "gate_line": "22.3"},
+      "Jupiter": {"gate": 59, "line": 3, "gate_line": "59.3"},
+      "Saturn": {"gate": 59, "line": 5, "gate_line": "59.5"},
+      "Uranus": {"gate": 50, "line": 2, "gate_line": "50.2"},
+      "Neptune": {"gate": 43, "line": 5, "gate_line": "43.5"},
+      "Pluto": {"gate": 47, "line": 6, "gate_line": "47.6"}
+    }
+  },
+  "core_attributes": {
+    "type": "Reflector",
+    "authority": "None (Lunar)",
+    "profile": "3/5",
+    "definition": "None",
+    "strategy": "To Wait a Lunar Cycle"
+  },
+  "centers": {
+    "defined": [],
+    "undefined": ["Ajna", "Ego", "G Center", "Head", "Root", "Sacral", "Solar Plexus", "Spleen", "Throat"]
+  },
+  "channels": {
+    "count": 0,
+    "list": []
+  },
+  "incarnation_cross": {
+    "angle": "RAX",
+    "angle_full": "Right Angle Cross",
+    "internal_name": "Rulership",
+    "internal_label": "RAX Rulership",
+    "display_label": "Rulership (45/26 • 22/47)",
+    "gates_key": "45/26|22/47",
+    "canonical_key": "45.3/26.3|22.5/47.5",
+    "gates": {
+      "personality_sun": "45.3",
+      "personality_earth": "26.3",
+      "design_sun": "22.5",
+      "design_earth": "47.5"
+    },
+    "detection_method": "structured_angle",
+    "angle_determination": {
+      "profile": "3/5",
+      "personality_sun_line": 3,
+      "design_sun_line": 5,
+      "computed_angle": "RAX",
+      "rule_applied": "Profile 3/5: Personality Sun Line = 3 ∈ {1,2,3} → RAX",
+      "fallback_used": false
+    }
+  }
+}

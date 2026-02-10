@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "fixture_version": "1.0.0",
+    "computation_version": "mirror-deterministic-v2",
+    "purpose": "HD parity lock-in against Genetic Matrix (True Sidereal-M)"
+  },
+  "settings": {
+    "config": {
+      "mode": "true_sidereal_user_defined",
+      "svp_degrees": 31.2836,
+      "reference_year": 2000,
+      "yearly_increment": 0.0,
+      "nodes": "true_nodes",
+      "house_system": "equal",
+      "hd_mode": "midpoint"
+    },
+    "hash": "b5f3b052f5454f56"
+  },
+  "birth_input": {
+    "name": "Pete Y",
+    "local_datetime": "1968-04-01 01:25",
+    "timezone": "UTC+07:30",
+    "utc_datetime": "1968-03-31T17:55:00+00:00",
+    "latitude": 3.1073,
+    "longitude": 101.607,
+    "place": "Petaling Jaya, Malaysia"
+  },
+  "design_calculation": {
+    "method": "88_degree_solar_arc_binary_search",
+    "birth_sun_sidereal": 339.7963,
+    "target_sun_sidereal": 251.7963,
+    "design_sun_computed": 251.7948,
+    "delta_days": 87.36,
+    "converged": true,
+    "tolerance_degrees": 0.01
+  },
+  "planetary_activations": {
+    "personality": {
+      "Sun": {"gate": 37, "line": 5, "gate_line": "37.5"},
+      "Earth": {"gate": 40, "line": 5, "gate_line": "40.5"},
+      "North Node": {"gate": 22, "line": 1, "gate_line": "22.1"},
+      "South Node": {"gate": 47, "line": 1, "gate_line": "47.1"},
+      "Moon": {"gate": 21, "line": 2, "gate_line": "21.2"},
+      "Mercury": {"gate": 13, "line": 6, "gate_line": "13.6"},
+      "Venus": {"gate": 13, "line": 6, "gate_line": "13.6"},
+      "Mars": {"gate": 25, "line": 4, "gate_line": "25.4"},
+      "Jupiter": {"gate": 62, "line": 5, "gate_line": "62.5"},
+      "Saturn": {"gate": 63, "line": 3, "gate_line": "63.3"},
+      "Uranus": {"gate": 29, "line": 1, "gate_line": "29.1"},
+      "Neptune": {"gate": 32, "line": 5, "gate_line": "32.5"},
+      "Pluto": {"gate": 4, "line": 1, "gate_line": "4.1"}
+    },
+    "design": {
+      "Sun": {"gate": 5, "line": 1, "gate_line": "5.1"},
+      "Earth": {"gate": 35, "line": 1, "gate_line": "35.1"},
+      "North Node": {"gate": 36, "line": 1, "gate_line": "36.1"},
+      "South Node": {"gate": 6, "line": 1, "gate_line": "6.1"},
+      "Moon": {"gate": 41, "line": 4, "gate_line": "41.4"},
+      "Mercury": {"gate": 5, "line": 5, "gate_line": "5.5"},
+      "Venus": {"gate": 50, "line": 6, "gate_line": "50.6"},
+      "Mars": {"gate": 61, "line": 5, "gate_line": "61.5"},
+      "Jupiter": {"gate": 31, "line": 3, "gate_line": "31.3"},
+      "Saturn": {"gate": 55, "line": 6, "gate_line": "55.6"},
+      "Uranus": {"gate": 29, "line": 4, "gate_line": "29.4"},
+      "Neptune": {"gate": 32, "line": 4, "gate_line": "32.4"},
+      "Pluto": {"gate": 4, "line": 3, "gate_line": "4.3"}
+    }
+  },
+  "core_attributes": {
+    "type": "Manifestor",
+    "authority": "Emotional",
+    "profile": "5/1",
+    "definition": "Split",
+    "strategy": "To Inform"
+  },
+  "centers": {
+    "defined": ["Ajna", "Ego", "Head", "Solar Plexus", "Throat"],
+    "undefined": ["G Center", "Root", "Sacral", "Spleen"]
+  },
+  "channels": {
+    "count": 3,
+    "list": ["63-4", "35-36", "37-40"]
+  },
+  "incarnation_cross": {
+    "angle": "LAX",
+    "angle_full": "Left Angle Cross",
+    "internal_name": "Migration",
+    "internal_label": "LAX Migration",
+    "display_label": "Migration (37/40 • 5/35)",
+    "gates_key": "37/40|5/35",
+    "canonical_key": "37.5/40.5|5.1/35.1",
+    "gates": {
+      "personality_sun": "37.5",
+      "personality_earth": "40.5",
+      "design_sun": "5.1",
+      "design_earth": "35.1"
+    },
+    "detection_method": "structured_angle",
+    "angle_determination": {
+      "profile": "5/1",
+      "personality_sun_line": 5,
+      "design_sun_line": 1,
+      "computed_angle": "LAX",
+      "rule_applied": "Profile 5/1: Personality Sun Line = 5 ∈ {5,6} → LAX",
+      "fallback_used": false
+    }
+  }
+}
