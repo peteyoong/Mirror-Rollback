@@ -1292,6 +1292,14 @@ def process_answer(session: dict, question_id: str, answer: dict) -> dict:
     scoring = question.get("scoring", {})
     options = question.get("options", {})
     
+    # ==========================================================================
+    # CON_* GUARDRAIL - Validate before scoring
+    # ==========================================================================
+    # This assertion ensures CON_* questions can never contribute to
+    # structural dimensions (type, wing, center). If violated, the test
+    # suite will catch it, but this provides runtime defense.
+    validate_con_question_guardrail(question_id, scoring)
+    
     if question["format"] == "likert":
         value = answer.get("value")
         if not isinstance(value, int) or not (1 <= value <= 5):
