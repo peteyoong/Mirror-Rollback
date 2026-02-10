@@ -1607,6 +1607,115 @@ def compute_consistency_score(session: dict) -> Tuple[float, str]:
     
     return round(avg_consistency, 3), reliability
 
+
+# =============================================================================
+# SILENT RELIABILITY CHECKS (No user-facing questions)
+# =============================================================================
+
+# Minimum response time threshold (seconds) - answers faster than this are suspicious
+MIN_RESPONSE_TIME_SECONDS = 1.5
+
+# Maximum ratio of "too fast" answers before confidence penalty kicks in
+TOO_FAST_RATIO_THRESHOLD = 0.3
+
+# Straightlining detection: if same answer appears this many times consecutively
+STRAIGHTLINE_CONSECUTIVE_THRESHOLD = 5
+
+# Straightlining detection: if same answer appears this % of total answers
+STRAIGHTLINE_DOMINANCE_THRESHOLD = 0.7
+
+
+def compute_response_time_penalty(session: dict) -> float:
+    """
+    Calculate confidence penalty based on response times.
+    Returns a penalty value 0.0 to 0.15 (higher = worse reliability).
+    
+    Too-fast answers (< MIN_RESPONSE_TIME_SECONDS) suggest random clicking.
+    """
+    response_times = session.get("response_times", [])
+    if len(response_times) < 5:
+        return 0.0  # Not enough data
+    
+    too_fast_count = sum(1 for t in response_times if t < MIN_RESPONSE_TIME_SECONDS)
+    too_fast_ratio = too_fast_count / len(response_times)
+    
+    if too_fast_ratio > TOO_FAST_RATIO_THRESHOLD:
+        # Scale penalty based on how many are too fast
+        excess = too_fast_ratio - TOO_FAST_RATIO_THRESHOLD
+        penalty = min(0.15, excess * 0.3)  # Max 15% penalty
+        return round(penalty, 3)
+    
+    return 0.0
+
+
+def compute_straightlining_penalty(session: dict) -> float:
+    """
+    Calculate confidence penalty based on straightlining detection.
+    Returns a penalty value 0.0 to 0.15 (higher = worse reliability).
+    
+    Straightlining = selecting the same answer excessively (random or disengaged).
+    """
+    answer_sequence = session.get("answer_sequence", [])
+    if len(answer_sequence) < 10:
+        return 0.0  # Not enough data
+    
+    # Check for consecutive same answers
+    max_consecutive = 1
+    current_consecutive = 1
+    for i in range(1, len(answer_sequence)):
+        if answer_sequence[i] == answer_sequence[i-1]:
+            current_consecutive += 1
+            max_consecutive = max(max_consecutive, current_consecutive)
+        else:
+            current_consecutive = 1
+    
+    # Check for dominance of a single answer value
+    from collections import Counter
+    counts = Counter(answer_sequence)
+    most_common_count = counts.most_common(1)[0][1]
+    dominance_ratio = most_common_count / len(answer_sequence)
+    
+    penalty = 0.0
+    
+    # Consecutive straightlining penalty
+    if max_consecutive >= STRAIGHTLINE_CONSECUTIVE_THRESHOLD:
+        penalty += 0.05 * (max_consecutive - STRAIGHTLINE_CONSECUTIVE_THRESHOLD + 1)
+    
+    # Dominance penalty (using same answer too much)
+    if dominance_ratio > STRAIGHTLINE_DOMINANCE_THRESHOLD:
+        excess = dominance_ratio - STRAIGHTLINE_DOMINANCE_THRESHOLD
+        penalty += excess * 0.3
+    
+    return round(min(0.15, penalty), 3)
+
+
+def compute_silent_reliability_score(session: dict) -> tuple[float, dict]:
+    """
+    Compute overall reliability score from silent checks.
+    Returns (score 0.0-1.0, debug_info dict).
+    
+    Silent checks include:
+    - Response time monitoring
+    - Straightlining detection
+    """
+    response_time_penalty = compute_response_time_penalty(session)
+    straightlining_penalty = compute_straightlining_penalty(session)
+    
+    total_penalty = response_time_penalty + straightlining_penalty
+    reliability_score = max(0.0, 1.0 - total_penalty)
+    
+    debug_info = {
+        "response_time_penalty": response_time_penalty,
+        "straightlining_penalty": straightlining_penalty,
+        "total_penalty": round(total_penalty, 3),
+        "reliability_score": round(reliability_score, 3),
+        "response_times_count": len(session.get("response_times", [])),
+        "answer_sequence_length": len(session.get("answer_sequence", []))
+    }
+    
+    return round(reliability_score, 3), debug_info
+
+
 # =============================================================================
 # RESULT COMPUTATION
 # =============================================================================
