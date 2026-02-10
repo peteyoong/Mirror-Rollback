@@ -64,6 +64,15 @@ from deep_assessment_scoring import (
     ConfidenceTier
 )
 
+# Import P2 Deep Assessment Engine (new single-sitting Enneagram assessment)
+from enneagram_assessment import (
+    start_assessment as ea_start_assessment,
+    submit_answer as ea_submit_answer,
+    get_session_status as ea_get_session_status,
+    format_profile_enneagram,
+    Stage as EAStage
+)
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
