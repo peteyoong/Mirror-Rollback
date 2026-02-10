@@ -315,14 +315,23 @@ export default function P2DeepAssessment() {
       );
 
       if (response.results) {
-        // Assessment complete - show computing screen
+        // Assessment complete - clear session and show computing screen
+        await clearSession();
         setResults(response.results);
         setViewState('computing');
       } else if (response.question) {
-        // Next question
+        // Next question - update session timestamp
         setCurrentQuestion(response.question);
         setProgress(response.progress || null);
         setSelectedAnswer(null);
+        
+        // Update session timestamp
+        await saveSession({
+          session_id: sessionId,
+          user_id: user.id,
+          created_at_iso: new Date().toISOString(),
+          updated_at_iso: new Date().toISOString(),
+        });
       } else {
         // Unexpected state
         throw new Error('Unexpected response from server');
@@ -333,6 +342,7 @@ export default function P2DeepAssessment() {
       
       // Check for session expiry
       if (err?.response?.status === 400 || err?.response?.status === 404) {
+        await clearSession();
         setError('This session has expired. You can restart the assessment.');
         setViewState('error');
       } else {
@@ -341,7 +351,7 @@ export default function P2DeepAssessment() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [user?.id, sessionId, currentQuestion, selectedAnswer]);
+  }, [user?.id, sessionId, currentQuestion, selectedAnswer, clearSession, saveSession]);
 
   // Navigate to results after computing
   const handleComputingComplete = useCallback(() => {
@@ -350,7 +360,8 @@ export default function P2DeepAssessment() {
   }, [router]);
 
   // Restart assessment (from error state)
-  const handleRestart = useCallback(() => {
+  const handleRestart = useCallback(async () => {
+    await clearSession();
     setSessionId(null);
     setCurrentQuestion(null);
     setProgress(null);
@@ -359,7 +370,7 @@ export default function P2DeepAssessment() {
     setError(null);
     hasStarted.current = false;
     setViewState('intro');
-  }, []);
+  }, [clearSession]);
 
   // Render debug panel
   const renderDebugPanel = () => {
