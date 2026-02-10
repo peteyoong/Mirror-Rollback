@@ -80,7 +80,7 @@ export const EnneagramAssessmentQuestion: React.FC<Props> = ({
   // Render Likert scale (1-5)
   const renderLikertScale = () => (
     <View style={styles.likertContainer}>
-      {LIKERT_LABELS.map((item) => {
+      {likertLabels.map((item) => {
         const isSelected = selectedAnswer?.value === item.value;
         return (
           <TouchableOpacity
