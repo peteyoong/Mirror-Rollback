@@ -4,7 +4,7 @@
  * Welcome screen for the P2 Deep Enneagram Assessment.
  * Sets tone and expectations with calm, reflective language.
  * 
- * Supports Resume Prompt when an in-progress session exists.
+ * Supports Resume Prompt Modal when an in-progress session exists.
  */
 
 import React from 'react';
@@ -14,9 +14,28 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
+
+// Stage labels for user-friendly display
+const STAGE_LABELS: Record<string, string> = {
+  center: 'Center',
+  core: 'Type',
+  diff: 'Differentiators',
+  wing: 'Wing',
+  instinct: 'Instinct',
+  consistency: 'Validation',
+  done: 'Complete',
+};
+
+interface ResumeProgressInfo {
+  questionsAnswered: number;
+  totalQuestions: number;
+  stage?: string;
+}
 
 interface Props {
   onBegin: () => void;
@@ -25,6 +44,8 @@ interface Props {
   showResumePrompt?: boolean;
   onResume?: () => void;
   onStartFresh?: () => void;
+  onDismissResume?: () => void;
+  resumeProgress?: ResumeProgressInfo;
 }
 
 export const EnneagramAssessmentIntro: React.FC<Props> = ({ 
