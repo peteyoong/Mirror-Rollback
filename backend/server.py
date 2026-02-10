@@ -7545,17 +7545,17 @@ Your authority comes from having lived through things, made mistakes, and gained
         }
         
         cross_descriptions_rich = {
-            "Right Angle Cross": """Your Right Angle Cross indicates a personal destiny path—you're working out your own individual karma and themes in this life. This isn't selfish; it's how you're designed. Your life lessons are primarily about your own journey.
+            "Right Angle Cross": """Your Right Angle Cross describes a life path focused on your own themes and direction. This isn't about carrying obligations for others — it's about living out a personal trajectory in your own way.
 
-The specific gates of your cross describe particular themes you'll encounter repeatedly. These aren't predictions—they're territories you'll likely explore many times in different ways.""",
+The specific gates in your cross describe themes you'll revisit over time. These aren't predictions — they're territories you may explore many times in different ways.""",
 
-            "Left Angle Cross": """Your Left Angle Cross indicates a transpersonal path—you're here to work with and through others' karma and themes as much as your own. Your life has a strong relational or collective component.
+            "Left Angle Cross": """Your Left Angle Cross describes a path shaped through interaction and exchange with others. Themes often unfold through relationships, contribution, and shared experience.
 
-The specific gates of your cross point to themes that play out in relationship to others. Your individual journey is interwoven with the journeys of those you meet.""",
+The specific gates in your cross describe themes you'll revisit over time. These aren't predictions — they're territories you may explore many times in different ways.""",
 
-            "Juxtaposition Cross": """Your Juxtaposition Cross indicates a fixed path—you have a very specific trajectory in this life with less flexibility than other cross types. This can feel limiting OR it can provide tremendous focus.
+            "Juxtaposition Cross": """Your Juxtaposition Cross describes a focused, singular trajectory — a very specific direction in this life with a clear thematic consistency. This can feel like a strong sense of purpose or direction.
 
-You're essentially here for one thing. The specific gates of your cross describe that theme with unusual precision for your design."""
+The specific gates in your cross describe themes you'll revisit over time. These aren't predictions — they're territories you may explore many times in different ways."""
         }
         
         definition_desc = f"With {canonical_hd.get('definition', 'your')} definition, there's a particular way energy flows and connects within you—whether in one continuous circuit or in separate systems that connect through others. Your defined centers ({', '.join(defined_centers) if defined_centers else 'your key centers'}) represent consistent, reliable themes in your experience. Your undefined centers are where you take in and amplify the energy of others."
