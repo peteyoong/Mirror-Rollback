@@ -85,7 +85,7 @@ def run_verification():
         
         try:
             # Compute HD
-            hd = compute_human_design(
+            hd = get_human_design_chart(
                 user['birth_utc'],
                 user['lat'],
                 user['lon'],
