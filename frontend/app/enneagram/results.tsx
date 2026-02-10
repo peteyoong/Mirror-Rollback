@@ -835,8 +835,6 @@ export default function EnneagramResults() {
   // ============================================
   // ANALYTICS: CTA Shown (once per mount)
   // ============================================
-  const hasEmittedResultsCTA = useRef(false);
-  
   useEffect(() => {
     if (gateState.show_cta && gateState.cta_variant && !hasEmittedResultsCTA.current) {
       emitEnneagramGateCTAShown({
