@@ -827,6 +827,25 @@ export default function EnneagramResults() {
   };
   const { gateState, ctaCopy, showPreliminaryLabel } = getEnneagramUpgradeInfo(gateInput);
   
+  // ============================================
+  // ANALYTICS: CTA Shown (once per mount)
+  // ============================================
+  const hasEmittedResultsCTA = useRef(false);
+  
+  useEffect(() => {
+    if (gateState.show_cta && gateState.cta_variant && !hasEmittedResultsCTA.current) {
+      emitEnneagramGateCTAShown({
+        variant: gateState.cta_variant,
+        surface: 'results' as EnneagramGateSurface,
+        assessment_depth: gateInput.assessment_depth || null,
+        confidence_tier: gateInput.confidence_tier || null,
+        result_age_days: gateState.result_age_days,
+        has_saved_session: null, // Unknown at render time
+      });
+      hasEmittedResultsCTA.current = true;
+    }
+  }, [gateState.show_cta, gateState.cta_variant]);
+  
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
