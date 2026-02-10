@@ -594,6 +594,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const [deepDiveData, setDeepDiveData] = useState<EnneagramDeepDiveResponse | null>(null);
   const [deepDiveLoading, setDeepDiveLoading] = useState(false);
   
+  // Narrative Engine state (new layered narrative content)
+  const [narrativeData, setNarrativeData] = useState<EnneagramNarrativeResponse | null>(null);
+  const [narrativeLoading, setNarrativeLoading] = useState(false);
+  
   // Q&A Modal state (hidden initially per user request)
   const [showQAModal, setShowQAModal] = useState(false);
   const [qaQuestion, setQaQuestion] = useState('');
