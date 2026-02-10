@@ -427,13 +427,15 @@ export default function P2DeepAssessment() {
       // Check for session expiry
       if (err?.response?.status === 400 || err?.response?.status === 404) {
         await clearSession();
-        setError("This session has timed out. Let's start fresh.");
+        setError("Your previous session expired, so we'll restart to keep results accurate.");
+        setErrorType('session_expired');
         setViewState('error');
         
         // Analytics: session_expired
         emitAnalytics('enneagram_session_expired', { session_id: sessionId });
       } else {
         setError(err?.response?.data?.detail || 'Failed to submit answer. Please try again.');
+        setErrorType('generic');
       }
     } finally {
       setIsSubmitting(false);
