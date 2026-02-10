@@ -1334,6 +1334,49 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   
+  // Version Nudge Card
+  versionNudgeCard: {
+    backgroundColor: Colors.surfaceLight,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.accent,
+    borderStyle: 'dashed',
+  },
+  versionNudgeIcon: {
+    marginBottom: 8,
+  },
+  versionNudgeTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  versionNudgeBody: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  versionNudgeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.accent,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  versionNudgeButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.surface,
+  },
+  
   // Deep Assessment CTA
   deepAssessmentCTA: {
     backgroundColor: Colors.surface,
