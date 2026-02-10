@@ -7560,12 +7560,28 @@ The specific gates in your cross describe themes you'll revisit over time. These
         
         definition_desc = f"With {canonical_hd.get('definition', 'your')} definition, there's a particular way energy flows and connects within you—whether in one continuous circuit or in separate systems that connect through others. Your defined centers ({', '.join(defined_centers) if defined_centers else 'your key centers'}) represent consistent, reliable themes in your experience. Your undefined centers are where you take in and amplify the energy of others."
         
+        # Determine cross type from name
+        cross_name = incarnation_cross.get('name', '')
+        if "Right" in cross_name:
+            cross_type_key = "Right Angle Cross"
+        elif "Left" in cross_name:
+            cross_type_key = "Left Angle Cross"
+        elif "Juxtaposition" in cross_name or "JXP" in cross_name:
+            cross_type_key = "Juxtaposition Cross"
+        else:
+            cross_type_key = None  # Unknown - use neutral fallback
+        
+        # Neutral fallback for unknown cross type
+        neutral_cross_description = """Your Incarnation Cross highlights themes you may revisit over time. These aren't predictions — they're territories you may explore many times in different ways."""
+        
+        cross_description = cross_descriptions_rich.get(cross_type_key, neutral_cross_description) if cross_type_key else neutral_cross_description
+        
         fallback_content = {
             "type": ("Type: Your Energy Architecture", type_descriptions.get(hd_type, f"As a {hd_type}, there's a particular way energy tends to move through you.")),
             "strategy": ("Strategy: Your Engagement Pattern", strategy_descriptions_rich.get(hd_type, f"Your strategy points to how you engage most effectively with life.")),
             "authority": ("Authority: Your Clarity Process", authority_descriptions.get(authority, f"With {authority} authority, there's a specific way clarity tends to emerge for you.")),
             "profile": ("Profile: Your Learning Style", profile_descriptions.get(profile, f"Your {profile} profile suggests a particular way you tend to learn and grow.")),
-            "cross": ("Incarnation Cross: Your Life Direction", cross_descriptions_rich.get("Right Angle Cross" if "Right" in incarnation_cross.get('name', '') else "Left Angle Cross" if "Left" in incarnation_cross.get('name', '') else "Juxtaposition Cross" if "Juxtaposition" in incarnation_cross.get('name', '') else "Right Angle Cross", f"Your incarnation cross points to a broad life theme.")),
+            "cross": ("Incarnation Cross: Your Life Direction", cross_description),
             "definition": ("Definition & Centers", definition_desc)
         }
         
