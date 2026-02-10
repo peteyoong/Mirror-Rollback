@@ -1018,35 +1018,49 @@ INSTINCT_POOL = [
 # -----------------------------------------------------------------------------
 
 CONSISTENCY_POOL = [
-    # Duplicate checks (should match earlier center answers)
+    # ==========================================================================
+    # CONSISTENCY/RELIABILITY QUESTIONS
+    # ==========================================================================
+    # These questions are ONLY for reliability validation. They do NOT contribute
+    # to center_scores or type_scores. The "targets" field is empty to ensure
+    # no scoring impact. The "check" and "reference" fields are used to compare
+    # against earlier answers for consistency measurement.
+    #
+    # Duplicate checks: Should match earlier answers (same direction)
+    # Contradiction checks: Should contradict earlier answers (opposite direction)
+    # ==========================================================================
+    
+    # Duplicate check - should match C01 (head center)
     {
         "id": "CON_01",
         "stage": "consistency",
         "prompt": "I often think through multiple scenarios before acting.",
         "format": "likert",
-        "scoring": {"targets": [{"center": "head", "weight": 1}], "check": "duplicate", "reference": "C01"}
+        "scoring": {"targets": [], "check": "duplicate", "reference": "C01", "expected_center": "head"}
     },
+    # Duplicate check - should match C02 (heart center)
     {
         "id": "CON_02",
         "stage": "consistency",
         "prompt": "I am strongly aware of how situations make me and others feel.",
         "format": "likert",
-        "scoring": {"targets": [{"center": "heart", "weight": 1}], "check": "duplicate", "reference": "C02"}
+        "scoring": {"targets": [], "check": "duplicate", "reference": "C02", "expected_center": "heart"}
     },
-    # Contradiction checks (opposite direction of earlier answers)
+    # Contradiction check - should contradict C01 (head center, reversed)
     {
         "id": "CON_03",
         "stage": "consistency",
         "prompt": "I rarely analyze situations - I just respond intuitively.",
         "format": "likert",
-        "scoring": {"targets": [{"center": "head", "weight": -1}], "check": "contradiction", "reference": "C01"}
+        "scoring": {"targets": [], "check": "contradiction", "reference": "C01", "expected_center": "head"}
     },
+    # Contradiction check - should contradict C05 (heart center, reversed)
     {
         "id": "CON_04",
         "stage": "consistency",
         "prompt": "How others see me doesn't really affect how I feel about myself.",
         "format": "likert",
-        "scoring": {"targets": [{"center": "heart", "weight": -1}], "check": "contradiction", "reference": "C05"}
+        "scoring": {"targets": [], "check": "contradiction", "reference": "C05", "expected_center": "heart"}
     },
     # NOTE: Removed CON_05 and CON_06 ("select Agree" and "captures patterns" questions)
     # These broke immersion and felt test-like. Reliability is now handled via silent checks:
