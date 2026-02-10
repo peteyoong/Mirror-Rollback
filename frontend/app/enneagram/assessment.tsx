@@ -61,6 +61,25 @@ const SESSION_STORAGE_KEY = 'enneagram_deep_assessment_session';
 // Session TTL (2 hours in milliseconds)
 const SESSION_TTL_MS = 2 * 60 * 60 * 1000;
 
+// ============================================
+// ANALYTICS HELPER
+// ============================================
+// Lightweight analytics emission for tracking assessment events.
+// Events are logged to console in dev and can be wired to analytics service.
+
+function emitAnalytics(event: string, payload?: Record<string, any>) {
+  const timestamp = new Date().toISOString();
+  const eventData = { event, timestamp, ...payload };
+  
+  // Log to console in development
+  if (__DEV__) {
+    console.log('[P2Analytics]', event, payload);
+  }
+  
+  // TODO: Wire to analytics service (e.g., Mixpanel, Amplitude, Segment)
+  // analyticsService.track(event, eventData);
+}
+
 // Stored session interface
 interface StoredSession {
   session_id: string;
