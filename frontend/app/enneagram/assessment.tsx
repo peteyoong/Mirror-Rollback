@@ -13,6 +13,10 @@
  * - Non-prescriptive Mirror language
  * - Stage-based progress (not question count)
  * - Calm, reflective tone
+ * 
+ * Session Resume:
+ * - Stores session in AsyncStorage for resume within 2 hours
+ * - Validates session on mount, resumes or starts fresh
  */
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
@@ -29,11 +33,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import {
   startP2DeepAssessment,
   submitP2AssessmentAnswer,
+  getP2AssessmentStatus,
   P2AssessmentQuestion,
   P2AssessmentProgress,
   P2AssessmentAnswer,
@@ -49,8 +55,22 @@ import { EnneagramAssessmentComputing } from '../../components/EnneagramAssessme
 // Debug flag
 const DEBUG_MIRROR = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
 
+// Session storage key
+const SESSION_STORAGE_KEY = 'enneagram_deep_assessment_session';
+
+// Session TTL (2 hours in milliseconds)
+const SESSION_TTL_MS = 2 * 60 * 60 * 1000;
+
+// Stored session interface
+interface StoredSession {
+  session_id: string;
+  user_id: string;
+  created_at_iso: string;
+  updated_at_iso: string;
+}
+
 // View states
-type ViewState = 'intro' | 'questions' | 'computing' | 'error';
+type ViewState = 'loading' | 'intro' | 'questions' | 'computing' | 'error';
 
 export default function P2DeepAssessment() {
   const router = useRouter();
