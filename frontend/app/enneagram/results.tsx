@@ -325,6 +325,36 @@ export default function EnneagramResults() {
   // ============================================
   const hasEmittedResultsCTA = useRef(false);
   
+  // ============================================
+  // ANALYTICS: CTA Shown (once per mount)
+  // ============================================
+  // NOTE: This useEffect MUST be called before any early returns
+  // to maintain consistent hook order
+  useEffect(() => {
+    // Only emit if we have result data and gate state
+    if (!result) return;
+    
+    const gateInput: EnneagramGateInput = {
+      assessment_depth: result.assessment_depth,
+      confidence_tier: result.confidence_tier,
+      confidence: result.confidence,
+      created_at_iso: result.created_at,
+    };
+    const { gateState } = getEnneagramUpgradeInfo(gateInput);
+    
+    if (gateState.show_cta && gateState.cta_variant && !hasEmittedResultsCTA.current) {
+      emitEnneagramGateCTAShown({
+        variant: gateState.cta_variant,
+        surface: 'results' as EnneagramGateSurface,
+        assessment_depth: gateInput.assessment_depth || null,
+        confidence_tier: gateInput.confidence_tier || null,
+        result_age_days: gateState.result_age_days,
+        has_saved_session: null,
+      });
+      hasEmittedResultsCTA.current = true;
+    }
+  }, [result]);
+  
   // Computed: Should debug panel be shown?
   // Formula: showDebug = DEBUG_MIRROR_ENV && (urlDebugParam || tapCount >= 7)
   const showDebug = DEBUG_MIRROR_ENV && (getUrlDebugParam() || debugTapCount >= DEBUG_TAP_THRESHOLD);
