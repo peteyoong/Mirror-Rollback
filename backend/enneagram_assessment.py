@@ -1138,7 +1138,6 @@ def score_likert_answer(value: int, scoring: dict, session: dict) -> dict:
     """
     points = max(0, value - 1)  # 1->0, 2->1, 3->2, 4->3, 5->4
     
-    updates = {}
     for target in scoring.get("targets", []):
         weight = target.get("weight", 1)
         actual_points = points * weight
