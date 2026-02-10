@@ -608,6 +608,119 @@ export const getAllLifeContexts = async (userId: string): Promise<{
   return response.data;
 };
 
+// ============================================
+// P2 ENNEAGRAM DEEP ASSESSMENT (Single-Sitting)
+// ============================================
+// A 20-30 minute reflective assessment using the new
+// multi-stage adaptive question flow (center → core → diff → wing → instinct → consistency)
+
+export interface P2AssessmentQuestion {
+  id: string;
+  prompt: string;
+  format: 'likert' | 'forced';
+  options?: {
+    A?: string;
+    B?: string;
+    C?: string;
+    allow_both?: boolean;
+    allow_neither?: boolean;
+  };
+}
+
+export interface P2AssessmentProgress {
+  stage: 'center' | 'core' | 'diff' | 'wing' | 'instinct' | 'consistency' | 'done';
+  questions_answered: number;
+  estimated_total: number;
+  estimated_remaining: number;
+  estimated_minutes_remaining: number;
+}
+
+export interface P2AssessmentStartResponse {
+  session_id: string;
+  question: P2AssessmentQuestion | null;
+  progress: P2AssessmentProgress;
+}
+
+export interface P2AssessmentAnswer {
+  type: 'likert' | 'forced';
+  value: number | string;  // 1-5 for likert, "A"|"B"|"C"|"both"|"neither" for forced
+}
+
+export interface P2AssessmentResult {
+  core_type: number;
+  wing: string;
+  instinct_primary: string;
+  instinct_secondary: string | null;
+  confidence: number;
+  confidence_tier: 'high' | 'moderate' | 'exploratory';
+  assessment_depth: string;
+  reliability: 'stable' | 'mixed' | 'low';
+  created_at_iso: string;
+  _debug?: {
+    type_scores: Record<number, number>;
+    center_scores: Record<string, number>;
+    wing_scores: Record<string, number>;
+    instinct_scores: Record<string, number>;
+    consistency_score: number;
+    coherence_score: number;
+    type_gap: number;
+    questions_asked: number;
+    neither_count: number;
+  };
+}
+
+export interface P2AssessmentAnswerResponse {
+  session_id: string;
+  question?: P2AssessmentQuestion;
+  progress?: P2AssessmentProgress;
+  results?: P2AssessmentResult;
+}
+
+export interface P2AssessmentStatusResponse {
+  session_id: string;
+  user_id: string;
+  stage: string;
+  progress: P2AssessmentProgress;
+  created_at_iso: string;
+  updated_at_iso: string;
+}
+
+/**
+ * Start a new P2 deep assessment session
+ */
+export const startP2DeepAssessment = async (userId: string): Promise<P2AssessmentStartResponse> => {
+  const response = await apiWithRetry.post('/enneagram/deep-assessment/start', {
+    user_id: userId
+  });
+  return response.data;
+};
+
+/**
+ * Submit an answer to the current P2 assessment question
+ */
+export const submitP2AssessmentAnswer = async (
+  userId: string,
+  sessionId: string,
+  questionId: string,
+  answer: P2AssessmentAnswer
+): Promise<P2AssessmentAnswerResponse> => {
+  const response = await apiWithRetry.post('/enneagram/deep-assessment/answer', {
+    user_id: userId,
+    session_id: sessionId,
+    question_id: questionId,
+    answer: answer
+  });
+  return response.data;
+};
+
+/**
+ * Get the status of a P2 assessment session
+ */
+export const getP2AssessmentStatus = async (sessionId: string): Promise<P2AssessmentStatusResponse> => {
+  const response = await apiWithRetry.get(`/enneagram/deep-assessment/status/${sessionId}`);
+  return response.data;
+};
+
 // Export both the raw api instance and the retry-wrapped version
 export { apiWithRetry };
 export default api;
