@@ -590,13 +590,16 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const [traitsLoading, setTraitsLoading] = useState(false);
   const [traitsSource, setTraitsSource] = useState<'book' | 'static' | 'none'>('none');
   
-  // Deep Dive state (new API-driven content)
+  // Deep Dive state (legacy API-driven content - fallback only)
   const [deepDiveData, setDeepDiveData] = useState<EnneagramDeepDiveResponse | null>(null);
   const [deepDiveLoading, setDeepDiveLoading] = useState(false);
   
-  // Narrative Engine state (new layered narrative content)
+  // Narrative Engine state (new layered narrative content - PRIMARY)
   const [narrativeData, setNarrativeData] = useState<EnneagramNarrativeResponse | null>(null);
-  const [narrativeLoading, setNarrativeLoading] = useState(false);
+  const [narrativeStatus, setNarrativeStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  
+  // Collapsible state for Deeper Patterns section
+  const [deeperPatternsExpanded, setDeeperPatternsExpanded] = useState(false);
   
   // Q&A Modal state (hidden initially per user request)
   const [showQAModal, setShowQAModal] = useState(false);
