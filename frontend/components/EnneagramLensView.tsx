@@ -519,6 +519,9 @@ interface EnneagramResult {
     life_context: string;
     answer_frame: string;
   };
+  // Gate logic fields (for upgrade/retake CTAs)
+  assessment_depth?: 'short' | 'deep' | string;
+  created_at_iso?: string;
 }
 
 // ============================================
