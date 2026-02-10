@@ -243,7 +243,7 @@ PROFILE_TO_ANGLE = {
 }
 
 
-def get_angle_from_profile(profile: str) -> Tuple[str, str, Dict]:
+def get_angle_from_profile(profile: str) -> Tuple[Optional[str], Optional[str], Dict]:
     """
     Determine incarnation cross angle from the full profile string.
     
@@ -255,38 +255,47 @@ def get_angle_from_profile(profile: str) -> Tuple[str, str, Dict]:
     
     Returns:
         Tuple of (angle_code, angle_full_name, proof_dict)
+        - angle_code: "RAX" | "LAX" | "JXP" | None (if invalid profile)
+        - angle_full_name: Full name or None
+        - proof_dict: Diagnostic object for angle determination audit
         
-    The proof_dict contains:
-        - input_profile: The profile used for lookup
-        - rule_name: "profile_to_angle_mapping"
-        - lookup_table: Reference to the standard HD profile-angle mapping
-        - result: The determined angle
+    IMPORTANT: If profile is invalid/missing, returns (None, None, proof)
+    We NEVER default to any angle - null means unknown.
     """
+    # Handle None or empty profile
+    if not profile:
+        return None, None, {
+            "profile": profile,
+            "profile_to_angle_table_used": False,
+            "matched_profile": None,
+            "result_angle": None,
+            "angle_source": "unknown",
+            "error": "Profile is None or empty"
+        }
+    
     angle_data = PROFILE_TO_ANGLE.get(profile)
     
     if angle_data:
         angle, angle_full = angle_data
         proof = {
-            "input_profile": profile,
-            "rule_name": "profile_to_angle_mapping",
-            "lookup_table": "PROFILE_TO_ANGLE (HD standard)",
-            "matched_entry": f"{profile} -> {angle}",
-            "result": angle
+            "profile": profile,
+            "profile_to_angle_table_used": True,
+            "matched_profile": profile,
+            "result_angle": angle,
+            "angle_source": "computed_rule"
         }
+        return angle, angle_full, proof
     else:
-        # Fallback for invalid profiles (should never happen with valid data)
-        angle = "RAX"
-        angle_full = "Right Angle Cross"
+        # Invalid profile - return null, NEVER default to any angle
         proof = {
-            "input_profile": profile,
-            "rule_name": "fallback_default",
-            "lookup_table": "N/A (profile not found)",
-            "matched_entry": None,
-            "result": angle,
-            "warning": f"Profile '{profile}' not in standard mapping, defaulted to RAX"
+            "profile": profile,
+            "profile_to_angle_table_used": True,
+            "matched_profile": None,
+            "result_angle": None,
+            "angle_source": "unknown",
+            "error": f"Profile '{profile}' not in standard HD mapping (12 valid profiles)"
         }
-    
-    return angle, angle_full, proof
+        return None, None, proof
 
 
 def get_incarnation_cross_name(p_sun_gate: int, profile: str) -> str:
