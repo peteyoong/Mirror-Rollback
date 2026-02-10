@@ -10125,6 +10125,372 @@ async def get_enneagram_deep_dive(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =====================================================================
+# ENNEAGRAM NARRATIVE ENGINE - PROJECT MIRROR
+# =====================================================================
+# Generates layered, reflective narratives from Enneagram results
+# following the Mirror principle: describe patterns, never prescribe change
+# 
+# Output Structure (mandatory order):
+# 1. Core Story (Type only) - Central pattern under pressure
+# 2. Core + Wing Story - How the pattern expresses in motion
+# 3. The Other Wing - Mirror-safe tension/unintegrated side  
+# 4. Deeper Pattern Stories - JoH concepts reframed
+# 5. Closing Reflection Line
+# =====================================================================
+
+# Type names for narrative context
+ENNEAGRAM_TYPE_NAMES_NARRATIVE = {
+    1: "Perfectionist", 2: "Helper", 3: "Achiever",
+    4: "Individualist", 5: "Investigator", 6: "Loyalist",
+    7: "Enthusiast", 8: "Challenger", 9: "Peacemaker"
+}
+
+# JoH concepts mapped to Mirror-safe language
+ENNEAGRAM_JOH_CONCEPTS = {
+    1: {"passion": "resentment/anger held inward", "fixation": "judging and comparing to internal standards", "avoidance": "personal error or being wrong", "virtue": "serenity"},
+    2: {"passion": "pride in being needed", "fixation": "flattering and adapting to gain connection", "avoidance": "acknowledging own needs", "virtue": "humility"},
+    3: {"passion": "deceit/self-deception about image", "fixation": "vanity and performing for approval", "avoidance": "failure and being seen as unsuccessful", "virtue": "truthfulness"},
+    4: {"passion": "envy of what others have", "fixation": "melancholy and longing for what's missing", "avoidance": "being ordinary or emotionally shallow", "virtue": "equanimity"},
+    5: {"passion": "avarice/hoarding resources", "fixation": "stinginess with time, energy, and self", "avoidance": "intrusion and being depleted", "virtue": "non-attachment"},
+    6: {"passion": "fear and doubt", "fixation": "cowardice or reactive courage", "avoidance": "uncertainty and being without support", "virtue": "courage"},
+    7: {"passion": "gluttony for experience and options", "fixation": "planning and anticipating pleasure", "avoidance": "pain, limitation, and boredom", "virtue": "sobriety"},
+    8: {"passion": "lust for intensity and control", "fixation": "vengeance and excess", "avoidance": "vulnerability and being controlled", "virtue": "innocence"},
+    9: {"passion": "sloth/self-forgetting", "fixation": "indolence and going along", "avoidance": "conflict and disruption of peace", "virtue": "right action"},
+}
+
+# Instinct domain descriptions for contextual coloring
+ENNEAGRAM_INSTINCT_CONTEXT = {
+    "sp": "self-preservation contexts (security, resources, physical comfort)",
+    "so": "social contexts (group dynamics, reputation, impact)",
+    "sx": "one-to-one intensity contexts (chemistry, deep connection, attraction)",
+}
+
+
+async def generate_enneagram_narrative_section(
+    section_type: str,
+    core_type: int,
+    wing: int | str | None,
+    instinct_primary: str | None,
+    confidence_tier: str
+) -> str:
+    """
+    Generate a single narrative section using the LLM.
+    Each section follows the Mirror principle: observational, not prescriptive.
+    """
+    from emergent_contract import emergent_generate
+    
+    type_name = ENNEAGRAM_TYPE_NAMES_NARRATIVE.get(core_type, f"Type {core_type}")
+    wing_number = wing if isinstance(wing, int) else None
+    other_wing = None
+    
+    # Calculate wings
+    wing_numbers = {
+        1: (9, 2), 2: (1, 3), 3: (2, 4), 4: (3, 5), 5: (4, 6),
+        6: (5, 7), 7: (6, 8), 8: (7, 9), 9: (8, 1)
+    }
+    if core_type in wing_numbers:
+        left, right = wing_numbers[core_type]
+        if wing_number == left:
+            other_wing = right
+        elif wing_number == right:
+            other_wing = left
+        else:
+            other_wing = left  # Default
+    
+    joh = ENNEAGRAM_JOH_CONCEPTS.get(core_type, {})
+    instinct_context = ENNEAGRAM_INSTINCT_CONTEXT.get(instinct_primary, "various life contexts")
+    
+    # Build prompts for each section type
+    prompts = {
+        "core_story": f"""Write a Core Story for Enneagram Type {core_type} ({type_name}).
+
+REQUIREMENTS:
+- Describe the central organizing pattern of attention under pressure
+- Focus ONLY on the core type (no wings, no instincts)
+- Use neutral, stabilizing, observational tone
+- Use phrases like "This pattern tends to...", "Under pressure, attention often moves toward...", "You may notice..."
+- 3-4 paragraphs, ~200-250 words
+- NO advice, NO "you should", NO growth instructions
+- End with a simple observation, not a question
+
+The reader should finish feeling seen, not instructed.""",
+
+        "wing_story": f"""Write a Core + Wing Story for Type {core_type}w{wing_number}.
+
+REQUIREMENTS:
+- Describe how the core Type {core_type} pattern expresses in motion with Wing {wing_number}
+- Focus on style, tempo, direction, energy
+- Do NOT repeat the core story - this is about the wing's flavor
+- Use phrases like "For you, this pattern often carries...", "This can look like...", "The {wing_number}-wing adds..."
+- 2-3 paragraphs, ~150-180 words
+- NO advice, NO prescriptions
+- Observational and neutral tone
+
+This is about how the wing colors the expression, not about identity.""",
+
+        "other_wing": f"""Write about the Other Wing for Type {core_type} (Wing {other_wing}).
+
+REQUIREMENTS:
+- Acknowledge Wing {other_wing} as a real but sometimes unintegrated part of the system
+- NEVER call it "shadow" - frame as "a part that may not always be fully integrated"
+- Describe indirect or distorted expressions only
+- Use phrases like "There is also access to...", "When this side isn't fully integrated, it may show up as...", "This isn't a flaw — it's often a protective response..."
+- 2-3 paragraphs, ~150-180 words
+- NO judgment, NO deficiency language
+- Frame as capacity that exists, not something missing
+
+The other wing is a resource, not a problem.""",
+
+        "deeper_patterns": f"""Write about the Deeper Patterns for Type {core_type}.
+
+JoH CONCEPTS TO TRANSLATE (use Mirror language, not original terms):
+- Passion ({joh.get('passion', 'emotional gravity')}) → "Emotional gravity" - where attention gets pulled under pressure
+- Fixation ({joh.get('fixation', 'mental habit')}) → "Mental habit" - default thinking pattern when stressed
+- Avoidance ({joh.get('avoidance', 'what attention moves away from')}) → What attention moves away from
+- Virtue ({joh.get('virtue', 'balancing orientation')}) → "Balancing orientation" (non-goal, just a quality that emerges)
+
+REQUIREMENTS:
+- Describe as attention movement, NOT traits or problems
+- Use phrases like "Attention can be pulled toward...", "When pressure increases, the mind may default to...", "This pattern tends to move away from..."
+- 3-4 paragraphs, ~200-250 words
+- DO NOT list as bullet points - write as flowing narrative
+- NO moral language (good/bad, healthy/unhealthy)
+- Instinct context: This pattern often plays out in {instinct_context}
+
+These are pattern lenses, not diagnoses.""",
+
+        "closing": f"""Write a brief Closing Reflection Line for Type {core_type}.
+
+REQUIREMENTS:
+- One sentence, non-directive
+- Something like: "This isn't a rule — just a pattern you might notice. You don't have to do anything with it unless it's useful."
+- Reinforce agency and choice
+- Calm, grounding tone
+- ~20-30 words maximum"""
+    }
+    
+    prompt = prompts.get(section_type)
+    if not prompt:
+        return ""
+    
+    try:
+        response = await emergent_generate(
+            mode="deep_dive",
+            user_message=prompt,
+            endpoint=f"enneagram_narrative_{section_type}",
+            user_id=None,
+            context={
+                "lens": "enneagram",
+                "type": core_type,
+                "wing": wing_number,
+                "section": section_type
+            },
+            additional_system_prompt="""You are generating Enneagram narrative content for Project Mirror.
+
+CRITICAL RULES:
+- You are a MIRROR, not a coach
+- Describe patterns that TEND TO show up
+- NEVER prescribe change
+- NEVER imply something is wrong
+- NEVER use shaming, moralizing, or corrective language
+- The Enneagram is a pattern of attention and strategy under pressure, NOT identity
+
+LANGUAGE CONSTRAINTS:
+- Use: tends to, often, may, can, under pressure
+- NEVER use: you are, you should, you need to, you must
+- Maintain calm, grounded, reflective tone""",
+            max_tokens=500,
+            model="gpt-5.2"
+        )
+        return response
+    except Exception as e:
+        logger.error(f"[ENNEAGRAM_NARRATIVE] Error generating {section_type}: {e}")
+        return ""
+
+
+@api_router.get("/enneagram/narrative/{user_id}")
+async def get_enneagram_narrative(user_id: str, force_refresh: bool = False):
+    """
+    Generate layered Enneagram narrative using the Narrative Engine.
+    
+    Returns structured narrative sections following the Mirror principle:
+    1. Core Story (Type only)
+    2. Core + Wing Story  
+    3. The Other Wing (Mirror-safe tension)
+    4. Deeper Pattern Stories (JoH concepts reframed)
+    5. Closing Reflection Line
+    
+    Narratives are cached in MongoDB and regenerated on force_refresh or new assessment.
+    """
+    try:
+        # Check cache first
+        if not force_refresh:
+            cached = await get_cached_deep_dive(user_id, "enneagram_narrative")
+            if cached:
+                logger.info(f"[ENNEAGRAM_NARRATIVE] Cache hit for user {user_id}")
+                return cached
+        
+        # Get user's Enneagram result
+        result = await db.enneagram_results.find_one({"user_id": user_id})
+        
+        if not result:
+            return {
+                "success": False,
+                "error": "NO_ASSESSMENT",
+                "message": "Complete the Enneagram assessment to access your narrative.",
+                "sections": []
+            }
+        
+        core_type = result.get("inferred_core")
+        wing = result.get("inferred_wing")
+        confidence_tier = result.get("confidence_tier", "low")
+        
+        # Check for v2 profile data (from deep assessment)
+        profile_enn = None
+        user_doc = await db.users.find_one({"_id": ObjectId(user_id)})
+        if user_doc and user_doc.get("profile", {}).get("enneagram"):
+            profile_enn = user_doc["profile"]["enneagram"]
+        
+        # Prefer profile data if available (more recent assessment)
+        if profile_enn:
+            core_type = profile_enn.get("core_type", core_type)
+            wing = profile_enn.get("wing", wing)
+            confidence_tier = profile_enn.get("confidence_tier", confidence_tier)
+            instinct_primary = profile_enn.get("instinct_primary")
+            instinct_secondary = profile_enn.get("instinct_secondary")
+        else:
+            instinct_primary = result.get("instinct_primary")
+            instinct_secondary = result.get("instinct_secondary")
+        
+        if not core_type:
+            return {
+                "success": False,
+                "error": "TYPE_NOT_DETERMINED",
+                "message": "Enneagram type could not be determined from assessment.",
+                "sections": []
+            }
+        
+        # Convert wing to int if string
+        wing_int = None
+        if isinstance(wing, str) and wing.isdigit():
+            wing_int = int(wing)
+        elif isinstance(wing, int):
+            wing_int = wing
+        
+        logger.info(f"[ENNEAGRAM_NARRATIVE] Generating for user {user_id}: Type {core_type}w{wing_int}")
+        
+        # Generate all sections
+        sections = []
+        
+        # 1. Core Story
+        core_story = await generate_enneagram_narrative_section(
+            "core_story", core_type, wing_int, instinct_primary, confidence_tier
+        )
+        if core_story:
+            sections.append({
+                "id": "core_story",
+                "label": "Core Story",
+                "body": core_story
+            })
+        
+        # 2. Core + Wing Story (only if wing is determined)
+        if wing_int:
+            wing_story = await generate_enneagram_narrative_section(
+                "wing_story", core_type, wing_int, instinct_primary, confidence_tier
+            )
+            if wing_story:
+                sections.append({
+                    "id": "wing_story",
+                    "label": f"Type {core_type}w{wing_int} — Your Wing",
+                    "body": wing_story
+                })
+        
+        # 3. The Other Wing (only if wing is determined)
+        if wing_int:
+            other_wing_story = await generate_enneagram_narrative_section(
+                "other_wing", core_type, wing_int, instinct_primary, confidence_tier
+            )
+            if other_wing_story:
+                # Calculate other wing number
+                wing_numbers = {
+                    1: (9, 2), 2: (1, 3), 3: (2, 4), 4: (3, 5), 5: (4, 6),
+                    6: (5, 7), 7: (6, 8), 8: (7, 9), 9: (8, 1)
+                }
+                left, right = wing_numbers.get(core_type, (0, 0))
+                other_wing_num = right if wing_int == left else left
+                
+                sections.append({
+                    "id": "other_wing",
+                    "label": f"The Other Wing ({other_wing_num})",
+                    "body": other_wing_story
+                })
+        
+        # 4. Deeper Pattern Stories
+        deeper_patterns = await generate_enneagram_narrative_section(
+            "deeper_patterns", core_type, wing_int, instinct_primary, confidence_tier
+        )
+        if deeper_patterns:
+            sections.append({
+                "id": "deeper_patterns",
+                "label": "Deeper Patterns",
+                "body": deeper_patterns
+            })
+        
+        # 5. Closing Reflection Line
+        closing = await generate_enneagram_narrative_section(
+            "closing", core_type, wing_int, instinct_primary, confidence_tier
+        )
+        if closing:
+            sections.append({
+                "id": "closing",
+                "label": "",  # No label for closing
+                "body": closing
+            })
+        
+        # Build type label
+        type_names = {
+            1: "The Perfectionist", 2: "The Helper", 3: "The Achiever",
+            4: "The Individualist", 5: "The Investigator", 6: "The Loyalist",
+            7: "The Enthusiast", 8: "The Challenger", 9: "The Peacemaker"
+        }
+        
+        type_label = f"Type {core_type}w{wing_int}" if wing_int else f"Type {core_type}"
+        type_name = type_names.get(core_type, "Unknown")
+        
+        # Build instinct stacking string
+        instinct_stacking = None
+        if instinct_primary:
+            instinct_stacking = instinct_primary
+            if instinct_secondary:
+                instinct_stacking += f"/{instinct_secondary}"
+        
+        response = {
+            "success": True,
+            "type": core_type,
+            "wing": wing_int,
+            "type_label": type_label,
+            "type_name": type_name,
+            "confidence_tier": confidence_tier,
+            "instinct_stacking": instinct_stacking,
+            "sections": sections,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "version": "narrative_v1"
+        }
+        
+        # Cache the response
+        await set_cached_deep_dive(user_id, "enneagram_narrative", response)
+        
+        logger.info(f"[ENNEAGRAM_NARRATIVE] Generated {len(sections)} sections for user {user_id}")
+        return response
+        
+    except Exception as e:
+        logger.error(f"[ENNEAGRAM_NARRATIVE] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.get("/enneagram/traits/{user_id}")
 async def get_enneagram_traits(user_id: str):
     """
