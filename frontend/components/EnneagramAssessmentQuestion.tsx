@@ -25,13 +25,22 @@ interface Props {
   isSubmitting: boolean;
 }
 
-// Likert scale labels
-const LIKERT_LABELS = [
+// Likert scale labels (frequency-based - for most questions)
+const LIKERT_LABELS_FREQUENCY = [
   { value: 1, label: 'Rarely' },
   { value: 2, label: 'Sometimes' },
   { value: 3, label: 'Often' },
   { value: 4, label: 'Usually' },
   { value: 5, label: 'Almost Always' },
+];
+
+// Agreement-based labels (for consistency/validation questions)
+const LIKERT_LABELS_AGREEMENT = [
+  { value: 1, label: 'Strongly Disagree' },
+  { value: 2, label: 'Disagree' },
+  { value: 3, label: 'Neutral' },
+  { value: 4, label: 'Agree' },
+  { value: 5, label: 'Strongly Agree' },
 ];
 
 // Helper text that rotates (based on question index hint from id)
@@ -40,6 +49,15 @@ const HELPER_TEXTS = [
   "Think about how this shows up under pressure.",
   "Go with your first, most familiar response.",
 ];
+
+// Helper text for agreement questions
+const AGREEMENT_HELPER_TEXT = "Select the option that best reflects how you feel.";
+
+// Check if question is a consistency/validation question (needs agreement labels)
+const isConsistencyQuestion = (questionId: string): boolean => {
+  // Consistency questions start with "CON_" or contain validation-related keywords
+  return questionId.startsWith('CON_');
+};
 
 export const EnneagramAssessmentQuestion: React.FC<Props> = ({
   question,
@@ -51,9 +69,13 @@ export const EnneagramAssessmentQuestion: React.FC<Props> = ({
   const isLikert = question.format === 'likert';
   const canContinue = selectedAnswer !== null && !isSubmitting;
   
-  // Pick helper text based on question id to create variety
+  // Determine which labels to use based on question type
+  const useAgreementLabels = isConsistencyQuestion(question.id);
+  const likertLabels = useAgreementLabels ? LIKERT_LABELS_AGREEMENT : LIKERT_LABELS_FREQUENCY;
+  
+  // Pick helper text based on question type
   const helperIndex = question.id.charCodeAt(question.id.length - 1) % HELPER_TEXTS.length;
-  const helperText = HELPER_TEXTS[helperIndex];
+  const helperText = useAgreementLabels ? AGREEMENT_HELPER_TEXT : HELPER_TEXTS[helperIndex];
 
   // Render Likert scale (1-5)
   const renderLikertScale = () => (
