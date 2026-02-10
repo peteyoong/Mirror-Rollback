@@ -1773,6 +1773,20 @@ def submit_answer(
     if session["user_id"] != user_id:
         raise ValueError("Session does not belong to this user")
     
+    # =========================================================================
+    # SILENT RELIABILITY TRACKING
+    # =========================================================================
+    
+    # Track response time (time since question was sent)
+    last_sent = session.get("last_question_sent_at")
+    if last_sent:
+        response_time = time.time() - last_sent
+        session["response_times"].append(response_time)
+    
+    # Track answer sequence for straightlining detection (likert answers only)
+    if answer.get("type") == "likert" and "value" in answer:
+        session["answer_sequence"].append(answer["value"])
+    
     # Process the answer
     try:
         process_answer(session, question_id, answer)
