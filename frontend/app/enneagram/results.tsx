@@ -824,6 +824,30 @@ export default function EnneagramResults() {
       </View>
       
       <ScrollView contentContainerStyle={styles.content}>
+        {/* ============================================
+            VERSION NUDGE CARD (Only if not latest assessment)
+            ============================================
+            Shows when assessment_version !== "v2" OR assessment_depth !== "deep"
+            Calm, non-destructive prompt to retake with refined assessment.
+        */}
+        {!isLatestAssessment && (
+          <View style={styles.versionNudgeCard}>
+            <Ionicons name="sparkles-outline" size={22} color={Colors.accent} style={styles.versionNudgeIcon} />
+            <Text style={styles.versionNudgeTitle}>Your mirror has evolved.</Text>
+            <Text style={styles.versionNudgeBody}>
+              We've refined how Enneagram patterns are assessed.{'\n'}
+              A fresh pass can give you a clearer signal.
+            </Text>
+            <TouchableOpacity
+              style={styles.versionNudgeButton}
+              onPress={() => router.push('/enneagram/assessment')}
+            >
+              <Text style={styles.versionNudgeButtonText}>Retake the assessment</Text>
+              <Ionicons name="arrow-forward" size={16} color={Colors.surface} />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Main Result Card */}
         <View style={styles.resultCard}>
           <Text style={styles.pageTitle}>Your Enneagram Profile</Text>
