@@ -314,7 +314,7 @@ def build_incarnation_cross_canonical(
     p_earth_gate: int, p_earth_line: int,
     d_sun_gate: int, d_sun_line: int,
     d_earth_gate: int, d_earth_line: int,
-    profile_line1: int
+    profile: str
 ) -> Dict:
     """
     Build canonical incarnation cross structure with vendor mapping support.
@@ -322,7 +322,9 @@ def build_incarnation_cross_canonical(
     Returns a structure that includes:
     - canonical_key: "21.4/48.4|38.6/39.6" format for exact matching
     - internal_label: Our computed label (e.g., "Tension")
-    - angle: RAX/JXP/LAX based on profile line 1
+    - angle: RAX/JXP/LAX based on full profile lookup
+    - angle_source: "computed_rule" - indicates deterministic computation
+    - angle_proof: Machine-readable proof of angle determination
     - display_label: UI-friendly format "Tension (21/48 • 38/39)"
     - vendor_labels: Mapping layer for external system labels
     
@@ -331,10 +333,10 @@ def build_incarnation_cross_canonical(
         p_earth_gate, p_earth_line: Personality Earth gate and line
         d_sun_gate, d_sun_line: Design Sun gate and line
         d_earth_gate, d_earth_line: Design Earth gate and line
-        profile_line1: First line of profile (determines angle)
+        profile: Full profile string (e.g., "4/6", "5/1")
     
     Returns:
-        Dict with canonical cross structure
+        Dict with canonical cross structure including angle_source and angle_proof
     """
     # Build canonical key: "gate.line/gate.line|gate.line/gate.line"
     canonical_key = f"{p_sun_gate}.{p_sun_line}/{p_earth_gate}.{p_earth_line}|{d_sun_gate}.{d_sun_line}/{d_earth_gate}.{d_earth_line}"
@@ -345,19 +347,8 @@ def build_incarnation_cross_canonical(
     # Get internal cross name from Sun gate
     internal_name = INCARNATION_CROSS_NAMES.get(p_sun_gate, f"Gate {p_sun_gate}")
     
-    # Determine angle from profile line 1
-    if profile_line1 in [1, 2, 3]:
-        angle = "RAX"
-        angle_full = "Right Angle Cross"
-    elif profile_line1 == 4:
-        angle = "JXP"
-        angle_full = "Juxtaposition Cross"
-    elif profile_line1 in [5, 6]:
-        angle = "LAX"
-        angle_full = "Left Angle Cross"
-    else:
-        angle = "RAX"
-        angle_full = "Right Angle Cross"
+    # Determine angle from full profile using standard HD mapping
+    angle, angle_full, angle_proof = get_angle_from_profile(profile)
     
     # Internal label (our system)
     internal_label = f"{angle} {internal_name}"
@@ -377,6 +368,8 @@ def build_incarnation_cross_canonical(
         "gates_key": gates_key,
         "angle": angle,
         "angle_full": angle_full,
+        "angle_source": "computed_rule",
+        "angle_proof": angle_proof,
         "internal_name": internal_name,
         "internal_label": internal_label,
         "display_label": display_label,
