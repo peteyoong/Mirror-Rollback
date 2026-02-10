@@ -276,6 +276,15 @@ export default function P2DeepAssessment() {
       setViewState('questions');
       hasStarted.current = true;
       
+      // Save session for potential resume
+      const now = new Date().toISOString();
+      await saveSession({
+        session_id: response.session_id,
+        user_id: user.id,
+        created_at_iso: now,
+        updated_at_iso: now,
+      });
+      
     } catch (err: any) {
       console.error('[P2Assessment] Start error:', err);
       setError(err?.response?.data?.detail || 'Failed to start assessment. Please try again.');
