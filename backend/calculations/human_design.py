@@ -331,8 +331,8 @@ def build_incarnation_cross_canonical(
     Returns a structure that includes:
     - canonical_key: "21.4/48.4|38.6/39.6" format for exact matching
     - internal_label: Our computed label (e.g., "Tension")
-    - angle: RAX/JXP/LAX based on full profile lookup
-    - angle_source: "computed_rule" - indicates deterministic computation
+    - angle: RAX/JXP/LAX or None if profile invalid
+    - angle_source: "computed_rule" | "unknown"
     - angle_proof: Machine-readable proof of angle determination
     - display_label: UI-friendly format "Tension (21/48 • 38/39)"
     - vendor_labels: Mapping layer for external system labels
@@ -357,10 +357,17 @@ def build_incarnation_cross_canonical(
     internal_name = INCARNATION_CROSS_NAMES.get(p_sun_gate, f"Gate {p_sun_gate}")
     
     # Determine angle from full profile using standard HD mapping
+    # angle can be None if profile is invalid
     angle, angle_full, angle_proof = get_angle_from_profile(profile)
     
-    # Internal label (our system)
-    internal_label = f"{angle} {internal_name}"
+    # Derive angle_source from proof
+    angle_source = angle_proof.get("angle_source", "unknown")
+    
+    # Internal label - handle null angle gracefully
+    if angle:
+        internal_label = f"{angle} {internal_name}"
+    else:
+        internal_label = internal_name  # No prefix if angle unknown
     
     # UI display label - avoids label disputes by showing gates
     display_label = f"{internal_name} ({p_sun_gate}/{p_earth_gate} • {d_sun_gate}/{d_earth_gate})"
@@ -375,9 +382,9 @@ def build_incarnation_cross_canonical(
     return {
         "canonical_key": canonical_key,
         "gates_key": gates_key,
-        "angle": angle,
-        "angle_full": angle_full,
-        "angle_source": "computed_rule",
+        "angle": angle,  # Can be None if profile invalid
+        "angle_full": angle_full,  # Can be None if profile invalid
+        "angle_source": angle_source,
         "angle_proof": angle_proof,
         "internal_name": internal_name,
         "internal_label": internal_label,
