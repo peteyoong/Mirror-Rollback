@@ -402,6 +402,13 @@ export default function P2DeepAssessment() {
     );
   };
 
+  // Render loading state
+  const renderLoading = () => (
+    <View style={styles.loadingContainer}>
+      <Text style={styles.loadingText}>Loading...</Text>
+    </View>
+  );
+
   // Render error state
   const renderError = () => (
     <View style={styles.errorContainer}>
@@ -432,6 +439,8 @@ export default function P2DeepAssessment() {
 
       {/* Main Content */}
       <View style={styles.content}>
+        {viewState === 'loading' && renderLoading()}
+
         {viewState === 'intro' && (
           <EnneagramAssessmentIntro
             onBegin={handleBegin}
