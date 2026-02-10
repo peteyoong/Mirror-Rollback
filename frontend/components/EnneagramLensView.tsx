@@ -1329,6 +1329,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
             </View>
           </View>
           <Text style={styles.deepDiveWingStance}>{typeName}</Text>
+          {/* Preliminary Label - shown for short assessments */}
+          <PreliminaryLabel 
+            visible={showPreliminaryLabel} 
+            testID="preliminary-label-deep-dive"
+          />
           {wingInfo.helperText && (
             <Text style={styles.deepDiveHelperText}>
               {wingInfo.helperText}
@@ -1336,6 +1341,14 @@ export default function EnneagramLensView({ result, userId }: Props) {
           )}
           <Text style={styles.deepDiveNote}>This lens reflects strategy, not identity.</Text>
         </View>
+
+        {/* Upgrade CTA - shown based on gate logic */}
+        {ctaCopy && (
+          <EnneagramUpgradeCTA 
+            ctaCopy={ctaCopy} 
+            testID="upgrade-cta-deep-dive"
+          />
+        )}
 
         {/* ===== NARRATIVE SECTIONS (Story-only when available) ===== */}
         {useNarrative && narrativeData.sections.map((section, index) => {
