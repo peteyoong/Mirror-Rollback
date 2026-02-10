@@ -88,8 +88,18 @@ interface StoredSession {
   updated_at_iso: string;
 }
 
+// Resume progress info for UI
+interface ResumeProgressInfo {
+  questionsAnswered: number;
+  totalQuestions: number;
+  stage?: string;
+}
+
 // View states
 type ViewState = 'loading' | 'intro' | 'questions' | 'computing' | 'error';
+
+// Error types for specific handling
+type ErrorType = 'generic' | 'session_expired';
 
 export default function P2DeepAssessment() {
   const router = useRouter();
@@ -104,7 +114,9 @@ export default function P2DeepAssessment() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorType, setErrorType] = useState<ErrorType>('generic');
   const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [resumeProgress, setResumeProgress] = useState<ResumeProgressInfo | null>(null);
   
   // Session state
   const [sessionId, setSessionId] = useState<string | null>(null);
