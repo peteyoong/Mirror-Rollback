@@ -17,9 +17,9 @@ System Settings (Must Match):
 import sys
 sys.path.insert(0, '/app/backend')
 
+import json
 from datetime import datetime, timezone, timedelta
 from calculations.human_design import get_human_design_chart, calculate_design_date
-from calculations.astrology import get_full_natal_chart
 
 # Test Users
 TEST_USERS = [
@@ -64,9 +64,9 @@ def format_gate_line(gate: int, line: int) -> str:
 def run_verification():
     """Run HD verification for all test users"""
     
-    print("=" * 80)
+    print("=" * 90)
     print("HUMAN DESIGN GENETIC MATRIX PARITY VERIFICATION")
-    print("=" * 80)
+    print("=" * 90)
     print(f"\nSystem Settings:")
     print(f"  - Zodiac: True Sidereal")
     print(f"  - SVP: {SIDEREAL_SETTINGS['svp_degrees']}°")
@@ -75,9 +75,9 @@ def run_verification():
     print()
     
     for user in TEST_USERS:
-        print("=" * 80)
+        print("=" * 90)
         print(f"USER: {user['name']}")
-        print("=" * 80)
+        print("=" * 90)
         print(f"Birth (Local): {user['birth_local']}")
         print(f"Birth (UTC):   {user['birth_utc'].strftime('%Y-%m-%d %H:%M:%S UTC')}")
         print(f"Location:      {user['place']} ({user['lat']}, {user['lon']})")
@@ -100,85 +100,188 @@ def run_verification():
                 SIDEREAL_SETTINGS['svp_degrees']
             )
             
-            print("DESIGN DATE CALCULATION (88° Solar Arc)")
-            print("-" * 40)
-            print(f"  Birth Sun (Sidereal):   {design_debug.get('birth_sun_sidereal', 'N/A'):.4f}°")
-            print(f"  Target Sun (88° back):  {design_debug.get('target_sun_sidereal', 'N/A'):.4f}°")
-            print(f"  Design Sun (Computed):  {design_debug.get('design_sun_sidereal', 'N/A'):.4f}°")
-            print(f"  Design DateTime (UTC):  {design_dt.strftime('%Y-%m-%d %H:%M:%S')}")
-            print(f"  Days Before Birth:      {(user['birth_utc'] - design_dt).days} days")
+            # =====================================================================
+            # SECTION 1: INCARNATION CROSS (Priority 1)
+            # =====================================================================
+            print("┌" + "─" * 88 + "┐")
+            print("│ 1. INCARNATION CROSS" + " " * 67 + "│")
+            print("├" + "─" * 88 + "┤")
+            
+            ic = hd.get('incarnation_cross', {})
+            print(f"│  Type:            {ic.get('angle_full', 'N/A'):68} │")
+            print(f"│  Angle:           {ic.get('angle', 'N/A'):68} │")
+            print(f"│  Label:           {ic.get('internal_label', ic.get('name', 'N/A')):68} │")
+            print(f"│  Gates Key:       {ic.get('gates_key', 'N/A'):68} │")
+            
+            # Gate/Line breakdown
+            p_sun_g = ic.get('personality_sun', '?')
+            p_sun_l = ic.get('personality_sun_line', '?')
+            p_earth_g = ic.get('personality_earth', '?')
+            p_earth_l = ic.get('personality_earth_line', '?')
+            d_sun_g = ic.get('design_sun', '?')
+            d_sun_l = ic.get('design_sun_line', '?')
+            d_earth_g = ic.get('design_earth', '?')
+            d_earth_l = ic.get('design_earth_line', '?')
+            
+            gates_detail = f"P-Sun {p_sun_g}.{p_sun_l}, P-Earth {p_earth_g}.{p_earth_l} | D-Sun {d_sun_g}.{d_sun_l}, D-Earth {d_earth_g}.{d_earth_l}"
+            print(f"│  Gates Detail:    {gates_detail:68} │")
+            print("└" + "─" * 88 + "┘")
             print()
             
-            # Print Type, Authority, Profile, Definition
-            print("TYPE / AUTHORITY / PROFILE / DEFINITION")
-            print("-" * 40)
-            print(f"  Type:        {hd.get('type', 'N/A')}")
-            print(f"  Authority:   {hd.get('authority', 'N/A')}")
-            print(f"  Profile:     {hd.get('profile', 'N/A')}")
-            print(f"  Definition:  {hd.get('definition_type', 'N/A')}")
+            # =====================================================================
+            # SECTION 2: PROFILE / TYPE / AUTHORITY (Priority 2)
+            # =====================================================================
+            print("┌" + "─" * 88 + "┐")
+            print("│ 2. PROFILE / TYPE / AUTHORITY" + " " * 58 + "│")
+            print("├" + "─" * 88 + "┤")
+            print(f"│  Profile:         {hd.get('profile', 'N/A'):68} │")
+            print(f"│  Type:            {hd.get('type', 'N/A'):68} │")
+            print(f"│  Authority:       {hd.get('authority', 'N/A'):68} │")
+            print(f"│  Strategy:        {hd.get('strategy', 'N/A'):68} │")
+            print(f"│  Definition:      {hd.get('definition', 'N/A'):68} │")
+            print("└" + "─" * 88 + "┘")
             print()
             
-            # Incarnation Cross
-            ic = hd.get('incarnation_cross_canonical', {})
-            p_data = hd.get('personality', {})
-            d_data = hd.get('design', {})
-            print("INCARNATION CROSS")
-            print("-" * 40)
-            print(f"  Name:   {ic.get('internal_label') or hd.get('incarnation_cross', 'N/A')}")
-            print(f"  Angle:  {ic.get('angle_full', ic.get('angle', 'N/A'))}")
-            p_sun = p_data.get('Sun', {}).get('gate', {}).get('gate', '?')
-            p_earth = p_data.get('Earth', {}).get('gate', {}).get('gate', '?')
-            d_sun = d_data.get('Sun', {}).get('gate', {}).get('gate', '?')
-            d_earth = d_data.get('Earth', {}).get('gate', {}).get('gate', '?')
-            print(f"  Gates:  P-Sun {p_sun}, P-Earth {p_earth}, D-Sun {d_sun}, D-Earth {d_earth}")
-            print()
+            # =====================================================================
+            # SECTION 3: DEFINED CENTERS & CHANNELS (Priority 3)
+            # =====================================================================
+            print("┌" + "─" * 88 + "┐")
+            print("│ 3. DEFINED CENTERS & CHANNELS" + " " * 58 + "│")
+            print("├" + "─" * 88 + "┤")
             
-            # Defined Centers
-            print("DEFINED CENTERS")
-            print("-" * 40)
             defined = hd.get('defined_centers', [])
-            print(f"  {', '.join(defined) if defined else 'None'}")
+            undefined = hd.get('undefined_centers', [])
+            defined_str = ', '.join(defined) if defined else 'None (Reflector)'
+            undefined_str = ', '.join(undefined) if undefined else 'All Defined'
+            
+            # Wrap long center lists
+            if len(defined_str) > 66:
+                defined_str = defined_str[:63] + "..."
+            if len(undefined_str) > 66:
+                undefined_str = undefined_str[:63] + "..."
+                
+            print(f"│  Defined:         {defined_str:68} │")
+            print(f"│  Undefined:       {undefined_str:68} │")
+            print("│" + " " * 88 + "│")
+            
+            channels = hd.get('defined_channels', [])
+            if channels:
+                print(f"│  Channels ({len(channels)}):" + " " * 74 + "│")
+                for ch in channels:
+                    g1 = ch.get('gate1', '?')
+                    g2 = ch.get('gate2', '?')
+                    centers = ch.get('centers', ['?', '?'])
+                    ch_str = f"    {g1}-{g2} ({centers[0]} ↔ {centers[1]})"
+                    print(f"│{ch_str:88}│")
+            else:
+                print(f"│  Channels:        None" + " " * 65 + "│")
+            print("└" + "─" * 88 + "┘")
             print()
             
-            # Channels
-            print("CHANNELS")
-            print("-" * 40)
-            channels = hd.get('channels', [])
-            for ch in channels:
-                print(f"  {ch.get('gate1')}-{ch.get('gate2')}: {ch.get('name', 'Unknown')}")
-            if not channels:
-                print("  None")
-            print()
+            # =====================================================================
+            # SECTION 4: PLANETARY ACTIVATIONS TABLE (Priority 4)
+            # =====================================================================
+            print("┌" + "─" * 88 + "┐")
+            print("│ 4. PLANETARY ACTIVATIONS TABLE" + " " * 57 + "│")
+            print("├" + "─" * 88 + "┤")
+            print("│  Planet          │ Personality (Birth)  │ Design (88° Prior)   │ Notes          │")
+            print("│                  │ Gate.Line  (Lon°)    │ Gate.Line  (Lon°)    │                │")
+            print("├──────────────────┼──────────────────────┼──────────────────────┼────────────────┤")
             
-            # All 13 Planet Activations - Personality
-            print("PERSONALITY ACTIVATIONS (Birth/Conscious)")
-            print("-" * 40)
             p_data = hd.get('personality', {})
-            planet_labels = ['Sun', 'Earth', 'Moon', 'North Node', 'South Node', 
-                          'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 
-                          'Uranus', 'Neptune', 'Pluto']
-            for planet in planet_labels:
+            d_data = hd.get('design', {})
+            
+            # Ordered planet list per user request
+            planet_order = [
+                'Sun', 'Earth', 
+                'North Node', 'South Node',
+                'Moon',
+                'Mercury', 'Venus', 'Mars', 
+                'Jupiter', 'Saturn',
+                'Uranus', 'Neptune', 'Pluto'
+            ]
+            
+            for planet in planet_order:
+                # Personality
                 p_info = p_data.get(planet, {})
-                gate_info = p_info.get('gate', {})
-                pos_info = p_info.get('position', {})
-                gate = gate_info.get('gate', '?')
-                line = gate_info.get('line', '?')
-                lon = pos_info.get('longitude', 0)
-                print(f"  {planet:12} {gate:2}.{line}  ({lon:.2f}°)")
+                p_gate_info = p_info.get('gate', {})
+                p_pos_info = p_info.get('position', {})
+                p_gate = p_gate_info.get('gate', '?')
+                p_line = p_gate_info.get('line', '?')
+                p_lon = p_pos_info.get('longitude', 0)
+                
+                # Design
+                d_info = d_data.get(planet, {})
+                d_gate_info = d_info.get('gate', {})
+                d_pos_info = d_info.get('position', {})
+                d_gate = d_gate_info.get('gate', '?')
+                d_line = d_gate_info.get('line', '?')
+                d_lon = d_pos_info.get('longitude', 0)
+                
+                # Format columns
+                p_col = f"{p_gate:>2}.{p_line}  ({p_lon:>7.2f}°)"
+                d_col = f"{d_gate:>2}.{d_line}  ({d_lon:>7.2f}°)"
+                
+                # Notes column - mark important cross gates
+                notes = ""
+                if planet in ['Sun', 'Earth']:
+                    notes = "← Cross Gate"
+                
+                print(f"│  {planet:15} │ {p_col:20} │ {d_col:20} │ {notes:14} │")
+            
+            print("└──────────────────┴──────────────────────┴──────────────────────┴────────────────┘")
             print()
             
-            # All 13 Planet Activations - Design
-            print("DESIGN ACTIVATIONS (88° Prior/Unconscious)")
-            print("-" * 40)
-            d_data = hd.get('design', {})
-            for planet in planet_labels:
-                d_info = d_data.get(planet, {})
-                gate_info = d_info.get('gate', {})
-                pos_info = d_info.get('position', {})
-                gate = gate_info.get('gate', '?')
-                line = gate_info.get('line', '?')
-                lon = pos_info.get('longitude', 0)
-                print(f"  {planet:12} {gate:2}.{line}  ({lon:.2f}°)")
+            # =====================================================================
+            # SECTION 5: DESIGN DATE CALCULATION DEBUG (Priority 5)
+            # =====================================================================
+            print("┌" + "─" * 88 + "┐")
+            print("│ 5. DESIGN DATE CALCULATION (88° Solar Arc)" + " " * 44 + "│")
+            print("├" + "─" * 88 + "┤")
+            print(f"│  Birth Sun (Sidereal):   {design_debug.get('birth_sun_sidereal', 0):>10.4f}°" + " " * 50 + "│")
+            print(f"│  Target Sun (88° back):  {design_debug.get('target_sun_sidereal', 0):>10.4f}°" + " " * 50 + "│")
+            print(f"│  Design Sun (Computed):  {design_debug.get('design_sun_sidereal', 0):>10.4f}°" + " " * 50 + "│")
+            print(f"│  Design DateTime (UTC):  {design_dt.strftime('%Y-%m-%d %H:%M:%S'):>19}" + " " * 43 + "│")
+            print(f"│  Days Before Birth:      {(user['birth_utc'] - design_dt).days:>10} days" + " " * 42 + "│")
+            print(f"│  Converged:              {str(design_debug.get('converged', False)):>10}" + " " * 46 + "│")
+            print("└" + "─" * 88 + "┘")
+            print()
+            
+            # =====================================================================
+            # JSON OUTPUT FOR MACHINE COMPARISON
+            # =====================================================================
+            print("┌" + "─" * 88 + "┐")
+            print("│ JSON SUMMARY (for line-by-line comparison)" + " " * 44 + "│")
+            print("└" + "─" * 88 + "┘")
+            
+            json_summary = {
+                "user": user['name'],
+                "birth_utc": user['birth_utc'].isoformat(),
+                "incarnation_cross": {
+                    "type": ic.get('angle_full'),
+                    "angle": ic.get('angle'),
+                    "label": ic.get('internal_label'),
+                    "gates": {
+                        "p_sun": f"{p_sun_g}.{p_sun_l}",
+                        "p_earth": f"{p_earth_g}.{p_earth_l}",
+                        "d_sun": f"{d_sun_g}.{d_sun_l}",
+                        "d_earth": f"{d_earth_g}.{d_earth_l}"
+                    }
+                },
+                "profile": hd.get('profile'),
+                "type": hd.get('type'),
+                "authority": hd.get('authority'),
+                "definition": hd.get('definition'),
+                "defined_centers": defined,
+                "defined_channels": [f"{ch['gate1']}-{ch['gate2']}" for ch in channels],
+                "planetary_activations": {
+                    "personality": {p: f"{p_data.get(p, {}).get('gate', {}).get('gate', '?')}.{p_data.get(p, {}).get('gate', {}).get('line', '?')}" for p in planet_order},
+                    "design": {p: f"{d_data.get(p, {}).get('gate', {}).get('gate', '?')}.{d_data.get(p, {}).get('gate', {}).get('line', '?')}" for p in planet_order}
+                },
+                "design_date_utc": design_dt.isoformat()
+            }
+            
+            print(json.dumps(json_summary, indent=2))
             print()
             
         except Exception as e:
@@ -186,7 +289,7 @@ def run_verification():
             import traceback
             traceback.print_exc()
         
-        print()
+        print("\n")
 
 if __name__ == "__main__":
     run_verification()
