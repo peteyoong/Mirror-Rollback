@@ -705,44 +705,51 @@ export default function EnneagramLensView({ result, userId }: Props) {
     loadTraitCards();
   }, [userId]);
 
-  // Load Deep Dive data when tab is selected
+  // Load Narrative Engine content FIRST when deep dive tab is selected
+  // This is the PRIMARY content source - legacy deepDiveData is fallback only
+  useEffect(() => {
+    const loadNarrative = async () => {
+      if (!userId || activeTab !== 'deep_dive') return;
+      // Skip if already loaded or loading
+      if (narrativeStatus === 'loading' || narrativeStatus === 'ready') return;
+      
+      setNarrativeStatus('loading');
+      try {
+        const response = await getEnneagramNarrative(userId);
+        if (response.success && response.sections.length > 0) {
+          setNarrativeData(response);
+          setNarrativeStatus('ready');
+        } else {
+          setNarrativeStatus('error');
+        }
+      } catch (error) {
+        console.error('Failed to load narrative:', error);
+        setNarrativeStatus('error');
+      }
+    };
+    loadNarrative();
+  }, [userId, activeTab, narrativeStatus]);
+
+  // Load Deep Dive data ONLY as fallback when narrative fails
   useEffect(() => {
     const loadDeepDive = async () => {
-      if (!userId || activeTab !== 'deep_dive' || deepDiveData) return;
+      // Only load legacy deepDiveData if narrative failed and we don't have it yet
+      if (!userId || activeTab !== 'deep_dive') return;
+      if (narrativeStatus !== 'error') return; // Wait for narrative to fail first
+      if (deepDiveData || deepDiveLoading) return;
       
       setDeepDiveLoading(true);
       try {
         const response = await getEnneagramDeepDive(userId);
         setDeepDiveData(response);
       } catch (error) {
-        console.error('Failed to load deep dive:', error);
+        console.error('Failed to load deep dive fallback:', error);
       } finally {
         setDeepDiveLoading(false);
       }
     };
     loadDeepDive();
-  }, [userId, activeTab, deepDiveData]);
-  
-  // Load Narrative Engine content when deep dive tab is selected
-  useEffect(() => {
-    const loadNarrative = async () => {
-      if (!userId || activeTab !== 'deep_dive' || narrativeData) return;
-      
-      setNarrativeLoading(true);
-      try {
-        const response = await getEnneagramNarrative(userId);
-        if (response.success) {
-          setNarrativeData(response);
-        }
-      } catch (error) {
-        console.error('Failed to load narrative:', error);
-        // Fallback to deep dive data will still work
-      } finally {
-        setNarrativeLoading(false);
-      }
-    };
-    loadNarrative();
-  }, [userId, activeTab, narrativeData]);
+  }, [userId, activeTab, narrativeStatus, deepDiveData, deepDiveLoading]);
 
   // Handle Q&A question submission
   const handleAskQuestion = useCallback(async (question?: string) => {
