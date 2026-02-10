@@ -7716,6 +7716,38 @@ The specific gates in your cross describe themes you'll revisit over time. These
         result["debug_stamp"]["quality_gate"] = quality_gate_debug
         
         # =====================================================================
+        # REGRESSION ASSERTIONS (Log warnings only, never fail production)
+        # =====================================================================
+        regression_warnings = []
+        
+        # Assertion 1: Right Angle output should NOT contain "karma"
+        if cross_type_key == "Right Angle Cross":
+            for section in result["sections"]:
+                if "Cross" in section.get("label", ""):
+                    body_lower = section.get("body", "").lower()
+                    if "karma" in body_lower:
+                        regression_warnings.append(f"Right Angle Cross contains 'karma' in body")
+        
+        # Assertion 2: Each narrative section body should appear only once (no duplicates)
+        seen_bodies = {}
+        for section in result["sections"]:
+            body = section.get("body", "").strip()
+            body_hash = hash(body[:200])  # Hash first 200 chars for quick comparison
+            if body_hash in seen_bodies:
+                regression_warnings.append(f"Duplicate body content detected in section '{section.get('label', 'unknown')}'")
+            seen_bodies[body_hash] = True
+        
+        # Assertion 3: Cross type should be deterministically detected
+        if not cross_type_key and cross_angle:
+            regression_warnings.append(f"Cross angle '{cross_angle}' did not map to cross_type_key")
+        
+        # Log any warnings (never fail production)
+        if regression_warnings:
+            logger.warning(f"[HD_DEEP_DIVE_REGRESSION] user={user_id} warnings={regression_warnings}")
+        else:
+            logger.info(f"[HD_DEEP_DIVE] Regression checks passed for user {user_id}")
+        
+        # =====================================================================
         # CACHE THE RESPONSE for instant repeat views
         # =====================================================================
         await set_cached_deep_dive(user_id, "human_design", result)
