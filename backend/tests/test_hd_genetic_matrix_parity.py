@@ -120,12 +120,17 @@ def run_verification():
             
             # Incarnation Cross
             ic = hd.get('incarnation_cross_canonical', {})
+            p_data = hd.get('personality', {})
+            d_data = hd.get('design', {})
             print("INCARNATION CROSS")
             print("-" * 40)
-            print(f"  Name:   {ic.get('internal_label', 'N/A')}")
+            print(f"  Name:   {ic.get('internal_label') or hd.get('incarnation_cross', 'N/A')}")
             print(f"  Angle:  {ic.get('angle_full', ic.get('angle', 'N/A'))}")
-            print(f"  Gates:  Sun {ic.get('personality_sun_gate', '?')}, Earth {ic.get('personality_earth_gate', '?')}, ")
-            print(f"          Sun {ic.get('design_sun_gate', '?')} (D), Earth {ic.get('design_earth_gate', '?')} (D)")
+            p_sun = p_data.get('Sun', {}).get('gate', {}).get('gate', '?')
+            p_earth = p_data.get('Earth', {}).get('gate', {}).get('gate', '?')
+            d_sun = d_data.get('Sun', {}).get('gate', {}).get('gate', '?')
+            d_earth = d_data.get('Earth', {}).get('gate', {}).get('gate', '?')
+            print(f"  Gates:  P-Sun {p_sun}, P-Earth {p_earth}, D-Sun {d_sun}, D-Earth {d_earth}")
             print()
             
             # Defined Centers
