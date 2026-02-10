@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -27,6 +27,9 @@ import {
   EnneagramDeepDiveResponse,
   EnneagramNarrativeResponse,
 } from '../services/api';
+import EnneagramUpgradeCTA from './EnneagramUpgradeCTA';
+import PreliminaryLabel from './PreliminaryLabel';
+import { getEnneagramUpgradeInfo, EnneagramGateInput } from '../utils/enneagramGateLogic';
 
 // ============================================
 // DEBUG CONFIGURATION
