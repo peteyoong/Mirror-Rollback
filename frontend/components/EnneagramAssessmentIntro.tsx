@@ -159,24 +159,22 @@ export const EnneagramAssessmentIntro: React.FC<Props> = ({
         </View>
       </View>
 
-      {/* Begin Button - hidden when resume prompt is showing */}
-      {!showResumePrompt && (
-        <TouchableOpacity
-          style={[styles.beginButton, isLoading && styles.beginButtonDisabled]}
-          onPress={onBegin}
-          disabled={isLoading}
-          activeOpacity={0.8}
-        >
-          {isLoading ? (
-            <ActivityIndicator color={Colors.surface} size="small" />
-          ) : (
-            <>
-              <Text style={styles.beginButtonText}>Begin</Text>
-              <Ionicons name="arrow-forward" size={20} color={Colors.surface} />
-            </>
-          )}
-        </TouchableOpacity>
-      )}
+      {/* Begin Button - always visible (modal is separate overlay) */}
+      <TouchableOpacity
+        style={[styles.beginButton, isLoading && styles.beginButtonDisabled]}
+        onPress={onBegin}
+        disabled={isLoading}
+        activeOpacity={0.8}
+      >
+        {isLoading ? (
+          <ActivityIndicator color={Colors.surface} size="small" />
+        ) : (
+          <>
+            <Text style={styles.beginButtonText}>Begin</Text>
+            <Ionicons name="arrow-forward" size={20} color={Colors.surface} />
+          </>
+        )}
+      </TouchableOpacity>
 
       {/* Footer Note */}
       <Text style={styles.footerNote}>
