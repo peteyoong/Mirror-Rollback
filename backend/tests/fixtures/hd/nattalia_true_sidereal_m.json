@@ -1,6 +1,6 @@
 {
   "meta": {
-    "fixture_version": "1.0.0",
+    "fixture_version": "1.1.0",
     "computation_version": "mirror-deterministic-v2",
     "purpose": "HD parity lock-in against Genetic Matrix (True Sidereal-M)"
   },
@@ -82,10 +82,18 @@
     "list": ["64-47", "46-29", "59-6", "45-21", "28-38", "18-58"]
   },
   "incarnation_cross": {
-    "angle": "JXP",
-    "angle_full": "Juxtaposition Cross",
+    "angle": "RAX",
+    "angle_full": "Right Angle Cross",
+    "angle_source": "computed_rule",
+    "angle_proof": {
+      "input_profile": "4/6",
+      "rule_name": "profile_to_angle_mapping",
+      "lookup_table": "PROFILE_TO_ANGLE (HD standard)",
+      "matched_entry": "4/6 -> RAX",
+      "result": "RAX"
+    },
     "internal_name": "Tension",
-    "internal_label": "JXP Tension",
+    "internal_label": "RAX Tension",
     "display_label": "Tension (21/48 • 38/39)",
     "gates_key": "21/48|38/39",
     "canonical_key": "21.4/48.4|38.6/39.6",
@@ -94,15 +102,6 @@
       "personality_earth": "48.4",
       "design_sun": "38.6",
       "design_earth": "39.6"
-    },
-    "detection_method": "structured_angle",
-    "angle_determination": {
-      "profile": "4/6",
-      "personality_sun_line": 4,
-      "design_sun_line": 6,
-      "computed_angle": "JXP",
-      "rule_applied": "Profile 4/6: Personality Sun Line = 4 = 4 → JXP",
-      "fallback_used": false
     }
   }
 }

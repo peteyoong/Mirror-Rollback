@@ -1,6 +1,6 @@
 {
   "meta": {
-    "fixture_version": "1.0.0",
+    "fixture_version": "1.1.0",
     "computation_version": "mirror-deterministic-v2",
     "purpose": "HD parity lock-in against Genetic Matrix (True Sidereal-M)"
   },
@@ -84,6 +84,14 @@
   "incarnation_cross": {
     "angle": "RAX",
     "angle_full": "Right Angle Cross",
+    "angle_source": "computed_rule",
+    "angle_proof": {
+      "input_profile": "3/5",
+      "rule_name": "profile_to_angle_mapping",
+      "lookup_table": "PROFILE_TO_ANGLE (HD standard)",
+      "matched_entry": "3/5 -> RAX",
+      "result": "RAX"
+    },
     "internal_name": "Rulership",
     "internal_label": "RAX Rulership",
     "display_label": "Rulership (45/26 • 22/47)",
@@ -94,15 +102,6 @@
       "personality_earth": "26.3",
       "design_sun": "22.5",
       "design_earth": "47.5"
-    },
-    "detection_method": "structured_angle",
-    "angle_determination": {
-      "profile": "3/5",
-      "personality_sun_line": 3,
-      "design_sun_line": 5,
-      "computed_angle": "RAX",
-      "rule_applied": "Profile 3/5: Personality Sun Line = 3 ∈ {1,2,3} → RAX",
-      "fallback_used": false
     }
   }
 }
