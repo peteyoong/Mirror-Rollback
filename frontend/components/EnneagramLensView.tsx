@@ -1195,6 +1195,8 @@ export default function EnneagramLensView({ result, userId }: Props) {
   };
 
   const renderDeepDiveTab = () => {
+    console.log('[EnneagramLens] renderDeepDiveTab called! narrativeStatus:', narrativeStatus, 'useNarrative:', narrativeStatus === 'ready' && narrativeData?.sections?.length);
+    
     // =====================================================================
     // LOADING STATE - Show while narrative is loading (prevents flicker)
     // Never show legacy content while narrative is loading
