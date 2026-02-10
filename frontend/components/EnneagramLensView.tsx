@@ -2556,6 +2556,13 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
     marginTop: 8,
   },
+  // Collapsible section header
+  collapsibleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
   mirrorPromptCard: {
     backgroundColor: Colors.surfaceLight,
     borderRadius: 12,
