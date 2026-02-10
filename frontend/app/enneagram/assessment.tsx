@@ -272,6 +272,9 @@ export default function P2DeepAssessment() {
   const handleStartFresh = useCallback(async () => {
     await clearSession();
     setShowResumePrompt(false);
+    
+    // Analytics: user chose to start fresh instead of resuming
+    emitAnalytics('enneagram_start_fresh', { had_existing_session: true });
   }, [clearSession]);
 
   // Start assessment
@@ -304,6 +307,12 @@ export default function P2DeepAssessment() {
         updated_at_iso: now,
       });
       
+      // Analytics: assessment_started
+      emitAnalytics('enneagram_assessment_started', {
+        session_id: response.session_id,
+        user_id: user.id,
+      });
+      
     } catch (err: any) {
       console.error('[P2Assessment] Start error:', err);
       setError(err?.response?.data?.detail || 'Failed to start assessment. Please try again.');
@@ -311,7 +320,7 @@ export default function P2DeepAssessment() {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, saveSession]);
 
   // Select an answer
   const handleSelectAnswer = useCallback((answer: P2AssessmentAnswer) => {
