@@ -1194,6 +1194,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
 
     // Prefer narrative data if available, fallback to deepDiveData
     const useNarrative = narrativeData?.success && narrativeData.sections.length > 0;
+    console.log('[EnneagramLensView] useNarrative:', useNarrative, 'narrativeData:', !!narrativeData, 'sections:', narrativeData?.sections?.length);
     const data = useNarrative ? null : deepDiveData; // Use deep dive for structure only when narrative is available
     const typeLabel = narrativeData?.type_label || data?.type_label || wingInfo.typeLabel;
     const typeName = narrativeData?.type_name || data?.type_name || TYPE_NAMES[core];
