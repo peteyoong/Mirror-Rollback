@@ -709,21 +709,26 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // This is the PRIMARY content source - legacy deepDiveData is fallback only
   useEffect(() => {
     const loadNarrative = async () => {
+      console.log('[EnneagramLens] loadNarrative called, userId:', userId, 'activeTab:', activeTab, 'narrativeStatus:', narrativeStatus);
       if (!userId || activeTab !== 'deep_dive') return;
       // Skip if already loaded or loading
       if (narrativeStatus === 'loading' || narrativeStatus === 'ready') return;
       
+      console.log('[EnneagramLens] Starting narrative fetch...');
       setNarrativeStatus('loading');
       try {
         const response = await getEnneagramNarrative(userId);
+        console.log('[EnneagramLens] Narrative response:', response.success, response.sections?.length);
         if (response.success && response.sections.length > 0) {
           setNarrativeData(response);
           setNarrativeStatus('ready');
+          console.log('[EnneagramLens] Narrative ready!');
         } else {
           setNarrativeStatus('error');
+          console.log('[EnneagramLens] Narrative failed - no sections');
         }
       } catch (error) {
-        console.error('Failed to load narrative:', error);
+        console.error('[EnneagramLens] Failed to load narrative:', error);
         setNarrativeStatus('error');
       }
     };
