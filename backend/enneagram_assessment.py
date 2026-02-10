@@ -1012,7 +1012,9 @@ INSTINCT_POOL = [
 ]
 
 # -----------------------------------------------------------------------------
-# CONSISTENCY POOL (6 questions: 2 duplicates, 2 contradictions, 2 integrity)
+# CONSISTENCY POOL (4 questions: 2 duplicates, 2 contradictions)
+# NOTE: Removed explicit "select Agree" and "captures patterns" integrity checks
+# Reliability is now tracked via silent checks (response time, straightlining)
 # -----------------------------------------------------------------------------
 
 CONSISTENCY_POOL = [
