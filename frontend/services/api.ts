@@ -567,6 +567,41 @@ export const getEnneagramDeepDive = async (userId: string): Promise<EnneagramDee
   return response.data;
 };
 
+// Enneagram Narrative Engine Types
+export interface EnneagramNarrativeSection {
+  id: string;
+  label: string;
+  body: string;
+}
+
+export interface EnneagramNarrativeResponse {
+  success: boolean;
+  type: number;
+  wing: number | null;
+  type_label: string;
+  type_name: string;
+  confidence_tier: string;
+  instinct_stacking: string | null;
+  sections: EnneagramNarrativeSection[];
+  generated_at: string;
+  version: string;
+  error?: string;
+  message?: string;
+}
+
+/**
+ * Get Enneagram narrative content (layered reflective stories)
+ * This is the new Narrative Engine output for the Deep Dive lens
+ */
+export const getEnneagramNarrative = async (
+  userId: string, 
+  forceRefresh: boolean = false
+): Promise<EnneagramNarrativeResponse> => {
+  const params = forceRefresh ? { force_refresh: 'true' } : {};
+  const response = await apiWithRetry.get(`/enneagram/narrative/${userId}`, { params });
+  return response.data;
+};
+
 // Life Context APIs
 export interface LifeContextSection {
   label: string;
