@@ -951,24 +951,27 @@ export default function EnneagramResults() {
         )}
         
         {/* ============================================
-            DEEP ASSESSMENT CTA
+            DEEP ASSESSMENT CTA (Mirror Voice)
             ============================================
-            Show only when:
+            Show when:
             - confidence_tier is not 'high' OR
-            - assessment_depth is 'short' (or undefined)
+            - assessment_depth is not 'deep' (quick assessment was taken) OR
+            - no assessment_depth field exists
+            
+            Uses neutral, observational language.
         */}
-        {(result.confidence_tier !== 'high' || !result.assessment_depth || result.assessment_depth === 'short') && (
+        {(result.confidence_tier !== 'high' || !result.assessment_depth || result.assessment_depth !== 'deep') && (
           <View style={styles.deepAssessmentCTA}>
-            <Ionicons name="layers-outline" size={24} color={Colors.text} style={{ marginBottom: 8 }} />
+            <Ionicons name="compass-outline" size={24} color={Colors.accent} style={{ marginBottom: 8 }} />
             <Text style={styles.deepAssessmentTitle}>Want a clearer mirror?</Text>
             <Text style={styles.deepAssessmentText}>
-              Take a more in-depth assessment (~15 min) for a more accurate reading.
+              If your result felt close or uncertain, a deeper assessment can sharpen the signal.
             </Text>
             <TouchableOpacity
               style={styles.deepAssessmentButton}
-              onPress={() => router.push('/enneagram/deep-assessment')}
+              onPress={() => router.push('/enneagram/assessment')}
             >
-              <Text style={styles.deepAssessmentButtonText}>Explore Deeper</Text>
+              <Text style={styles.deepAssessmentButtonText}>Take the deep assessment</Text>
               <Ionicons name="arrow-forward" size={16} color={Colors.background} />
             </TouchableOpacity>
           </View>
