@@ -612,6 +612,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 32,
   },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+  },
   errorText: {
     fontSize: 16,
     color: Colors.textSecondary,
