@@ -2484,6 +2484,16 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: Colors.textSecondary,
   },
+  closingReflection: {
+    fontStyle: 'italic',
+    fontSize: 14,
+    lineHeight: 22,
+    color: Colors.textTertiary,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    marginTop: 8,
+  },
   mirrorPromptCard: {
     backgroundColor: Colors.surfaceLight,
     borderRadius: 12,
