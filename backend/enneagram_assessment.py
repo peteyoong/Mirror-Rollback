@@ -1077,6 +1077,10 @@ def _create_session(user_id: str) -> dict:
         "consistency_score": 1.0,
         "coherence_score": 1.0,
         "neither_count": 0,  # Track neither responses for confidence penalty
+        # Silent reliability tracking (no user-facing questions)
+        "response_times": [],  # Track per-question response times (seconds)
+        "last_question_sent_at": None,  # Timestamp when last question was sent
+        "answer_sequence": [],  # Track sequence of likert values for straightlining detection
         "created_at_iso": now,
         "updated_at_iso": now,
         "expires_at": time.time() + SESSION_TTL_SECONDS
