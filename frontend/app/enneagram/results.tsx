@@ -881,6 +881,12 @@ export default function EnneagramResults() {
             {TYPE_NAMES[result.inferred_core]}
           </Text>
           
+          {/* Preliminary Label - shown for short assessments */}
+          <PreliminaryLabel 
+            visible={showPreliminaryLabel} 
+            testID="preliminary-label-results"
+          />
+          
           {/* Confidence Badge - Tappable for hidden debug gesture */}
           <View style={styles.confidenceRow}>
             <TouchableOpacity 
@@ -906,6 +912,14 @@ export default function EnneagramResults() {
             </Text>
           )}
         </View>
+        
+        {/* Upgrade CTA - shown based on gate logic */}
+        {ctaCopy && (
+          <EnneagramUpgradeCTA 
+            ctaCopy={ctaCopy} 
+            testID="upgrade-cta-results"
+          />
+        )}
         
         {/* Feedback Card */}
         <View style={styles.feedbackCard}>
