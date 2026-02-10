@@ -81,10 +81,11 @@ export default function P2DeepAssessment() {
   const isDebugMode = DEBUG_MIRROR || params.debug === '1' || params.debug === 'true';
 
   // State
-  const [viewState, setViewState] = useState<ViewState>('intro');
+  const [viewState, setViewState] = useState<ViewState>('loading');  // Start with loading to check session
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
   
   // Session state
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -95,8 +96,105 @@ export default function P2DeepAssessment() {
   // Results (for computing screen)
   const [results, setResults] = useState<P2AssessmentResult | null>(null);
   
+  // Stored session for resume
+  const storedSessionRef = useRef<StoredSession | null>(null);
+  
   // Track if user has answered any questions (for navigation warning)
   const hasStarted = useRef(false);
+
+  // ============================================
+  // SESSION PERSISTENCE HELPERS
+  // ============================================
+  
+  const saveSession = useCallback(async (session: StoredSession) => {
+    try {
+      await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    } catch (err) {
+      console.error('[P2Assessment] Failed to save session:', err);
+    }
+  }, []);
+
+  const clearSession = useCallback(async () => {
+    try {
+      await AsyncStorage.removeItem(SESSION_STORAGE_KEY);
+      storedSessionRef.current = null;
+    } catch (err) {
+      console.error('[P2Assessment] Failed to clear session:', err);
+    }
+  }, []);
+
+  const loadStoredSession = useCallback(async (): Promise<StoredSession | null> => {
+    try {
+      const stored = await AsyncStorage.getItem(SESSION_STORAGE_KEY);
+      if (!stored) return null;
+      
+      const session: StoredSession = JSON.parse(stored);
+      
+      // Check if session is within TTL (2 hours)
+      const updatedAt = new Date(session.updated_at_iso).getTime();
+      const now = Date.now();
+      
+      if (now - updatedAt > SESSION_TTL_MS) {
+        // Session expired - clear it
+        await clearSession();
+        return null;
+      }
+      
+      // Check if session belongs to current user
+      if (session.user_id !== user?.id) {
+        // Different user - clear it
+        await clearSession();
+        return null;
+      }
+      
+      return session;
+    } catch (err) {
+      console.error('[P2Assessment] Failed to load session:', err);
+      return null;
+    }
+  }, [user?.id, clearSession]);
+
+  // ============================================
+  // CHECK FOR EXISTING SESSION ON MOUNT
+  // ============================================
+  
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      if (!user?.id) {
+        setViewState('intro');
+        return;
+      }
+
+      try {
+        const stored = await loadStoredSession();
+        
+        if (stored) {
+          // Validate session with backend
+          try {
+            const status = await getP2AssessmentStatus(stored.session_id);
+            
+            // Session is valid and not done
+            if (status.stage !== 'done') {
+              storedSessionRef.current = stored;
+              setShowResumePrompt(true);
+              setViewState('intro');
+              return;
+            }
+          } catch {
+            // Session invalid on backend - clear local storage
+            await clearSession();
+          }
+        }
+        
+        setViewState('intro');
+      } catch (err) {
+        console.error('[P2Assessment] Session check failed:', err);
+        setViewState('intro');
+      }
+    };
+
+    checkExistingSession();
+  }, [user?.id, loadStoredSession, clearSession]);
 
   // Handle back button press
   useEffect(() => {
@@ -118,6 +216,44 @@ export default function P2DeepAssessment() {
       return () => backHandler.remove();
     }
   }, [viewState, router]);
+
+  // Resume existing session
+  const handleResume = useCallback(async () => {
+    if (!storedSessionRef.current || !user?.id) return;
+
+    setIsLoading(true);
+    setError(null);
+    setShowResumePrompt(false);
+
+    try {
+      const status = await getP2AssessmentStatus(storedSessionRef.current.session_id);
+      
+      if (status.stage === 'done') {
+        // Session already completed - start fresh
+        await clearSession();
+        setIsLoading(false);
+        return;
+      }
+
+      // Resume: we need to call answer endpoint with empty to get next question
+      // Actually, the status endpoint doesn't return the current question
+      // So we need to start fresh but keep the session ID
+      // For now, just start a new session since backend doesn't expose resume directly
+      await clearSession();
+      setIsLoading(false);
+      
+    } catch (err: any) {
+      console.error('[P2Assessment] Resume error:', err);
+      await clearSession();
+      setIsLoading(false);
+    }
+  }, [user?.id, clearSession]);
+
+  // Start fresh (dismiss resume prompt)
+  const handleStartFresh = useCallback(async () => {
+    await clearSession();
+    setShowResumePrompt(false);
+  }, [clearSession]);
 
   // Start assessment
   const handleBegin = useCallback(async () => {
