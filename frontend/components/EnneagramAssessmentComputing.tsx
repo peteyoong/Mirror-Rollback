@@ -16,8 +16,8 @@ interface Props {
 
 const LOADING_MESSAGES = [
   'Looking for the strongest recurring pattern…',
-  'Identifying core tendencies…',
-  'Analyzing response patterns…',
+  'Noticing what shows up most consistently…',
+  'Bringing the signals together…',
 ];
 
 export const EnneagramAssessmentComputing: React.FC<Props> = ({
