@@ -1803,6 +1803,8 @@ def submit_answer(
     
     if question:
         progress = get_progress(session)
+        # Track when this question was sent for next response time measurement
+        session["last_question_sent_at"] = time.time()
         _update_session(session_id, session)
         
         return {
