@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -30,6 +30,7 @@ import {
 import EnneagramUpgradeCTA from './EnneagramUpgradeCTA';
 import PreliminaryLabel from './PreliminaryLabel';
 import { getEnneagramUpgradeInfo, EnneagramGateInput } from '../utils/enneagramGateLogic';
+import { emitEnneagramGateCTAShown, EnneagramGateSurface } from '../utils/analytics';
 
 // ============================================
 // DEBUG CONFIGURATION
