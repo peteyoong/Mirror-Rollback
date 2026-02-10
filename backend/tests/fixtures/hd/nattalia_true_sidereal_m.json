@@ -1,6 +1,6 @@
 {
   "meta": {
-    "fixture_version": "1.1.0",
+    "fixture_version": "1.2.0",
     "computation_version": "mirror-deterministic-v2",
     "purpose": "HD parity lock-in against Genetic Matrix (True Sidereal-M)"
   },
@@ -86,11 +86,10 @@
     "angle_full": "Right Angle Cross",
     "angle_source": "computed_rule",
     "angle_proof": {
-      "input_profile": "4/6",
-      "rule_name": "profile_to_angle_mapping",
-      "lookup_table": "PROFILE_TO_ANGLE (HD standard)",
-      "matched_entry": "4/6 -> RAX",
-      "result": "RAX"
+      "profile": "4/6",
+      "profile_to_angle_table_used": true,
+      "matched_profile": "4/6",
+      "result_angle": "RAX"
     },
     "internal_name": "Tension",
     "internal_label": "RAX Tension",
@@ -103,5 +102,6 @@
       "design_sun": "38.6",
       "design_earth": "39.6"
     }
-  }
+  },
+  "deep_dive_cross_type_key": "Right Angle Cross"
 }

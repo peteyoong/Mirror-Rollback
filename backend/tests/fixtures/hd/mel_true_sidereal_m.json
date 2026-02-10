@@ -1,6 +1,6 @@
 {
   "meta": {
-    "fixture_version": "1.1.0",
+    "fixture_version": "1.2.0",
     "computation_version": "mirror-deterministic-v2",
     "purpose": "HD parity lock-in against Genetic Matrix (True Sidereal-M)"
   },
@@ -86,11 +86,10 @@
     "angle_full": "Right Angle Cross",
     "angle_source": "computed_rule",
     "angle_proof": {
-      "input_profile": "3/5",
-      "rule_name": "profile_to_angle_mapping",
-      "lookup_table": "PROFILE_TO_ANGLE (HD standard)",
-      "matched_entry": "3/5 -> RAX",
-      "result": "RAX"
+      "profile": "3/5",
+      "profile_to_angle_table_used": true,
+      "matched_profile": "3/5",
+      "result_angle": "RAX"
     },
     "internal_name": "Rulership",
     "internal_label": "RAX Rulership",
@@ -103,5 +102,6 @@
       "design_sun": "22.5",
       "design_earth": "47.5"
     }
-  }
+  },
+  "deep_dive_cross_type_key": "Right Angle Cross"
 }
