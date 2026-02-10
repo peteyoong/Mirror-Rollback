@@ -78,7 +78,7 @@ export const EnneagramAssessmentIntro: React.FC<Props> = ({ onBegin, isLoading }
 
       {/* Footer Note */}
       <Text style={styles.footerNote}>
-        Your answers remain private and are used only to identify patterns.
+        This isn't a test. It's a way of noticing patterns.
       </Text>
     </View>
   );
