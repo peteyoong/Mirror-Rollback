@@ -1860,6 +1860,7 @@ def format_profile_enneagram(results: dict, include_debug: bool = False) -> dict
         "confidence": results["confidence"],
         "confidence_tier": results["confidence_tier"],
         "assessment_depth": results["assessment_depth"],
+        "assessment_version": results.get("assessment_version", "v2"),
         "reliability": results["reliability"],
         "created_at_iso": results["created_at_iso"]
     }
