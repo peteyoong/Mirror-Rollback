@@ -34,13 +34,13 @@ export const EnneagramAssessmentIntro: React.FC<Props> = ({ onBegin, isLoading }
       
       {/* Subtitle */}
       <Text style={styles.subtitle}>
-        A reflective assessment of how you tend to respond under pressure.
+        A reflective exploration of how you tend to respond under pressure.
       </Text>
 
       {/* Time Estimate */}
       <View style={styles.timeContainer}>
         <Ionicons name="time-outline" size={18} color={Colors.textSecondary} />
-        <Text style={styles.timeText}>~20–30 minutes</Text>
+        <Text style={styles.timeText}>About 20–30 minutes</Text>
       </View>
 
       {/* Bullet Points */}
