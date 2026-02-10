@@ -290,12 +290,23 @@ export default function P2DeepAssessment() {
 
   // Start fresh (dismiss resume prompt)
   const handleStartFresh = useCallback(async () => {
+    // Analytics: user chose to abandon and start fresh
+    emitAnalytics('enneagram_assessment_abandoned', { 
+      reason: 'start_fresh_from_resume',
+      had_existing_session: true,
+      questions_answered: resumeProgress?.questionsAnswered || 0,
+    });
+    
     await clearSession();
     setShowResumePrompt(false);
-    
-    // Analytics: user chose to start fresh instead of resuming
-    emitAnalytics('enneagram_start_fresh', { had_existing_session: true });
-  }, [clearSession]);
+    setResumeProgress(null);
+  }, [clearSession, resumeProgress]);
+
+  // Dismiss resume modal ("Not now") - returns to previous screen
+  const handleDismissResume = useCallback(() => {
+    setShowResumePrompt(false);
+    router.back();
+  }, [router]);
 
   // Start assessment
   const handleBegin = useCallback(async () => {
