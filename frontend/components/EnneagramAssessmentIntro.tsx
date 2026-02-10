@@ -3,6 +3,8 @@
  * ========================
  * Welcome screen for the P2 Deep Enneagram Assessment.
  * Sets tone and expectations with calm, reflective language.
+ * 
+ * Supports Resume Prompt when an in-progress session exists.
  */
 
 import React from 'react';
@@ -19,11 +21,49 @@ import { Colors } from '../constants/colors';
 interface Props {
   onBegin: () => void;
   isLoading: boolean;
+  // Resume prompt props
+  showResumePrompt?: boolean;
+  onResume?: () => void;
+  onStartFresh?: () => void;
 }
 
-export const EnneagramAssessmentIntro: React.FC<Props> = ({ onBegin, isLoading }) => {
+export const EnneagramAssessmentIntro: React.FC<Props> = ({ 
+  onBegin, 
+  isLoading,
+  showResumePrompt = false,
+  onResume,
+  onStartFresh,
+}) => {
   return (
     <View style={styles.container}>
+      {/* Resume Prompt Card */}
+      {showResumePrompt && (
+        <View style={styles.resumePromptCard}>
+          <Ionicons name="bookmark-outline" size={24} color={Colors.accent} style={styles.resumeIcon} />
+          <Text style={styles.resumeTitle}>Pick up where you left off?</Text>
+          <Text style={styles.resumeBody}>
+            You were partway through a deep assessment.{'\n'}
+            You can continue, or start fresh.
+          </Text>
+          <View style={styles.resumeButtons}>
+            <TouchableOpacity
+              style={styles.resumePrimaryButton}
+              onPress={onResume}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.resumePrimaryButtonText}>Continue</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.resumeSecondaryButton}
+              onPress={onStartFresh}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.resumeSecondaryButtonText}>Start over</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       {/* Header Icon */}
       <View style={styles.iconContainer}>
         <Ionicons name="compass-outline" size={48} color={Colors.text} />
@@ -59,22 +99,24 @@ export const EnneagramAssessmentIntro: React.FC<Props> = ({ onBegin, isLoading }
         </View>
       </View>
 
-      {/* Begin Button */}
-      <TouchableOpacity
-        style={[styles.beginButton, isLoading && styles.beginButtonDisabled]}
-        onPress={onBegin}
-        disabled={isLoading}
-        activeOpacity={0.8}
-      >
-        {isLoading ? (
-          <ActivityIndicator color={Colors.surface} size="small" />
-        ) : (
-          <>
-            <Text style={styles.beginButtonText}>Begin</Text>
-            <Ionicons name="arrow-forward" size={20} color={Colors.surface} />
-          </>
-        )}
-      </TouchableOpacity>
+      {/* Begin Button - hidden when resume prompt is showing */}
+      {!showResumePrompt && (
+        <TouchableOpacity
+          style={[styles.beginButton, isLoading && styles.beginButtonDisabled]}
+          onPress={onBegin}
+          disabled={isLoading}
+          activeOpacity={0.8}
+        >
+          {isLoading ? (
+            <ActivityIndicator color={Colors.surface} size="small" />
+          ) : (
+            <>
+              <Text style={styles.beginButtonText}>Begin</Text>
+              <Ionicons name="arrow-forward" size={20} color={Colors.surface} />
+            </>
+          )}
+        </TouchableOpacity>
+      )}
 
       {/* Footer Note */}
       <Text style={styles.footerNote}>
@@ -92,6 +134,64 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Resume Prompt Styles
+  resumePromptCard: {
+    backgroundColor: Colors.surfaceLight,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.accent,
+    maxWidth: 340,
+    width: '100%',
+  },
+  resumeIcon: {
+    marginBottom: 8,
+  },
+  resumeTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  resumeBody: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  resumeButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  resumePrimaryButton: {
+    backgroundColor: Colors.accent,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+  },
+  resumePrimaryButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.surface,
+  },
+  resumeSecondaryButton: {
+    backgroundColor: 'transparent',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  resumeSecondaryButtonText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  // Original Intro Styles
   iconContainer: {
     width: 80,
     height: 80,
