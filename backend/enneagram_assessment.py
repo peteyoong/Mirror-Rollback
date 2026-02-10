@@ -24,6 +24,7 @@ Stage Flow:
 
 import uuid
 import time
+import os
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field, asdict
@@ -32,6 +33,61 @@ import math
 import logging
 
 logger = logging.getLogger(__name__)
+
+# =============================================================================
+# ENVIRONMENT FLAGS
+# =============================================================================
+
+# Dev/debug mode - enables diagnostic output
+DEBUG_MIRROR = os.environ.get("EXPO_PUBLIC_DEBUG_MIRROR", "").lower() == "true"
+
+# =============================================================================
+# CON_* GUARDRAIL - CANON CONTRACT
+# =============================================================================
+# CON_* (consistency/validation) questions may ONLY affect:
+#   - reliability
+#   - confidence tier / final confidence score
+#
+# They may NEVER affect:
+#   - core_type
+#   - wing
+#   - center
+#
+# This is enforced by:
+# 1. Empty targets arrays in CON_* question definitions
+# 2. Runtime assertion in scoring functions
+# 3. Regression tests in test_enneagram_con_scoring_guardrail.py
+# =============================================================================
+
+def validate_con_question_guardrail(question_id: str, scoring: dict) -> None:
+    """
+    Validate that CON_* questions have no structural scoring targets.
+    
+    This is a defensive assertion that will raise AssertionError if
+    any CON_* question attempts to modify type, center, or wing scores.
+    
+    Called during scoring to catch any accidental misconfigurations.
+    """
+    if not question_id.startswith("CON_"):
+        return  # Not a consistency question, skip validation
+    
+    targets = scoring.get("targets", [])
+    
+    # CON_* must have empty targets
+    if targets:
+        # Check each target for structural dimensions
+        for target in targets:
+            has_structural = any(key in target for key in ["center", "type", "wing"])
+            weight = target.get("weight", 1)  # Default weight is 1 if not specified
+            
+            if has_structural and weight != 0:
+                raise AssertionError(
+                    f"GUARDRAIL VIOLATION: CON_* question '{question_id}' has structural "
+                    f"scoring target with non-zero weight. CON_* questions may ONLY affect "
+                    f"reliability/confidence, never type/wing/center. "
+                    f"Target: {target}"
+                )
+
 
 # =============================================================================
 # CONSTANTS
