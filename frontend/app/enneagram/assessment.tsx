@@ -207,6 +207,14 @@ export default function P2DeepAssessment() {
             // Session is valid and not done
             if (status.stage !== 'done') {
               storedSessionRef.current = stored;
+              
+              // Store progress info for the resume modal
+              setResumeProgress({
+                questionsAnswered: status.progress.questions_answered,
+                totalQuestions: status.progress.estimated_total,
+                stage: status.progress.stage,
+              });
+              
               setShowResumePrompt(true);
               setViewState('intro');
               return;
