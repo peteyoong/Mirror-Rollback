@@ -34,6 +34,13 @@ const LIKERT_LABELS = [
   { value: 5, label: 'Almost Always' },
 ];
 
+// Helper text that rotates (based on question index hint from id)
+const HELPER_TEXTS = [
+  "Answer based on what usually happens.",
+  "Think about how this shows up under pressure.",
+  "Go with your first, most familiar response.",
+];
+
 export const EnneagramAssessmentQuestion: React.FC<Props> = ({
   question,
   selectedAnswer,
@@ -43,6 +50,10 @@ export const EnneagramAssessmentQuestion: React.FC<Props> = ({
 }) => {
   const isLikert = question.format === 'likert';
   const canContinue = selectedAnswer !== null && !isSubmitting;
+  
+  // Pick helper text based on question id to create variety
+  const helperIndex = question.id.charCodeAt(question.id.length - 1) % HELPER_TEXTS.length;
+  const helperText = HELPER_TEXTS[helperIndex];
 
   // Render Likert scale (1-5)
   const renderLikertScale = () => (
