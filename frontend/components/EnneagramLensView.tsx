@@ -719,6 +719,27 @@ export default function EnneagramLensView({ result, userId }: Props) {
     };
     loadDeepDive();
   }, [userId, activeTab, deepDiveData]);
+  
+  // Load Narrative Engine content when deep dive tab is selected
+  useEffect(() => {
+    const loadNarrative = async () => {
+      if (!userId || activeTab !== 'deep_dive' || narrativeData) return;
+      
+      setNarrativeLoading(true);
+      try {
+        const response = await getEnneagramNarrative(userId);
+        if (response.success) {
+          setNarrativeData(response);
+        }
+      } catch (error) {
+        console.error('Failed to load narrative:', error);
+        // Fallback to deep dive data will still work
+      } finally {
+        setNarrativeLoading(false);
+      }
+    };
+    loadNarrative();
+  }, [userId, activeTab, narrativeData]);
 
   // Handle Q&A question submission
   const handleAskQuestion = useCallback(async (question?: string) => {
