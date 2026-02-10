@@ -7560,16 +7560,18 @@ The specific gates in your cross describe themes you'll revisit over time. These
         
         definition_desc = f"With {canonical_hd.get('definition', 'your')} definition, there's a particular way energy flows and connects within you—whether in one continuous circuit or in separate systems that connect through others. Your defined centers ({', '.join(defined_centers) if defined_centers else 'your key centers'}) represent consistent, reliable themes in your experience. Your undefined centers are where you take in and amplify the energy of others."
         
-        # Determine cross type from name
+        # Determine cross type from name (check for LAX/RAX/JXP prefixes and full names)
         cross_name = incarnation_cross.get('name', '')
-        if "Right" in cross_name:
+        if "Right" in cross_name or cross_name.startswith("RAX"):
             cross_type_key = "Right Angle Cross"
-        elif "Left" in cross_name:
+        elif "Left" in cross_name or cross_name.startswith("LAX"):
             cross_type_key = "Left Angle Cross"
-        elif "Juxtaposition" in cross_name or "JXP" in cross_name:
+        elif "Juxtaposition" in cross_name or cross_name.startswith("JXP"):
             cross_type_key = "Juxtaposition Cross"
         else:
             cross_type_key = None  # Unknown - use neutral fallback
+        
+        logger.info(f"[HD_DEEP_DIVE] Cross name: '{cross_name}' -> type: '{cross_type_key}'")
         
         # Neutral fallback for unknown cross type
         neutral_cross_description = """Your Incarnation Cross highlights themes you may revisit over time. These aren't predictions — they're territories you may explore many times in different ways."""
