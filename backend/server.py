@@ -9138,6 +9138,11 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
             # P2: Version tracking - CRITICAL for frontend gating
             "assessment_depth": canonical_depth,  # ALWAYS explicit, never None
             "assessment_version": result.get("assessment_version"),
+            # PROVENANCE: Added for debug stamp (Task 1)
+            "result_id": str(result.get("_id", "")),
+            "updated_at": result.get("updated_at", result.get("created_at")).isoformat() if result.get("updated_at") or result.get("created_at") else None,
+            "wing_left_score": result.get("debug_scores", {}).get("wing_left_score"),
+            "wing_right_score": result.get("debug_scores", {}).get("wing_right_score"),
         }
         
         # Add convergence data if present (v2 records)
