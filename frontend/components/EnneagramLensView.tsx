@@ -1931,6 +1931,30 @@ const styles = StyleSheet.create({
   },
 
   // ============================================
+  // DEBUG PANEL STYLES (Build/API/Payload diagnostics)
+  // ============================================
+  debugPanel: {
+    backgroundColor: '#0d0d1a',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#00FF00',
+  },
+  debugPanelTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#00FF00',
+    marginBottom: 8,
+  },
+  debugPanelText: {
+    fontSize: 11,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    color: '#00FF00',
+    marginBottom: 2,
+  },
+
+  // ============================================
   // DEBUG WING OVERRIDE PANEL STYLES
   // ============================================
   debugWingPanel: {
