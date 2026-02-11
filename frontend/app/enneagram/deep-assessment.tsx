@@ -505,18 +505,41 @@ export default function DeepAssessmentScreen() {
   const goToNext = async () => {
     if (!session || !currentQuestion) return;
     
-    // Save current answer first
-    if (isCurrentAnswerValid() && saveStatus !== 'saved') {
-      await saveCurrentAnswer(currentResponse);
-    }
-    
-    const isLastQuestion = currentQuestionIndex === session.questions.length - 1;
-    
-    if (isLastQuestion) {
-      // Complete assessment
-      await handleComplete();
-    } else {
-      setCurrentQuestionIndex(prev => prev + 1);
+    try {
+      // Cancel any pending auto-save
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+      
+      // Save current answer first (if valid and not already saved)
+      if (isCurrentAnswerValid() && saveStatus !== 'saved') {
+        await saveCurrentAnswer(currentResponse);
+      }
+      
+      const isLastQuestion = currentQuestionIndex === session.questions.length - 1;
+      
+      if (isLastQuestion) {
+        // Complete assessment
+        await handleComplete();
+      } else {
+        setCurrentQuestionIndex(prev => prev + 1);
+      }
+    } catch (err: any) {
+      console.error('[DeepAssessment] Navigation error:', err);
+      // Don't block navigation on save errors - allow user to proceed
+      // The answer can be re-saved when they navigate back
+      const isLastQuestion = currentQuestionIndex === session.questions.length - 1;
+      if (!isLastQuestion) {
+        setCurrentQuestionIndex(prev => prev + 1);
+      } else {
+        // For last question, show error
+        Alert.alert(
+          'Save Error',
+          'There was an issue saving your last answer. Please try again.',
+          [{ text: 'OK' }]
+        );
+      }
     }
   };
   
