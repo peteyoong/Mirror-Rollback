@@ -1817,6 +1817,37 @@ const styles = StyleSheet.create({
   },
 
   // ============================================
+  // DEBUG ENV STAMP STYLES (Task A diagnostic)
+  // ============================================
+  debugStamp: {
+    backgroundColor: '#0a0a14',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#00FF00',
+  },
+  debugStampTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#00FF00',
+    marginBottom: 8,
+  },
+  debugStampSection: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#00FFFF',
+    marginTop: 6,
+    marginBottom: 2,
+  },
+  debugStampText: {
+    fontSize: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    color: '#00FF00',
+    marginBottom: 1,
+  },
+
+  // ============================================
   // DEBUG WING OVERRIDE PANEL STYLES
   // ============================================
   debugWingPanel: {
