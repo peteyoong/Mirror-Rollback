@@ -664,8 +664,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // Collapsible state for Deeper Patterns section
   const [deeperPatternsExpanded, setDeeperPatternsExpanded] = useState(false);
   
-  // Collapsible state for other sections
+  // Collapsible state for all Deep Dive accordion sections
+  const [coreStoryExpanded, setCoreStoryExpanded] = useState(true);  // Default open
+  const [wingInfluenceExpanded, setWingInfluenceExpanded] = useState(false);
   const [otherWingExpanded, setOtherWingExpanded] = useState(false);
+  const [structureGridExpanded, setStructureGridExpanded] = useState(false);
   const [energeticFlowExpanded, setEnergeticFlowExpanded] = useState(false);
   
   // Q&A Modal state (hidden initially per user request)
