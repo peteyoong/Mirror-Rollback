@@ -1340,15 +1340,54 @@ export default function EnneagramLensView({ result, userId }: Props) {
     const useNarrative = narrativeStatus === 'ready' && narrativeData?.sections && narrativeData.sections.length > 0;
     
     // Consistent header data - prefer narrative data for type label
-    const typeLabel = useNarrative 
+    // Use normalizer to fix any malformed labels like "7wbalanced"
+    const rawTypeLabel = useNarrative 
       ? narrativeData.type_label 
       : (deepDiveData?.type_label || wingInfo.typeLabel);
+    const typeLabel = normalizeTypeLabel(rawTypeLabel, core, wing);
     const typeName = useNarrative 
       ? narrativeData.type_name 
       : (deepDiveData?.type_name || TYPE_NAMES[core]);
+    
+    // Debug stamp data (for Task A diagnostic)
+    const showDebugStamp = DEBUG_MIRROR_ENV || getUrlDebugParam();
+    const debugStampData = {
+      build_id: BUILD_ID,
+      build_version: BUILD_VERSION,
+      app_env: APP_ENV,
+      platform: Platform.OS,
+      api_base_url: getEffectiveApiUrl(),
+      user_id: userId,
+      assessment_depth: (result as any).assessment_depth || 'unknown',
+      core_type: core,
+      wing_raw: String(wing),
+      wing_balance_label: computedDetails?.wing_balance_label || 'n/a',
+      raw_type_label: rawTypeLabel,
+      normalized_type_label: typeLabel,
+    };
 
     return (
       <>
+        {/* ===== DEBUG STAMP (Task A - visible with ?debug=1) ===== */}
+        {showDebugStamp && (
+          <View style={styles.debugStamp}>
+            <Text style={styles.debugStampTitle}>🔧 ENV DEBUG STAMP</Text>
+            <Text style={styles.debugStampSection}>Client:</Text>
+            <Text style={styles.debugStampText}>BUILD: {debugStampData.build_version} ({debugStampData.build_id})</Text>
+            <Text style={styles.debugStampText}>ENV: {debugStampData.app_env} | Platform: {debugStampData.platform}</Text>
+            <Text style={styles.debugStampSection}>API:</Text>
+            <Text style={styles.debugStampText}>Base URL: {debugStampData.api_base_url}</Text>
+            <Text style={styles.debugStampText}>user_id: {debugStampData.user_id}</Text>
+            <Text style={styles.debugStampSection}>Enneagram Data:</Text>
+            <Text style={styles.debugStampText}>assessment_depth: {debugStampData.assessment_depth}</Text>
+            <Text style={styles.debugStampText}>core: {debugStampData.core_type} | wing_raw: {debugStampData.wing_raw}</Text>
+            <Text style={styles.debugStampText}>wing_balance_label: {debugStampData.wing_balance_label}</Text>
+            <Text style={styles.debugStampSection}>Label Check:</Text>
+            <Text style={styles.debugStampText}>raw_label: {debugStampData.raw_type_label}</Text>
+            <Text style={styles.debugStampText}>normalized: {debugStampData.normalized_type_label}</Text>
+          </View>
+        )}
+        
         {/* ===== HEADER (consistent, no flicker) ===== */}
         <View style={styles.deepDiveHeader}>
           <View style={styles.deepDiveHeaderTop}>
