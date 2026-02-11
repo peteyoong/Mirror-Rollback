@@ -1,4 +1,4 @@
-// BUILD_VERSION: 2026-02-11-v2 (collapsible sections, wing fix, CTA gate)
+// BUILD_VERSION: 2026-02-11-v3-tripwire (leak detection, debug footer)
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
@@ -30,9 +30,16 @@ import {
 } from '../services/api';
 import EnneagramUpgradeCTA from './EnneagramUpgradeCTA';
 import PreliminaryLabel from './PreliminaryLabel';
+import EnneagramDebugFooter from './EnneagramDebugFooter';
 import { getEnneagramUpgradeInfo, EnneagramGateInput } from '../utils/enneagramGateLogic';
 import { emitEnneagramGateCTAShown, EnneagramGateSurface } from '../utils/analytics';
 import { getEnneagramHeaderDisplay } from '../utils/enneagramDisplay';
+import { 
+  assertNoBalancedWingLeak, 
+  sanitizeEnneagramString,
+  clearDetectedLeaks,
+  APP_BUILD_ID
+} from '../utils/enneagramTripwire';
 
 // ============================================
 // DEBUG CONFIGURATION
