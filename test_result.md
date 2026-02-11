@@ -208,7 +208,7 @@ backend:
              - Summary endpoint correctly includes computed name-based numbers in narrative
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://scoring-guardrail.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://enneagram-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing and cache invalidation
@@ -569,7 +569,7 @@ backend:
                * incarnation_cross_gates: Consistent ✅ (null)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://scoring-guardrail.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://enneagram-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - JSON structure consistent between Summary and Deep Dive endpoints
@@ -630,7 +630,7 @@ backend:
              - Complete Payload: All nested objects preserved correctly
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://scoring-guardrail.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://enneagram-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 5 seconds)
           - Backend logs confirm successful processing
@@ -831,7 +831,7 @@ frontend:
              - Backend Logs: "[Enneagram] Saved result for user 69819f1a1e4549392d7cb6d1: Type 7w8"
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://scoring-guardrail.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://enneagram-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Backend service stable with proper logging
           - Response times acceptable (< 5 seconds)
@@ -1146,7 +1146,7 @@ agent_communication:
       - ✅ unlock_required: false when name is unlocked
       
       **Backend Integration Verified:**
-      - ✅ All endpoints accessible via https://scoring-guardrail.preview.emergentagent.com/api
+      - ✅ All endpoints accessible via https://enneagram-fix.preview.emergentagent.com/api
       - ✅ Response times acceptable (< 2 seconds)
       - ✅ Backend logs confirm successful processing and cache invalidation
       - ✅ Data persistence working correctly across all scenarios
@@ -1300,7 +1300,7 @@ agent_communication:
       - Contract validation system working correctly
       
       🔧 BACKEND INTEGRATION VERIFIED:
-      - All endpoints accessible via public URL (https://scoring-guardrail.preview.emergentagent.com/api)
+      - All endpoints accessible via public URL (https://enneagram-fix.preview.emergentagent.com/api)
       - No HTTP errors or timeouts
       - Response times acceptable (1-3 seconds)
       - Backend logs confirm emergent_generate usage
@@ -1532,7 +1532,7 @@ agent_communication:
       ✅ BACKEND LOGS: Confirm caching working with "[DailyFocus] Returning cached focus" messages
       
       🔧 INTEGRATION VERIFICATION:
-      ✅ Both endpoints accessible via public URL (https://scoring-guardrail.preview.emergentagent.com/api)
+      ✅ Both endpoints accessible via public URL (https://enneagram-fix.preview.emergentagent.com/api)
       ✅ No HTTP errors or timeouts
       ✅ Backend service stable with no error logs
       ✅ Response times acceptable (< 2 seconds)
@@ -1749,7 +1749,7 @@ agent_communication:
       ❌ CRITICAL ISSUE IDENTIFIED - API ROUTING PROBLEM:
       - Summary tab shows "Unable to load this view right now" error
       - Frontend making requests to http://localhost:3000/api/* (404 errors)
-      - Backend running on port 8001, accessible via https://scoring-guardrail.preview.emergentagent.com/api/*
+      - Backend running on port 8001, accessible via https://enneagram-fix.preview.emergentagent.com/api/*
       - API service configured for relative URLs on web platform, but proxy routing not working
       - Console logs show: "Failed to load resource: the server responded with a status of 404 (Not Found)"
       
@@ -1799,7 +1799,7 @@ agent_communication:
       - Same API routing problem identified in previous testing sessions
       - Frontend API service uses relative URLs expecting proxy routing (/api/*)
       - Ingress/proxy not routing requests to backend (port 8001)
-      - Backend accessible directly via https://scoring-guardrail.preview.emergentagent.com/api/*
+      - Backend accessible directly via https://enneagram-fix.preview.emergentagent.com/api/*
       - Affects all lens views (Astrology, Human Design, Numerology)
       
       📊 SHIP GATE TEST RESULTS:
@@ -1855,7 +1855,7 @@ agent_communication:
       🚨 ROOT CAUSE: API ROUTING ISSUE
       - Frontend API service uses relative URLs expecting proxy routing
       - Ingress/proxy not routing /api/* requests to backend (port 8001)
-      - Backend accessible directly via https://scoring-guardrail.preview.emergentagent.com/api/*
+      - Backend accessible directly via https://enneagram-fix.preview.emergentagent.com/api/*
       - Same issue affects all lens views (Astrology, Human Design, Numerology)
       
       CONCLUSION: The Numerology Full Name Gate UI is implemented correctly and shows proper locked state, but the unlock flow cannot be verified due to API connectivity issues. The frontend correctly displays lock icons for name-based numbers (Expression, Soul Urge) while showing computed numbers for birth date-based calculations (Life Path).
