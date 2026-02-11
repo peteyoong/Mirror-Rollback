@@ -1403,6 +1403,12 @@ export default function EnneagramLensView({ result, userId }: Props) {
           const sectionId = section.id || '';
           const labelLower = (section.label || '').toLowerCase();
           
+          // TRIPWIRE + SANITIZE: Check and clean section body
+          assertNoBalancedWingLeak(section.body || '', `Narrative section[${index}] body`);
+          assertNoBalancedWingLeak(section.label || '', `Narrative section[${index}] label`);
+          const sanitizedBody = sanitizeEnneagramString(section.body || '');
+          const sanitizedLabel = sanitizeEnneagramString(section.label || '');
+          
           const isCoreStory = sectionId === 'core_story' || labelLower.includes('core story');
           const isWingStory = sectionId === 'wing_story' || labelLower.includes('your wing');
           const isOtherWing = sectionId === 'other_wing' || labelLower.includes('other wing');
@@ -1413,7 +1419,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           if (isClosing) {
             return (
               <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-                <Text style={styles.closingReflection}>{section.body}</Text>
+                <Text style={styles.closingReflection}>{sanitizedBody}</Text>
               </View>
             );
           }
@@ -1428,7 +1434,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
                   onPress={() => setCoreStoryExpanded(!coreStoryExpanded)}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+                  <Text style={styles.deepDiveSectionTitle}>{sanitizedLabel}</Text>
                   <Ionicons 
                     name={coreStoryExpanded ? "chevron-up" : "chevron-down"} 
                     size={20} 
@@ -1436,7 +1442,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
                   />
                 </TouchableOpacity>
                 {coreStoryExpanded && (
-                  <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
+                  <Text style={styles.deepDiveSectionBody}>{sanitizedBody}</Text>
                 )}
               </View>
             );
