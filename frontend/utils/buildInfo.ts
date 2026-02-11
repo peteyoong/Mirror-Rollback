@@ -13,8 +13,8 @@ import Constants from 'expo-constants';
 // ============================================
 // This timestamp is baked into the bundle at build time.
 // If you see an old BUILD_ID after deploy, the client is using a stale bundle.
-export const BUILD_ID = '2026-02-11T11:50:00Z';
-export const BUILD_VERSION = 'v13-unified-display';
+export const BUILD_ID = '2026-02-11T13:15:00Z';
+export const BUILD_VERSION = 'v14-schema-fix';
 
 // Log BUILD_ID immediately when this module loads
 if (typeof console !== 'undefined') {
