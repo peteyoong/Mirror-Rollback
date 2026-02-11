@@ -667,7 +667,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
     assessment_depth: result.assessment_depth,
     confidence_tier: result.confidence_tier,
     confidence: result.confidence,
-    created_at_iso: result.created_at_iso,
+    created_at_iso: result.created_at_iso || result.created_at,  // API returns 'created_at'
   };
   const { gateState, ctaCopy, showPreliminaryLabel } = getEnneagramUpgradeInfo(gateInput);
   
