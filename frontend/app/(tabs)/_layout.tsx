@@ -12,7 +12,7 @@ export default function TabLayout() {
         tabBarInactiveTintColor: Colors.textTertiary,
         tabBarStyle: {
           backgroundColor: Colors.surface,
-          borderTopColor: Colors.border,
+          borderTopColor: '#CCCCCC',  // Darker border for better visibility
           borderTopWidth: 1,
           height: 60,
           paddingBottom: 8,
