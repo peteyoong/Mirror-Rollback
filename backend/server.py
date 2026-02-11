@@ -9076,6 +9076,34 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
         if not result:
             return {"has_result": False, "result": None}
         
+        # =====================================================
+        # FALLBACK: Recompute computed_details if missing
+        # Ensures Deep Dive sections always have data
+        # =====================================================
+        computed_details = result.get("enneagram_computed_details", {})
+        if not computed_details or not computed_details.get("center"):
+            core_type = result.get("inferred_core")
+            wing = result.get("inferred_wing")
+            confidence = result.get("confidence", 0)
+            debug_scores = result.get("debug_scores", {})
+            wing_left_score = debug_scores.get("wing_left_score", 0.0)
+            wing_right_score = debug_scores.get("wing_right_score", 0.0)
+            
+            if core_type:
+                logger.info(f"[ENNEAGRAM_RETRIEVAL] Recomputing computed_details for user {user_id}")
+                computed_details = compute_enneagram_details(
+                    core_type=core_type,
+                    wing=wing if isinstance(wing, int) else core_type,
+                    wing_left_score=wing_left_score,
+                    wing_right_score=wing_right_score,
+                    confidence=confidence
+                )
+                # Persist for future requests
+                await db.enneagram_results.update_one(
+                    {"user_id": user_id},
+                    {"$set": {"enneagram_computed_details": computed_details}}
+                )
+        
         # Build base response
         response_result = {
             "id": str(result.get("_id", "")),
@@ -9090,7 +9118,7 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
             "top_candidates": result.get("top_candidates", []),
             "state_calibration": result.get("state_calibration", {}),
             "debug_scores": result.get("debug_scores", {}),
-            "enneagram_computed_details": result.get("enneagram_computed_details", {}),
+            "enneagram_computed_details": computed_details,  # Use potentially recomputed value
             "created_at": result["created_at"].isoformat() if result.get("created_at") else None,
             # P2: Version tracking for soft versioning UI
             "assessment_depth": result.get("assessment_depth"),
