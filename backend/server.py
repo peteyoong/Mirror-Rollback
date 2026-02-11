@@ -10868,7 +10868,13 @@ async def enneagram_chat(request: EnneagramChatRequest):
         ctx = request.context
         core_type = ctx.inferred_core
         wing = ctx.inferred_wing
-        wing_display = "balanced wings" if wing == "balanced" else f"wing {wing}"
+        
+        # NEVER use "balanced wings" as identity - use neutral description
+        if wing == "balanced" or wing is None:
+            wing_display = "access to both adjacent wings"
+        else:
+            wing_display = f"wing {wing}"
+        
         type_name = ENNEAGRAM_TYPE_NAMES.get(core_type, f"Type {core_type}")
         
         # Build top candidates string
