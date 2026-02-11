@@ -13,8 +13,8 @@ import Constants from 'expo-constants';
 // ============================================
 // This timestamp is baked into the bundle at build time.
 // If you see an old BUILD_ID after deploy, the client is using a stale bundle.
-export const BUILD_ID = '2026-02-11T06:12:00Z';
-export const BUILD_VERSION = 'gate-fix-v5-debug';
+export const BUILD_ID = '2026-02-11T06:50:00Z';
+export const BUILD_VERSION = 'v6-badge';
 
 // ============================================
 // API Base URL Resolution
