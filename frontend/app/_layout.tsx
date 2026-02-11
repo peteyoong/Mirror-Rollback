@@ -5,6 +5,7 @@ import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
 import { DebugViewportOverlay } from '../components/DebugViewportOverlay';
 import { AddToHomeScreenBanner } from '../components/AddToHomeScreenBanner';
+import { BuildBadge } from '../components/BuildBadge';
 
 export default function RootLayout() {
   const { 
