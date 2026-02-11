@@ -638,26 +638,21 @@ function getWingDisplayInfo(
     };
   }
   
-  // Wing is a number - determine if dominant or leaning
-  const isHighConfidence = confidenceTier === 'high';
-  const isMediumConfidence = confidenceTier === 'medium';
+  // Wing is a number - show as dominant style (Type Xw#)
+  // Per user request: Always show "Type 7w8" format for numeric wings
+  // regardless of confidence tier
+  const confidenceBadge = confidenceTier === 'high' ? 'High' 
+    : (confidenceTier === 'medium' || confidenceTier === 'moderate') ? 'Exploratory' 
+    : 'Exploratory';
   
-  // Case A: Dominant Wing (high confidence)
-  if (isHighConfidence) {
-    return {
-      state: 'dominant',
-      typeLabel: `Type ${coreType}w${wing}`,
-      confidenceBadge: 'High',
-      helperText: null,
-    };
-  }
-  
-  // Case B: Leaning Wing (moderate/low confidence)
+  // For numeric wing, always use dominant display (Type XwY)
   return {
-    state: 'leaning',
-    typeLabel: `Type ${coreType} — leaning toward Wing ${wing}`,
-    confidenceBadge: isMediumConfidence ? 'Exploratory' : 'Exploratory',
-    helperText: 'One adjacent pattern appears slightly stronger, though not yet decisive.',
+    state: 'dominant',
+    typeLabel: `Type ${coreType}w${wing}`,
+    confidenceBadge,
+    helperText: confidenceTier !== 'high' 
+      ? 'Your wing pattern is still emerging. This may refine with more reflections.'
+      : null,
   };
 }
 
