@@ -125,6 +125,45 @@ async def health_check():
     """Health check endpoint for deployment verification."""
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
+# =====================================================
+# BUILD VERIFICATION ENDPOINT
+# =====================================================
+# Returns build info for debugging environment mismatches
+BUILD_VERSION = "v15-wing-display-fix"
+BUILD_ENV = os.environ.get("APP_ENV", os.environ.get("NODE_ENV", "development"))
+
+@app.get("/api/health")
+async def api_health():
+    """
+    Build verification endpoint.
+    Returns current build info for debugging environment mismatches.
+    No caching, no auth required.
+    """
+    import subprocess
+    
+    # Try to get git SHA
+    git_sha = None
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=2,
+            cwd="/app"
+        )
+        if result.returncode == 0:
+            git_sha = result.stdout.strip()
+    except Exception:
+        pass
+    
+    return {
+        "build": BUILD_VERSION,
+        "env": BUILD_ENV,
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "git_sha": git_sha,
+        "db_name": os.environ.get("DB_NAME", "unknown"),
+    }
+
 # Note: Static file serving will be added at the END of the file, AFTER the api_router is included
 # This ensures API routes take precedence over the catch-all static file handler
 
