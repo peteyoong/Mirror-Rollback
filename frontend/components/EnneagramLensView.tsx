@@ -32,6 +32,7 @@ import EnneagramUpgradeCTA from './EnneagramUpgradeCTA';
 import PreliminaryLabel from './PreliminaryLabel';
 import { getEnneagramUpgradeInfo, EnneagramGateInput } from '../utils/enneagramGateLogic';
 import { emitEnneagramGateCTAShown, EnneagramGateSurface } from '../utils/analytics';
+import { getEnneagramHeaderDisplay } from '../utils/enneagramDisplay';
 
 // ============================================
 // DEBUG CONFIGURATION
