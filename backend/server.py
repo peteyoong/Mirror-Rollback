@@ -12206,10 +12206,15 @@ if ACTUAL_WEB_BUILD_PATH:
     if (ACTUAL_WEB_BUILD_PATH / "assets").exists():
         app.mount("/assets", StaticFiles(directory=str(ACTUAL_WEB_BUILD_PATH / "assets")), name="assets")
     
-    # Serve index.html for root
+    # Serve index.html for root - with cache-busting headers
     @app.get("/")
     async def serve_root():
-        return FileResponse(str(ACTUAL_WEB_BUILD_PATH / "index.html"))
+        response = FileResponse(str(ACTUAL_WEB_BUILD_PATH / "index.html"))
+        # Prevent caching of index.html to ensure fresh bundles
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
     
     # Catch-all route for SPA - serves index.html for all non-API routes
     @app.get("/{full_path:path}")
@@ -12218,10 +12223,19 @@ if ACTUAL_WEB_BUILD_PATH:
         # Check if it's a static file
         file_path = ACTUAL_WEB_BUILD_PATH / full_path
         if file_path.exists() and file_path.is_file():
-            return FileResponse(str(file_path))
+            response = FileResponse(str(file_path))
+            # JS/CSS bundles have hashed names, can be cached
+            # But index.html should never be cached
+            if full_path.endswith('.html'):
+                response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            return response
         
-        # For all other routes, serve index.html (SPA routing)
-        return FileResponse(str(ACTUAL_WEB_BUILD_PATH / "index.html"))
+        # For all other routes, serve index.html (SPA routing) with no-cache
+        response = FileResponse(str(ACTUAL_WEB_BUILD_PATH / "index.html"))
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
 else:
     logger.warning(f"[Startup] Web build not found. Checked paths: {WEB_BUILD_PATH}, {FALLBACK_WEB_PATHS}")
     
