@@ -9077,47 +9077,80 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
             return {"has_result": False, "result": None}
         
         # =====================================================
+        # SCHEMA NORMALIZATION: Handle both flat and nested schemas
+        # Old schema: { inferred_core: 7, inferred_wing: 8, ... }
+        # New schema: { results: { core_type: 7, wing: 8, ... } }
+        # =====================================================
+        nested_results = result.get("results", {})
+        
+        # Normalize core_type (try flat first, then nested)
+        inferred_core = result.get("inferred_core") or nested_results.get("core_type")
+        # Normalize wing (try flat first, then nested)
+        raw_wing = result.get("inferred_wing") or nested_results.get("wing")
+        # Convert wing to int or 'balanced' 
+        if raw_wing is not None:
+            if isinstance(raw_wing, str) and raw_wing.isdigit():
+                inferred_wing = int(raw_wing)
+            elif raw_wing == 'balanced':
+                inferred_wing = 'balanced'
+            else:
+                inferred_wing = raw_wing
+        else:
+            inferred_wing = None
+        # Normalize confidence
+        confidence = result.get("confidence") or nested_results.get("confidence", 0)
+        confidence_tier = result.get("confidence_tier") or nested_results.get("confidence_tier", "exploratory")
+        # Normalize depth
+        assessment_depth = result.get("assessment_depth") or nested_results.get("assessment_depth", "short")
+        assessment_version = result.get("assessment_version") or nested_results.get("assessment_version")
+        created_at = result.get("created_at") or (
+            datetime.fromisoformat(nested_results.get("created_at_iso").replace("Z", "+00:00")) 
+            if nested_results.get("created_at_iso") else None
+        )
+        
+        logger.info(f"[ENNEAGRAM_RETRIEVAL] Normalized: core={inferred_core}, wing={inferred_wing}, confidence={confidence}, depth={assessment_depth}")
+        
+        if not inferred_core:
+            logger.warning(f"[ENNEAGRAM_RETRIEVAL] No core type found for user {user_id} after normalization")
+            return {"has_result": False, "result": None}
+        
+        # =====================================================
         # FALLBACK: Recompute computed_details if missing
         # Ensures Deep Dive sections always have data
         # =====================================================
         computed_details = result.get("enneagram_computed_details", {})
         if not computed_details or not computed_details.get("center"):
-            core_type = result.get("inferred_core")
-            wing = result.get("inferred_wing")
-            confidence = result.get("confidence", 0)
             debug_scores = result.get("debug_scores", {})
             wing_left_score = debug_scores.get("wing_left_score", 0.0)
             wing_right_score = debug_scores.get("wing_right_score", 0.0)
             
-            if core_type:
-                logger.info(f"[ENNEAGRAM_RETRIEVAL] Recomputing computed_details for user {user_id}")
-                computed_details = compute_enneagram_details(
-                    core_type=core_type,
-                    wing=wing if isinstance(wing, int) else core_type,
-                    wing_left_score=wing_left_score,
-                    wing_right_score=wing_right_score,
-                    confidence=confidence
-                )
-                # Persist for future requests
-                await db.enneagram_results.update_one(
-                    {"user_id": user_id},
-                    {"$set": {"enneagram_computed_details": computed_details}}
-                )
+            logger.info(f"[ENNEAGRAM_RETRIEVAL] Recomputing computed_details for user {user_id}")
+            computed_details = compute_enneagram_details(
+                core_type=inferred_core,
+                wing=inferred_wing if isinstance(inferred_wing, int) else inferred_core,
+                wing_left_score=wing_left_score,
+                wing_right_score=wing_right_score,
+                confidence=confidence if isinstance(confidence, (int, float)) else 0
+            )
+            # Persist for future requests
+            await db.enneagram_results.update_one(
+                {"user_id": user_id},
+                {"$set": {"enneagram_computed_details": computed_details}}
+            )
         
         # =====================================================
         # CANONICAL ASSESSMENT_DEPTH RESOLUTION
         # - If missing/null → default to "short" (legacy records)
         # - Frontend gating depends on this being explicit
         # =====================================================
-        raw_depth = result.get("assessment_depth")
-        canonical_depth = raw_depth if raw_depth in ("short", "deep") else "short"
+        canonical_depth = assessment_depth if assessment_depth in ("short", "deep") else "short"
         
         # Debug logging for gate debugging
         logger.info(f"[ENNEAGRAM_RETRIEVAL] Gate-relevant fields for user {user_id}:")
-        logger.info(f"[ENNEAGRAM_RETRIEVAL]   raw assessment_depth: {repr(raw_depth)}")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL]   raw assessment_depth: {repr(assessment_depth)}")
         logger.info(f"[ENNEAGRAM_RETRIEVAL]   canonical assessment_depth: {canonical_depth}")
-        logger.info(f"[ENNEAGRAM_RETRIEVAL]   confidence_tier: {result.get('confidence_tier')}")
-        logger.info(f"[ENNEAGRAM_RETRIEVAL]   created_at: {result.get('created_at')}")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL]   confidence_tier: {confidence_tier}")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL]   created_at: {created_at}")
         
         # Build base response
         response_result = {
@@ -9125,10 +9158,10 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
             "user_id": result["user_id"],
             "method": result.get("method", "assessment_inference_v1"),
             "version": result.get("version", "v1"),
-            "inferred_core": result["inferred_core"],
-            "inferred_wing": result["inferred_wing"],
-            "confidence": result["confidence"],
-            "confidence_tier": result["confidence_tier"],
+            "inferred_core": inferred_core,
+            "inferred_wing": inferred_wing,
+            "confidence": confidence,
+            "confidence_tier": confidence_tier,
             "is_close": result.get("is_close", False),
             "top_candidates": result.get("top_candidates", []),
             "state_calibration": result.get("state_calibration", {}),
