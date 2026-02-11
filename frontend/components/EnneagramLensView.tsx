@@ -34,6 +34,74 @@ import {
 // Server-side environment flag (must be 'true' to enable debug capability)
 const DEBUG_MIRROR_ENV = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
 
+// Client-side URL param check (?debug=1)
+const getUrlDebugParam = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location?.search || '').get('debug') === '1';
+};
+
+// ============================================
+// BUILD INFO (for debug stamp)
+// ============================================
+const BUILD_ID = '2026-02-11T09:50:00Z';
+const BUILD_VERSION = 'v11-env-debug';
+const APP_ENV = process.env.NODE_ENV || 'unknown';
+
+// Get effective API base URL
+const getEffectiveApiUrl = (): string => {
+  const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
+  if (envUrl) return envUrl;
+  if (Platform.OS === 'web') return window.location.origin;
+  return 'http://localhost:8001';
+};
+
+// ============================================
+// TYPE LABEL NORMALIZER (Task B - Fix "7wbalanced" bug)
+// ============================================
+// This function ensures wing labels are ALWAYS formatted correctly
+// regardless of what the backend returns.
+// Rules:
+// - If wing is a number: "Type {core}w{wing}" (e.g., "Type 7w8")
+// - If wing is "balanced": "Type {core} — balanced wings ({left} & {right})"
+// - If wing is null/undefined: "Type {core}"
+// - NEVER: "7wbalanced" or "Type 7wbalanced"
+// ============================================
+function normalizeTypeLabel(
+  rawLabel: string | undefined,
+  coreType: number,
+  wing: number | 'balanced' | null | undefined
+): string {
+  const wings = WING_NUMBERS[coreType] || { left: coreType === 1 ? 9 : coreType - 1, right: coreType === 9 ? 1 : coreType + 1 };
+  
+  // DEFENSIVE: Check for malformed labels containing "wbalanced"
+  if (rawLabel && rawLabel.toLowerCase().includes('wbalanced')) {
+    console.warn('[WING_LABEL_BUG] Malformed label detected:', rawLabel);
+    // Fix it by using local logic
+    if (wing === 'balanced') {
+      return `Type ${coreType} — balanced wings (${wings.left} & ${wings.right})`;
+    }
+    return `Type ${coreType}`;
+  }
+  
+  // If rawLabel looks good, return it
+  if (rawLabel && !rawLabel.includes('wbalanced')) {
+    return rawLabel;
+  }
+  
+  // Generate correct label from local data
+  if (wing === null || wing === undefined) {
+    return `Type ${coreType}`;
+  }
+  if (wing === 'balanced') {
+    return `Type ${coreType} — balanced wings (${wings.left} & ${wings.right})`;
+  }
+  if (typeof wing === 'number') {
+    return `Type ${coreType}w${wing}`;
+  }
+  
+  return `Type ${coreType}`;
+}
+
 // ============================================
 // DEBUG WING STATE OVERRIDE SYSTEM
 // ============================================
