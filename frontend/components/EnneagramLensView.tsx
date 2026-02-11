@@ -685,6 +685,28 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const { gateState, ctaCopy, showPreliminaryLabel } = getEnneagramUpgradeInfo(gateInput);
   
   // ============================================
+  // INVARIANT ASSERTION (Dev only)
+  // ============================================
+  // Catch contradictory states early and log them
+  useEffect(() => {
+    assertGateInvariant(
+      gateInput.assessment_depth,
+      gateInput.confidence_tier,
+      gateState.show_cta,
+      showPreliminaryLabel
+    );
+  }, [gateInput.assessment_depth, gateInput.confidence_tier, gateState.show_cta, showPreliminaryLabel]);
+  
+  // ============================================
+  // DEBUG: Payload Snapshot for diagnostics
+  // ============================================
+  const payloadSnapshot = useMemo(() => createEnneagramPayloadSnapshot(result), [result]);
+  const buildDebugInfo = useMemo(() => getBuildDebugInfo(), []);
+  
+  // Debug mode: URL param or env flag
+  const showDebugPanel = DEBUG_MIRROR_ENV && (getUrlDebugParam() || false);
+  
+  // ============================================
   // ANALYTICS: CTA Shown (once per surface per mount)
   // ============================================
   const hasEmittedSummaryCTA = useRef(false);
