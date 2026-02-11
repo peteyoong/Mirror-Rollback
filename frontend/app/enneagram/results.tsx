@@ -20,7 +20,7 @@ import * as Clipboard from 'expo-clipboard';
 import EnneagramUpgradeCTA from '../../components/EnneagramUpgradeCTA';
 import PreliminaryLabel from '../../components/PreliminaryLabel';
 import { getEnneagramUpgradeInfo, EnneagramGateInput } from '../../utils/enneagramGateLogic';
-import { emitEnneagramGateCTAShown, EnneagramGateSurface } from '../../utils/analytics';
+import { emitEnneagramGateCTAShown, emitEnneagramGateCTAClicked, EnneagramGateSurface } from '../../utils/analytics';
 import { getEnneagramHeaderDisplay } from '../../utils/enneagramDisplay';
 
 // Check if we're in development mode - DISABLED for tester builds
