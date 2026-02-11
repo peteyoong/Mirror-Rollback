@@ -1081,6 +1081,30 @@ export default function EnneagramLensView({ result, userId }: Props) {
           This lens reflects motivation, not mood.
         </Text>
       </View>
+      
+      {/* ============================================
+          DEBUG PANEL (only in debug mode)
+          ============================================ */}
+      {showDebugPanel && (
+        <View style={styles.debugPanel}>
+          <Text style={styles.debugPanelTitle}>🔧 DEBUG INFO</Text>
+          <Text style={styles.debugPanelText}>BUILD_ID: {buildDebugInfo.build_id}</Text>
+          <Text style={styles.debugPanelText}>BUILD_VER: {buildDebugInfo.build_version}</Text>
+          <Text style={styles.debugPanelText}>API_URL: {buildDebugInfo.api_base_url}</Text>
+          <Text style={styles.debugPanelText}>---</Text>
+          <Text style={styles.debugPanelText}>assessment_depth: {String(payloadSnapshot.assessment_depth)}</Text>
+          <Text style={styles.debugPanelText}>assessment_ver: {String(payloadSnapshot.assessment_version)}</Text>
+          <Text style={styles.debugPanelText}>confidence_tier: {String(payloadSnapshot.confidence_tier)}</Text>
+          <Text style={styles.debugPanelText}>confidence: {String(payloadSnapshot.confidence)}</Text>
+          <Text style={styles.debugPanelText}>core_type: {String(payloadSnapshot.core_type)}</Text>
+          <Text style={styles.debugPanelText}>wing: {String(payloadSnapshot.wing)}</Text>
+          <Text style={styles.debugPanelText}>created_at: {String(payloadSnapshot.created_at)}</Text>
+          <Text style={styles.debugPanelText}>---</Text>
+          <Text style={styles.debugPanelText}>show_cta: {String(gateState.show_cta)}</Text>
+          <Text style={styles.debugPanelText}>showPreliminaryLabel: {String(showPreliminaryLabel)}</Text>
+          <Text style={styles.debugPanelText}>cta_type: {String(gateState.cta_type)}</Text>
+        </View>
+      )}
 
       {/* Upgrade CTA - shown based on gate logic */}
       {ctaCopy && gateState.cta_variant && (
