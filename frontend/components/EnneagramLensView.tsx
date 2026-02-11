@@ -33,12 +33,25 @@ import PreliminaryLabel from './PreliminaryLabel';
 import { getEnneagramUpgradeInfo, EnneagramGateInput } from '../utils/enneagramGateLogic';
 import { emitEnneagramGateCTAShown, EnneagramGateSurface } from '../utils/analytics';
 import { getEnneagramHeaderDisplay } from '../utils/enneagramDisplay';
+import { 
+  BUILD_ID, 
+  BUILD_VERSION, 
+  getBuildDebugInfo, 
+  createEnneagramPayloadSnapshot,
+  assertGateInvariant,
+} from '../utils/buildInfo';
 
 // ============================================
 // DEBUG CONFIGURATION
 // ============================================
 // Server-side environment flag (must be 'true' to enable debug capability)
 const DEBUG_MIRROR_ENV = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
+
+// Client-side URL param check (?debug=1)
+const getUrlDebugParam = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location?.search || '').get('debug') === '1';
+};
 
 // ============================================
 // DEBUG WING STATE OVERRIDE SYSTEM
