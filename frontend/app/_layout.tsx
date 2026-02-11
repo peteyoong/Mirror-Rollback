@@ -55,6 +55,8 @@ export default function RootLayout() {
       {Platform.OS === 'web' && <DebugViewportOverlay />}
       {/* BUILD_ID Badge - shows in debug mode to verify deployed bundle */}
       <BuildBadge />
+      {/* Debug Overlay - shows environment info when ?debug=1 */}
+      <DebugOverlay />
     </>
   );
 }
