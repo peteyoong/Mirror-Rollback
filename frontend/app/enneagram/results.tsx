@@ -1026,25 +1026,34 @@ export default function EnneagramResults() {
         {/* ============================================
             DEEP ASSESSMENT CTA (Mirror Voice)
             ============================================
-            Show when:
-            - confidence_tier is not 'high' OR
-            - assessment_depth is not 'deep' (quick assessment was taken) OR
-            - no assessment_depth field exists
-            
-            Uses neutral, observational language.
+            Uses centralized gate logic (enneagramGateLogic.ts)
+            - Only shows when gateState.show_cta is true
+            - Copy comes from centralized ctaCopy
+            - Never shows for deep + high confidence results
         */}
-        {(result.confidence_tier !== 'high' || !result.assessment_depth || result.assessment_depth !== 'deep') && (
+        {gateState.show_cta && ctaCopy && (
           <View style={styles.deepAssessmentCTA}>
             <Ionicons name="compass-outline" size={24} color={Colors.accent} style={{ marginBottom: 8 }} />
-            <Text style={styles.deepAssessmentTitle}>Want a clearer mirror?</Text>
+            <Text style={styles.deepAssessmentTitle}>{ctaCopy.title}</Text>
             <Text style={styles.deepAssessmentText}>
-              If your result felt close or uncertain, a deeper assessment can sharpen the signal.
+              {ctaCopy.body}
             </Text>
             <TouchableOpacity
               style={styles.deepAssessmentButton}
-              onPress={() => router.push('/enneagram/assessment')}
+              onPress={() => {
+                // Analytics: CTA clicked
+                emitEnneagramGateCTAClicked({
+                  variant: gateState.cta_variant!,
+                  surface: 'results' as EnneagramGateSurface,
+                  assessment_depth: gateInput.assessment_depth || null,
+                  confidence_tier: gateInput.confidence_tier || null,
+                  result_age_days: gateState.result_age_days,
+                  has_saved_session: null,
+                });
+                router.push('/enneagram/assessment');
+              }}
             >
-              <Text style={styles.deepAssessmentButtonText}>Take the deep assessment</Text>
+              <Text style={styles.deepAssessmentButtonText}>{ctaCopy.button_text}</Text>
               <Ionicons name="arrow-forward" size={16} color={Colors.background} />
             </TouchableOpacity>
           </View>
