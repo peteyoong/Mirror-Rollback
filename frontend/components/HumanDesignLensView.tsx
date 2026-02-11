@@ -164,16 +164,25 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       return value.split('/')[0];
     };
 
-    // Format incarnation cross - use display_label from canonical structure if available
-    // This hides JXP/RAX from production UI
+    // Format incarnation cross - include angle (LAX/RAX/JX) if available
     const formatCross = () => {
-      // Priority 1: Use canonical display_label (e.g., "Tension (21/48 • 38/39)")
-      if (mechanics.incarnation_cross_canonical?.display_label) {
-        return mechanics.incarnation_cross_canonical.display_label;
+      const canonical = mechanics.incarnation_cross_canonical;
+      
+      // Priority 1: Use canonical with angle prepended
+      if (canonical?.display_label) {
+        // If angle exists, prepend it: "LAX Migration (37/40 - 5/35)"
+        if (canonical.angle) {
+          return `${canonical.angle} ${canonical.display_label}`;
+        }
+        return canonical.display_label;
       }
       
       // Priority 2: Use incarnation_cross field directly (already formatted by backend)
       if (mechanics.incarnation_cross && mechanics.incarnation_cross !== 'Unknown') {
+        // Try to prepend angle if available
+        if (canonical?.angle) {
+          return `${canonical.angle} ${mechanics.incarnation_cross}`;
+        }
         return mechanics.incarnation_cross;
       }
       
