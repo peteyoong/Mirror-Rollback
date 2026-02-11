@@ -10529,9 +10529,28 @@ async def get_enneagram_narrative(user_id: str, force_refresh: bool = False):
                 "sections": []
             }
         
-        core_type = result.get("inferred_core")
-        wing = result.get("inferred_wing")
-        confidence_tier = result.get("confidence_tier", "low")
+        # =====================================================
+        # SCHEMA NORMALIZATION: Handle both flat and nested schemas
+        # Old schema: { inferred_core: 7, inferred_wing: 8, ... }
+        # New schema: { results: { core_type: 7, wing: 8, ... } }
+        # =====================================================
+        nested_results = result.get("results", {})
+        
+        core_type = result.get("inferred_core") or nested_results.get("core_type")
+        raw_wing = result.get("inferred_wing") or nested_results.get("wing")
+        confidence_tier = result.get("confidence_tier") or nested_results.get("confidence_tier", "low")
+        
+        # Convert wing to appropriate type
+        wing = None
+        if raw_wing is not None:
+            if isinstance(raw_wing, str) and raw_wing.isdigit():
+                wing = int(raw_wing)
+            elif raw_wing == 'balanced':
+                wing = 'balanced'
+            elif isinstance(raw_wing, int):
+                wing = raw_wing
+            else:
+                wing = raw_wing
         
         # Check for v2 profile data (from deep assessment)
         profile_enn = None
