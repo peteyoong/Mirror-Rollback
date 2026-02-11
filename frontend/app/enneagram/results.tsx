@@ -229,10 +229,11 @@ function getWingTypes(coreType: number): { left: number; right: number } {
 // WING DISPLAY SYSTEM
 // ============================================
 // Implements 4 display states based on wing data and confidence:
-// A) Dominant Wing (high confidence) - "Type 7w6"
-// B) Leaning Wing (moderate confidence) - "Type 7 — leaning toward Wing 6"  
-// C) Balanced Wings (adjacent scores close) - "Type 7 — balanced wings (6 & 8)"
-// D) Wing Not Yet Clear (null/insufficient) - "Type 7 — wing not yet clear"
+// A) Dominant Wing (high confidence) - "Type 7w6" (wing in header)
+// B) Leaning Wing (moderate confidence) - "Type 7w6" + helper text
+// C) Balanced Wings (adjacent scores close) - "Type 7" (NO wing in header)
+// D) Wing Not Yet Clear (null/insufficient) - "Type 7" (NO wing in header)
+// NOTE: "balanced" NEVER appears in headerLabel - see enneagramDisplay.ts
 // ============================================
 
 type WingDisplayState = 'dominant' | 'leaning' | 'balanced' | 'not_clear';
