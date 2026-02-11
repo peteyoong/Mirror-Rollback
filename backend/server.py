@@ -11399,9 +11399,27 @@ async def complete_deep_assessment(session_id: str):
         
         # Extract values from scoring result
         core_type = scoring_result["top_types"][0]["type"]
-        wing = scoring_result["wing_analysis"]["inferred_wing"]
+        wing_analysis = scoring_result["wing_analysis"]
+        wing = wing_analysis["inferred_wing"]
         confidence = scoring_result["confidence"]
         confidence_tier = scoring_result["confidence_tier"]
+        
+        # =====================================================
+        # COMPUTE enneagram_computed_details (CRITICAL)
+        # Must be freshly computed from deep assessment results
+        # =====================================================
+        wing_left_score = wing_analysis.get("left_wing_score", 0.0)
+        wing_right_score = wing_analysis.get("right_wing_score", 0.0)
+        
+        enneagram_computed_details = compute_enneagram_details(
+            core_type=core_type,
+            wing=wing if isinstance(wing, int) else core_type,  # Handle 'balanced' case
+            wing_left_score=wing_left_score,
+            wing_right_score=wing_right_score,
+            confidence=confidence
+        )
+        
+        logger.info(f"[P1_DEEP] Computed enneagram_details for Type {core_type}w{wing}: center={enneagram_computed_details.get('center')}, harmonic={enneagram_computed_details.get('harmonic_group')}")
         
         # Build canonical enneagram_results document
         canonical_result = {
@@ -11416,7 +11434,8 @@ async def complete_deep_assessment(session_id: str):
             "top_candidates": scoring_result["top_types"],
             "state_calibration": scoring_result.get("state_calibration", {}),
             "debug_scores": scoring_result.get("debug_scores", {}),
-            "enneagram_computed_details": scoring_result.get("enneagram_computed_details", {}),
+            # FRESHLY COMPUTED - not from scoring_result
+            "enneagram_computed_details": enneagram_computed_details,
             # CRITICAL: Mark as deep assessment
             "assessment_depth": "deep",
             "assessment_version": "v2",
@@ -11434,6 +11453,16 @@ async def complete_deep_assessment(session_id: str):
         )
         
         logger.info(f"[P1_DEEP] Persisted to enneagram_results for user {user_id}: Type {core_type}w{wing}, confidence={confidence_tier}, depth=deep")
+        
+        # =====================================================
+        # INVALIDATE CACHED NARRATIVES (CRITICAL)
+        # Force fresh generation on next Deep Dive fetch
+        # =====================================================
+        try:
+            await invalidate_deep_dive_cache(user_id, "enneagram_narrative")
+            logger.info(f"[P1_DEEP] Invalidated enneagram_narrative cache for user {user_id}")
+        except Exception as cache_err:
+            logger.warning(f"[P1_DEEP] Cache invalidation failed (non-blocking): {cache_err}")
         
         # =====================================================
         # P5: EMIT LONGITUDINAL EVIDENCE (Shadow Wiring)
