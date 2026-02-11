@@ -6,6 +6,7 @@ import { Colors } from '../constants/colors';
 import { DebugViewportOverlay } from '../components/DebugViewportOverlay';
 import { AddToHomeScreenBanner } from '../components/AddToHomeScreenBanner';
 import { BuildBadge } from '../components/BuildBadge';
+import { DebugOverlay } from '../components/DebugOverlay';
 
 export default function RootLayout() {
   const { 
