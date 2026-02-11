@@ -584,6 +584,16 @@ interface EnneagramResult {
     life_context: string;
     answer_frame: string;
   };
+  // PROVENANCE FIELDS (Task 1 - Debug Stamp)
+  result_id?: string;
+  user_id?: string;
+  assessment_depth?: string;
+  assessment_version?: string;
+  created_at?: string;
+  updated_at?: string;
+  wing_left_score?: number;
+  wing_right_score?: number;
+  enneagram_computed_details?: any;
 }
 
 // ============================================
