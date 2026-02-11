@@ -17,11 +17,6 @@ import { useAppStore } from '../../store';
 import { Ionicons } from '@expo/vector-icons';
 import { getEnneagramResult, submitEnneagramFeedback } from '../../services/api';
 import * as Clipboard from 'expo-clipboard';
-import EnneagramUpgradeCTA from '../../components/EnneagramUpgradeCTA';
-import PreliminaryLabel from '../../components/PreliminaryLabel';
-import { getEnneagramUpgradeInfo, EnneagramGateInput } from '../../utils/enneagramGateLogic';
-import { emitEnneagramGateCTAShown, emitEnneagramGateCTAClicked, EnneagramGateSurface } from '../../utils/analytics';
-import { getEnneagramHeaderDisplay } from '../../utils/enneagramDisplay';
 
 // Check if we're in development mode - DISABLED for tester builds
 // const IS_DEV = process.env.NODE_ENV !== 'production' || __DEV__;
@@ -239,36 +234,69 @@ type WingDisplayState = 'dominant' | 'leaning' | 'balanced' | 'not_clear';
 
 interface WingDisplayInfo {
   state: WingDisplayState;
-  typeLabel: string;           // e.g., "Type 7w6" or "Type 7"
+  typeLabel: string;           // e.g., "Type 7w6" or "Type 7 — leaning toward Wing 6"
   confidenceBadge: 'High' | 'Exploratory' | 'Low';
   helperText: string | null;   // Explanatory text for non-dominant states
-  wingNote?: string | null;    // Optional note for wing section (not header)
 }
 
-/**
- * Get wing display info using the CENTRALIZED helper.
- * This is a wrapper to maintain interface compatibility.
- * @see /utils/enneagramDisplay.ts for the canonical implementation
- */
 function getWingDisplayInfo(
   coreType: number,
   wing: number | 'balanced' | null,
   confidenceTier: string,
   debugScores?: { wing_scores?: { left: number; right: number; diff: number } }
 ): WingDisplayInfo {
-  // Use centralized helper - SINGLE SOURCE OF TRUTH
-  const display = getEnneagramHeaderDisplay({
-    coreType,
-    wing,
-    confidenceTier: confidenceTier as any,
-  });
+  const wingTypes = getWingTypes(coreType);
   
+  // Case D: Wing Not Yet Clear (wing === null OR insufficient data)
+  if (wing === null || wing === undefined) {
+    return {
+      state: 'not_clear',
+      typeLabel: `Type ${coreType} — wing not yet clear`,
+      confidenceBadge: 'Low',
+      helperText: 'With more reflections or questions, a clearer wing may emerge.',
+    };
+  }
+  
+  // Case C: Balanced Wings
+  if (wing === 'balanced') {
+    return {
+      state: 'balanced',
+      typeLabel: `Type ${coreType} — balanced wings (${wingTypes.left} & ${wingTypes.right})`,
+      confidenceBadge: 'Low',
+      helperText: 'Both adjacent patterns appear active. This often clarifies over time.',
+    };
+  }
+  
+  // Wing is a number - determine if dominant or leaning based on confidence
+  const isHighConfidence = confidenceTier === 'high';
+  const isMediumConfidence = confidenceTier === 'medium';
+  
+  // Case A: Dominant Wing (high confidence)
+  if (isHighConfidence) {
+    return {
+      state: 'dominant',
+      typeLabel: `Type ${coreType}w${wing}`,
+      confidenceBadge: 'High',
+      helperText: null,
+    };
+  }
+  
+  // Case B: Leaning Wing (moderate confidence, wing exists but not decisive)
+  if (isMediumConfidence) {
+    return {
+      state: 'leaning',
+      typeLabel: `Type ${coreType} — leaning toward Wing ${wing}`,
+      confidenceBadge: 'Exploratory',
+      helperText: 'One adjacent pattern appears slightly stronger, though not yet decisive.',
+    };
+  }
+  
+  // Low confidence with a wing value - still treat as leaning
   return {
-    state: display.wingState,
-    typeLabel: display.headerLabel,
-    confidenceBadge: display.confidenceBadge,
-    helperText: display.wingHelperText,
-    wingNote: display.wingNote,
+    state: 'leaning',
+    typeLabel: `Type ${coreType} — leaning toward Wing ${wing}`,
+    confidenceBadge: 'Exploratory',
+    helperText: 'One adjacent pattern appears slightly stronger, though not yet decisive.',
   };
 }
 
@@ -287,41 +315,6 @@ export default function EnneagramResults() {
   // Tap counter for hidden gesture activation (tap Confidence badge 7 times)
   const [debugTapCount, setDebugTapCount] = useState(0);
   const debugTapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
-  // ============================================
-  // ANALYTICS REFS (must be at top level)
-  // ============================================
-  const hasEmittedResultsCTA = useRef(false);
-  
-  // ============================================
-  // ANALYTICS: CTA Shown (once per mount)
-  // ============================================
-  // NOTE: This useEffect MUST be called before any early returns
-  // to maintain consistent hook order
-  useEffect(() => {
-    // Only emit if we have result data and gate state
-    if (!result) return;
-    
-    const gateInput: EnneagramGateInput = {
-      assessment_depth: result.assessment_depth,
-      confidence_tier: result.confidence_tier,
-      confidence: result.confidence,
-      created_at_iso: result.created_at,
-    };
-    const { gateState } = getEnneagramUpgradeInfo(gateInput);
-    
-    if (gateState.show_cta && gateState.cta_variant && !hasEmittedResultsCTA.current) {
-      emitEnneagramGateCTAShown({
-        variant: gateState.cta_variant,
-        surface: 'results' as EnneagramGateSurface,
-        assessment_depth: gateInput.assessment_depth || null,
-        confidence_tier: gateInput.confidence_tier || null,
-        result_age_days: gateState.result_age_days,
-        has_saved_session: null,
-      });
-      hasEmittedResultsCTA.current = true;
-    }
-  }, [result]);
   
   // Computed: Should debug panel be shown?
   // Formula: showDebug = DEBUG_MIRROR_ENV && (urlDebugParam || tapCount >= 7)
@@ -817,19 +810,6 @@ export default function EnneagramResults() {
     result.assessment_version === 'v2' && 
     result.assessment_depth === 'deep';
   
-  // ============================================
-  // ENNEAGRAM GATE STATE (Upgrade/Retake CTAs)
-  // ============================================
-  // Centralized logic for determining when to show upgrade CTAs
-  // See utils/enneagramGateLogic.ts for rules
-  const gateInput: EnneagramGateInput = {
-    assessment_depth: result.assessment_depth,
-    confidence_tier: result.confidence_tier,
-    confidence: result.confidence,
-    created_at_iso: result.created_at,
-  };
-  const { gateState, ctaCopy, showPreliminaryLabel } = getEnneagramUpgradeInfo(gateInput);
-  
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
@@ -885,12 +865,6 @@ export default function EnneagramResults() {
             {TYPE_NAMES[result.inferred_core]}
           </Text>
           
-          {/* Preliminary Label - shown for short assessments */}
-          <PreliminaryLabel 
-            visible={showPreliminaryLabel} 
-            testID="preliminary-label-results"
-          />
-          
           {/* Confidence Badge - Tappable for hidden debug gesture */}
           <View style={styles.confidenceRow}>
             <TouchableOpacity 
@@ -916,19 +890,6 @@ export default function EnneagramResults() {
             </Text>
           )}
         </View>
-        
-        {/* Upgrade CTA - shown based on gate logic */}
-        {ctaCopy && gateState.cta_variant && (
-          <EnneagramUpgradeCTA 
-            ctaCopy={ctaCopy}
-            surface="results"
-            ctaVariant={gateState.cta_variant}
-            assessmentDepth={gateInput.assessment_depth || null}
-            confidenceTier={gateInput.confidence_tier || null}
-            resultAgeDays={gateState.result_age_days}
-            testID="upgrade-cta-results"
-          />
-        )}
         
         {/* Feedback Card */}
         <View style={styles.feedbackCard}>
@@ -1026,34 +987,25 @@ export default function EnneagramResults() {
         {/* ============================================
             DEEP ASSESSMENT CTA (Mirror Voice)
             ============================================
-            Uses centralized gate logic (enneagramGateLogic.ts)
-            - Only shows when gateState.show_cta is true
-            - Copy comes from centralized ctaCopy
-            - Never shows for deep + high confidence results
+            Show when:
+            - confidence_tier is not 'high' OR
+            - assessment_depth is not 'deep' (quick assessment was taken) OR
+            - no assessment_depth field exists
+            
+            Uses neutral, observational language.
         */}
-        {gateState.show_cta && ctaCopy && (
+        {(result.confidence_tier !== 'high' || !result.assessment_depth || result.assessment_depth !== 'deep') && (
           <View style={styles.deepAssessmentCTA}>
             <Ionicons name="compass-outline" size={24} color={Colors.accent} style={{ marginBottom: 8 }} />
-            <Text style={styles.deepAssessmentTitle}>{ctaCopy.title}</Text>
+            <Text style={styles.deepAssessmentTitle}>Want a clearer mirror?</Text>
             <Text style={styles.deepAssessmentText}>
-              {ctaCopy.body}
+              If your result felt close or uncertain, a deeper assessment can sharpen the signal.
             </Text>
             <TouchableOpacity
               style={styles.deepAssessmentButton}
-              onPress={() => {
-                // Analytics: CTA clicked
-                emitEnneagramGateCTAClicked({
-                  variant: gateState.cta_variant!,
-                  surface: 'results' as EnneagramGateSurface,
-                  assessment_depth: gateInput.assessment_depth || null,
-                  confidence_tier: gateInput.confidence_tier || null,
-                  result_age_days: gateState.result_age_days,
-                  has_saved_session: null,
-                });
-                router.push('/enneagram/assessment');
-              }}
+              onPress={() => router.push('/enneagram/assessment')}
             >
-              <Text style={styles.deepAssessmentButtonText}>{ctaCopy.button_text}</Text>
+              <Text style={styles.deepAssessmentButtonText}>Take the deep assessment</Text>
               <Ionicons name="arrow-forward" size={16} color={Colors.background} />
             </TouchableOpacity>
           </View>
