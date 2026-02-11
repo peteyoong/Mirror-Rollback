@@ -94,15 +94,40 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         ? `/human-design/deep-dive/${userId}`
         : `/human-design/summary/${userId}`;
 
+      console.log(`[HD_DEBUG] Loading tab: ${tab}, endpoint: ${endpoint}`);
+      
       const response = await api.get(endpoint);
+      
+      // VERIFICATION LOGS - Task requirement
+      console.log(`[HD_DEBUG] ========== DATA SOURCE VERIFICATION ==========`);
+      console.log(`[HD_DEBUG] Active Tab: ${tab}`);
+      console.log(`[HD_DEBUG] Endpoint Called: ${endpoint}`);
+      console.log(`[HD_DEBUG] Full lens object keys:`, Object.keys(response.data || {}));
+      console.log(`[HD_DEBUG] Has sections:`, !!response.data?.sections);
+      console.log(`[HD_DEBUG] Sections count:`, response.data?.sections?.length || 0);
+      
+      if (response.data?.sections?.[0]) {
+        const energySection = response.data.sections.find((s: any) => 
+          s.label?.toLowerCase().includes('energy') || s.label?.toLowerCase().includes('pattern')
+        );
+        if (energySection) {
+          console.log(`[HD_DEBUG] Energy pattern section length: ${energySection.body?.length || 0} chars`);
+          console.log(`[HD_DEBUG] Energy pattern preview: ${energySection.body?.substring(0, 100)}...`);
+        }
+      }
+      
+      // Log total content length
+      const totalChars = response.data?.sections?.reduce(
+        (sum: number, s: HumanDesignSection) => sum + (s.body?.length || 0), 
+        0
+      ) || 0;
+      console.log(`[HD_DEBUG] Total content chars: ${totalChars}`);
+      console.log(`[HD_DEBUG] ================================================`);
+      
       setData(response.data);
       
       // Debug: Calculate raw data length for comparison
       if (isDebugEnabled() && response.data?.sections) {
-        const totalChars = response.data.sections.reduce(
-          (sum: number, s: HumanDesignSection) => sum + (s.body?.length || 0), 
-          0
-        );
         setRawDataLength(totalChars);
         console.log(`[DEBUG_MIRROR] HumanDesign ${tab}: API returned ${totalChars} chars across ${response.data.sections.length} sections`);
       }
