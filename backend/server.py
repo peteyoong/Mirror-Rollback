@@ -10176,9 +10176,12 @@ async def get_enneagram_deep_dive(user_id: str):
         wing_influence = None
         if wing_key:
             wing_influence = ENNEAGRAM_WING_INFLUENCE.get(wing_key)
-        if not wing_influence and wing:
-            # Generic wing description
+        # Only generate wing text if wing is numeric (not "balanced" or null)
+        if not wing_influence and isinstance(wing, int):
             wing_influence = f"Your {wing} wing adds qualities from Type {wing} to your core Type {core_type} pattern. This creates a particular flavor of {core_type}w{wing} that blends the primary strategy with adjacent energies."
+        elif not wing_influence and wing == "balanced":
+            # Do NOT generate identity label for balanced wings
+            wing_influence = "Both adjacent wing patterns appear accessible. The expression of each may vary depending on context and energy levels."
         
         # Get nearby strategies
         nearby_strategies = ENNEAGRAM_NEARBY_STRATEGIES.get(core_type)
