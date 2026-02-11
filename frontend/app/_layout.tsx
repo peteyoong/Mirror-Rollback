@@ -52,6 +52,8 @@ export default function RootLayout() {
       {Platform.OS === 'web' && <AddToHomeScreenBanner />}
       {/* Debug viewport overlay for web - always present when debug enabled */}
       {Platform.OS === 'web' && <DebugViewportOverlay />}
+      {/* BUILD_ID Badge - shows in debug mode to verify deployed bundle */}
+      <BuildBadge />
     </>
   );
 }
