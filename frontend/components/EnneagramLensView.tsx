@@ -1406,15 +1406,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
     // =====================================================================
     const useNarrative = narrativeStatus === 'ready' && narrativeData?.sections && narrativeData.sections.length > 0;
     
-    // Consistent header data - prefer narrative data for type label
-    // Use normalizer to fix any malformed labels like "7wbalanced"
-    const rawTypeLabel = useNarrative 
-      ? narrativeData.type_label 
-      : (deepDiveData?.type_label || wingInfo.typeLabel);
-    const typeLabel = normalizeTypeLabel(rawTypeLabel, core, wing);
-    const typeName = useNarrative 
-      ? narrativeData.type_name 
-      : (deepDiveData?.type_name || TYPE_NAMES[core]);
+    // CRITICAL: Always use LOCAL wingInfo.typeLabel for header display
+    // Never trust backend type_label - it may contain bugs like "7wbalanced"
+    // This ensures Summary and Deep Dive render identically
+    const typeLabel = wingInfo.typeLabel;
+    const typeName = TYPE_NAMES[core];
 
     return (
       <>
