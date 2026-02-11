@@ -524,7 +524,8 @@ interface EnneagramResult {
   };
   // Gate logic fields (for upgrade/retake CTAs)
   assessment_depth?: 'short' | 'deep' | string;
-  created_at_iso?: string;
+  created_at?: string;      // From API
+  created_at_iso?: string;  // Alias for compatibility
 }
 
 // ============================================
