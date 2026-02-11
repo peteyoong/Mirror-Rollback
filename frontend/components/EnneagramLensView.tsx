@@ -1415,63 +1415,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
     const typeName = useNarrative 
       ? narrativeData.type_name 
       : (deepDiveData?.type_name || TYPE_NAMES[core]);
-    
-    // Debug stamp data (for Task A diagnostic)
-    const showDebugStamp = DEBUG_MIRROR_ENV || getUrlDebugParam();
-    const debugStampData = {
-      // CLIENT INFO
-      build_id: BUILD_ID,
-      build_version: BUILD_VERSION,
-      app_env: APP_ENV,
-      platform: Platform.OS,
-      api_base_url: getEffectiveApiUrl(),
-      // SERVER RESPONSE PROVENANCE (from API)
-      user_id: result.user_id || userId,
-      result_id: result.result_id || 'unknown',
-      assessment_depth: result.assessment_depth || 'unknown',
-      assessment_version: result.assessment_version || 'unknown',
-      core_type: core,
-      wing_raw: String(wing),
-      wing_left_score: result.wing_left_score ?? 'n/a',
-      wing_right_score: result.wing_right_score ?? 'n/a',
-      confidence_tier: result.confidence_tier,
-      updated_at: result.updated_at || result.created_at || 'unknown',
-      // LABEL DIAGNOSTICS
-      wing_balance_label: computedDetails?.wing_balance_label || 'n/a',
-      raw_type_label: rawTypeLabel,
-      normalized_type_label: typeLabel,
-    };
-    
-    // LOG PROVENANCE (Task 4 - automatic diagnostic log)
-    if (showDebugStamp) {
-      console.log(`[PROVENANCE] platform=${debugStampData.platform}, api=${debugStampData.api_base_url}, user=${debugStampData.user_id}, result_id=${debugStampData.result_id}, wing=${debugStampData.wing_raw}, updated_at=${debugStampData.updated_at}`);
-    }
 
     return (
       <>
-        {/* ===== DEBUG STAMP (Task 1 - visible with ?debug=1) ===== */}
-        {showDebugStamp && (
-          <View style={styles.debugStamp}>
-            <Text style={styles.debugStampTitle}>🔧 PROVENANCE DEBUG STAMP</Text>
-            <Text style={styles.debugStampSection}>Client:</Text>
-            <Text style={styles.debugStampText}>BUILD: {debugStampData.build_version} ({debugStampData.build_id})</Text>
-            <Text style={styles.debugStampText}>ENV: {debugStampData.app_env} | Platform: {debugStampData.platform}</Text>
-            <Text style={styles.debugStampText}>API Base: {debugStampData.api_base_url}</Text>
-            <Text style={styles.debugStampSection}>Server Response:</Text>
-            <Text style={styles.debugStampText}>user_id: {debugStampData.user_id}</Text>
-            <Text style={styles.debugStampText}>result_id: {debugStampData.result_id}</Text>
-            <Text style={styles.debugStampText}>assessment_depth: {debugStampData.assessment_depth}</Text>
-            <Text style={styles.debugStampText}>assessment_version: {debugStampData.assessment_version}</Text>
-            <Text style={styles.debugStampText}>updated_at: {debugStampData.updated_at}</Text>
-            <Text style={styles.debugStampSection}>Enneagram Data:</Text>
-            <Text style={styles.debugStampText}>core: {debugStampData.core_type} | wing: {debugStampData.wing_raw}</Text>
-            <Text style={styles.debugStampText}>wing_left: {debugStampData.wing_left_score} | wing_right: {debugStampData.wing_right_score}</Text>
-            <Text style={styles.debugStampText}>confidence_tier: {debugStampData.confidence_tier}</Text>
-            <Text style={styles.debugStampSection}>Label Diagnostics:</Text>
-            <Text style={styles.debugStampText}>raw_label: {debugStampData.raw_type_label}</Text>
-            <Text style={styles.debugStampText}>normalized: {debugStampData.normalized_type_label}</Text>
-          </View>
-        )}
+        {/* DEBUG STAMP - visible with ?debug=1 */}
+        {renderDebugStamp()}
         
         {/* ===== HEADER (consistent, no flicker) ===== */}
         <View style={styles.deepDiveHeader}>
