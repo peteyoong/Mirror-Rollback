@@ -703,8 +703,8 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const payloadSnapshot = useMemo(() => createEnneagramPayloadSnapshot(result), [result]);
   const buildDebugInfo = useMemo(() => getBuildDebugInfo(), []);
   
-  // Debug mode: URL param or env flag
-  const showDebugPanel = DEBUG_MIRROR_ENV && (getUrlDebugParam() || false);
+  // Debug mode: URL param OR env flag (either enables debug panel)
+  const showDebugPanel = DEBUG_MIRROR_ENV || getUrlDebugParam();
   
   // ============================================
   // ANALYTICS: CTA Shown (once per surface per mount)
