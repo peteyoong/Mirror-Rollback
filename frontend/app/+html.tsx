@@ -2,8 +2,8 @@ import { ScrollViewStyleReset } from 'expo-router/html';
 import type { PropsWithChildren } from 'react';
 
 // BUILD_ID must be updated on every deploy for cache verification
-const BUILD_ID = '2026-02-11T08:05:00Z';
-const BUILD_VERSION = 'v9-metro-clear';
+const BUILD_ID = '2026-02-11T09:10:00Z';
+const BUILD_VERSION = 'v10-rollback';
 
 /**
  * Custom HTML document for web builds
