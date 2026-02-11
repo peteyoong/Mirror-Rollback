@@ -1,3 +1,4 @@
+// BUILD_VERSION: 2026-02-11-v2 (collapsible sections, wing fix, CTA gate)
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
