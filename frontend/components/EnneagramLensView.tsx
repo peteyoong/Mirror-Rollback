@@ -1,5 +1,4 @@
-// BUILD_VERSION: 2026-02-11-v2 (collapsible sections, wing fix, CTA gate)
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -28,30 +27,12 @@ import {
   EnneagramDeepDiveResponse,
   EnneagramNarrativeResponse,
 } from '../services/api';
-import EnneagramUpgradeCTA from './EnneagramUpgradeCTA';
-import PreliminaryLabel from './PreliminaryLabel';
-import { getEnneagramUpgradeInfo, EnneagramGateInput } from '../utils/enneagramGateLogic';
-import { emitEnneagramGateCTAShown, EnneagramGateSurface } from '../utils/analytics';
-import { getEnneagramHeaderDisplay } from '../utils/enneagramDisplay';
-import { 
-  BUILD_ID, 
-  BUILD_VERSION, 
-  getBuildDebugInfo, 
-  createEnneagramPayloadSnapshot,
-  assertGateInvariant,
-} from '../utils/buildInfo';
 
 // ============================================
 // DEBUG CONFIGURATION
 // ============================================
 // Server-side environment flag (must be 'true' to enable debug capability)
 const DEBUG_MIRROR_ENV = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
-
-// Client-side URL param check (?debug=1)
-const getUrlDebugParam = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  return new URLSearchParams(window.location?.search || '').get('debug') === '1';
-};
 
 // ============================================
 // DEBUG WING STATE OVERRIDE SYSTEM
@@ -535,10 +516,6 @@ interface EnneagramResult {
     life_context: string;
     answer_frame: string;
   };
-  // Gate logic fields (for upgrade/retake CTAs)
-  assessment_depth?: 'short' | 'deep' | string;
-  created_at?: string;      // From API
-  created_at_iso?: string;  // Alias for compatibility
 }
 
 // ============================================
@@ -554,32 +531,55 @@ interface WingDisplayInfo {
   typeLabel: string;
   confidenceBadge: 'High' | 'Exploratory' | 'Low';
   helperText: string | null;
-  wingNote?: string | null;  // Optional note for wing section (not header)
 }
 
-/**
- * Get wing display info using the CENTRALIZED helper.
- * This is a wrapper to maintain interface compatibility.
- * @see /utils/enneagramDisplay.ts for the canonical implementation
- */
 function getWingDisplayInfo(
   coreType: number,
   wing: number | 'balanced' | null,
   confidenceTier: string
 ): WingDisplayInfo {
-  // Use centralized helper - SINGLE SOURCE OF TRUTH
-  const display = getEnneagramHeaderDisplay({
-    coreType,
-    wing,
-    confidenceTier: confidenceTier as any,
-  });
+  const wings = WING_NUMBERS[coreType];
   
+  // Case D: Wing Not Yet Clear
+  if (wing === null || wing === undefined) {
+    return {
+      state: 'not_clear',
+      typeLabel: `Type ${coreType} — wing not yet clear`,
+      confidenceBadge: 'Low',
+      helperText: 'With more reflections or questions, a clearer wing may emerge.',
+    };
+  }
+  
+  // Case C: Balanced Wings
+  if (wing === 'balanced') {
+    return {
+      state: 'balanced',
+      typeLabel: `Type ${coreType} — balanced wings (${wings.left} & ${wings.right})`,
+      confidenceBadge: 'Low',
+      helperText: 'Both adjacent patterns appear active. This often clarifies over time.',
+    };
+  }
+  
+  // Wing is a number - determine if dominant or leaning
+  const isHighConfidence = confidenceTier === 'high';
+  const isMediumConfidence = confidenceTier === 'medium';
+  
+  // Case A: Dominant Wing (high confidence)
+  if (isHighConfidence) {
+    return {
+      state: 'dominant',
+      typeLabel: `Type ${coreType}w${wing}`,
+      confidenceBadge: 'High',
+      helperText: null,
+    };
+  }
+  
+  // Case B: Leaning Wing (moderate/low confidence)
   return {
-    state: display.wingState,
-    typeLabel: display.headerLabel,
-    confidenceBadge: display.confidenceBadge,
-    helperText: display.wingHelperText,
-    wingNote: display.wingNote,
+    state: 'leaning',
+    typeLabel: `Type ${coreType} — leaning toward Wing ${wing}`,
+    confidenceBadge: isMediumConfidence ? 'Exploratory' : 'Exploratory',
+    helperText: 'One adjacent pattern appears slightly stronger, though not yet decisive.',
   };
 }
 
@@ -641,11 +641,8 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // Collapsible state for Deeper Patterns section
   const [deeperPatternsExpanded, setDeeperPatternsExpanded] = useState(false);
   
-  // Collapsible state for all Deep Dive accordion sections
-  const [coreStoryExpanded, setCoreStoryExpanded] = useState(true);  // Default open
-  const [wingInfluenceExpanded, setWingInfluenceExpanded] = useState(false);
+  // Collapsible state for other sections
   const [otherWingExpanded, setOtherWingExpanded] = useState(false);
-  const [structureGridExpanded, setStructureGridExpanded] = useState(false);
   const [energeticFlowExpanded, setEnergeticFlowExpanded] = useState(false);
   
   // Q&A Modal state (hidden initially per user request)
@@ -670,88 +667,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const wingInfo = debugOverride 
     ? getWingDisplayInfo(core, debugOverride.mockWing, debugOverride.mockConfidenceTier)
     : getWingDisplayInfo(core, wing, result.confidence_tier);
-  
-  // ============================================
-  // ENNEAGRAM GATE STATE (Upgrade/Retake CTAs)
-  // ============================================
-  // Centralized logic for determining when to show upgrade CTAs
-  // See utils/enneagramGateLogic.ts for rules
-  const gateInput: EnneagramGateInput = {
-    assessment_depth: result.assessment_depth,
-    confidence_tier: result.confidence_tier,
-    confidence: result.confidence,
-    created_at_iso: result.created_at_iso || result.created_at,  // API returns 'created_at'
-  };
-  const { gateState, ctaCopy, showPreliminaryLabel } = getEnneagramUpgradeInfo(gateInput);
-  
-  // ============================================
-  // INVARIANT ASSERTION (Dev only)
-  // ============================================
-  // Catch contradictory states early and log them
-  useEffect(() => {
-    // Always log the gate state for debugging
-    console.log('[EnneagramLensView] Gate State:', {
-      build_version: BUILD_VERSION,
-      build_id: BUILD_ID,
-      assessment_depth: gateInput.assessment_depth,
-      confidence_tier: gateInput.confidence_tier,
-      show_cta: gateState.show_cta,
-      showPreliminaryLabel,
-      cta_type: gateState.cta_type,
-    });
-    
-    assertGateInvariant(
-      gateInput.assessment_depth,
-      gateInput.confidence_tier,
-      gateState.show_cta,
-      showPreliminaryLabel
-    );
-  }, [gateInput.assessment_depth, gateInput.confidence_tier, gateState.show_cta, showPreliminaryLabel]);
-  
-  // ============================================
-  // DEBUG: Payload Snapshot for diagnostics
-  // ============================================
-  const payloadSnapshot = useMemo(() => createEnneagramPayloadSnapshot(result), [result]);
-  const buildDebugInfo = useMemo(() => getBuildDebugInfo(), []);
-  
-  // Debug mode: URL param OR env flag (either enables debug panel)
-  const showDebugPanel = DEBUG_MIRROR_ENV || getUrlDebugParam();
-  
-  // ============================================
-  // ANALYTICS: CTA Shown (once per surface per mount)
-  // ============================================
-  const hasEmittedSummaryCTA = useRef(false);
-  const hasEmittedDeepDiveCTA = useRef(false);
-  
-  // Emit "shown" for Summary tab (when CTA is visible)
-  useEffect(() => {
-    if (gateState.show_cta && gateState.cta_variant && activeTab === 'summary' && !hasEmittedSummaryCTA.current) {
-      emitEnneagramGateCTAShown({
-        variant: gateState.cta_variant,
-        surface: 'summary' as EnneagramGateSurface,
-        assessment_depth: gateInput.assessment_depth || null,
-        confidence_tier: gateInput.confidence_tier || null,
-        result_age_days: gateState.result_age_days,
-        has_saved_session: null, // Unknown at render time
-      });
-      hasEmittedSummaryCTA.current = true;
-    }
-  }, [gateState.show_cta, gateState.cta_variant, activeTab]);
-  
-  // Emit "shown" for Deep Dive tab (when CTA is visible)
-  useEffect(() => {
-    if (gateState.show_cta && gateState.cta_variant && activeTab === 'deep_dive' && !hasEmittedDeepDiveCTA.current) {
-      emitEnneagramGateCTAShown({
-        variant: gateState.cta_variant,
-        surface: 'deep_dive' as EnneagramGateSurface,
-        assessment_depth: gateInput.assessment_depth || null,
-        confidence_tier: gateInput.confidence_tier || null,
-        result_age_days: gateState.result_age_days,
-        has_saved_session: null, // Unknown at render time
-      });
-      hasEmittedDeepDiveCTA.current = true;
-    }
-  }, [gateState.show_cta, gateState.cta_variant, activeTab]);
   
   // Send chat message
   const handleSendChat = useCallback(async () => {
@@ -1066,11 +981,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
         <Text style={styles.heroSubtitle}>
           {TYPE_NAMES[core]}
         </Text>
-        {/* Preliminary Label - shown for short assessments */}
-        <PreliminaryLabel 
-          visible={showPreliminaryLabel} 
-          testID="preliminary-label-summary"
-        />
         {/* Confidence Badge with new system */}
         <View style={[
           styles.confidenceBadge,
@@ -1092,43 +1002,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
           This lens reflects motivation, not mood.
         </Text>
       </View>
-      
-      {/* ============================================
-          DEBUG PANEL (only in debug mode)
-          ============================================ */}
-      {showDebugPanel && (
-        <View style={styles.debugPanel}>
-          <Text style={styles.debugPanelTitle}>🔧 DEBUG INFO</Text>
-          <Text style={styles.debugPanelText}>BUILD_ID: {buildDebugInfo.build_id}</Text>
-          <Text style={styles.debugPanelText}>BUILD_VER: {buildDebugInfo.build_version}</Text>
-          <Text style={styles.debugPanelText}>API_URL: {buildDebugInfo.api_base_url}</Text>
-          <Text style={styles.debugPanelText}>---</Text>
-          <Text style={styles.debugPanelText}>assessment_depth: {String(payloadSnapshot.assessment_depth)}</Text>
-          <Text style={styles.debugPanelText}>assessment_ver: {String(payloadSnapshot.assessment_version)}</Text>
-          <Text style={styles.debugPanelText}>confidence_tier: {String(payloadSnapshot.confidence_tier)}</Text>
-          <Text style={styles.debugPanelText}>confidence: {String(payloadSnapshot.confidence)}</Text>
-          <Text style={styles.debugPanelText}>core_type: {String(payloadSnapshot.core_type)}</Text>
-          <Text style={styles.debugPanelText}>wing: {String(payloadSnapshot.wing)}</Text>
-          <Text style={styles.debugPanelText}>created_at: {String(payloadSnapshot.created_at)}</Text>
-          <Text style={styles.debugPanelText}>---</Text>
-          <Text style={styles.debugPanelText}>show_cta: {String(gateState.show_cta)}</Text>
-          <Text style={styles.debugPanelText}>showPreliminaryLabel: {String(showPreliminaryLabel)}</Text>
-          <Text style={styles.debugPanelText}>cta_type: {String(gateState.cta_type)}</Text>
-        </View>
-      )}
-
-      {/* Upgrade CTA - shown based on gate logic */}
-      {ctaCopy && gateState.cta_variant && (
-        <EnneagramUpgradeCTA 
-          ctaCopy={ctaCopy}
-          surface="summary"
-          ctaVariant={gateState.cta_variant}
-          assessmentDepth={gateInput.assessment_depth || null}
-          confidenceTier={gateInput.confidence_tier || null}
-          resultAgeDays={gateState.result_age_days}
-          testID="upgrade-cta-summary"
-        />
-      )}
 
       {/* Core Motivation Card */}
       <View style={styles.card}>
@@ -1424,11 +1297,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
             </View>
           </View>
           <Text style={styles.deepDiveWingStance}>{typeName}</Text>
-          {/* Preliminary Label - shown for short assessments */}
-          <PreliminaryLabel 
-            visible={showPreliminaryLabel} 
-            testID="preliminary-label-deep-dive"
-          />
           {wingInfo.helperText && (
             <Text style={styles.deepDiveHelperText}>
               {wingInfo.helperText}
@@ -1437,20 +1305,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <Text style={styles.deepDiveNote}>This lens reflects strategy, not identity.</Text>
         </View>
 
-        {/* Upgrade CTA - shown based on gate logic */}
-        {ctaCopy && gateState.cta_variant && (
-          <EnneagramUpgradeCTA 
-            ctaCopy={ctaCopy}
-            surface="deep_dive"
-            ctaVariant={gateState.cta_variant}
-            assessmentDepth={gateInput.assessment_depth || null}
-            confidenceTier={gateInput.confidence_tier || null}
-            resultAgeDays={gateState.result_age_days}
-            testID="upgrade-cta-deep-dive"
-          />
-        )}
-
-        {/* ===== NARRATIVE SECTIONS (Full Accordion Layout) ===== */}
+        {/* ===== NARRATIVE SECTIONS (Story-only when available) ===== */}
         {useNarrative && narrativeData.sections.map((section, index) => {
           // Identify section types for collapsible behavior
           const sectionId = section.id || '';
@@ -1462,58 +1317,22 @@ export default function EnneagramLensView({ result, userId }: Props) {
           const isDeeperPatterns = sectionId === 'deeper_patterns' || labelLower.includes('deeper pattern');
           const isClosing = !section.label;
           
-          // Closing reflection - always visible, no accordion
-          if (isClosing) {
-            return (
-              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-                <Text style={styles.closingReflection}>{section.body}</Text>
-              </View>
-            );
-          }
-          
-          // All sections with labels are now collapsible accordions
-          // Core Story - collapsible, DEFAULT OPEN
+          // Core Story - always expanded (no collapsible)
           if (isCoreStory) {
             return (
               <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-                <TouchableOpacity 
-                  style={styles.collapsibleHeader}
-                  onPress={() => setCoreStoryExpanded(!coreStoryExpanded)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
-                  <Ionicons 
-                    name={coreStoryExpanded ? "chevron-up" : "chevron-down"} 
-                    size={20} 
-                    color={Colors.textSecondary} 
-                  />
-                </TouchableOpacity>
-                {coreStoryExpanded && (
-                  <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
-                )}
+                <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+                <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
               </View>
             );
           }
           
-          // Wing Influence section - collapsible, collapsed by default
+          // Core + Wing - always expanded (no collapsible)
           if (isWingStory) {
             return (
               <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-                <TouchableOpacity 
-                  style={styles.collapsibleHeader}
-                  onPress={() => setWingInfluenceExpanded(!wingInfluenceExpanded)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
-                  <Ionicons 
-                    name={wingInfluenceExpanded ? "chevron-up" : "chevron-down"} 
-                    size={20} 
-                    color={Colors.textSecondary} 
-                  />
-                </TouchableOpacity>
-                {wingInfluenceExpanded && (
-                  <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
-                )}
+                <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+                <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
               </View>
             );
           }
@@ -1564,76 +1383,25 @@ export default function EnneagramLensView({ result, userId }: Props) {
             );
           }
           
-          // Default: all other labeled sections are collapsible, collapsed by default
+          // Closing reflection - always visible, special styling
+          if (isClosing) {
+            return (
+              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
+                <Text style={styles.closingReflection}>{section.body}</Text>
+              </View>
+            );
+          }
+          
+          // Default: regular section
           return (
             <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-              <TouchableOpacity 
-                style={styles.collapsibleHeader}
-                onPress={() => setDeeperPatternsExpanded(!deeperPatternsExpanded)}
-                activeOpacity={0.7}
-              >
+              {section.label && (
                 <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
-                <Ionicons 
-                  name={deeperPatternsExpanded ? "chevron-up" : "chevron-down"} 
-                  size={20} 
-                  color={Colors.textSecondary} 
-                />
-              </TouchableOpacity>
-              {deeperPatternsExpanded && (
-                <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
               )}
+              <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
             </View>
           );
         })}
-        
-        {/* ===== STRUCTURE GRID (Enneagram Framework) - Always as accordion ===== */}
-        {useNarrative && computedDetails && (
-          <View style={styles.deepDiveSection}>
-            <TouchableOpacity 
-              style={styles.collapsibleHeader}
-              onPress={() => setStructureGridExpanded(!structureGridExpanded)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.deepDiveSectionTitle}>Enneagram Structure</Text>
-              <Ionicons 
-                name={structureGridExpanded ? "chevron-up" : "chevron-down"} 
-                size={20} 
-                color={Colors.textSecondary} 
-              />
-            </TouchableOpacity>
-            {structureGridExpanded && (
-              <View style={styles.structureCard}>
-                <View style={styles.structureGrid}>
-                  <View style={styles.structureItem}>
-                    <Ionicons name="radio-button-on-outline" size={14} color={Colors.textSecondary} />
-                    <Text style={styles.structureLabel}>Center</Text>
-                    <Text style={styles.structureValue}>{formatGroupLabel(computedDetails?.center)}</Text>
-                  </View>
-                  <View style={styles.structureDivider} />
-                  <View style={styles.structureItem}>
-                    <Ionicons name="people-outline" size={14} color={Colors.textSecondary} />
-                    <Text style={styles.structureLabel}>Social Style</Text>
-                    <Text style={styles.structureValue}>{formatGroupLabel(computedDetails?.hornevian_group)}</Text>
-                  </View>
-                </View>
-                
-                <View style={[styles.structureGrid, { marginTop: 12 }]}>
-                  <View style={styles.structureItem}>
-                    <Ionicons name="musical-notes-outline" size={14} color={Colors.textSecondary} />
-                    <Text style={styles.structureLabel}>Harmony Style</Text>
-                    <Text style={styles.structureValue}>{formatGroupLabel(computedDetails?.harmonic_group)}</Text>
-                  </View>
-                  <View style={styles.structureDivider} />
-                  <View style={styles.structureItem}>
-                    <Ionicons name="link-outline" size={14} color={Colors.textSecondary} />
-                    <Text style={styles.structureLabel}>Object Relations</Text>
-                    <Text style={styles.structureValue}>{formatGroupLabel(computedDetails?.object_relations)}</Text>
-                  </View>
-                </View>
-              </View>
-            )}
-          </View>
-        )}
         
         {/* ===== ENERGETIC FLOW SECTION (Stress/Growth Movement) ===== */}
         {useNarrative && computedDetails && (
@@ -1939,30 +1707,6 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 40,
-  },
-
-  // ============================================
-  // DEBUG PANEL STYLES (Build/API/Payload diagnostics)
-  // ============================================
-  debugPanel: {
-    backgroundColor: '#0d0d1a',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: '#00FF00',
-  },
-  debugPanelTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#00FF00',
-    marginBottom: 8,
-  },
-  debugPanelText: {
-    fontSize: 11,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    color: '#00FF00',
-    marginBottom: 2,
   },
 
   // ============================================
