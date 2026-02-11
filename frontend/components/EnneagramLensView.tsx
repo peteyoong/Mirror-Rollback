@@ -689,6 +689,17 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // ============================================
   // Catch contradictory states early and log them
   useEffect(() => {
+    // Always log the gate state for debugging
+    console.log('[EnneagramLensView] Gate State:', {
+      build_version: BUILD_VERSION,
+      build_id: BUILD_ID,
+      assessment_depth: gateInput.assessment_depth,
+      confidence_tier: gateInput.confidence_tier,
+      show_cta: gateState.show_cta,
+      showPreliminaryLabel,
+      cta_type: gateState.cta_type,
+    });
+    
     assertGateInvariant(
       gateInput.assessment_depth,
       gateInput.confidence_tier,
