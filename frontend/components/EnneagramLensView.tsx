@@ -1338,10 +1338,20 @@ export default function EnneagramLensView({ result, userId }: Props) {
     // HEADER DATA - ALWAYS use computed values, never backend type_label
     // Backend type_label may contain "balanced" which is forbidden
     // =====================================================================
-    const typeLabel = wingInfo.typeLabel;  // ALWAYS use computed helper
-    const typeName = useNarrative 
+    const rawTypeLabel = wingInfo.typeLabel;
+    const rawTypeName = useNarrative 
       ? narrativeData.type_name 
       : (deepDiveData?.type_name || TYPE_NAMES[core]);
+    
+    // =====================================================================
+    // TRIPWIRE: Check for forbidden patterns and sanitize
+    // =====================================================================
+    assertNoBalancedWingLeak(rawTypeLabel, 'Deep Dive header typeLabel');
+    assertNoBalancedWingLeak(rawTypeName, 'Deep Dive header typeName');
+    
+    // Sanitize as fallback (belt and suspenders)
+    const typeLabel = sanitizeEnneagramString(rawTypeLabel);
+    const typeName = sanitizeEnneagramString(rawTypeName);
 
     return (
       <>
