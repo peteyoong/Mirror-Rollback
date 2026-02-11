@@ -1327,10 +1327,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
     // =====================================================================
     const useNarrative = narrativeStatus === 'ready' && narrativeData?.sections && narrativeData.sections.length > 0;
     
-    // Consistent header data - prefer narrative data for type label
-    const typeLabel = useNarrative 
-      ? narrativeData.type_label 
-      : (deepDiveData?.type_label || wingInfo.typeLabel);
+    // =====================================================================
+    // HEADER DATA - ALWAYS use computed values, never backend type_label
+    // Backend type_label may contain "balanced" which is forbidden
+    // =====================================================================
+    const typeLabel = wingInfo.typeLabel;  // ALWAYS use computed helper
     const typeName = useNarrative 
       ? narrativeData.type_name 
       : (deepDiveData?.type_name || TYPE_NAMES[core]);
