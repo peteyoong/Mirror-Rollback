@@ -10099,6 +10099,28 @@ async def get_enneagram_deep_dive(user_id: str):
         computed_details = result.get("enneagram_computed_details", {})
         debug_scores = result.get("debug_scores", {})
         
+        # =====================================================
+        # FALLBACK: Recompute details if missing or incomplete
+        # This handles legacy data from before fix was applied
+        # =====================================================
+        if not computed_details or not computed_details.get("center"):
+            logger.info(f"[DEEP_DIVE] Recomputing enneagram_computed_details for user {user_id} (was empty or incomplete)")
+            wing_left_score = debug_scores.get("wing_left_score", 0.0)
+            wing_right_score = debug_scores.get("wing_right_score", 0.0)
+            computed_details = compute_enneagram_details(
+                core_type=core_type,
+                wing=wing if isinstance(wing, int) else core_type,
+                wing_left_score=wing_left_score,
+                wing_right_score=wing_right_score,
+                confidence=confidence
+            )
+            # Persist the recomputed details for future requests
+            await db.enneagram_results.update_one(
+                {"user_id": user_id},
+                {"$set": {"enneagram_computed_details": computed_details}}
+            )
+            logger.info(f"[DEEP_DIVE] Persisted recomputed details: center={computed_details.get('center')}")
+        
         if not core_type:
             return {
                 "success": False,
