@@ -238,9 +238,10 @@ type WingDisplayState = 'dominant' | 'leaning' | 'balanced' | 'not_clear';
 
 interface WingDisplayInfo {
   state: WingDisplayState;
-  typeLabel: string;           // e.g., "Type 7w6" or "Type 7 — leaning toward Wing 6"
+  typeLabel: string;           // e.g., "Type 7w6" or "Type 7"
   confidenceBadge: 'High' | 'Exploratory' | 'Low';
   helperText: string | null;   // Explanatory text for non-dominant states
+  wingNote?: string | null;    // Optional note for wing section (not header)
 }
 
 function getWingDisplayInfo(
@@ -251,29 +252,41 @@ function getWingDisplayInfo(
 ): WingDisplayInfo {
   const wingTypes = getWingTypes(coreType);
   
+  // Determine confidence badge based on tier
+  const getConfidenceBadge = (): 'High' | 'Exploratory' | 'Low' => {
+    if (confidenceTier === 'high') return 'High';
+    if (confidenceTier === 'medium' || confidenceTier === 'moderate') return 'Exploratory';
+    return 'Low';
+  };
+  
   // Case D: Wing Not Yet Clear (wing === null OR insufficient data)
+  // Show only core type - no wing in header
   if (wing === null || wing === undefined) {
     return {
       state: 'not_clear',
-      typeLabel: `Type ${coreType} — wing not yet clear`,
-      confidenceBadge: 'Low',
-      helperText: 'With more reflections or questions, a clearer wing may emerge.',
+      typeLabel: `Type ${coreType}`,
+      confidenceBadge: getConfidenceBadge(),
+      helperText: null,
+      wingNote: 'Wing pattern is still emerging. Both adjacent types are available to you.',
     };
   }
   
   // Case C: Balanced Wings
+  // Show only core type - no wing in header
+  // Wing ambiguity ≠ identity label
   if (wing === 'balanced') {
     return {
       state: 'balanced',
-      typeLabel: `Type ${coreType} — balanced wings (${wingTypes.left} & ${wingTypes.right})`,
-      confidenceBadge: 'Low',
-      helperText: 'Both adjacent patterns appear active. This often clarifies over time.',
+      typeLabel: `Type ${coreType}`,
+      confidenceBadge: getConfidenceBadge(),
+      helperText: null,
+      wingNote: 'Both adjacent patterns appear accessible. This often clarifies over time.',
     };
   }
   
   // Wing is a number - determine if dominant or leaning based on confidence
   const isHighConfidence = confidenceTier === 'high';
-  const isMediumConfidence = confidenceTier === 'medium';
+  const isMediumConfidence = confidenceTier === 'medium' || confidenceTier === 'moderate';
   
   // Case A: Dominant Wing (high confidence)
   if (isHighConfidence) {
@@ -282,25 +295,17 @@ function getWingDisplayInfo(
       typeLabel: `Type ${coreType}w${wing}`,
       confidenceBadge: 'High',
       helperText: null,
+      wingNote: null,
     };
   }
   
-  // Case B: Leaning Wing (moderate confidence, wing exists but not decisive)
-  if (isMediumConfidence) {
-    return {
-      state: 'leaning',
-      typeLabel: `Type ${coreType} — leaning toward Wing ${wing}`,
-      confidenceBadge: 'Exploratory',
-      helperText: 'One adjacent pattern appears slightly stronger, though not yet decisive.',
-    };
-  }
-  
-  // Low confidence with a wing value - still treat as leaning
+  // Case B: Leaning Wing (moderate/low confidence)
   return {
     state: 'leaning',
-    typeLabel: `Type ${coreType} — leaning toward Wing ${wing}`,
+    typeLabel: `Type ${coreType}w${wing}`,
     confidenceBadge: 'Exploratory',
-    helperText: 'One adjacent pattern appears slightly stronger, though not yet decisive.',
+    helperText: `Leaning toward Wing ${wing}`,
+    wingNote: 'One adjacent pattern appears slightly stronger, though not yet decisive.',
   };
 }
 
