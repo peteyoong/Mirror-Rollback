@@ -503,7 +503,12 @@ export default function DeepAssessmentScreen() {
   // ============================================
   
   const goToNext = async () => {
-    if (!session || !currentQuestion) return;
+    if (!session || !currentQuestion) {
+      console.error('[DeepAssessment] goToNext: session or currentQuestion is null');
+      return;
+    }
+    
+    console.log(`[DeepAssessment] goToNext called: index=${currentQuestionIndex}, total=${session.questions.length}`);
     
     try {
       // Cancel any pending auto-save
@@ -514,13 +519,16 @@ export default function DeepAssessmentScreen() {
       
       // Save current answer first (if valid and not already saved)
       if (isCurrentAnswerValid() && saveStatus !== 'saved') {
+        console.log('[DeepAssessment] Saving answer before navigation...');
         await saveCurrentAnswer(currentResponse);
       }
       
       const isLastQuestion = currentQuestionIndex === session.questions.length - 1;
+      console.log(`[DeepAssessment] isLastQuestion=${isLastQuestion}`);
       
       if (isLastQuestion) {
         // Complete assessment
+        console.log('[DeepAssessment] Calling handleComplete...');
         await handleComplete();
       } else {
         setCurrentQuestionIndex(prev => prev + 1);
