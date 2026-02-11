@@ -75,12 +75,13 @@ function getWingDisplayInfo(
   }
   
   // Case C: Balanced Wings
+  // UPDATED: Never show "balanced wings" as identity label
   if (wing === 'balanced') {
     return {
       state: 'balanced',
-      typeLabel: `Type ${coreType} — balanced wings (${wingTypes.left} & ${wingTypes.right})`,
+      typeLabel: `Type ${coreType}`,  // No wing in header
       confidenceBadge: 'Low',
-      helperText: 'Both adjacent patterns appear active. This often clarifies over time.',
+      helperText: null,  // No helper text for balanced
     };
   }
   
