@@ -9104,6 +9104,21 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
                     {"$set": {"enneagram_computed_details": computed_details}}
                 )
         
+        # =====================================================
+        # CANONICAL ASSESSMENT_DEPTH RESOLUTION
+        # - If missing/null → default to "short" (legacy records)
+        # - Frontend gating depends on this being explicit
+        # =====================================================
+        raw_depth = result.get("assessment_depth")
+        canonical_depth = raw_depth if raw_depth in ("short", "deep") else "short"
+        
+        # Debug logging for gate debugging
+        logger.info(f"[ENNEAGRAM_RETRIEVAL] Gate-relevant fields for user {user_id}:")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL]   raw assessment_depth: {repr(raw_depth)}")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL]   canonical assessment_depth: {canonical_depth}")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL]   confidence_tier: {result.get('confidence_tier')}")
+        logger.info(f"[ENNEAGRAM_RETRIEVAL]   created_at: {result.get('created_at')}")
+        
         # Build base response
         response_result = {
             "id": str(result.get("_id", "")),
@@ -9120,8 +9135,8 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
             "debug_scores": result.get("debug_scores", {}),
             "enneagram_computed_details": computed_details,  # Use potentially recomputed value
             "created_at": result["created_at"].isoformat() if result.get("created_at") else None,
-            # P2: Version tracking for soft versioning UI
-            "assessment_depth": result.get("assessment_depth"),
+            # P2: Version tracking - CRITICAL for frontend gating
+            "assessment_depth": canonical_depth,  # ALWAYS explicit, never None
             "assessment_version": result.get("assessment_version"),
         }
         
