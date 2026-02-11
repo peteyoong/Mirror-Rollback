@@ -1416,7 +1416,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           />
         )}
 
-        {/* ===== NARRATIVE SECTIONS (Story-only when available) ===== */}
+        {/* ===== NARRATIVE SECTIONS (Full Accordion Layout) ===== */}
         {useNarrative && narrativeData.sections.map((section, index) => {
           // Identify section types for collapsible behavior
           const sectionId = section.id || '';
@@ -1428,22 +1428,58 @@ export default function EnneagramLensView({ result, userId }: Props) {
           const isDeeperPatterns = sectionId === 'deeper_patterns' || labelLower.includes('deeper pattern');
           const isClosing = !section.label;
           
-          // Core Story - always expanded (no collapsible)
-          if (isCoreStory) {
+          // Closing reflection - always visible, no accordion
+          if (isClosing) {
             return (
               <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-                <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
-                <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
+                <Text style={styles.closingReflection}>{section.body}</Text>
               </View>
             );
           }
           
-          // Core + Wing - always expanded (no collapsible)
+          // All sections with labels are now collapsible accordions
+          // Core Story - collapsible, DEFAULT OPEN
+          if (isCoreStory) {
+            return (
+              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
+                <TouchableOpacity 
+                  style={styles.collapsibleHeader}
+                  onPress={() => setCoreStoryExpanded(!coreStoryExpanded)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+                  <Ionicons 
+                    name={coreStoryExpanded ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={Colors.textSecondary} 
+                  />
+                </TouchableOpacity>
+                {coreStoryExpanded && (
+                  <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
+                )}
+              </View>
+            );
+          }
+          
+          // Wing Influence section - collapsible, collapsed by default
           if (isWingStory) {
             return (
               <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-                <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
-                <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
+                <TouchableOpacity 
+                  style={styles.collapsibleHeader}
+                  onPress={() => setWingInfluenceExpanded(!wingInfluenceExpanded)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+                  <Ionicons 
+                    name={wingInfluenceExpanded ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={Colors.textSecondary} 
+                  />
+                </TouchableOpacity>
+                {wingInfluenceExpanded && (
+                  <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
+                )}
               </View>
             );
           }
@@ -1494,25 +1530,76 @@ export default function EnneagramLensView({ result, userId }: Props) {
             );
           }
           
-          // Closing reflection - always visible, special styling
-          if (isClosing) {
-            return (
-              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-                <Text style={styles.closingReflection}>{section.body}</Text>
-              </View>
-            );
-          }
-          
-          // Default: regular section
+          // Default: all other labeled sections are collapsible, collapsed by default
           return (
             <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-              {section.label && (
+              <TouchableOpacity 
+                style={styles.collapsibleHeader}
+                onPress={() => setDeeperPatternsExpanded(!deeperPatternsExpanded)}
+                activeOpacity={0.7}
+              >
                 <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+                <Ionicons 
+                  name={deeperPatternsExpanded ? "chevron-up" : "chevron-down"} 
+                  size={20} 
+                  color={Colors.textSecondary} 
+                />
+              </TouchableOpacity>
+              {deeperPatternsExpanded && (
+                <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
               )}
-              <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
             </View>
           );
         })}
+        
+        {/* ===== STRUCTURE GRID (Enneagram Framework) - Always as accordion ===== */}
+        {useNarrative && computedDetails && (
+          <View style={styles.deepDiveSection}>
+            <TouchableOpacity 
+              style={styles.collapsibleHeader}
+              onPress={() => setStructureGridExpanded(!structureGridExpanded)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.deepDiveSectionTitle}>Enneagram Structure</Text>
+              <Ionicons 
+                name={structureGridExpanded ? "chevron-up" : "chevron-down"} 
+                size={20} 
+                color={Colors.textSecondary} 
+              />
+            </TouchableOpacity>
+            {structureGridExpanded && (
+              <View style={styles.structureCard}>
+                <View style={styles.structureGrid}>
+                  <View style={styles.structureItem}>
+                    <Ionicons name="radio-button-on-outline" size={14} color={Colors.textSecondary} />
+                    <Text style={styles.structureLabel}>Center</Text>
+                    <Text style={styles.structureValue}>{formatGroupLabel(computedDetails?.center)}</Text>
+                  </View>
+                  <View style={styles.structureDivider} />
+                  <View style={styles.structureItem}>
+                    <Ionicons name="people-outline" size={14} color={Colors.textSecondary} />
+                    <Text style={styles.structureLabel}>Social Style</Text>
+                    <Text style={styles.structureValue}>{formatGroupLabel(computedDetails?.hornevian_group)}</Text>
+                  </View>
+                </View>
+                
+                <View style={[styles.structureGrid, { marginTop: 12 }]}>
+                  <View style={styles.structureItem}>
+                    <Ionicons name="musical-notes-outline" size={14} color={Colors.textSecondary} />
+                    <Text style={styles.structureLabel}>Harmony Style</Text>
+                    <Text style={styles.structureValue}>{formatGroupLabel(computedDetails?.harmonic_group)}</Text>
+                  </View>
+                  <View style={styles.structureDivider} />
+                  <View style={styles.structureItem}>
+                    <Ionicons name="link-outline" size={14} color={Colors.textSecondary} />
+                    <Text style={styles.structureLabel}>Object Relations</Text>
+                    <Text style={styles.structureValue}>{formatGroupLabel(computedDetails?.object_relations)}</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+        )}
         
         {/* ===== ENERGETIC FLOW SECTION (Stress/Growth Movement) ===== */}
         {useNarrative && computedDetails && (
