@@ -10232,7 +10232,14 @@ async def get_enneagram_deep_dive(user_id: str):
             7: "The Enthusiast", 8: "The Challenger", 9: "The Peacemaker"
         }
         
-        type_label = f"{core_type}w{wing}" if wing else str(core_type)
+        # NEVER include "balanced" in type_label - use numeric wing only
+        # Frontend computes its own display labels
+        if isinstance(wing, int):
+            type_label = f"{core_type}w{wing}"
+        else:
+            # balanced or null → just core type
+            type_label = str(core_type)
+        
         type_name = type_names.get(core_type, "Unknown")
         
         return {
