@@ -11391,6 +11391,51 @@ async def complete_deep_assessment(session_id: str):
         logger.info(f"[P1_DEEP] Completed session {session_id} with result: core={scoring_result['top_types'][0]['type']}, confidence={scoring_result['confidence_tier']}")
         
         # =====================================================
+        # CRITICAL: PERSIST TO CANONICAL enneagram_results
+        # This is the source-of-truth for the UI
+        # =====================================================
+        user_id = session["user_id"]
+        now = datetime.now(timezone.utc)
+        
+        # Extract values from scoring result
+        core_type = scoring_result["top_types"][0]["type"]
+        wing = scoring_result["wing_analysis"]["inferred_wing"]
+        confidence = scoring_result["confidence"]
+        confidence_tier = scoring_result["confidence_tier"]
+        
+        # Build canonical enneagram_results document
+        canonical_result = {
+            "user_id": user_id,
+            "method": "deep_assessment_v1",
+            "version": "v2",
+            "inferred_core": core_type,
+            "inferred_wing": wing,
+            "confidence": confidence,
+            "confidence_tier": confidence_tier,
+            "is_close": scoring_result.get("is_close", False),
+            "top_candidates": scoring_result["top_types"],
+            "state_calibration": scoring_result.get("state_calibration", {}),
+            "debug_scores": scoring_result.get("debug_scores", {}),
+            "enneagram_computed_details": scoring_result.get("enneagram_computed_details", {}),
+            # CRITICAL: Mark as deep assessment
+            "assessment_depth": "deep",
+            "assessment_version": "v2",
+            "created_at": now,
+            "updated_at": now,
+            # Include session reference for audit trail
+            "source_session_id": session_id,
+        }
+        
+        # Upsert to enneagram_results (deep overrides short)
+        await db.enneagram_results.update_one(
+            {"user_id": user_id},
+            {"$set": canonical_result},
+            upsert=True
+        )
+        
+        logger.info(f"[P1_DEEP] Persisted to enneagram_results for user {user_id}: Type {core_type}w{wing}, confidence={confidence_tier}, depth=deep")
+        
+        # =====================================================
         # P5: EMIT LONGITUDINAL EVIDENCE (Shadow Wiring)
         # =====================================================
         try:
