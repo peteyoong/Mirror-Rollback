@@ -1048,8 +1048,65 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // SUMMARY TAB
   // ============================================
 
+  // ============================================
+  // DEBUG STAMP DATA (shared between Summary and Deep Dive)
+  // ============================================
+  const showDebugStamp = DEBUG_MIRROR_ENV || getUrlDebugParam();
+  const debugStampData = {
+    // CLIENT INFO
+    build_id: BUILD_ID,
+    build_version: BUILD_VERSION,
+    app_env: APP_ENV,
+    platform: Platform.OS,
+    api_base_url: getEffectiveApiUrl(),
+    // SERVER RESPONSE PROVENANCE (from API)
+    user_id: result.user_id || userId,
+    result_id: result.result_id || 'unknown',
+    assessment_depth: result.assessment_depth || 'unknown',
+    assessment_version: result.assessment_version || 'unknown',
+    core_type: core,
+    wing_raw: String(wing),
+    wing_left_score: result.wing_left_score ?? 'n/a',
+    wing_right_score: result.wing_right_score ?? 'n/a',
+    confidence_tier: result.confidence_tier,
+    updated_at: result.updated_at || result.created_at || 'unknown',
+    // LABEL DIAGNOSTICS
+    wing_balance_label: computedDetails?.wing_balance_label || 'n/a',
+  };
+  
+  // LOG PROVENANCE (Task 4 - automatic diagnostic log)
+  useEffect(() => {
+    if (showDebugStamp) {
+      console.log(`[PROVENANCE] platform=${debugStampData.platform}, api=${debugStampData.api_base_url}, user=${debugStampData.user_id}, result_id=${debugStampData.result_id}, wing=${debugStampData.wing_raw}, updated_at=${debugStampData.updated_at}`);
+    }
+  }, [showDebugStamp, debugStampData.result_id]);
+
+  // Reusable Debug Stamp Component
+  const renderDebugStamp = () => {
+    if (!showDebugStamp) return null;
+    return (
+      <View style={styles.debugStamp}>
+        <Text style={styles.debugStampTitle}>🔧 PROVENANCE DEBUG</Text>
+        <Text style={styles.debugStampSection}>Client:</Text>
+        <Text style={styles.debugStampText}>BUILD: {debugStampData.build_version} ({debugStampData.build_id})</Text>
+        <Text style={styles.debugStampText}>Platform: {debugStampData.platform} | API: {debugStampData.api_base_url}</Text>
+        <Text style={styles.debugStampSection}>Server Response:</Text>
+        <Text style={styles.debugStampText}>user_id: {debugStampData.user_id}</Text>
+        <Text style={styles.debugStampText}>result_id: {debugStampData.result_id}</Text>
+        <Text style={styles.debugStampText}>depth: {debugStampData.assessment_depth} | version: {debugStampData.assessment_version}</Text>
+        <Text style={styles.debugStampText}>updated_at: {debugStampData.updated_at}</Text>
+        <Text style={styles.debugStampSection}>Enneagram:</Text>
+        <Text style={styles.debugStampText}>core: {debugStampData.core_type} | wing: {debugStampData.wing_raw} | tier: {debugStampData.confidence_tier}</Text>
+        <Text style={styles.debugStampText}>wing_L: {debugStampData.wing_left_score} | wing_R: {debugStampData.wing_right_score}</Text>
+      </View>
+    );
+  };
+
   const renderSummaryTab = () => (
     <>
+      {/* DEBUG STAMP - visible with ?debug=1 */}
+      {renderDebugStamp()}
+      
       {/* Hero Card */}
       <View style={styles.heroCard}>
         <View style={styles.heroBadge}>
