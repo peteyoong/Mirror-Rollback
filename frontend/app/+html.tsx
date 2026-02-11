@@ -1,6 +1,10 @@
 import { ScrollViewStyleReset } from 'expo-router/html';
 import type { PropsWithChildren } from 'react';
 
+// BUILD_ID must be updated on every deploy for cache verification
+const BUILD_ID = '2026-02-11T07:00:00Z';
+const BUILD_VERSION = 'v7-nocache';
+
 /**
  * Custom HTML document for web builds
  * Implements iOS PWA standalone support and web layout hardening
@@ -10,6 +14,17 @@ export default function Root({ children }: PropsWithChildren) {
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
+        
+        {/* ============================================
+            CACHE CONTROL - CRITICAL FOR REDEPLOYS
+            ============================================ */}
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
+        
+        {/* BUILD_ID in meta tag for verification */}
+        <meta name="build-id" content={BUILD_ID} />
+        <meta name="build-version" content={BUILD_VERSION} />
         
         {/* ============================================
             VIEWPORT - Critical for iOS PWA
