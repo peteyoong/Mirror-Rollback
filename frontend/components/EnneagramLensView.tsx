@@ -43,8 +43,8 @@ const getUrlDebugParam = (): boolean => {
 // ============================================
 // BUILD INFO (for debug stamp)
 // ============================================
-const BUILD_ID = '2026-02-11T11:30:00Z';
-const BUILD_VERSION = 'v12-provenance';
+const BUILD_ID = '2026-02-11T11:50:00Z';
+const BUILD_VERSION = 'v13-unified-display';
 const APP_ENV = process.env.NODE_ENV || 'unknown';
 
 // Get effective API base URL
