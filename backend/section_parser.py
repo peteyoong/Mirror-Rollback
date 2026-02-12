@@ -65,7 +65,7 @@ class ParsedSection:
     
     def to_output_dict(self) -> dict:
         """Return dict for API output (excludes status if OK)"""
-        d = {"label": self.label, "body": self.body}
+        d = {"id": self.section_id, "label": self.label, "body": self.body}
         if self.status != SectionStatus.OK:
             d["status"] = self.status.value
         return d
