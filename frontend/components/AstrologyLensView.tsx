@@ -117,10 +117,17 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
         console.log(`[DEBUG_MIRROR] Astrology ${tab}: API returned ${totalChars} chars across ${response.data.sections.length} sections`);
       }
     } catch (err: any) {
+      // STALE RESPONSE GUARD: Ignore errors from stale requests
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       console.error(`Astrology ${tab} error:`, err);
       setError('Unable to load this view right now.');
     } finally {
-      setIsLoading(false);
+      // Only update loading state if this is still the current request
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
