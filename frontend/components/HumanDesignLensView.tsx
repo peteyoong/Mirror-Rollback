@@ -787,4 +787,40 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     fontWeight: '500',
   },
+  // Debug Panel for Lens Diagnostics
+  debugTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#8B6914',
+    marginBottom: 8,
+  },
+  debugText: {
+    fontSize: 11,
+    color: '#6B5A28',
+    fontFamily: 'monospace',
+    marginBottom: 4,
+  },
+  // Empty Fallback UI
+  emptyFallbackContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 24,
+  },
+  emptyFallbackTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyFallbackText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
 });
