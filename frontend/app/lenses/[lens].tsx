@@ -722,9 +722,11 @@ export default function LensDetail() {
       {renderDebugPanel()}
 
       {/* ASTROLOGY & HUMAN DESIGN: Use new tabbed views with API endpoints */}
+      {/* key={forceRefreshKey} ensures component remounts on auto-recovery */}
       {lens === 'astrology' && user?.id ? (
         <>
           <AstrologyLensView
+            key={`astrology-${forceRefreshKey}`}
             userId={user.id}
             onOpenChat={() => setLensChatVisible(true)}
           />
@@ -751,6 +753,7 @@ export default function LensDetail() {
       ) : lens === 'human_design' && user?.id ? (
         <>
           <HumanDesignLensView
+            key={`human_design-${forceRefreshKey}`}
             userId={user.id}
             onOpenChat={() => setLensChatVisible(true)}
           />
@@ -777,6 +780,7 @@ export default function LensDetail() {
       ) : lens === 'numerology' && user?.id ? (
         <>
           <NumerologyLensView
+            key={`numerology-${forceRefreshKey}`}
             userId={user.id}
             onOpenChat={() => setLensChatVisible(true)}
           />
