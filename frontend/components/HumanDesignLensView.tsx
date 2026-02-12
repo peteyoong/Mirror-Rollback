@@ -523,7 +523,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               />
             )}
           </>
-        ) : null}
+        ) : (
+          // FALLBACK: No data, not loading, no error - show retry UI
+          renderEmptyFallback()
+        )}
       </ScrollView>
     </View>
   );
