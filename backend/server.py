@@ -7583,73 +7583,68 @@ Your early life may feel experimental. Your middle years are for stepping back a
 Your authority comes from having lived through things, made mistakes, and gained perspective. You're not here to offer untested theory. You're here to share wisdom earned through experience."""
         }
         
-        cross_descriptions_rich = {
-            "Right Angle Cross": """Your Right Angle Cross describes a life path focused on your own themes and direction. This isn't about carrying obligations for others — it's about living out a personal trajectory in your own way.
+        # Build dynamic cross description based on cross name and angle
+        def build_cross_description(cross_type: str, cross_name: str, gates: list) -> str:
+            """Build a rich, non-duplicating cross description with structured content."""
+            
+            # Angle-specific overview
+            angle_overviews = {
+                "Right Angle Cross": "Your Right Angle Cross suggests a life path primarily focused on your own individual themes and direction. This isn't isolation — it's about living out a personal trajectory where you're not necessarily bound to carry others' agendas.",
+                "Left Angle Cross": "Your Left Angle Cross suggests a life path that unfolds significantly through interaction, exchange, and mutual influence with others. Your themes tend to emerge through relationships and shared experience.",
+                "Juxtaposition Cross": "Your Juxtaposition Cross suggests a highly focused, singular trajectory in life. There's often a clear thematic consistency — like you're here to walk a very specific path that others can see clearly."
+            }
+            
+            # Angle meanings (what the angle implies)
+            angle_meanings = {
+                "Right Angle Cross": "With a Right Angle orientation, your life direction tends to be more internally referenced. You're not here to serve someone else's purpose — you're here to live out your own.",
+                "Left Angle Cross": "With a Left Angle orientation, there's a transpersonal quality to your journey. What you do, create, or initiate tends to have impact beyond your personal sphere.",
+                "Juxtaposition Cross": "The Juxtaposition pattern sits between personal and transpersonal. There's a fixed quality to your direction — less about adaptation, more about embodying something specific."
+            }
+            
+            overview = angle_overviews.get(cross_type, "Your Incarnation Cross represents broad themes that may recur throughout your life.")
+            meaning = angle_meanings.get(cross_type, "")
+            
+            # Cross name context (if we have a meaningful name)
+            name_context = ""
+            if cross_name and cross_name not in ["Unknown", "RAX", "LAX", "JXP"]:
+                clean_name = cross_name.replace("RAX ", "").replace("LAX ", "").replace("JXP ", "")
+                if clean_name:
+                    name_context = f"\n\nYour cross carries the name \"{clean_name}\" — a label pointing toward the territory of themes you might revisit."
+            
+            # Gates as themes (if we have gates)
+            gates_section = ""
+            if gates and len(gates) >= 2:
+                gates_display = ", ".join(str(g) for g in gates[:4])
+                gates_section = f"\n\n**Themes you may revisit** (Gates {gates_display}):\n• Questions of direction, purpose, and what's worth your energy\n• Patterns around how you connect, contribute, or withdraw\n• Tension between individual expression and collective needs\n• Cycles of initiation, response, and completion"
+            
+            # Watch-for line (non-predictive)
+            watch_for = "\n\n**Watch for:** The shadow side of any cross can show up as over-identification with its themes — as if you *are* these patterns rather than someone who explores them."
+            
+            # Experiment prompt
+            experiment = "\n\n**Experiment:** Notice this week where these themes show up naturally in your decisions or interactions. What patterns do you recognize without trying to change them?"
+            
+            return overview + name_context + "\n\n" + meaning + gates_section + watch_for + experiment
+        
+        # Get gates for cross description
+        cross_gates_list = incarnation_cross.get('gates', [])
+        if isinstance(cross_gates_list, str):
+            # Parse string format like "37/5 | 40/35"
+            import re as re_module
+            gate_matches = re_module.findall(r'\d+', cross_gates_list)
+            cross_gates_list = [int(g) for g in gate_matches]
+        
+        cross_description = build_cross_description(cross_type_key, cross_name, cross_gates_list) if cross_type_key else """Your Incarnation Cross represents broad themes that may recur throughout your life — not as fate, but as territories you tend to revisit in different forms.
 
-The specific gates in your cross describe themes you'll revisit over time. These aren't predictions — they're territories you may explore many times in different ways.""",
+**What is a cross?** It's derived from the positions of your Sun and Earth at birth, creating four gate activations that form a thematic "cross" or intersection of energies.
 
-            "Left Angle Cross": """Your Left Angle Cross describes a path shaped through interaction and exchange with others. Themes often unfold through relationships, contribution, and shared experience.
+**Themes you may revisit:**
+• Questions of direction, purpose, and what calls you
+• Patterns in how you engage with others versus go your own way
+• Recurring dynamics around contribution, recognition, or independence
 
-The specific gates in your cross describe themes you'll revisit over time. These aren't predictions — they're territories you may explore many times in different ways.""",
+**Watch for:** Over-identifying with any single interpretation of your cross, as if it defines you rather than describes familiar territory.
 
-            "Juxtaposition Cross": """Your Juxtaposition Cross describes a focused, singular trajectory — a very specific direction in this life with a clear thematic consistency. This can feel like a strong sense of purpose or direction.
-
-The specific gates in your cross describe themes you'll revisit over time. These aren't predictions — they're territories you may explore many times in different ways."""
-        }
-        
-        definition_desc = f"With {canonical_hd.get('definition', 'your')} definition, there's a particular way energy flows and connects within you—whether in one continuous circuit or in separate systems that connect through others. Your defined centers ({', '.join(defined_centers) if defined_centers else 'your key centers'}) represent consistent, reliable themes in your experience. Your undefined centers are where you take in and amplify the energy of others."
-        
-        # =====================================================================
-        # DETERMINE CROSS TYPE - STRUCTURED DATA ONLY (HARDENED)
-        # =====================================================================
-        # Priority 1: Use structured 'angle' field from canonical computation
-        # Priority 2: Strict prefix fallback (RAX/LAX/JXP at start of name) ONLY if angle is None
-        # 
-        # FORBIDDEN HEURISTICS (removed):
-        # - "Right" in cross_name  (substring check - unreliable)
-        # - "Left" in cross_angle_full (substring check - unreliable)
-        # - Any defaulting to Left/Right Angle when unknown
-        #
-        # If angle is None/unknown, use neutral fallback copy (no karma, no angle claims)
-        
-        cross_angle = incarnation_cross.get('angle')  # "RAX", "LAX", "JXP", or None
-        cross_angle_source = incarnation_cross.get('angle_source', 'unknown')
-        cross_name = incarnation_cross.get('name') or incarnation_cross.get('internal_label', '')
-        
-        cross_type_key = None
-        detection_method = None
-        
-        # Priority 1: Structured angle field (computed_rule source)
-        if cross_angle == "RAX":
-            cross_type_key = "Right Angle Cross"
-            detection_method = "structured_angle"
-        elif cross_angle == "LAX":
-            cross_type_key = "Left Angle Cross"
-            detection_method = "structured_angle"
-        elif cross_angle == "JXP":
-            cross_type_key = "Juxtaposition Cross"
-            detection_method = "structured_angle"
-        
-        # Priority 2: Strict prefix fallback - ONLY if angle is None AND name starts with RAX/LAX/JXP
-        # This is a safety net for legacy data that may not have structured angle
-        if cross_type_key is None and cross_angle is None and cross_name:
-            if cross_name.startswith("RAX ") or cross_name == "RAX":
-                cross_type_key = "Right Angle Cross"
-                detection_method = "prefix_fallback"
-            elif cross_name.startswith("LAX ") or cross_name == "LAX":
-                cross_type_key = "Left Angle Cross"
-                detection_method = "prefix_fallback"
-            elif cross_name.startswith("JXP ") or cross_name == "JXP":
-                cross_type_key = "Juxtaposition Cross"
-                detection_method = "prefix_fallback"
-        
-        # Log detection result
-        logger.info(f"[HD_DEEP_DIVE] Cross detection: angle='{cross_angle}' angle_source='{cross_angle_source}' name='{cross_name}' -> type='{cross_type_key}' (method={detection_method})")
-        
-        # Neutral fallback for unknown cross type - no angle claims, no karma language
-        neutral_cross_description = """Your Incarnation Cross highlights themes you may revisit over time. These aren't predictions — they're territories you may explore many times in different ways."""
-        
-        cross_description = cross_descriptions_rich.get(cross_type_key, neutral_cross_description) if cross_type_key else neutral_cross_description
+**Experiment:** This week, notice where decisions feel deeply personal versus transpersonal — where something feels like "your thing" versus "our thing." What do you observe?"""
         
         fallback_content = {
             "type": ("Type: Your Energy Architecture", type_descriptions.get(hd_type, f"As a {hd_type}, there's a particular way energy tends to move through you.")),
