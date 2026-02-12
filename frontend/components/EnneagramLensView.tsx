@@ -725,6 +725,20 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const [qaQuestion, setQaQuestion] = useState('');
   const [qaAnswer, setQaAnswer] = useState<string | null>(null);
   const [qaLoading, setQaLoading] = useState(false);
+  
+  // ============================================
+  // DEBUG WATERMARK STATE (for verifying live deployment)
+  // ============================================
+  const [backendHealth, setBackendHealth] = useState<BackendHealthInfo | null>(null);
+  const [rawDeepDiveTypeLabel, setRawDeepDiveTypeLabel] = useState<string | null>(null);
+  const isDebugMode = getUrlDebugParam();
+  
+  // Fetch backend health once per session (debug mode only)
+  useEffect(() => {
+    if (isDebugMode) {
+      getBackendHealth().then(setBackendHealth);
+    }
+  }, [isDebugMode]);
 
   const core = result.inferred_core;
   const wing = result.inferred_wing;
