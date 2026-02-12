@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
@@ -19,13 +19,24 @@ export default function SessionRestoreWrapper({ children }: SessionRestoreWrappe
     retrySessionRestore 
   } = useAppStore();
   
+  // Track if restore was attempted to prevent infinite loops
+  const restoreAttempted = useRef(false);
+  
   useEffect(() => {
     // Only attempt restore if we haven't tried yet and don't have user/chart
-    if (!hasTriedSessionRestore && !isRestoringSession && (!user || !chart)) {
-      console.log('[SessionRestoreWrapper] Attempting session restore...');
+    if (!hasTriedSessionRestore && !isRestoringSession && (!user || !chart) && !restoreAttempted.current) {
+      restoreAttempted.current = true;
+      console.log('[SessionRestoreWrapper] ▶ Attempting session restore...');
       restoreSession();
     }
   }, [hasTriedSessionRestore, isRestoringSession, user, chart, restoreSession]);
+  
+  // Reset ref when hasTriedSessionRestore changes (e.g., after retry)
+  useEffect(() => {
+    if (!hasTriedSessionRestore) {
+      restoreAttempted.current = false;
+    }
+  }, [hasTriedSessionRestore]);
   
   // Show loader while restoring or before first attempt
   if (isRestoringSession || !hasTriedSessionRestore) {
@@ -42,18 +53,28 @@ export default function SessionRestoreWrapper({ children }: SessionRestoreWrappe
   
   // Show error state with retry button (only if restore failed AND no user)
   if (sessionRestoreError && !user && !chart) {
+    const isTimeout = sessionRestoreError.includes('timed out');
     return (
       <View style={styles.container}>
         <View style={styles.content}>
-          <Ionicons name="alert-circle-outline" size={48} color={Colors.error} />
-          <Text style={styles.errorTitle}>Session Restore Failed</Text>
+          <Ionicons 
+            name={isTimeout ? "time-outline" : "alert-circle-outline"} 
+            size={48} 
+            color={isTimeout ? Colors.warning : Colors.error} 
+          />
+          <Text style={styles.errorTitle}>
+            {isTimeout ? 'Connection Slow' : 'Session Restore Failed'}
+          </Text>
           <Text style={styles.errorText}>{sessionRestoreError}</Text>
           <TouchableOpacity 
             style={styles.retryButton}
-            onPress={retrySessionRestore}
+            onPress={() => {
+              console.log('[SessionRestoreWrapper] ▶ User triggered retry');
+              retrySessionRestore();
+            }}
           >
             <Ionicons name="refresh" size={20} color={Colors.surface} />
-            <Text style={styles.retryButtonText}>Reload my profile</Text>
+            <Text style={styles.retryButtonText}>Try again</Text>
           </TouchableOpacity>
         </View>
       </View>
