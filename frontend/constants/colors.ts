@@ -9,6 +9,7 @@ export const Colors = {
   accent: '#2A2A2A',
   border: '#E5E3DF',
   error: '#D32F2F',
+  warning: '#F57C00',  // Orange for timeout/slow connection states
   success: '#388E3C',
   highlight: '#E8F4E8',
   cardShadow: 'rgba(0,0,0,0.05)',
