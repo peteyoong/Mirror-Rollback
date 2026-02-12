@@ -8306,9 +8306,12 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
             
             result = json_module.loads(clean_response)
             
-            # Apply guardrails
-            for section in result.get("sections", []):
+            # Apply guardrails and add stable section IDs
+            for i, section in enumerate(result.get("sections", [])):
                 section["body"] = apply_numerology_guardrails(section["body"])
+                # Generate stable id from label (e.g., "Life Path 11" -> "life_path_11")
+                label = section.get("label", f"section_{i}")
+                section["id"] = label.lower().replace(" ", "_").replace(":", "").replace(".", "")[:30]
             
             result["mirror_prompt"] = apply_numerology_guardrails(result.get("mirror_prompt", ""))
             
