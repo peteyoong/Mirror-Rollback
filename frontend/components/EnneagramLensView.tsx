@@ -1809,6 +1809,62 @@ export default function EnneagramLensView({ result, userId }: Props) {
   };
 
   // ============================================
+  // DEBUG WATERMARK (visible only with ?debug=1)
+  // ============================================
+  const renderDebugWatermark = () => {
+    if (!isDebugMode) return null;
+    
+    const apiBaseUrl = getApiBaseUrl();
+    const deepDiveEndpoint = `${apiBaseUrl}/api/enneagram/deep-dive/${userId}`;
+    
+    return (
+      <View style={styles.debugWatermark}>
+        <Text style={styles.debugWatermarkTitle}>🔍 ENNEAGRAM DEBUG WATERMARK</Text>
+        
+        <Text style={styles.debugWatermarkLabel}>FRONTEND_BUILD_ID:</Text>
+        <Text style={styles.debugWatermarkValue}>{BUILD_ID}</Text>
+        
+        <Text style={styles.debugWatermarkLabel}>BUILD_VERSION:</Text>
+        <Text style={styles.debugWatermarkValue}>{BUILD_VERSION}</Text>
+        
+        <Text style={styles.debugWatermarkLabel}>API_BASE_URL:</Text>
+        <Text style={styles.debugWatermarkValue}>{apiBaseUrl}</Text>
+        
+        <Text style={styles.debugWatermarkLabel}>ENNEAGRAM_DEEP_DIVE_ENDPOINT:</Text>
+        <Text style={styles.debugWatermarkValue}>{deepDiveEndpoint}</Text>
+        
+        <Text style={styles.debugWatermarkLabel}>BACKEND_HEALTH:</Text>
+        {backendHealth ? (
+          <>
+            <Text style={styles.debugWatermarkValue}>build: {backendHealth.build}</Text>
+            <Text style={styles.debugWatermarkValue}>env: {backendHealth.env}</Text>
+            <Text style={styles.debugWatermarkValue}>git_sha: {backendHealth.git_sha}</Text>
+            <Text style={styles.debugWatermarkValue}>db_name: {backendHealth.db_name}</Text>
+          </>
+        ) : (
+          <Text style={styles.debugWatermarkValue}>Loading...</Text>
+        )}
+        
+        {rawDeepDiveTypeLabel && (
+          <>
+            <Text style={styles.debugWatermarkLabel}>RAW_TYPE_LABEL (from API):</Text>
+            <Text style={[
+              styles.debugWatermarkValue,
+              rawDeepDiveTypeLabel.includes('wbalanced') && styles.debugWatermarkError
+            ]}>
+              {rawDeepDiveTypeLabel}
+              {rawDeepDiveTypeLabel.includes('wbalanced') && ' ⚠️ BUG!'}
+            </Text>
+            
+            <Text style={styles.debugWatermarkLabel}>NORMALIZED_LABEL (UI):</Text>
+            <Text style={styles.debugWatermarkValue}>{wingInfo.typeLabel}</Text>
+          </>
+        )}
+      </View>
+    );
+  };
+
+  // ============================================
   // MAIN RENDER
   // ============================================
 
