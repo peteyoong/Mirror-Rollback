@@ -76,17 +76,30 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [fetchStatus, setFetchStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
+  
+  // Debug flag
+  const isDebug = typeof window !== 'undefined' && window.location?.search?.includes('debug=1');
 
   useEffect(() => {
+    if (isDebug || __DEV__) {
+      console.log(`[HD_LENS_DEBUG] Component mounted/updated - userId: ${userId}, activeTab: ${activeTab}`);
+    }
     loadTabData(activeTab);
   }, [activeTab, userId]);
 
   const loadTabData = async (tab: TabType) => {
+    if (isDebug || __DEV__) {
+      console.log(`[HD_LENS_DEBUG] Starting fetch for tab: ${tab}`);
+    }
+    
     setIsLoading(true);
     setError(null);
+    setFetchStatus('loading');
 
     try {
       const endpoint = tab === 'today' 
