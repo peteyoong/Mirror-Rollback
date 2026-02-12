@@ -343,18 +343,24 @@ class JournalEntry(BaseModel):
     user_id: str
     content: str
     themes: List[str] = []
+    source: Optional[str] = None  # e.g., "life", "astrology", "human_design", "numerology", "enneagram"
+    source_label: Optional[str] = None  # e.g., "Today's Reflection", "Type 7w8 Insight"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class JournalEntryCreate(BaseModel):
     user_id: str
     content: str
+    source: Optional[str] = None  # e.g., "life", "astrology", "human_design", "numerology", "enneagram"
+    source_label: Optional[str] = None  # Human-readable label for the source
 
 
 class JournalEntryResponse(BaseModel):
     id: str
     content: str
     themes: List[str]
+    source: Optional[str] = None
+    source_label: Optional[str] = None
     created_at: str
 
 
