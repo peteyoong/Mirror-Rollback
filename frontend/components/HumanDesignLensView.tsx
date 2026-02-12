@@ -159,6 +159,14 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
       console.log(`[HD_DEBUG] Total content chars: ${totalChars}`);
       console.log(`[HD_DEBUG] ================================================`);
       
+      // STALE RESPONSE GUARD: Ignore if a newer request was made
+      if (requestId !== requestIdRef.current) {
+        if (isDebug || __DEV__) {
+          console.log(`[HD_LENS_DEBUG] Ignoring stale response (requestId: ${requestId}, current: ${requestIdRef.current})`);
+        }
+        return;
+      }
+      
       setData(response.data);
       setFetchStatus('success');
       setLastUpdated(new Date().toISOString());
@@ -173,6 +181,14 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
         console.log(`[DEBUG_MIRROR] HumanDesign ${tab}: API returned ${totalChars} chars across ${response.data.sections.length} sections`);
       }
     } catch (err: any) {
+      // STALE RESPONSE GUARD: Ignore errors from stale requests
+      if (requestId !== requestIdRef.current) {
+        if (isDebug || __DEV__) {
+          console.log(`[HD_LENS_DEBUG] Ignoring error from stale request (requestId: ${requestId})`);
+        }
+        return;
+      }
+      
       console.error(`Human Design ${tab} error:`, err);
       setError('Unable to load this view right now.');
       setFetchStatus('error');
@@ -181,7 +197,10 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
         console.log(`[HD_LENS_DEBUG] Fetch ERROR: ${err?.message || 'Unknown error'}`);
       }
     } finally {
-      setIsLoading(false);
+      // Only update loading state if this is still the current request
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   };
   
