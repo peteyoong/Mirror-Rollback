@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,11 @@ import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
+
+// Ref interface for imperative control
+export interface LensViewRef {
+  refetch: () => void;
+}
 
 interface HumanDesignSection {
   id: string;      // Stable identifier (e.g., "type", "strategy", "authority")
