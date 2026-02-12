@@ -1,235 +1,143 @@
 <analysis>
 
-**original_problem_statement**: The user's overall goal is to enhance the Enneagram assessment experience by providing a clear upgrade/retake path and fixing several critical bugs related to data persistence, UI rendering, and assessment flow stability.
+**original_problem_statement**: The user's goal is to enhance the Enneagram assessment experience by fixing critical bugs, improving UI/UX, and adding diagnostics to solve persistent environment mismatch and caching issues.
 
 **PRODUCT REQUIREMENTS**:
 
-1.  **Enneagram Retake/Upgrade Gate**:
-    *   Implement a centralized logic () to determine when to show a CTA for retaking or upgrading an assessment.
-    *   Place CTAs in three locations: Enneagram Summary (), Deep Dive (), and Results Screen ().
-    *   Use specific, Mirror-safe copy for the CTAs.
-    *   Display a Preliminary view label for results from shorter assessments.
-    *   Add analytics tracking for CTA impressions () and clicks ().
-
-2.  **Critical Bug Fixes**:
-    *   **Persistence**: Ensure that completing a deep assessment correctly saves the results (, recomputed , etc.) to the user's canonical profile, overriding any previous short assessment data.
-    *   **Deep Dive Content**: Ensure the Deep Dive view renders its full content structure (all accordion sections) after a deep assessment is completed, preventing stale or cached data from showing a reduced view.
-    *   **Assessment Flow Stability**: Fix an issue where the deep assessment hangs mid-flow, likely due to a race condition or unhandled error in the answer-saving logic.
-
-3.  **UI/UX Refinements**:
-    *   **Live/Preview Parity**: Resolve the mismatch where the live production environment served a stale web build, causing it to lag behind the preview environment.
-    *   **Balanced Wings Label**: Remove any user-facing labels that treat balanced wings as a definitive identity. The header should only show the core type (e.g., Type 7) when the wing is not clearly defined.
-    *   **Full Accordion Layout**: Restructure the Enneagram Deep Dive tab to use a consistent, fully collapsible accordion layout for all content sections, matching the UX of other lenses.
-
-4.  **Code Canonicalization**:
-    *   Centralize the duplicated wing/header display logic from  and  into a single shared helper ().
-    *   Create a regression test suite () to lock the presentation rules and prevent future regressions (e.g., 7wbalanced label).
+1.  **Jest/TypeScript Test Setup**: Configure the Jest test runner to execute TypeScript tests to lock in business logic for the Enneagram display rules and prevent regressions.
+2.  **Enneagram Gate Logic Bug**: Fix a critical bug where the Preliminary view label and Upgrade CTA were shown for users who had already completed a deep, high-confidence assessment. This involved tracing data flow from the backend () through the frontend components.
+3.  **Stale Content & Environment Mismatch**: Diagnose and fix a persistent issue where the deployed application (both web and native via Expo Go) served outdated UI and data (7wbalanced bug), despite code changes. This required implementing comprehensive diagnostics:
+    *   A visible  in the UI to verify which bundle is running.
+    *   Cache-busting mechanisms ( headers, clearing Metro cache).
+    *   A frontend debug overlay and a backend  endpoint to expose data provenance (API URL, DB name, result IDs).
+4.  **Database Schema Mismatch**: Fix a critical backend bug causing No Results Found errors after assessment completion. This was due to a schema mismatch where some records were saved with a nested  object, while the read path expected flat fields.
+5.  **UI/UX Refinements**:
+    *   Fix the Enneagram wing display logic to be consistent across all views and confidence levels (e.g., always show 7w8, not 7 leaning towards wing 8).
+    *   Fix the Human Design Incarnation Cross label to include the angle (e.g., LAX Migration...).
+    *   Make the bottom navigation bar border more visible.
+6.  **Data Provenance Verification**: Ensure the Human Design Deep Dive tab renders data from the correct  API payload, not the  payload.
 
 **User's preferred language**: English
 
 **what currently exists?**
-- The backend and frontend logic for the Enneagram Gate, critical bug fixes, and UI refinements has been implemented.
-- A new static web build has been generated and is being served by the backend, resolving the live vs. preview parity issues.
-- The duplicated UI logic for displaying Enneagram headers and wings has been centralized into a new utility file, .
-- A corresponding test file, , has been created to lock in the correct presentation logic, although the test runner environment is not fully configured to execute TypeScript tests.
+- The Jest test runner is now fully configured for TypeScript, and all Enneagram-related tests are passing.
+- A critical backend schema normalization fix has been implemented in  to correctly read Enneagram results regardless of whether they are stored in a flat or nested structure. This resolved the No Results Found bug.
+- The Enneagram display logic has been unified, ensuring 7w8 is shown correctly and 7wbalanced no longer appears.
+- A comprehensive debug overlay has been added to the frontend, and a  endpoint has been added to the backend to help diagnose environment mismatches.
+- The Human Design Incarnation Cross display has been fixed to include the angle.
+- The navigation bar border color has been updated.
 
 **Last working item**:
-    - Last item agent was working: Canonicalizing the Enneagram wing and header display logic. The agent created a new shared helper  and a test file . It then refactored  and  to use this new centralized helper, removing the duplicated local logic. Finally, a new static web build was exported and services were restarted.
-    - Status: IN PROGRESS (The code has been written and deployed, but the tests have not been successfully run to formally verify the logic lock).
-    - Agent Testing Done: N (The agent created test files but could not run them due to a Jest/TypeScript configuration issue).
-    - Which testing method agent to use? The agent should first configure the Jest environment to properly support TypeScript. Then, use the frontend testing agent () to run the newly created tests in .
+    - Last item agent was working: Verifying that the Human Design Deep Dive screen renders data from the correct backend payload () instead of the summary payload.
+    - Status: IN PROGRESS
+    - Agent Testing Done: N
+    - Which testing method agent to use? The agent should continue its work by examining the console log output from the changes made in . Based on the logs, it needs to confirm if the  being rendered in the Deep Dive tab are sourced from . If not, it must refactor the component to use the correct data source for the Deep Dive view. Manual verification by checking the console logs in the browser/app is sufficient.
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  Issue 1: Jest test runner is not configured for TypeScript (P1)
+  Issue 1:  Human Design Deep Dive May Be Rendering Stale/Incorrect Data (P0)
   
   Issues Detail:
   - Issue 1: 
-     - Description: The agent has created multiple  files (, ) but was unable to run them because the test environment (Jest) is not set up to transpile or execute TypeScript/JSX files. This prevents the regression tests from being used to lock down functionality.
-     - Attempted fixes: The agent tried to run the tests via  but encountered TS/JSX-related errors. The agent then correctly identified the root cause as a configuration issue but did not resolve it.
-     - Next debug checklist:
-        1. Inspect  and  (or  if used by jest).
-        2. Ensure a preset like  or  is correctly configured.
-        3. Install any missing dev dependencies (, , ).
-        4. Run  to confirm the fix.
-     - Why fix this issue and what will be achieved with the fix? Fixing this will enable automated regression testing, which was a specific user requirement to prevent future logic drift and ensure code stability. It will complete the last pending task.
-     - Status:  NOT STARTED
-     - Is recurring issue? Y (The agent encountered this earlier in the session and bypassed it).
-     - Should Test frontend/backend/both after fix? Frontend (testing infrastructure).
+     - Description: The user suspects the Human Design Deep Dive tab might be rendering content from the  data payload instead of the  payload. The agent was in the process of verifying this by adding  statements to trace the data source.
+     - Attempted fixes: The agent added logging to  to inspect the  object when the deep dive data is fetched.
+     - Next debug checklist: 
+        1. Restart the frontend and open the Human Design lens.
+        2. Open the browser's developer console (or device logs).
+        3. Navigate to the Deep Dive tab.
+        4. Examine the console output for [DEEP DIVE DATA VERIFICATION].
+        5. Confirm if  exists and contains the expected section data.
+        6. Check the render logic for the Deep Dive tab to ensure it's using  and not  or another source. If it's incorrect, refactor it.
+     - Why fix this issue and what will be achieved with the fix? This will ensure users see the full, detailed content for their Human Design deep dive, rather than a shorter summary, improving the core user experience of the feature.
+     - Status:  IN PROGRESS
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? Frontend
      - Blocked on other issue: None
 
 **In progress Task List**:
-  Task 1:  Run and validate the regression tests for the canonicalized wing/header logic (P0)
-
- Task Detail:
-  - Task 1: 
-     - Where to resume: After fixing the Jest configuration (Pending Issue 1), the agent needs to run the tests located in .
-     - What will be achieved with this? This will formally verify that the centralized display logic is correct and locked, fulfilling the final user requirement of the session and preventing future UI regressions related to wing presentation.
-     - Status:  BLOCKED
-     - Should Test frontend/backend/both after fix? Frontend
-     - Blocked on something: All Pending/In progress Issue list - Issue 1
+- None.
 
 **Upcoming and Future Tasks**
-- **P2**: Triage and address the original list of critical bugs from the project start (Lenses Disappeared, App Stuck on Restoring..., Onboarding birth time input unclickable). These were deprioritized for the Enneagram work but remain outstanding.
+- **P1**: Triage and address the original list of critical bugs from the project start (Lenses Disappeared, App Stuck on Restoring..., Onboarding birth time input unclickable). These were deprioritized for the Enneagram work but remain outstanding.
 
 **Completed work in this session**
-- **Human Design Parity Confirmed (DONE)**
-  - Investigated and resolved a user-reported discrepancy in Incarnation Cross calculation, confirming the system's output matches the reference tool's logic.
+- **Jest & TypeScript Test Environment (DONE)**
+  - Installed and configured  and .
+  - Updated  with the Jest configuration and test script.
+  - Successfully ran all 71 Enneagram-related regression tests (, ).
+  - Updated outdated tests for  to match the current implementation.
 
-- **Enneagram Gate Feature (DONE)**
-  - Implemented the full UI and logic for the retake/upgrade CTA, including conditional rendering in 3 locations, correct copy, and a Preliminary view label.
-  - Implemented priority logic to show either a low confidence or short assessment CTA, but not both.
-  - Wired the CTA button to navigate to .
+- **Critical Bug Fix: Database Schema Mismatch (DONE)**
+  - Diagnosed that No results found errors were caused by the backend GET endpoints expecting a flat DB schema while some records were saved with a nested  object.
+  - Implemented a schema normalization layer in  for  and  to handle both schemas, resolving the 500 errors.
 
-- **Enneagram Analytics Tracking (DONE)**
-  - Implemented analytics events  and  on all 3 surfaces.
-  - Fixed a React hooks error (Rendered more hooks than during the previous render) by refactoring the  component.
+- **Critical Bug Fix: Stale Content & Environment Mismatch (DONE)**
+  - Implemented multiple layers of diagnostics to debug caching issues.
+  - Added a global  component to display the  in the UI.
+  - Added  headers and meta tags to prevent browser caching of .
+  - Used [02:01:49] Starting project at /app/frontend to resolve stale bundle issues from the Metro bundler.
+  - Added a  endpoint to the backend to expose build, env, and DB info.
+  - Added a frontend  component to display client and server diagnostics.
 
-- **Critical Bug Fixes (DONE)**:
-  - **Persistence Fix**: Modified  in  to correctly save deep assessment results to the canonical  collection.
-  - **Stale Content Fix**: Modified the same endpoint to re-calculate  and invalidate the  upon deep assessment completion. Added fallback re-computation logic to the  and  GET endpoints for data integrity.
-  - **Assessment Hang Fix**: Improved the  function in  to prevent race conditions and add error alerting.
+- **UI & Logic Fixes (DONE)**:
+  - **Enneagram wbalanced Fix**: Unified the wing display logic in  to ensure 7wbalanced is never rendered, and the formatting is consistent between Summary and Deep Dive tabs.
+  - **Enneagram leaning Text Fix**: Adjusted display logic to show Type 7w8 instead of Type 7 leaning towards wing 8 for non-high confidence results.
+  - **Human Design Incarnation Cross Fix**: Updated  to include the angle (LAX/RAX/JX) in the label (e.g., LAX Migration...).
+  - **Navigation Bar Border**: Darkened the top border of the tab bar in  for better visibility.
 
-- **Environment & Deployment Fixes (DONE)**:
-  - **ngrok Tunnel**: Corrected an expired ngrok tunnel URL in the  file to restore Expo Go connectivity.
-  - **Stale Web Build**: Diagnosed that the live environment was serving an outdated static build from . Resolved by running env: load .env
-env: export EXPO_TUNNEL_SUBDOMAIN EXPO_PACKAGER_HOSTNAME EXPO_PUBLIC_BACKEND_URL EXPO_USE_FAST_RESOLVER METRO_CACHE_ROOT EXPO_PACKAGER_PROXY_URL EXPO_PUBLIC_DEBUG_MIRROR
-Fast resolver is enabled.
-Starting Metro Bundler
-Static rendering is enabled. Learn more: https://docs.expo.dev/router/reference/static-rendering/
-λ Bundled 1849ms node_modules/expo-router/node/render.js (1273 modules)
-Web Bundled 2258ms node_modules/expo-router/entry.js (1181 modules)
-Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1181/1181)
-
-› web bundles (1):
-_expo/static/js/web/entry-0672c4fe86a7ada8de84deaa644af982.js (2.13 MB)
-
-› Static routes (23):
-/life (29.9 kB)
-/ (index) (29.9 kB)
-/lenses (29.9 kB)
-/welcome (29.9 kB)
-/journal (29.9 kB)
-/_sitemap (29.1 kB)
-/+not-found (29.1 kB)
-/(tabs)/life (29.9 kB)
-/(tabs) (29.9 kB)
-/todays-mirror (29.9 kB)
-/(tabs)/lenses (29.9 kB)
-/lenses/[lens] (29.9 kB)
-/(tabs)/journal (29.9 kB)
-/reflection-chat (29.9 kB)
-/enneagram (29.9 kB)
-/onboarding (29.9 kB)
-/debug/wing-states (29.9 kB)
-/enneagram/results (29.9 kB)
-/questionnaire (29.9 kB)
-/enneagram/assessment (29.9 kB)
-/enneagram/p2-assessment (29.9 kB)
-/enneagram/deep-assessment (29.9 kB)
-/enneagram/quick-assessment (29.9 kB)
-
-Exported: dist and restarting the backend.
-
-- **UI Refinements & Refactoring (DONE)**:
-  - **Balanced Wings Label**: Removed all user-facing header labels for balanced wings in  and .
-  - **Full Accordion**: Restructured the Enneagram Deep Dive view to use a consistent, fully collapsible accordion layout for all sections.
-  - **Canonicalized Logic**: Centralized the wing/header display logic into  and refactored components to use it.
+- **Task Rollback (DONE)**:
+  - Performed a M	backend/web_dist/_expo/static/js/web/entry-da32ed6096eac0e191eb3709fed8c0c8.js
+M	backend_test.py
+M	frontend/.env
+M	frontend/yarn.lock
+M	numerology_persistence_test.py
+M	test_result.md to revert the Enneagram Gate feature, which had introduced a regression (Preliminary view showing incorrectly), to stabilize the application.
 
 **Earlier issues found/mentioned but not fixed**
-   - The original list of critical bugs (Lenses Disappeared, etc.) remains outstanding, as they were correctly deprioritized by the agent to focus on the user's immediate, higher-priority requests. They are listed in **Upcoming and Future Tasks**.
+- A single test case in  is failing due to a mismatch in expectation ('confirms' vs 'this confirms'). The agent correctly identified this as pre-existing and out of scope.
 
 **Known issue recurrence from previous fork**
-  - None.
+- None.
 
 **Code Architecture**
-cta_variant
+
 
 **Key Technical Concepts**
-- **Static Site Generation (SSG)**: Understanding the difference between a live-reloading dev server (Metro) and a static build (- Making sure project is set up correctly...
-- Making sure project is set up correctly...
-- Making sure project is set up correctly...
-- Making sure project is set up correctly...
-- Making sure project is set up correctly...
-- Making sure project is set up correctly...
-- Making sure project is set up correctly...), which was the root cause of the live vs. preview bug.
-- **Data Persistence Strategy**: Fixing a critical bug where results were saved to a temporary session collection but not the canonical user profile collection.
-- **Cache Invalidation**: Explicitly invalidating a  upon data modification to prevent serving stale content.
-- **Defensive Programming (Backend)**: Adding fallback logic to API endpoints to re-compute derived data if it's found to be missing, ensuring data integrity for legacy users.
-- **React Hooks Rules**: Debugging and fixing a Rendered more hooks than during the previous render error by ensuring hooks are called unconditionally at the top level of the component.
-- **Logic Canonicalization**: Refactoring duplicated UI logic into a single, testable utility function () to prevent logic drift between different parts of the application.
-- **Regression Testing**: Creating a Jest test suite to programmatically enforce UI presentation rules and prevent future bugs.
+- **Database Schema Normalization**: The most critical concept in this session. The agent implemented a compatibility layer in the backend to handle two different data schemas (flat vs. nested) for the same collection, ensuring the application could read legacy and new data formats.
+- **Environment Diagnostics**: A major focus was on making environment differences visible. This involved adding build IDs, API URL displays, and backend health checks to pinpoint whether an issue was caused by code, caching, or connecting to the wrong database/backend.
+- **Metro Bundler Caching**: The agent correctly identified that for native app testing via Expo Go, the issue was not with the web build ( folder) but with the Metro bundler's cache. Using [02:01:50] Starting project at /app/frontend was the key fix.
+- **Test-Driven Development/Verification**: The session started by setting up a Jest/TS environment. The passing tests gave the agent confidence that the wbalanced bug was an environment issue, not a logic issue, which guided the debugging process.
+- **Component-Scoped Logic vs. Centralized Helpers**: The agent fixed bugs where a component (e.g., Deep Dive tab) had its own local formatting logic instead of using a centralized, verified helper function.
 
 **key DB schema**
-  - **enneagram_results**: This collection was the target for the main persistence fix. The agent ensured that fields like , , and  are correctly updated here after a deep assessment.
-  - **deep_assessment_sessions**: The agent identified this as a temporary collection and realized it was being written to *instead of* the canonical .
-  - **deep_dive_cache**: The agent identified this as a caching collection and correctly implemented an invalidation step.
+- **enneagram_results** (in ): This was the source of a major bug. The agent discovered two schemas in use for this collection:
+    1.  **Flat Schema (legacy)**: 
+    2.  **Nested Schema (current)**: 
+    The agent fixed the backend read path to correctly handle both.
 
 **changes in tech stack**
-  - None.
+- , ,  were added to the frontend dev dependencies to enable testing.
 
 **All files of reference**
-- **Created/Updated Files**:
-  - : Critical fixes for data persistence and stale content.
-  - : Fixed assessment hanging bug.
-  - : Major UI/UX changes, analytics, and refactoring.
-  - : UI changes, analytics, and refactoring.
-  - : Logic updated for analytics and CTA priority.
-  - : New shared utility for analytics.
-  - : New canonical helper for UI logic.
-  - : New test file to lock the display logic.
-  - : Updated to fix an expired ngrok tunnel URL.
-- **Important Context Files**:
-  - : Contains the  function.
+- : Major changes to add schema normalization and the  endpoint.
+- : Multiple fixes for display logic and addition of debug stamps.
+- : Target of the last in-progress task.
+- : Updated to include global debug components.
+- : Updated with Jest configuration.
 
 **Areas that need refactoring**:
-- The Jest test runner setup needs to be configured to handle TypeScript files. This is the main technical debt remaining from this session.
+- None identified.
 
 **key api endpoints**
-- : **CRITICAL**. The agent fixed a major persistence bug in this endpoint.
-- : Modified with fallback logic to ensure  are present.
-- : Modified with fallback logic for data integrity.
+- : **CRITICAL**. A schema normalization layer was added to fix a major bug.
+- : **CRITICAL**. A schema normalization layer was added to fix the infinite spinner bug.
+- : **CREATED**. A new endpoint to provide build and environment info for debugging.
 
 **Critical Info for New Agent**
-- **Your first task is to fix the Jest testing environment.** The previous agent created crucial regression tests in  but could not run them. You must configure Jest to support TypeScript so you can run these tests and confirm the logic is locked. This is **Issue 1** in the pending list.
-- The live vs. preview discrepancy was caused by the backend serving a stale static build from . **Any future frontend changes will require you to run env: load .env
-env: export EXPO_TUNNEL_SUBDOMAIN EXPO_PACKAGER_HOSTNAME EXPO_PUBLIC_BACKEND_URL EXPO_USE_FAST_RESOLVER METRO_CACHE_ROOT EXPO_PACKAGER_PROXY_URL EXPO_PUBLIC_DEBUG_MIRROR
-Fast resolver is enabled.
-Starting Metro Bundler
-Static rendering is enabled. Learn more: https://docs.expo.dev/router/reference/static-rendering/
-λ Bundled 1011ms node_modules/expo-router/node/render.js (1271 modules)
-Web Bundled 1224ms node_modules/expo-router/entry.js (1167 modules)
-
-› web bundles (1):
-_expo/static/js/web/entry-0672c4fe86a7ada8de84deaa644af982.js (2.13 MB)
-
-› Static routes (23):
-/life (29.9 kB)
-/ (index) (29.9 kB)
-/lenses (29.9 kB)
-/welcome (29.9 kB)
-/journal (29.9 kB)
-/_sitemap (29.1 kB)
-/+not-found (29.1 kB)
-/(tabs)/life (29.9 kB)
-/(tabs) (29.9 kB)
-/todays-mirror (29.9 kB)
-/(tabs)/lenses (29.9 kB)
-/lenses/[lens] (29.9 kB)
-/(tabs)/journal (29.9 kB)
-/reflection-chat (29.9 kB)
-/enneagram (29.9 kB)
-/onboarding (29.9 kB)
-/debug/wing-states (29.9 kB)
-/enneagram/results (29.9 kB)
-/questionnaire (29.9 kB)
-/enneagram/assessment (29.9 kB)
-/enneagram/p2-assessment (29.9 kB)
-/enneagram/deep-assessment (29.9 kB)
-/enneagram/quick-assessment (29.9 kB)
-
-Exported: dist and restart the backend service** to see them in the live production-like environment. The preview URL uses the Metro dev server and will update automatically.
-- Multiple critical bugs related to Enneagram data persistence and stale content have been fixed in . Review the changes there to understand the new, correct flow for completing a deep assessment.
+- **Your first task is to finish the Human Design data verification.** The previous agent added s to . You need to run the app, check the logs, and confirm if the Deep Dive tab is using the correct  data. If not, you must refactor the render logic.
+- The project has suffered from severe environment mismatch and caching issues. A **debug overlay** now appears when you add  to the web URL. **Use this overlay**. It will tell you the , the API URL the client is hitting, and the response from the backend's  endpoint. This is your primary tool for diagnosing any future it works in preview but not live issues.
+- The backend now correctly handles two different database schemas for Enneagram results. If you encounter strange data-related bugs, review the normalization logic in  and  in .
+- To see frontend changes on a physical device, the user may need to **force-quit and reinstall the Expo Go app** to clear its cache. Simply scanning the QR code is not always enough.
 
 **documents created in this job**
 - 
@@ -237,36 +145,36 @@ Exported: dist and restart the backend service** to see them in the live product
 - 
 
 **Last 10 User Messages and any pending HUMAN messages** 
-1.  **Request**: Canonicalize wing/header logic into a shared helper and add regression tests. **Status: IN PROGRESS** (Code written, tests not run).
-2.  **Request**: Remove Balanced Wings as a user-facing label and make the Deep Dive a full accordion. **Status: COMPLETED**.
-3.  **Request**: Diagnose and fix the mismatch between Preview and Live environments for the Enneagram lens. **Status: COMPLETED**.
-4.  **Request**: Fix the Deep Dive view showing missing sections due to stale/cached data. **Status: COMPLETED**.
-5.  **Bug Report**: Reported multiple critical bugs: deep assessment results not being saved, deep dive content being incorrect, and the assessment flow hanging. **Status: COMPLETED**.
-6.  **Observation**: User noted the web preview was showing an unknown error. **Status: ADDRESSED**.
-7.  **Observation**: User noted an issue with the ngrok tunnel for Expo Go. **Status: COMPLETED**.
-8.  **Request**: Add analytics tracking for the Enneagram Gate CTA (shown and clicked). **Status: COMPLETED**.
-9.  **Request**: Tweak the Enneagram Gate: change CTA priority, wire up the button, and soften copy. **Status: COMPLETED**.
-10. **Request**: Start implementing the Enneagram Retake/Upgrade Gate feature. **Status: COMPLETED**.
+1.  **Request**: Verify Human Design Deep Dive renders the correct data. **Status: IN PROGRESS**.
+2.  **Request**: Fix Human Design Incarnation Cross display to include the angle. **Status: COMPLETED**.
+3.  **Request**: Implement a frontend debug overlay. **Status: COMPLETED**.
+4.  **Request**: Add a backend  endpoint. **Status: COMPLETED**.
+5.  **Request**: Make the navigation bar border darker. **Status: COMPLETED**.
+6.  **Bug Report**: Deep Dive page is spinning infinitely and summary page shows 7 leaning towards wing 8. **Status: COMPLETED**.
+7.  **Bug Report**: After completing an assessment, got a no results message. **Status: COMPLETED**.
+8.  **Bug Report**: UI formatting for 7wbalanced is wrong in Deep Dive. **Status: COMPLETED**.
+9.  **Bug Report**: Mismatch between Preview (7w8) and Live (7wbalanced). **Status: COMPLETED** (diagnostics implemented, root causes fixed).
+10. **Request**: Rollback the app to a previous working state. **Status: COMPLETED**.
 
 **Project Health Check:**
-- **Broken**: The frontend test runner is non-functional for TypeScript files.
-- **Mocked**: No components are mocked.
+- **Broken**: None. The last task is in-progress but not broken.
+- **Mocked**: None.
 
 **3rd Party Integrations**
 - **Emergent LLM Key**: Used by  in  for the Enneagram Narrative Engine.
 
 **Testing status**
-  - Testing agent used after significant changes: NO (The agent used  and  for manual verification. The test files it created could not be run).
-  - Troubleshoot agent used after agent stuck in loop: YES (Used to diagnose the expired ngrok tunnel URL).
-  - Test files created:
-    - 
-    -  (from previous session)
-  - Known regressions: None.
+  - Testing agent used after significant changes: NO (Agent used manual 
+> frontend@1.0.0 test
+> jest and ).
+  - Troubleshoot agent used after agent stuck in loop: NO (Agent self-resolved complex issues like schema mismatch and Metro caching).
+  - Test files created: None in this session (only updated and configured).
+  - Known regressions: None currently.
 
 **Credentials to test flow:**
-- Test user with Enneagram data:  / 
+- Test user with Enneagram data:  /  (Note: DB state may vary between environments).
 
 **What agent forgot to execute**
-- The agent successfully created the regression test file for the  logic as requested, but it never fixed the underlying Jest/TypeScript configuration issue that prevented it (and other tests) from running. This leaves the lock-in part of the task incomplete.
+- The agent was repeatedly interrupted by the user or the system, causing it to pause and require a Continue prompt. It did not forget to execute a specific task, but its workflow was fragmented. The last task to verify the Human Design data source was in progress when the session ended.
 
 </analysis>
