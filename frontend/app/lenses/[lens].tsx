@@ -680,6 +680,9 @@ export default function LensDetail() {
         <View style={styles.headerSpacer} />
       </View>
 
+      {/* Debug Panel (only with ?debug=1) */}
+      {renderDebugPanel()}
+
       {/* ASTROLOGY & HUMAN DESIGN: Use new tabbed views with API endpoints */}
       {lens === 'astrology' && user?.id ? (
         <>
@@ -759,6 +762,9 @@ export default function LensDetail() {
             </SafeAreaView>
           </Modal>
         </>
+      ) : (lens === 'astrology' || lens === 'human_design' || lens === 'numerology') && blockReason ? (
+        // Show fallback for main lenses when user ID is missing
+        renderMissingUserFallback()
       ) : (
         // OTHER LENSES: Keep original implementation
         <>
