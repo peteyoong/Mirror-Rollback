@@ -279,11 +279,28 @@ export default function LensDetail() {
   const isDebug = typeof window !== 'undefined' && window.location?.search?.includes('debug=1');
   
   // =========================================================================
-  // AUTO-REFETCH: Track userId availability and trigger re-render
+  // IMPERATIVE REFS: Direct refetch without remounting (preserves UI state)
+  // =========================================================================
+  const astrologyRef = useRef<LensViewRef>(null);
+  const humanDesignRef = useRef<LensViewRef>(null);
+  const numerologyRef = useRef<LensViewRef>(null);
+  
+  // Get the active lens ref based on current lens
+  const getActiveLensRef = (): LensViewRef | null => {
+    switch (lens) {
+      case 'astrology': return astrologyRef.current;
+      case 'human_design': return humanDesignRef.current;
+      case 'numerology': return numerologyRef.current;
+      default: return null;
+    }
+  };
+  
+  // =========================================================================
+  // AUTO-RECOVERY: Track userId availability and call refetch (NOT remount)
   // =========================================================================
   const prevUserIdRef = React.useRef<string | undefined>(undefined);
   const hasAutoRecoveredRef = React.useRef(false);
-  const [forceRefreshKey, setForceRefreshKey] = React.useState(0);
+  const [forceRefreshKey, setForceRefreshKey] = React.useState(0); // Fallback only
   
   // Effect: Watch for userId becoming available after session restore
   React.useEffect(() => {
@@ -299,12 +316,23 @@ export default function LensDetail() {
       
       if (isDebug || (typeof __DEV__ !== 'undefined' && __DEV__)) {
         console.log(`[LENS_AUTO_REFETCH] userId became available: ${currentUserId}`);
-        console.log(`[LENS_AUTO_REFETCH] Triggering auto-recovery for lens: ${lens}`);
+        console.log(`[LENS_AUTO_REFETCH] Attempting imperative refetch for lens: ${lens}`);
       }
       
-      // Force re-render of lens views by incrementing key
-      // This causes React to unmount and remount the lens component, triggering fresh fetch
-      setForceRefreshKey(prev => prev + 1);
+      // TRY IMPERATIVE REFETCH FIRST (preserves accordion/scroll state)
+      const activeLensRef = getActiveLensRef();
+      if (activeLensRef?.refetch) {
+        if (isDebug || (typeof __DEV__ !== 'undefined' && __DEV__)) {
+          console.log(`[LENS_AUTO_REFETCH] ✓ Calling refetch() via ref - UI state preserved`);
+        }
+        activeLensRef.refetch();
+      } else {
+        // FALLBACK: Force remount if ref not available (shouldn't happen normally)
+        if (isDebug || (typeof __DEV__ !== 'undefined' && __DEV__)) {
+          console.log(`[LENS_AUTO_REFETCH] ⚠ Ref not available, falling back to key increment`);
+        }
+        setForceRefreshKey(prev => prev + 1);
+      }
     }
     
     // Update ref for next comparison
