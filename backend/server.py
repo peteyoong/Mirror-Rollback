@@ -3724,7 +3724,7 @@ async def get_chart(user_id: str):
 
 @api_router.post("/journal", response_model=JournalEntryResponse)
 async def create_journal_entry(entry: JournalEntryCreate):
-    """Create journal entry"""
+    """Create journal entry with optional source annotation"""
     try:
         # Analyze consciousness indicators
         analysis = analyze_consciousness_indicators(entry.content)
@@ -3733,6 +3733,8 @@ async def create_journal_entry(entry: JournalEntryCreate):
             "user_id": entry.user_id,
             "content": entry.content,
             "themes": [analysis.get("estimated_level", "")],
+            "source": entry.source,  # e.g., "life", "astrology", "human_design"
+            "source_label": entry.source_label,  # e.g., "Today's Reflection"
             "created_at": datetime.now(timezone.utc)
         }
         
@@ -3742,6 +3744,8 @@ async def create_journal_entry(entry: JournalEntryCreate):
             id=str(result.inserted_id),
             content=entry.content,
             themes=entry_data["themes"],
+            source=entry.source,
+            source_label=entry.source_label,
             created_at=entry_data["created_at"].isoformat()
         )
     except Exception as e:
