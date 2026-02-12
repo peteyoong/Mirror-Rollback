@@ -661,14 +661,40 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     marginTop: 14,
   },
-  // Time fields
+  // Time fields - HARDENED for iOS tap reliability
   timeRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
   timeInputContainer: {
-    width: 70,
+    // Plain View container - no touch interception
+    // Width accommodates larger padding on TextInput
+    width: 80,
   },
+  timeInputLarge: {
+    // Large touch target - TextInput IS the tap target
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    // Generous padding for 44pt+ touch target
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    fontSize: 18,
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    textAlign: 'center',
+    minHeight: 56,
+    // Ensure input is above any siblings
+    zIndex: 1,
+  },
+  timeLabelBelow: {
+    // Label below input - does NOT intercept touches
+    fontSize: 11,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  // Legacy timeInput style (kept for reference, not used)
   timeInput: {
     backgroundColor: Colors.surface,
     borderRadius: 12,
