@@ -77,7 +77,8 @@ if (__DEV__) {
 }
 
 interface NumerologySection {
-  label: string;
+  id: string;      // Stable identifier (e.g., "life_path", "expression", "soul_urge")
+  label: string;   // Display label (can change without breaking expansion)
   body: string;
 }
 
