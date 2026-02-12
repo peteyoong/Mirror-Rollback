@@ -435,7 +435,12 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
       {renderChartModal()}
     </View>
   );
-}
+});
+
+// Set display name for debugging
+AstrologyLensView.displayName = 'AstrologyLensView';
+
+export default AstrologyLensView;
 
 const styles = StyleSheet.create({
   container: {
