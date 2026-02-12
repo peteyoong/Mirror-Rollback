@@ -3045,4 +3045,40 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     fontStyle: 'italic',
   },
+  
+  // ============================================
+  // DEBUG WATERMARK STYLES (visible with ?debug=1)
+  // ============================================
+  debugWatermark: {
+    backgroundColor: '#1a1a2e',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#00FF00',
+  },
+  debugWatermarkTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#00FF00',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  debugWatermarkLabel: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#00FFFF',
+    marginTop: 8,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  debugWatermarkValue: {
+    fontSize: 10,
+    color: '#FFFFFF',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginLeft: 8,
+  },
+  debugWatermarkError: {
+    color: '#FF4444',
+    fontWeight: 'bold',
+  },
 });
