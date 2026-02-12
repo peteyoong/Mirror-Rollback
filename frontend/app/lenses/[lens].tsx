@@ -322,7 +322,7 @@ export default function LensDetail() {
   
   // Render fallback when user ID is missing
   const renderMissingUserFallback = () => {
-    if (isDebug || __DEV__) {
+    if (isDebug || (typeof __DEV__ !== 'undefined' && __DEV__)) {
       console.log(`[LENS_DEBUG] Rendering fallback - reason: ${blockReason}`);
     }
     
@@ -338,7 +338,7 @@ export default function LensDetail() {
         <TouchableOpacity
           style={styles.fallbackRetryButton}
           onPress={() => {
-            if (isDebug || __DEV__) {
+            if (isDebug || (typeof __DEV__ !== 'undefined' && __DEV__)) {
               console.log('[LENS_DEBUG] Retry button pressed');
             }
             router.replace(`/lenses/${rawLens}`);
