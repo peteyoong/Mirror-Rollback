@@ -816,7 +816,7 @@ export default function EnneagramResults() {
       
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
+        <TouchableOpacity onPress={() => router.replace('/(tabs)/lenses')} style={styles.closeButton}>
           <Ionicons name="close" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Your Results</Text>
