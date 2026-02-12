@@ -3755,7 +3755,7 @@ async def create_journal_entry(entry: JournalEntryCreate):
 
 @api_router.get("/journal/{user_id}", response_model=List[JournalEntryResponse])
 async def get_journal_entries(user_id: str, limit: int = 20):
-    """Get user's journal entries"""
+    """Get user's journal entries with source annotations"""
     try:
         entries = await db.journal.find(
             {"user_id": user_id}
@@ -3766,6 +3766,8 @@ async def get_journal_entries(user_id: str, limit: int = 20):
                 id=str(entry["_id"]),
                 content=entry["content"],
                 themes=entry.get("themes", []),
+                source=entry.get("source"),
+                source_label=entry.get("source_label"),
                 created_at=entry["created_at"].isoformat()
             )
             for entry in entries
