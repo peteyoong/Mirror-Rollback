@@ -1164,4 +1164,61 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  // Debug panel styles
+  debugPanel: {
+    backgroundColor: '#000',
+    padding: 16,
+    margin: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  debugTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  debugText: {
+    color: '#ccc',
+    fontSize: 12,
+    fontFamily: 'monospace',
+    marginBottom: 4,
+  },
+  // Fallback styles
+  fallbackContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  fallbackTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  fallbackText: {
+    fontSize: 15,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  fallbackRetryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.accent,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  fallbackRetryText: {
+    color: Colors.surface,
+    fontSize: 14,
+    fontWeight: '600',
+  },
 });
