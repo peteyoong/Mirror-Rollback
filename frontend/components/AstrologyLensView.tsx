@@ -60,6 +60,19 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
   
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
+  
+  // Debug flag
+  const isDebug = typeof window !== 'undefined' && window.location?.search?.includes('debug=1');
+
+  // Expose refetch method via ref (preserves accordion/scroll state)
+  useImperativeHandle(ref, () => ({
+    refetch: () => {
+      if (isDebug || __DEV__) {
+        console.log(`[ASTRO_LENS_DEBUG] refetch() called via ref - preserving UI state`);
+      }
+      loadTabData(activeTab);
+    }
+  }), [activeTab]);
 
   useEffect(() => {
     loadTabData(activeTab);
