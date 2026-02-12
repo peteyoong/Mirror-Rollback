@@ -63,6 +63,9 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
   
   // Debug flag
   const isDebug = typeof window !== 'undefined' && window.location?.search?.includes('debug=1');
+  
+  // Stale response guard: prevent race conditions when switching tabs quickly
+  const requestIdRef = useRef(0);
 
   // Expose refetch method via ref (preserves accordion/scroll state)
   useImperativeHandle(ref, () => ({
@@ -79,6 +82,9 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
   }, [activeTab, userId]);
 
   const loadTabData = async (tab: TabType) => {
+    // Increment request ID to track this specific request
+    const requestId = ++requestIdRef.current;
+    
     setIsLoading(true);
     setError(null);
 
@@ -90,6 +96,15 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
         : `/astrology/summary/${userId}`;
 
       const response = await api.get(endpoint);
+      
+      // STALE RESPONSE GUARD: Ignore if a newer request was made
+      if (requestId !== requestIdRef.current) {
+        if (isDebug || __DEV__) {
+          console.log(`[ASTRO_LENS_DEBUG] Ignoring stale response (requestId: ${requestId})`);
+        }
+        return;
+      }
+      
       setData(response.data);
       
       // Debug: Calculate raw data length for comparison
