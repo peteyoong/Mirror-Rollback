@@ -65,10 +65,56 @@ class ParsedSection:
     
     def to_output_dict(self) -> dict:
         """Return dict for API output (excludes status if OK)"""
-        d = {"id": self.section_id, "label": self.label, "body": self.body}
+        # Deduplicate paragraphs to prevent LLM+fallback duplication
+        deduped_body = deduplicate_paragraphs(self.body)
+        d = {"id": self.section_id, "label": self.label, "body": deduped_body}
         if self.status != SectionStatus.OK:
             d["status"] = self.status.value
         return d
+
+
+def deduplicate_paragraphs(text: str) -> str:
+    """
+    Remove duplicate paragraphs from text.
+    
+    This protects against LLM output + fallback appending the same content twice.
+    
+    Args:
+        text: The text to deduplicate
+        
+    Returns:
+        Text with duplicate paragraphs removed (first occurrence kept)
+    """
+    if not text:
+        return text
+    
+    # Split into paragraphs (double newline separated)
+    paragraphs = text.split('\n\n')
+    
+    seen = set()
+    unique_paragraphs = []
+    
+    for para in paragraphs:
+        # Normalize: strip whitespace, lowercase for comparison
+        cleaned = para.strip()
+        if not cleaned:
+            continue
+        
+        # Use normalized version for duplicate detection
+        normalized = ' '.join(cleaned.lower().split())
+        
+        if normalized not in seen:
+            seen.add(normalized)
+            unique_paragraphs.append(cleaned)
+        else:
+            logger.debug(f"[DEDUPE] Removed duplicate paragraph: {cleaned[:50]}...")
+    
+    result = '\n\n'.join(unique_paragraphs)
+    
+    if len(unique_paragraphs) < len([p for p in paragraphs if p.strip()]):
+        logger.info(f"[DEDUPE] Removed {len([p for p in paragraphs if p.strip()]) - len(unique_paragraphs)} duplicate paragraphs")
+    
+    return result
 
 
 @dataclass 
