@@ -852,6 +852,16 @@ export default function EnneagramLensView({ result, userId }: Props) {
       try {
         const response = await getEnneagramNarrative(userId);
         console.log('[EnneagramLens] Narrative response:', response.success, response.sections?.length);
+        
+        // DEBUG: Capture raw type_label for debug watermark
+        if (response.type_label) {
+          setRawDeepDiveTypeLabel(response.type_label);
+          console.log(`[DEBUG_WATERMARK] Raw type_label from API: "${response.type_label}"`);
+          if (response.type_label.includes('wbalanced')) {
+            console.warn(`[DEBUG_WATERMARK] ⚠️ BUG DETECTED: type_label contains "wbalanced"!`);
+          }
+        }
+        
         if (response.success && response.sections.length > 0) {
           setNarrativeData(response);
           setNarrativeStatus('ready');
