@@ -9,10 +9,10 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors.text,
-        tabBarInactiveTintColor: Colors.textTertiary,
+        tabBarInactiveTintColor: '#666666',  // Darker inactive color for web visibility
         tabBarStyle: {
           backgroundColor: Colors.surface,
-          borderTopColor: '#CCCCCC',  // Darker border for better visibility
+          borderTopColor: '#AAAAAA',  // Darker border for better visibility
           borderTopWidth: 1,
           height: 60,
           paddingBottom: 8,
