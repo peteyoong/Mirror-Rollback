@@ -932,7 +932,12 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
       {renderUnlockModal()}
     </View>
   );
-}
+});
+
+// Set display name for debugging
+NumerologyLensView.displayName = 'NumerologyLensView';
+
+export default NumerologyLensView;
 
 const styles = StyleSheet.create({
   container: {
