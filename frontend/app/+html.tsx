@@ -3,8 +3,11 @@ import type { PropsWithChildren } from 'react';
 
 // BUILD_ID must be updated on every deploy for cache verification
 // MUST MATCH /app/frontend/utils/buildInfo.ts
-const BUILD_ID = '2026-02-12T10:30:00Z';
-const BUILD_VERSION = 'v16-stale-guard-debug';
+const BUILD_ID = '2026-02-12T11:00:00Z';
+const BUILD_VERSION = 'v17-cache-bust';
+
+// Generate a cache-bust suffix for asset URLs
+const CACHE_BUST = `?v=${BUILD_ID.replace(/[^a-zA-Z0-9]/g, '')}`;
 
 /**
  * Custom HTML document for web builds
@@ -26,6 +29,48 @@ export default function Root({ children }: PropsWithChildren) {
         {/* BUILD_ID in meta tag for verification */}
         <meta name="build-id" content={BUILD_ID} />
         <meta name="build-version" content={BUILD_VERSION} />
+        
+        {/* ============================================
+            STALE BUNDLE DETECTOR - Auto-refresh on mismatch
+            ============================================ */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            var EXPECTED_BUILD = "${BUILD_ID}";
+            var STORAGE_KEY = "mirror_last_build";
+            
+            // Check if we have a cached build ID
+            var cachedBuild = null;
+            try {
+              cachedBuild = localStorage.getItem(STORAGE_KEY);
+            } catch(e) {}
+            
+            // Store current build ID
+            try {
+              localStorage.setItem(STORAGE_KEY, EXPECTED_BUILD);
+            } catch(e) {}
+            
+            // If cached build differs and we're not already refreshing, force refresh
+            if (cachedBuild && cachedBuild !== EXPECTED_BUILD && !window.location.search.includes('refreshed=1')) {
+              console.log('[CACHE_BUST] Build mismatch detected! Cached:', cachedBuild, 'Expected:', EXPECTED_BUILD);
+              console.log('[CACHE_BUST] Forcing hard refresh...');
+              
+              // Clear any cached data
+              try {
+                if ('caches' in window) {
+                  caches.keys().then(function(names) {
+                    names.forEach(function(name) { caches.delete(name); });
+                  });
+                }
+              } catch(e) {}
+              
+              // Force reload bypassing cache
+              var separator = window.location.search ? '&' : '?';
+              window.location.href = window.location.pathname + window.location.search + separator + 'refreshed=1&t=' + Date.now();
+            } else if (cachedBuild !== EXPECTED_BUILD) {
+              console.log('[CACHE_BUST] New build detected:', EXPECTED_BUILD);
+            }
+          })();
+        `}} />
         
         {/* ============================================
             VIEWPORT - Critical for iOS PWA
