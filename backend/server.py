@@ -7644,8 +7644,8 @@ Your authority comes from having lived through things, made mistakes, and gained
             
             # Cross name context (if we have a meaningful name)
             name_context = ""
-            if cross_name and cross_name not in ["Unknown", "RAX", "LAX", "JXP"]:
-                clean_name = cross_name.replace("RAX ", "").replace("LAX ", "").replace("JXP ", "")
+            if cross_nm and cross_nm not in ["Unknown", "RAX", "LAX", "JXP"]:
+                clean_name = cross_nm.replace("RAX ", "").replace("LAX ", "").replace("JXP ", "")
                 if clean_name:
                     name_context = f"\n\nYour cross carries the name \"{clean_name}\" — a label pointing toward the territory of themes you might revisit."
             
