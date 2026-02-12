@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
+import { LensViewRef } from './HumanDesignLensView';
 
 interface AstrologySection {
   id: string;      // Stable identifier (e.g., "sun", "moon", "ascendant")
@@ -48,7 +49,7 @@ interface Props {
 
 type TabType = 'summary' | 'today' | 'deep_dive';
 
-export default function AstrologyLensView({ userId, onOpenChat }: Props) {
+const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }, ref) => {
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [data, setData] = useState<AstrologyData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
