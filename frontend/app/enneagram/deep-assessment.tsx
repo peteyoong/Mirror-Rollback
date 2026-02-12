@@ -855,7 +855,7 @@ export default function DeepAssessmentScreen() {
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.backLink}
-        onPress={() => router.back()}
+        onPress={() => router.replace('/(tabs)/lenses')}
       >
         <Text style={styles.backLinkText}>Go back</Text>
       </TouchableOpacity>
