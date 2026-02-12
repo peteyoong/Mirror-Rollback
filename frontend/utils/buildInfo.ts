@@ -13,8 +13,8 @@ import Constants from 'expo-constants';
 // ============================================
 // This timestamp is baked into the bundle at build time.
 // If you see an old BUILD_ID after deploy, the client is using a stale bundle.
-export const BUILD_ID = '2026-02-11T13:35:00Z';
-export const BUILD_VERSION = 'v15-wing-display-fix';
+export const BUILD_ID = '2026-02-12T10:30:00Z';
+export const BUILD_VERSION = 'v16-stale-guard-debug';
 
 // Log BUILD_ID immediately when this module loads
 if (typeof console !== 'undefined') {
@@ -32,6 +32,74 @@ export function getApiBaseUrl(): string {
   if (envUrl) return envUrl;
   if (constantsUrl) return constantsUrl;
   return 'http://localhost:8001';
+}
+
+// ============================================
+// Backend Health Cache (fetched once per session)
+// ============================================
+export interface BackendHealthInfo {
+  build: string;
+  env: string;
+  git_sha: string;
+  db_name: string;
+  timestamp_utc: string;
+  fetched_at: string;
+}
+
+let cachedBackendHealth: BackendHealthInfo | null = null;
+let healthFetchPromise: Promise<BackendHealthInfo | null> | null = null;
+
+export async function getBackendHealth(forceRefresh = false): Promise<BackendHealthInfo | null> {
+  // Return cached if available and not forcing refresh
+  if (cachedBackendHealth && !forceRefresh) {
+    return cachedBackendHealth;
+  }
+  
+  // If already fetching, wait for that promise
+  if (healthFetchPromise && !forceRefresh) {
+    return healthFetchPromise;
+  }
+  
+  // Fetch fresh health data
+  healthFetchPromise = (async () => {
+    try {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/api/health`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+      });
+      
+      if (!response.ok) {
+        console.warn('[BACKEND_HEALTH] Failed to fetch:', response.status);
+        return null;
+      }
+      
+      const data = await response.json();
+      cachedBackendHealth = {
+        build: data.build || 'unknown',
+        env: data.env || 'unknown',
+        git_sha: data.git_sha || 'unknown',
+        db_name: data.db_name || 'unknown',
+        timestamp_utc: data.timestamp_utc || 'unknown',
+        fetched_at: new Date().toISOString(),
+      };
+      
+      console.log('[BACKEND_HEALTH] Cached:', cachedBackendHealth);
+      return cachedBackendHealth;
+    } catch (error) {
+      console.error('[BACKEND_HEALTH] Error fetching:', error);
+      return null;
+    } finally {
+      healthFetchPromise = null;
+    }
+  })();
+  
+  return healthFetchPromise;
+}
+
+// Sync getter for cached health (returns null if not yet fetched)
+export function getCachedBackendHealth(): BackendHealthInfo | null {
+  return cachedBackendHealth;
 }
 
 // ============================================
