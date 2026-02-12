@@ -130,7 +130,7 @@ interface Props {
 
 type TabType = 'summary' | 'today' | 'deep_dive';
 
-export default function NumerologyLensView({ userId, onOpenChat }: Props) {
+const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }, ref) => {
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [data, setData] = useState<NumerologyData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -165,6 +165,19 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   
   // Debug: track if TextInput was rendered
   const [inputRendered, setInputRendered] = useState(false);
+  
+  // Debug flag
+  const isDebug = typeof window !== 'undefined' && window.location?.search?.includes('debug=1');
+
+  // Expose refetch method via ref (preserves accordion/scroll state)
+  useImperativeHandle(ref, () => ({
+    refetch: () => {
+      if (isDebug || __DEV__) {
+        console.log(`[NUMEROLOGY_LENS_DEBUG] refetch() called via ref - preserving UI state`);
+      }
+      loadTabData(activeTab);
+    }
+  }), [activeTab]);
 
   // === USER ID STABILITY CHECK using centralized utility ===
   useEffect(() => {
