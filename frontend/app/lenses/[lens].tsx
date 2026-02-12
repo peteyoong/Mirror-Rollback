@@ -278,6 +278,39 @@ export default function LensDetail() {
   // Debug flag from URL
   const isDebug = typeof window !== 'undefined' && window.location?.search?.includes('debug=1');
   
+  // =========================================================================
+  // AUTO-REFETCH: Track userId availability and trigger re-render
+  // =========================================================================
+  const prevUserIdRef = React.useRef<string | undefined>(undefined);
+  const hasAutoRecoveredRef = React.useRef(false);
+  const [forceRefreshKey, setForceRefreshKey] = React.useState(0);
+  
+  // Effect: Watch for userId becoming available after session restore
+  React.useEffect(() => {
+    const prevUserId = prevUserIdRef.current;
+    const currentUserId = user?.id;
+    
+    // Detect transition: no userId -> userId available
+    const userIdJustBecameAvailable = !prevUserId && currentUserId && hasTriedSessionRestore;
+    
+    if (userIdJustBecameAvailable && !hasAutoRecoveredRef.current) {
+      // Guard: only auto-trigger once per mount
+      hasAutoRecoveredRef.current = true;
+      
+      if (isDebug || (typeof __DEV__ !== 'undefined' && __DEV__)) {
+        console.log(`[LENS_AUTO_REFETCH] userId became available: ${currentUserId}`);
+        console.log(`[LENS_AUTO_REFETCH] Triggering auto-recovery for lens: ${lens}`);
+      }
+      
+      // Force re-render of lens views by incrementing key
+      // This causes React to unmount and remount the lens component, triggering fresh fetch
+      setForceRefreshKey(prev => prev + 1);
+    }
+    
+    // Update ref for next comparison
+    prevUserIdRef.current = currentUserId;
+  }, [user?.id, hasTriedSessionRestore, isRestoringSession, lens, isDebug]);
+  
   // Debug logging on mount
   React.useEffect(() => {
     if (isDebug || (typeof __DEV__ !== 'undefined' && __DEV__)) {
@@ -286,8 +319,9 @@ export default function LensDetail() {
       console.log(`[LENS_DEBUG] chart present: ${!!chart}`);
       console.log(`[LENS_DEBUG] isRestoringSession: ${isRestoringSession}`);
       console.log(`[LENS_DEBUG] hasTriedSessionRestore: ${hasTriedSessionRestore}`);
+      console.log(`[LENS_DEBUG] forceRefreshKey: ${forceRefreshKey}`);
     }
-  }, [lens, user, chart, isRestoringSession, hasTriedSessionRestore, isDebug]);
+  }, [lens, user, chart, isRestoringSession, hasTriedSessionRestore, isDebug, forceRefreshKey]);
   
   const lensMeta = LENS_META[lens as string] || { name: 'Lens', icon: 'help-outline' };
   const mirrorContent = MIRROR_CONTENT[lens as string]?.[activeTab === 'snapshot' ? 'summary' : activeTab] || MIRROR_CONTENT.astrology.summary;
@@ -316,6 +350,8 @@ export default function LensDetail() {
         <Text style={styles.debugText}>isRestoringSession: {isRestoringSession ? '⏳ YES' : 'No'}</Text>
         <Text style={styles.debugText}>hasTriedSessionRestore: {hasTriedSessionRestore ? '✓' : '❌'}</Text>
         <Text style={styles.debugText}>Block Reason: {blockReason || '✓ None'}</Text>
+        <Text style={styles.debugText}>Auto-recovered: {hasAutoRecoveredRef.current ? '✓' : 'No'}</Text>
+        <Text style={styles.debugText}>Refresh Key: {forceRefreshKey}</Text>
       </View>
     );
   };
@@ -341,7 +377,9 @@ export default function LensDetail() {
             if (isDebug || (typeof __DEV__ !== 'undefined' && __DEV__)) {
               console.log('[LENS_DEBUG] Retry button pressed');
             }
-            router.replace(`/lenses/${rawLens}`);
+            // Reset auto-recovery guard to allow retry
+            hasAutoRecoveredRef.current = false;
+            setForceRefreshKey(prev => prev + 1);
           }}
         >
           <Ionicons name="refresh" size={18} color={Colors.surface} />
