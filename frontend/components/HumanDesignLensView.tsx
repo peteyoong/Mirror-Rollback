@@ -427,6 +427,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   return (
     <View style={styles.container}>
+      {/* Debug Panel (only with ?debug=1) */}
+      {renderDebugPanel()}
+      
       {renderTabs()}
 
       <ScrollView
