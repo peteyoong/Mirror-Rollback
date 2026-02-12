@@ -14,7 +14,8 @@ import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 
 interface AstrologySection {
-  label: string;
+  id: string;      // Stable identifier (e.g., "sun", "moon", "ascendant")
+  label: string;   // Display label (can change without breaking expansion)
   body: string;
 }
 
