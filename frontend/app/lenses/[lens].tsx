@@ -270,13 +270,86 @@ export default function LensDetail() {
   const lens = rawLens?.replace(/-/g, '_');
   const [activeTab, setActiveTab] = useState<'summary' | 'snapshot' | 'deep_dive'>('deep_dive');
   const [chatInput, setChatInput] = useState('');
-  const { user, chart } = useAppStore();
+  const { user, chart, isRestoringSession, hasTriedSessionRestore } = useAppStore();
   
   // Lens Chat Modal state
   const [lensChatVisible, setLensChatVisible] = useState(false);
   
+  // Debug flag from URL
+  const isDebug = typeof window !== 'undefined' && window.location?.search?.includes('debug=1');
+  
+  // Debug logging on mount
+  React.useEffect(() => {
+    if (isDebug || __DEV__) {
+      console.log(`[LENS_DEBUG] Entering lens screen: ${lens}`);
+      console.log(`[LENS_DEBUG] user?.id: ${user?.id || 'MISSING'}`);
+      console.log(`[LENS_DEBUG] chart present: ${!!chart}`);
+      console.log(`[LENS_DEBUG] isRestoringSession: ${isRestoringSession}`);
+      console.log(`[LENS_DEBUG] hasTriedSessionRestore: ${hasTriedSessionRestore}`);
+    }
+  }, [lens, user, chart, isRestoringSession, hasTriedSessionRestore, isDebug]);
+  
   const lensMeta = LENS_META[lens as string] || { name: 'Lens', icon: 'help-outline' };
   const mirrorContent = MIRROR_CONTENT[lens as string]?.[activeTab === 'snapshot' ? 'summary' : activeTab] || MIRROR_CONTENT.astrology.summary;
+
+  // Determine why lens might be blank
+  const getLensBlockReason = (): string | null => {
+    if (isRestoringSession) return 'Session is restoring';
+    if (!hasTriedSessionRestore) return 'Session restore not attempted yet';
+    if (!user) return 'User object is null';
+    if (!user.id) return 'User ID is missing';
+    return null;
+  };
+  
+  const blockReason = getLensBlockReason();
+  
+  // Render debug panel (only with ?debug=1)
+  const renderDebugPanel = () => {
+    if (!isDebug) return null;
+    
+    return (
+      <View style={styles.debugPanel}>
+        <Text style={styles.debugTitle}>🔍 Lens Debug Panel</Text>
+        <Text style={styles.debugText}>Route: /lenses/{lens}</Text>
+        <Text style={styles.debugText}>User ID: {user?.id || '❌ MISSING'}</Text>
+        <Text style={styles.debugText}>Chart: {chart ? '✓' : '❌'}</Text>
+        <Text style={styles.debugText}>isRestoringSession: {isRestoringSession ? '⏳ YES' : 'No'}</Text>
+        <Text style={styles.debugText}>hasTriedSessionRestore: {hasTriedSessionRestore ? '✓' : '❌'}</Text>
+        <Text style={styles.debugText}>Block Reason: {blockReason || '✓ None'}</Text>
+      </View>
+    );
+  };
+  
+  // Render fallback when user ID is missing
+  const renderMissingUserFallback = () => {
+    if (isDebug || __DEV__) {
+      console.log(`[LENS_DEBUG] Rendering fallback - reason: ${blockReason}`);
+    }
+    
+    return (
+      <View style={styles.fallbackContainer}>
+        <Ionicons name="hourglass-outline" size={48} color={Colors.textTertiary} />
+        <Text style={styles.fallbackTitle}>Loading your profile...</Text>
+        <Text style={styles.fallbackText}>
+          {isRestoringSession 
+            ? 'Restoring your session, please wait...' 
+            : 'This lens is still loading — pull to refresh or retry.'}
+        </Text>
+        <TouchableOpacity
+          style={styles.fallbackRetryButton}
+          onPress={() => {
+            if (isDebug || __DEV__) {
+              console.log('[LENS_DEBUG] Retry button pressed');
+            }
+            router.replace(`/lenses/${rawLens}`);
+          }}
+        >
+          <Ionicons name="refresh" size={18} color={Colors.surface} />
+          <Text style={styles.fallbackRetryText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   // Get profile data based on lens type
   const getProfileData = () => {
