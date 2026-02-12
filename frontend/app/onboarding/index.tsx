@@ -63,22 +63,6 @@ export default function Onboarding() {
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSearchQueryRef = useRef<string>('');
 
-  // Handler to focus hour input
-  const handleHourPress = useCallback(() => {
-    if (DEBUG_TOUCHES) {
-      console.log('[ONBOARDING] HH pressed - focusing hour input');
-    }
-    hourInputRef.current?.focus();
-  }, []);
-
-  // Handler to focus minute input
-  const handleMinutePress = useCallback(() => {
-    if (DEBUG_TOUCHES) {
-      console.log('[ONBOARDING] MM pressed - focusing minute input');
-    }
-    minuteInputRef.current?.focus();
-  }, []);
-
   const handleSearchLocation = useCallback(async (query: string) => {
     // If we just selected a location, don't search again
     if (justSelectedRef.current) {
