@@ -363,50 +363,66 @@ export default function Onboarding() {
               </View>
 
               {/* Birth Time - Separate HH:MM with AM/PM */}
-              {/* Wrapped in Pressables to ensure taps reach the inputs on iOS */}
+              {/* Fixed: Using hitSlop and explicit touch handling for reliable input focus */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Birth Time (optional)</Text>
                 <View style={styles.timeRow}>
-                  {/* Hour input with Pressable wrapper for reliable focus */}
-                  <Pressable 
+                  {/* Hour input - TouchableOpacity wrapper ensures tap reaches TextInput */}
+                  <TouchableOpacity 
                     style={styles.timeInputContainer}
-                    onPress={handleHourPress}
+                    onPress={() => {
+                      if (DEBUG_TOUCHES) console.log('[ONBOARDING] Hour container tapped');
+                      hourInputRef.current?.focus();
+                    }}
+                    activeOpacity={1}
                   >
-                    <TextInput
-                      ref={hourInputRef}
-                      style={styles.timeInput}
-                      value={birthHour}
-                      onChangeText={(text) => setBirthHour(text.replace(/[^0-9]/g, '').slice(0, 2))}
-                      placeholder="HH"
-                      placeholderTextColor={Colors.textTertiary}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                      returnKeyType="next"
-                      onSubmitEditing={() => minuteInputRef.current?.focus()}
-                      pointerEvents="auto"
-                    />
-                    <Text style={styles.dateLabel}>Hour</Text>
-                  </Pressable>
+                    <View pointerEvents="box-none">
+                      <TextInput
+                        ref={hourInputRef}
+                        style={styles.timeInput}
+                        value={birthHour}
+                        onChangeText={(text) => setBirthHour(text.replace(/[^0-9]/g, '').slice(0, 2))}
+                        placeholder="HH"
+                        placeholderTextColor={Colors.textTertiary}
+                        keyboardType="number-pad"
+                        maxLength={2}
+                        returnKeyType="next"
+                        onSubmitEditing={() => minuteInputRef.current?.focus()}
+                        onFocus={() => {
+                          if (DEBUG_TOUCHES) console.log('[ONBOARDING] Hour input focused');
+                        }}
+                      />
+                      <Text style={styles.dateLabel}>Hour</Text>
+                    </View>
+                  </TouchableOpacity>
                   <Text style={styles.timeSeparator}>:</Text>
-                  {/* Minute input with Pressable wrapper for reliable focus */}
-                  <Pressable 
+                  {/* Minute input - TouchableOpacity wrapper ensures tap reaches TextInput */}
+                  <TouchableOpacity 
                     style={styles.timeInputContainer}
-                    onPress={handleMinutePress}
+                    onPress={() => {
+                      if (DEBUG_TOUCHES) console.log('[ONBOARDING] Minute container tapped');
+                      minuteInputRef.current?.focus();
+                    }}
+                    activeOpacity={1}
                   >
-                    <TextInput
-                      ref={minuteInputRef}
-                      style={styles.timeInput}
-                      value={birthMinute}
-                      onChangeText={(text) => setBirthMinute(text.replace(/[^0-9]/g, '').slice(0, 2))}
-                      placeholder="MM"
-                      placeholderTextColor={Colors.textTertiary}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                      returnKeyType="done"
-                      pointerEvents="auto"
-                    />
-                    <Text style={styles.dateLabel}>Min</Text>
-                  </Pressable>
+                    <View pointerEvents="box-none">
+                      <TextInput
+                        ref={minuteInputRef}
+                        style={styles.timeInput}
+                        value={birthMinute}
+                        onChangeText={(text) => setBirthMinute(text.replace(/[^0-9]/g, '').slice(0, 2))}
+                        placeholder="MM"
+                        placeholderTextColor={Colors.textTertiary}
+                        keyboardType="number-pad"
+                        maxLength={2}
+                        returnKeyType="done"
+                        onFocus={() => {
+                          if (DEBUG_TOUCHES) console.log('[ONBOARDING] Minute input focused');
+                        }}
+                      />
+                      <Text style={styles.dateLabel}>Min</Text>
+                    </View>
+                  </TouchableOpacity>
                   <View style={styles.amPmContainer}>
                     <TouchableOpacity
                       style={[styles.amPmButton, amPm === 'AM' && styles.amPmButtonActive]}
