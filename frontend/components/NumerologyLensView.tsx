@@ -168,6 +168,9 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
   
   // Debug flag
   const isDebug = typeof window !== 'undefined' && window.location?.search?.includes('debug=1');
+  
+  // Stale response guard: prevent race conditions when switching tabs quickly
+  const requestIdRef = useRef(0);
 
   // Expose refetch method via ref (preserves accordion/scroll state)
   useImperativeHandle(ref, () => ({
