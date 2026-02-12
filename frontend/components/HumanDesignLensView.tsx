@@ -139,6 +139,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       console.log(`[HD_DEBUG] ================================================`);
       
       setData(response.data);
+      setFetchStatus('success');
+      setLastUpdated(new Date().toISOString());
+      
+      if (isDebug || __DEV__) {
+        console.log(`[HD_LENS_DEBUG] Fetch SUCCESS - sections: ${response.data?.sections?.length || 0}, chars: ${totalChars}`);
+      }
       
       // Debug: Calculate raw data length for comparison
       if (isDebugEnabled() && response.data?.sections) {
@@ -148,9 +154,57 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     } catch (err: any) {
       console.error(`Human Design ${tab} error:`, err);
       setError('Unable to load this view right now.');
+      setFetchStatus('error');
+      
+      if (isDebug || __DEV__) {
+        console.log(`[HD_LENS_DEBUG] Fetch ERROR: ${err?.message || 'Unknown error'}`);
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  // Debug panel (only with ?debug=1)
+  const renderDebugPanel = () => {
+    if (!isDebug) return null;
+    
+    return (
+      <View style={styles.debugPanel}>
+        <Text style={styles.debugTitle}>🔍 Human Design Lens Debug</Text>
+        <Text style={styles.debugText}>userId: {userId}</Text>
+        <Text style={styles.debugText}>activeTab: {activeTab}</Text>
+        <Text style={styles.debugText}>fetchStatus: {fetchStatus}</Text>
+        <Text style={styles.debugText}>isLoading: {isLoading ? 'Yes' : 'No'}</Text>
+        <Text style={styles.debugText}>error: {error || 'None'}</Text>
+        <Text style={styles.debugText}>data present: {data ? '✓' : '❌'}</Text>
+        <Text style={styles.debugText}>sections: {data?.sections?.length || 0}</Text>
+        <Text style={styles.debugText}>mechanics: {data?.core_mechanics ? '✓' : '❌'}</Text>
+        <Text style={styles.debugText}>lastUpdated: {lastUpdated || 'Never'}</Text>
+      </View>
+    );
+  };
+  
+  // Fallback UI when data is missing (not loading, not error, just no data)
+  const renderEmptyFallback = () => {
+    if (isDebug || __DEV__) {
+      console.log(`[HD_LENS_DEBUG] Rendering empty fallback - data is null/undefined`);
+    }
+    
+    return (
+      <View style={styles.emptyFallbackContainer}>
+        <Ionicons name="sync-outline" size={48} color={Colors.textTertiary} />
+        <Text style={styles.emptyFallbackTitle}>Loading your Human Design...</Text>
+        <Text style={styles.emptyFallbackText}>
+          This lens is still loading — pull to refresh or tap retry.
+        </Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => loadTabData(activeTab)}
+        >
+          <Text style={styles.retryText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   const renderTabs = () => (
