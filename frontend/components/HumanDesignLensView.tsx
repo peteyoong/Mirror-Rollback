@@ -13,7 +13,8 @@ import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 
 interface HumanDesignSection {
-  label: string;
+  id: string;      // Stable identifier (e.g., "type", "strategy", "authority")
+  label: string;   // Display label (can change without breaking expansion)
   body: string;
 }
 
