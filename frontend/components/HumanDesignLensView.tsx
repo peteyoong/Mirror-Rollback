@@ -545,7 +545,12 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
       </ScrollView>
     </View>
   );
-}
+});
+
+// Set display name for debugging
+HumanDesignLensView.displayName = 'HumanDesignLensView';
+
+export default HumanDesignLensView;
 
 const styles = StyleSheet.create({
   container: {
