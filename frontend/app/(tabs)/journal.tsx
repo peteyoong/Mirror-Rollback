@@ -207,12 +207,23 @@ export default function JournalScreen() {
     setError('');
 
     try {
+      console.log('[Journal] Creating entry for user:', user.id);
       const entry = await createJournalEntry(user.id, newEntry.trim());
+      console.log('[Journal] Entry created successfully:', entry.id);
       addJournalEntry(entry);
       setNewEntry('');
     } catch (err: any) {
-      console.error('Create entry error:', err);
-      setError('Unable to save entry. Please try again.');
+      console.error('[Journal] Create entry error:', err);
+      console.error('[Journal] Error details:', err?.response?.data || err?.message);
+      
+      // More specific error messages
+      if (err?.response?.status === 404) {
+        setError('Journal service not available. Please try again later.');
+      } else if (err?.code === 'NETWORK_ERROR' || err?.message?.includes('Network')) {
+        setError('Network error. Please check your connection.');
+      } else {
+        setError('Unable to save entry. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
