@@ -297,6 +297,9 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
   }, [activeTab, userId]);
 
   const loadTabData = async (tab: TabType) => {
+    // Increment request ID to track this specific request
+    const requestId = ++requestIdRef.current;
+    
     setIsLoading(true);
     setError(null);
 
@@ -308,6 +311,15 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
         : `/numerology/summary/${userId}`;
 
       const response = await api.get(endpoint);
+      
+      // STALE RESPONSE GUARD: Ignore if a newer request was made
+      if (requestId !== requestIdRef.current) {
+        if (isDebug || __DEV__) {
+          console.log(`[NUMEROLOGY_LENS_DEBUG] Ignoring stale response (requestId: ${requestId})`);
+        }
+        return;
+      }
+      
       setData(response.data);
       
       // Debug: Calculate raw data length for comparison
@@ -320,10 +332,17 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
         console.log(`[DEBUG_MIRROR] Numerology ${tab}: API returned ${totalChars} chars across ${response.data.sections.length} sections`);
       }
     } catch (err: any) {
+      // STALE RESPONSE GUARD: Ignore errors from stale requests
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       console.error(`Numerology ${tab} error:`, err);
       setError('Unable to load this view right now.');
     } finally {
-      setIsLoading(false);
+      // Only update loading state if this is still the current request
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
