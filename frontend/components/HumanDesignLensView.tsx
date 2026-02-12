@@ -621,11 +621,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     flex: 1,
   },
+  sectionBodyContainer: {
+    // Ensure expanded content has natural height, no clipping
+    flexShrink: 0,
+  },
   sectionBody: {
     fontSize: 15,
     lineHeight: 24,
     color: Colors.text,
     marginTop: 12,
+    // Ensure text is never truncated
+    flexWrap: 'wrap',
   },
   mirrorPromptCard: {
     backgroundColor: '#FDFCFA',
