@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import axios from 'axios';
 import Constants from 'expo-constants';
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
+import { LensViewRef } from './HumanDesignLensView';
 import { 
   getStableUserId, 
   getStableUserIdSync,
