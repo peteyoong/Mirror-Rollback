@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -27,6 +27,13 @@ import {
   EnneagramDeepDiveResponse,
   EnneagramNarrativeResponse,
 } from '../services/api';
+import {
+  BUILD_ID,
+  BUILD_VERSION,
+  getApiBaseUrl,
+  getBackendHealth,
+  BackendHealthInfo,
+} from '../utils/buildInfo';
 
 // ============================================
 // DEBUG CONFIGURATION
@@ -40,11 +47,6 @@ const getUrlDebugParam = (): boolean => {
   return new URLSearchParams(window.location?.search || '').get('debug') === '1';
 };
 
-// ============================================
-// BUILD INFO (for debug stamp)
-// ============================================
-const BUILD_ID = '2026-02-11T13:35:00Z';
-const BUILD_VERSION = 'v15-wing-display-fix';
 const APP_ENV = process.env.NODE_ENV || 'unknown';
 
 // Get effective API base URL
