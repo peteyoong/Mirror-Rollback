@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -18,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../../store';
 import MirrorChat from '../../components/MirrorChat';
 import AstrologyLensView from '../../components/AstrologyLensView';
-import HumanDesignLensView from '../../components/HumanDesignLensView';
+import HumanDesignLensView, { LensViewRef } from '../../components/HumanDesignLensView';
 import NumerologyLensView from '../../components/NumerologyLensView';
 
 // Lens metadata
