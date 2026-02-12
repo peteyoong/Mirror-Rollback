@@ -1877,6 +1877,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
+        {/* Debug Watermark - only shows with ?debug=1 */}
+        {renderDebugWatermark()}
+        
         {/* Debug Wing Override Panel - only shows when DEBUG_MIRROR_ENV=true */}
         {renderDebugWingOverridePanel()}
         
