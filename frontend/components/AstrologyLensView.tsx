@@ -207,7 +207,12 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
   };
 
   const renderSection = (section: AstrologySection, index: number) => {
-    const isExpanded = expandedSection === section.label || activeTab !== 'deep_dive';
+    // For non-deep_dive tabs, always show expanded
+    // For deep_dive: expand if 'all' selected, or if this specific section is selected
+    const isExpanded = 
+      activeTab !== 'deep_dive' || 
+      expandedSection === 'all' || 
+      expandedSection === section.label;
 
     return (
       <View key={index} style={styles.sectionCard}>
@@ -215,6 +220,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           style={styles.sectionHeader}
           onPress={() => {
             if (activeTab === 'deep_dive') {
+              // Toggle: if clicking same section, collapse; otherwise expand this section
               setExpandedSection(expandedSection === section.label ? null : section.label);
             }
           }}
@@ -230,11 +236,11 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           )}
         </TouchableOpacity>
         {isExpanded && (
-          <>
+          <View style={styles.sectionBodyContainer}>
             <Text style={styles.sectionBody}>{section.body}</Text>
             {/* Debug: Show section-level metrics */}
             <SectionDebug label={section.label} body={section.body} index={index} />
-          </>
+          </View>
         )}
       </View>
     );
