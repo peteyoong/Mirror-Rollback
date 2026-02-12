@@ -7583,8 +7583,46 @@ Your early life may feel experimental. Your middle years are for stepping back a
 Your authority comes from having lived through things, made mistakes, and gained perspective. You're not here to offer untested theory. You're here to share wisdom earned through experience."""
         }
         
+        # Definition description
+        definition_desc = f"With {canonical_hd.get('definition', 'your')} definition, there's a particular way energy flows and connects within you—whether in one continuous circuit or in separate systems that connect through others. Your defined centers ({', '.join(defined_centers) if defined_centers else 'your key centers'}) represent consistent, reliable themes in your experience. Your undefined centers are where you take in and amplify the energy of others."
+        
+        # =====================================================================
+        # DETERMINE CROSS TYPE - STRUCTURED DATA ONLY (HARDENED)
+        # =====================================================================
+        cross_angle = incarnation_cross.get('angle')  # "RAX", "LAX", "JXP", or None
+        cross_angle_source = incarnation_cross.get('angle_source', 'unknown')
+        cross_name = incarnation_cross.get('name') or incarnation_cross.get('internal_label', '')
+        
+        cross_type_key = None
+        detection_method = None
+        
+        # Priority 1: Structured angle field
+        if cross_angle == "RAX":
+            cross_type_key = "Right Angle Cross"
+            detection_method = "structured_angle"
+        elif cross_angle == "LAX":
+            cross_type_key = "Left Angle Cross"
+            detection_method = "structured_angle"
+        elif cross_angle == "JXP":
+            cross_type_key = "Juxtaposition Cross"
+            detection_method = "structured_angle"
+        
+        # Priority 2: Prefix fallback
+        if cross_type_key is None and cross_angle is None and cross_name:
+            if cross_name.startswith("RAX ") or cross_name == "RAX":
+                cross_type_key = "Right Angle Cross"
+                detection_method = "prefix_fallback"
+            elif cross_name.startswith("LAX ") or cross_name == "LAX":
+                cross_type_key = "Left Angle Cross"
+                detection_method = "prefix_fallback"
+            elif cross_name.startswith("JXP ") or cross_name == "JXP":
+                cross_type_key = "Juxtaposition Cross"
+                detection_method = "prefix_fallback"
+        
+        logger.info(f"[HD_DEEP_DIVE] Cross detection: angle='{cross_angle}' name='{cross_name}' -> type='{cross_type_key}' (method={detection_method})")
+        
         # Build dynamic cross description based on cross name and angle
-        def build_cross_description(cross_type: str, cross_name: str, gates: list) -> str:
+        def build_cross_description(cross_type: str, cross_nm: str, gates: list) -> str:
             """Build a rich, non-duplicating cross description with structured content."""
             
             # Angle-specific overview
