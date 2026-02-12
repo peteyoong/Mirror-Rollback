@@ -280,7 +280,7 @@ export default function LensDetail() {
   
   // Debug logging on mount
   React.useEffect(() => {
-    if (isDebug || __DEV__) {
+    if (isDebug || (typeof __DEV__ !== 'undefined' && __DEV__)) {
       console.log(`[LENS_DEBUG] Entering lens screen: ${lens}`);
       console.log(`[LENS_DEBUG] user?.id: ${user?.id || 'MISSING'}`);
       console.log(`[LENS_DEBUG] chart present: ${!!chart}`);
