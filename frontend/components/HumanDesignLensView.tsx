@@ -75,7 +75,7 @@ interface Props {
 
 type TabType = 'summary' | 'today' | 'deep_dive';
 
-export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
+const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }, ref) => {
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [data, setData] = useState<HumanDesignData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,6 +89,16 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   
   // Debug flag
   const isDebug = typeof window !== 'undefined' && window.location?.search?.includes('debug=1');
+
+  // Expose refetch method via ref (preserves accordion/scroll state)
+  useImperativeHandle(ref, () => ({
+    refetch: () => {
+      if (isDebug || __DEV__) {
+        console.log(`[HD_LENS_DEBUG] refetch() called via ref - preserving UI state`);
+      }
+      loadTabData(activeTab);
+    }
+  }), [activeTab]);
 
   useEffect(() => {
     if (isDebug || __DEV__) {
