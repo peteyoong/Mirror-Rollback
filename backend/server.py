@@ -156,12 +156,16 @@ async def api_health():
     except Exception:
         pass
     
+    # Expected frontend BUILD_ID (must match /app/frontend/utils/buildInfo.ts)
+    expected_frontend_build = "2026-02-12T11:00:00Z"
+    
     return {
         "build": BUILD_VERSION,
         "env": BUILD_ENV,
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "git_sha": git_sha,
         "db_name": os.environ.get("DB_NAME", "unknown"),
+        "expected_frontend_build": expected_frontend_build,
     }
 
 # Note: Static file serving will be added at the END of the file, AFTER the api_router is included
