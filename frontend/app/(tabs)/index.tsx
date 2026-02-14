@@ -192,8 +192,21 @@ export default function MirrorScreen() {
       if (lastLoadedDateRef.current !== currentDate) {
         loadKeystone();
       }
+      // Fetch journal count for conditional intelligence signal
+      fetchJournalCount();
     }
   }, [user, hasTriedSessionRestore, isRestoringSession, currentDate]);
+  
+  const fetchJournalCount = async () => {
+    if (!user?.id) return;
+    try {
+      const response = await api.get(`/journal/${user.id}`);
+      setJournalCount(response.data?.length || 0);
+    } catch (err) {
+      // Silently fail - default to 0
+      setJournalCount(0);
+    }
+  };
 
   const loadKeystone = async (forceRefresh = false) => {
     if (!user?.id) return;
