@@ -181,16 +181,17 @@ export default function ReflectionChat() {
     setMessages(prev => prev.filter(m => m.role !== 'micro-prompt'));
   };
 
-  // Helper to append a system message (visible in chat)
-  const appendSystemMessage = useCallback((content: string) => {
-    const sysMsg: Message = {
+  // Helper to append a system message (visible in chat) - persist to store
+  const appendSystemMessage = useCallback(async (content: string) => {
+    if (!userId) return;
+    const sysMsg: ChatMessage = {
       id: `sys-${Date.now()}`,
       role: 'system',
       content,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
-    setMessages(prev => [...prev, sysMsg]);
-  }, []);
+    await addChatMessage(threadKey, sysMsg);
+  }, [userId, threadKey, addChatMessage]);
 
   const handleSend = async () => {
     // DEBUG: Increment send press count first (proves button fires)
@@ -207,25 +208,25 @@ export default function ReflectionChat() {
     console.log('[ReflectionChat] SEND PRESSED');
     console.log('[ReflectionChat] inputText:', inputText);
     console.log('[ReflectionChat] isLoading:', isLoading);
-    console.log('[ReflectionChat] user?.id:', user?.id);
+    console.log('[ReflectionChat] userId:', userId);
     
     // Check for bail conditions - show visible system messages
     if (!inputText.trim()) {
       console.log('[ReflectionChat] BAIL: empty text');
       updateDebugInfo({ lastBailReason: 'empty_text' });
-      appendSystemMessage('⚠️ BAIL: empty_text - Please enter a message');
+      await appendSystemMessage('⚠️ BAIL: empty_text - Please enter a message');
       return;
     }
     if (isLoading) {
       console.log('[ReflectionChat] BAIL: already loading');
       updateDebugInfo({ lastBailReason: 'already_loading' });
-      appendSystemMessage('⚠️ BAIL: already_loading - Wait for response');
+      await appendSystemMessage('⚠️ BAIL: already_loading - Wait for response');
       return;
     }
-    if (!user?.id) {
+    if (!userId) {
       console.log('[ReflectionChat] BAIL: no user id');
       updateDebugInfo({ lastBailReason: 'missing_user_id' });
-      appendSystemMessage('⚠️ BAIL: missing_user_id - Not logged in');
+      await appendSystemMessage('⚠️ BAIL: missing_user_id - Not logged in');
       return;
     }
 
