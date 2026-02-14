@@ -282,6 +282,15 @@ export default function MirrorScreen() {
       {/* Subtle header separation */}
       <View style={styles.headerDivider} />
       
+      {/* DEBUG STAMP - Visible verification panel */}
+      <View style={styles.debugStamp}>
+        <Text style={styles.debugStampTitle}>🔧 BUILD INFO</Text>
+        <Text style={styles.debugStampText}>BUILD_ID: {BUILD_ID}</Text>
+        <Text style={styles.debugStampText}>API_BASE_URL: {API_BASE_URL || '(relative)'}</Text>
+        <Text style={styles.debugStampText}>APP_HOST: {APP_HOST}</Text>
+        <Text style={styles.debugStampText}>EXPO_URL: {process.env.EXPO_PACKAGER_PROXY_URL || 'not-set'}</Text>
+      </View>
+      
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
