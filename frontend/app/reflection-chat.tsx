@@ -633,6 +633,24 @@ export default function ReflectionChat() {
             );
           })}
           
+          {/* Micro-reflection prompt - session-only, not persisted */}
+          {shouldShowMicroPrompt() && microPromptShown && !microPromptDismissed && (
+            <View style={styles.microPromptContainer}>
+              <View style={styles.microPromptCard}>
+                <Text style={styles.microPromptText}>
+                  You could pause here, or write a sentence if that feels right.
+                </Text>
+                <TouchableOpacity
+                  style={styles.microPromptDismiss}
+                  onPress={handleDismissMicroPrompt}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Text style={styles.microPromptDismissText}>Dismiss</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+          
           {isLoading && (
             <View style={[styles.messageBubble, styles.assistantBubble]}>
               <ActivityIndicator size="small" color="rgba(255,255,255,0.6)" />
