@@ -137,25 +137,51 @@ export default function ReflectionChat() {
     setMessages(prev => prev.filter(m => m.role !== 'micro-prompt'));
   };
 
+  // Helper to append a system message (visible in chat)
+  const appendSystemMessage = useCallback((content: string) => {
+    const sysMsg: Message = {
+      id: `sys-${Date.now()}`,
+      role: 'system',
+      content,
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, sysMsg]);
+  }, []);
+
   const handleSend = async () => {
-    // DEBUG: Log send attempt
+    // DEBUG: Increment send press count first (proves button fires)
+    incrementSendPressCount();
+    
+    // Update debug state immediately
+    updateDebugInfo({
+      lastSendAt: new Date().toISOString(),
+      lastBailReason: '',
+      lastError: '',
+    });
+    
     console.log('[ReflectionChat] ══════════════════════════════════');
     console.log('[ReflectionChat] SEND PRESSED');
     console.log('[ReflectionChat] inputText:', inputText);
     console.log('[ReflectionChat] isLoading:', isLoading);
     console.log('[ReflectionChat] user?.id:', user?.id);
     
-    // Only bail if text is empty
+    // Check for bail conditions - show visible system messages
     if (!inputText.trim()) {
       console.log('[ReflectionChat] BAIL: empty text');
+      updateDebugInfo({ lastBailReason: 'empty_text' });
+      appendSystemMessage('⚠️ BAIL: empty_text - Please enter a message');
       return;
     }
     if (isLoading) {
       console.log('[ReflectionChat] BAIL: already loading');
+      updateDebugInfo({ lastBailReason: 'already_loading' });
+      appendSystemMessage('⚠️ BAIL: already_loading - Wait for response');
       return;
     }
     if (!user?.id) {
       console.log('[ReflectionChat] BAIL: no user id');
+      updateDebugInfo({ lastBailReason: 'missing_user_id' });
+      appendSystemMessage('⚠️ BAIL: missing_user_id - Not logged in');
       return;
     }
 
