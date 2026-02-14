@@ -1,245 +1,90 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  TextInput,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
-import { loginUser } from '../services/api';
 
 /**
- * Welcome Page - The Psychological Orientation Layer
+ * BUILD TAG: 2026-02-14-nav-architecture-fix
  * 
- * Two options:
- * 1. Existing User Login - Enter email to restore session
- * 2. New User Registration - Begin new reflection journey
+ * Welcome Route - For "Start Fresh" scenario
+ * 
+ * This route is ONLY accessible when a user is already logged in
+ * and wants to start fresh or switch accounts.
+ * 
+ * The initial welcome gate (for unauthenticated users) is handled
+ * by WelcomeGate component in _layout.tsx.
  */
 export default function Welcome() {
   const router = useRouter();
-  const { user, setUser, setChart } = useAppStore();
-  
-  const [showLogin, setShowLogin] = useState(false);
-  const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  
-  const hasExistingSession = !!user;
-
-  const handleBeginReflection = () => {
-    router.push('/onboarding');
-  };
+  const { user, clearUser } = useAppStore();
 
   const handleContinue = () => {
+    // Go back to main app
     router.replace('/(tabs)');
   };
 
-  const handleLogin = async () => {
-    if (!email.trim()) {
-      setError('Please enter your email');
-      return;
-    }
-    
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      const result = await loginUser(email.trim());
-      
-      if (result.success && result.user) {
-        // Set user in store
-        await setUser(result.user);
-        
-        // Set chart if available
-        if (result.chart) {
-          await setChart(result.chart);
-        }
-        
-        // Navigate to main app
-        router.replace('/(tabs)');
-      }
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || 'Login failed. Please try again.';
-      setError(errorMsg);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleStartFresh = async () => {
+    // Clear user session and go to onboarding
+    await clearUser();
+    // After clearing user, _layout.tsx will show WelcomeGate
+    // which has the login/register options
   };
 
-  // If user is already logged in, show continue option
-  if (hasExistingSession) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
-        
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Project Mirror</Text>
-          </View>
-          
-          <View style={styles.messageContainer}>
-            <Text style={styles.welcomeBack}>Welcome back{user?.name ? `, ${user.name}` : ''}.</Text>
-            <Text style={styles.tagline}>Your reflection space awaits.</Text>
-          </View>
-          
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={styles.primaryButton}
-              onPress={handleContinue}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.primaryButtonText}>Continue</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.textButton}
-              onPress={handleBeginReflection}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.textButtonText}>Start Fresh</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            You don't have to do anything with what you notice.
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const handleSwitchAccount = async () => {
+    // Clear current session - WelcomeGate will show login form
+    await clearUser();
+  };
 
-  // Login form view
-  if (showLogin) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardView}
-        >
-          <View style={styles.content}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Project Mirror</Text>
-            </View>
-            
-            <View style={styles.loginContainer}>
-              <Text style={styles.loginTitle}>Welcome back</Text>
-              <Text style={styles.loginSubtitle}>
-                Enter the email you used to save your reflection space.
-              </Text>
-              
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  setError('');
-                }}
-                placeholder="your@email.com"
-                placeholderTextColor={Colors.textTertiary}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!isLoading}
-              />
-              
-              {error ? (
-                <View style={styles.errorContainer}>
-                  <Text style={styles.errorText}>{error}</Text>
-                </View>
-              ) : null}
-              
-              <TouchableOpacity 
-                style={[styles.primaryButton, isLoading && styles.buttonDisabled]}
-                onPress={handleLogin}
-                disabled={isLoading}
-                activeOpacity={0.8}
-              >
-                {isLoading ? (
-                  <ActivityIndicator size="small" color={Colors.text} />
-                ) : (
-                  <Text style={styles.primaryButtonText}>Sign In</Text>
-                )}
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.textButton}
-                onPress={() => {
-                  setShowLogin(false);
-                  setEmail('');
-                  setError('');
-                }}
-                disabled={isLoading}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.textButtonText}>Back</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    );
-  }
-
-  // Default welcome view with two options
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
       <View style={styles.content}>
-        {/* Title */}
         <View style={styles.header}>
           <Text style={styles.title}>Project Mirror</Text>
         </View>
         
-        {/* Core Message */}
         <View style={styles.messageContainer}>
-          <Text style={styles.tagline}>A space for noticing.</Text>
-          <View style={styles.permissionLines}>
-            <Text style={styles.permissionText}>Nothing to fix.</Text>
-            <Text style={styles.permissionText}>Nothing to decide.</Text>
-          </View>
+          <Text style={styles.welcomeBack}>Welcome back{user?.name ? `, ${user.name}` : ''}.</Text>
+          <Text style={styles.tagline}>Your reflection space awaits.</Text>
         </View>
         
-        {/* Two Options */}
         <View style={styles.buttonContainer}>
-          {/* New User */}
           <TouchableOpacity 
             style={styles.primaryButton}
-            onPress={handleBeginReflection}
+            onPress={handleContinue}
             activeOpacity={0.8}
           >
-            <Text style={styles.primaryButtonText}>New User</Text>
-            <Text style={styles.buttonSubtext}>Begin your reflection journey</Text>
+            <Text style={styles.primaryButtonText}>Continue</Text>
           </TouchableOpacity>
           
-          {/* Existing User */}
           <TouchableOpacity 
             style={styles.secondaryButton}
-            onPress={() => setShowLogin(true)}
+            onPress={handleStartFresh}
             activeOpacity={0.8}
           >
-            <Text style={styles.secondaryButtonText}>Existing User</Text>
-            <Text style={styles.secondaryButtonSubtext}>Sign in with email</Text>
+            <Text style={styles.secondaryButtonText}>Start Fresh</Text>
+            <Text style={styles.secondaryButtonSubtext}>Begin a new reflection journey</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.textButton}
+            onPress={handleSwitchAccount}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.textButtonText}>Switch Account</Text>
           </TouchableOpacity>
         </View>
-        
-        {/* Exit Permission */}
-        <Text style={styles.exitPermission}>You can leave at any time.</Text>
       </View>
       
-      {/* Footer Philosophy Line */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>
           You don't have to do anything with what you notice.
