@@ -249,9 +249,12 @@ export default function MirrorChat({
 
   // ===== KEYSTONE CONTINUATION AUTO-TRIGGER =====
   // When keystoneContext is provided, automatically send continuation message
+  const didTriggerKeystoneRef = useRef(false);
+  
   useEffect(() => {
     async function triggerKeystoneContinuation() {
-      if (!keystoneContext || !sessionId || hasTriggeredKeystone || isLoading || !hasHydratedMessages) return;
+      if (!keystoneContext || !sessionId || hasTriggeredKeystone || isLoading) return;
+      if (didTriggerKeystoneRef.current) return;
       
       // Check if we've already triggered for this date (once per day)
       const KEYSTONE_FOLLOWUP_KEY = 'last_keystone_followup_date';
@@ -266,6 +269,7 @@ export default function MirrorChat({
         // Continue if storage read fails
       }
       
+      didTriggerKeystoneRef.current = true;
       console.log('[MirrorChat] Triggering keystone continuation for date:', keystoneContext.date);
       setHasTriggeredKeystone(true);
       setIsLoading(true);
@@ -277,7 +281,7 @@ export default function MirrorChat({
         content: "Continue from today's reflection…",
         timestamp: new Date().toISOString(),
       };
-      await addChatMessage(THREAD_KEY, userMessage);
+      await addChatMessage(threadKey, userMessage);
       
       try {
         const response = await api.post('/mirror/chat', {
@@ -297,7 +301,7 @@ export default function MirrorChat({
           timestamp: response.data.timestamp || new Date().toISOString(),
         };
         
-        await addChatMessage(THREAD_KEY, assistantMessage);
+        await addChatMessage(threadKey, assistantMessage);
         
         if (response.data.memory_update) {
           setMemoryUpdate(response.data.memory_update);
@@ -321,16 +325,16 @@ export default function MirrorChat({
           content: "I'm here with you. What's present right now?",
           timestamp: new Date().toISOString(),
         };
-        await addChatMessage(THREAD_KEY, fallbackMessage);
+        await addChatMessage(threadKey, fallbackMessage);
       } finally {
         setIsLoading(false);
       }
     }
     
-    if (keystoneContext && sessionId && !isLoadingSession && !hasTriggeredKeystone && hasHydratedMessages) {
+    if (keystoneContext && sessionId && !isLoadingSession && !hasTriggeredKeystone) {
       triggerKeystoneContinuation();
     }
-  }, [keystoneContext, sessionId, isLoadingSession, hasTriggeredKeystone, userId, hasHydratedMessages, THREAD_KEY]);
+  }, [keystoneContext, sessionId, isLoadingSession, hasTriggeredKeystone, userId, threadKey]);
 
   const toggleMemoryExpanded = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
