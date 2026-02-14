@@ -6974,8 +6974,15 @@ def get_incarnation_cross_label(cross_string: str) -> str:
     """
     from calculations.human_design import INCARNATION_CROSS_NAMES
     
+    # Handle dict input (sometimes incarnation_cross is stored as an object)
+    if isinstance(cross_string, dict):
+        cross_string = cross_string.get('name', '') or cross_string.get('label', '') or cross_string.get('cross', '') or str(cross_string)
+    
     if not cross_string or cross_string == 'Unknown':
         return 'Unknown'
+    
+    # Ensure it's a string
+    cross_string = str(cross_string)
     
     import re
     
