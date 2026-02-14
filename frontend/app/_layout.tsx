@@ -68,17 +68,18 @@ export default function RootLayout() {
   // =========================================================================
   // STATE 2: No user - show WelcomeGate EXCLUSIVELY
   // P1 FIX: WelcomeGate is the ONLY thing rendered - no Stack, no tabs behind
+  // TOUCH FIX: No fragments or wrappers that could block touches
   // =========================================================================
   if (!user) {
     console.log('[RootLayout] No user found, showing WelcomeGate (exclusive)');
     return (
-      <>
+      <View style={{ flex: 1 }}>
         <WelcomeGate />
+        {/* These overlays must have pointerEvents="none" and are positioned absolute */}
         {Platform.OS === 'web' && <DebugViewportOverlay />}
         <BuildBadge />
-        {/* P0: DebugOverlay with pointerEvents="none" */}
         <DebugOverlay />
-      </>
+      </View>
     );
   }
 
