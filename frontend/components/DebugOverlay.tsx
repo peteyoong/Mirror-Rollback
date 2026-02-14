@@ -10,12 +10,14 @@ interface DebugOverlayProps {
  * DebugOverlay - TEMPORARY visible debug strip for preview diagnosis
  * Shows on ALL screens to help diagnose issues
  * REMOVE after debugging is complete
+ * 
+ * Position: absolute, top of screen
  */
 export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
   const reflectionChatUrl = `${API_BASE_URL}/reflection/chat`;
   
   return (
-    <View style={styles.container}>
+    <View style={styles.container} pointerEvents="none">
       <Text style={styles.title}>🔧 DEBUG</Text>
       <Text style={styles.row}>
         API_URL_MISSING: <Text style={API_URL_MISSING ? styles.error : styles.ok}>{String(API_URL_MISSING)}</Text>
@@ -37,9 +39,15 @@ export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(0,0,0,0.95)',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 9999,
+    backgroundColor: 'rgba(0,0,0,0.9)',
     paddingHorizontal: 12,
     paddingVertical: 6,
+    paddingTop: Platform.OS === 'ios' ? 50 : 30, // Account for safe area
     borderBottomWidth: 1,
     borderBottomColor: '#FF6B00',
   },
