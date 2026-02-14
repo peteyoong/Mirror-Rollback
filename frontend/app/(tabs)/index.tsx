@@ -509,10 +509,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   intelligenceSignal: {
-    fontSize: 11,
-    color: Colors.textTertiary,
-    opacity: 0.4,
-    fontStyle: 'italic',
+    ...Typography.intelligenceSignal,
   },
   // F. Reflect section
   reflectSection: {
