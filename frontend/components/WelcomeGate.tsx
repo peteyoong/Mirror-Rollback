@@ -17,19 +17,15 @@ import { Colors } from '../constants/colors';
 import { loginUser } from '../services/api';
 
 /**
- * BUILD TAG: 2026-02-14-touch-fix
+ * BUILD TAG: 2026-02-14-gesture-debug
  * 
- * WelcomeGate - The Authentication Gate Component
+ * WelcomeGate - Debug version to diagnose gesture cancellation
  * 
- * FIX: Using Pressable instead of TouchableOpacity for better web compatibility
- * FIX: Added onPressIn logging for touch debugging
- * FIX: Ensured no disabled state blocks touches
- * 
- * This component REPLACES the Stack navigator entirely when shown.
- * 
- * Two options:
- * 1. New User - Begin onboarding flow
- * 2. Existing User - Login with email
+ * CHANGES:
+ * - Full event instrumentation on New User button
+ * - didTapNewUser state to prove onPress fires
+ * - Removed pointerEvents="box-none" from content wrapper (can cancel gestures)
+ * - Using simple View wrappers instead of gesture-capturing ones
  */
 export default function WelcomeGate() {
   const router = useRouter();
@@ -39,16 +35,27 @@ export default function WelcomeGate() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // DEBUG: State to prove onPress fires
+  const [didTapNewUser, setDidTapNewUser] = useState(false);
 
   const handleBeginReflection = () => {
-    router.push('/onboarding');
+    console.log('[WELCOME] NewUser onPress - NAVIGATING to /onboarding');
+    // First set state to prove onPress fired
+    setDidTapNewUser(true);
+    // Then navigate after a brief delay to see the TAPPED text
+    setTimeout(() => {
+      router.push('/onboarding');
+    }, 500);
   };
 
   const handleShowLogin = () => {
+    console.log('[WELCOME] ExistingUser onPress');
     setShowLogin(true);
   };
 
   const handleLogin = async () => {
+    console.log('[WELCOME] SignIn onPress');
     if (!email.trim()) {
       setError('Please enter your email');
       return;
@@ -78,6 +85,7 @@ export default function WelcomeGate() {
   };
 
   const handleBack = () => {
+    console.log('[WELCOME] Back onPress');
     setShowLogin(false);
     setEmail('');
     setError('');
@@ -92,7 +100,7 @@ export default function WelcomeGate() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <View style={styles.content} pointerEvents="box-none">
+          <View style={styles.content}>
             <View style={styles.header}>
               <Text style={styles.title}>Project Mirror</Text>
             </View>
@@ -130,7 +138,10 @@ export default function WelcomeGate() {
                   isLoading && styles.buttonDisabled,
                   pressed && styles.buttonPressed,
                 ]}
+                onPressIn={() => console.log('[WELCOME] SignIn pressIn')}
+                onPressOut={() => console.log('[WELCOME] SignIn pressOut')}
                 onPress={handleLogin}
+                onLongPress={() => console.log('[WELCOME] SignIn longPress')}
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -145,7 +156,10 @@ export default function WelcomeGate() {
                   styles.textButton,
                   pressed && styles.buttonPressed,
                 ]}
+                onPressIn={() => console.log('[WELCOME] Back pressIn')}
+                onPressOut={() => console.log('[WELCOME] Back pressOut')}
                 onPress={handleBack}
+                onLongPress={() => console.log('[WELCOME] Back longPress')}
                 disabled={isLoading}
               >
                 <Text style={styles.textButtonText}>Back</Text>
@@ -158,63 +172,76 @@ export default function WelcomeGate() {
   }
 
   // Default welcome view with two options
+  // NOTE: No pointerEvents props on any wrapper - let gestures flow naturally
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
-      <View style={styles.touchableContent}>
-        <View style={styles.content} pointerEvents="box-none">
-          {/* Title */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Project Mirror</Text>
-          </View>
-          
-          {/* Core Message */}
-          <View style={styles.messageContainer}>
-            <Text style={styles.tagline}>A space for noticing.</Text>
-            <View style={styles.permissionLines}>
-              <Text style={styles.permissionText}>Nothing to fix.</Text>
-              <Text style={styles.permissionText}>Nothing to decide.</Text>
-            </View>
-          </View>
-          
-          {/* Two Options - Using Pressable for better web touch handling */}
-          <View style={styles.buttonContainer}>
-            {/* New User */}
-            <Pressable 
-              style={({ pressed }) => [
-                styles.primaryButton,
-                pressed && styles.buttonPressed,
-              ]}
-              onPress={handleBeginReflection}
-            >
-              <Text style={styles.primaryButtonText}>New User</Text>
-              <Text style={styles.buttonSubtext}>Begin your reflection journey</Text>
-            </Pressable>
-            
-            {/* Existing User */}
-            <Pressable 
-              style={({ pressed }) => [
-                styles.secondaryButton,
-                pressed && styles.buttonPressed,
-              ]}
-              onPress={handleShowLogin}
-            >
-              <Text style={styles.secondaryButtonText}>Existing User</Text>
-              <Text style={styles.secondaryButtonSubtext}>Sign in with email</Text>
-            </Pressable>
-          </View>
-          
-          {/* Exit Permission */}
-          <Text style={styles.exitPermission}>You can leave at any time.</Text>
+      {/* DEBUG: Show TAPPED indicator if onPress fired */}
+      {didTapNewUser && (
+        <View style={styles.tappedOverlay}>
+          <Text style={styles.tappedText}>✓ TAPPED - onPress FIRED!</Text>
+          <Text style={styles.tappedSubtext}>Navigating to onboarding...</Text>
+        </View>
+      )}
+      
+      <View style={styles.mainContent}>
+        {/* Title */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Project Mirror</Text>
         </View>
         
-        {/* Footer Philosophy Line */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            You don't have to do anything with what you notice.
-          </Text>
+        {/* Core Message */}
+        <View style={styles.messageContainer}>
+          <Text style={styles.tagline}>A space for noticing.</Text>
+          <View style={styles.permissionLines}>
+            <Text style={styles.permissionText}>Nothing to fix.</Text>
+            <Text style={styles.permissionText}>Nothing to decide.</Text>
+          </View>
         </View>
+        
+        {/* Two Options - Full event instrumentation */}
+        <View style={styles.buttonContainer}>
+          {/* New User - FULLY INSTRUMENTED */}
+          <Pressable 
+            style={({ pressed }) => [
+              styles.primaryButton,
+              pressed && styles.buttonPressed,
+            ]}
+            onPressIn={() => console.log('[WELCOME] NewUser pressIn')}
+            onPressOut={() => console.log('[WELCOME] NewUser pressOut')}
+            onPress={handleBeginReflection}
+            onLongPress={() => console.log('[WELCOME] NewUser longPress')}
+          >
+            <Text style={styles.primaryButtonText}>New User</Text>
+            <Text style={styles.buttonSubtext}>Begin your reflection journey</Text>
+          </Pressable>
+          
+          {/* Existing User - FULLY INSTRUMENTED */}
+          <Pressable 
+            style={({ pressed }) => [
+              styles.secondaryButton,
+              pressed && styles.buttonPressed,
+            ]}
+            onPressIn={() => console.log('[WELCOME] ExistingUser pressIn')}
+            onPressOut={() => console.log('[WELCOME] ExistingUser pressOut')}
+            onPress={handleShowLogin}
+            onLongPress={() => console.log('[WELCOME] ExistingUser longPress')}
+          >
+            <Text style={styles.secondaryButtonText}>Existing User</Text>
+            <Text style={styles.secondaryButtonSubtext}>Sign in with email</Text>
+          </Pressable>
+        </View>
+        
+        {/* Exit Permission */}
+        <Text style={styles.exitPermission}>You can leave at any time.</Text>
+      </View>
+      
+      {/* Footer Philosophy Line */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          You don't have to do anything with what you notice.
+        </Text>
       </View>
     </SafeAreaView>
   );
@@ -224,22 +251,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    width: '100%',
   },
   keyboardView: {
     flex: 1,
-    width: '100%',
   },
-  touchableContent: {
+  mainContent: {
     flex: 1,
-    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
-    width: '100%',
   },
   header: {
     marginBottom: 48,
@@ -274,6 +300,8 @@ const styles = StyleSheet.create({
     maxWidth: 300,
     gap: 16,
     marginBottom: 32,
+    // Ensure buttons are above any decorative layers
+    zIndex: 10,
   },
   primaryButton: {
     backgroundColor: Colors.surface,
@@ -318,6 +346,7 @@ const styles = StyleSheet.create({
   },
   buttonPressed: {
     opacity: 0.7,
+    transform: [{ scale: 0.98 }],
   },
   textButton: {
     paddingVertical: 12,
@@ -343,6 +372,28 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     opacity: 0.5,
     textAlign: 'center',
+  },
+  // DEBUG: TAPPED overlay
+  tappedOverlay: {
+    position: 'absolute',
+    top: 100,
+    left: 20,
+    right: 20,
+    backgroundColor: '#00FF00',
+    padding: 20,
+    borderRadius: 12,
+    zIndex: 9999,
+    alignItems: 'center',
+  },
+  tappedText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  tappedSubtext: {
+    fontSize: 14,
+    color: '#333',
+    marginTop: 4,
   },
   // Login form styles
   loginContainer: {
