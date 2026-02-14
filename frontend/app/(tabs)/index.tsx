@@ -384,13 +384,6 @@ export default function MirrorScreen() {
       >
         {/* A. Section Label */}
         <SectionLabel marginBottom={Spacing.lg}>THE MIRROR</SectionLabel>
-        
-        {/* Loading State */}
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={Colors.textTertiary} />
-          </View>
-        )}
 
         {/* B. Main Body - Primary Mirror Text (Serif, Large) - ALWAYS RENDER */}
         {isLoading ? (
