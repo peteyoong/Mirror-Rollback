@@ -18,10 +18,10 @@ import { useAppStore } from '../store';
 import { Ionicons } from '@expo/vector-icons';
 import { getApiBaseUrl, joinUrl } from '../utils/apiBase';
 import { storageGet, storageSet } from '../utils/storage';
+import { DEFAULT_THREAD_KEY, getChatStorageKey } from '../utils/chatThread';
 
-// Thread key for reflection chat
-const THREAD_KEY = 'reflection:default';
-const STORAGE_PREFIX = 'mirror_chat_messages';
+// Use shared thread key for unified persistence
+const THREAD_KEY = DEFAULT_THREAD_KEY;
 
 interface Message {
   id: string;
