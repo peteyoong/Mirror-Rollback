@@ -560,35 +560,33 @@ export default function ReflectionChat() {
             }
             
             // FIX: Normalize roles before styling - handle any role string
+            // Unknown roles MUST render as assistant (dark bubble + light text)
             const rawRole = ((message as any).role ?? (message as any).sender ?? (message as any).type ?? '').toString().toLowerCase();
-            const role =
+            const role: 'user' | 'assistant' | 'system' =
               rawRole.includes('user') ? 'user'
-              : rawRole.includes('assist') || rawRole.includes('ai') || rawRole.includes('bot') ? 'assistant'
               : rawRole.includes('system') ? 'system'
-              : 'assistant'; // safe default - render as assistant if unknown
+              : 'assistant'; // DEFAULT: Everything else is assistant (dark bubble)
             
-            // Pick styles based on normalized role
-            const bubbleStyle = 
-              role === 'user' ? styles.userBubble
-              : role === 'system' ? styles.systemBubble
-              : styles.assistantBubble;
+            // Get bubble and text styles based on role
+            const getBubbleStyle = () => {
+              if (role === 'user') return styles.userBubble;
+              if (role === 'system') return styles.systemBubble;
+              return styles.assistantBubble; // default
+            };
             
-            const textStyle =
-              role === 'user' ? styles.userText
-              : role === 'system' ? styles.systemText
-              : styles.assistantText;
+            const getTextStyle = () => {
+              if (role === 'user') return styles.userText;
+              if (role === 'system') return styles.systemText;
+              return styles.assistantText; // default
+            };
             
             return (
               <View
                 key={message.id}
-                style={[styles.messageBubble, bubbleStyle]}
+                style={[styles.messageBubble, getBubbleStyle()]}
               >
-                <Text style={[styles.messageText, textStyle]}>
+                <Text style={[styles.messageText, getTextStyle()]}>
                   {message.content}
-                </Text>
-                {/* DEBUG: High-contrast role tag - impossible to miss */}
-                <Text style={{ color: '#FFCC00', fontSize: 12, marginTop: 6, fontWeight: '700' }}>
-                  {`role=${role} raw=${rawRole}`}
                 </Text>
               </View>
             );
