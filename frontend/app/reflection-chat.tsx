@@ -312,17 +312,29 @@ export default function ReflectionChat() {
     } catch (error: any) {
       console.error('[ReflectionChat] Fetch error:', error);
       
-      const errorMsg = error.message || 'Unknown fetch error';
+      // Detect CORS/network errors specifically
+      const isCorsError = error.message?.toLowerCase().includes('cors') ||
+                         error.message?.toLowerCase().includes('network') ||
+                         error.message?.toLowerCase().includes('failed to fetch') ||
+                         error.name === 'TypeError';
+      
+      const errorMsg = isCorsError 
+        ? `Network/CORS error: ${error.message || 'Failed to fetch'}`
+        : (error.message || 'Unknown fetch error');
+      
       setDebugState(prev => ({
         ...prev,
         lastError: errorMsg,
+        lastHttpStatus: isCorsError ? -1 : null,  // -1 indicates network-level failure
       }));
       
-      // Show error in chat - NOT graceful fallback
+      // Show appropriate error in chat
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `⚠️ Fetch error: ${errorMsg}`,
+        content: isCorsError 
+          ? `⚠️ Network/CORS blocked in web preview. Check debug panel.`
+          : `⚠️ Fetch error: ${errorMsg}`,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
