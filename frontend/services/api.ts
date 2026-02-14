@@ -3,13 +3,13 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 // ============================================
-// CANONICAL API BASE URL RESOLUTION - HARDENED
+// CANONICAL API BASE URL RESOLUTION - SAFE FALLBACKS
 // ============================================
-// STRICT: API base URL must NEVER be relative
-// Must start with http:// or https://
-// NO FALLBACKS to relative paths like "/api"
+// API base URL must be absolute (http:// or https://)
+// UI renders regardless of API availability
+// Only network actions are disabled when API missing
 
-// Track if URL is missing for UI display
+// Track if URL is missing for UI display (non-blocking)
 export let API_URL_MISSING = false;
 export let API_URL_ERROR_MESSAGE = '';
 
@@ -17,69 +17,88 @@ const validateAbsoluteUrl = (url: string): boolean => {
   return url.startsWith('http://') || url.startsWith('https://');
 };
 
+// Safely derive API URL with multiple fallbacks
 export const getApiBaseUrl = (): string => {
-  // Priority 1: Explicit EXPO_PUBLIC_API_BASE_URL (MUST be absolute)
+  // Priority 1: Explicit EXPO_PUBLIC_API_BASE_URL
   const explicitApiUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
-  if (explicitApiUrl && typeof explicitApiUrl === 'string' && explicitApiUrl.length > 0) {
-    if (validateAbsoluteUrl(explicitApiUrl)) {
-      console.log('[API] ✅ Using EXPO_PUBLIC_API_BASE_URL:', explicitApiUrl);
-      return explicitApiUrl;
-    } else {
-      console.error('[API] ❌ EXPO_PUBLIC_API_BASE_URL is not absolute:', explicitApiUrl);
+  if (explicitApiUrl && typeof explicitApiUrl === 'string' && explicitApiUrl.trim().length > 0) {
+    const trimmed = explicitApiUrl.trim();
+    if (validateAbsoluteUrl(trimmed)) {
+      console.log('[API] ✅ Using EXPO_PUBLIC_API_BASE_URL:', trimmed);
+      API_URL_MISSING = false;
+      return trimmed;
     }
   }
   
-  // Priority 2: EXPO_PUBLIC_BACKEND_URL + /api (MUST be absolute)
+  // Priority 2: Derive from EXPO_PUBLIC_BACKEND_URL + /api
   const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-  if (backendUrl && typeof backendUrl === 'string' && backendUrl.length > 0) {
-    if (validateAbsoluteUrl(backendUrl)) {
-      const withApi = `${backendUrl}/api`;
-      console.log('[API] ✅ Using EXPO_PUBLIC_BACKEND_URL + /api:', withApi);
-      return withApi;
-    } else {
-      console.error('[API] ❌ EXPO_PUBLIC_BACKEND_URL is not absolute:', backendUrl);
+  if (backendUrl && typeof backendUrl === 'string' && backendUrl.trim().length > 0) {
+    const trimmed = backendUrl.trim().replace(/\/+$/, ''); // Remove trailing slashes
+    if (validateAbsoluteUrl(trimmed)) {
+      const derived = `${trimmed}/api`;
+      console.log('[API] ✅ Derived from EXPO_PUBLIC_BACKEND_URL:', derived);
+      API_URL_MISSING = false;
+      return derived;
     }
   }
   
   // Priority 3: expo-constants extra config
-  const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_BASE_URL;
-  if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
-    if (validateAbsoluteUrl(extraUrl)) {
-      console.log('[API] ✅ Using Constants extra:', extraUrl);
-      return extraUrl;
+  const extraApiUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_BASE_URL;
+  if (extraApiUrl && typeof extraApiUrl === 'string' && extraApiUrl.trim().length > 0) {
+    const trimmed = extraApiUrl.trim();
+    if (validateAbsoluteUrl(trimmed)) {
+      console.log('[API] ✅ Using Constants extra API URL:', trimmed);
+      API_URL_MISSING = false;
+      return trimmed;
     }
   }
   
-  // Priority 4: LOCAL DEVELOPMENT ONLY - localhost
+  const extraBackendUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
+  if (extraBackendUrl && typeof extraBackendUrl === 'string' && extraBackendUrl.trim().length > 0) {
+    const trimmed = extraBackendUrl.trim().replace(/\/+$/, '');
+    if (validateAbsoluteUrl(trimmed)) {
+      const derived = `${trimmed}/api`;
+      console.log('[API] ✅ Derived from Constants extra BACKEND_URL:', derived);
+      API_URL_MISSING = false;
+      return derived;
+    }
+  }
+  
+  // Priority 4: Web - derive from window.location.origin
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    const origin = window.location?.origin;
+    if (origin && origin !== 'null' && validateAbsoluteUrl(origin)) {
+      const derived = `${origin}/api`;
+      console.log('[API] ✅ Derived from window.location.origin:', derived);
+      API_URL_MISSING = false;
+      return derived;
+    }
+  }
+  
+  // Priority 5: Development localhost fallback
   if (__DEV__) {
     const localhost = 'http://localhost:8001/api';
-    console.log('[API] ⚠️ DEV MODE: Falling back to localhost:', localhost);
+    console.log('[API] ⚠️ DEV MODE: Using localhost fallback:', localhost);
+    API_URL_MISSING = false;
     return localhost;
   }
   
-  // ❌ FAIL LOUDLY - NO RELATIVE PATHS EVER
+  // ⚠️ No valid URL found - mark as missing but don't crash
   API_URL_MISSING = true;
-  API_URL_ERROR_MESSAGE = 'API_BASE_URL_MISSING: No absolute URL configured';
-  console.error('[API] ❌❌❌ FATAL: API BASE URL MISSING ❌❌❌');
-  console.error('[API] Set EXPO_PUBLIC_API_BASE_URL in .env');
+  API_URL_ERROR_MESSAGE = 'No API URL configured - some features will be disabled';
+  console.warn('[API] ⚠️ API URL not configured - UI will render, API calls disabled');
   
-  // Return error marker (will fail all requests explicitly)
-  return 'ERROR://API_BASE_URL_MISSING';
+  // Return a placeholder that will fail gracefully
+  return 'https://api-not-configured.invalid/api';
 };
 
 // Resolved once at module load
 export const API_BASE_URL = getApiBaseUrl();
 
-// Validate the resolved URL
-if (!validateAbsoluteUrl(API_BASE_URL)) {
-  API_URL_MISSING = true;
-  API_URL_ERROR_MESSAGE = `Invalid API URL: ${API_BASE_URL}`;
-}
-
 // Debug log for troubleshooting
 console.log('[API] ══════════════════════════════════');
 console.log('[API] Resolved API_BASE_URL:', API_BASE_URL);
-console.log('[API] URL Valid:', validateAbsoluteUrl(API_BASE_URL));
+console.log('[API] API_URL_MISSING:', API_URL_MISSING);
 console.log('[API] Platform:', Platform.OS);
 console.log('[API] ══════════════════════════════════');
 
