@@ -26,7 +26,7 @@ export const getApiBaseUrl = (): string => {
     if (validateAbsoluteUrl(trimmed)) {
       console.log('[API] ✅ Using EXPO_PUBLIC_API_BASE_URL:', trimmed);
       API_URL_MISSING = false;
-      return trimmed;
+      return trimmed.replace(/\/+$/, ''); // Remove trailing slashes
     }
   }
   
@@ -49,7 +49,7 @@ export const getApiBaseUrl = (): string => {
     if (validateAbsoluteUrl(trimmed)) {
       console.log('[API] ✅ Using Constants extra API URL:', trimmed);
       API_URL_MISSING = false;
-      return trimmed;
+      return trimmed.replace(/\/+$/, '');
     }
   }
   
@@ -91,6 +91,21 @@ export const getApiBaseUrl = (): string => {
   // Return a placeholder that will fail gracefully
   return 'https://api-not-configured.invalid/api';
 };
+
+// ============================================
+// URL JOINING HELPER - Prevents /api/api bugs
+// ============================================
+/**
+ * Safely join a base URL with a path
+ * - Ensures base has no trailing slash
+ * - Ensures path has leading slash
+ * - Result: `${base}${path}`
+ */
+export function joinUrl(base: string, path: string): string {
+  const cleanBase = base.replace(/\/+$/, ''); // Remove trailing slashes
+  const cleanPath = path.startsWith('/') ? path : `/${path}`; // Ensure leading slash
+  return `${cleanBase}${cleanPath}`;
+}
 
 // Resolved once at module load
 export const API_BASE_URL = getApiBaseUrl();
