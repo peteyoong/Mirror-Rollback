@@ -93,24 +93,36 @@ export default function ChatBot({ userId }: ChatBotProps) {
                 Ask me anything about your frameworks, or share what's on your mind.
               </Text>
             )}
-            {messages.map((msg, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.messageBubble,
-                  msg.role === 'user' ? styles.userBubble : styles.assistantBubble,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.messageText,
-                    msg.role === 'user' ? styles.userText : styles.assistantText,
-                  ]}
+            {messages.map((msg, index) => {
+              // Normalize role - unknown defaults to assistant
+              const rawRole = String(msg?.role ?? '').toLowerCase();
+              const role = rawRole.includes('user') ? 'user' 
+                : rawRole.includes('system') ? 'system' 
+                : 'assistant';
+              
+              const getBubbleStyle = () => {
+                if (role === 'user') return styles.userBubble;
+                if (role === 'system') return styles.systemBubble;
+                return styles.assistantBubble;
+              };
+              
+              const getTextStyle = () => {
+                if (role === 'user') return styles.userText;
+                if (role === 'system') return styles.systemText;
+                return styles.assistantText;
+              };
+              
+              return (
+                <View
+                  key={index}
+                  style={[styles.messageBubble, getBubbleStyle()]}
                 >
-                  {msg.content}
-                </Text>
-              </View>
-            ))}
+                  <Text style={[styles.messageText, getTextStyle()]}>
+                    {msg.content}
+                  </Text>
+                </View>
+              );
+            })}
             {isLoading && (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="small" color={Colors.textSecondary} />
