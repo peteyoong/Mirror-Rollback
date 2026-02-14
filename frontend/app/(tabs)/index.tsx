@@ -20,22 +20,35 @@ import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { Spacing } from '../../constants/spacing';
 import { useAppStore } from '../../store';
-import api, { API_BASE_URL } from '../../services/api';
+import api, { API_BASE_URL, API_URL_MISSING } from '../../services/api';
 import { storage } from '../../store';
 import DailyFocusCard, { DailyFocusState } from '../../components/DailyFocusCard';
 import ReflectionEntry from '../../components/ReflectionEntry';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
 import SectionLabel from '../../components/SectionLabel';
+import ApiOfflineBanner, { InlineRetry } from '../../components/ApiOfflineBanner';
 
 // =========================================
 // DEBUG CONFIG - Hidden by default
 // Only visible with ?debug=1 URL param or 5-tap gesture
 // =========================================
-const BUILD_ID = '2026-02-14-accent-v1';
+const BUILD_ID = '2026-02-14-decouple-v1';
 const APP_HOST = Platform.OS === 'web' && typeof window !== 'undefined' 
   ? window.location?.origin || 'unknown'
   : 'native-app';
 // =========================================
+
+// Default fallback content when API is unavailable
+const DEFAULT_KEYSTONE = {
+  date: new Date().toISOString().split('T')[0],
+  title: 'Today',
+  keystone: 'Take a moment to notice how you feel right now. What\'s present for you today?',
+  reflect_question: 'What would you like to bring more attention to?',
+  micro_affirmation: 'You\'re here, and that\'s enough.',
+  source_signals: { used: [], tone: 'gentle' },
+  daily_seed: 'default',
+  is_first_visit: true,
+};
 
 interface DailyKeystone {
   date: string;
