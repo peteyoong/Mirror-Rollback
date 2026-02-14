@@ -78,20 +78,17 @@ export default function ReflectionChat() {
 
   // Hydrate messages from storage
   useEffect(() => {
-    if (!userId || !storageKey) return;
+    if (!userId) return;
     if (hydratedForRef.current === userId) return;
     
     hydratedForRef.current = userId;
     
     (async () => {
       try {
-        const raw = await storageGet(storageKey);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setMessages(parsed);
-            return;
-          }
+        const loaded = await loadMessages(userId, THREAD_KEY);
+        if (loaded.length > 0) {
+          setMessages(loaded as Message[]);
+          return;
         }
       } catch (e) {
         console.error('[ReflectionChat] Hydration error:', e);
@@ -100,18 +97,18 @@ export default function ReflectionChat() {
       const intro = getOpeningMessage();
       setMessages([intro]);
     })();
-  }, [userId, storageKey, getOpeningMessage]);
+  }, [userId, getOpeningMessage]);
 
   // Persist messages (debounced)
   useEffect(() => {
-    if (!userId || !storageKey) return;
+    if (!userId) return;
     if (hydratedForRef.current !== userId) return;
     if (!messages?.length) return;
     
     clearTimeout(persistTimerRef.current);
     persistTimerRef.current = setTimeout(async () => {
       try {
-        await storageSet(storageKey, JSON.stringify(messages));
+        await saveMessages(userId, THREAD_KEY, messages as ChatMessage[]);
       } catch (e) {
         console.error('[ReflectionChat] Persist error:', e);
       }
