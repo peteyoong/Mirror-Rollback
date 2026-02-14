@@ -602,7 +602,7 @@ export default function ReflectionChat() {
         </ScrollView>
         
         {/* Input - explicitly interactive with VERY high zIndex */}
-        <View style={styles.inputContainer} pointerEvents="box-none">
+        <View style={[styles.inputContainer, { pointerEvents: 'auto' }]}>
           {/* VISUAL DEBUG: Red strip to show input area (temporary) */}
           <View 
             style={{ 
@@ -613,8 +613,8 @@ export default function ReflectionChat() {
               height: 90, 
               backgroundColor: 'rgba(255,0,0,0.08)',
               zIndex: -1,
+              pointerEvents: 'none',
             }} 
-            pointerEvents="none" 
           />
           
           <TextInput
@@ -635,8 +635,8 @@ export default function ReflectionChat() {
               }
             }}
           />
-          {/* Send button wrapper - explicit pointerEvents="auto" */}
-          <View style={styles.sendButtonWrapper} pointerEvents="auto">
+          {/* Send button wrapper - explicit style.pointerEvents for web compatibility */}
+          <View style={[styles.sendButtonWrapper, { pointerEvents: 'auto' }]}>
             <Pressable
               style={({ pressed }) => [
                 styles.sendButton,
