@@ -152,8 +152,8 @@ export default function ReflectionChat() {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
 
-    // Build the endpoint URL
-    const endpoint = `${API_BASE_URL}/api/reflection/chat`;
+    // Build the endpoint URL - API_BASE_URL already includes /api
+    const endpoint = `${API_BASE_URL}/reflection/chat`;
     
     // Build conversation history for API - ensure correct format
     // Backend expects: { role: "user"|"assistant", content: "..." }
