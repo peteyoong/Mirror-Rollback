@@ -670,8 +670,9 @@ export default function ReflectionChat() {
                 name="arrow-up" 
                 size={22} 
                 color={inputText.trim() && !isLoading ? Colors.background : Colors.textTertiary} 
-            />
-          </Pressable>
+              />
+            </Pressable>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
