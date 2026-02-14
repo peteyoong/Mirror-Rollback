@@ -73,10 +73,10 @@ const getLocalDateString = (): string => {
 };
 
 // ===== ISOLATION TEST: Incrementally enable pieces =====
-// Phase 1: Just store hooks (no effects) - if crashes, loop is in store subscription
+// Phase 1: Just store hooks (no effects) - PASSED ✓
 // Phase 2: Add useState hooks
 // Phase 3: Add useEffect hooks one by one
-const ISOLATION_PHASE = 1;  // Change to 2, 3, etc. to test more
+const ISOLATION_PHASE = 2;  // Change to 2, 3, etc. to test more
 
 export default function MirrorScreen() {
   // ===== PHASE 1: Just store hooks =====
@@ -92,6 +92,34 @@ export default function MirrorScreen() {
         <Text style={{ color: '#888', fontSize: 12, marginTop: 10 }}>Store hooks only (no effects)</Text>
         <Text style={{ color: '#666', fontSize: 10, marginTop: 5 }}>
           user: {user?.name || 'null'} | restore: {String(hasTriedSessionRestore)} | restoring: {String(isRestoringSession)}
+        </Text>
+      </View>
+    );
+  }
+
+  // ===== PHASE 2: Store hooks + useState (no useEffect) =====
+  if (ISOLATION_PHASE === 2) {
+    const user = useAppStore(s => s.user);
+    const hasTriedSessionRestore = useAppStore(s => s.hasTriedSessionRestore);
+    const isRestoringSession = useAppStore(s => s.isRestoringSession);
+    const router = useRouter();
+    
+    // All useState hooks from the original component
+    const [keystone, setKeystone] = useState<DailyKeystone | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [currentDate, setCurrentDate] = useState<string>(getLocalDateString());
+    const [debugVisible, setDebugVisible] = useState(false);
+    const [debugExpanded, setDebugExpanded] = useState(false);
+    const [journalCount, setJournalCount] = useState<number>(0);
+    const [dailyFocusState, setDailyFocusState] = useState<DailyFocusState | null>(null);
+    
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1a1a2e' }}>
+        <Text style={{ color: 'white', fontSize: 18 }}>Mirror tab - Phase 2</Text>
+        <Text style={{ color: '#888', fontSize: 12, marginTop: 10 }}>Store hooks + useState (no effects)</Text>
+        <Text style={{ color: '#666', fontSize: 10, marginTop: 5 }}>
+          user: {user?.name || 'null'} | date: {currentDate}
         </Text>
       </View>
     );
