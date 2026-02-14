@@ -138,6 +138,16 @@ export default function ReflectionChat() {
   const handleSend = async () => {
     if (!inputText.trim() || isLoading || !user?.id) return;
 
+    // Check if API URL is missing
+    if (API_URL_MISSING) {
+      setDebugState(prev => ({
+        ...prev,
+        lastError: 'API_BASE_URL_MISSING - Cannot send request',
+        lastHttpStatus: null,
+      }));
+      return;
+    }
+
     // Track user message count for micro-prompt logic
     userMessageCountRef.current += 1;
 
@@ -157,8 +167,8 @@ export default function ReflectionChat() {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
 
-    // Build the endpoint URL - API_BASE_URL already includes /api
-    const endpoint = `${API_BASE_URL}/reflection/chat`;
+    // Use the pre-computed URL
+    const endpoint = REFLECTION_CHAT_URL;
     
     // Build conversation history for API - ensure correct format
     // Backend expects: { role: "user"|"assistant", content: "..." }
@@ -177,12 +187,10 @@ export default function ReflectionChat() {
       context: params.context || null,
     };
     
-    // Update debug state before request
+    // Update debug state - clear previous results
     setDebugState(prev => ({
       ...prev,
-      endpoint,
-      lastRequestPayload: JSON.stringify(payload, null, 2),
-      lastResponseStatus: null,
+      lastHttpStatus: null,
       lastResponseText: '',
       lastParsedResponse: '',
       lastError: '',
