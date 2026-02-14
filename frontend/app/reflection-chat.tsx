@@ -187,6 +187,11 @@ export default function ReflectionChat() {
 
     // Check if API URL is missing
     if (API_URL_MISSING) {
+      updateDebugInfo({ 
+        lastBailReason: 'API_URL_MISSING',
+        lastError: 'API_BASE_URL not configured',
+      });
+      appendSystemMessage('⚠️ BAIL: API_URL_MISSING - Service not configured');
       setDebugState(prev => ({
         ...prev,
         lastError: 'API_BASE_URL_MISSING - Cannot send request',
@@ -195,18 +200,15 @@ export default function ReflectionChat() {
       return;
     }
 
-    // Track user message count for micro-prompt logic
-    userMessageCountRef.current += 1;
-
+    // OPTIMISTIC: Show user message immediately (before API call)
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
       content: inputText.trim(),
       timestamp: new Date(),
     };
-
     setMessages(prev => [...prev, userMessage]);
-    setInputText('');
+    setInputText(''); // Clear input immediately
     setIsLoading(true);
 
     // Scroll to bottom
