@@ -255,33 +255,37 @@ export default function MirrorScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       
-      {/* Compact Header: "THE MIRROR" on left, User name + chevron on right */}
-      <Pressable 
-        style={styles.header}
-        onPress={handleUserPress}
-      >
-        <Text style={styles.headerTitle}>THE MIRROR</Text>
-        <View style={styles.userCluster}>
+      {/* Compact Header with muted debug toggle */}
+      <View style={styles.header}>
+        <Pressable onPress={handleUserPress} style={styles.userCluster}>
           <Text style={styles.userName} numberOfLines={1} ellipsizeMode="tail">
             {user?.name || 'Account'}
           </Text>
           <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
-        </View>
-      </Pressable>
-      
-      {/* Subtle header separation */}
-      <View style={styles.headerDivider} />
-      
-      {/* DEBUG STAMP - Visible verification panel */}
-      <View style={styles.debugStamp}>
-        <Text style={styles.debugStampTitle}>🔧 BUILD INFO</Text>
-        <Text style={styles.debugStampText}>BUILD_ID: {BUILD_ID}</Text>
-        <Text style={styles.debugStampText}>API_BASE_URL: {API_BASE_URL || '(relative)'}</Text>
-        <Text style={styles.debugStampText}>APP_HOST: {APP_HOST}</Text>
-        <Text style={styles.debugStampText}>EXPO_URL: {process.env.EXPO_PACKAGER_PROXY_URL || 'not-set'}</Text>
+        </Pressable>
+        
+        {/* Muted Debug Toggle - top right */}
+        {DEBUG_MODE && (
+          <TouchableOpacity 
+            style={styles.debugToggle}
+            onPress={() => setDebugExpanded(!debugExpanded)}
+            activeOpacity={0.6}
+          >
+            <Text style={styles.debugToggleText}>Debug</Text>
+          </TouchableOpacity>
+        )}
       </View>
+      
+      {/* Collapsible Debug Panel - muted styling */}
+      {DEBUG_MODE && debugExpanded && (
+        <View style={styles.debugPanel}>
+          <Text style={styles.debugText}>BUILD: {BUILD_ID}</Text>
+          <Text style={styles.debugText}>API: {API_BASE_URL || '(none)'}</Text>
+          <Text style={styles.debugText}>HOST: {APP_HOST}</Text>
+        </View>
+      )}
       
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -294,17 +298,9 @@ export default function MirrorScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Daily Focus Card - Context Surfacing */}
-        <DailyFocusCard 
-          userId={user.id} 
-          onStateChange={handleFocusStateChange}
-        />
+        {/* A. Section Label */}
+        <Text style={styles.sectionLabel}>THE MIRROR</Text>
         
-        {/* Reflection Entry - Subtle entry to daily reflection */}
-        {!focusState.isLoading && (
-          <ReflectionEntry onPress={handleReflect} />
-        )}
-
         {/* Loading State */}
         {isLoading && (
           <View style={styles.loadingContainer}>
@@ -312,31 +308,45 @@ export default function MirrorScreen() {
           </View>
         )}
 
-        {/* The Daily Keystone */}
+        {/* B. Main Body - Primary Mirror Text (Serif, Large) */}
         {keystone && !isLoading && (
-          <View style={styles.keystoneContainer}>
-            {/* Title as section header */}
-            <Text style={styles.keystoneTitle}>
-              {keystone.title.toUpperCase()}
-            </Text>
-
-            {/* Main keystone text - the emotional center */}
-            <Text style={styles.keystoneText}>
+          <>
+            <Text style={styles.mainBody}>
               {keystone.keystone}
             </Text>
 
-            {/* Micro-affirmation - soft grounding line */}
-            <Text style={styles.microAffirmation}>
+            {/* C. Subtext - Supportive Line (Italic, Softer) */}
+            <Text style={styles.subtext}>
               {keystone.micro_affirmation}
             </Text>
 
-            {/* Reflective question - separate section */}
-            <View style={styles.reflectContainer}>
-              <Text style={styles.reflectLabel}>Reflect</Text>
+            {/* D. Divider - Subtle */}
+            <View style={styles.divider} />
+
+            {/* E. TODAY Section */}
+            <View style={styles.todaySection}>
+              <Text style={styles.todayLabel}>TODAY</Text>
+              <Text style={styles.intelligenceSignal}>Based on recent reflections</Text>
+            </View>
+            
+            {/* Today's Focus Card - Embedded feel */}
+            <DailyFocusCard 
+              userId={user.id} 
+              onStateChange={handleFocusStateChange}
+            />
+
+            {/* F. Reflect Prompt */}
+            <View style={styles.reflectSection}>
+              <Text style={styles.reflectLabel}>REFLECT</Text>
               <Text style={styles.reflectQuestion}>
                 {keystone.reflect_question}
               </Text>
             </View>
+            
+            {/* Reflection Entry */}
+            {!focusState.isLoading && (
+              <ReflectionEntry onPress={handleReflect} />
+            )}
 
             {/* Continue with Mirror button */}
             <TouchableOpacity
@@ -347,7 +357,15 @@ export default function MirrorScreen() {
               <Text style={styles.continueButtonText}>Continue with Mirror</Text>
               <Text style={styles.continueButtonSubtext}>Stay with this for a moment.</Text>
             </TouchableOpacity>
-          </View>
+          </>
+        )}
+
+        {/* Show Daily Focus Card when loading or no keystone */}
+        {!keystone && !isLoading && (
+          <DailyFocusCard 
+            userId={user.id} 
+            onStateChange={handleFocusStateChange}
+          />
         )}
 
         {/* Gentle footer */}
