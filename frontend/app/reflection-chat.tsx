@@ -367,6 +367,76 @@ export default function ReflectionChat() {
         <View style={styles.headerSpacer} />
       </View>
       
+      {/* Debug Panel - ON-SCREEN NETWORK TRACE */}
+      {DEBUG_MODE && (
+        <View style={styles.debugPanel}>
+          <TouchableOpacity 
+            style={styles.debugHeader}
+            onPress={() => setDebugExpanded(!debugExpanded)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.debugTitle}>🔧 DEBUG TRACE</Text>
+            <Ionicons 
+              name={debugExpanded ? "chevron-up" : "chevron-down"} 
+              size={16} 
+              color="#FF6B00" 
+            />
+          </TouchableOpacity>
+          
+          {debugExpanded && (
+            <ScrollView style={styles.debugContent} nestedScrollEnabled>
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>API_BASE_URL:</Text>
+                <Text style={styles.debugValue} selectable>{debugState.apiBaseUrl}</Text>
+              </View>
+              
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>Endpoint:</Text>
+                <Text style={styles.debugValue} selectable>{debugState.endpoint || '(not called yet)'}</Text>
+              </View>
+              
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>lastRequestPayload:</Text>
+                <Text style={styles.debugCode} selectable>{debugState.lastRequestPayload || '(none)'}</Text>
+              </View>
+              
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>lastResponseStatus:</Text>
+                <Text style={[
+                  styles.debugValue,
+                  debugState.lastResponseStatus && debugState.lastResponseStatus !== 200 && styles.debugError
+                ]}>
+                  {debugState.lastResponseStatus !== null ? debugState.lastResponseStatus : '(no request yet)'}
+                </Text>
+              </View>
+              
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>lastResponseText:</Text>
+                <Text style={styles.debugCode} selectable>
+                  {debugState.lastResponseText 
+                    ? (debugState.lastResponseText.length > 500 
+                        ? debugState.lastResponseText.slice(0, 500) + '...' 
+                        : debugState.lastResponseText)
+                    : '(none)'}
+                </Text>
+              </View>
+              
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>lastParsedResponse:</Text>
+                <Text style={styles.debugCode} selectable>{debugState.lastParsedResponse || '(none)'}</Text>
+              </View>
+              
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>lastError:</Text>
+                <Text style={[styles.debugValue, styles.debugError]} selectable>
+                  {debugState.lastError || '(none)'}
+                </Text>
+              </View>
+            </ScrollView>
+          )}
+        </View>
+      )}
+      
       {/* Messages */}
       <KeyboardAvoidingView 
         style={styles.chatContainer}
