@@ -601,20 +601,6 @@ export default function ReflectionChat() {
         
         {/* Input - explicitly interactive with VERY high zIndex */}
         <View style={[styles.inputContainer, { pointerEvents: 'auto' }]}>
-          {/* VISUAL DEBUG: Red strip to show input area (temporary) */}
-          <View 
-            style={{ 
-              position: 'absolute', 
-              left: 0, 
-              right: 0, 
-              bottom: 0, 
-              height: 90, 
-              backgroundColor: 'rgba(255,0,0,0.08)',
-              zIndex: -1,
-              pointerEvents: 'none',
-            }} 
-          />
-          
           <TextInput
             style={styles.input}
             value={inputText}
