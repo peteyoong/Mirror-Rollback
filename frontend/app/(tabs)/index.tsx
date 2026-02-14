@@ -449,29 +449,34 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  // Header - minimal with debug toggle
+  // Header - minimal with hidden debug trigger
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
     height: 48,
   },
   userCluster: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: Spacing.xxs,
   },
   userName: {
     fontSize: 14,
     color: Colors.textTertiary,
     maxWidth: 140,
   },
-  // Debug - muted, collapsed by default
+  // Debug - hidden by default
+  debugTrigger: {
+    width: 44,
+    height: 44,
+    // Invisible touch target for 5-tap reveal
+  },
   debugToggle: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: Spacing.xxs,
   },
   debugToggleText: {
     ...Typography.debugText,
@@ -481,8 +486,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.85)',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.1)',
-    paddingHorizontal: 20,
-    paddingVertical: 8,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.xs,
   },
   debugText: {
     ...Typography.debugText,
@@ -491,43 +496,43 @@ const styles = StyleSheet.create({
   // Scroll content
   scrollContent: {
     flexGrow: 1,
-    paddingTop: 8,
-    paddingHorizontal: 24,
+    paddingTop: Spacing.xs,
+    paddingHorizontal: Spacing.lg,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
+    gap: Spacing.sm,
   },
   restoringText: {
     fontSize: 14,
     color: Colors.textTertiary,
-    marginTop: 8,
+    marginTop: Spacing.xs,
   },
   loadingContainer: {
-    paddingVertical: 60,
+    paddingVertical: Spacing.xxl + Spacing.lg,
     alignItems: 'center',
   },
   // B. Main Body - Uses Typography.heroSerif
   mainBody: {
     ...Typography.heroSerif,
-    marginBottom: 20,
+    marginBottom: Spacing.lg,
   },
   // C. Subtext - Uses Typography.subtextItalic
   subtext: {
     ...Typography.subtextItalic,
-    marginBottom: 36,
+    marginBottom: Spacing.xl,
   },
   // D. Divider - subtle
   divider: {
     height: 1,
     backgroundColor: 'rgba(255,255,255,0.08)',
-    marginBottom: 28,
+    marginBottom: Spacing.lg,
   },
   // E. TODAY section
   todaySection: {
-    marginBottom: 16,
+    marginBottom: Spacing.md,
   },
   intelligenceSignal: {
     ...Typography.intelligenceSignal,
