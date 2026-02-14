@@ -637,15 +637,16 @@ export const useAppStore = create<AppState>((set, get) => ({
     } catch (error: any) {
       console.error('[SessionRestore] ✗ Failed to restore session:', error);
       // SINGLE set() for error case
-      RESTORE_SET_COUNT++;
-      console.log(`[SessionRestore] SET #${RESTORE_SET_COUNT} (error)`);
+      RESTORE_GUARD.set++;
+      RESTORE_GUARD.last = "error";
+      console.log(`[SessionRestore] SET #${RESTORE_GUARD.set} (error)`);
       set({
         sessionRestoreError: error?.message || 'Failed to restore session',
         isRestoringSession: false,
         hasTriedSessionRestore: true,
       });
-      isRestoringSession = false;
-      console.log(`[SessionRestore] FINAL: CALL_COUNT=${RESTORE_CALL_COUNT}, SET_COUNT=${RESTORE_SET_COUNT}`);
+      RESTORE_GUARD.inFlight = false;
+      console.log(`[SessionRestore] ✗ FINAL: call=${RESTORE_GUARD.call}, set=${RESTORE_GUARD.set}, last=${RESTORE_GUARD.last}`);
       return false;
     }
   },
