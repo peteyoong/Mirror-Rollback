@@ -355,7 +355,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   completeOnboarding: async () => {
-    set({ hasCompletedOnboarding: true });
+    debugSet(set, { hasCompletedOnboarding: true }, 'completeOnboarding');
     await storage.setItem('hasCompletedOnboarding', 'true');
   },
   
@@ -364,18 +364,18 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { questionnaireAnswers } = get();
     const newAnswers = [...questionnaireAnswers];
     newAnswers[index] = answer;
-    set({ questionnaireAnswers: newAnswers });
+    debugSet(set, { questionnaireAnswers: newAnswers }, 'setQuestionnaireAnswer');
     // Persist answers to local storage
     await storage.setItem('questionnaireAnswers', JSON.stringify(newAnswers));
   },
   
   completeQuestionnaire: async () => {
-    set({ questionnaireComplete: true });
+    debugSet(set, { questionnaireComplete: true }, 'completeQuestionnaire');
     await storage.setItem('questionnaireComplete', 'true');
   },
   
   clearUser: async () => {
-    set({
+    debugSet(set, {
       user: null,
       chart: null,
       dailyReflection: null,
@@ -384,7 +384,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       questionnaireAnswers: [],
       questionnaireComplete: false,
       sessionRestoreError: null,
-    });
+    }, 'clearUser');
     // Clear user data and all chat session IDs
     await storage.multiRemove([
       SESSION_USER_ID_KEY, 
