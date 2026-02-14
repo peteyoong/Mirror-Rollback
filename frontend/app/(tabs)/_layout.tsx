@@ -26,7 +26,10 @@ export default function TabLayout() {
         },
         headerTintColor: Colors.text,
         headerShadowVisible: false,
-        // REMOVED: unmountOnBlur, freezeOnBlur, lazy - use defaults
+        // CRITICAL: Prevent screens from unmounting on tab switch
+        // This preserves chat state when switching tabs
+        lazy: false,
+        unmountOnBlur: false,
       }}
     >
       {/* Use mirror-v2 as the main Mirror tab (loop-proof) */}
