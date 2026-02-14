@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { View, Text, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
@@ -10,14 +10,15 @@ import DebugOverlay from '../components/DebugOverlay';
 import WelcomeGate from '../components/WelcomeGate';
 
 /**
- * BUILD TAG: 2026-02-14-p0-p1-stability
+ * BUILD TAG: 2026-02-14-logout-fix
  * 
  * Root Layout - The Navigation Architecture Gate
  * 
- * P0/P1 FIXES:
+ * Features:
  * 1. WelcomeGate renders EXCLUSIVELY when no user - never overlays tabs
  * 2. DebugOverlay rendered ONLY here at root - not in individual screens
  * 3. Session state is deterministic via hasTriedSessionRestore flag
+ * 4. Supports reset=1 URL param for forced logout
  * 
  * Navigation Logic:
  * - STATE 1: Restoring session -> Show loading spinner
@@ -25,17 +26,30 @@ import WelcomeGate from '../components/WelcomeGate';
  * - STATE 3: User exists -> Show Stack navigator
  */
 export default function RootLayout() {
+  const params = useLocalSearchParams<{ reset?: string }>();
   const { 
     user,
     restoreSession, 
     isRestoringSession, 
-    hasTriedSessionRestore 
+    hasTriedSessionRestore,
+    resetLocalSession,
   } = useAppStore();
 
+  // Handle reset=1 URL param - clears all local data
   useEffect(() => {
-    // Trigger session restore on app start
-    console.log('[RootLayout] Starting session restore...');
-    restoreSession();
+    if (params.reset === '1') {
+      console.log('[RootLayout] reset=1 param detected - clearing local session');
+      // Reset without forcing reload (we're already in a fresh load)
+      resetLocalSession(false);
+    }
+  }, [params.reset]);
+
+  useEffect(() => {
+    // Trigger session restore on app start (unless reset=1)
+    if (params.reset !== '1') {
+      console.log('[RootLayout] Starting session restore...');
+      restoreSession();
+    }
   }, []);
 
   // =========================================================================
