@@ -15,7 +15,6 @@ import { useAppStore } from '../../store';
 import ChatBot from '../../components/ChatBot';
 import { getLenses } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
-import DebugOverlay from '../../components/DebugOverlay';
 
 interface Lens {
   name: string;
