@@ -4837,6 +4837,13 @@ async def mirror_chat(request: MirrorChatRequest):
             memory_message = UserMessage(text="Analyze the above and generate a memory_update JSON object.")
             memory_response = await memory_chat.send_message(memory_message)
             
+            # FIX: Ensure memory_response is a string
+            if isinstance(memory_response, dict):
+                # If it's a dict, extract the text content
+                memory_response = memory_response.get('content', '') or memory_response.get('text', '') or str(memory_response)
+            elif not isinstance(memory_response, str):
+                memory_response = str(memory_response)
+            
             # Parse JSON response
             import json
             import re
