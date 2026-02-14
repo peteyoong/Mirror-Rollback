@@ -545,9 +545,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   continueButtonSubtext: {
-    fontSize: 12,
-    color: Colors.textTertiary,
-    fontStyle: 'italic',
+    ...Typography.buttonSubtext,
   },
   // Footer
   footer: {
