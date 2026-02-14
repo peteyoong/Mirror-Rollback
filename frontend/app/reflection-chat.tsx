@@ -18,7 +18,7 @@ import { Colors } from '../constants/colors';
 import { useAppStore } from '../store';
 import { Ionicons } from '@expo/vector-icons';
 import { API_BASE_URL, API_URL_MISSING, API_URL_ERROR_MESSAGE, joinUrl } from '../services/api';
-import { updateDebugInfo } from '../components/DebugOverlay';
+import { updateDebugInfo, incrementSendPressCount } from '../components/DebugOverlay';
 
 // DEBUG MODE - Set to true to show network trace panel
 const DEBUG_MODE = true;
