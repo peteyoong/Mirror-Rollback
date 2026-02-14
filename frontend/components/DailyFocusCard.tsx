@@ -180,25 +180,24 @@ export default function DailyFocusCard({ userId, onStateChange }: DailyFocusCard
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
     paddingTop: 4,
     paddingBottom: 4,
   },
   loadingContainer: {
-    backgroundColor: Colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   card: {
-    backgroundColor: Colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   header: {
     flexDirection: 'row',
@@ -207,17 +206,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cardTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '500',
     color: Colors.textTertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
+    opacity: 0.7,
   },
   dismissButton: {
     padding: 4,
     marginTop: -4,
     marginRight: -4,
-    opacity: 0.5,
+    opacity: 0.4,
   },
   ambientLine: {
     fontSize: 15,
