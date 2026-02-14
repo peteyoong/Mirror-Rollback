@@ -18,28 +18,16 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
-import api from '../../services/api';
+import api, { API_BASE_URL } from '../../services/api';
 import { storage } from '../../store';
 import DailyFocusCard, { DailyFocusState } from '../../components/DailyFocusCard';
 import ReflectionEntry from '../../components/ReflectionEntry';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
-import Constants from 'expo-constants';
 
 // =========================================
-// DEBUG STAMP - Temporary for ngrok fix verification
+// DEBUG STAMP - Build verification
 // =========================================
-const BUILD_ID = '2026-02-14-ngrok-fix';
-const getApiBaseUrl = (): string => {
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    const hostname = window.location?.hostname || '';
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:8001';
-    }
-    return '';
-  }
-  return process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8001';
-};
-const API_BASE_URL = getApiBaseUrl();
+const BUILD_ID = '2026-02-14-api-fix-v2';
 const APP_HOST = Platform.OS === 'web' && typeof window !== 'undefined' 
   ? window.location?.origin || 'unknown'
   : 'native-app';
