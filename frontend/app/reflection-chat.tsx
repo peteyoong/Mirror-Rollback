@@ -711,18 +711,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   microPromptCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 18,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.10)',
     alignItems: 'center',
     maxWidth: '90%',
   },
   microPromptText: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: 'rgba(255,255,255,0.75)',
     fontStyle: 'italic',
     textAlign: 'center',
     lineHeight: 20,
@@ -734,7 +734,7 @@ const styles = StyleSheet.create({
   },
   microPromptDismissText: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: 'rgba(255,255,255,0.45)',
     textDecorationLine: 'underline',
   },
   // Error Banner styles
