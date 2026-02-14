@@ -198,8 +198,11 @@ export default function ReflectionChat() {
     }));
 
     try {
-      console.log('[ReflectionChat] Sending request to:', endpoint);
+      // Enhanced debug logging
+      console.log('[ReflectionChat] ══════════════════════════════════');
+      console.log('[ReflectionChat] FINAL URL:', endpoint);
       console.log('[ReflectionChat] Payload:', JSON.stringify(payload));
+      console.log('[ReflectionChat] credentials: omit');
       
       // FIX: Use credentials: 'omit' to avoid CORS issues with wildcard origins
       const response = await fetch(endpoint, {
@@ -213,6 +216,11 @@ export default function ReflectionChat() {
       
       const responseText = await response.text();
       
+      // Enhanced logging for debug
+      console.log('[ReflectionChat] STATUS:', response.status);
+      console.log('[ReflectionChat] RESPONSE (first 300 chars):', responseText.slice(0, 300));
+      console.log('[ReflectionChat] ══════════════════════════════════');
+      
       // Update debug state with response
       setDebugState(prev => ({
         ...prev,
@@ -223,12 +231,9 @@ export default function ReflectionChat() {
       // Also update global debug info for DebugOverlay
       updateDebugInfo({
         lastHttpStatus: response.status,
-        lastResponseText: responseText.slice(0, 600),
+        lastResponseText: responseText.slice(0, 300),
         lastError: '',
       });
-      
-      console.log('[ReflectionChat] Status:', response.status);
-      console.log('[ReflectionChat] Response text:', responseText);
       
       // Check for non-200 status
       if (!response.ok) {
