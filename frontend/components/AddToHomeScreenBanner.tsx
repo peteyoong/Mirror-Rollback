@@ -128,6 +128,8 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
     paddingBottom: 34, // Safe area for home indicator
     zIndex: 1000,
+    // FIX: Allow touches to pass through to elements below when not interacting with banner
+    // The close button still works because it's a TouchableOpacity with its own touch handling
   },
   content: {
     flexDirection: 'row',
