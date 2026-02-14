@@ -586,8 +586,8 @@ export default function ReflectionChat() {
                 <Text style={[styles.messageText, textStyle]}>
                   {message.content}
                 </Text>
-                {/* DEBUG: Role tag to verify normalization */}
-                <Text style={styles.roleDebugTag}>
+                {/* DEBUG: High-contrast role tag - impossible to miss */}
+                <Text style={{ color: '#FFCC00', fontSize: 12, marginTop: 6, fontWeight: '700' }}>
                   {`role=${role} raw=${rawRole}`}
                 </Text>
               </View>
