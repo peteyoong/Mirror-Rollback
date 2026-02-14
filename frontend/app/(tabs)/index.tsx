@@ -389,39 +389,53 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  // Header - minimal with debug toggle
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
-    height: 52,
-  },
-  headerTitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.text,
-    letterSpacing: 1.2,
+    paddingVertical: 12,
+    height: 48,
   },
   userCluster: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 4,
   },
   userName: {
     fontSize: 14,
     color: Colors.textTertiary,
     maxWidth: 140,
   },
-  headerDivider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    opacity: 0.5,
-    marginHorizontal: 20,
+  // Debug - muted, collapsed by default
+  debugToggle: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
+  debugToggleText: {
+    fontSize: 9,
+    color: 'rgba(255,255,255,0.3)',
+    letterSpacing: 0.5,
+  },
+  debugPanel: {
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  debugText: {
+    fontSize: 8,
+    color: 'rgba(255,255,255,0.4)',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginBottom: 2,
+  },
+  // Scroll content
   scrollContent: {
     flexGrow: 1,
-    paddingTop: 12,
+    paddingTop: 8,
+    paddingHorizontal: 24,
   },
   centered: {
     flex: 1,
@@ -438,45 +452,70 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
     alignItems: 'center',
   },
-  keystoneContainer: {
-    paddingVertical: 8,
-    paddingHorizontal: 20, // Add horizontal padding for content
-  },
-  keystoneTitle: {
-    fontSize: 11,
-    fontWeight: '600',
+  // A. Section Label
+  sectionLabel: {
+    fontSize: 10,
+    fontWeight: '500',
     color: Colors.textTertiary,
-    letterSpacing: 1.5,
+    letterSpacing: 2,
+    marginBottom: 28,
+    opacity: 0.6,
+  },
+  // B. Main Body - Primary text (large, serif feel)
+  mainBody: {
+    fontSize: 26,
+    lineHeight: 40,
+    color: Colors.text,
+    fontWeight: '300',
+    letterSpacing: 0.2,
     marginBottom: 20,
   },
-  keystoneText: {
-    fontSize: 20,
-    lineHeight: 34,
-    color: Colors.text,
-    fontWeight: '400',
-    letterSpacing: 0.1,
-    marginBottom: 24,
-  },
-  microAffirmation: {
+  // C. Subtext - Supportive (italic, softer)
+  subtext: {
     fontSize: 15,
     lineHeight: 24,
     color: Colors.textSecondary,
     fontStyle: 'italic',
-    marginBottom: 40,
+    marginBottom: 36,
+    opacity: 0.8,
   },
-  reflectContainer: {
-    paddingTop: 24,
-    paddingBottom: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
+  // D. Divider - subtle
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    marginBottom: 28,
   },
-  reflectLabel: {
-    fontSize: 10,
+  // E. TODAY section
+  todaySection: {
+    marginBottom: 16,
+  },
+  todayLabel: {
+    fontSize: 9,
     fontWeight: '600',
     color: Colors.textTertiary,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginBottom: 12,
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  intelligenceSignal: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    opacity: 0.4,
+    fontStyle: 'italic',
+  },
+  // F. Reflect section
+  reflectSection: {
+    paddingTop: 28,
+    paddingBottom: 20,
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+  },
+  reflectLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 1.5,
+    marginBottom: 14,
   },
   reflectQuestion: {
     fontSize: 17,
@@ -484,14 +523,15 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontWeight: '400',
   },
+  // Continue button
   continueButton: {
     marginTop: 32,
     paddingVertical: 16,
     paddingHorizontal: 20,
-    backgroundColor: Colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
   },
   continueButtonText: {
@@ -505,41 +545,18 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     fontStyle: 'italic',
   },
+  // Footer
   footer: {
     marginTop: 'auto',
-    paddingTop: 32,
+    paddingTop: 40,
     paddingBottom: 12,
-    paddingHorizontal: 20,
   },
   footerText: {
     fontSize: 11,
     color: Colors.textTertiary,
-    opacity: 0.4,
+    opacity: 0.3,
   },
   bottomSpacer: {
     height: 24,
-  },
-  // Debug Stamp styles
-  debugStamp: {
-    backgroundColor: '#1a1a1a',
-    padding: 10,
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#FF6B00',
-  },
-  debugStampTitle: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#FF6B00',
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  debugStampText: {
-    fontSize: 9,
-    color: '#00FF88',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    marginBottom: 2,
   },
 });
