@@ -200,12 +200,14 @@ export default function ReflectionChat() {
       console.log('[ReflectionChat] Sending request to:', endpoint);
       console.log('[ReflectionChat] Payload:', JSON.stringify(payload));
       
+      // FIX: Use credentials: 'omit' to avoid CORS issues with wildcard origins
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
+        credentials: 'omit',  // FIX: Required for CORS with allow_origins=*
       });
       
       const responseText = await response.text();
