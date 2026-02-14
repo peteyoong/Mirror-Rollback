@@ -654,6 +654,19 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 4,
   },
+  // Empty state - visible prompt when no messages
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyStateText: {
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: 17,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
