@@ -629,6 +629,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
       
       // SINGLE batched set() call at the end
+      RESTORE_SET_COUNT++;
+      console.log(`[SessionRestore] SET #${RESTORE_SET_COUNT} (api-restore-success)`);
       set({
         user: fetchedUser,
         chart: fetchedChart,
@@ -636,8 +638,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         isRestoringSession: false,
         hasTriedSessionRestore: true,
       });
+      isRestoringSession = false;
       
       console.log('[SessionRestore] ✓ Session restored successfully');
+      console.log(`[SessionRestore] FINAL: CALL_COUNT=${RESTORE_CALL_COUNT}, SET_COUNT=${RESTORE_SET_COUNT}`);
       return !!(fetchedUser && fetchedChart);
       
     } catch (error: any) {
