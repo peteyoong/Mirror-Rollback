@@ -4,23 +4,24 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
 
-// DEBUG: Track render count
-let ROOT_RENDER_COUNT = 0;
+// ============================================================================
+// globalThis guard survives Fast Refresh / HMR
+// ============================================================================
+const g: any = globalThis as any;
+g.__mirror_layout_guard ??= { effectRan: false, renderCount: 0 };
+const LAYOUT_GUARD = g.__mirror_layout_guard;
 
 /**
  * ROOT LAYOUT - LOOP-PROOF VERSION
  * 
  * Key safety mechanisms:
- * 1. didRestoreRef ensures restoreSession() is only called ONCE in this component
- * 2. restoreSession() in store has module-level guards
+ * 1. globalThis guard survives React StrictMode double effects and Fast Refresh
+ * 2. restoreSession() in store has globalThis guards too
  * 3. Only stable primitives are selected from store (no objects/arrays that trigger re-renders)
  */
 export default function RootLayout() {
-  ROOT_RENDER_COUNT++;
-  console.log(`[RootLayout] Render #${ROOT_RENDER_COUNT}`);
-  
-  // CRITICAL: This ref ensures we NEVER call restoreSession twice from this component
-  const didRestoreRef = useRef(false);
+  LAYOUT_GUARD.renderCount++;
+  console.log(`[RootLayout] Render #${LAYOUT_GUARD.renderCount}`);
   
   // Select ONLY stable primitives - NOT objects/arrays
   const userId = useAppStore(s => s.user?.id);
@@ -28,14 +29,14 @@ export default function RootLayout() {
   const isRestoringSession = useAppStore(s => s.isRestoringSession);
   const hasTriedSessionRestore = useAppStore(s => s.hasTriedSessionRestore);
 
-  // LOOP-PROOF: Call restoreSession ONCE with empty deps []
+  // LOOP-PROOF: Call restoreSession ONCE using globalThis guard
   useEffect(() => {
-    if (didRestoreRef.current) {
-      console.log('[RootLayout] useEffect: Already called restore, skipping');
+    if (LAYOUT_GUARD.effectRan) {
+      console.log('[RootLayout] useEffect: Already ran (globalThis guard), skipping');
       return;
     }
-    didRestoreRef.current = true;
-    console.log('[RootLayout] useEffect: Calling restoreSession (one-shot)');
+    LAYOUT_GUARD.effectRan = true;
+    console.log('[RootLayout] useEffect: Calling restoreSession (one-shot via globalThis)');
     restoreSession();
   }, []); // EMPTY DEPS - runs only on mount
 
