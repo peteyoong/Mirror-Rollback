@@ -595,8 +595,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       return false;
     }
   },
-    }
-  },
   
   // REMOVED: retrySessionRestore was bypassing the module-level guard and could cause loops.
   // For manual retry, use resetLocalSession() which does a full page reload.
