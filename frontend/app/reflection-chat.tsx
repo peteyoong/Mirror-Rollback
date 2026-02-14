@@ -759,6 +759,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
     gap: 12,
     backgroundColor: Colors.background, // Ensure solid background
+    zIndex: 1000, // FIX: Ensure input is above everything
   },
   input: {
     flex: 1,
@@ -774,12 +775,13 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44, // FIX: Larger touch target
+    height: 44,
+    borderRadius: 22,
     backgroundColor: Colors.text,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 1001, // FIX: Ensure send button is clickable
   },
   sendButtonDisabled: {
     backgroundColor: Colors.surface,
