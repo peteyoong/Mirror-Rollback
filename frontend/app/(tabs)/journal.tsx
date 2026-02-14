@@ -375,7 +375,14 @@ export default function JournalScreen() {
   if (viewMode === 'timeline') {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
+        {/* DEBUG OVERLAY - TEMPORARY */}
+        <DebugOverlay extra={{
+          viewMode,
+          isSubmitting,
+          inputEditable: !isSubmitting,
+          entryText: entryText.length,
+        }} />
         {renderModeToggle()}
         
         <View style={styles.timelineContainer}>
