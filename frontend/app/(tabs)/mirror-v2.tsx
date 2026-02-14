@@ -25,6 +25,9 @@ import { loadMessages, ChatMessage } from '../../utils/chatPersistence';
 
 const THREAD_KEY = 'mirror:home';
 
+// DEBUG: Track render count
+let MIRROR_RENDER_COUNT = 0;
+
 interface DailyKeystone {
   date: string;
   title: string;
