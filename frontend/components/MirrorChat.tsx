@@ -671,7 +671,7 @@ export default function MirrorChat({
       {/* Messages */}
       <FlatList
         ref={flatListRef}
-        data={messages}
+        data={displayMessages}
         keyExtractor={(item) => item.id}
         renderItem={renderMessage}
         contentContainerStyle={[
