@@ -392,16 +392,20 @@ export default function MirrorScreen() {
           </View>
         )}
 
-        {/* B. Main Body - Primary Mirror Text (Serif, Large) */}
-        {keystone && !isLoading && (
+        {/* B. Main Body - Primary Mirror Text (Serif, Large) - ALWAYS RENDER */}
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color={Colors.textTertiary} />
+          </View>
+        ) : (
           <>
             <Text style={styles.mainBody}>
-              {keystone.keystone}
+              {displayKeystone.keystone}
             </Text>
 
             {/* C. Subtext - Supportive Line (Italic, Softer) */}
             <Text style={styles.subtext}>
-              {keystone.micro_affirmation}
+              {displayKeystone.micro_affirmation}
             </Text>
 
             {/* D. Divider - Subtle */}
@@ -423,7 +427,7 @@ export default function MirrorScreen() {
             <View style={styles.reflectSection}>
               <SectionLabel marginBottom={14}>REFLECT</SectionLabel>
               <Text style={styles.reflectQuestion}>
-                {keystone.reflect_question}
+                {displayKeystone.reflect_question}
               </Text>
             </View>
             
@@ -437,19 +441,12 @@ export default function MirrorScreen() {
               style={styles.continueButton}
               onPress={handleContinueWithMirror}
               activeOpacity={0.7}
+              disabled={API_URL_MISSING}
             >
               <Text style={styles.continueButtonText}>Continue with Mirror</Text>
               <Text style={styles.continueButtonSubtext}>Stay with this for a moment.</Text>
             </TouchableOpacity>
           </>
-        )}
-
-        {/* Show Daily Focus Card when loading or no keystone */}
-        {!keystone && !isLoading && (
-          <DailyFocusCard 
-            userId={user.id} 
-            onStateChange={handleFocusStateChange}
-          />
         )}
 
         {/* Gentle footer */}
