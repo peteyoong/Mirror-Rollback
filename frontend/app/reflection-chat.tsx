@@ -602,7 +602,7 @@ export default function ReflectionChat() {
         </ScrollView>
         
         {/* Input - explicitly interactive with VERY high zIndex */}
-        <View style={styles.inputContainer} pointerEvents="auto">
+        <View style={styles.inputContainer} pointerEvents="box-none">
           {/* VISUAL DEBUG: Red strip to show input area (temporary) */}
           <View 
             style={{ 
@@ -635,40 +635,41 @@ export default function ReflectionChat() {
               }
             }}
           />
-          {/* Send button - multiple event handlers to diagnose touch issues */}
-          <Pressable
-            style={({ pressed }) => [
-              styles.sendButton,
-              (!inputText.trim() || isLoading) && styles.sendButtonDisabled,
-              pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
-            ]}
-            onPress={() => {
-              console.log('[ReflectionChat] ════════════════════════════');
-              console.log('[ReflectionChat] onPress FIRED!');
-              handleSend();
-            }}
-            onPressIn={() => {
-              console.log('[ReflectionChat] onPressIn FIRED!');
-              incrementSendPressCount();
-            }}
-            // Web-specific handlers
-            {...(Platform.OS === 'web' ? {
-              onPointerDown: () => {
-                console.log('[ReflectionChat] onPointerDown FIRED!');
+          {/* Send button wrapper - explicit pointerEvents="auto" */}
+          <View style={styles.sendButtonWrapper} pointerEvents="auto">
+            <Pressable
+              style={({ pressed }) => [
+                styles.sendButton,
+                (!inputText.trim() || isLoading) && styles.sendButtonDisabled,
+                pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+              ]}
+              onPress={() => {
+                console.log('[ReflectionChat] ════════════════════════════');
+                console.log('[ReflectionChat] onPress FIRED!');
+                handleSend();
+              }}
+              onPressIn={() => {
+                console.log('[ReflectionChat] onPressIn FIRED!');
                 incrementSendPressCount();
-              },
-              onTouchStart: () => {
-                console.log('[ReflectionChat] onTouchStart FIRED!');
-                incrementSendPressCount();
-              },
-            } : {})}
-            disabled={!inputText.trim() || isLoading}
-            hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
-          >
-            <Ionicons 
-              name="arrow-up" 
-              size={22} 
-              color={inputText.trim() && !isLoading ? Colors.background : Colors.textTertiary} 
+              }}
+              // Web-specific handlers
+              {...(Platform.OS === 'web' ? {
+                onPointerDown: () => {
+                  console.log('[ReflectionChat] onPointerDown FIRED!');
+                  incrementSendPressCount();
+                },
+                onTouchStart: () => {
+                  console.log('[ReflectionChat] onTouchStart FIRED!');
+                  incrementSendPressCount();
+                },
+              } : {})}
+              disabled={!inputText.trim() || isLoading}
+              hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+            >
+              <Ionicons 
+                name="arrow-up" 
+                size={22} 
+                color={inputText.trim() && !isLoading ? Colors.background : Colors.textTertiary} 
             />
           </Pressable>
         </View>
