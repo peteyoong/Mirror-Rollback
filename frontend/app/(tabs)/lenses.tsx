@@ -15,6 +15,7 @@ import { useAppStore } from '../../store';
 import ChatBot from '../../components/ChatBot';
 import { getLenses } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
+import DebugOverlay from '../../components/DebugOverlay';
 
 interface Lens {
   name: string;
@@ -32,11 +33,44 @@ const LENS_KEYS: { [key: string]: string } = {
   'Enneagram': 'enneagram',
 };
 
+// STATIC FALLBACK LENSES - Always render even if API fails
+const STATIC_LENSES: Lens[] = [
+  {
+    name: 'Enneagram',
+    description: 'A map of nine personality patterns and their interconnections.',
+    helps_with: 'Understanding core motivations and growth paths',
+    does_not: 'Define or limit who you can become',
+    icon: '🔷',
+  },
+  {
+    name: 'Human Design',
+    description: 'A synthesis of ancient wisdom and modern science for self-understanding.',
+    helps_with: 'Discovering your natural energy patterns and decision-making style',
+    does_not: 'Predict your future or dictate your choices',
+    icon: '⬡',
+  },
+  {
+    name: 'True Sidereal Astrology',
+    description: 'Celestial positions at birth as a lens for self-reflection.',
+    helps_with: 'Exploring archetypal themes and cycles in your life',
+    does_not: 'Determine your fate or limit your potential',
+    icon: '✦',
+  },
+  {
+    name: 'Numerology',
+    description: 'Patterns in numbers as a framework for understanding life themes.',
+    helps_with: 'Reflecting on personal cycles and life path themes',
+    does_not: 'Predict specific events or outcomes',
+    icon: '𝟙',
+  },
+];
+
 export default function LensesScreen() {
   const { user } = useAppStore();
   const router = useRouter();
-  const [lenses, setLenses] = useState<Lens[]>([]);
+  const [lenses, setLenses] = useState<Lens[]>(STATIC_LENSES); // Start with static
   const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     loadLenses();
@@ -44,11 +78,17 @@ export default function LensesScreen() {
 
   const loadLenses = async () => {
     setIsLoading(true);
+    setFetchError(null);
     try {
       const data = await getLenses();
-      setLenses(data.lenses);
-    } catch (err) {
+      if (data?.lenses?.length > 0) {
+        setLenses(data.lenses);
+      }
+      // If API returns empty, keep static lenses
+    } catch (err: any) {
       console.error('Load lenses error:', err);
+      setFetchError(err?.message || 'Failed to load');
+      // Keep static lenses on error
     } finally {
       setIsLoading(false);
     }
@@ -64,20 +104,21 @@ export default function LensesScreen() {
     }
   };
 
-  if (!user) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>No user found</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  // ALWAYS RENDER - even without user
+  const displayLenses = lenses.length > 0 ? lenses : STATIC_LENSES;
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
+      
+      {/* DEBUG OVERLAY - TEMPORARY */}
+      <DebugOverlay extra={{ 
+        lensCount: displayLenses.length,
+        isLoading,
+        fetchError: fetchError || 'none',
+        hasUser: !!user,
+      }} />
+      
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
@@ -88,45 +129,44 @@ export default function LensesScreen() {
           </Text>
         </View>
 
-        {/* Loading State */}
-        {isLoading ? (
-          <View style={styles.centered}>
-            <ActivityIndicator size="large" color={Colors.textSecondary} />
-          </View>
-        ) : (
-          <View style={styles.lensesContainer}>
-            {lenses.map((lens, index) => (
-              <View key={index} style={styles.lensCard}>
-                <Text style={styles.lensName}>{lens.name}</Text>
-                <Text style={styles.lensDescription}>{lens.description}</Text>
-                
-                <View style={styles.infoSection}>
-                  <View style={styles.infoRow}>
-                    <Ionicons name="checkmark-circle-outline" size={16} color={Colors.textSecondary} />
-                    <Text style={styles.infoLabel}>Helps with:</Text>
-                  </View>
-                  <Text style={styles.infoText}>{lens.helps_with}</Text>
+        {/* ALWAYS RENDER LENS CARDS - Loading indicator is overlay only */}
+        <View style={styles.lensesContainer}>
+          {isLoading && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="small" color={Colors.textSecondary} />
+            </View>
+          )}
+          {displayLenses.map((lens, index) => (
+            <View key={index} style={styles.lensCard}>
+              <Text style={styles.lensName}>{lens.name}</Text>
+              <Text style={styles.lensDescription}>{lens.description}</Text>
+              
+              <View style={styles.infoSection}>
+                <View style={styles.infoRow}>
+                  <Ionicons name="checkmark-circle-outline" size={16} color={Colors.textSecondary} />
+                  <Text style={styles.infoLabel}>Helps with:</Text>
                 </View>
-
-                <View style={styles.infoSection}>
-                  <View style={styles.infoRow}>
-                    <Ionicons name="close-circle-outline" size={16} color={Colors.textTertiary} />
-                    <Text style={styles.infoLabel}>Does not:</Text>
-                  </View>
-                  <Text style={styles.infoText}>{lens.does_not}</Text>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.viewButton}
-                  onPress={() => handleViewSummary(lens.name)}
-                >
-                  <Text style={styles.viewButtonText}>View Summary</Text>
-                  <Ionicons name="arrow-forward" size={16} color={Colors.background} />
-                </TouchableOpacity>
+                <Text style={styles.infoText}>{lens.helps_with}</Text>
               </View>
-            ))}
-          </View>
-        )}
+
+              <View style={styles.infoSection}>
+                <View style={styles.infoRow}>
+                  <Ionicons name="close-circle-outline" size={16} color={Colors.textTertiary} />
+                  <Text style={styles.infoLabel}>Does not:</Text>
+                </View>
+                <Text style={styles.infoText}>{lens.does_not}</Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.viewButton}
+                onPress={() => handleViewSummary(lens.name)}
+              >
+                <Text style={styles.viewButtonText}>View Summary</Text>
+                <Ionicons name="arrow-forward" size={16} color={Colors.background} />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
 
         {/* Footer Note */}
         <View style={styles.footer}>
@@ -139,8 +179,8 @@ export default function LensesScreen() {
         <View style={styles.spacer} />
       </ScrollView>
 
-      {/* Persistent Chatbot */}
-      <ChatBot userId={user.id} />
+      {/* Persistent Chatbot - only if user exists */}
+      {user && <ChatBot userId={user.id} />}
     </SafeAreaView>
   );
 }
