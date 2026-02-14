@@ -162,12 +162,7 @@ export default function WelcomeGate() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
-      {/* Touch tracer - logs when screen receives touch */}
-      <Pressable 
-        style={styles.touchableContent}
-        onPressIn={() => console.log('[WELCOME] screen pressIn')}
-        pointerEvents="box-none"
-      >
+      <View style={styles.touchableContent}>
         <View style={styles.content} pointerEvents="box-none">
           {/* Title */}
           <View style={styles.header}>
@@ -191,7 +186,6 @@ export default function WelcomeGate() {
                 styles.primaryButton,
                 pressed && styles.buttonPressed,
               ]}
-              onPressIn={() => console.log('[WELCOME] New User pressIn')}
               onPress={handleBeginReflection}
             >
               <Text style={styles.primaryButtonText}>New User</Text>
@@ -204,7 +198,6 @@ export default function WelcomeGate() {
                 styles.secondaryButton,
                 pressed && styles.buttonPressed,
               ]}
-              onPressIn={() => console.log('[WELCOME] Existing User pressIn')}
               onPress={handleShowLogin}
             >
               <Text style={styles.secondaryButtonText}>Existing User</Text>
@@ -222,7 +215,7 @@ export default function WelcomeGate() {
             You don't have to do anything with what you notice.
           </Text>
         </View>
-      </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
