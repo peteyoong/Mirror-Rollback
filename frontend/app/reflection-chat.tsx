@@ -15,13 +15,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '../constants/colors';
-import { useAppStore } from '../store';
+import { useAppStore, ChatMessage } from '../store';
 import { Ionicons } from '@expo/vector-icons';
 import { API_BASE_URL, API_URL_MISSING, API_URL_ERROR_MESSAGE, joinUrl } from '../services/api';
 import { updateDebugInfo, incrementSendPressCount } from '../components/DebugOverlay';
 
 // DEBUG MODE - Set to true to show network trace panel
 const DEBUG_MODE = true;
+
+// Thread key for reflection chat
+const REFLECTION_THREAD_KEY = 'reflection:default';
 
 // Pre-compute debug URLs using joinUrl helper
 const REFLECTION_CHAT_URL = joinUrl(API_BASE_URL, '/reflection/chat');
