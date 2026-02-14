@@ -474,55 +474,25 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   // Session restore: fetch user/chart from API using persisted userId
-  // LOOP-PROOF: Uses module-level guards + instrumentation
+  // SIMPLE APPROACH: module-level flag, no globalThis hacks
   restoreSession: async () => {
-    // =========================================================================
-    // INSTRUMENTATION: Count calls to detect loops (uses globalThis)
-    // =========================================================================
-    RESTORE_GUARD.call++;
-    const callNum = RESTORE_GUARD.call;
-    console.log(`[SessionRestore] ▶ CALL #${callNum}`);
-    
-    // =========================================================================
-    // CRITICAL GUARD 1: One-shot guard (survives HMR via globalThis)
-    // =========================================================================
-    if (RESTORE_GUARD.did) {
-      console.log(`[SessionRestore] ⛔ Already executed (did=${RESTORE_GUARD.did}), skipping...`);
+    // Guard: Only run once per app lifecycle
+    if (_sessionRestoreStarted) {
+      console.log('[SessionRestore] Already started, skipping');
       return false;
     }
-    
-    // =========================================================================
-    // CRITICAL GUARD 2: In-flight guard (prevents concurrent calls)
-    // =========================================================================
-    if (RESTORE_GUARD.inFlight) {
-      console.log(`[SessionRestore] ⛔ Already in progress (inFlight=${RESTORE_GUARD.inFlight}), skipping...`);
-      return false;
-    }
-    
-    // Set guards IMMEDIATELY, BEFORE any async work
-    RESTORE_GUARD.did = true;
-    RESTORE_GUARD.inFlight = true;
-    RESTORE_GUARD.last = "started";
+    _sessionRestoreStarted = true;
     
     const { user, chart } = get();
     
     // If already have user and chart, just mark as tried
     if (user && chart) {
-      console.log('[SessionRestore] ✓ Already have user and chart, marking complete');
-      RESTORE_GUARD.set++;
-      RESTORE_GUARD.last = "already-loaded";
-      console.log(`[SessionRestore] SET #${RESTORE_GUARD.set} (already-loaded)`);
+      console.log('[SessionRestore] Already have user and chart');
       set({ hasTriedSessionRestore: true, isRestoringSession: false });
-      RESTORE_GUARD.inFlight = false;
       return true;
     }
     
-    console.log('[SessionRestore] ▶ Starting async restore...');
-    
-    // Single set() to start - batched state update
-    RESTORE_GUARD.set++;
-    RESTORE_GUARD.last = "start-loading";
-    console.log(`[SessionRestore] SET #${RESTORE_GUARD.set} (start-loading)`);
+    console.log('[SessionRestore] Starting...');
     set({ isRestoringSession: true, sessionRestoreError: null });
     
     try {
@@ -549,11 +519,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       
       // If we have stored data, use it directly (no API calls needed)
       if (restoredUser && restoredChart) {
-        console.log('[SessionRestore] ✓ Restored from local storage');
-        // SINGLE batched set() call
-        RESTORE_GUARD.set++;
-        RESTORE_GUARD.last = "local-restore-success";
-        console.log(`[SessionRestore] SET #${RESTORE_GUARD.set} (local-restore-success)`);
+        console.log('[SessionRestore] Restored from local storage');
         set({
           user: restoredUser,
           chart: restoredChart,
@@ -561,27 +527,20 @@ export const useAppStore = create<AppState>((set, get) => ({
           isRestoringSession: false,
           hasTriedSessionRestore: true,
         });
-        RESTORE_GUARD.inFlight = false;
-        console.log(`[SessionRestore] ✓ FINAL: call=${RESTORE_GUARD.call}, set=${RESTORE_GUARD.set}, last=${RESTORE_GUARD.last}`);
         return true;
       }
       
       // No stored data = new user, don't try to restore
       const storedUserId = await storage.getItem(SESSION_USER_ID_KEY);
       if (!storedUserId && !storedUser) {
-        console.log('[SessionRestore] ✓ No stored user data - new user flow');
-        RESTORE_GUARD.set++;
-        RESTORE_GUARD.last = "new-user";
-        console.log(`[SessionRestore] SET #${RESTORE_GUARD.set} (new-user)`);
+        console.log('[SessionRestore] No stored user - new user flow');
         set({ isRestoringSession: false, hasTriedSessionRestore: true });
-        RESTORE_GUARD.inFlight = false;
-        console.log(`[SessionRestore] ✓ FINAL: call=${RESTORE_GUARD.call}, set=${RESTORE_GUARD.set}, last=${RESTORE_GUARD.last}`);
         return false;
       }
       
       // Try to fetch from API using stable user ID
       const userId = await getStableUserId();
-      console.log('[SessionRestore] Using stable userId:', maskUserId(userId));
+      console.log('[SessionRestore] Fetching from API for userId:', maskUserId(userId));
       
       // Fetch user and chart in parallel
       let fetchedUser: User | null = null;
@@ -615,10 +574,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         await storage.setItem('hasCompletedOnboarding', 'true');
       }
       
-      // SINGLE batched set() call at the end
-      RESTORE_GUARD.set++;
-      RESTORE_GUARD.last = "api-restore-success";
-      console.log(`[SessionRestore] SET #${RESTORE_GUARD.set} (api-restore-success)`);
       set({
         user: fetchedUser,
         chart: fetchedChart,
@@ -626,26 +581,20 @@ export const useAppStore = create<AppState>((set, get) => ({
         isRestoringSession: false,
         hasTriedSessionRestore: true,
       });
-      RESTORE_GUARD.inFlight = false;
       
-      console.log('[SessionRestore] ✓ Session restored successfully');
-      console.log(`[SessionRestore] ✓ FINAL: call=${RESTORE_GUARD.call}, set=${RESTORE_GUARD.set}, last=${RESTORE_GUARD.last}`);
+      console.log('[SessionRestore] Complete');
       return !!(fetchedUser && fetchedChart);
       
     } catch (error: any) {
-      console.error('[SessionRestore] ✗ Failed to restore session:', error);
-      // SINGLE set() for error case
-      RESTORE_GUARD.set++;
-      RESTORE_GUARD.last = "error";
-      console.log(`[SessionRestore] SET #${RESTORE_GUARD.set} (error)`);
+      console.error('[SessionRestore] Failed:', error);
       set({
         sessionRestoreError: error?.message || 'Failed to restore session',
         isRestoringSession: false,
         hasTriedSessionRestore: true,
       });
-      RESTORE_GUARD.inFlight = false;
-      console.log(`[SessionRestore] ✗ FINAL: call=${RESTORE_GUARD.call}, set=${RESTORE_GUARD.set}, last=${RESTORE_GUARD.last}`);
       return false;
+    }
+  },
     }
   },
   
