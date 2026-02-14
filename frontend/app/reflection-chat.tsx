@@ -91,6 +91,18 @@ export default function ReflectionChat() {
   const [microPromptShown, setMicroPromptShown] = useState(false);
   const [microPromptDismissed, setMicroPromptDismissed] = useState(false);
   const userMessageCountRef = useRef(0);
+  
+  // Debug state for network trace
+  const [debugExpanded, setDebugExpanded] = useState(true);
+  const [debugState, setDebugState] = useState<DebugState>({
+    apiBaseUrl: API_BASE_URL || '(relative - web)',
+    endpoint: '',
+    lastRequestPayload: '',
+    lastResponseStatus: null,
+    lastResponseText: '',
+    lastParsedResponse: '',
+    lastError: '',
+  });
 
   // Generate pre-seeded opening message based on state
   const getOpeningMessage = useCallback((): string => {
