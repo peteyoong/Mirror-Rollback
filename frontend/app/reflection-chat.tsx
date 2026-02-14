@@ -243,10 +243,17 @@ export default function ReflectionChat() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="light" />
       
+      {/* DEBUG BANNER (temporary) */}
+      <View style={styles.debugBanner}>
+        <Text style={styles.debugText}>
+          hydrated={hydrated ? 'true' : 'false'} | msgs={messages.length} | key={storageKey?.slice(-20) || 'null'}
+        </Text>
+      </View>
+      
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color={Colors.textPrimary} />
+          <Ionicons name="chevron-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <View style={styles.headerText}>
           <Text style={styles.headerTitle}>Reflection</Text>
