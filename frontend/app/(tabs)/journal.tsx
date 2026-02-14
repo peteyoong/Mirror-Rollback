@@ -749,7 +749,7 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   timelineRow: {
-    backgroundColor: '#FDFCFA',
+    backgroundColor: Colors.surface,
     borderRadius: 14,
     padding: 14,
     marginBottom: 10,
