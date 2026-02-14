@@ -136,6 +136,7 @@ interface AppState {
   addJournalEntry: (entry: JournalEntry) => void;
   completeOnboarding: () => Promise<void>;
   clearUser: () => Promise<void>;
+  resetLocalSession: (forceReload?: boolean) => Promise<void>;  // NEW: Full session reset
   loadPersistedData: () => Promise<void>;
   
   // Questionnaire actions
