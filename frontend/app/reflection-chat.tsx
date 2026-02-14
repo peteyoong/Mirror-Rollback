@@ -121,11 +121,11 @@ export default function ReflectionChat() {
   useFocusEffect(
     useCallback(() => {
       return () => {
-        if (userId && storageKey && messagesRef.current?.length) {
-          storageSet(storageKey, JSON.stringify(messagesRef.current));
+        if (userId && messagesRef.current?.length) {
+          saveMessages(userId, THREAD_KEY, messagesRef.current as ChatMessage[]);
         }
       };
-    }, [userId, storageKey])
+    }, [userId])
   );
 
   useEffect(() => {
