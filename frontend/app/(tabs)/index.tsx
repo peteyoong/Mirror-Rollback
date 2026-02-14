@@ -332,10 +332,18 @@ export default function MirrorScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="light" />
       
+      {/* DEBUG OVERLAY - TEMPORARY ALWAYS VISIBLE */}
+      <DebugOverlay extra={{
+        hasUser: !!user,
+        isLoading,
+        hasKeystone: !!keystone,
+        BUILD_ID,
+      }} />
+      
       {/* API Offline Banner - non-blocking */}
       <ApiOfflineBanner onRetry={() => loadKeystone(true)} />
       
-      {/* Compact Header - tap 5 times to reveal debug */}
+      {/* Compact Header */}
       <View style={styles.header}>
         <Pressable onPress={handleUserPress} style={styles.userCluster}>
           <Text style={styles.userName} numberOfLines={1} ellipsizeMode="tail">
@@ -343,26 +351,7 @@ export default function MirrorScreen() {
           </Text>
           <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
         </Pressable>
-        
-        {/* Hidden debug trigger - 5-tap area or visible toggle if debug mode is on */}
-        {debugVisible ? (
-          <TouchableOpacity 
-            style={styles.debugToggle}
-            onPress={() => setDebugExpanded(!debugExpanded)}
-            activeOpacity={0.6}
-          >
-            <Text style={styles.debugToggleText}>Debug</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity 
-            style={styles.debugTrigger}
-            onPress={handleDebugTap}
-            activeOpacity={1}
-          />
-        )}
       </View>
-      
-      {/* Collapsible Debug Panel - only visible when unlocked */}
       {debugVisible && debugExpanded && (
         <View style={styles.debugPanel}>
           <Text style={styles.debugText}>BUILD: {BUILD_ID}</Text>
