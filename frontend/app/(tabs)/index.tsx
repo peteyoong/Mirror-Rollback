@@ -23,6 +23,27 @@ import { storage } from '../../store';
 import DailyFocusCard, { DailyFocusState } from '../../components/DailyFocusCard';
 import ReflectionEntry from '../../components/ReflectionEntry';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
+import Constants from 'expo-constants';
+
+// =========================================
+// DEBUG STAMP - Temporary for ngrok fix verification
+// =========================================
+const BUILD_ID = '2026-02-14-ngrok-fix';
+const getApiBaseUrl = (): string => {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    const hostname = window.location?.hostname || '';
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:8001';
+    }
+    return '';
+  }
+  return process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8001';
+};
+const API_BASE_URL = getApiBaseUrl();
+const APP_HOST = Platform.OS === 'web' && typeof window !== 'undefined' 
+  ? window.location?.origin || 'unknown'
+  : 'native-app';
+// =========================================
 
 interface DailyKeystone {
   date: string;
