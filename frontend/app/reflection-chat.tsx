@@ -601,8 +601,8 @@ export default function ReflectionChat() {
           )}
         </ScrollView>
         
-        {/* Input */}
-        <View style={styles.inputContainer}>
+        {/* Input - explicitly interactive with high zIndex */}
+        <View style={styles.inputContainer} pointerEvents="auto">
           <TextInput
             style={styles.input}
             value={inputText}
@@ -621,22 +621,24 @@ export default function ReflectionChat() {
               }
             }}
           />
-          {/* Use Pressable for better web compatibility */}
+          {/* Send button - force interactive with pointerEvents="auto" */}
           <Pressable
             style={({ pressed }) => [
               styles.sendButton,
               (!inputText.trim() || isLoading) && styles.sendButtonDisabled,
-              pressed && { opacity: 0.7 },
+              pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
             ]}
             onPress={() => {
-              console.log('[ReflectionChat] Send button Pressable onPress triggered');
+              console.log('[ReflectionChat] ════════════════════════════');
+              console.log('[ReflectionChat] SEND BUTTON PRESSED!');
               handleSend();
             }}
             disabled={!inputText.trim() || isLoading}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
             <Ionicons 
               name="arrow-up" 
-              size={20} 
+              size={22} 
               color={inputText.trim() && !isLoading ? Colors.background : Colors.textTertiary} 
             />
           </Pressable>
