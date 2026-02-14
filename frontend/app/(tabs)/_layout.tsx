@@ -2,11 +2,12 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
-import SessionRestoreWrapper from '../../components/SessionRestoreWrapper';
+
+// REMOVED SessionRestoreWrapper - session is already restored in root _layout.tsx
+// Having it here caused duplicate restoreSession() calls and potential loops
 
 export default function TabLayout() {
   return (
-    <SessionRestoreWrapper>
     <Tabs
       screenOptions={{
         // Active tab uses subtle accent color (muted brass)
@@ -25,10 +26,7 @@ export default function TabLayout() {
         },
         headerTintColor: Colors.text,
         headerShadowVisible: false,
-        // FIX: Prevent unmount/freeze on tab switch to preserve chat history
-        unmountOnBlur: false,
-        freezeOnBlur: false,
-        lazy: false,
+        // REMOVED: unmountOnBlur, freezeOnBlur, lazy - use defaults
       }}
     >
       {/* Use mirror-v2 as the main Mirror tab (loop-proof) */}
@@ -77,6 +75,5 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
-    </SessionRestoreWrapper>
   );
 }
