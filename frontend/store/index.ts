@@ -4,6 +4,11 @@ import { Platform } from 'react-native';
 import { getChart, getUser } from '../services/api';
 import { getStableUserId, assertUserIdStable, maskUserId } from '../utils/stableUserId';
 
+// ============================================================================
+// LOOP-PROOF GUARDS (Module-level - prevents re-execution)
+// ============================================================================
+let didRestoreSession = false;  // Ensures restoreSession runs only ONCE per app lifecycle
+
 // Storage key for session persistence (legacy - now using MIRROR_USER_ID via stableUserId)
 const SESSION_USER_ID_KEY = 'mirror_last_user_id';
 
