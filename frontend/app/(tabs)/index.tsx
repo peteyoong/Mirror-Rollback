@@ -448,9 +448,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   debugText: {
-    fontSize: 8,
-    color: 'rgba(255,255,255,0.4)',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    ...Typography.debugText,
     marginBottom: 2,
   },
   // Scroll content
