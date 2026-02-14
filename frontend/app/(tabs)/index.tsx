@@ -294,12 +294,15 @@ export default function MirrorScreen() {
     // Pull-to-refresh re-fetches same date (cached, so same content)
     loadKeystone(true);
   };
+  
+  // Track if fetch failed for retry UI
+  const [fetchFailed, setFetchFailed] = useState(false);
 
   // Show loading while session is being restored
   if (!hasTriedSessionRestore || isRestoringSession) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={Colors.textTertiary} />
           <Text style={styles.restoringText}>Restoring your profile...</Text>
@@ -308,21 +311,29 @@ export default function MirrorScreen() {
     );
   }
 
-  // Show loading if no user
+  // Show loading if no user - but still render static UI
   if (!user) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
+        <ApiOfflineBanner />
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={Colors.textTertiary} />
+          <Text style={styles.restoringText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
+  // Use keystone or default fallback - ALWAYS render content
+  const displayKeystone = keystone || DEFAULT_KEYSTONE;
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="light" />
+      
+      {/* API Offline Banner - non-blocking */}
+      <ApiOfflineBanner onRetry={() => loadKeystone(true)} />
       
       {/* Compact Header - tap 5 times to reveal debug */}
       <View style={styles.header}>
