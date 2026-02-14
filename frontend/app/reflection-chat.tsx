@@ -394,6 +394,12 @@ export default function ReflectionChat() {
       setMessages(prev => {
         const newMessages = [...prev, assistantMessage];
         
+        // Persist assistant message to store
+        addChatMessage(REFLECTION_THREAD_KEY, {
+          ...assistantMessage,
+          timestamp: assistantMessage.timestamp.toISOString(),
+        } as unknown as ChatMessage);
+        
         // Check if we should inject micro-reflection prompt
         // Only after 2+ user messages, once per session, not if dismissed
         if (shouldShowMicroPrompt() && !microPromptShown) {
