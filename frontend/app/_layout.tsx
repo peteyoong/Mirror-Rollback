@@ -68,6 +68,8 @@ export default function RootLayout() {
     <Stack screenOptions={{
       headerShown: false,
       contentStyle: { backgroundColor: Colors.background },
+      // Keep screens mounted when navigating away (preserves chat state)
+      detachInactiveScreens: false,
     }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="reflection-chat" options={{ presentation: 'modal' }} />
