@@ -12,12 +12,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Colors } from '../constants/colors';
 import { useAppStore } from '../store';
 import { Ionicons } from '@expo/vector-icons';
 import { API_BASE_URL, joinUrl } from '../services/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storageGet, storageSet, getStorageBackend } from '../utils/storage';
 
 // Thread key for reflection chat
 const THREAD_KEY = 'reflection:default';
@@ -31,20 +31,17 @@ interface Message {
   timestamp: string; // ISO string for JSON safety
 }
 
-// Default intro message
-const DEFAULT_INTRO_MESSAGE: Message = {
-  id: 'intro',
-  role: 'assistant',
-  content: "We can keep this light.\nWhat stood out today?",
-  timestamp: new Date().toISOString(),
-};
-
 /**
- * Reflection Chat - LOOP-PROOF Implementation with LOCAL persistence
+ * Reflection Chat - BULLETPROOF PERSISTENCE
  * 
- * NO Zustand chatMessages - all persistence is local to this component
- * Uses AsyncStorage directly with debounced writes
- * One-shot hydration guard prevents overwrites
+ * SCREEN: REFLECTION-CHAT (modal route)
+ * 
+ * Features:
+ * - Cross-platform storage (localStorage on web, AsyncStorage on native)
+ * - Per-userId hydration guard (handles userId changes)
+ * - Debounced persistence on message changes
+ * - Flush on blur/unfocus
+ * - Visible debug banner
  */
 export default function ReflectionChat() {
   const router = useRouter();
@@ -64,11 +61,23 @@ export default function ReflectionChat() {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(false);
+  
+  // Debug state
+  const [lastSavedAt, setLastSavedAt] = useState<string>('never');
+  const [lastLoadedAt, setLastLoadedAt] = useState<string>('never');
+  const [storageBackend, setStorageBackend] = useState<string>('unknown');
   
   const scrollViewRef = useRef<ScrollView>(null);
-  const didHydrateRef = useRef(false);
+  
+  // Per-userId hydration guard - allows re-hydration if userId changes
+  const hydratedForRef = useRef<string | null>(null);
   const persistTimerRef = useRef<any>(null);
+  const messagesRef = useRef<Message[]>([]); // For blur callback
+  
+  // Keep messagesRef in sync
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
   
   // Generate context-aware opening message
   const getOpeningMessage = useCallback((): Message => {
@@ -93,24 +102,27 @@ export default function ReflectionChat() {
   }, [params.context, params.dismissed]);
 
   // =========================================================================
-  // ONE-SHOT HYDRATION: Load from storage ONCE when userId becomes available
+  // PER-USER HYDRATION: Load from storage when userId becomes available
+  // Re-hydrates if userId changes (e.g., different user logs in)
   // =========================================================================
   useEffect(() => {
     if (!userId || !storageKey) return;
-    if (didHydrateRef.current) return;
-    didHydrateRef.current = true;
+    if (hydratedForRef.current === userId) return; // Already hydrated for this user
     
-    console.log(`[ReflectionChat] Hydrating from storage: ${storageKey}`);
+    hydratedForRef.current = userId;
+    console.log(`[ReflectionChat] Hydrating for userId=${userId}, key=${storageKey}`);
     
     (async () => {
       try {
-        const raw = await AsyncStorage.getItem(storageKey);
+        const raw = await storageGet(storageKey);
+        setStorageBackend(getStorageBackend());
+        
         if (raw) {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            console.log(`[ReflectionChat] Loaded ${parsed.length} messages from storage`);
+            console.log(`[ReflectionChat] ✓ Loaded ${parsed.length} messages from storage`);
             setMessages(parsed);
-            setHydrated(true);
+            setLastLoadedAt(new Date().toLocaleTimeString());
             return;
           }
         }
@@ -118,11 +130,11 @@ export default function ReflectionChat() {
         console.error('[ReflectionChat] Hydration error:', e);
       }
       
-      // Only if no stored messages - create default intro
+      // Only if NO stored messages - create default intro
       console.log('[ReflectionChat] No stored messages, creating intro');
       const intro = getOpeningMessage();
       setMessages([intro]);
-      setHydrated(true);
+      setLastLoadedAt(new Date().toLocaleTimeString());
     })();
   }, [userId, storageKey, getOpeningMessage]);
 
@@ -131,7 +143,7 @@ export default function ReflectionChat() {
   // =========================================================================
   useEffect(() => {
     if (!userId || !storageKey) return;
-    if (!didHydrateRef.current) return; // Don't persist before hydrate
+    if (hydratedForRef.current !== userId) return; // Don't persist before hydrate
     if (!messages?.length) return;
     
     // Clear any pending persist
@@ -139,8 +151,10 @@ export default function ReflectionChat() {
     
     persistTimerRef.current = setTimeout(async () => {
       try {
-        await AsyncStorage.setItem(storageKey, JSON.stringify(messages));
-        console.log(`[ReflectionChat] Persisted ${messages.length} messages`);
+        await storageSet(storageKey, JSON.stringify(messages));
+        setStorageBackend(getStorageBackend());
+        setLastSavedAt(new Date().toLocaleTimeString());
+        console.log(`[ReflectionChat] ✓ Persisted ${messages.length} messages`);
       } catch (e) {
         console.error('[ReflectionChat] Persist error:', e);
       }
@@ -148,6 +162,22 @@ export default function ReflectionChat() {
     
     return () => clearTimeout(persistTimerRef.current);
   }, [messages, userId, storageKey]);
+
+  // =========================================================================
+  // FLUSH ON BLUR: Immediately persist when screen loses focus
+  // =========================================================================
+  useFocusEffect(
+    useCallback(() => {
+      // On focus - nothing special
+      return () => {
+        // On blur/unfocus - flush persistence immediately
+        if (userId && storageKey && messagesRef.current?.length) {
+          console.log(`[ReflectionChat] Blur detected, flushing ${messagesRef.current.length} messages`);
+          storageSet(storageKey, JSON.stringify(messagesRef.current));
+        }
+      };
+    }, [userId, storageKey])
+  );
 
   // Auto-scroll when messages change
   useEffect(() => {
@@ -175,8 +205,6 @@ export default function ReflectionChat() {
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setIsLoading(true);
-    
-    // Note: Persistence is handled by the debounced effect
     
     try {
       const endpoint = joinUrl(API_BASE_URL, '/reflection/chat');
@@ -243,10 +271,16 @@ export default function ReflectionChat() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="light" />
       
-      {/* DEBUG BANNER (temporary) */}
+      {/* SCREEN IDENTIFIER + DEBUG BANNER */}
+      <View style={styles.screenBanner}>
+        <Text style={styles.screenName}>SCREEN: REFLECTION-CHAT</Text>
+      </View>
       <View style={styles.debugBanner}>
         <Text style={styles.debugText}>
-          hydrated={hydrated ? 'true' : 'false'} | msgs={messages.length} | key={storageKey?.slice(-20) || 'null'}
+          user={userId?.slice(0, 8) || 'null'} | hydratedFor={hydratedForRef.current?.slice(0, 8) || 'null'} | msgs={messages.length}
+        </Text>
+        <Text style={styles.debugText}>
+          backend={storageBackend} | loaded={lastLoadedAt} | saved={lastSavedAt}
         </Text>
       </View>
       
@@ -341,14 +375,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  screenBanner: {
+    backgroundColor: '#0066cc',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+  },
+  screenName: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
   debugBanner: {
-    backgroundColor: '#333',
+    backgroundColor: '#222',
     paddingVertical: 4,
     paddingHorizontal: 8,
   },
   debugText: {
     color: '#0f0',
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     textAlign: 'center',
   },
