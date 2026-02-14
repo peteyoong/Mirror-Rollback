@@ -1,22 +1,16 @@
 import { Redirect } from 'expo-router';
-import { useAppStore } from '../store';
 
+/**
+ * BUILD TAG: 2026-02-14-nav-architecture-fix
+ * 
+ * Root Index - Simple redirect to tabs
+ * 
+ * The authentication/welcome gate is handled by _layout.tsx.
+ * If this component renders, the user is already authenticated.
+ * We simply redirect to the main tabs.
+ */
 export default function Index() {
-  const { user, hasTriedSessionRestore, isRestoringSession } = useAppStore();
-
-  // Don't redirect until session restore is complete
-  // This prevents the race condition where we redirect to welcome
-  // before the session has been restored
-  if (!hasTriedSessionRestore || isRestoringSession) {
-    // The root _layout.tsx shows the loading screen, so we just return null here
-    return null;
-  }
-
-  // If user exists, go directly to tabs (skip welcome screen)
-  if (user) {
-    return <Redirect href="/(tabs)" />;
-  }
-
-  // No user - go to welcome page for login/onboarding
-  return <Redirect href="/welcome" />;
+  // User is authenticated (handled by _layout.tsx)
+  // Go directly to tabs
+  return <Redirect href="/(tabs)" />;
 }

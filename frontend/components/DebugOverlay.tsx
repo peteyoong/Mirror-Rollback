@@ -2,22 +2,27 @@ import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { API_BASE_URL, API_URL_MISSING } from '../services/api';
 
-// TEMPORARY: Set to false to completely disable overlay for debugging touch issues
+/**
+ * BUILD TAG: 2026-02-14-overlay-touch-fix
+ * 
+ * DebugOverlay - Environment debug strip
+ * 
+ * CRITICAL FIX: All wrappers use pointerEvents="none" to ensure
+ * this overlay NEVER intercepts touch events.
+ * 
+ * Set DEBUG_OVERLAY_ENABLED to true to see debug info.
+ * Set to false to completely disable the overlay.
+ */
+
+// Toggle this to enable/disable the debug overlay
 const DEBUG_OVERLAY_ENABLED = false;
 
 interface DebugOverlayProps {
   extra?: Record<string, any>;
 }
 
-/**
- * DebugOverlay - TEMPORARY visible debug strip for preview diagnosis
- * Shows on ALL screens to help diagnose issues
- * REMOVE after debugging is complete
- * 
- * CRITICAL: Must never intercept touches
- */
 export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
-  // Completely disable overlay to test if it's blocking touches
+  // Completely disable overlay when flag is false
   if (!DEBUG_OVERLAY_ENABLED) {
     return null;
   }
@@ -25,8 +30,10 @@ export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
   const reflectionChatUrl = `${API_BASE_URL}/reflection/chat`;
   
   return (
-    <View pointerEvents="none" style={styles.container}>
-      <View pointerEvents="none" style={styles.inner}>
+    // CRITICAL: pointerEvents="none" on ALL wrappers
+    // This ensures the overlay never blocks touch events
+    <View style={styles.container} pointerEvents="none">
+      <View style={styles.inner} pointerEvents="none">
         <Text style={styles.title}>🔧 DEBUG</Text>
         <Text style={styles.row}>
           API_URL_MISSING: <Text style={API_URL_MISSING ? styles.error : styles.ok}>{String(API_URL_MISSING)}</Text>
@@ -54,6 +61,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 9999,
+    // pointerEvents is set as prop, not style
   },
   inner: {
     backgroundColor: 'rgba(0,0,0,0.9)',
