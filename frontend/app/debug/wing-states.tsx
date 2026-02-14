@@ -487,13 +487,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   confidenceHigh: {
-    backgroundColor: '#D4EDDA',
+    backgroundColor: Colors.success + '40',
   },
   confidenceMedium: {
-    backgroundColor: '#FFF3CD',
+    backgroundColor: Colors.warning + '40',
   },
   confidenceLow: {
-    backgroundColor: '#F8D7DA',
+    backgroundColor: Colors.error + '40',
   },
   confidenceText: {
     fontSize: 13,
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
   
   // Technical Details
   techDetails: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.surfaceLight,
     padding: 10,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
