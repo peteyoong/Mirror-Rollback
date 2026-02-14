@@ -557,6 +557,13 @@ export default function ReflectionChat() {
             placeholderTextColor={Colors.textTertiary}
             multiline
             maxLength={1000}
+            returnKeyType="send"
+            blurOnSubmit={false}
+            onSubmitEditing={() => {
+              if (inputText.trim() && !isLoading) {
+                handleSend();
+              }
+            }}
           />
           <TouchableOpacity
             style={[
