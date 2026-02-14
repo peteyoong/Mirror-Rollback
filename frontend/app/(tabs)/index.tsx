@@ -492,13 +492,6 @@ const styles = StyleSheet.create({
   todaySection: {
     marginBottom: 16,
   },
-  todayLabel: {
-    fontSize: 9,
-    fontWeight: '600',
-    color: Colors.textTertiary,
-    letterSpacing: 1.5,
-    marginBottom: 4,
-  },
   intelligenceSignal: {
     ...Typography.intelligenceSignal,
   },
