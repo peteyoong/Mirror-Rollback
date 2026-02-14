@@ -642,6 +642,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.10)',
     borderWidth: 1,
   },
+  // FIX: System bubble - same as assistant but explicitly defined
+  systemBubble: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255,255,255,0.10)',
+    borderWidth: 1,
+  },
   messageText: {
     fontSize: 16,
     lineHeight: 24,
