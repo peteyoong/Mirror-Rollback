@@ -137,7 +137,26 @@ export default function ReflectionChat() {
   };
 
   const handleSend = async () => {
-    if (!inputText.trim() || isLoading || !user?.id) return;
+    // DEBUG: Log send attempt
+    console.log('[ReflectionChat] ══════════════════════════════════');
+    console.log('[ReflectionChat] SEND PRESSED');
+    console.log('[ReflectionChat] inputText:', inputText);
+    console.log('[ReflectionChat] isLoading:', isLoading);
+    console.log('[ReflectionChat] user?.id:', user?.id);
+    
+    // Only bail if text is empty
+    if (!inputText.trim()) {
+      console.log('[ReflectionChat] BAIL: empty text');
+      return;
+    }
+    if (isLoading) {
+      console.log('[ReflectionChat] BAIL: already loading');
+      return;
+    }
+    if (!user?.id) {
+      console.log('[ReflectionChat] BAIL: no user id');
+      return;
+    }
 
     // Check if API URL is missing
     if (API_URL_MISSING) {
