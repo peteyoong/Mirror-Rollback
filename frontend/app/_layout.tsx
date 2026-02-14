@@ -4,30 +4,40 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
 
+// DEBUG: Track render count
+let ROOT_RENDER_COUNT = 0;
+
 /**
- * ROOT LAYOUT - STRIPPED DOWN FOR LOOP ISOLATION
+ * ROOT LAYOUT - LOOP-PROOF VERSION
  * 
- * REMOVED: DebugOverlay, BuildBadge, AddToHomeScreenBanner, DebugViewportOverlay, WelcomeGate
- * 
- * Testing if the loop is caused by one of these components.
+ * Key safety mechanisms:
+ * 1. didRestoreRef ensures restoreSession() is only called ONCE in this component
+ * 2. restoreSession() in store has module-level guards
+ * 3. Only stable primitives are selected from store (no objects/arrays that trigger re-renders)
  */
 export default function RootLayout() {
-  // STEP 4: Ensure restoreSession only runs ONCE
+  ROOT_RENDER_COUNT++;
+  console.log(`[RootLayout] Render #${ROOT_RENDER_COUNT}`);
+  
+  // CRITICAL: This ref ensures we NEVER call restoreSession twice from this component
   const didRestoreRef = useRef(false);
   
-  const { 
-    user,
-    restoreSession, 
-    isRestoringSession, 
-    hasTriedSessionRestore,
-  } = useAppStore();
+  // Select ONLY stable primitives - NOT objects/arrays
+  const userId = useAppStore(s => s.user?.id);
+  const restoreSession = useAppStore(s => s.restoreSession);
+  const isRestoringSession = useAppStore(s => s.isRestoringSession);
+  const hasTriedSessionRestore = useAppStore(s => s.hasTriedSessionRestore);
 
+  // LOOP-PROOF: Call restoreSession ONCE with empty deps []
   useEffect(() => {
-    if (didRestoreRef.current) return;
+    if (didRestoreRef.current) {
+      console.log('[RootLayout] useEffect: Already called restore, skipping');
+      return;
+    }
     didRestoreRef.current = true;
-    console.log('[RootLayout] Starting session restore (one-shot)...');
+    console.log('[RootLayout] useEffect: Calling restoreSession (one-shot)');
     restoreSession();
-  }, []);
+  }, []); // EMPTY DEPS - runs only on mount
 
   // STATE 1: Still restoring session - show loading
   if (!hasTriedSessionRestore || isRestoringSession) {
