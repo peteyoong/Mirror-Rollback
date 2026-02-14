@@ -178,29 +178,33 @@ interface AppState {
   shouldRedirectToOnboarding: () => boolean;
 }
 
-// ===== DEBUG: Set() loop tracer (temporary) =====
+// ===== DEBUG: Set() loop tracer with HARD STOP =====
 let __setCount = 0;
-let __lastSetLabel = '';
+let __windowStart = Date.now();
+let __lastLabel = "";
+let __lastStack = "";
 
 function debugSet(setFn: any, payload: any, label: string) {
-  __setCount += 1;
-  __lastSetLabel = label;
-  if (__setCount % 5 === 0) {
-    console.warn(`[STORE_SET_LOOP] ${label} count=${__setCount}`);
-    if (__setCount > 20) {
-      console.error(new Error(`[STORE_SET_LOOP] POTENTIAL INFINITE LOOP: ${label}`).stack);
-    }
-  }
-  setFn(payload);
-}
+  const now = Date.now();
 
-// Reset counter periodically to avoid false positives
-setInterval(() => {
-  if (__setCount > 0) {
-    console.log(`[STORE_SET_LOOP] Resetting counter (was ${__setCount}, last: ${__lastSetLabel})`);
+  // Rolling 1.5s window
+  if (now - __windowStart > 1500) {
+    __windowStart = now;
     __setCount = 0;
   }
-}, 5000);
+
+  __setCount += 1;
+  __lastLabel = label;
+  __lastStack = new Error("[STORE_SET_LOOP] " + label).stack || "";
+
+  if (__setCount >= 40) {
+    console.error("[STORE_SET_LOOP] HARD STOP label=" + __lastLabel + " count=" + __setCount);
+    console.error(__lastStack);
+    throw new Error("[STORE_SET_LOOP] HARD STOP label=" + __lastLabel + " count=" + __setCount);
+  }
+
+  setFn(payload);
+}
 
 export const useAppStore = create<AppState>((set, get) => ({
   user: null,
