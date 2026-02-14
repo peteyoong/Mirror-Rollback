@@ -922,34 +922,45 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 18,
   },
+  // User bubble: white/light background with dark text
   userBubble: {
-    backgroundColor: Colors.text,
+    backgroundColor: 'rgba(255,255,255,0.92)',
     borderBottomRightRadius: 6,
   },
+  // Assistant bubble: dark translucent background with light text
   assistantBubble: {
-    backgroundColor: '#FDFCFA',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255,255,255,0.10)',
+    borderWidth: 1,
     borderBottomLeftRadius: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+  },
+  // System bubble: similar to assistant but slightly dimmer
+  systemBubble: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderBottomLeftRadius: 6,
   },
   messageText: {
     fontSize: 15,
     lineHeight: 22,
   },
+  // User text: dark on light background
   userText: {
-    color: Colors.surface,
+    color: 'rgba(0,0,0,0.88)',
   },
+  // Assistant text: light on dark background  
   assistantText: {
-    color: Colors.text,
+    color: 'rgba(255,255,255,0.92)',
+  },
+  // System text: slightly dimmer light on dark background
+  systemText: {
+    color: 'rgba(255,255,255,0.85)',
   },
   timestamp: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: 'rgba(255,255,255,0.45)',
     marginTop: 4,
-    opacity: 0.7,
   },
   timestampLeft: {
     marginLeft: 4,
