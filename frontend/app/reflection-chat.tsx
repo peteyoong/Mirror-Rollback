@@ -66,9 +66,26 @@ export default function ReflectionChat() {
     context?: string;
     dismissed?: string;
   }>();
-  const { user, getChatMessages, addChatMessage, loadChatMessages, setChatMessages } = useAppStore();
   
-  const [messages, setMessages] = useState<Message[]>([]);
+  // Get store values and actions
+  const user = useAppStore(state => state.user);
+  const chatMessages = useAppStore(state => state.chatMessages);
+  const loadChatMessages = useAppStore(state => state.loadChatMessages);
+  const addChatMessage = useAppStore(state => state.addChatMessage);
+  
+  const userId = user?.id;
+  const threadKey = REFLECTION_THREAD_KEY;
+  
+  // SINGLE SOURCE OF TRUTH: Read messages directly from store
+  const storeKey = userId ? `${userId}:${threadKey}` : '';
+  const storedMessages = storeKey ? (chatMessages[storeKey] || []) : [];
+  
+  // Convert stored messages to Message format for rendering
+  const messages: Message[] = storedMessages.map(m => ({
+    ...m,
+    timestamp: new Date(m.timestamp),
+  }));
+  
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -111,43 +128,43 @@ export default function ReflectionChat() {
     return "We can keep this light.\nWhat stood out today?";
   }, [params.context, params.dismissed]);
 
-  // Load persisted messages on mount
+  // Load/initialize chat messages when userId becomes available
   useEffect(() => {
-    const loadMessages = async () => {
-      if (!user?.id || hasInitializedRef.current) return;
+    const initChat = async () => {
+      if (!userId) {
+        console.log('[ReflectionChat] No userId yet, skipping init');
+        return;
+      }
+      
+      // Only initialize once per userId
+      const initKey = `init_${userId}_${threadKey}`;
+      if (hasInitializedRef.current) {
+        console.log('[ReflectionChat] Already initialized');
+        return;
+      }
       hasInitializedRef.current = true;
       
-      console.log('[ReflectionChat] Loading persisted messages...');
-      const storedMessages = await loadChatMessages(REFLECTION_THREAD_KEY);
+      console.log(`[ReflectionChat] Loading messages for userId=${userId}, threadKey=${threadKey}`);
+      const loaded = await loadChatMessages(threadKey);
       
-      if (storedMessages.length > 0) {
-        // Restore messages from storage
-        const restoredMessages: Message[] = storedMessages.map(m => ({
-          ...m,
-          timestamp: new Date(m.timestamp),
-        }));
-        setMessages(restoredMessages);
-        console.log(`[ReflectionChat] Restored ${restoredMessages.length} messages from storage`);
-      } else {
-        // No stored messages - show opening message
+      // If no messages exist, create opening message
+      if (loaded.length === 0) {
+        console.log('[ReflectionChat] No stored messages, creating opening message');
         const opening = getOpeningMessage();
-        const openingMessage: Message = {
+        const openingMessage: ChatMessage = {
           id: 'opening',
           role: 'assistant',
           content: opening,
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
         };
-        setMessages([openingMessage]);
-        // Persist the opening message
-        await addChatMessage(REFLECTION_THREAD_KEY, {
-          ...openingMessage,
-          timestamp: openingMessage.timestamp.toISOString(),
-        } as unknown as ChatMessage);
+        await addChatMessage(threadKey, openingMessage);
+      } else {
+        console.log(`[ReflectionChat] Loaded ${loaded.length} messages from store`);
       }
     };
     
-    loadMessages();
-  }, [user?.id, getOpeningMessage, loadChatMessages, addChatMessage]);
+    initChat();
+  }, [userId, threadKey, loadChatMessages, addChatMessage, getOpeningMessage]);
 
   // Check if we should show micro-reflection prompt
   const shouldShowMicroPrompt = useCallback(() => {
