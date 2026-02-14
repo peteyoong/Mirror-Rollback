@@ -377,32 +377,36 @@ export default function ReflectionChat() {
           {debugExpanded && (
             <ScrollView style={styles.debugContent} nestedScrollEnabled>
               <View style={styles.debugRow}>
-                <Text style={styles.debugLabel}>API_BASE_URL:</Text>
-                <Text style={styles.debugValue} selectable>{debugState.apiBaseUrl}</Text>
-              </View>
-              
-              <View style={styles.debugRow}>
-                <Text style={styles.debugLabel}>Endpoint:</Text>
-                <Text style={styles.debugValue} selectable>{debugState.endpoint || '(not called yet)'}</Text>
-              </View>
-              
-              <View style={styles.debugRow}>
-                <Text style={styles.debugLabel}>lastRequestPayload:</Text>
-                <Text style={styles.debugCode} selectable>{debugState.lastRequestPayload || '(none)'}</Text>
-              </View>
-              
-              <View style={styles.debugRow}>
-                <Text style={styles.debugLabel}>lastResponseStatus:</Text>
-                <Text style={[
-                  styles.debugValue,
-                  debugState.lastResponseStatus && debugState.lastResponseStatus !== 200 && styles.debugError
-                ]}>
-                  {debugState.lastResponseStatus !== null ? debugState.lastResponseStatus : '(no request yet)'}
+                <Text style={styles.debugLabel}>EXPO_PUBLIC_API_BASE_URL:</Text>
+                <Text style={[styles.debugValue, debugState.apiUrlMissing && styles.debugError]} selectable>
+                  {debugState.envValue}
                 </Text>
               </View>
               
               <View style={styles.debugRow}>
-                <Text style={styles.debugLabel}>lastResponseText:</Text>
+                <Text style={styles.debugLabel}>resolvedApiBaseUrl:</Text>
+                <Text style={[styles.debugValue, debugState.apiUrlMissing && styles.debugError]} selectable>
+                  {debugState.resolvedApiBaseUrl}
+                </Text>
+              </View>
+              
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>reflectionChatUrl:</Text>
+                <Text style={styles.debugValue} selectable>{debugState.reflectionChatUrl}</Text>
+              </View>
+              
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>lastHttpStatus:</Text>
+                <Text style={[
+                  styles.debugValue,
+                  debugState.lastHttpStatus && debugState.lastHttpStatus !== 200 && styles.debugError
+                ]}>
+                  {debugState.lastHttpStatus !== null ? debugState.lastHttpStatus : '(no request yet)'}
+                </Text>
+              </View>
+              
+              <View style={styles.debugRow}>
+                <Text style={styles.debugLabel}>lastResponseText (raw):</Text>
                 <Text style={styles.debugCode} selectable>
                   {debugState.lastResponseText 
                     ? (debugState.lastResponseText.length > 500 
@@ -425,6 +429,14 @@ export default function ReflectionChat() {
               </View>
             </ScrollView>
           )}
+        </View>
+      )}
+      
+      {/* API URL Missing Banner */}
+      {API_URL_MISSING && (
+        <View style={styles.errorBanner}>
+          <Ionicons name="warning" size={20} color="#FF4444" />
+          <Text style={styles.errorBannerText}>Service Unavailable: API URL not configured</Text>
         </View>
       )}
       
