@@ -1,26 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Platform, Pressable, ScrollView } from 'react-native';
 import { API_BASE_URL, API_URL_MISSING, joinUrl } from '../services/api';
 import { useAppStore } from '../store';
 
 /**
- * BUILD TAG: 2026-02-14-send-debug-v2
+ * BUILD TAG: v3-non-blocking-2026-02-14
  * 
- * DebugOverlay - Full debug visibility for chat debugging
+ * DebugOverlay - NON-BLOCKING debug panel
  * 
- * Shows (BIG + OBVIOUS):
- * - BUILD_ID
- * - userId (from store)
- * - sendPressCount (proves button fires)
- * - lastSendAt
- * - lastBailReason
- * - lastFetchUrl
- * - lastHttpStatus
- * - lastError
+ * CRITICAL: Only the handle bar is interactive.
+ * The panel itself uses pointerEvents="none" so it NEVER blocks the app.
+ * 
+ * Shows:
+ * - BUILD_ID, userId, sendPressCount, lastSendAt
+ * - lastBailReason, lastFetchUrl, lastHttpStatus, lastError
  */
 
 // BUILD ID - change this to verify you're on the right build
-const BUILD_ID = 'v2-send-debug-2026-02-14';
+const BUILD_ID = 'v3-non-blocking-2026-02-14';
 
 // Toggle this to enable/disable the debug overlay globally
 const DEBUG_OVERLAY_ENABLED = true;
@@ -32,7 +29,6 @@ export interface DebugInfo {
   lastError: string;
   pingStatus: 'pending' | 'ok' | 'fail';
   pingError: string;
-  // NEW: Send button debug fields
   sendPressCount: number;
   lastSendAt: string;
   lastBailReason: string;
@@ -46,7 +42,6 @@ let globalDebugInfo: DebugInfo = {
   lastError: '',
   pingStatus: 'pending',
   pingError: '',
-  // NEW fields
   sendPressCount: 0,
   lastSendAt: '',
   lastBailReason: '',
@@ -79,9 +74,9 @@ interface DebugOverlayProps {
 }
 
 export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
+  // Default COLLAPSED so it never blocks first-time flows
+  const [expanded, setExpanded] = useState(false);
   const [debugInfo, setDebugInfo] = useState<DebugInfo>(globalDebugInfo);
-  const [touchProbeCount, setTouchProbeCount] = useState(0);
-  const [expanded, setExpanded] = useState(true); // Default expanded for debugging
   
   // Get user from store
   const user = useAppStore(state => state.user);
@@ -121,56 +116,45 @@ export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
     return null;
   }
   
-  const reflectionChatUrl = joinUrl(API_BASE_URL, '/reflection/chat');
+  const pingIcon = debugInfo.pingStatus === 'ok' ? '✓' : debugInfo.pingStatus === 'fail' ? '✗' : '…';
   
-  // P0 FIX: Entire overlay uses pointerEvents="none"
-  // EXCEPT for the touch probe button which needs to capture touches to prove overlays are gone
   return (
-    <View style={styles.container} pointerEvents="box-none">
-      {/* Collapsed header - clickable */}
-      <Pressable 
-        style={styles.header} 
-        onPress={() => setExpanded(!expanded)}
-      >
-        <Text style={styles.headerText}>
-          🔧 {BUILD_ID} | Press: {debugInfo.sendPressCount} | {debugInfo.pingStatus === 'ok' ? '✓' : debugInfo.pingStatus === 'fail' ? '✗' : '...'}
-        </Text>
-        <Text style={styles.headerToggle}>{expanded ? '▲' : '▼'}</Text>
-      </Pressable>
-      
+    <View style={styles.root} pointerEvents="box-none">
+      {/* Handle: the ONLY interactive part */}
+      <View style={styles.handleWrap} pointerEvents="auto">
+        <Pressable
+          onPress={() => setExpanded(v => !v)}
+          style={({ pressed }) => [styles.handle, pressed && styles.handlePressed]}
+          hitSlop={12}
+        >
+          <Text style={styles.handleText}>
+            {expanded ? `DEBUG ▾ tap to collapse | ${pingIcon}` : `DEBUG ▸ tap to expand | Press:${debugInfo.sendPressCount} | ${pingIcon}`}
+          </Text>
+        </Pressable>
+      </View>
+
+      {/* Panel: visually on top, but does NOT intercept touches */}
       {expanded && (
-        <View style={styles.content} pointerEvents="box-none">
-          {/* Touch Probe - MUST be clickable to prove no overlay is blocking */}
-          <Pressable 
-            style={styles.touchProbe}
-            onPress={() => {
-              setTouchProbeCount(c => c + 1);
-              console.log('[TouchProbe] Tapped! Count:', touchProbeCount + 1);
-            }}
-          >
-            <Text style={styles.touchProbeText}>👆 Touch Probe: {touchProbeCount}</Text>
-          </Pressable>
-          
-          {/* BIG + OBVIOUS debug fields */}
-          <View pointerEvents="none">
+        <View style={styles.panel} pointerEvents="none">
+          <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
             {/* BUILD_ID */}
-            <Text style={styles.bigRow}>
-              <Text style={styles.bigLabel}>BUILD: </Text>
-              <Text style={styles.bigValue}>{BUILD_ID}</Text>
+            <Text style={styles.row}>
+              <Text style={styles.label}>BUILD: </Text>
+              <Text style={styles.valueHighlight}>{BUILD_ID}</Text>
             </Text>
             
             {/* userId */}
-            <Text style={styles.bigRow}>
-              <Text style={styles.bigLabel}>USER_ID: </Text>
-              <Text style={user?.id ? styles.bigValueOk : styles.bigValueError}>
+            <Text style={styles.row}>
+              <Text style={styles.label}>USER_ID: </Text>
+              <Text style={user?.id ? styles.valueOk : styles.valueError}>
                 {user?.id || 'NO_USER'}
               </Text>
             </Text>
             
             {/* sendPressCount */}
-            <Text style={styles.bigRow}>
-              <Text style={styles.bigLabel}>SEND_PRESS_COUNT: </Text>
-              <Text style={debugInfo.sendPressCount > 0 ? styles.bigValueOk : styles.bigValueError}>
+            <Text style={styles.row}>
+              <Text style={styles.label}>SEND_PRESS: </Text>
+              <Text style={debugInfo.sendPressCount > 0 ? styles.valueOk : styles.valueError}>
                 {debugInfo.sendPressCount}
               </Text>
             </Text>
@@ -183,38 +167,38 @@ export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
             
             {/* lastBailReason */}
             {debugInfo.lastBailReason ? (
-              <Text style={styles.bigRow}>
-                <Text style={styles.bigLabel}>BAIL: </Text>
-                <Text style={styles.bigValueError}>{debugInfo.lastBailReason}</Text>
+              <Text style={styles.row}>
+                <Text style={styles.label}>BAIL: </Text>
+                <Text style={styles.valueError}>{debugInfo.lastBailReason}</Text>
               </Text>
             ) : null}
             
             {/* lastFetchUrl */}
             <Text style={styles.row} numberOfLines={1}>
-              <Text style={styles.label}>lastFetchUrl: </Text>
+              <Text style={styles.label}>fetchUrl: </Text>
               <Text style={styles.value}>{debugInfo.lastFetchUrl || '(none)'}</Text>
             </Text>
             
             {/* lastHttpStatus */}
-            <Text style={styles.bigRow}>
-              <Text style={styles.bigLabel}>HTTP_STATUS: </Text>
-              <Text style={debugInfo.lastHttpStatus === 200 ? styles.bigValueOk : debugInfo.lastHttpStatus ? styles.bigValueError : styles.bigValue}>
+            <Text style={styles.row}>
+              <Text style={styles.label}>HTTP: </Text>
+              <Text style={debugInfo.lastHttpStatus === 200 ? styles.valueOk : debugInfo.lastHttpStatus ? styles.valueError : styles.value}>
                 {debugInfo.lastHttpStatus ?? '(none)'}
               </Text>
             </Text>
             
             {/* lastError */}
             {debugInfo.lastError ? (
-              <Text style={styles.bigRow}>
-                <Text style={styles.bigLabel}>ERROR: </Text>
-                <Text style={styles.bigValueError}>{debugInfo.lastError}</Text>
+              <Text style={styles.row}>
+                <Text style={styles.label}>ERROR: </Text>
+                <Text style={styles.valueError}>{debugInfo.lastError.slice(0, 100)}</Text>
               </Text>
             ) : null}
             
             {/* Ping status */}
             <Text style={styles.row}>
               <Text style={styles.label}>Ping: </Text>
-              <Text style={debugInfo.pingStatus === 'ok' ? styles.ok : debugInfo.pingStatus === 'fail' ? styles.error : styles.value}>
+              <Text style={debugInfo.pingStatus === 'ok' ? styles.valueOk : debugInfo.pingStatus === 'fail' ? styles.valueError : styles.value}>
                 {debugInfo.pingStatus} {debugInfo.pingError ? `(${debugInfo.pingError})` : ''}
               </Text>
             </Text>
@@ -222,11 +206,11 @@ export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
             {/* Response preview */}
             {debugInfo.lastResponseText ? (
               <Text style={styles.row} numberOfLines={2}>
-                <Text style={styles.label}>Response: </Text>
-                <Text style={styles.code}>{debugInfo.lastResponseText.slice(0, 200)}</Text>
+                <Text style={styles.label}>Resp: </Text>
+                <Text style={styles.valueCode}>{debugInfo.lastResponseText.slice(0, 150)}</Text>
               </Text>
             ) : null}
-          </View>
+          </ScrollView>
         </View>
       )}
     </View>
@@ -234,105 +218,76 @@ export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 9999,
+    zIndex: 999999,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.98)',
+  handleWrap: {
+    alignSelf: 'stretch',
+    paddingTop: Platform.OS === 'ios' ? 48 : 24,
+    paddingHorizontal: 10,
+  },
+  handle: {
+    borderWidth: 1,
+    borderColor: 'rgba(255,165,0,0.8)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    borderRadius: 10,
+    paddingVertical: 8,
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    paddingTop: Platform.OS === 'ios' ? 50 : 30,
-    borderBottomWidth: 2,
-    borderBottomColor: '#FFCC00',
   },
-  headerText: {
-    fontSize: 10,
+  handlePressed: { 
+    opacity: 0.7,
+    backgroundColor: 'rgba(255,165,0,0.3)',
+  },
+  handleText: { 
+    color: 'rgba(255,165,0,0.95)', 
     fontWeight: '700',
-    color: '#FFFFFF',
+    fontSize: 11,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  panel: {
+    marginTop: 6,
+    marginHorizontal: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,165,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    borderRadius: 10,
+    padding: 10,
+    maxHeight: 200,
+  },
+  scrollContent: {
     flex: 1,
   },
-  headerToggle: {
-    fontSize: 12,
-    color: '#FFCC00',
-    fontWeight: '700',
-  },
-  content: {
-    backgroundColor: 'rgba(0,0,0,0.98)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderBottomWidth: 2,
-    borderBottomColor: '#FFCC00',
-  },
-  touchProbe: {
-    backgroundColor: '#003300',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    marginBottom: 8,
-    borderWidth: 2,
-    borderColor: '#00FF88',
-  },
-  touchProbeText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#00FF88',
-    textAlign: 'center',
-  },
-  // BIG + OBVIOUS styles
-  bigRow: {
-    fontSize: 12,
-    color: '#FFFFFF',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    marginBottom: 4,
-    fontWeight: '700',
-  },
-  bigLabel: {
-    color: '#FFCC00',
-    fontWeight: '700',
-  },
-  bigValue: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  bigValueOk: {
-    color: '#00FF88',
-    fontWeight: '700',
-  },
-  bigValueError: {
-    color: '#FF4444',
-    fontWeight: '700',
-  },
-  // Regular rows
   row: {
     fontSize: 10,
     color: '#FFFFFF',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   label: {
-    color: '#AAAAAA',
-    fontWeight: '600',
+    color: '#FFAA00',
+    fontWeight: '700',
   },
   value: {
     color: '#FFFFFF',
   },
-  ok: {
+  valueHighlight: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  valueOk: {
     color: '#00FF88',
     fontWeight: '700',
   },
-  error: {
+  valueError: {
     color: '#FF4444',
     fontWeight: '700',
   },
-  code: {
-    color: '#AADDFF',
+  valueCode: {
+    color: '#88CCFF',
     fontSize: 9,
   },
 });
