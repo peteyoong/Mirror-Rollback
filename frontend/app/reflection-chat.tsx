@@ -169,20 +169,14 @@ export default function ReflectionChat() {
       id: `user-${Date.now()}`,
       role: 'user',
       content: userContent,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
     
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setIsLoading(true);
     
-    // Persist after append
-    await saveMessages(userId, THREAD_KEY, newMessages.map(m => ({
-      id: m.id,
-      role: m.role,
-      content: m.content,
-      timestamp: m.timestamp.toISOString(),
-    })));
+    // Note: Persistence is handled by the debounced effect
     
     try {
       const endpoint = joinUrl(API_BASE_URL, '/reflection/chat');
@@ -218,19 +212,10 @@ export default function ReflectionChat() {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
         content: assistantContent,
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       };
       
-      const finalMessages = [...newMessages, assistantMsg];
-      setMessages(finalMessages);
-      
-      // Persist
-      await saveMessages(userId, THREAD_KEY, finalMessages.map(m => ({
-        id: m.id,
-        role: m.role,
-        content: m.content,
-        timestamp: m.timestamp.toISOString(),
-      })));
+      setMessages(prev => [...prev, assistantMsg]);
       
     } catch (err: any) {
       console.error('[ReflectionChat] Error:', err);
@@ -241,7 +226,7 @@ export default function ReflectionChat() {
         id: `error-${Date.now()}`,
         role: 'assistant',
         content: "I'm having trouble connecting. Please try again.",
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, errorMsg]);
     } finally {
