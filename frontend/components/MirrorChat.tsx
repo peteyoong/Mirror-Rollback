@@ -109,6 +109,9 @@ function formatState(state: string): string {
   return labels[state] || state;
 }
 
+// ===== ISOLATION FLAG: Set to true to disable chat persistence and stop crash =====
+const DISABLE_CHAT_PERSISTENCE = true;  // TEMPORARY: Toggle to isolate loop source
+
 export default function MirrorChat({
   userId,
   lens = null,
@@ -124,9 +127,13 @@ export default function MirrorChat({
   const storageKey = userId ? `${userId}:${threadKey}` : null;
   
   // Get messages from store - use stable selector
-  const messages = useAppStore(s => (storageKey ? s.chatMessages[storageKey] : undefined) ?? []);
+  const storeMessages = useAppStore(s => (storageKey ? s.chatMessages[storageKey] : undefined) ?? []);
   const loadChatMessages = useAppStore(s => s.loadChatMessages);
   const addChatMessage = useAppStore(s => s.addChatMessage);
+  
+  // ===== ISOLATION: Use local state if persistence disabled =====
+  const [localMessages, setLocalMessages] = useState<Message[]>([]);
+  const messages = DISABLE_CHAT_PERSISTENCE ? localMessages : storeMessages;
   
   // Local UI state only (not persisted)
   const [inputText, setInputText] = useState('');
@@ -149,7 +156,7 @@ export default function MirrorChat({
   const didInitRef = useRef(false);
 
   // Convert store messages to Message format with Date objects
-  const displayMessages: Message[] = messages.map((m: ChatMessage) => ({
+  const displayMessages: Message[] = messages.map((m: any) => ({
     ...m,
     timestamp: typeof m.timestamp === 'string' ? new Date(m.timestamp) : m.timestamp,
   })) as Message[];
@@ -160,7 +167,22 @@ export default function MirrorChat({
     if (didInitRef.current) return;
     didInitRef.current = true;
     
-    console.log(`[MirrorChat] Initializing chat for ${threadKey}`);
+    console.log(`[MirrorChat] Initializing chat for ${threadKey}, persistence=${!DISABLE_CHAT_PERSISTENCE}`);
+    
+    if (DISABLE_CHAT_PERSISTENCE) {
+      // Just add intro message locally
+      const greeting = lens
+        ? `I'm here to explore your ${lens === 'human_design' ? 'Human Design' : lens.charAt(0).toUpperCase() + lens.slice(1)} chart with you. What would you like to understand?`
+        : "I'm here as a companion for self-understanding. Share what's on your mind, and I'll reflect what I notice.";
+      
+      setLocalMessages([{
+        id: `intro_${Date.now()}`,
+        role: 'assistant',
+        content: greeting,
+        timestamp: new Date(),
+      }]);
+      return;
+    }
     
     (async () => {
       const loaded = await loadChatMessages(threadKey);
