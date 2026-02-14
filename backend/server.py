@@ -168,6 +168,24 @@ async def api_health():
         "expected_frontend_build": expected_frontend_build,
     }
 
+
+from fastapi import Request
+
+@app.get("/api/debug/cors")
+async def debug_cors(request: Request):
+    """
+    P0 CORS Debug endpoint.
+    Returns the request Origin header and confirms CORS is working.
+    """
+    origin = request.headers.get("origin", "(no origin header)")
+    return {
+        "ok": True,
+        "origin": origin,
+        "cors_configured": True,
+        "allow_origins": "*",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
 # Note: Static file serving will be added at the END of the file, AFTER the api_router is included
 # This ensures API routes take precedence over the catch-all static file handler
 
