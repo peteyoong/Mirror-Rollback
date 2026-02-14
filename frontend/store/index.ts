@@ -112,12 +112,31 @@ interface DailyReflection {
   perspective: string;
 }
 
+// Chat message interface for persistence
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: Date | string;
+}
+
+// Chat thread storage key format: "chat:{userId}:{threadKey}"
+// threadKey examples: "mirror:default", "reflection:default", "journal:{entryId}"
+export const CHAT_STORAGE_PREFIX = 'mirror_chat_messages';
+
+export function getChatStorageKey(userId: string, threadKey: string): string {
+  return `${CHAT_STORAGE_PREFIX}:${userId}:${threadKey}`;
+}
+
 interface AppState {
   user: User | null;
   chart: any | null;
   dailyReflection: DailyReflection | null;
   journalEntries: JournalEntry[];
   hasCompletedOnboarding: boolean;
+  
+  // Chat messages state (persisted)
+  chatMessages: Record<string, ChatMessage[]>;  // Key: "{userId}:{threadKey}"
   
   // Questionnaire state
   questionnaireAnswers: string[];
@@ -138,6 +157,13 @@ interface AppState {
   clearUser: () => Promise<void>;
   resetLocalSession: (forceReload?: boolean) => Promise<void>;  // NEW: Full session reset
   loadPersistedData: () => Promise<void>;
+  
+  // Chat message actions
+  getChatMessages: (threadKey: string) => ChatMessage[];
+  addChatMessage: (threadKey: string, message: ChatMessage) => Promise<void>;
+  setChatMessages: (threadKey: string, messages: ChatMessage[]) => Promise<void>;
+  loadChatMessages: (threadKey: string) => Promise<ChatMessage[]>;
+  clearChatMessages: (threadKey: string) => Promise<void>;
   
   // Questionnaire actions
   setQuestionnaireAnswer: (index: number, answer: string) => Promise<void>;
