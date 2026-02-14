@@ -481,13 +481,9 @@ const styles = StyleSheet.create({
     marginBottom: 28,
     opacity: 0.6,
   },
-  // B. Main Body - Primary text (large, serif feel)
+  // B. Main Body - Uses Typography.heroSerif
   mainBody: {
-    fontSize: 26,
-    lineHeight: 40,
-    color: Colors.text,
-    fontWeight: '300',
-    letterSpacing: 0.2,
+    ...Typography.heroSerif,
     marginBottom: 20,
   },
   // C. Subtext - Supportive (italic, softer)
