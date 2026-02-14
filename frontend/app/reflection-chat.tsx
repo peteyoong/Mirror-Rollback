@@ -601,8 +601,22 @@ export default function ReflectionChat() {
           )}
         </ScrollView>
         
-        {/* Input - explicitly interactive with high zIndex */}
+        {/* Input - explicitly interactive with VERY high zIndex */}
         <View style={styles.inputContainer} pointerEvents="auto">
+          {/* VISUAL DEBUG: Red strip to show input area (temporary) */}
+          <View 
+            style={{ 
+              position: 'absolute', 
+              left: 0, 
+              right: 0, 
+              bottom: 0, 
+              height: 90, 
+              backgroundColor: 'rgba(255,0,0,0.08)',
+              zIndex: -1,
+            }} 
+            pointerEvents="none" 
+          />
+          
           <TextInput
             style={styles.input}
             value={inputText}
@@ -621,7 +635,7 @@ export default function ReflectionChat() {
               }
             }}
           />
-          {/* Send button - force interactive with pointerEvents="auto" */}
+          {/* Send button - multiple event handlers to diagnose touch issues */}
           <Pressable
             style={({ pressed }) => [
               styles.sendButton,
@@ -630,11 +644,26 @@ export default function ReflectionChat() {
             ]}
             onPress={() => {
               console.log('[ReflectionChat] ════════════════════════════');
-              console.log('[ReflectionChat] SEND BUTTON PRESSED!');
+              console.log('[ReflectionChat] onPress FIRED!');
               handleSend();
             }}
+            onPressIn={() => {
+              console.log('[ReflectionChat] onPressIn FIRED!');
+              incrementSendPressCount();
+            }}
+            // Web-specific handlers
+            {...(Platform.OS === 'web' ? {
+              onPointerDown: () => {
+                console.log('[ReflectionChat] onPointerDown FIRED!');
+                incrementSendPressCount();
+              },
+              onTouchStart: () => {
+                console.log('[ReflectionChat] onTouchStart FIRED!');
+                incrementSendPressCount();
+              },
+            } : {})}
             disabled={!inputText.trim() || isLoading}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
           >
             <Ionicons 
               name="arrow-up" 
