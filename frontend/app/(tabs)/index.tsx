@@ -541,9 +541,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   continueButtonText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: Colors.text,
+    ...Typography.buttonText,
     marginBottom: 4,
   },
   continueButtonSubtext: {
