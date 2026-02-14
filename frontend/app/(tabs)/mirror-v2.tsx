@@ -25,8 +25,12 @@ import { loadMessages, ChatMessage } from '../../utils/chatPersistence';
 
 const THREAD_KEY = 'mirror:home';
 
-// DEBUG: Track render count
-let MIRROR_RENDER_COUNT = 0;
+// ============================================================================
+// globalThis guard survives Fast Refresh / HMR
+// ============================================================================
+const g: any = globalThis as any;
+g.__mirror_screen_guard ??= { effectRan: false, renderCount: 0 };
+const MIRROR_GUARD = g.__mirror_screen_guard;
 
 interface DailyKeystone {
   date: string;
