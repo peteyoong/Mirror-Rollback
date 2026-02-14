@@ -27,12 +27,12 @@ import ReflectionEntry from '../../components/ReflectionEntry';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
 import SectionLabel from '../../components/SectionLabel';
 import ApiOfflineBanner, { InlineRetry } from '../../components/ApiOfflineBanner';
+import DebugOverlay from '../../components/DebugOverlay';
 
 // =========================================
-// DEBUG CONFIG - Hidden by default
-// Only visible with ?debug=1 URL param or 5-tap gesture
+// DEBUG - TEMPORARY - Always visible for diagnosis
 // =========================================
-const BUILD_ID = '2026-02-14-decouple-v1';
+const BUILD_ID = '2026-02-14-debug-v2';
 const APP_HOST = Platform.OS === 'web' && typeof window !== 'undefined' 
   ? window.location?.origin || 'unknown'
   : 'native-app';
