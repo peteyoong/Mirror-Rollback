@@ -3,65 +3,85 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 // ============================================
-// CANONICAL API BASE URL RESOLUTION
+// CANONICAL API BASE URL RESOLUTION - HARDENED
 // ============================================
-// Priority order:
-// 1. EXPO_PUBLIC_API_BASE_URL (must be absolute, includes /api)
-// 2. Web: window.location.origin + "/api"  
-// 3. Fail loudly in DEBUG mode
+// STRICT: API base URL must NEVER be relative
+// Must start with http:// or https://
+// NO FALLBACKS to relative paths like "/api"
+
+// Track if URL is missing for UI display
+export let API_URL_MISSING = false;
+export let API_URL_ERROR_MESSAGE = '';
+
+const validateAbsoluteUrl = (url: string): boolean => {
+  return url.startsWith('http://') || url.startsWith('https://');
+};
 
 export const getApiBaseUrl = (): string => {
-  // Priority 1: Explicit EXPO_PUBLIC_API_BASE_URL (absolute, includes /api)
+  // Priority 1: Explicit EXPO_PUBLIC_API_BASE_URL (MUST be absolute)
   const explicitApiUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
   if (explicitApiUrl && typeof explicitApiUrl === 'string' && explicitApiUrl.length > 0) {
-    console.log('[API] Using EXPO_PUBLIC_API_BASE_URL:', explicitApiUrl);
-    return explicitApiUrl;
-  }
-  
-  // Priority 2: Web - derive from window.location.origin
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    const origin = window.location?.origin;
-    if (origin && origin !== 'null') {
-      const derived = `${origin}/api`;
-      console.log('[API] Derived from window.location.origin:', derived);
-      return derived;
+    if (validateAbsoluteUrl(explicitApiUrl)) {
+      console.log('[API] ✅ Using EXPO_PUBLIC_API_BASE_URL:', explicitApiUrl);
+      return explicitApiUrl;
+    } else {
+      console.error('[API] ❌ EXPO_PUBLIC_API_BASE_URL is not absolute:', explicitApiUrl);
     }
   }
   
-  // Priority 3: Native - use EXPO_PUBLIC_BACKEND_URL
+  // Priority 2: EXPO_PUBLIC_BACKEND_URL + /api (MUST be absolute)
   const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
   if (backendUrl && typeof backendUrl === 'string' && backendUrl.length > 0) {
-    const withApi = `${backendUrl}/api`;
-    console.log('[API] Using EXPO_PUBLIC_BACKEND_URL + /api:', withApi);
-    return withApi;
+    if (validateAbsoluteUrl(backendUrl)) {
+      const withApi = `${backendUrl}/api`;
+      console.log('[API] ✅ Using EXPO_PUBLIC_BACKEND_URL + /api:', withApi);
+      return withApi;
+    } else {
+      console.error('[API] ❌ EXPO_PUBLIC_BACKEND_URL is not absolute:', backendUrl);
+    }
   }
   
-  // Try expo-constants extra config
+  // Priority 3: expo-constants extra config
   const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_BASE_URL;
   if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
-    console.log('[API] Using Constants extra:', extraUrl);
-    return extraUrl;
+    if (validateAbsoluteUrl(extraUrl)) {
+      console.log('[API] ✅ Using Constants extra:', extraUrl);
+      return extraUrl;
+    }
   }
   
-  // Local development fallback
+  // Priority 4: LOCAL DEVELOPMENT ONLY - localhost
   if (__DEV__) {
-    console.log('[API] Falling back to localhost:8001/api');
-    return 'http://localhost:8001/api';
+    const localhost = 'http://localhost:8001/api';
+    console.log('[API] ⚠️ DEV MODE: Falling back to localhost:', localhost);
+    return localhost;
   }
   
-  // FAIL LOUDLY - this should not happen in production
-  console.error('[API] ❌ API BASE URL MISSING - Cannot resolve API endpoint!');
-  return 'ERROR_API_BASE_URL_MISSING';
+  // ❌ FAIL LOUDLY - NO RELATIVE PATHS EVER
+  API_URL_MISSING = true;
+  API_URL_ERROR_MESSAGE = 'API_BASE_URL_MISSING: No absolute URL configured';
+  console.error('[API] ❌❌❌ FATAL: API BASE URL MISSING ❌❌❌');
+  console.error('[API] Set EXPO_PUBLIC_API_BASE_URL in .env');
+  
+  // Return error marker (will fail all requests explicitly)
+  return 'ERROR://API_BASE_URL_MISSING';
 };
 
 // Resolved once at module load
 export const API_BASE_URL = getApiBaseUrl();
 
+// Validate the resolved URL
+if (!validateAbsoluteUrl(API_BASE_URL)) {
+  API_URL_MISSING = true;
+  API_URL_ERROR_MESSAGE = `Invalid API URL: ${API_BASE_URL}`;
+}
+
 // Debug log for troubleshooting
-console.log('[API] ==============================');
+console.log('[API] ══════════════════════════════════');
 console.log('[API] Resolved API_BASE_URL:', API_BASE_URL);
+console.log('[API] URL Valid:', validateAbsoluteUrl(API_BASE_URL));
 console.log('[API] Platform:', Platform.OS);
-console.log('[API] ==============================');
+console.log('[API] ══════════════════════════════════');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
