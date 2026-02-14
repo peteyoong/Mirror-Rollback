@@ -38,9 +38,6 @@ export default function ReflectionChat() {
   
   const userId = useAppStore(s => s.user?.id);
   
-  // Use the shared getChatStorageKey helper
-  const storageKey = userId ? getChatStorageKey(userId, THREAD_KEY) : null;
-  
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
