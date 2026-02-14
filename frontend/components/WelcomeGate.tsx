@@ -41,17 +41,14 @@ export default function WelcomeGate() {
   const [error, setError] = useState('');
 
   const handleBeginReflection = () => {
-    console.log('[WELCOME] New User press - navigating to onboarding');
     router.push('/onboarding');
   };
 
   const handleShowLogin = () => {
-    console.log('[WELCOME] Existing User press - showing login');
     setShowLogin(true);
   };
 
   const handleLogin = async () => {
-    console.log('[WELCOME] Sign In press');
     if (!email.trim()) {
       setError('Please enter your email');
       return;
@@ -81,7 +78,6 @@ export default function WelcomeGate() {
   };
 
   const handleBack = () => {
-    console.log('[WELCOME] Back press');
     setShowLogin(false);
     setEmail('');
     setError('');
