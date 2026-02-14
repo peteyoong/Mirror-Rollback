@@ -66,37 +66,14 @@ export default function RootLayout() {
   }
 
   // =========================================================================
-  // STATE 2: No user - show WelcomeGate OR onboarding flow
-  // The Stack IS mounted to allow navigation to /onboarding
-  // WelcomeGate will be the initial screen, but user can navigate to onboarding
+  // STATE 2: No user - show WelcomeGate EXCLUSIVELY
+  // WelcomeGate handles both login AND new user flow internally
   // =========================================================================
   if (!user) {
-    console.log('[RootLayout] No user found, showing Stack with WelcomeGate as initial');
+    console.log('[RootLayout] No user found, showing WelcomeGate (exclusive)');
     return (
       <View style={{ flex: 1 }}>
-        <Stack 
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: Colors.background },
-          }}
-          initialRouteName="welcome-gate"
-        >
-          {/* WelcomeGate as initial screen for unauthenticated users */}
-          <Stack.Screen 
-            name="welcome-gate" 
-            options={{ headerShown: false }}
-            // Use getId to ensure it's treated as the root
-            getId={() => 'welcome-gate'}
-          />
-          
-          {/* Onboarding flow - accessible without auth */}
-          <Stack.Screen name="onboarding/index" options={{ headerShown: false }} />
-          <Stack.Screen name="questionnaire/index" options={{ headerShown: false }} />
-          
-          {/* Index redirects */}
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-        </Stack>
-        
+        <WelcomeGate />
         {/* These overlays must have pointerEvents="none" and are positioned absolute */}
         {Platform.OS === 'web' && <DebugViewportOverlay />}
         <BuildBadge />
