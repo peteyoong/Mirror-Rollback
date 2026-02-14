@@ -17,8 +17,7 @@ import { Colors } from '../constants/colors';
 import { useAppStore } from '../store';
 import { Ionicons } from '@expo/vector-icons';
 import { getApiBaseUrl, joinUrl } from '../utils/apiBase';
-import { storageGet, storageSet } from '../utils/storage';
-import { DEFAULT_THREAD_KEY, getChatStorageKey } from '../utils/chatThread';
+import { getChatStorageKey, DEFAULT_THREAD_KEY, saveMessages, loadMessages, ChatMessage } from '../utils/chatPersistence';
 
 // Use shared thread key for unified persistence
 const THREAD_KEY = DEFAULT_THREAD_KEY;
