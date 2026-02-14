@@ -77,13 +77,14 @@ export default function ReflectionChat() {
   // Debug state for network trace
   const [debugExpanded, setDebugExpanded] = useState(true);
   const [debugState, setDebugState] = useState<DebugState>({
-    apiBaseUrl: API_BASE_URL || '(relative - web)',
-    endpoint: '',
-    lastRequestPayload: '',
-    lastResponseStatus: null,
+    resolvedApiBaseUrl: API_BASE_URL,
+    reflectionChatUrl: REFLECTION_CHAT_URL,
+    envValue: process.env.EXPO_PUBLIC_API_BASE_URL || '(not set)',
+    lastHttpStatus: null,
     lastResponseText: '',
     lastParsedResponse: '',
-    lastError: '',
+    lastError: API_URL_MISSING ? API_URL_ERROR_MESSAGE : '',
+    apiUrlMissing: API_URL_MISSING,
   });
 
   // Generate pre-seeded opening message based on state
