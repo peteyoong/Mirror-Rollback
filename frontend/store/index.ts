@@ -568,6 +568,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (restoredUser && restoredChart) {
         console.log('[SessionRestore] ✓ Restored from local storage');
         // SINGLE batched set() call
+        RESTORE_SET_COUNT++;
+        console.log(`[SessionRestore] SET #${RESTORE_SET_COUNT} (local-restore-success)`);
         set({
           user: restoredUser,
           chart: restoredChart,
@@ -575,6 +577,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           isRestoringSession: false,
           hasTriedSessionRestore: true,
         });
+        isRestoringSession = false;
         return true;
       }
       
