@@ -527,10 +527,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   reflectQuestion: {
-    fontSize: 17,
-    lineHeight: 28,
-    color: Colors.text,
-    fontWeight: '400',
+    ...Typography.reflectQuestion,
   },
   // Continue button
   continueButton: {
