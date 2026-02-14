@@ -12439,9 +12439,12 @@ else:
         }
 
 
+# CORS Configuration - FIX: allow_credentials=False with wildcard origin
+# Browser rejects allow_credentials=True + allow_origins=["*"]
+# Since we don't use cookie auth, credentials=False is correct
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
+    allow_credentials=False,  # FIX: Must be False with wildcard origin
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
