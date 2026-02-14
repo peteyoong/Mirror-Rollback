@@ -97,7 +97,7 @@ export function AddToHomeScreenBanner() {
   const isIOS = typeof window !== 'undefined' && /iPad|iPhone|iPod/.test(window.navigator.userAgent);
   
   return (
-    <View style={styles.container}>
+    <View style={styles.container} pointerEvents="box-none">
       <View style={styles.content}>
         <Ionicons name="phone-portrait-outline" size={24} color={Colors.text} />
         <View style={styles.textContainer}>
