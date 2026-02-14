@@ -4954,8 +4954,11 @@ async def mirror_chat(request: MirrorChatRequest):
         )
         
     except Exception as e:
+        import traceback
+        trace_str = traceback.format_exc()
         logger.error(f"Mirror chat error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Mirror chat traceback:\n{trace_str}")
+        raise HTTPException(status_code=500, detail=f"{str(e)} | Trace: {trace_str[:500]}")
 
 
 @api_router.delete("/mirror/chat/{session_id}")
