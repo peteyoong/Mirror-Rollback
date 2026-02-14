@@ -362,7 +362,7 @@ export default function MirrorChat({
       timestamp: new Date().toISOString(),
     };
 
-    await addChatMessage(THREAD_KEY, userMessage);
+    await addChatMessage(threadKey, userMessage);
     setInputText('');
     setIsLoading(true);
     Keyboard.dismiss();
@@ -384,7 +384,7 @@ export default function MirrorChat({
         timestamp: response.data.timestamp || new Date().toISOString(),
       };
 
-      await addChatMessage(THREAD_KEY, assistantMessage);
+      await addChatMessage(threadKey, assistantMessage);
       setSessionId(response.data.session_id);
       
       // Store memory update if present
@@ -399,7 +399,7 @@ export default function MirrorChat({
         setThreadState(null);
       }
       
-      console.log(`[MirrorChat] Message sent successfully, total messages: ${messages.length + 2}`);
+      console.log(`[MirrorChat] Message sent successfully, total messages: ${displayMessages.length + 2}`);
     } catch (error: any) {
       console.error('Mirror chat error:', error);
       const errorMessage: ChatMessage = {
@@ -408,7 +408,7 @@ export default function MirrorChat({
         content: "I'm having trouble connecting right now. Please try again in a moment.",
         timestamp: new Date().toISOString(),
       };
-      await addChatMessage(THREAD_KEY, errorMessage);
+      await addChatMessage(threadKey, errorMessage);
     } finally {
       setIsLoading(false);
     }
