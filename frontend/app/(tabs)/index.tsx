@@ -509,4 +509,27 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: 24,
   },
+  // Debug Stamp styles
+  debugStamp: {
+    backgroundColor: '#1a1a1a',
+    padding: 10,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FF6B00',
+  },
+  debugStampTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FF6B00',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  debugStampText: {
+    fontSize: 9,
+    color: '#00FF88',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginBottom: 2,
+  },
 });
