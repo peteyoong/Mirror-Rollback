@@ -437,9 +437,8 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   debugToggleText: {
-    fontSize: 9,
-    color: 'rgba(255,255,255,0.3)',
-    letterSpacing: 0.5,
+    ...Typography.debugText,
+    opacity: 0.3,
   },
   debugPanel: {
     backgroundColor: 'rgba(0,0,0,0.85)',
