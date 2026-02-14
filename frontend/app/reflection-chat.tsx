@@ -759,13 +759,6 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
   },
-  // DEBUG: Role tag to verify normalization (temporary)
-  roleDebugTag: {
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.35)',
-    marginTop: 4,
-    opacity: 0.6,
-  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
