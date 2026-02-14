@@ -31,13 +31,22 @@ export default function TabLayout() {
         lazy: false,
       }}
     >
+      {/* Use mirror-v2 as the main Mirror tab (loop-proof) */}
       <Tabs.Screen
-        name="index"
+        name="mirror-v2"
         options={{
           title: 'Mirror',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="moon-outline" size={size} color={color} />
           ),
+          headerShown: false,
+        }}
+      />
+      {/* Hide the old index screen */}
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null,  // Hide from tab bar
         }}
       />
       <Tabs.Screen
