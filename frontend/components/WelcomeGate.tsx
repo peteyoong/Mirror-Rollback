@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   TextInput,
   ActivityIndicator,
@@ -17,15 +17,15 @@ import { Colors } from '../constants/colors';
 import { loginUser } from '../services/api';
 
 /**
- * BUILD TAG: 2026-02-14-nav-architecture-fix
+ * BUILD TAG: 2026-02-14-touch-fix
  * 
  * WelcomeGate - The Authentication Gate Component
  * 
- * This is NOT a route/screen - it's a component rendered directly
- * by _layout.tsx when no user session exists.
+ * FIX: Using Pressable instead of TouchableOpacity for better web compatibility
+ * FIX: Added onPressIn logging for touch debugging
+ * FIX: Ensured no disabled state blocks touches
  * 
- * This architectural decision prevents the "Welcome overlay on top of tabs" bug
- * because this component REPLACES the Stack navigator entirely when shown.
+ * This component REPLACES the Stack navigator entirely when shown.
  * 
  * Two options:
  * 1. New User - Begin onboarding flow
@@ -41,12 +41,17 @@ export default function WelcomeGate() {
   const [error, setError] = useState('');
 
   const handleBeginReflection = () => {
-    // Navigate to onboarding - this will trigger Stack to render
-    // because after onboarding, user will be set
+    console.log('[WELCOME] New User press - navigating to onboarding');
     router.push('/onboarding');
   };
 
+  const handleShowLogin = () => {
+    console.log('[WELCOME] Existing User press - showing login');
+    setShowLogin(true);
+  };
+
   const handleLogin = async () => {
+    console.log('[WELCOME] Sign In press');
     if (!email.trim()) {
       setError('Please enter your email');
       return;
@@ -59,16 +64,12 @@ export default function WelcomeGate() {
       const result = await loginUser(email.trim());
       
       if (result.success && result.user) {
-        // Set user in store - this will trigger _layout.tsx to show Stack
         await setUser(result.user);
         
-        // Set chart if available
         if (result.chart) {
           await setChart(result.chart);
         }
         
-        // No need to navigate - _layout.tsx will automatically
-        // switch from WelcomeGate to Stack when user is set
         console.log('[WelcomeGate] Login successful, user set - layout will update');
       }
     } catch (err: any) {
@@ -77,6 +78,13 @@ export default function WelcomeGate() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBack = () => {
+    console.log('[WELCOME] Back press');
+    setShowLogin(false);
+    setEmail('');
+    setError('');
   };
 
   // Login form view
@@ -88,7 +96,7 @@ export default function WelcomeGate() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <View style={styles.content}>
+          <View style={styles.content} pointerEvents="box-none">
             <View style={styles.header}>
               <Text style={styles.title}>Project Mirror</Text>
             </View>
@@ -120,31 +128,34 @@ export default function WelcomeGate() {
                 </View>
               ) : null}
               
-              <TouchableOpacity 
-                style={[styles.primaryButton, isLoading && styles.buttonDisabled]}
+              <Pressable 
+                style={({ pressed }) => [
+                  styles.primaryButton,
+                  isLoading && styles.buttonDisabled,
+                  pressed && styles.buttonPressed,
+                ]}
+                onPressIn={() => console.log('[WELCOME] Sign In pressIn')}
                 onPress={handleLogin}
                 disabled={isLoading}
-                activeOpacity={0.8}
               >
                 {isLoading ? (
                   <ActivityIndicator size="small" color={Colors.text} />
                 ) : (
                   <Text style={styles.primaryButtonText}>Sign In</Text>
                 )}
-              </TouchableOpacity>
+              </Pressable>
               
-              <TouchableOpacity 
-                style={styles.textButton}
-                onPress={() => {
-                  setShowLogin(false);
-                  setEmail('');
-                  setError('');
-                }}
+              <Pressable 
+                style={({ pressed }) => [
+                  styles.textButton,
+                  pressed && styles.buttonPressed,
+                ]}
+                onPressIn={() => console.log('[WELCOME] Back pressIn')}
+                onPress={handleBack}
                 disabled={isLoading}
-                activeOpacity={0.8}
               >
                 <Text style={styles.textButtonText}>Back</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -157,54 +168,67 @@ export default function WelcomeGate() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
-      <View style={styles.content}>
-        {/* Title */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Project Mirror</Text>
-        </View>
-        
-        {/* Core Message */}
-        <View style={styles.messageContainer}>
-          <Text style={styles.tagline}>A space for noticing.</Text>
-          <View style={styles.permissionLines}>
-            <Text style={styles.permissionText}>Nothing to fix.</Text>
-            <Text style={styles.permissionText}>Nothing to decide.</Text>
+      {/* Touch tracer - logs when screen receives touch */}
+      <Pressable 
+        style={styles.touchableContent}
+        onPressIn={() => console.log('[WELCOME] screen pressIn')}
+        pointerEvents="box-none"
+      >
+        <View style={styles.content} pointerEvents="box-none">
+          {/* Title */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Project Mirror</Text>
           </View>
-        </View>
-        
-        {/* Two Options */}
-        <View style={styles.buttonContainer}>
-          {/* New User */}
-          <TouchableOpacity 
-            style={styles.primaryButton}
-            onPress={handleBeginReflection}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.primaryButtonText}>New User</Text>
-            <Text style={styles.buttonSubtext}>Begin your reflection journey</Text>
-          </TouchableOpacity>
           
-          {/* Existing User */}
-          <TouchableOpacity 
-            style={styles.secondaryButton}
-            onPress={() => setShowLogin(true)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.secondaryButtonText}>Existing User</Text>
-            <Text style={styles.secondaryButtonSubtext}>Sign in with email</Text>
-          </TouchableOpacity>
+          {/* Core Message */}
+          <View style={styles.messageContainer}>
+            <Text style={styles.tagline}>A space for noticing.</Text>
+            <View style={styles.permissionLines}>
+              <Text style={styles.permissionText}>Nothing to fix.</Text>
+              <Text style={styles.permissionText}>Nothing to decide.</Text>
+            </View>
+          </View>
+          
+          {/* Two Options - Using Pressable for better web touch handling */}
+          <View style={styles.buttonContainer}>
+            {/* New User */}
+            <Pressable 
+              style={({ pressed }) => [
+                styles.primaryButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPressIn={() => console.log('[WELCOME] New User pressIn')}
+              onPress={handleBeginReflection}
+            >
+              <Text style={styles.primaryButtonText}>New User</Text>
+              <Text style={styles.buttonSubtext}>Begin your reflection journey</Text>
+            </Pressable>
+            
+            {/* Existing User */}
+            <Pressable 
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPressIn={() => console.log('[WELCOME] Existing User pressIn')}
+              onPress={handleShowLogin}
+            >
+              <Text style={styles.secondaryButtonText}>Existing User</Text>
+              <Text style={styles.secondaryButtonSubtext}>Sign in with email</Text>
+            </Pressable>
+          </View>
+          
+          {/* Exit Permission */}
+          <Text style={styles.exitPermission}>You can leave at any time.</Text>
         </View>
         
-        {/* Exit Permission */}
-        <Text style={styles.exitPermission}>You can leave at any time.</Text>
-      </View>
-      
-      {/* Footer Philosophy Line */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          You don't have to do anything with what you notice.
-        </Text>
-      </View>
+        {/* Footer Philosophy Line */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            You don't have to do anything with what you notice.
+          </Text>
+        </View>
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -216,6 +240,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   keyboardView: {
+    flex: 1,
+    width: '100%',
+  },
+  touchableContent: {
     flex: 1,
     width: '100%',
   },
@@ -300,6 +328,9 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  buttonPressed: {
+    opacity: 0.7,
   },
   textButton: {
     paddingVertical: 12,
