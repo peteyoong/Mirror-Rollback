@@ -66,7 +66,7 @@ export default function ReflectionChat() {
     context?: string;
     dismissed?: string;
   }>();
-  const { user } = useAppStore();
+  const { user, getChatMessages, addChatMessage, loadChatMessages, setChatMessages } = useAppStore();
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -111,19 +111,43 @@ export default function ReflectionChat() {
     return "We can keep this light.\nWhat stood out today?";
   }, [params.context, params.dismissed]);
 
-  // Initialize with opening message
+  // Load persisted messages on mount
   useEffect(() => {
-    if (!hasInitializedRef.current) {
+    const loadMessages = async () => {
+      if (!user?.id || hasInitializedRef.current) return;
       hasInitializedRef.current = true;
-      const opening = getOpeningMessage();
-      setMessages([{
-        id: 'opening',
-        role: 'assistant',
-        content: opening,
-        timestamp: new Date(),
-      }]);
-    }
-  }, [getOpeningMessage]);
+      
+      console.log('[ReflectionChat] Loading persisted messages...');
+      const storedMessages = await loadChatMessages(REFLECTION_THREAD_KEY);
+      
+      if (storedMessages.length > 0) {
+        // Restore messages from storage
+        const restoredMessages: Message[] = storedMessages.map(m => ({
+          ...m,
+          timestamp: new Date(m.timestamp),
+        }));
+        setMessages(restoredMessages);
+        console.log(`[ReflectionChat] Restored ${restoredMessages.length} messages from storage`);
+      } else {
+        // No stored messages - show opening message
+        const opening = getOpeningMessage();
+        const openingMessage: Message = {
+          id: 'opening',
+          role: 'assistant',
+          content: opening,
+          timestamp: new Date(),
+        };
+        setMessages([openingMessage]);
+        // Persist the opening message
+        await addChatMessage(REFLECTION_THREAD_KEY, {
+          ...openingMessage,
+          timestamp: openingMessage.timestamp.toISOString(),
+        } as unknown as ChatMessage);
+      }
+    };
+    
+    loadMessages();
+  }, [user?.id, getOpeningMessage, loadChatMessages, addChatMessage]);
 
   // Check if we should show micro-reflection prompt
   const shouldShowMicroPrompt = useCallback(() => {
