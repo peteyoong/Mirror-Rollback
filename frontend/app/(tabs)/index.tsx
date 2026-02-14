@@ -539,9 +539,9 @@ const styles = StyleSheet.create({
   },
   // F. Reflect section
   reflectSection: {
-    paddingTop: 28,
-    paddingBottom: 20,
-    marginTop: 16,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.lg,
+    marginTop: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.08)',
   },
@@ -550,18 +550,18 @@ const styles = StyleSheet.create({
   },
   // Continue button
   continueButton: {
-    marginTop: 32,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    marginTop: Spacing.xl,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
     backgroundColor: 'rgba(255,255,255,0.04)',
-    borderRadius: 12,
+    borderRadius: Spacing.sm,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
   },
   continueButtonText: {
     ...Typography.buttonText,
-    marginBottom: 4,
+    marginBottom: Spacing.xxs,
   },
   continueButtonSubtext: {
     ...Typography.buttonSubtext,
@@ -569,13 +569,13 @@ const styles = StyleSheet.create({
   // Footer
   footer: {
     marginTop: 'auto',
-    paddingTop: 40,
-    paddingBottom: 12,
+    paddingTop: Spacing.xxl,
+    paddingBottom: Spacing.sm,
   },
   footerText: {
     ...Typography.footerText,
   },
   bottomSpacer: {
-    height: 24,
+    height: Spacing.lg,
   },
 });
