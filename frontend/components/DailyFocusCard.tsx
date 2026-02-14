@@ -188,22 +188,24 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    // No border - embedded feel
   },
   card: {
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    // No border - embedded feel
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 10,
+    paddingBottom: 10,
+    // Internal divider line between header and body
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+    marginBottom: 12,
   },
   cardTitle: {
     fontSize: 10,
@@ -211,7 +213,7 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    opacity: 0.7,
+    opacity: 0.6,
   },
   dismissButton: {
     padding: 4,
