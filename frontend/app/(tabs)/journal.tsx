@@ -428,6 +428,7 @@ export default function JournalScreen() {
   }
 
   // Journal View
+  // P0 FIX: Removed TouchableWithoutFeedback wrapper that was blocking TextInput touches
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
@@ -436,119 +437,119 @@ export default function JournalScreen() {
         style={styles.keyboardView}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        <TouchableWithoutFeedback onPress={dismissKeyboard}>
-          <View style={styles.content}>
-            {/* Mode Toggle */}
-            {renderModeToggle()}
+        <View style={styles.content}>
+          {/* Mode Toggle */}
+          {renderModeToggle()}
 
-            {/* Header */}
-            <View style={styles.header}>
-              <Text style={styles.title}>Journal</Text>
-              <Text style={styles.subtitle}>
-                A private space for your thoughts and reflections.
-              </Text>
-            </View>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Journal</Text>
+            <Text style={styles.subtitle}>
+              A private space for your thoughts and reflections.
+            </Text>
+          </View>
 
-            {/* New Entry Input - ALWAYS EDITABLE unless submitting */}
-            <View style={styles.inputSection}>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  ref={inputRef}
-                  style={styles.input}
-                  value={newEntry}
-                  onChangeText={setNewEntry}
-                  placeholder="What's on your mind?"
-                  placeholderTextColor={Colors.textTertiary}
-                  multiline
-                  maxLength={2000}
-                  editable={!isSubmitting}
-                  returnKeyType="default"
-                  blurOnSubmit={false}
-                />
-                <View style={styles.inputActions}>
-                  {newEntry.trim().length > 0 && (
-                    <TouchableOpacity
-                      style={styles.dismissButton}
-                      onPress={dismissKeyboard}
-                    >
-                      <Ionicons name="chevron-down" size={20} color={Colors.textSecondary} />
-                    </TouchableOpacity>
-                  )}
-                  <TouchableOpacity
-                    style={[
-                      styles.submitButton,
-                      (!newEntry.trim() || isSubmitting) && styles.submitButtonDisabled,
-                    ]}
-                    onPress={handleSubmit}
-                    disabled={!newEntry.trim() || isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <ActivityIndicator size="small" color={Colors.background} />
-                    ) : (
-                      <Ionicons name="checkmark" size={20} color={Colors.background} />
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </View>
-              
-              {/* Reflect with Mirror button for current entry */}
-              {newEntry.trim().length > 20 && (
-                <TouchableOpacity 
-                  style={[
-                    styles.reflectCurrentButton,
-                    reflectionModalVisible && styles.reflectButtonDisabled
-                  ]}
-                  onPress={handleReflectCurrentEntry}
-                  disabled={reflectionModalVisible}
-                >
-                  <Ionicons name="sparkles-outline" size={16} color={reflectionModalVisible ? Colors.textTertiary : Colors.accent} />
-                  <Text style={[
-                    styles.reflectCurrentText,
-                    reflectionModalVisible && styles.reflectTextDisabled
-                  ]}>Quick Reflect</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {error && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
-              </View>
-            )}
-
-            {/* Entries List */}
-            {isLoading ? (
-              <View style={styles.centered}>
-                <ActivityIndicator size="large" color={Colors.textSecondary} />
-              </View>
-            ) : journalEntries.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Ionicons name="book-outline" size={48} color={Colors.textTertiary} />
-                <Text style={styles.emptyText}>No entries yet</Text>
-                <Text style={styles.emptySubtext}>
-                  Start journaling to track your reflections over time.
-                </Text>
-              </View>
-            ) : (
-              <FlatList
-                data={journalEntries}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <JournalEntryItem
-                    content={item.content}
-                    created_at={item.created_at}
-                    themes={item.themes}
-                    onReflect={(content) => handleReflect(item.id, content)}
-                    isReflectDisabled={reflectionModalVisible}
-                  />
-                )}
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-                keyboardDismissMode="on-drag"
+          {/* New Entry Input - ALWAYS EDITABLE unless submitting */}
+          {/* P0 FIX: Input container has zIndex to ensure it's above other elements */}
+          <View style={styles.inputSection}>
+            <View style={styles.inputContainer}>
+              <TextInput
+                ref={inputRef}
+                style={styles.input}
+                value={newEntry}
+                onChangeText={setNewEntry}
+                placeholder="What's on your mind?"
+                placeholderTextColor={Colors.textTertiary}
+                multiline
+                maxLength={2000}
+                editable={!isSubmitting}
+                returnKeyType="default"
+                blurOnSubmit={false}
               />
+              <View style={styles.inputActions}>
+                {newEntry.trim().length > 0 && (
+                  <TouchableOpacity
+                    style={styles.dismissButton}
+                    onPress={dismissKeyboard}
+                  >
+                    <Ionicons name="chevron-down" size={20} color={Colors.textSecondary} />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={[
+                    styles.submitButton,
+                    (!newEntry.trim() || isSubmitting) && styles.submitButtonDisabled,
+                  ]}
+                  onPress={handleSubmit}
+                  disabled={!newEntry.trim() || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator size="small" color={Colors.background} />
+                  ) : (
+                    <Ionicons name="checkmark" size={20} color={Colors.background} />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+            
+            {/* Reflect with Mirror button for current entry */}
+            {newEntry.trim().length > 20 && (
+              <TouchableOpacity 
+                style={[
+                  styles.reflectCurrentButton,
+                  reflectionModalVisible && styles.reflectButtonDisabled
+                ]}
+                onPress={handleReflectCurrentEntry}
+                disabled={reflectionModalVisible}
+              >
+                <Ionicons name="sparkles-outline" size={16} color={reflectionModalVisible ? Colors.textTertiary : Colors.accent} />
+                <Text style={[
+                  styles.reflectCurrentText,
+                  reflectionModalVisible && styles.reflectTextDisabled
+                ]}>Quick Reflect</Text>
+              </TouchableOpacity>
             )}
           </View>
-        </TouchableWithoutFeedback>
+
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          {/* Entries List */}
+          {isLoading ? (
+            <View style={styles.centered}>
+              <ActivityIndicator size="large" color={Colors.textSecondary} />
+            </View>
+          ) : journalEntries.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="book-outline" size={48} color={Colors.textTertiary} />
+              <Text style={styles.emptyText}>No entries yet</Text>
+              <Text style={styles.emptySubtext}>
+                Start journaling to track your reflections over time.
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={journalEntries}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <JournalEntryItem
+                  content={item.content}
+                  created_at={item.created_at}
+                  themes={item.themes}
+                  onReflect={(content) => handleReflect(item.id, content)}
+                  isReflectDisabled={reflectionModalVisible}
+                />
+              )}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
+            />
+          )}
+        </View>
       </KeyboardAvoidingView>
 
       {/* Mirror Reflection Modal (Quick Template-based) */}
