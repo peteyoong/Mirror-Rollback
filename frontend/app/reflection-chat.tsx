@@ -814,7 +814,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.text,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 100000, // FIX: Ensure send button is above everything
+  },
+  sendButtonWrapper: {
+    zIndex: 100000, // FIX: Ensure send button wrapper is above everything
   },
   sendButtonDisabled: {
     backgroundColor: Colors.surface,
