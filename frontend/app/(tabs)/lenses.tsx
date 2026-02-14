@@ -110,14 +110,6 @@ export default function LensesScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
-      {/* DEBUG OVERLAY - TEMPORARY */}
-      <DebugOverlay extra={{ 
-        lensCount: displayLenses.length,
-        isLoading,
-        fetchError: fetchError || 'none',
-        hasUser: !!user,
-      }} />
-      
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
