@@ -581,7 +581,9 @@ export default function ReflectionChat() {
             maxLength={1000}
             returnKeyType="send"
             blurOnSubmit={false}
+            editable={!isLoading}
             onSubmitEditing={() => {
+              console.log('[ReflectionChat] onSubmitEditing triggered');
               if (inputText.trim() && !isLoading) {
                 handleSend();
               }
@@ -592,13 +594,19 @@ export default function ReflectionChat() {
               styles.sendButton,
               (!inputText.trim() || isLoading) && styles.sendButtonDisabled,
             ]}
-            onPress={handleSend}
+            onPress={() => {
+              console.log('[ReflectionChat] Send button onPress triggered');
+              handleSend();
+            }}
             disabled={!inputText.trim() || isLoading}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Ionicons 
               name="arrow-up" 
               size={20} 
               color={inputText.trim() && !isLoading ? Colors.background : Colors.textTertiary} 
+              style={{ pointerEvents: 'none' } as any}
             />
           </TouchableOpacity>
         </View>
