@@ -40,6 +40,9 @@ interface DailyKeystone {
 }
 
 export default function MirrorV2Screen() {
+  MIRROR_RENDER_COUNT++;
+  console.log(`[MirrorV2] Render #${MIRROR_RENDER_COUNT}`);
+  
   const insets = useSafeAreaInsets();
   const router = useRouter();
   
