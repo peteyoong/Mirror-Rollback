@@ -174,25 +174,127 @@ export default function ReflectionChat() {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
 
-    try {
-      // Build conversation history for API
-      const conversationHistory = messages.map(m => ({
-        role: m.role,
+    // Build the endpoint URL
+    const endpoint = `${API_BASE_URL}/api/reflection/chat`;
+    
+    // Build conversation history for API - ensure correct format
+    // Backend expects: { role: "user"|"assistant", content: "..." }
+    const conversationHistory = messages
+      .filter(m => m.role === 'user' || m.role === 'assistant')
+      .map(m => ({
+        role: m.role as 'user' | 'assistant',
         content: m.content,
       }));
-      conversationHistory.push({ role: 'user', content: userMessage.content });
+    conversationHistory.push({ role: 'user', content: userMessage.content });
 
-      // Call reflection chat API
-      const response = await api.post('/reflection/chat', {
-        user_id: user.id,
-        messages: conversationHistory,
-        context: params.context || null,
+    // Build the request payload - EXACT schema expected by backend
+    const payload = {
+      user_id: user.id,
+      messages: conversationHistory,
+      context: params.context || null,
+    };
+    
+    // Update debug state before request
+    setDebugState(prev => ({
+      ...prev,
+      endpoint,
+      lastRequestPayload: JSON.stringify(payload, null, 2),
+      lastResponseStatus: null,
+      lastResponseText: '',
+      lastParsedResponse: '',
+      lastError: '',
+    }));
+
+    try {
+      console.log('[ReflectionChat] Sending request to:', endpoint);
+      console.log('[ReflectionChat] Payload:', JSON.stringify(payload));
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
+      
+      const responseText = await response.text();
+      
+      // Update debug state with response
+      setDebugState(prev => ({
+        ...prev,
+        lastResponseStatus: response.status,
+        lastResponseText: responseText,
+      }));
+      
+      console.log('[ReflectionChat] Status:', response.status);
+      console.log('[ReflectionChat] Response text:', responseText);
+      
+      // Check for non-200 status
+      if (!response.ok) {
+        const errorMsg = `HTTP ${response.status}: ${responseText}`;
+        setDebugState(prev => ({
+          ...prev,
+          lastError: errorMsg,
+        }));
+        
+        // Show error in chat
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: `⚠️ HTTP ${response.status} error. Check debug panel.`,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, errorMessage]);
+        return;
+      }
+      
+      // Try to parse the response
+      let parsedData: { response?: string } = {};
+      try {
+        parsedData = JSON.parse(responseText);
+        setDebugState(prev => ({
+          ...prev,
+          lastParsedResponse: JSON.stringify(parsedData, null, 2),
+        }));
+      } catch (parseError: any) {
+        const parseErrorMsg = `JSON parse error: ${parseError.message}`;
+        setDebugState(prev => ({
+          ...prev,
+          lastError: parseErrorMsg,
+        }));
+        
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: `⚠️ Failed to parse response. Check debug panel.`,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, errorMessage]);
+        return;
+      }
+      
+      // Extract the response text
+      const assistantContent = parsedData.response;
+      if (!assistantContent) {
+        setDebugState(prev => ({
+          ...prev,
+          lastError: 'Response missing "response" field',
+        }));
+        
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: `⚠️ Response missing "response" field. Check debug panel.`,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, errorMessage]);
+        return;
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response.data.response,
+        content: assistantContent,
         timestamp: new Date(),
       };
 
@@ -214,16 +316,23 @@ export default function ReflectionChat() {
         
         return newMessages;
       });
-    } catch (error) {
-      console.error('Reflection chat error:', error);
-      // Graceful fallback - don't show error, just acknowledge
-      const fallbackMessage: Message = {
+    } catch (error: any) {
+      console.error('[ReflectionChat] Fetch error:', error);
+      
+      const errorMsg = error.message || 'Unknown fetch error';
+      setDebugState(prev => ({
+        ...prev,
+        lastError: errorMsg,
+      }));
+      
+      // Show error in chat - NOT graceful fallback
+      const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "That feels significant.",
+        content: `⚠️ Fetch error: ${errorMsg}`,
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, fallbackMessage]);
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
       setTimeout(() => {
