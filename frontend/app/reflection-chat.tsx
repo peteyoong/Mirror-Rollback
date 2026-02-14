@@ -394,16 +394,14 @@ export default function ReflectionChat() {
         lastHttpStatus: isCorsError ? -1 : null,  // -1 indicates network-level failure
       }));
       
-      // Show appropriate error in chat
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: isCorsError 
-          ? `⚠️ Network/CORS blocked in web preview. Check debug panel.`
-          : `⚠️ Fetch error: ${errorMsg}`,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      // Update global debug info
+      updateDebugInfo({
+        lastError: errorMsg,
+        lastHttpStatus: isCorsError ? -1 : null,
+      });
+      
+      // Show error in chat (visible to user)
+      appendSystemMessage(`❌ ERROR: ${isCorsError ? 'CORS/Network' : ''} ${String(errorMsg).slice(0, 120)}`);
     } finally {
       setIsLoading(false);
       setTimeout(() => {
