@@ -203,6 +203,18 @@ export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
               </Text>
             </Text>
             
+            {/* Chat Debug Info */}
+            <Text style={styles.row}>
+              <Text style={styles.label}>CHAT_KEY: </Text>
+              <Text style={styles.value}>{(globalThis as any).__MIRROR_CHAT_KEY || '(none)'}</Text>
+            </Text>
+            <Text style={styles.row}>
+              <Text style={styles.label}>CHAT_COUNT: </Text>
+              <Text style={(globalThis as any).__MIRROR_CHAT_COUNT > 0 ? styles.valueOk : styles.valueError}>
+                {(globalThis as any).__MIRROR_CHAT_COUNT ?? 0}
+              </Text>
+            </Text>
+            
             {/* Response preview */}
             {debugInfo.lastResponseText ? (
               <Text style={styles.row} numberOfLines={2}>
