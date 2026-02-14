@@ -217,6 +217,107 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
   },
   
+  // Chat message actions - persist chat history across tab switches and refreshes
+  getChatMessages: (threadKey: string) => {
+    const { chatMessages, user } = get();
+    if (!user?.id) return [];
+    const key = `${user.id}:${threadKey}`;
+    return chatMessages[key] || [];
+  },
+  
+  addChatMessage: async (threadKey: string, message: ChatMessage) => {
+    const { chatMessages, user } = get();
+    if (!user?.id) return;
+    
+    const key = `${user.id}:${threadKey}`;
+    const existingMessages = chatMessages[key] || [];
+    const updatedMessages = [...existingMessages, message];
+    
+    // Update state
+    set({
+      chatMessages: {
+        ...chatMessages,
+        [key]: updatedMessages,
+      },
+    });
+    
+    // Persist to storage
+    const storageKey = getChatStorageKey(user.id, threadKey);
+    await storage.setItem(storageKey, JSON.stringify(updatedMessages));
+    console.log(`[ChatStore] Added message to ${key}, total: ${updatedMessages.length}`);
+  },
+  
+  setChatMessages: async (threadKey: string, messages: ChatMessage[]) => {
+    const { chatMessages, user } = get();
+    if (!user?.id) return;
+    
+    const key = `${user.id}:${threadKey}`;
+    
+    // Update state
+    set({
+      chatMessages: {
+        ...chatMessages,
+        [key]: messages,
+      },
+    });
+    
+    // Persist to storage
+    const storageKey = getChatStorageKey(user.id, threadKey);
+    await storage.setItem(storageKey, JSON.stringify(messages));
+    console.log(`[ChatStore] Set ${messages.length} messages for ${key}`);
+  },
+  
+  loadChatMessages: async (threadKey: string): Promise<ChatMessage[]> => {
+    const { user, chatMessages } = get();
+    if (!user?.id) return [];
+    
+    const key = `${user.id}:${threadKey}`;
+    
+    // Check if already loaded in memory
+    if (chatMessages[key] && chatMessages[key].length > 0) {
+      console.log(`[ChatStore] Returning ${chatMessages[key].length} cached messages for ${key}`);
+      return chatMessages[key];
+    }
+    
+    // Load from storage
+    const storageKey = getChatStorageKey(user.id, threadKey);
+    const stored = await storage.getItem(storageKey);
+    
+    if (stored) {
+      try {
+        const messages = JSON.parse(stored) as ChatMessage[];
+        // Update state with loaded messages
+        set({
+          chatMessages: {
+            ...get().chatMessages,
+            [key]: messages,
+          },
+        });
+        console.log(`[ChatStore] Loaded ${messages.length} messages from storage for ${key}`);
+        return messages;
+      } catch (e) {
+        console.error('[ChatStore] Failed to parse stored messages:', e);
+      }
+    }
+    
+    return [];
+  },
+  
+  clearChatMessages: async (threadKey: string) => {
+    const { chatMessages, user } = get();
+    if (!user?.id) return;
+    
+    const key = `${user.id}:${threadKey}`;
+    const newChatMessages = { ...chatMessages };
+    delete newChatMessages[key];
+    
+    set({ chatMessages: newChatMessages });
+    
+    const storageKey = getChatStorageKey(user.id, threadKey);
+    await storage.removeItem(storageKey);
+    console.log(`[ChatStore] Cleared messages for ${key}`);
+  },
+  
   completeOnboarding: async () => {
     set({ hasCompletedOnboarding: true });
     await storage.setItem('hasCompletedOnboarding', 'true');
