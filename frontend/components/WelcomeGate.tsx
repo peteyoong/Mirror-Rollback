@@ -11,42 +11,37 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
 import { loginUser } from '../services/api';
 
+// Import the Onboarding component to render inline
+import Onboarding from '../app/onboarding/index';
+
 /**
- * BUILD TAG: 2026-02-14-gesture-debug
+ * BUILD TAG: 2026-02-14-onboarding-inline
  * 
- * WelcomeGate - Debug version to diagnose gesture cancellation
+ * WelcomeGate - The Authentication Gate Component
  * 
- * CHANGES:
- * - Full event instrumentation on New User button
- * - didTapNewUser state to prove onPress fires
- * - Removed pointerEvents="box-none" from content wrapper (can cancel gestures)
- * - Using simple View wrappers instead of gesture-capturing ones
+ * FIX: Instead of navigating to /onboarding (which requires Stack),
+ * we render the Onboarding component inline using state.
+ * 
+ * This component handles:
+ * 1. New User -> Shows Onboarding inline
+ * 2. Existing User -> Shows login form
  */
 export default function WelcomeGate() {
-  const router = useRouter();
   const { setUser, setChart } = useAppStore();
   
   const [showLogin, setShowLogin] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  // DEBUG: State to prove onPress fires
-  const [didTapNewUser, setDidTapNewUser] = useState(false);
 
   const handleBeginReflection = () => {
-    console.log('[WELCOME] NewUser onPress - NAVIGATING to /onboarding');
-    // First set state to prove onPress fired
-    setDidTapNewUser(true);
-    // Then navigate after a brief delay to see the TAPPED text
-    setTimeout(() => {
-      router.push('/onboarding');
-    }, 500);
+    console.log('[WELCOME] NewUser onPress - showing onboarding inline');
+    setShowOnboarding(true);
   };
 
   const handleShowLogin = () => {
@@ -87,9 +82,15 @@ export default function WelcomeGate() {
   const handleBack = () => {
     console.log('[WELCOME] Back onPress');
     setShowLogin(false);
+    setShowOnboarding(false);
     setEmail('');
     setError('');
   };
+
+  // Show onboarding flow inline
+  if (showOnboarding) {
+    return <Onboarding />;
+  }
 
   // Login form view
   if (showLogin) {
@@ -138,10 +139,7 @@ export default function WelcomeGate() {
                   isLoading && styles.buttonDisabled,
                   pressed && styles.buttonPressed,
                 ]}
-                onPressIn={() => console.log('[WELCOME] SignIn pressIn')}
-                onPressOut={() => console.log('[WELCOME] SignIn pressOut')}
                 onPress={handleLogin}
-                onLongPress={() => console.log('[WELCOME] SignIn longPress')}
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -156,10 +154,7 @@ export default function WelcomeGate() {
                   styles.textButton,
                   pressed && styles.buttonPressed,
                 ]}
-                onPressIn={() => console.log('[WELCOME] Back pressIn')}
-                onPressOut={() => console.log('[WELCOME] Back pressOut')}
                 onPress={handleBack}
-                onLongPress={() => console.log('[WELCOME] Back longPress')}
                 disabled={isLoading}
               >
                 <Text style={styles.textButtonText}>Back</Text>
@@ -172,18 +167,9 @@ export default function WelcomeGate() {
   }
 
   // Default welcome view with two options
-  // NOTE: No pointerEvents props on any wrapper - let gestures flow naturally
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
-      
-      {/* DEBUG: Show TAPPED indicator if onPress fired */}
-      {didTapNewUser && (
-        <View style={styles.tappedOverlay}>
-          <Text style={styles.tappedText}>✓ TAPPED - onPress FIRED!</Text>
-          <Text style={styles.tappedSubtext}>Navigating to onboarding...</Text>
-        </View>
-      )}
       
       <View style={styles.mainContent}>
         {/* Title */}
@@ -200,33 +186,27 @@ export default function WelcomeGate() {
           </View>
         </View>
         
-        {/* Two Options - Full event instrumentation */}
+        {/* Two Options */}
         <View style={styles.buttonContainer}>
-          {/* New User - FULLY INSTRUMENTED */}
+          {/* New User */}
           <Pressable 
             style={({ pressed }) => [
               styles.primaryButton,
               pressed && styles.buttonPressed,
             ]}
-            onPressIn={() => console.log('[WELCOME] NewUser pressIn')}
-            onPressOut={() => console.log('[WELCOME] NewUser pressOut')}
             onPress={handleBeginReflection}
-            onLongPress={() => console.log('[WELCOME] NewUser longPress')}
           >
             <Text style={styles.primaryButtonText}>New User</Text>
             <Text style={styles.buttonSubtext}>Begin your reflection journey</Text>
           </Pressable>
           
-          {/* Existing User - FULLY INSTRUMENTED */}
+          {/* Existing User */}
           <Pressable 
             style={({ pressed }) => [
               styles.secondaryButton,
               pressed && styles.buttonPressed,
             ]}
-            onPressIn={() => console.log('[WELCOME] ExistingUser pressIn')}
-            onPressOut={() => console.log('[WELCOME] ExistingUser pressOut')}
             onPress={handleShowLogin}
-            onLongPress={() => console.log('[WELCOME] ExistingUser longPress')}
           >
             <Text style={styles.secondaryButtonText}>Existing User</Text>
             <Text style={styles.secondaryButtonSubtext}>Sign in with email</Text>
