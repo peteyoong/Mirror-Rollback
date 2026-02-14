@@ -503,13 +503,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.08)',
   },
-  reflectLabel: {
-    fontSize: 9,
-    fontWeight: '600',
-    color: Colors.textTertiary,
-    letterSpacing: 1.5,
-    marginBottom: 14,
-  },
   reflectQuestion: {
     ...Typography.reflectQuestion,
   },
