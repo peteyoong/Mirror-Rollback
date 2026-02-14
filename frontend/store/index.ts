@@ -184,6 +184,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   dailyReflection: null,
   journalEntries: [],
   hasCompletedOnboarding: false,
+  chatMessages: {},  // Chat messages by thread key
   questionnaireAnswers: [],
   questionnaireComplete: false,
   isRestoringSession: false,
