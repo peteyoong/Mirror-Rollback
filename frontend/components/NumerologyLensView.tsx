@@ -1357,14 +1357,14 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   nameInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#000000',
+    color: Colors.text,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: Colors.border,
     minHeight: 52,
   },
   unlockErrorText: {
