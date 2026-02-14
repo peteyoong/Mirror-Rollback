@@ -178,34 +178,6 @@ interface AppState {
   shouldRedirectToOnboarding: () => boolean;
 }
 
-// ===== DEBUG: Set() loop tracer with HARD STOP =====
-let __setCount = 0;
-let __windowStart = Date.now();
-let __lastLabel = "";
-let __lastStack = "";
-
-function debugSet(setFn: any, payload: any, label: string) {
-  const now = Date.now();
-
-  // Rolling 1.5s window
-  if (now - __windowStart > 1500) {
-    __windowStart = now;
-    __setCount = 0;
-  }
-
-  __setCount += 1;
-  __lastLabel = label;
-  __lastStack = new Error("[STORE_SET_LOOP] " + label).stack || "";
-
-  if (__setCount >= 40) {
-    console.error("[STORE_SET_LOOP] HARD STOP label=" + __lastLabel + " count=" + __setCount);
-    console.error(__lastStack);
-    throw new Error("[STORE_SET_LOOP] HARD STOP label=" + __lastLabel + " count=" + __setCount);
-  }
-
-  setFn(payload);
-}
-
 export const useAppStore = create<AppState>((set, get) => ({
   user: null,
   chart: null,
@@ -220,23 +192,23 @@ export const useAppStore = create<AppState>((set, get) => ({
   sessionRestoreError: null,
   
   setUser: async (user) => {
-    debugSet(set, { user }, 'setUser');
+    set({ user });
     // Persist user ID for session restore
     await storage.setItem(SESSION_USER_ID_KEY, user.id);
     await storage.setItem('user', JSON.stringify(user));
   },
   
   setChart: async (chart) => {
-    debugSet(set, { chart }, 'setChart');
+    set({ chart });
     await storage.setItem('chart', JSON.stringify(chart));
   },
   
   setDailyReflection: (reflection) => {
-    debugSet(set, { dailyReflection: reflection }, 'setDailyReflection');
+    set({ dailyReflection: reflection });
   },
   
   setJournalEntries: (entries) => {
-    debugSet(set, { journalEntries: entries }, 'setJournalEntries');
+    set({ journalEntries: entries });
   },
   
   addJournalEntry: (entry) => {
