@@ -53,8 +53,15 @@ export default function MirrorV2Screen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [chatPreview, setChatPreview] = useState<ChatMessage[]>([]);
   
-  // One-shot init guard for keystone only
+  // Guards to prevent loops
   const didInitKeystoneRef = useRef(false);
+  const lastFocusRefreshRef = useRef(0);
+  const chatPreviewRef = useRef<ChatMessage[]>([]);
+  
+  // Keep chatPreviewRef in sync
+  useEffect(() => {
+    chatPreviewRef.current = chatPreview;
+  }, [chatPreview]);
   
   // LOOP-PROOF: Load keystone ONCE on mount
   useEffect(() => {
@@ -65,16 +72,50 @@ export default function MirrorV2Screen() {
     
     console.log('[MirrorV2] Loading keystone...');
     loadKeystone();
+    loadChatPreviewSafe(); // Also load chat preview once on init
   }, [userId, hasTriedRestore, isRestoring]);
   
-  // Reload chat preview on every focus (so it updates after sending messages in reflection-chat)
+  // SAFE chat preview loader with deduplication
+  const loadChatPreviewSafe = async () => {
+    if (!userId) return;
+    
+    // Debounce: prevent rapid consecutive calls
+    const now = Date.now();
+    if (now - lastFocusRefreshRef.current < 500) {
+      console.log('[MirrorV2] Skipping chat preview load (debounce)');
+      return;
+    }
+    lastFocusRefreshRef.current = now;
+    
+    try {
+      const loaded = await loadMessages(userId, DEFAULT_THREAD_KEY);
+      
+      // Only update state if messages actually changed
+      const current = chatPreviewRef.current;
+      const isDifferent = loaded.length !== current.length ||
+        (loaded.length > 0 && current.length > 0 && loaded[loaded.length - 1]?.id !== current[current.length - 1]?.id);
+      
+      if (isDifferent) {
+        console.log('[MirrorV2] Chat preview changed, updating state');
+        setChatPreview(loaded);
+      } else {
+        console.log('[MirrorV2] Chat preview unchanged, skipping setState');
+      }
+    } catch (e) {
+      console.error('[MirrorV2] loadChatPreviewSafe error:', e);
+    }
+  };
+  
+  // Reload chat preview on focus - with proper guards
   useFocusEffect(
     React.useCallback(() => {
-      if (userId) {
-        console.log('[MirrorV2] Focus - reloading chat preview');
-        loadChatPreview();
+      // Only refresh if we have a userId and have initialized
+      if (userId && didInitKeystoneRef.current) {
+        loadChatPreviewSafe();
       }
-    }, [userId])
+      // Return undefined (no cleanup needed)
+      return undefined;
+    }, [userId]) // Only depend on userId
   );
   
   const loadKeystone = async () => {
