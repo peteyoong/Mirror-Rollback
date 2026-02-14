@@ -268,36 +268,39 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   loadChatMessages: async (threadKey: string): Promise<ChatMessage[]> => {
-    const { user, chatMessages } = get();
-    if (!user?.id) return [];
-    
-    const key = `${user.id}:${threadKey}`;
-    
-    // Check if already loaded in memory
-    if (chatMessages[key] && chatMessages[key].length > 0) {
-      console.log(`[ChatStore] Returning ${chatMessages[key].length} cached messages for ${key}`);
-      return chatMessages[key];
+    const { user } = get();
+    if (!user?.id) {
+      console.log('[ChatStore] loadChatMessages: No user id, returning empty');
+      return [];
     }
     
-    // Load from storage
+    const key = `${user.id}:${threadKey}`;
     const storageKey = getChatStorageKey(user.id, threadKey);
+    
+    console.log(`[ChatStore] loadChatMessages: key=${key}, storageKey=${storageKey}`);
+    
+    // Load from storage
     const stored = await storage.getItem(storageKey);
     
     if (stored) {
       try {
         const messages = JSON.parse(stored) as ChatMessage[];
-        // Update state with loaded messages
-        set({
+        console.log(`[ChatStore] Loaded ${messages.length} messages from storage for ${key}`);
+        
+        // IMPORTANT: Update state with loaded messages
+        set(state => ({
           chatMessages: {
-            ...get().chatMessages,
+            ...state.chatMessages,
             [key]: messages,
           },
-        });
-        console.log(`[ChatStore] Loaded ${messages.length} messages from storage for ${key}`);
+        }));
+        
         return messages;
       } catch (e) {
         console.error('[ChatStore] Failed to parse stored messages:', e);
       }
+    } else {
+      console.log(`[ChatStore] No stored messages found for ${key}`);
     }
     
     return [];
