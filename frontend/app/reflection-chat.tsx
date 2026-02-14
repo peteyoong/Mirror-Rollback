@@ -372,13 +372,13 @@ export default function ReflectionChat() {
           lastError: parseErrorMsg,
         }));
         
-        const errorMessage: Message = {
+        const errorMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
           content: `⚠️ Failed to parse response. Check debug panel.`,
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
         };
-        setMessages(prev => [...prev, errorMessage]);
+        await addChatMessage(threadKey, errorMessage);
         return;
       }
       
