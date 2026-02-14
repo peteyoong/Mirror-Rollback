@@ -222,23 +222,40 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 12,
   },
+  // User bubble: white/light background with dark text
   userBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: 'rgba(255,255,255,0.92)',
   },
+  // Assistant bubble: dark translucent background with light text
   assistantBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: Colors.background,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255,255,255,0.10)',
+    borderWidth: 1,
+  },
+  // System bubble: similar to assistant but slightly dimmer
+  systemBubble: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
   },
   messageText: {
     fontSize: 14,
     lineHeight: 20,
   },
+  // User text: dark on light background
   userText: {
-    color: Colors.text,
+    color: 'rgba(0,0,0,0.88)',
   },
+  // Assistant text: light on dark background
   assistantText: {
-    color: Colors.textSecondary,
+    color: 'rgba(255,255,255,0.92)',
+  },
+  // System text: slightly dimmer light on dark background
+  systemText: {
+    color: 'rgba(255,255,255,0.85)',
   },
   loadingContainer: {
     padding: 12,
