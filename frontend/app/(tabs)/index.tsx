@@ -311,7 +311,7 @@ export default function MirrorScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="light" />
       
-      {/* Compact Header with muted debug toggle */}
+      {/* Compact Header - tap 5 times to reveal debug */}
       <View style={styles.header}>
         <Pressable onPress={handleUserPress} style={styles.userCluster}>
           <Text style={styles.userName} numberOfLines={1} ellipsizeMode="tail">
@@ -320,8 +320,8 @@ export default function MirrorScreen() {
           <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
         </Pressable>
         
-        {/* Muted Debug Toggle - top right */}
-        {DEBUG_MODE && (
+        {/* Hidden debug trigger - 5-tap area or visible toggle if debug mode is on */}
+        {debugVisible ? (
           <TouchableOpacity 
             style={styles.debugToggle}
             onPress={() => setDebugExpanded(!debugExpanded)}
@@ -329,11 +329,17 @@ export default function MirrorScreen() {
           >
             <Text style={styles.debugToggleText}>Debug</Text>
           </TouchableOpacity>
+        ) : (
+          <TouchableOpacity 
+            style={styles.debugTrigger}
+            onPress={handleDebugTap}
+            activeOpacity={1}
+          />
         )}
       </View>
       
-      {/* Collapsible Debug Panel - muted styling */}
-      {DEBUG_MODE && debugExpanded && (
+      {/* Collapsible Debug Panel - only visible when unlocked */}
+      {debugVisible && debugExpanded && (
         <View style={styles.debugPanel}>
           <Text style={styles.debugText}>BUILD: {BUILD_ID}</Text>
           <Text style={styles.debugText}>API: {API_BASE_URL || '(none)'}</Text>
@@ -353,7 +359,7 @@ export default function MirrorScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* A. Section Label */}
-        <SectionLabel marginBottom={28}>THE MIRROR</SectionLabel>
+        <SectionLabel marginBottom={Spacing.lg}>THE MIRROR</SectionLabel>
         
         {/* Loading State */}
         {isLoading && (
