@@ -38,7 +38,9 @@ export default function ReflectionChat() {
   const params = useLocalSearchParams<{ context?: string; dismissed?: string }>();
   
   const userId = useAppStore(s => s.user?.id);
-  const storageKey = userId ? `${STORAGE_PREFIX}:${userId}:${THREAD_KEY}` : null;
+  
+  // Use the shared getChatStorageKey helper
+  const storageKey = userId ? getChatStorageKey(userId, THREAD_KEY) : null;
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
