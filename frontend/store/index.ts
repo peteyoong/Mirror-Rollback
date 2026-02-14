@@ -234,6 +234,83 @@ export const useAppStore = create<AppState>((set, get) => ({
     ]);
   },
   
+  /**
+   * Reset Local Session - Clears ALL local data for sign out / start fresh
+   * 
+   * This function:
+   * 1. Clears all AsyncStorage keys
+   * 2. Clears localStorage on web
+   * 3. Resets zustand state
+   * 4. Optionally forces a page reload on web
+   */
+  resetLocalSession: async (forceReload: boolean = true) => {
+    console.log('[resetLocalSession] Clearing all local data...');
+    
+    // All keys that might be storing session data
+    const keysToRemove = [
+      SESSION_USER_ID_KEY,
+      'user',
+      'chart',
+      'hasCompletedOnboarding',
+      'questionnaireAnswers',
+      'questionnaireComplete',
+      'mirror_last_build',
+      'journal_draft',
+      CHAT_SESSION_KEYS.mirror,
+      CHAT_SESSION_KEYS.astrology,
+      CHAT_SESSION_KEYS.human_design,
+      'MIRROR_USER_ID',  // stableUserId key
+    ];
+    
+    // Clear AsyncStorage
+    try {
+      await AsyncStorage.multiRemove(keysToRemove);
+    } catch (e) {
+      console.warn('[resetLocalSession] AsyncStorage clear error:', e);
+    }
+    
+    // Clear localStorage on web (for redundancy)
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
+      keysToRemove.forEach(key => {
+        try {
+          window.localStorage.removeItem(key);
+        } catch (e) {
+          // Ignore errors
+        }
+      });
+      // Also clear any other Mirror-related keys
+      const allKeys = Object.keys(window.localStorage);
+      allKeys.forEach(key => {
+        if (key.startsWith('mirror_') || key.startsWith('MIRROR_')) {
+          window.localStorage.removeItem(key);
+        }
+      });
+    }
+    
+    // Reset zustand state
+    set({
+      user: null,
+      chart: null,
+      dailyReflection: null,
+      journalEntries: [],
+      hasCompletedOnboarding: false,
+      questionnaireAnswers: [],
+      questionnaireComplete: false,
+      isRestoringSession: false,
+      hasTriedSessionRestore: false,
+      sessionRestoreError: null,
+    });
+    
+    console.log('[resetLocalSession] Local data cleared');
+    
+    // Force reload on web to reset app state completely
+    if (forceReload && Platform.OS === 'web' && typeof window !== 'undefined') {
+      const resetUrl = '/?reset=1&t=' + Date.now();
+      console.log('[resetLocalSession] Forcing page reload to:', resetUrl);
+      window.location.href = resetUrl;
+    }
+  },
+  
   loadPersistedData: async () => {
     try {
       const [userStr, chartStr, onboardingStr, questionnaireAnswersStr, questionnaireCompleteStr] = await Promise.all([
