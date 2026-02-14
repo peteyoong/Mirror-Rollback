@@ -72,7 +72,20 @@ const getLocalDateString = (): string => {
   return `${year}-${month}-${day}`;
 };
 
+// ===== ISOLATION FLAG: Set to true to render minimal UI and isolate crash =====
+const MINIMAL_MIRROR_RENDER = true;
+
 export default function MirrorScreen() {
+  // ===== ISOLATION TEST: Return minimal UI to check if crash is in this component =====
+  if (MINIMAL_MIRROR_RENDER) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1a1a2e' }}>
+        <Text style={{ color: 'white', fontSize: 18 }}>Mirror tab minimal render</Text>
+        <Text style={{ color: '#888', fontSize: 12, marginTop: 10 }}>No hooks, no store calls</Text>
+      </View>
+    );
+  }
+
   const { user, hasTriedSessionRestore, isRestoringSession, clearUser } = useAppStore();
   const router = useRouter();
   const params = useLocalSearchParams<{ debug?: string }>();
