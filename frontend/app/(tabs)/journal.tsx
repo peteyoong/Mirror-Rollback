@@ -414,12 +414,6 @@ export default function JournalScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <StatusBar style="light" />
-        {/* DEBUG OVERLAY - TEMPORARY */}
-        <DebugOverlay extra={{
-          viewMode,
-          isSubmitting,
-          inputEditable: !isSubmitting,
-        }} />
         {renderModeToggle()}
         
         <MirrorChat
@@ -437,14 +431,6 @@ export default function JournalScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
-      {/* DEBUG OVERLAY - TEMPORARY */}
-      <DebugOverlay extra={{
-        viewMode,
-        isSubmitting,
-        inputEditable: !isSubmitting,
-        newEntryLength: newEntry.length,
-        hasUser: !!user,
-      }} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
