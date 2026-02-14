@@ -119,9 +119,9 @@ export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
   const pingIcon = debugInfo.pingStatus === 'ok' ? '✓' : debugInfo.pingStatus === 'fail' ? '✗' : '…';
   
   return (
-    <View style={styles.root} pointerEvents="box-none">
+    <View style={[styles.root, { pointerEvents: 'box-none' }]}>
       {/* Handle: the ONLY interactive part */}
-      <View style={styles.handleWrap} pointerEvents="auto">
+      <View style={[styles.handleWrap, { pointerEvents: 'auto' }]}>
         <Pressable
           onPress={() => setExpanded(v => !v)}
           style={({ pressed }) => [styles.handle, pressed && styles.handlePressed]}
@@ -135,7 +135,7 @@ export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
 
       {/* Panel: visually on top, but does NOT intercept touches */}
       {expanded && (
-        <View style={styles.panel} pointerEvents="none">
+        <View style={[styles.panel, { pointerEvents: 'none' }]}>
           <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
             {/* BUILD_ID */}
             <Text style={styles.row}>
