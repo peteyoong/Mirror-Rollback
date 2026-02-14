@@ -122,6 +122,8 @@ const api = axios.create({
   timeout: 120000, // 2 min for slow LLM responses
   headers: {
     'Content-Type': 'application/json',
+    // Bypass LocalTunnel authentication page (required for loca.lt tunnels)
+    'bypass-tunnel-reminder': 'true',
   },
 });
 
