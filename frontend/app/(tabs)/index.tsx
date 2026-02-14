@@ -554,9 +554,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   footerText: {
-    fontSize: 11,
-    color: Colors.textTertiary,
-    opacity: 0.3,
+    ...Typography.footerText,
   },
   bottomSpacer: {
     height: 24,
