@@ -66,6 +66,9 @@ export default function MirrorScreen() {
   const [currentDate, setCurrentDate] = useState<string>(getLocalDateString());
   const lastLoadedDateRef = useRef<string | null>(null);
   
+  // Debug panel state - collapsed by default
+  const [debugExpanded, setDebugExpanded] = useState(false);
+  
   // Track daily focus state for reflection entry
   const [focusState, setFocusState] = useState<DailyFocusState>({
     isLoading: true,
