@@ -584,7 +584,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       
       // Fetch user and chart in parallel
       let fetchedUser: User | null = null;
-      let fetchedChart: Chart | null = null;
+      let fetchedChart: any = null;
       
       try {
         [fetchedUser, fetchedChart] = await Promise.all([
