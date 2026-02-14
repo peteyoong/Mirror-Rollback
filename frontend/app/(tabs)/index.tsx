@@ -17,18 +17,20 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import { Typography } from '../../constants/typography';
 import { useAppStore } from '../../store';
 import api, { API_BASE_URL } from '../../services/api';
 import { storage } from '../../store';
 import DailyFocusCard, { DailyFocusState } from '../../components/DailyFocusCard';
 import ReflectionEntry from '../../components/ReflectionEntry';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
+import SectionLabel from '../../components/SectionLabel';
 
 // =========================================
 // DEBUG CONFIG - Collapsed by default, muted styling
 // =========================================
 const DEBUG_MODE = true;
-const BUILD_ID = '2026-02-14-hierarchy-v1';
+const BUILD_ID = '2026-02-14-typography-v1';
 const APP_HOST = Platform.OS === 'web' && typeof window !== 'undefined' 
   ? window.location?.origin || 'unknown'
   : 'native-app';
