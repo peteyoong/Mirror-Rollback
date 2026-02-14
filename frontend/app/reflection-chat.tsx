@@ -347,13 +347,13 @@ export default function ReflectionChat() {
         }));
         
         // Show error in chat
-        const errorMessage: Message = {
+        const errorMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
           content: `⚠️ HTTP ${response.status} error. Check debug panel.`,
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
         };
-        setMessages(prev => [...prev, errorMessage]);
+        await addChatMessage(threadKey, errorMessage);
         return;
       }
       
