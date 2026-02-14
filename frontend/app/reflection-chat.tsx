@@ -790,7 +790,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
     gap: 12,
     backgroundColor: Colors.background, // Ensure solid background
-    zIndex: 1000, // FIX: Force above everything
+    zIndex: 99999, // FIX: VERY high to ensure above AddToHomeScreenBanner
     position: 'relative', // FIX: Required for zIndex to work
   },
   input: {
@@ -813,7 +813,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.text,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1001, // FIX: Ensure send button is above input
+    zIndex: 100000, // FIX: Ensure send button is above everything
   },
   sendButtonDisabled: {
     backgroundColor: Colors.surface,
