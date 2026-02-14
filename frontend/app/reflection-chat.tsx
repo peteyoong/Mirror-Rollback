@@ -508,33 +508,36 @@ export default function ReflectionChat() {
               );
             }
             
-            // System/intro message style
-            if (message.role === 'system') {
-              return (
-                <View
-                  key={message.id}
-                  style={[styles.messageBubble, styles.assistantBubble]}
-                >
-                  <Text style={[styles.messageText, styles.systemText]}>
-                    {message.content}
-                  </Text>
-                </View>
-              );
-            }
+            // FIX: Normalize roles before styling - handle any role string
+            const rawRole = ((message as any).role ?? (message as any).sender ?? (message as any).type ?? '').toString().toLowerCase();
+            const role =
+              rawRole.includes('user') ? 'user'
+              : rawRole.includes('assist') || rawRole.includes('ai') || rawRole.includes('bot') ? 'assistant'
+              : rawRole.includes('system') ? 'system'
+              : 'assistant'; // safe default - render as assistant if unknown
+            
+            // Pick styles based on normalized role
+            const bubbleStyle = 
+              role === 'user' ? styles.userBubble
+              : role === 'system' ? styles.systemBubble
+              : styles.assistantBubble;
+            
+            const textStyle =
+              role === 'user' ? styles.userText
+              : role === 'system' ? styles.systemText
+              : styles.assistantText;
             
             return (
               <View
                 key={message.id}
-                style={[
-                  styles.messageBubble,
-                  message.role === 'user' ? styles.userBubble : styles.assistantBubble,
-                ]}
+                style={[styles.messageBubble, bubbleStyle]}
               >
-                <Text style={[
-                  styles.messageText,
-                  message.role === 'user' ? styles.userText : styles.assistantText,
-                ]}>
+                <Text style={[styles.messageText, textStyle]}>
                   {message.content}
+                </Text>
+                {/* DEBUG: Role tag to verify normalization */}
+                <Text style={styles.roleDebugTag}>
+                  {`role=${role} raw=${rawRole}`}
                 </Text>
               </View>
             );
