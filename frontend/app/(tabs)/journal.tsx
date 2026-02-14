@@ -25,7 +25,6 @@ import MirrorChat from '../../components/MirrorChat';
 import { createJournalEntry, getJournalEntries } from '../../services/api';
 import api from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
-import DebugOverlay from '../../components/DebugOverlay';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
