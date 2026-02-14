@@ -29,9 +29,9 @@ import SectionLabel from '../../components/SectionLabel';
 import ApiOfflineBanner, { InlineRetry } from '../../components/ApiOfflineBanner';
 
 // =========================================
-// DEBUG - TEMPORARY - Always visible for diagnosis
+// BUILD ID - Update on each deployment
 // =========================================
-const BUILD_ID = '2026-02-14-debug-v2';
+const BUILD_ID = '2026-02-14-nav-gate-fix-v1';
 const APP_HOST = Platform.OS === 'web' && typeof window !== 'undefined' 
   ? window.location?.origin || 'unknown'
   : 'native-app';
