@@ -16,7 +16,43 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '../constants/colors';
 import { useAppStore } from '../store';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../services/api';
+import Constants from 'expo-constants';
+
+// DEBUG MODE - Set to true to show network trace panel
+const DEBUG_MODE = true;
+
+// Get API Base URL (same logic as services/api.ts)
+const getApiBaseUrl = (): string => {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    const hostname = window.location?.hostname || '';
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:8001';
+    }
+    return '';
+  }
+  const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.length > 0) {
+    return envUrl;
+  }
+  const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
+  if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
+    return extraUrl;
+  }
+  return 'http://localhost:8001';
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+// Debug state interface
+interface DebugState {
+  apiBaseUrl: string;
+  endpoint: string;
+  lastRequestPayload: string;
+  lastResponseStatus: number | null;
+  lastResponseText: string;
+  lastParsedResponse: string;
+  lastError: string;
+}
 
 interface Message {
   id: string;
