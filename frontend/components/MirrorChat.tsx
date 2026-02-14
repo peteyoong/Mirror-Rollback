@@ -243,7 +243,7 @@ export default function MirrorChat({
   // When keystoneContext is provided, automatically send continuation message
   useEffect(() => {
     async function triggerKeystoneContinuation() {
-      if (!keystoneContext || !sessionId || hasTriggeredKeystone || isLoading) return;
+      if (!keystoneContext || !sessionId || hasTriggeredKeystone || isLoading || !hasHydratedMessages) return;
       
       // Check if we've already triggered for this date (once per day)
       const KEYSTONE_FOLLOWUP_KEY = 'last_keystone_followup_date';
@@ -262,14 +262,14 @@ export default function MirrorChat({
       setHasTriggeredKeystone(true);
       setIsLoading(true);
       
-      // Add a user message indicating continuation
-      const userMessage: Message = {
+      // Add a user message indicating continuation - use store
+      const userMessage: ChatMessage = {
         id: `user-keystone-${Date.now()}`,
         role: 'user',
         content: "Continue from today's reflection…",
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, userMessage]);
+      await addChatMessage(THREAD_KEY, userMessage);
       
       try {
         const response = await api.post('/mirror/chat', {
@@ -282,14 +282,14 @@ export default function MirrorChat({
           keystone_context: keystoneContext,
         });
         
-        const assistantMessage: Message = {
+        const assistantMessage: ChatMessage = {
           id: `assistant-keystone-${Date.now()}`,
           role: 'assistant',
           content: response.data.response,
-          timestamp: new Date(response.data.timestamp),
+          timestamp: response.data.timestamp || new Date().toISOString(),
         };
         
-        setMessages(prev => [...prev, assistantMessage]);
+        await addChatMessage(THREAD_KEY, assistantMessage);
         
         if (response.data.memory_update) {
           setMemoryUpdate(response.data.memory_update);
@@ -307,13 +307,13 @@ export default function MirrorChat({
       } catch (error) {
         console.error('[MirrorChat] Keystone continuation error:', error);
         // Add a fallback message
-        const fallbackMessage: Message = {
+        const fallbackMessage: ChatMessage = {
           id: `assistant-fallback-${Date.now()}`,
           role: 'assistant',
           content: "I'm here with you. What's present right now?",
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
         };
-        setMessages(prev => [...prev, fallbackMessage]);
+        await addChatMessage(THREAD_KEY, fallbackMessage);
       } finally {
         setIsLoading(false);
       }
