@@ -1,142 +1,66 @@
-import React, { useEffect } from 'react';
-import { Stack, useLocalSearchParams } from 'expo-router';
-import { View, Text, ActivityIndicator, StyleSheet, Platform } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Stack, Slot } from 'expo-router';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
-import { DebugViewportOverlay } from '../components/DebugViewportOverlay';
-import { AddToHomeScreenBanner } from '../components/AddToHomeScreenBanner';
-import { BuildBadge } from '../components/BuildBadge';
-import DebugOverlay from '../components/DebugOverlay';
-import WelcomeGate from '../components/WelcomeGate';
 
 /**
- * BUILD TAG: 2026-02-14-logout-fix
+ * ROOT LAYOUT - STRIPPED DOWN FOR LOOP ISOLATION
  * 
- * Root Layout - The Navigation Architecture Gate
+ * REMOVED: DebugOverlay, BuildBadge, AddToHomeScreenBanner, DebugViewportOverlay, WelcomeGate
  * 
- * Features:
- * 1. WelcomeGate renders EXCLUSIVELY when no user - never overlays tabs
- * 2. DebugOverlay rendered ONLY here at root - not in individual screens
- * 3. Session state is deterministic via hasTriedSessionRestore flag
- * 4. Supports reset=1 URL param for forced logout
- * 
- * Navigation Logic:
- * - STATE 1: Restoring session -> Show loading spinner
- * - STATE 2: No user after restore -> Show WelcomeGate (REPLACES everything)
- * - STATE 3: User exists -> Show Stack navigator
+ * Testing if the loop is caused by one of these components.
  */
 export default function RootLayout() {
-  const params = useLocalSearchParams<{ reset?: string }>();
+  // STEP 4: Ensure restoreSession only runs ONCE
+  const didRestoreRef = useRef(false);
+  
   const { 
     user,
     restoreSession, 
     isRestoringSession, 
     hasTriedSessionRestore,
-    resetLocalSession,
   } = useAppStore();
 
-  // Handle reset=1 URL param - clears all local data
   useEffect(() => {
-    if (params.reset === '1') {
-      console.log('[RootLayout] reset=1 param detected - clearing local session');
-      // Reset without forcing reload (we're already in a fresh load)
-      resetLocalSession(false);
-    }
-  }, [params.reset]);
-
-  useEffect(() => {
-    // Trigger session restore on app start (unless reset=1)
-    if (params.reset !== '1') {
-      console.log('[RootLayout] Starting session restore...');
-      restoreSession();
-    }
+    if (didRestoreRef.current) return;
+    didRestoreRef.current = true;
+    console.log('[RootLayout] Starting session restore (one-shot)...');
+    restoreSession();
   }, []);
 
-  // =========================================================================
   // STATE 1: Still restoring session - show loading
-  // =========================================================================
   if (!hasTriedSessionRestore || isRestoringSession) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.textSecondary} />
-        <Text style={styles.loadingText}>Restoring your profile...</Text>
-        {Platform.OS === 'web' && <DebugViewportOverlay />}
+        <Text style={styles.loadingText}>Restoring...</Text>
       </View>
     );
   }
 
-  // =========================================================================
-  // STATE 2: No user - show WelcomeGate EXCLUSIVELY
-  // WelcomeGate handles both login AND new user flow internally
-  // =========================================================================
+  // STATE 2: No user - show simple login prompt (WelcomeGate removed for isolation)
   if (!user) {
-    console.log('[RootLayout] No user found, showing WelcomeGate (exclusive)');
+    console.log('[RootLayout] No user, showing minimal login prompt');
     return (
-      <View style={{ flex: 1 }}>
-        <WelcomeGate />
-        {/* These overlays must have pointerEvents="none" and are positioned absolute */}
-        {Platform.OS === 'web' && <DebugViewportOverlay />}
-        <BuildBadge />
-        <DebugOverlay />
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Please log in</Text>
+        <Text style={{ color: '#888', fontSize: 12 }}>WelcomeGate disabled for loop isolation</Text>
       </View>
     );
   }
 
-  // =========================================================================
-  // STATE 3: User exists - show the main app Stack
-  // P0: DebugOverlay rendered ONLY once here at root level
-  // =========================================================================
-  console.log('[RootLayout] User exists, showing main app');
+  // STATE 3: User exists - show ONLY the Stack navigator (nothing else)
+  console.log('[RootLayout] User exists, showing minimal Stack');
   return (
-    <>
-      <Stack screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: Colors.background },
-      }}>
-        {/* Main tabs - this is the default route */}
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        
-        {/* Modal screens */}
-        <Stack.Screen name="reflection-chat" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="todays-mirror" options={{ presentation: 'modal' }} />
-        
-        {/* Onboarding flow */}
-        <Stack.Screen name="onboarding/index" options={{ headerShown: false }} />
-        <Stack.Screen name="questionnaire/index" options={{ headerShown: false }} />
-        
-        {/* Lens detail screens */}
-        <Stack.Screen name="lenses/[lens]" options={{ headerShown: false }} />
-        
-        {/* Enneagram screens */}
-        <Stack.Screen name="enneagram/index" options={{ headerShown: false }} />
-        <Stack.Screen name="enneagram/assessment" options={{ headerShown: false }} />
-        <Stack.Screen name="enneagram/quick-assessment" options={{ headerShown: false }} />
-        <Stack.Screen name="enneagram/deep-assessment" options={{ headerShown: false }} />
-        <Stack.Screen name="enneagram/p2-assessment" options={{ headerShown: false }} />
-        <Stack.Screen name="enneagram/results" options={{ headerShown: false }} />
-        
-        {/* Debug screens */}
-        <Stack.Screen name="debug/wing-states" options={{ headerShown: false }} />
-        
-        {/* Welcome screen - for "Start Fresh" scenarios */}
-        <Stack.Screen name="welcome" options={{ headerShown: false }} />
-        
-        {/* Index route - redirects to tabs */}
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-      </Stack>
-      
-      {/* iOS Add to Home Screen Banner (browser only) */}
-      {Platform.OS === 'web' && <AddToHomeScreenBanner />}
-      
-      {/* Debug viewport overlay for web */}
-      {Platform.OS === 'web' && <DebugViewportOverlay />}
-      
-      {/* BUILD_ID Badge */}
-      <BuildBadge />
-      
-      {/* P0: DebugOverlay with pointerEvents="none" - ONLY rendered here */}
-      <DebugOverlay />
-    </>
+    <Stack screenOptions={{
+      headerShown: false,
+      contentStyle: { backgroundColor: Colors.background },
+    }}>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="reflection-chat" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="welcome" options={{ headerShown: false }} />
+    </Stack>
   );
 }
 
