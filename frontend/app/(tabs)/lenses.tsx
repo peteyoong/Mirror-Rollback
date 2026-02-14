@@ -200,6 +200,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 60,
   },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
+  },
   header: {
     marginBottom: 32,
   },
@@ -216,6 +222,7 @@ const styles = StyleSheet.create({
   },
   lensesContainer: {
     marginBottom: 24,
+    position: 'relative',
   },
   lensCard: {
     backgroundColor: Colors.surface,
