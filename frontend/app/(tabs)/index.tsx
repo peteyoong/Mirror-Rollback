@@ -198,8 +198,18 @@ export default function MirrorScreen() {
           }
         }
       );
+    } else if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      // Web: Use window.confirm for better visibility
+      const choice = window.confirm(
+        `${user?.name || 'Account'}\n\nClick OK to Sign out, or Cancel to stay.\n\nTo clear all local data, add ?reset=1 to the URL.`
+      );
+      if (choice) {
+        clearUser().then(() => {
+          router.replace('/welcome');
+        });
+      }
     } else {
-      // Android/Web fallback using Alert
+      // Android fallback using Alert
       Alert.alert(
         user?.name || 'Account',
         'What would you like to do?',
