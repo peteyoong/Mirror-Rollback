@@ -590,26 +590,25 @@ export default function ReflectionChat() {
               }
             }}
           />
-          <TouchableOpacity
-            style={[
+          {/* Use Pressable for better web compatibility */}
+          <Pressable
+            style={({ pressed }) => [
               styles.sendButton,
               (!inputText.trim() || isLoading) && styles.sendButtonDisabled,
+              pressed && { opacity: 0.7 },
             ]}
             onPress={() => {
-              console.log('[ReflectionChat] Send button onPress triggered');
+              console.log('[ReflectionChat] Send button Pressable onPress triggered');
               handleSend();
             }}
             disabled={!inputText.trim() || isLoading}
-            activeOpacity={0.7}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Ionicons 
               name="arrow-up" 
               size={20} 
               color={inputText.trim() && !isLoading ? Colors.background : Colors.textTertiary} 
-              style={{ pointerEvents: 'none' } as any}
             />
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
