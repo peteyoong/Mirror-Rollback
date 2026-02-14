@@ -239,20 +239,6 @@ export default function MirrorChat({
     loadOrCreateSessionId();
   }, [lens]);
 
-  // Add initial greeting
-  useEffect(() => {
-    const greeting = lens
-      ? `I'm here to explore your ${lens === 'human_design' ? 'Human Design' : lens.charAt(0).toUpperCase() + lens.slice(1)} chart with you. What would you like to understand?`
-      : "I'm here as a companion for self-understanding. Share what's on your mind, and I'll reflect what I notice.";
-    
-    setMessages([{
-      id: 'greeting',
-      role: 'assistant',
-      content: greeting,
-      timestamp: new Date(),
-    }]);
-  }, [lens]);
-
   // ===== KEYSTONE CONTINUATION AUTO-TRIGGER =====
   // When keystoneContext is provided, automatically send continuation message
   useEffect(() => {
