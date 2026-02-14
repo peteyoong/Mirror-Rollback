@@ -246,20 +246,18 @@ export default function ReflectionChat() {
     }
 
     // OPTIMISTIC: Show user message immediately (before API call)
-    const userMessage: Message = {
+    const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
       content: inputText.trim(),
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
-    setMessages(prev => [...prev, userMessage]);
-    setInputText(''); // Clear input immediately
     
-    // Persist user message to store immediately
-    await addChatMessage(REFLECTION_THREAD_KEY, {
-      ...userMessage,
-      timestamp: userMessage.timestamp.toISOString(),
-    } as unknown as ChatMessage);
+    // Clear input immediately
+    setInputText('');
+    
+    // Persist user message to store (this updates in-memory AND storage)
+    await addChatMessage(threadKey, userMessage);
     
     // Track user message count for micro-prompt logic
     userMessageCountRef.current += 1;
