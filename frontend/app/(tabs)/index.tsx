@@ -27,7 +27,6 @@ import ReflectionEntry from '../../components/ReflectionEntry';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
 import SectionLabel from '../../components/SectionLabel';
 import ApiOfflineBanner, { InlineRetry } from '../../components/ApiOfflineBanner';
-import DebugOverlay from '../../components/DebugOverlay';
 
 // =========================================
 // DEBUG - TEMPORARY - Always visible for diagnosis
