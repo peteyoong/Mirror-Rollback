@@ -482,6 +482,13 @@ export default function ReflectionChat() {
             scrollViewRef.current?.scrollToEnd({ animated: false });
           }}
         >
+          {/* Empty state - visible when no messages */}
+          {messages.length === 0 && !isLoading && (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>Say what's real right now…</Text>
+            </View>
+          )}
+          
           {messages.map((message) => {
             // Render micro-reflection prompt with special styling
             if (message.role === 'micro-prompt') {
@@ -497,6 +504,20 @@ export default function ReflectionChat() {
                       <Text style={styles.microPromptDismissText}>Dismiss</Text>
                     </TouchableOpacity>
                   </View>
+                </View>
+              );
+            }
+            
+            // System/intro message style
+            if (message.role === 'system') {
+              return (
+                <View
+                  key={message.id}
+                  style={[styles.messageBubble, styles.assistantBubble]}
+                >
+                  <Text style={[styles.messageText, styles.systemText]}>
+                    {message.content}
+                  </Text>
                 </View>
               );
             }
@@ -521,7 +542,7 @@ export default function ReflectionChat() {
           
           {isLoading && (
             <View style={[styles.messageBubble, styles.assistantBubble]}>
-              <ActivityIndicator size="small" color={Colors.textTertiary} />
+              <ActivityIndicator size="small" color="rgba(255,255,255,0.6)" />
             </View>
           )}
         </ScrollView>
