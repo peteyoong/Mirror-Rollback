@@ -48,6 +48,7 @@ export function BuildBadge() {
       style={styles.badge}
       onPress={() => setExpanded(!expanded)}
       activeOpacity={0.8}
+      pointerEvents="auto"
     >
       <Text style={styles.badgeText}>
         {expanded ? `${BUILD_VERSION}\n${BUILD_ID}` : `🔧 ${BUILD_VERSION.slice(0, 12)}`}
