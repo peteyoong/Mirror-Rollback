@@ -495,29 +495,51 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   // Session restore: fetch user/chart from API using persisted userId
-  // LOOP-PROOF: Uses module-level didRestoreSession flag
+  // LOOP-PROOF: Uses module-level guards + instrumentation
   restoreSession: async () => {
     // =========================================================================
-    // CRITICAL: Module-level one-shot guard - prevents ANY re-execution
+    // INSTRUMENTATION: Count calls to detect loops
+    // =========================================================================
+    RESTORE_CALL_COUNT++;
+    console.log(`[SessionRestore] ▶ CALL #${RESTORE_CALL_COUNT}`);
+    
+    // =========================================================================
+    // CRITICAL GUARD 1: Module-level one-shot - prevents ANY re-execution
     // =========================================================================
     if (didRestoreSession) {
-      console.log('[SessionRestore] Already executed (module guard), skipping...');
+      console.log('[SessionRestore] ⛔ Already executed (module guard), skipping...');
       return false;
     }
-    didRestoreSession = true;  // Set immediately, BEFORE any async work
+    
+    // =========================================================================
+    // CRITICAL GUARD 2: Concurrent execution guard
+    // =========================================================================
+    if (isRestoringSession) {
+      console.log('[SessionRestore] ⛔ Already in progress (concurrency guard), skipping...');
+      return false;
+    }
+    
+    // Set guards IMMEDIATELY, BEFORE any async work
+    didRestoreSession = true;
+    isRestoringSession = true;
     
     const { user, chart } = get();
     
     // If already have user and chart, just mark as tried
     if (user && chart) {
-      console.log('[SessionRestore] Already have user and chart, skipping restore');
+      console.log('[SessionRestore] ✓ Already have user and chart, marking complete');
+      RESTORE_SET_COUNT++;
+      console.log(`[SessionRestore] SET #${RESTORE_SET_COUNT} (already-loaded)`);
       set({ hasTriedSessionRestore: true, isRestoringSession: false });
+      isRestoringSession = false;
       return true;
     }
     
-    console.log('[SessionRestore] ▶ Starting restore process...');
+    console.log('[SessionRestore] ▶ Starting async restore...');
     
     // Single set() to start - batched state update
+    RESTORE_SET_COUNT++;
+    console.log(`[SessionRestore] SET #${RESTORE_SET_COUNT} (start-loading)`);
     set({ isRestoringSession: true, sessionRestoreError: null });
     
     try {
