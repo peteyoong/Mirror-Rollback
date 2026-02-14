@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,10 +14,12 @@ import {
   Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
-import { storage, CHAT_SESSION_KEYS } from '../store';
+import { storage, CHAT_SESSION_KEYS, useAppStore, ChatMessage } from '../store';
+import { updateDebugInfo } from './DebugOverlay';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
