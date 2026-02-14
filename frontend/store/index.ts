@@ -479,48 +479,52 @@ export const useAppStore = create<AppState>((set, get) => ({
   // LOOP-PROOF: Uses module-level guards + instrumentation
   restoreSession: async () => {
     // =========================================================================
-    // INSTRUMENTATION: Count calls to detect loops
+    // INSTRUMENTATION: Count calls to detect loops (uses globalThis)
     // =========================================================================
-    RESTORE_CALL_COUNT++;
-    console.log(`[SessionRestore] ▶ CALL #${RESTORE_CALL_COUNT}`);
+    RESTORE_GUARD.call++;
+    const callNum = RESTORE_GUARD.call;
+    console.log(`[SessionRestore] ▶ CALL #${callNum}`);
     
     // =========================================================================
-    // CRITICAL GUARD 1: Module-level one-shot - prevents ANY re-execution
+    // CRITICAL GUARD 1: One-shot guard (survives HMR via globalThis)
     // =========================================================================
-    if (didRestoreSession) {
-      console.log('[SessionRestore] ⛔ Already executed (module guard), skipping...');
+    if (RESTORE_GUARD.did) {
+      console.log(`[SessionRestore] ⛔ Already executed (did=${RESTORE_GUARD.did}), skipping...`);
       return false;
     }
     
     // =========================================================================
-    // CRITICAL GUARD 2: Concurrent execution guard
+    // CRITICAL GUARD 2: In-flight guard (prevents concurrent calls)
     // =========================================================================
-    if (isRestoringSession) {
-      console.log('[SessionRestore] ⛔ Already in progress (concurrency guard), skipping...');
+    if (RESTORE_GUARD.inFlight) {
+      console.log(`[SessionRestore] ⛔ Already in progress (inFlight=${RESTORE_GUARD.inFlight}), skipping...`);
       return false;
     }
     
     // Set guards IMMEDIATELY, BEFORE any async work
-    didRestoreSession = true;
-    isRestoringSession = true;
+    RESTORE_GUARD.did = true;
+    RESTORE_GUARD.inFlight = true;
+    RESTORE_GUARD.last = "started";
     
     const { user, chart } = get();
     
     // If already have user and chart, just mark as tried
     if (user && chart) {
       console.log('[SessionRestore] ✓ Already have user and chart, marking complete');
-      RESTORE_SET_COUNT++;
-      console.log(`[SessionRestore] SET #${RESTORE_SET_COUNT} (already-loaded)`);
+      RESTORE_GUARD.set++;
+      RESTORE_GUARD.last = "already-loaded";
+      console.log(`[SessionRestore] SET #${RESTORE_GUARD.set} (already-loaded)`);
       set({ hasTriedSessionRestore: true, isRestoringSession: false });
-      isRestoringSession = false;
+      RESTORE_GUARD.inFlight = false;
       return true;
     }
     
     console.log('[SessionRestore] ▶ Starting async restore...');
     
     // Single set() to start - batched state update
-    RESTORE_SET_COUNT++;
-    console.log(`[SessionRestore] SET #${RESTORE_SET_COUNT} (start-loading)`);
+    RESTORE_GUARD.set++;
+    RESTORE_GUARD.last = "start-loading";
+    console.log(`[SessionRestore] SET #${RESTORE_GUARD.set} (start-loading)`);
     set({ isRestoringSession: true, sessionRestoreError: null });
     
     try {
