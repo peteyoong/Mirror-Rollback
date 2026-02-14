@@ -177,18 +177,24 @@ export default function MirrorScreen() {
 
   // Handler for logout action sheet
   const handleUserPress = () => {
+    const { resetLocalSession } = useAppStore.getState();
+    
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ['Cancel', 'Log out'],
-          destructiveButtonIndex: 1,
+          options: ['Cancel', 'Sign out', 'Start fresh (clear all data)'],
+          destructiveButtonIndex: 2,
           cancelButtonIndex: 0,
           title: user?.name || 'Account',
         },
         async (buttonIndex) => {
           if (buttonIndex === 1) {
+            // Sign out - keeps data but navigates to welcome
             await clearUser();
             router.replace('/welcome');
+          } else if (buttonIndex === 2) {
+            // Start fresh - clears ALL local data
+            await resetLocalSession(true);
           }
         }
       );
@@ -200,11 +206,17 @@ export default function MirrorScreen() {
         [
           { text: 'Cancel', style: 'cancel' },
           { 
-            text: 'Log out', 
-            style: 'destructive',
+            text: 'Sign out', 
             onPress: async () => {
               await clearUser();
               router.replace('/welcome');
+            }
+          },
+          { 
+            text: 'Start fresh (clear all)', 
+            style: 'destructive',
+            onPress: async () => {
+              await resetLocalSession(true);
             }
           },
         ]
