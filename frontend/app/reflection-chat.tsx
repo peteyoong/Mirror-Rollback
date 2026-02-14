@@ -400,37 +400,23 @@ export default function ReflectionChat() {
         return;
       }
 
-      const assistantMessage: Message = {
+      const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: assistantContent,
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       };
 
-      setMessages(prev => {
-        const newMessages = [...prev, assistantMessage];
-        
-        // Persist assistant message to store
-        addChatMessage(REFLECTION_THREAD_KEY, {
-          ...assistantMessage,
-          timestamp: assistantMessage.timestamp.toISOString(),
-        } as unknown as ChatMessage);
-        
-        // Check if we should inject micro-reflection prompt
-        // Only after 2+ user messages, once per session, not if dismissed
-        if (shouldShowMicroPrompt() && !microPromptShown) {
-          setMicroPromptShown(true);
-          const microPrompt: Message = {
-            id: 'micro-prompt',
-            role: 'micro-prompt',
-            content: 'You could pause here, or write a sentence if that feels right.',
-            timestamp: new Date(),
-          };
-          return [...newMessages, microPrompt];
-        }
-        
-        return newMessages;
-      });
+      // Persist assistant message to store
+      await addChatMessage(threadKey, assistantMessage);
+      
+      // Check if we should inject micro-reflection prompt
+      // Only after 2+ user messages, once per session, not if dismissed
+      // Note: Micro-prompts are session-only and not persisted to store
+      if (shouldShowMicroPrompt() && !microPromptShown) {
+        setMicroPromptShown(true);
+        // Micro-prompts are handled in the UI rendering logic, not stored
+      }
     } catch (error: any) {
       console.error('[ReflectionChat] Fetch error:', error);
       
