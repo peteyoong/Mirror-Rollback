@@ -743,6 +743,25 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   
+  // Screen Banner
+  screenBanner: {
+    backgroundColor: '#990099',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  screenName: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  screenSubtext: {
+    color: '#fff',
+    fontSize: 9,
+    textAlign: 'center',
+    opacity: 0.8,
+  },
+  
   // Header
   header: {
     flexDirection: 'row',
