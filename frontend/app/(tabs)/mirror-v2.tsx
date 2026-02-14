@@ -153,12 +153,6 @@ export default function MirrorV2Screen() {
   
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* SCREEN IDENTIFIER */}
-      <View style={styles.screenBanner}>
-        <Text style={styles.screenName}>SCREEN: MIRROR-HOME (Tab)</Text>
-        <Text style={styles.screenSubtext}>Chat opens: reflection-chat modal</Text>
-      </View>
-      
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Mirror</Text>
