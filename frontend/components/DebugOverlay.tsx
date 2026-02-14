@@ -245,28 +245,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.95)',
+    backgroundColor: 'rgba(0,0,0,0.98)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     paddingTop: Platform.OS === 'ios' ? 50 : 30,
-    borderBottomWidth: 1,
-    borderBottomColor: '#FF6B00',
+    borderBottomWidth: 2,
+    borderBottomColor: '#FFCC00',
   },
   headerText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
-    color: '#FF6B00',
+    color: '#FFFFFF',
+    flex: 1,
   },
   headerToggle: {
-    fontSize: 10,
-    color: '#FF6B00',
+    fontSize: 12,
+    color: '#FFCC00',
+    fontWeight: '700',
   },
   content: {
-    backgroundColor: 'rgba(0,0,0,0.95)',
+    backgroundColor: 'rgba(0,0,0,0.98)',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#FF6B00',
+    borderBottomWidth: 2,
+    borderBottomColor: '#FFCC00',
   },
   touchProbe: {
     backgroundColor: '#003300',
@@ -274,27 +276,52 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 6,
     marginBottom: 8,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#00FF88',
   },
   touchProbeText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
     color: '#00FF88',
     textAlign: 'center',
   },
+  // BIG + OBVIOUS styles
+  bigRow: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginBottom: 4,
+    fontWeight: '700',
+  },
+  bigLabel: {
+    color: '#FFCC00',
+    fontWeight: '700',
+  },
+  bigValue: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  bigValueOk: {
+    color: '#00FF88',
+    fontWeight: '700',
+  },
+  bigValueError: {
+    color: '#FF4444',
+    fontWeight: '700',
+  },
+  // Regular rows
   row: {
-    fontSize: 9,
-    color: '#AAA',
+    fontSize: 10,
+    color: '#FFFFFF',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     marginBottom: 2,
   },
   label: {
-    color: '#888',
+    color: '#AAAAAA',
     fontWeight: '600',
   },
   value: {
-    color: '#AAA',
+    color: '#FFFFFF',
   },
   ok: {
     color: '#00FF88',
@@ -306,6 +333,6 @@ const styles = StyleSheet.create({
   },
   code: {
     color: '#AADDFF',
-    fontSize: 8,
+    fontSize: 9,
   },
 });
