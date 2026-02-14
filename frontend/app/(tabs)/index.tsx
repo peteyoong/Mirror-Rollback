@@ -332,14 +332,6 @@ export default function MirrorScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="light" />
       
-      {/* DEBUG OVERLAY - TEMPORARY ALWAYS VISIBLE */}
-      <DebugOverlay extra={{
-        hasUser: !!user,
-        isLoading,
-        hasKeystone: !!keystone,
-        BUILD_ID,
-      }} />
-      
       {/* API Offline Banner - non-blocking */}
       <ApiOfflineBanner onRetry={() => loadKeystone(true)} />
       
