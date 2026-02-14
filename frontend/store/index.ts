@@ -537,7 +537,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       ]);
       
       let restoredUser: User | null = null;
-      let restoredChart: Chart | null = null;
+      let restoredChart: any = null;
       let restoredOnboarding = false;
       
       if (storedUser) {
