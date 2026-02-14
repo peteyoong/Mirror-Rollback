@@ -25,9 +25,10 @@ import ReflectionEntry from '../../components/ReflectionEntry';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
 
 // =========================================
-// DEBUG STAMP - Build verification
+// DEBUG CONFIG - Collapsed by default, muted styling
 // =========================================
-const BUILD_ID = '2026-02-14-api-fix-v2';
+const DEBUG_MODE = true;
+const BUILD_ID = '2026-02-14-hierarchy-v1';
 const APP_HOST = Platform.OS === 'web' && typeof window !== 'undefined' 
   ? window.location?.origin || 'unknown'
   : 'native-app';
