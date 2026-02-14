@@ -63,14 +63,44 @@ const getLocalDateString = (): string => {
 export default function MirrorScreen() {
   const { user, hasTriedSessionRestore, isRestoringSession, clearUser } = useAppStore();
   const router = useRouter();
+  const params = useLocalSearchParams<{ debug?: string }>();
   const [keystone, setKeystone] = useState<DailyKeystone | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentDate, setCurrentDate] = useState<string>(getLocalDateString());
   const lastLoadedDateRef = useRef<string | null>(null);
   
-  // Debug panel state - collapsed by default
+  // Debug panel - hidden by default, only visible with ?debug=1 or 5-tap
+  const [debugVisible, setDebugVisible] = useState(false);
   const [debugExpanded, setDebugExpanded] = useState(false);
+  const tapCountRef = useRef(0);
+  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Check for ?debug=1 URL param
+  useEffect(() => {
+    if (params.debug === '1') {
+      setDebugVisible(true);
+    }
+  }, [params.debug]);
+  
+  // 5-tap gesture to reveal debug panel
+  const handleDebugTap = useCallback(() => {
+    tapCountRef.current += 1;
+    
+    if (tapTimeoutRef.current) {
+      clearTimeout(tapTimeoutRef.current);
+    }
+    
+    if (tapCountRef.current >= 5) {
+      setDebugVisible(true);
+      setDebugExpanded(true);
+      tapCountRef.current = 0;
+    } else {
+      tapTimeoutRef.current = setTimeout(() => {
+        tapCountRef.current = 0;
+      }, 1000);
+    }
+  }, []);
   
   // Track journal count for conditional intelligence signal
   const [journalCount, setJournalCount] = useState<number>(0);
@@ -97,7 +127,7 @@ export default function MirrorScreen() {
   // Handle reflection entry tap
   const handleReflect = useCallback(() => {
     // Navigate to reflection chat with context state
-    const params = new URLSearchParams();
+    const navParams = new URLSearchParams();
     if (focusState.context) {
       params.set('context', focusState.context);
     }
