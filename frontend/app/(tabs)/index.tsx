@@ -353,13 +353,6 @@ export default function MirrorScreen() {
         </Pressable>
       </View>
       {debugVisible && debugExpanded && (
-        <View style={styles.debugPanel}>
-          <Text style={styles.debugText}>BUILD: {BUILD_ID}</Text>
-          <Text style={styles.debugText}>API: {API_BASE_URL || '(none)'}</Text>
-          <Text style={styles.debugText}>HOST: {APP_HOST}</Text>
-        </View>
-      )}
-      
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
