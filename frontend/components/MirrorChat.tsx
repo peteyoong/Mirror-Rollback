@@ -644,6 +644,12 @@ export default function MirrorChat({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
+      {/* SCREEN IDENTIFIER */}
+      <View style={styles.screenBanner}>
+        <Text style={styles.screenName}>SCREEN: MIRROR-CHAT (Component)</Text>
+        <Text style={styles.screenSubtext}>lens={lens || 'none'} | msgs={messages.length}</Text>
+      </View>
+      
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
