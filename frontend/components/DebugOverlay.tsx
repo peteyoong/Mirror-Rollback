@@ -3,18 +3,20 @@ import { View, Text, StyleSheet, Platform } from 'react-native';
 import { API_BASE_URL, API_URL_MISSING } from '../services/api';
 
 /**
- * BUILD TAG: 2026-02-14-overlay-touch-fix
+ * BUILD TAG: 2026-02-14-p0-touch-fix
  * 
  * DebugOverlay - Environment debug strip
  * 
- * CRITICAL FIX: All wrappers use pointerEvents="none" to ensure
+ * P0 FIX: All wrappers use pointerEvents="none" to ensure
  * this overlay NEVER intercepts touch events.
  * 
+ * This component should ONLY be rendered in the root _layout.tsx,
+ * NOT in individual screens.
+ * 
  * Set DEBUG_OVERLAY_ENABLED to true to see debug info.
- * Set to false to completely disable the overlay.
  */
 
-// Toggle this to enable/disable the debug overlay
+// Toggle this to enable/disable the debug overlay globally
 const DEBUG_OVERLAY_ENABLED = false;
 
 interface DebugOverlayProps {
@@ -29,23 +31,23 @@ export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
   
   const reflectionChatUrl = `${API_BASE_URL}/reflection/chat`;
   
+  // P0 FIX: Wrap everything in pointerEvents="none" container
+  // The style.pointerEvents is preferred over the prop for web compatibility
   return (
-    // CRITICAL: pointerEvents="none" on ALL wrappers
-    // This ensures the overlay never blocks touch events
     <View style={styles.container} pointerEvents="none">
       <View style={styles.inner} pointerEvents="none">
-        <Text style={styles.title}>🔧 DEBUG</Text>
-        <Text style={styles.row}>
+        <Text style={styles.title} pointerEvents="none">🔧 DEBUG</Text>
+        <Text style={styles.row} pointerEvents="none">
           API_URL_MISSING: <Text style={API_URL_MISSING ? styles.error : styles.ok}>{String(API_URL_MISSING)}</Text>
         </Text>
-        <Text style={styles.row} numberOfLines={1}>
+        <Text style={styles.row} numberOfLines={1} pointerEvents="none">
           API: {API_BASE_URL || '(none)'}
         </Text>
-        <Text style={styles.row} numberOfLines={1}>
+        <Text style={styles.row} numberOfLines={1} pointerEvents="none">
           Chat: {reflectionChatUrl}
         </Text>
         {Object.entries(extra).map(([key, value]) => (
-          <Text key={key} style={styles.row} numberOfLines={1}>
+          <Text key={key} style={styles.row} numberOfLines={1} pointerEvents="none">
             {key}: {typeof value === 'object' ? JSON.stringify(value) : String(value)}
           </Text>
         ))}
@@ -61,7 +63,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 9999,
-    // pointerEvents is set as prop, not style
+    // P0: Ensure pointer events pass through on web
+    pointerEvents: 'none',
   },
   inner: {
     backgroundColor: 'rgba(0,0,0,0.9)',
@@ -70,6 +73,8 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 50 : 30,
     borderBottomWidth: 1,
     borderBottomColor: '#FF6B00',
+    // P0: Ensure pointer events pass through on web
+    pointerEvents: 'none',
   },
   title: {
     fontSize: 10,

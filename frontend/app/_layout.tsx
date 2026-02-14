@@ -10,17 +10,19 @@ import DebugOverlay from '../components/DebugOverlay';
 import WelcomeGate from '../components/WelcomeGate';
 
 /**
- * BUILD TAG: 2026-02-14-nav-architecture-fix
+ * BUILD TAG: 2026-02-14-p0-p1-stability
  * 
  * Root Layout - The Navigation Architecture Gate
  * 
- * This layout handles the core navigation decision:
- * 1. Show loading spinner while restoring session
- * 2. If NO user after restore → Show WelcomeGate (login/register)
- * 3. If user EXISTS → Show Stack navigator (tabs, modals, etc.)
+ * P0/P1 FIXES:
+ * 1. WelcomeGate renders EXCLUSIVELY when no user - never overlays tabs
+ * 2. DebugOverlay rendered ONLY here at root - not in individual screens
+ * 3. Session state is deterministic via hasTriedSessionRestore flag
  * 
- * CRITICAL: WelcomeGate is rendered AT THIS LEVEL, not as a route.
- * This prevents the "Welcome overlay on top of tabs" bug.
+ * Navigation Logic:
+ * - STATE 1: Restoring session -> Show loading spinner
+ * - STATE 2: No user after restore -> Show WelcomeGate (REPLACES everything)
+ * - STATE 3: User exists -> Show Stack navigator
  */
 export default function RootLayout() {
   const { 
@@ -50,22 +52,25 @@ export default function RootLayout() {
   }
 
   // =========================================================================
-  // STATE 2: No user - show WelcomeGate (login/register)
-  // This is NOT a route - it's a component rendered directly here
+  // STATE 2: No user - show WelcomeGate EXCLUSIVELY
+  // P1 FIX: WelcomeGate is the ONLY thing rendered - no Stack, no tabs behind
   // =========================================================================
   if (!user) {
-    console.log('[RootLayout] No user found, showing WelcomeGate');
+    console.log('[RootLayout] No user found, showing WelcomeGate (exclusive)');
     return (
       <>
         <WelcomeGate />
         {Platform.OS === 'web' && <DebugViewportOverlay />}
         <BuildBadge />
+        {/* P0: DebugOverlay with pointerEvents="none" */}
+        <DebugOverlay />
       </>
     );
   }
 
   // =========================================================================
   // STATE 3: User exists - show the main app Stack
+  // P0: DebugOverlay rendered ONLY once here at root level
   // =========================================================================
   console.log('[RootLayout] User exists, showing main app');
   return (
@@ -81,9 +86,9 @@ export default function RootLayout() {
         <Stack.Screen name="reflection-chat" options={{ presentation: 'modal' }} />
         <Stack.Screen name="todays-mirror" options={{ presentation: 'modal' }} />
         
-        {/* Onboarding flow - only accessible if user needs to complete setup */}
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="questionnaire" options={{ headerShown: false }} />
+        {/* Onboarding flow */}
+        <Stack.Screen name="onboarding/index" options={{ headerShown: false }} />
+        <Stack.Screen name="questionnaire/index" options={{ headerShown: false }} />
         
         {/* Lens detail screens */}
         <Stack.Screen name="lenses/[lens]" options={{ headerShown: false }} />
@@ -99,7 +104,7 @@ export default function RootLayout() {
         {/* Debug screens */}
         <Stack.Screen name="debug/wing-states" options={{ headerShown: false }} />
         
-        {/* Welcome screen - for "Start Fresh" or re-login scenarios */}
+        {/* Welcome screen - for "Start Fresh" scenarios */}
         <Stack.Screen name="welcome" options={{ headerShown: false }} />
         
         {/* Index route - redirects to tabs */}
@@ -109,13 +114,13 @@ export default function RootLayout() {
       {/* iOS Add to Home Screen Banner (browser only) */}
       {Platform.OS === 'web' && <AddToHomeScreenBanner />}
       
-      {/* Debug viewport overlay for web - always present when debug enabled */}
+      {/* Debug viewport overlay for web */}
       {Platform.OS === 'web' && <DebugViewportOverlay />}
       
-      {/* BUILD_ID Badge - shows in debug mode to verify deployed bundle */}
+      {/* BUILD_ID Badge */}
       <BuildBadge />
       
-      {/* Debug Overlay - shows environment info when ?debug=1 */}
+      {/* P0: DebugOverlay with pointerEvents="none" - ONLY rendered here */}
       <DebugOverlay />
     </>
   );
