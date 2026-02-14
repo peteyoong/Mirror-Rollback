@@ -209,6 +209,8 @@ export default function ReflectionChat() {
     };
     setMessages(prev => [...prev, userMessage]);
     setInputText(''); // Clear input immediately
+    // Track user message count for micro-prompt logic
+    userMessageCountRef.current += 1;
     setIsLoading(true);
 
     // Scroll to bottom
@@ -218,6 +220,9 @@ export default function ReflectionChat() {
 
     // Use the pre-computed URL
     const endpoint = REFLECTION_CHAT_URL;
+    
+    // Update debug info with fetch URL
+    updateDebugInfo({ lastFetchUrl: endpoint });
     
     // Build conversation history for API - ensure correct format
     // Backend expects: { role: "user"|"assistant", content: "..." }
