@@ -2,7 +2,7 @@ import { Redirect } from 'expo-router';
 import { useAppStore } from '../store';
 
 export default function Index() {
-  const { hasTriedSessionRestore, isRestoringSession } = useAppStore();
+  const { user, hasTriedSessionRestore, isRestoringSession } = useAppStore();
 
   // Don't redirect until session restore is complete
   // This prevents the race condition where we redirect to welcome
@@ -12,6 +12,11 @@ export default function Index() {
     return null;
   }
 
-  // Always go to welcome page first - it handles the routing based on user state
+  // If user exists, go directly to tabs (skip welcome screen)
+  if (user) {
+    return <Redirect href="/(tabs)" />;
+  }
+
+  // No user - go to welcome page for login/onboarding
   return <Redirect href="/welcome" />;
 }
