@@ -660,9 +660,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
   
+  // REMOVED: retrySessionRestore was bypassing the module-level guard and could cause loops.
+  // For manual retry, use resetLocalSession() which does a full page reload.
   retrySessionRestore: async () => {
-    set({ sessionRestoreError: null, hasTriedSessionRestore: false });
-    return get().restoreSession();
+    console.log('[SessionRestore] retrySessionRestore called - use resetLocalSession() for full retry');
+    // Do NOT reset didRestoreSession - that would cause potential loops
+    // Instead, just return current state
+    return !!get().user;
   },
   
   clearSessionRestoreError: () => {
