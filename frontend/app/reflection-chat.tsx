@@ -438,7 +438,7 @@ export default function ReflectionChat() {
       
       {/* Local Debug Panel - DISABLED (using global DebugOverlay instead) */}
       {false && DEBUG_MODE && (
-        <View style={styles.debugPanel} pointerEvents="none">
+        <View style={[styles.debugPanel, { pointerEvents: 'none' }]}>
           <TouchableOpacity 
             style={styles.debugHeader}
             onPress={() => setDebugExpanded(!debugExpanded)}
