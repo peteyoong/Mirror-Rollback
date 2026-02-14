@@ -25,7 +25,11 @@ export default function TabLayout() {
         },
         headerTintColor: Colors.text,
         headerShadowVisible: false,
+        // FIX: Prevent unmount on tab switch to preserve chat history
+        lazy: false,
       }}
+      // FIX: Disable unmount on blur to keep state
+      detachInactiveScreens={false}
     >
       <Tabs.Screen
         name="index"
