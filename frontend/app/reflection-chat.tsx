@@ -16,20 +16,24 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '../constants/colors';
 import { useAppStore } from '../store';
 import { Ionicons } from '@expo/vector-icons';
-import { API_BASE_URL, getApiBaseUrl } from '../services/api';
+import { API_BASE_URL, API_URL_MISSING, API_URL_ERROR_MESSAGE } from '../services/api';
 
 // DEBUG MODE - Set to true to show network trace panel
 const DEBUG_MODE = true;
 
+// Pre-compute debug URLs
+const REFLECTION_CHAT_URL = `${API_BASE_URL}/reflection/chat`;
+
 // Debug state interface
 interface DebugState {
-  apiBaseUrl: string;
-  endpoint: string;
-  lastRequestPayload: string;
-  lastResponseStatus: number | null;
+  resolvedApiBaseUrl: string;
+  reflectionChatUrl: string;
+  envValue: string;
+  lastHttpStatus: number | null;
   lastResponseText: string;
   lastParsedResponse: string;
   lastError: string;
+  apiUrlMissing: boolean;
 }
 
 interface Message {
