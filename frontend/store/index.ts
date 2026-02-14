@@ -268,7 +268,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   loadChatMessages: async (threadKey: string): Promise<ChatMessage[]> => {
-    const { user } = get();
+    const { user, chatMessages } = get();
     if (!user?.id) {
       console.log('[ChatStore] loadChatMessages: No user id, returning empty');
       return [];
@@ -276,6 +276,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     
     const key = `${user.id}:${threadKey}`;
     const storageKey = getChatStorageKey(user.id, threadKey);
+    const currentMessages = chatMessages[key] ?? [];
     
     console.log(`[ChatStore] loadChatMessages: key=${key}, storageKey=${storageKey}`);
     
@@ -284,18 +285,26 @@ export const useAppStore = create<AppState>((set, get) => ({
     
     if (stored) {
       try {
-        const messages = JSON.parse(stored) as ChatMessage[];
-        console.log(`[ChatStore] Loaded ${messages.length} messages from storage for ${key}`);
+        const loadedMessages = JSON.parse(stored) as ChatMessage[];
+        console.log(`[ChatStore] Loaded ${loadedMessages.length} messages from storage for ${key}`);
         
-        // IMPORTANT: Update state with loaded messages
-        set(state => ({
-          chatMessages: {
-            ...state.chatMessages,
-            [key]: messages,
-          },
-        }));
+        // GUARD: Only update state if data actually changed (prevent infinite loops)
+        const currentJson = JSON.stringify(currentMessages);
+        const loadedJson = JSON.stringify(loadedMessages);
         
-        return messages;
+        if (currentJson !== loadedJson) {
+          console.log(`[ChatStore] Messages changed, updating state for ${key}`);
+          set(state => ({
+            chatMessages: {
+              ...state.chatMessages,
+              [key]: loadedMessages,
+            },
+          }));
+        } else {
+          console.log(`[ChatStore] Messages unchanged, skipping set() for ${key}`);
+        }
+        
+        return loadedMessages;
       } catch (e) {
         console.error('[ChatStore] Failed to parse stored messages:', e);
       }
@@ -303,7 +312,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       console.log(`[ChatStore] No stored messages found for ${key}`);
     }
     
-    return [];
+    return currentMessages;
   },
   
   clearChatMessages: async (threadKey: string) => {
