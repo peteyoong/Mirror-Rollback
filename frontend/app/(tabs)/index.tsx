@@ -472,15 +472,6 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
     alignItems: 'center',
   },
-  // A. Section Label
-  sectionLabel: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: Colors.textTertiary,
-    letterSpacing: 2,
-    marginBottom: 28,
-    opacity: 0.6,
-  },
   // B. Main Body - Uses Typography.heroSerif
   mainBody: {
     ...Typography.heroSerif,
