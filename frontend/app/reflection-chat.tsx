@@ -341,13 +341,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  debugBanner: {
+    backgroundColor: '#333',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  debugText: {
+    color: '#0f0',
+    fontSize: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    textAlign: 'center',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.cardBorder,
+    borderBottomColor: Colors.border,
   },
   backButton: {
     padding: 8,
@@ -359,7 +370,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: Colors.textPrimary,
+    color: Colors.text,
   },
   headerSubtitle: {
     fontSize: 12,
@@ -391,11 +402,11 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
   },
   assistantBubble: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.surfaceLight,
     alignSelf: 'flex-start',
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    borderColor: Colors.border,
   },
   messageText: {
     fontSize: 15,
@@ -405,7 +416,7 @@ const styles = StyleSheet.create({
     color: Colors.surface,
   },
   assistantText: {
-    color: Colors.textPrimary,
+    color: Colors.text,
   },
   errorText: {
     color: '#ff6b6b',
@@ -419,21 +430,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: Colors.cardBorder,
+    borderTopColor: Colors.border,
     backgroundColor: Colors.surface,
   },
   input: {
     flex: 1,
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.surfaceLight,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     paddingRight: 40,
     fontSize: 15,
-    color: Colors.textPrimary,
+    color: Colors.text,
     maxHeight: 100,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    borderColor: Colors.border,
   },
   sendButton: {
     position: 'absolute',
@@ -447,6 +458,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sendButtonDisabled: {
-    backgroundColor: Colors.cardBorder,
+    backgroundColor: Colors.border,
   },
 });
