@@ -121,17 +121,14 @@ export default function MirrorChat({
   keystoneContext = null,
 }: MirrorChatProps) {
   // ===== PERSISTENCE: Use Zustand store as single source of truth =====
-  // Thread key for this chat context
-  const THREAD_KEY = lens ? `mirror:${lens}` : 'mirror:home';
+  // Thread key for this chat context - stable primitive
+  const threadKey = lens ? `mirror:${lens}` : 'mirror:home';
+  const storageKey = userId ? `${userId}:${threadKey}` : null;
   
-  // Get messages from store instead of local state
-  const storeMessages = useAppStore(s => {
-    const key = `${userId}:${THREAD_KEY}`;
-    return s.chatMessages[key] || [];
-  });
+  // Get messages from store - use stable selector
+  const messages = useAppStore(s => (storageKey ? s.chatMessages[storageKey] : undefined) ?? []);
   const loadChatMessages = useAppStore(s => s.loadChatMessages);
   const addChatMessage = useAppStore(s => s.addChatMessage);
-  const setChatMessages = useAppStore(s => s.setChatMessages);
   
   // Local UI state only (not persisted)
   const [inputText, setInputText] = useState('');
@@ -142,7 +139,6 @@ export default function MirrorChat({
   const [isMemoryExpanded, setIsMemoryExpanded] = useState(false);
   const [showEvidence, setShowEvidence] = useState(false);
   const [hasTriggeredKeystone, setHasTriggeredKeystone] = useState(false);
-  const [hasHydratedMessages, setHasHydratedMessages] = useState(false);
   
   // Thread state for "Today's thread" pill
   const [threadState, setThreadState] = useState<ThreadState | null>(null);
@@ -150,65 +146,77 @@ export default function MirrorChat({
   
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
+  
+  // ===== REFS TO PREVENT INFINITE LOOPS =====
+  const didHydrateRef = useRef(false);
+  const didSeedIntroRef = useRef(false);
 
   // Convert store messages to Message format with Date objects
-  const messages: Message[] = storeMessages.map(m => ({
+  const displayMessages: Message[] = messages.map((m: ChatMessage) => ({
     ...m,
     timestamp: typeof m.timestamp === 'string' ? new Date(m.timestamp) : m.timestamp,
   })) as Message[];
 
-  // ===== HYDRATION: Load messages on focus (not just mount) =====
+  // ===== HYDRATION: Load messages on focus - IDEMPOTENT =====
   useFocusEffect(
     useCallback(() => {
       if (!userId) return;
       
-      console.log(`[MirrorChat] Focus effect - loading messages for ${THREAD_KEY}`);
+      // Reset guards on focus
+      didHydrateRef.current = false;
+      didSeedIntroRef.current = false;
       
-      loadChatMessages(THREAD_KEY).then(loaded => {
-        console.log(`[MirrorChat] Loaded ${loaded.length} messages from storage`);
+      // Use queueMicrotask to avoid synchronous store updates during render
+      queueMicrotask(async () => {
+        if (didHydrateRef.current) return;
+        didHydrateRef.current = true;
+        
+        console.log(`[MirrorChat] Hydrating messages for ${threadKey}`);
+        
+        const loaded = await loadChatMessages(threadKey);
         
         // Update debug overlay
-        updateDebugInfo({
-          lastBailReason: '',
-          lastError: '',
-        });
+        (globalThis as any).__MIRROR_CHAT_KEY = `mirror_chat_messages:${userId}:${threadKey}`;
+        (globalThis as any).__MIRROR_CHAT_COUNT = loaded?.length ?? 0;
+        (globalThis as any).__MIRROR_THREAD_KEY = threadKey;
         
-        setHasHydratedMessages(true);
+        console.log(`[MirrorChat] Loaded ${loaded?.length ?? 0} messages from storage`);
+        
+        // Seed intro ONCE if still empty after load
+        if (!didSeedIntroRef.current && (!loaded || loaded.length === 0)) {
+          didSeedIntroRef.current = true;
+          
+          const greeting = lens
+            ? `I'm here to explore your ${lens === 'human_design' ? 'Human Design' : lens.charAt(0).toUpperCase() + lens.slice(1)} chart with you. What would you like to understand?`
+            : "I'm here as a companion for self-understanding. Share what's on your mind, and I'll reflect what I notice.";
+          
+          await addChatMessage(threadKey, {
+            id: `intro_${Date.now()}`,
+            role: 'assistant',
+            content: greeting,
+            timestamp: new Date().toISOString(),
+          });
+          
+          // Update debug count after adding intro
+          (globalThis as any).__MIRROR_CHAT_COUNT = 1;
+          console.log(`[MirrorChat] Seeded intro message for ${threadKey}`);
+        }
       });
-    }, [userId, THREAD_KEY])
+      
+      return () => {
+        // Cleanup on unfocus
+      };
+    }, [userId, threadKey, lens]) // IMPORTANT: only stable primitives
   );
 
-  // ===== ADD INTRO MESSAGE: Only if no messages after hydration =====
+  // ===== DEBUG: Update overlay with chat count on message changes =====
   useEffect(() => {
-    if (!hasHydratedMessages || !userId) return;
-    
-    // If no messages in store, add the intro message
-    if (messages.length === 0) {
-      const greeting = lens
-        ? `I'm here to explore your ${lens === 'human_design' ? 'Human Design' : lens.charAt(0).toUpperCase() + lens.slice(1)} chart with you. What would you like to understand?`
-        : "I'm here as a companion for self-understanding. Share what's on your mind, and I'll reflect what I notice.";
-      
-      const introMessage: ChatMessage = {
-        id: 'greeting',
-        role: 'assistant',
-        content: greeting,
-        timestamp: new Date().toISOString(),
-      };
-      
-      addChatMessage(THREAD_KEY, introMessage);
-      console.log(`[MirrorChat] Added intro message for ${THREAD_KEY}`);
-    }
-  }, [hasHydratedMessages, messages.length, userId, lens, THREAD_KEY]);
-
-  // ===== DEBUG: Update overlay with chat state =====
-  useEffect(() => {
-    // Update debug overlay with chat state
-    if (typeof updateDebugInfo === 'function') {
-      // Access via any to add custom fields
-      (globalThis as any).__MIRROR_CHAT_KEY = `mirror_chat_messages:${userId}:${THREAD_KEY}`;
+    if (userId && threadKey) {
+      (globalThis as any).__MIRROR_CHAT_KEY = `mirror_chat_messages:${userId}:${threadKey}`;
       (globalThis as any).__MIRROR_CHAT_COUNT = messages.length;
+      (globalThis as any).__MIRROR_THREAD_KEY = threadKey;
     }
-  }, [userId, THREAD_KEY, messages.length]);
+  }, [userId, threadKey, messages.length]);
 
   // Load or create persistent session ID
   useEffect(() => {
