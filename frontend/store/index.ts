@@ -294,12 +294,12 @@ export const useAppStore = create<AppState>((set, get) => ({
         
         if (currentJson !== loadedJson) {
           console.log(`[ChatStore] Messages changed, updating state for ${key}`);
-          debugSet(set, (state: any) => ({
+          set((state) => ({
             chatMessages: {
               ...state.chatMessages,
               [key]: loadedMessages,
             },
-          }), 'loadChatMessages');
+          }));
         } else {
           console.log(`[ChatStore] Messages unchanged, skipping set() for ${key}`);
         }
@@ -323,7 +323,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const newChatMessages = { ...chatMessages };
     delete newChatMessages[key];
     
-    debugSet(set, { chatMessages: newChatMessages }, 'clearChatMessages');
+    set({ chatMessages: newChatMessages });
     
     const storageKey = getChatStorageKey(user.id, threadKey);
     await storage.removeItem(storageKey);
@@ -331,7 +331,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   completeOnboarding: async () => {
-    debugSet(set, { hasCompletedOnboarding: true }, 'completeOnboarding');
+    set({ hasCompletedOnboarding: true });
     await storage.setItem('hasCompletedOnboarding', 'true');
   },
   
@@ -340,18 +340,18 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { questionnaireAnswers } = get();
     const newAnswers = [...questionnaireAnswers];
     newAnswers[index] = answer;
-    debugSet(set, { questionnaireAnswers: newAnswers }, 'setQuestionnaireAnswer');
+    set({ questionnaireAnswers: newAnswers });
     // Persist answers to local storage
     await storage.setItem('questionnaireAnswers', JSON.stringify(newAnswers));
   },
   
   completeQuestionnaire: async () => {
-    debugSet(set, { questionnaireComplete: true }, 'completeQuestionnaire');
+    set({ questionnaireComplete: true });
     await storage.setItem('questionnaireComplete', 'true');
   },
   
   clearUser: async () => {
-    debugSet(set, {
+    set({
       user: null,
       chart: null,
       dailyReflection: null,
@@ -360,7 +360,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       questionnaireAnswers: [],
       questionnaireComplete: false,
       sessionRestoreError: null,
-    }, 'clearUser');
+    });
     // Clear user data and all chat session IDs
     await storage.multiRemove([
       SESSION_USER_ID_KEY, 
