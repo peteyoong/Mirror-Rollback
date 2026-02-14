@@ -81,7 +81,10 @@ interface DebugOverlayProps {
 export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
   const [debugInfo, setDebugInfo] = useState<DebugInfo>(globalDebugInfo);
   const [touchProbeCount, setTouchProbeCount] = useState(0);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true); // Default expanded for debugging
+  
+  // Get user from store
+  const user = useAppStore(state => state.user);
   
   // Subscribe to debug info updates
   useEffect(() => {
@@ -130,7 +133,7 @@ export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
         onPress={() => setExpanded(!expanded)}
       >
         <Text style={styles.headerText}>
-          🔧 DEBUG {debugInfo.pingStatus === 'ok' ? '✓' : debugInfo.pingStatus === 'fail' ? '✗' : '...'}
+          🔧 {BUILD_ID} | Press: {debugInfo.sendPressCount} | {debugInfo.pingStatus === 'ok' ? '✓' : debugInfo.pingStatus === 'fail' ? '✗' : '...'}
         </Text>
         <Text style={styles.headerToggle}>{expanded ? '▲' : '▼'}</Text>
       </Pressable>
@@ -148,23 +151,67 @@ export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
             <Text style={styles.touchProbeText}>👆 Touch Probe: {touchProbeCount}</Text>
           </Pressable>
           
-          {/* Rest of debug info - pointerEvents none */}
+          {/* BIG + OBVIOUS debug fields */}
           <View pointerEvents="none">
+            {/* BUILD_ID */}
+            <Text style={styles.bigRow}>
+              <Text style={styles.bigLabel}>BUILD: </Text>
+              <Text style={styles.bigValue}>{BUILD_ID}</Text>
+            </Text>
+            
+            {/* userId */}
+            <Text style={styles.bigRow}>
+              <Text style={styles.bigLabel}>USER_ID: </Text>
+              <Text style={user?.id ? styles.bigValueOk : styles.bigValueError}>
+                {user?.id || 'NO_USER'}
+              </Text>
+            </Text>
+            
+            {/* sendPressCount */}
+            <Text style={styles.bigRow}>
+              <Text style={styles.bigLabel}>SEND_PRESS_COUNT: </Text>
+              <Text style={debugInfo.sendPressCount > 0 ? styles.bigValueOk : styles.bigValueError}>
+                {debugInfo.sendPressCount}
+              </Text>
+            </Text>
+            
+            {/* lastSendAt */}
             <Text style={styles.row}>
-              <Text style={styles.label}>API_URL_MISSING: </Text>
-              <Text style={API_URL_MISSING ? styles.error : styles.ok}>{String(API_URL_MISSING)}</Text>
+              <Text style={styles.label}>lastSendAt: </Text>
+              <Text style={styles.value}>{debugInfo.lastSendAt || '(never)'}</Text>
             </Text>
             
+            {/* lastBailReason */}
+            {debugInfo.lastBailReason ? (
+              <Text style={styles.bigRow}>
+                <Text style={styles.bigLabel}>BAIL: </Text>
+                <Text style={styles.bigValueError}>{debugInfo.lastBailReason}</Text>
+              </Text>
+            ) : null}
+            
+            {/* lastFetchUrl */}
             <Text style={styles.row} numberOfLines={1}>
-              <Text style={styles.label}>API: </Text>
-              <Text style={styles.value}>{API_BASE_URL || '(none)'}</Text>
+              <Text style={styles.label}>lastFetchUrl: </Text>
+              <Text style={styles.value}>{debugInfo.lastFetchUrl || '(none)'}</Text>
             </Text>
             
-            <Text style={styles.row} numberOfLines={1}>
-              <Text style={styles.label}>Chat URL: </Text>
-              <Text style={styles.value}>{reflectionChatUrl}</Text>
+            {/* lastHttpStatus */}
+            <Text style={styles.bigRow}>
+              <Text style={styles.bigLabel}>HTTP_STATUS: </Text>
+              <Text style={debugInfo.lastHttpStatus === 200 ? styles.bigValueOk : debugInfo.lastHttpStatus ? styles.bigValueError : styles.bigValue}>
+                {debugInfo.lastHttpStatus ?? '(none)'}
+              </Text>
             </Text>
             
+            {/* lastError */}
+            {debugInfo.lastError ? (
+              <Text style={styles.bigRow}>
+                <Text style={styles.bigLabel}>ERROR: </Text>
+                <Text style={styles.bigValueError}>{debugInfo.lastError}</Text>
+              </Text>
+            ) : null}
+            
+            {/* Ping status */}
             <Text style={styles.row}>
               <Text style={styles.label}>Ping: </Text>
               <Text style={debugInfo.pingStatus === 'ok' ? styles.ok : debugInfo.pingStatus === 'fail' ? styles.error : styles.value}>
@@ -172,24 +219,11 @@ export default function DebugOverlay({ extra = {} }: DebugOverlayProps) {
               </Text>
             </Text>
             
-            <Text style={styles.row}>
-              <Text style={styles.label}>lastHttpStatus: </Text>
-              <Text style={debugInfo.lastHttpStatus === 200 ? styles.ok : debugInfo.lastHttpStatus ? styles.error : styles.value}>
-                {debugInfo.lastHttpStatus ?? '(none)'}
-              </Text>
-            </Text>
-            
-            {debugInfo.lastError ? (
-              <Text style={styles.row}>
-                <Text style={styles.label}>lastError: </Text>
-                <Text style={styles.error}>{debugInfo.lastError}</Text>
-              </Text>
-            ) : null}
-            
+            {/* Response preview */}
             {debugInfo.lastResponseText ? (
-              <Text style={styles.row} numberOfLines={3}>
+              <Text style={styles.row} numberOfLines={2}>
                 <Text style={styles.label}>Response: </Text>
-                <Text style={styles.code}>{debugInfo.lastResponseText.slice(0, 300)}</Text>
+                <Text style={styles.code}>{debugInfo.lastResponseText.slice(0, 200)}</Text>
               </Text>
             ) : null}
           </View>
