@@ -296,22 +296,22 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   card: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.surfaceLight,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    borderColor: Colors.border,
   },
   cardTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: Colors.textPrimary,
+    color: Colors.text,
     marginBottom: 12,
   },
   cardKeystone: {
     fontSize: 16,
-    color: Colors.textPrimary,
+    color: Colors.text,
     lineHeight: 24,
     marginBottom: 16,
   },
@@ -326,12 +326,12 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   chatPreviewCard: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.surfaceLight,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    borderColor: Colors.border,
   },
   chatPreviewHeader: {
     flexDirection: 'row',
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   chatPreviewTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.textPrimary,
+    color: Colors.text,
   },
   openChatLink: {
     fontSize: 14,
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   assistantBubble: {
-    backgroundColor: Colors.cardBorder,
+    backgroundColor: Colors.border,
     alignSelf: 'flex-start',
   },
   chatText: {
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     color: Colors.surface,
   },
   assistantText: {
-    color: Colors.textPrimary,
+    color: Colors.text,
   },
   openChatButton: {
     flexDirection: 'row',
