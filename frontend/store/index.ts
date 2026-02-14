@@ -232,13 +232,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   setJournalEntries: (entries) => {
-    set({ journalEntries: entries });
+    debugSet(set, { journalEntries: entries }, 'setJournalEntries');
   },
   
   addJournalEntry: (entry) => {
-    set((state) => ({
+    debugSet(set, (state: any) => ({
       journalEntries: [entry, ...state.journalEntries],
-    }));
+    }), 'addJournalEntry');
   },
   
   // Chat message actions - persist chat history across tab switches and refreshes
@@ -258,12 +258,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     const updatedMessages = [...existingMessages, message];
     
     // Update state
-    set({
+    debugSet(set, {
       chatMessages: {
         ...chatMessages,
         [key]: updatedMessages,
       },
-    });
+    }, 'addChatMessage');
     
     // Persist to storage
     const storageKey = getChatStorageKey(user.id, threadKey);
@@ -278,12 +278,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     const key = `${user.id}:${threadKey}`;
     
     // Update state
-    set({
+    debugSet(set, {
       chatMessages: {
         ...chatMessages,
         [key]: messages,
       },
-    });
+    }, 'setChatMessages');
     
     // Persist to storage
     const storageKey = getChatStorageKey(user.id, threadKey);
