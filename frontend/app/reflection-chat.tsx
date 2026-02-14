@@ -582,24 +582,6 @@ export default function ReflectionChat() {
           )}
           
           {messages.map((message) => {
-            // Render micro-reflection prompt with special styling
-            if (message.role === 'micro-prompt') {
-              return (
-                <View key={message.id} style={styles.microPromptContainer}>
-                  <View style={styles.microPromptCard}>
-                    <Text style={styles.microPromptText}>{message.content}</Text>
-                    <TouchableOpacity
-                      style={styles.microPromptDismiss}
-                      onPress={handleDismissMicroPrompt}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                      <Text style={styles.microPromptDismissText}>Dismiss</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            }
-            
             // FIX: Normalize roles before styling - handle any role string
             // Unknown roles MUST render as assistant (dark bubble + light text)
             const rawRole = ((message as any).role ?? (message as any).sender ?? (message as any).type ?? '').toString().toLowerCase();
