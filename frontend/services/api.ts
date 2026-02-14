@@ -19,18 +19,30 @@ const validateAbsoluteUrl = (url: string): boolean => {
 
 // Safely derive API URL with multiple fallbacks
 export const getApiBaseUrl = (): string => {
-  // Priority 1: Explicit EXPO_PUBLIC_API_BASE_URL
+  // Priority 1 (WEB): Derive from window.location.origin - FIRST for web preview
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    const origin = window.location?.origin;
+    if (origin && origin !== 'null' && validateAbsoluteUrl(origin)) {
+      const derived = `${origin}/api`;
+      console.log('[API] ✅ Derived from window.location.origin:', derived);
+      API_URL_MISSING = false;
+      return derived;
+    }
+  }
+  
+  // Priority 2: Explicit EXPO_PUBLIC_API_BASE_URL (skip localtunnel URLs)
   const explicitApiUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
   if (explicitApiUrl && typeof explicitApiUrl === 'string' && explicitApiUrl.trim().length > 0) {
     const trimmed = explicitApiUrl.trim();
-    if (validateAbsoluteUrl(trimmed)) {
+    // Skip localtunnel URLs - prefer origin
+    if (validateAbsoluteUrl(trimmed) && !trimmed.includes('loca.lt')) {
       console.log('[API] ✅ Using EXPO_PUBLIC_API_BASE_URL:', trimmed);
       API_URL_MISSING = false;
       return trimmed.replace(/\/+$/, ''); // Remove trailing slashes
     }
   }
   
-  // Priority 2: Derive from EXPO_PUBLIC_BACKEND_URL + /api
+  // Priority 3: Derive from EXPO_PUBLIC_BACKEND_URL + /api
   const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
   if (backendUrl && typeof backendUrl === 'string' && backendUrl.trim().length > 0) {
     const trimmed = backendUrl.trim().replace(/\/+$/, ''); // Remove trailing slashes
@@ -42,7 +54,7 @@ export const getApiBaseUrl = (): string => {
     }
   }
   
-  // Priority 3: expo-constants extra config
+  // Priority 4: expo-constants extra config
   const extraApiUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_BASE_URL;
   if (extraApiUrl && typeof extraApiUrl === 'string' && extraApiUrl.trim().length > 0) {
     const trimmed = extraApiUrl.trim();
@@ -59,17 +71,6 @@ export const getApiBaseUrl = (): string => {
     if (validateAbsoluteUrl(trimmed)) {
       const derived = `${trimmed}/api`;
       console.log('[API] ✅ Derived from Constants extra BACKEND_URL:', derived);
-      API_URL_MISSING = false;
-      return derived;
-    }
-  }
-  
-  // Priority 4: Web - derive from window.location.origin
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    const origin = window.location?.origin;
-    if (origin && origin !== 'null' && validateAbsoluteUrl(origin)) {
-      const derived = `${origin}/api`;
-      console.log('[API] ✅ Derived from window.location.origin:', derived);
       API_URL_MISSING = false;
       return derived;
     }
