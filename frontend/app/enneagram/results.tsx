@@ -1177,13 +1177,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.border,
   },
   confidenceHigh: {
-    backgroundColor: '#D4EDDA',
+    backgroundColor: Colors.success + '40',
   },
   confidenceMedium: {
-    backgroundColor: '#FFF3CD',
+    backgroundColor: Colors.warning + '40',
   },
   confidenceLow: {
-    backgroundColor: '#F8D7DA',
+    backgroundColor: Colors.error + '40',
   },
   confidenceText: {
     fontSize: 13,
