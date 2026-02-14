@@ -352,7 +352,7 @@ export default function MirrorScreen() {
           <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
         </Pressable>
       </View>
-      {debugVisible && debugExpanded && (
+      
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
