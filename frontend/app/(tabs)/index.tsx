@@ -71,6 +71,9 @@ export default function MirrorScreen() {
   // Debug panel state - collapsed by default
   const [debugExpanded, setDebugExpanded] = useState(false);
   
+  // Track journal count for conditional intelligence signal
+  const [journalCount, setJournalCount] = useState<number>(0);
+  
   // Track daily focus state for reflection entry
   const [focusState, setFocusState] = useState<DailyFocusState>({
     isLoading: true,
@@ -79,6 +82,11 @@ export default function MirrorScreen() {
     context: null,
     ambientLine: null,
   });
+  
+  // Conditional intelligence signal text
+  const intelligenceText = journalCount >= 2 || focusState.hasContext
+    ? "Based on recent reflections"
+    : "Based on what's present today";
 
   // Handle focus state changes from DailyFocusCard
   const handleFocusStateChange = useCallback((state: DailyFocusState) => {
