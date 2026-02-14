@@ -594,25 +594,39 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 12,
   },
+  // FIX: User bubble is light with dark text
   userBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    backgroundColor: 'rgba(255,255,255,0.92)',
   },
+  // FIX: Assistant bubble is dark with light text
   assistantBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255,255,255,0.10)',
+    borderWidth: 1,
   },
   messageText: {
     fontSize: 16,
     lineHeight: 24,
   },
+  // FIX: User text must be dark on light background
   userText: {
-    color: Colors.text,
+    color: 'rgba(0,0,0,0.88)',
   },
+  // FIX: Assistant text must be light on dark background
   assistantText: {
-    color: Colors.textSecondary,
+    color: 'rgba(255,255,255,0.92)',
+  },
+  // System/intro text style
+  systemText: {
+    color: 'rgba(255,255,255,0.85)',
+  },
+  // Timestamp style
+  timestamp: {
+    color: 'rgba(255,255,255,0.35)',
+    fontSize: 11,
+    marginTop: 4,
   },
   inputContainer: {
     flexDirection: 'row',
