@@ -9,7 +9,9 @@ export const DarkColors = {
   text: '#F5F3EF',
   textSecondary: '#A0A0A0',
   textTertiary: '#666666',
-  accent: '#D0D0D0',
+  // Subtle accent - muted brass/amber whisper (not bright)
+  accent: '#C9A962',        // Primary accent - muted brass
+  accentMuted: '#9A8255',   // Even more subtle variant
   border: '#2A2C2E',
   error: '#FF6B6B',
   warning: '#FFB347',
@@ -26,7 +28,8 @@ export const LightColors = {
   text: '#1A1A1A',
   textSecondary: '#666666',
   textTertiary: '#999999',
-  accent: '#2A2A2A',
+  accent: '#8B7355',
+  accentMuted: '#A89070',
   border: '#E5E3DF',
   error: '#D32F2F',
   warning: '#F57C00',
