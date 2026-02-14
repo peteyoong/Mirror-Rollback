@@ -75,8 +75,9 @@ const getLocalDateString = (): string => {
 // ===== ISOLATION TEST: Incrementally enable pieces =====
 // Phase 1: Just store hooks (no effects) - PASSED ✓
 // Phase 2: Add useState hooks - PASSED ✓
-// Phase 3: Add useEffect hooks one by one
-const ISOLATION_PHASE = 3;  // Testing useEffect hooks
+// Phase 3: Add first useEffect (debug param) - PASSED ✓
+// Phase 4: Add main data loading useEffect
+const ISOLATION_PHASE = 4;  // Testing main data loading
 
 export default function MirrorScreen() {
   // ===== PHASE 1: Just store hooks =====
@@ -154,6 +155,83 @@ export default function MirrorScreen() {
         <Text style={{ color: '#888', fontSize: 12, marginTop: 10 }}>+ useEffect (debug param)</Text>
         <Text style={{ color: '#666', fontSize: 10, marginTop: 5 }}>
           user: {user?.name || 'null'} | date: {currentDate}
+        </Text>
+      </View>
+    );
+  }
+
+  // ===== PHASE 4: Add main data loading useEffect =====
+  if (ISOLATION_PHASE === 4) {
+    const user = useAppStore(s => s.user);
+    const hasTriedSessionRestore = useAppStore(s => s.hasTriedSessionRestore);
+    const isRestoringSession = useAppStore(s => s.isRestoringSession);
+    const router = useRouter();
+    const params = useLocalSearchParams<{ debug?: string }>();
+    
+    const [keystone, setKeystone] = useState<DailyKeystone | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [currentDate, setCurrentDate] = useState<string>(getLocalDateString());
+    const [debugVisible, setDebugVisible] = useState(false);
+    const [debugExpanded, setDebugExpanded] = useState(false);
+    const [journalCount, setJournalCount] = useState<number>(0);
+    const lastLoadedDateRef = useRef<string | null>(null);
+    const didInitRef = useRef(false);
+    
+    // EFFECT 1: Debug param check
+    useEffect(() => {
+      if (params.debug === '1') {
+        setDebugVisible(true);
+      }
+    }, [params.debug]);
+    
+    // EFFECT 2: Main data loading (idempotent)
+    useEffect(() => {
+      // Only load once per mount
+      if (didInitRef.current) return;
+      if (!hasTriedSessionRestore || isRestoringSession || !user?.id) return;
+      
+      didInitRef.current = true;
+      console.log('[Phase4] Loading keystone data...');
+      
+      // Load keystone
+      const loadKeystone = async () => {
+        try {
+          const dateToLoad = getLocalDateString();
+          const response = await api.get(`/mirror/home/${user.id}`, {
+            params: { date: dateToLoad }
+          });
+          setKeystone(response.data);
+          lastLoadedDateRef.current = dateToLoad;
+        } catch (err: any) {
+          console.error('[Phase4] Load keystone error:', err);
+          setKeystone({
+            date: getLocalDateString(),
+            title: "A Quiet Arrival",
+            keystone: "Something in you brought you here today.",
+            reflect_question: "What feels most present right now?",
+            micro_affirmation: "You don't have to have it figured out.",
+            source_signals: { used: ["fallback"], tone: "grounding" },
+            daily_seed: "fallback",
+            is_first_visit: false,
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      loadKeystone();
+    }, [hasTriedSessionRestore, isRestoringSession, user?.id]);
+    
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1a1a2e' }}>
+        <Text style={{ color: 'white', fontSize: 18 }}>Mirror tab - Phase 4</Text>
+        <Text style={{ color: '#888', fontSize: 12, marginTop: 10 }}>+ useEffect (data loading)</Text>
+        <Text style={{ color: '#666', fontSize: 10, marginTop: 5 }}>
+          user: {user?.name || 'null'} | loading: {String(isLoading)}
+        </Text>
+        <Text style={{ color: '#666', fontSize: 10, marginTop: 3 }}>
+          keystone: {keystone?.title || 'null'}
         </Text>
       </View>
     );
