@@ -17,24 +17,34 @@ import { Colors } from '../constants/colors';
 import { useAppStore } from '../store';
 import { Ionicons } from '@expo/vector-icons';
 import { API_BASE_URL, joinUrl } from '../services/api';
-import { loadMessages, saveMessages, ChatMessage } from '../utils/chatPersistence';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Thread key for reflection chat
 const THREAD_KEY = 'reflection:default';
+const STORAGE_PREFIX = 'mirror_chat_messages';
 
+// Message interface - timestamp as string for JSON safety
 interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  timestamp: Date;
+  timestamp: string; // ISO string for JSON safety
 }
 
+// Default intro message
+const DEFAULT_INTRO_MESSAGE: Message = {
+  id: 'intro',
+  role: 'assistant',
+  content: "We can keep this light.\nWhat stood out today?",
+  timestamp: new Date().toISOString(),
+};
+
 /**
- * Reflection Chat - LOOP-PROOF Implementation
+ * Reflection Chat - LOOP-PROOF Implementation with LOCAL persistence
  * 
- * Uses LOCAL useState for messages
- * Pure persistence helpers (no Zustand set() in effects)
- * One-shot initialization with didInitRef
+ * NO Zustand chatMessages - all persistence is local to this component
+ * Uses AsyncStorage directly with debounced writes
+ * One-shot hydration guard prevents overwrites
  */
 export default function ReflectionChat() {
   const router = useRouter();
@@ -46,68 +56,98 @@ export default function ReflectionChat() {
   // Only pull stable primitives from store
   const userId = useAppStore(s => s.user?.id);
   
+  // Compute storage key
+  const storageKey = userId ? `${STORAGE_PREFIX}:${userId}:${THREAD_KEY}` : null;
+  
   // LOCAL STATE for messages - NOT from Zustand store
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
   
   const scrollViewRef = useRef<ScrollView>(null);
-  const didInitRef = useRef(false);
+  const didHydrateRef = useRef(false);
+  const persistTimerRef = useRef<any>(null);
   
-  // Generate opening message
-  const getOpeningMessage = useCallback((): string => {
+  // Generate context-aware opening message
+  const getOpeningMessage = useCallback((): Message => {
     const context = params.context;
     const dismissed = params.dismissed === 'true';
     
+    let content: string;
     if (dismissed) {
-      return "No need to go anywhere specific.\nWhat's here right now?";
+      content = "No need to go anywhere specific.\nWhat's here right now?";
+    } else if (context) {
+      content = `This may relate to ${context}.\nWhat comes to mind?`;
+    } else {
+      content = "We can keep this light.\nWhat stood out today?";
     }
-    if (context) {
-      return `This may relate to ${context}.\nWhat comes to mind?`;
-    }
-    return "We can keep this light.\nWhat stood out today?";
+    
+    return {
+      id: 'intro',
+      role: 'assistant',
+      content,
+      timestamp: new Date().toISOString(),
+    };
   }, [params.context, params.dismissed]);
 
-  // LOOP-PROOF: Load messages ONCE on mount
+  // =========================================================================
+  // ONE-SHOT HYDRATION: Load from storage ONCE when userId becomes available
+  // =========================================================================
   useEffect(() => {
-    if (!userId) return;
-    if (didInitRef.current) return;
-    didInitRef.current = true;
+    if (!userId || !storageKey) return;
+    if (didHydrateRef.current) return;
+    didHydrateRef.current = true;
     
-    console.log(`[ReflectionChat] Initializing for userId=${userId}`);
+    console.log(`[ReflectionChat] Hydrating from storage: ${storageKey}`);
     
     (async () => {
-      const stored = await loadMessages(userId, THREAD_KEY);
-      
-      if (stored.length > 0) {
-        const converted: Message[] = stored.map(m => ({
-          ...m,
-          timestamp: new Date(m.timestamp),
-        }));
-        setMessages(converted);
-        console.log(`[ReflectionChat] Loaded ${converted.length} messages`);
-      } else {
-        const opening = getOpeningMessage();
-        const openingMsg: Message = {
-          id: 'opening',
-          role: 'assistant',
-          content: opening,
-          timestamp: new Date(),
-        };
-        setMessages([openingMsg]);
-        
-        // Persist
-        await saveMessages(userId, THREAD_KEY, [{
-          id: 'opening',
-          role: 'assistant',
-          content: opening,
-          timestamp: new Date().toISOString(),
-        }]);
-        console.log('[ReflectionChat] Created opening message');
+      try {
+        const raw = await AsyncStorage.getItem(storageKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            console.log(`[ReflectionChat] Loaded ${parsed.length} messages from storage`);
+            setMessages(parsed);
+            setHydrated(true);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error('[ReflectionChat] Hydration error:', e);
       }
+      
+      // Only if no stored messages - create default intro
+      console.log('[ReflectionChat] No stored messages, creating intro');
+      const intro = getOpeningMessage();
+      setMessages([intro]);
+      setHydrated(true);
     })();
-  }, [userId]);
+  }, [userId, storageKey, getOpeningMessage]);
+
+  // =========================================================================
+  // DEBOUNCED PERSISTENCE: Save to storage on message changes
+  // =========================================================================
+  useEffect(() => {
+    if (!userId || !storageKey) return;
+    if (!didHydrateRef.current) return; // Don't persist before hydrate
+    if (!messages?.length) return;
+    
+    // Clear any pending persist
+    clearTimeout(persistTimerRef.current);
+    
+    persistTimerRef.current = setTimeout(async () => {
+      try {
+        await AsyncStorage.setItem(storageKey, JSON.stringify(messages));
+        console.log(`[ReflectionChat] Persisted ${messages.length} messages`);
+      } catch (e) {
+        console.error('[ReflectionChat] Persist error:', e);
+      }
+    }, 150);
+    
+    return () => clearTimeout(persistTimerRef.current);
+  }, [messages, userId, storageKey]);
 
   // Auto-scroll when messages change
   useEffect(() => {
