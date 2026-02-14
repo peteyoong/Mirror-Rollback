@@ -236,6 +236,13 @@ export default function ReflectionChat() {
     };
     setMessages(prev => [...prev, userMessage]);
     setInputText(''); // Clear input immediately
+    
+    // Persist user message to store immediately
+    await addChatMessage(REFLECTION_THREAD_KEY, {
+      ...userMessage,
+      timestamp: userMessage.timestamp.toISOString(),
+    } as unknown as ChatMessage);
+    
     // Track user message count for micro-prompt logic
     userMessageCountRef.current += 1;
     setIsLoading(true);
