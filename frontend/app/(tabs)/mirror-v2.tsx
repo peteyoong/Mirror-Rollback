@@ -27,13 +27,6 @@ import { DEFAULT_THREAD_KEY } from '../../utils/chatThread';
 // Use the SAME thread key as reflection-chat for unified persistence
 const THREAD_KEY = DEFAULT_THREAD_KEY;
 
-// ============================================================================
-// globalThis guard survives Fast Refresh / HMR
-// ============================================================================
-const g: any = globalThis as any;
-g.__mirror_screen_guard ??= { effectRan: false, renderCount: 0 };
-const MIRROR_GUARD = g.__mirror_screen_guard;
-
 interface DailyKeystone {
   date: string;
   title: string;
@@ -46,9 +39,6 @@ interface DailyKeystone {
 }
 
 export default function MirrorV2Screen() {
-  MIRROR_GUARD.renderCount++;
-  console.log(`[MirrorV2] Render #${MIRROR_GUARD.renderCount}`);
-  
   const insets = useSafeAreaInsets();
   const router = useRouter();
   
@@ -64,20 +54,29 @@ export default function MirrorV2Screen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [chatPreview, setChatPreview] = useState<ChatMessage[]>([]);
   
-  // One-shot init guard - NEVER reset
-  const didInitRef = useRef(false);
+  // One-shot init guard for keystone only
+  const didInitKeystoneRef = useRef(false);
   
-  // LOOP-PROOF: Load data ONCE on mount
+  // LOOP-PROOF: Load keystone ONCE on mount
   useEffect(() => {
     if (!userId) return;
     if (!hasTriedRestore || isRestoring) return;
-    if (didInitRef.current) return;
-    didInitRef.current = true;
+    if (didInitKeystoneRef.current) return;
+    didInitKeystoneRef.current = true;
     
-    console.log('[MirrorV2] Initializing...');
+    console.log('[MirrorV2] Loading keystone...');
     loadKeystone();
-    loadChatPreview();
   }, [userId, hasTriedRestore, isRestoring]);
+  
+  // Reload chat preview on every focus (so it updates after sending messages in reflection-chat)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (userId) {
+        console.log('[MirrorV2] Focus - reloading chat preview');
+        loadChatPreview();
+      }
+    }, [userId])
+  );
   
   const loadKeystone = async () => {
     if (!userId) return;
