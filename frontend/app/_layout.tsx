@@ -41,6 +41,7 @@ export default function RootLayout() {
 
   // STATE 1: Still restoring session - show loading
   if (!hasTriedSessionRestore || isRestoringSession) {
+    console.log(`[RootLayout] Showing loading (hasTriedSessionRestore=${hasTriedSessionRestore}, isRestoringSession=${isRestoringSession})`);
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.textSecondary} />
@@ -50,7 +51,7 @@ export default function RootLayout() {
   }
 
   // STATE 2: No user - show simple login prompt (WelcomeGate removed for isolation)
-  if (!user) {
+  if (!userId) {
     console.log('[RootLayout] No user, showing minimal login prompt');
     return (
       <View style={styles.loadingContainer}>
@@ -60,8 +61,8 @@ export default function RootLayout() {
     );
   }
 
-  // STATE 3: User exists - show ONLY the Stack navigator (nothing else)
-  console.log('[RootLayout] User exists, showing minimal Stack');
+  // STATE 3: User exists - render app
+  console.log(`[RootLayout] User exists (id=${userId}), rendering Stack`);
   return (
     <Stack screenOptions={{
       headerShown: false,
