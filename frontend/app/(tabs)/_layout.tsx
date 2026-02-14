@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import { Spacing } from '../../constants/spacing';
 import SessionRestoreWrapper from '../../components/SessionRestoreWrapper';
 
 export default function TabLayout() {
@@ -8,15 +9,16 @@ export default function TabLayout() {
     <SessionRestoreWrapper>
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.text,
+        // Active tab uses subtle accent color (muted brass)
+        tabBarActiveTintColor: Colors.accent,
         tabBarInactiveTintColor: Colors.textTertiary,
         tabBarStyle: {
           backgroundColor: Colors.surface,
           borderTopColor: Colors.border,
           borderTopWidth: 1,
           height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          paddingBottom: Spacing.xs,
+          paddingTop: Spacing.xs,
         },
         headerStyle: {
           backgroundColor: Colors.background,
