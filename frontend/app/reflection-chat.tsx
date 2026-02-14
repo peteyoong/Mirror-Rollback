@@ -657,4 +657,57 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     textDecorationLine: 'underline',
   },
+  // Debug Panel styles
+  debugPanel: {
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#FF6B00',
+    maxHeight: 280,
+  },
+  debugHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#252525',
+  },
+  debugTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FF6B00',
+    letterSpacing: 1,
+  },
+  debugContent: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  debugRow: {
+    marginBottom: 8,
+  },
+  debugLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#888',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  debugValue: {
+    fontSize: 11,
+    color: '#00FF88',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  debugCode: {
+    fontSize: 10,
+    color: '#AADDFF',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    backgroundColor: '#0d0d0d',
+    padding: 6,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  debugError: {
+    color: '#FF4444',
+  },
 });
