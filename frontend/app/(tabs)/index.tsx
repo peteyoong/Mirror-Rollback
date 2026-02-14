@@ -486,14 +486,10 @@ const styles = StyleSheet.create({
     ...Typography.heroSerif,
     marginBottom: 20,
   },
-  // C. Subtext - Supportive (italic, softer)
+  // C. Subtext - Uses Typography.subtextItalic
   subtext: {
-    fontSize: 15,
-    lineHeight: 24,
-    color: Colors.textSecondary,
-    fontStyle: 'italic',
+    ...Typography.subtextItalic,
     marginBottom: 36,
-    opacity: 0.8,
   },
   // D. Divider - subtle
   divider: {
