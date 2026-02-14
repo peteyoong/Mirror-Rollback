@@ -98,21 +98,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    // Full width - no centering that causes overflow
     width: '100%',
-  },
-  keyboardView: {
-    flex: 1,
-    width: '100%',
-    // Remove maxWidth - handled dynamically in component
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24, // Reduced from 32 to prevent overflow
+    paddingHorizontal: 24,
     width: '100%',
-    // Remove maxWidth - handled dynamically in component
   },
   header: {
     marginBottom: 48,
@@ -136,16 +129,6 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 18,
     color: Colors.textSecondary,
-    marginBottom: 24,
-    fontWeight: '400',
-  },
-  permissionLines: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  permissionText: {
-    fontSize: 15,
-    color: Colors.textTertiary,
     fontWeight: '400',
   },
   buttonContainer: {
@@ -168,11 +151,6 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontWeight: '600',
   },
-  buttonSubtext: {
-    fontSize: 13,
-    color: Colors.textTertiary,
-    marginTop: 4,
-  },
   secondaryButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
@@ -192,9 +170,6 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     marginTop: 4,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
   textButton: {
     paddingVertical: 12,
     alignItems: 'center',
@@ -203,11 +178,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textTertiary,
     fontWeight: '400',
-  },
-  exitPermission: {
-    fontSize: 13,
-    color: Colors.textTertiary,
-    opacity: 0.7,
   },
   footer: {
     paddingBottom: 32,
@@ -218,48 +188,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textTertiary,
     opacity: 0.5,
-    textAlign: 'center',
-  },
-  // Login form styles
-  loginContainer: {
-    width: '100%',
-    maxWidth: 320,
-    alignItems: 'center',
-  },
-  loginTitle: {
-    fontSize: 22,
-    fontWeight: '500',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  loginSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 20,
-  },
-  input: {
-    width: '100%',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: Colors.text,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: 16,
-  },
-  errorContainer: {
-    width: '100%',
-    backgroundColor: Colors.error + '20',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 14,
-    color: Colors.error,
     textAlign: 'center',
   },
 });
