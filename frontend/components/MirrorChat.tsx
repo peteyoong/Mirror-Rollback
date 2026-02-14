@@ -319,10 +319,10 @@ export default function MirrorChat({
       }
     }
     
-    if (keystoneContext && sessionId && !isLoadingSession && !hasTriggeredKeystone) {
+    if (keystoneContext && sessionId && !isLoadingSession && !hasTriggeredKeystone && hasHydratedMessages) {
       triggerKeystoneContinuation();
     }
-  }, [keystoneContext, sessionId, isLoadingSession, hasTriggeredKeystone, userId]);
+  }, [keystoneContext, sessionId, isLoadingSession, hasTriggeredKeystone, userId, hasHydratedMessages, THREAD_KEY]);
 
   const toggleMemoryExpanded = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -340,14 +340,17 @@ export default function MirrorChat({
   const handleSend = async () => {
     if (!inputText.trim() || isLoading || !sessionId) return;
 
-    const userMessage: Message = {
+    const messageContent = inputText.trim();
+    
+    // Optimistic UI: Add user message immediately via store
+    const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: inputText.trim(),
-      timestamp: new Date(),
+      content: messageContent,
+      timestamp: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    await addChatMessage(THREAD_KEY, userMessage);
     setInputText('');
     setIsLoading(true);
     Keyboard.dismiss();
@@ -355,21 +358,21 @@ export default function MirrorChat({
     try {
       const response = await api.post('/mirror/chat', {
         user_id: userId,
-        message: userMessage.content,
+        message: messageContent,
         lens: lens,
         session_id: sessionId,
         include_journal: true,
         include_history: true,
       });
 
-      const assistantMessage: Message = {
+      const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
         content: response.data.response,
-        timestamp: new Date(response.data.timestamp),
+        timestamp: response.data.timestamp || new Date().toISOString(),
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      await addChatMessage(THREAD_KEY, assistantMessage);
       setSessionId(response.data.session_id);
       
       // Store memory update if present
@@ -383,15 +386,17 @@ export default function MirrorChat({
       } else if (!lens && !response.data.thread) {
         setThreadState(null);
       }
+      
+      console.log(`[MirrorChat] Message sent successfully, total messages: ${messages.length + 2}`);
     } catch (error: any) {
       console.error('Mirror chat error:', error);
-      const errorMessage: Message = {
+      const errorMessage: ChatMessage = {
         id: `error-${Date.now()}`,
         role: 'assistant',
         content: "I'm having trouble connecting right now. Please try again in a moment.",
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      await addChatMessage(THREAD_KEY, errorMessage);
     } finally {
       setIsLoading(false);
     }
