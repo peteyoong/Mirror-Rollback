@@ -318,12 +318,12 @@ export const useAppStore = create<AppState>((set, get) => ({
         
         if (currentJson !== loadedJson) {
           console.log(`[ChatStore] Messages changed, updating state for ${key}`);
-          set(state => ({
+          debugSet(set, (state: any) => ({
             chatMessages: {
               ...state.chatMessages,
               [key]: loadedMessages,
             },
-          }));
+          }), 'loadChatMessages');
         } else {
           console.log(`[ChatStore] Messages unchanged, skipping set() for ${key}`);
         }
@@ -347,7 +347,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const newChatMessages = { ...chatMessages };
     delete newChatMessages[key];
     
-    set({ chatMessages: newChatMessages });
+    debugSet(set, { chatMessages: newChatMessages }, 'clearChatMessages');
     
     const storageKey = getChatStorageKey(user.id, threadKey);
     await storage.removeItem(storageKey);
