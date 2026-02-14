@@ -280,8 +280,6 @@ const styles = StyleSheet.create({
     maxWidth: 300,
     gap: 16,
     marginBottom: 32,
-    // Ensure buttons are above any decorative layers
-    zIndex: 10,
   },
   primaryButton: {
     backgroundColor: Colors.surface,
@@ -352,28 +350,6 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     opacity: 0.5,
     textAlign: 'center',
-  },
-  // DEBUG: TAPPED overlay
-  tappedOverlay: {
-    position: 'absolute',
-    top: 100,
-    left: 20,
-    right: 20,
-    backgroundColor: '#00FF00',
-    padding: 20,
-    borderRadius: 12,
-    zIndex: 9999,
-    alignItems: 'center',
-  },
-  tappedText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  tappedSubtext: {
-    fontSize: 14,
-    color: '#333',
-    marginTop: 4,
   },
   // Login form styles
   loginContainer: {
