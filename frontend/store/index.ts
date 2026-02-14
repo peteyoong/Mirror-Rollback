@@ -5,16 +5,11 @@ import { getChart, getUser } from '../services/api';
 import { getStableUserId, assertUserIdStable, maskUserId } from '../utils/stableUserId';
 
 // ============================================================================
-// LOOP-PROOF GUARDS (Module-level - prevents re-execution)
+// LOOP-PROOF GUARDS (globalThis survives Fast Refresh / HMR)
 // ============================================================================
-let didRestoreSession = false;  // Ensures restoreSession runs only ONCE per app lifecycle
-let isRestoringSession = false;  // Prevents concurrent restore calls
-
-// ============================================================================
-// DEBUG COUNTERS (Temporary - verify one-shot behavior)
-// ============================================================================
-let RESTORE_CALL_COUNT = 0;
-let RESTORE_SET_COUNT = 0;
+const g: any = globalThis as any;
+g.__mirror_restore_guard ??= { did: false, inFlight: false, call: 0, set: 0, last: "" };
+const RESTORE_GUARD = g.__mirror_restore_guard;
 
 // Storage key for session persistence (legacy - now using MIRROR_USER_ID via stableUserId)
 const SESSION_USER_ID_KEY = 'mirror_last_user_id';
