@@ -213,7 +213,7 @@ export default function ReflectionChat() {
       // Update debug state with response
       setDebugState(prev => ({
         ...prev,
-        lastResponseStatus: response.status,
+        lastHttpStatus: response.status,
         lastResponseText: responseText,
       }));
       
