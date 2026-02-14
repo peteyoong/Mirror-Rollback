@@ -2,46 +2,70 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
-// Resolve API base URL with proper fallback chain for Expo
-const getApiBaseUrl = (): string => {
-  // For web, check if we're running locally (localhost/127.0.0.1)
+// ============================================
+// CANONICAL API BASE URL RESOLUTION
+// ============================================
+// Priority order:
+// 1. EXPO_PUBLIC_API_BASE_URL (must be absolute, includes /api)
+// 2. Web: window.location.origin + "/api"  
+// 3. Fail loudly in DEBUG mode
+
+export const getApiBaseUrl = (): string => {
+  // Priority 1: Explicit EXPO_PUBLIC_API_BASE_URL (absolute, includes /api)
+  const explicitApiUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
+  if (explicitApiUrl && typeof explicitApiUrl === 'string' && explicitApiUrl.length > 0) {
+    console.log('[API] Using EXPO_PUBLIC_API_BASE_URL:', explicitApiUrl);
+    return explicitApiUrl;
+  }
+  
+  // Priority 2: Web - derive from window.location.origin
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    const hostname = window.location?.hostname || '';
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      // Local development - use the backend directly on port 8001
-      return 'http://localhost:8001';
+    const origin = window.location?.origin;
+    if (origin && origin !== 'null') {
+      const derived = `${origin}/api`;
+      console.log('[API] Derived from window.location.origin:', derived);
+      return derived;
     }
-    // Deployed web - use the same origin (ingress handles routing)
-    return '';
   }
   
-  // For native (iOS/Android), try environment variables
-  const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-  if (envUrl && typeof envUrl === 'string' && envUrl.length > 0) {
-    return envUrl;
+  // Priority 3: Native - use EXPO_PUBLIC_BACKEND_URL
+  const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
+  if (backendUrl && typeof backendUrl === 'string' && backendUrl.length > 0) {
+    const withApi = `${backendUrl}/api`;
+    console.log('[API] Using EXPO_PUBLIC_BACKEND_URL + /api:', withApi);
+    return withApi;
   }
   
-  // Try expo-constants extra config (for native builds)
-  const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
+  // Try expo-constants extra config
+  const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_BASE_URL;
   if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
+    console.log('[API] Using Constants extra:', extraUrl);
     return extraUrl;
   }
   
-  // Fallback for native development
-  return 'http://localhost:8001';
+  // Local development fallback
+  if (__DEV__) {
+    console.log('[API] Falling back to localhost:8001/api');
+    return 'http://localhost:8001/api';
+  }
+  
+  // FAIL LOUDLY - this should not happen in production
+  console.error('[API] ❌ API BASE URL MISSING - Cannot resolve API endpoint!');
+  return 'ERROR_API_BASE_URL_MISSING';
 };
 
-const API_BASE_URL = getApiBaseUrl();
+// Resolved once at module load
+export const API_BASE_URL = getApiBaseUrl();
 
-// Debug log for troubleshooting (only in dev)
-if (__DEV__) {
-  console.log('[API] Base URL resolved to:', API_BASE_URL || '(relative - web)');
-  console.log('[API] Platform:', Platform.OS);
-}
+// Debug log for troubleshooting
+console.log('[API] ==============================');
+console.log('[API] Resolved API_BASE_URL:', API_BASE_URL);
+console.log('[API] Platform:', Platform.OS);
+console.log('[API] ==============================');
 
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
-  timeout: 120000, // Increased timeout (2 min) to handle slow LLM responses and prevent mid-assessment timeouts
+  baseURL: API_BASE_URL,
+  timeout: 120000, // 2 min for slow LLM responses
   headers: {
     'Content-Type': 'application/json',
   },
