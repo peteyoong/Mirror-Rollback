@@ -220,6 +220,13 @@ export default function ReflectionChat() {
         lastResponseText: responseText,
       }));
       
+      // Also update global debug info for DebugOverlay
+      updateDebugInfo({
+        lastHttpStatus: response.status,
+        lastResponseText: responseText.slice(0, 600),
+        lastError: '',
+      });
+      
       console.log('[ReflectionChat] Status:', response.status);
       console.log('[ReflectionChat] Response text:', responseText);
       
