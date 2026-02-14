@@ -803,7 +803,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.border,
-    backgroundColor: '#FFFBF0',
+    backgroundColor: Colors.surfaceLight,
     borderRadius: 8,
     padding: 12,
     marginHorizontal: -4,
@@ -811,7 +811,7 @@ const styles = StyleSheet.create({
   debugPanelTitle: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#8B6914',
+    color: Colors.textSecondary,
     letterSpacing: 0.5,
     marginBottom: 8,
   },
