@@ -129,12 +129,12 @@ export default function MirrorScreen() {
     // Navigate to reflection chat with context state
     const navParams = new URLSearchParams();
     if (focusState.context) {
-      params.set('context', focusState.context);
+      navParams.set('context', focusState.context);
     }
     if (focusState.isDismissed) {
-      params.set('dismissed', 'true');
+      navParams.set('dismissed', 'true');
     }
-    router.push(`/reflection-chat?${params.toString()}`);
+    router.push(`/reflection-chat?${navParams.toString()}`);
   }, [router, focusState.context, focusState.isDismissed]);
 
   // Handler to continue with Mirror chat
