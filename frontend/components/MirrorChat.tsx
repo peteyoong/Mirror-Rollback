@@ -337,8 +337,27 @@ export default function MirrorChat({
   };
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-    const isUser = item.role === 'user';
+    // Use shared role normalizer - unknown roles default to 'assistant'
+    const rawRole = String(item?.role ?? '').toLowerCase();
+    const role = rawRole.includes('user') ? 'user' 
+      : rawRole.includes('system') ? 'system' 
+      : 'assistant'; // default
+    
+    const isUser = role === 'user';
     const isFirstMessage = index === 0;
+    
+    // Get styles based on normalized role
+    const getBubbleStyle = () => {
+      if (role === 'user') return styles.userBubble;
+      if (role === 'system') return styles.systemBubble;
+      return styles.assistantBubble;
+    };
+    
+    const getTextStyle = () => {
+      if (role === 'user') return styles.userText;
+      if (role === 'system') return styles.systemText;
+      return styles.assistantText;
+    };
     
     return (
       <View style={[
@@ -346,14 +365,8 @@ export default function MirrorChat({
         isUser ? styles.userWrapper : styles.assistantWrapper,
         isFirstMessage && styles.firstMessage,
       ]}>
-        <View style={[
-          styles.messageBubble,
-          isUser ? styles.userBubble : styles.assistantBubble
-        ]}>
-          <Text style={[
-            styles.messageText,
-            isUser ? styles.userText : styles.assistantText
-          ]}>
+        <View style={[styles.messageBubble, getBubbleStyle()]}>
+          <Text style={[styles.messageText, getTextStyle()]}>
             {item.content}
           </Text>
         </View>
