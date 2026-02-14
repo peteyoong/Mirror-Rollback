@@ -322,7 +322,7 @@ export default function MirrorScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* A. Section Label */}
-        <Text style={styles.sectionLabel}>THE MIRROR</Text>
+        <SectionLabel marginBottom={28}>THE MIRROR</SectionLabel>
         
         {/* Loading State */}
         {isLoading && (
@@ -346,10 +346,10 @@ export default function MirrorScreen() {
             {/* D. Divider - Subtle */}
             <View style={styles.divider} />
 
-            {/* E. TODAY Section */}
+            {/* E. TODAY Section with conditional intelligence */}
             <View style={styles.todaySection}>
-              <Text style={styles.todayLabel}>TODAY</Text>
-              <Text style={styles.intelligenceSignal}>Based on recent reflections</Text>
+              <SectionLabel marginBottom={4}>TODAY</SectionLabel>
+              <Text style={styles.intelligenceSignal}>{intelligenceText}</Text>
             </View>
             
             {/* Today's Focus Card - Embedded feel */}
@@ -360,7 +360,7 @@ export default function MirrorScreen() {
 
             {/* F. Reflect Prompt */}
             <View style={styles.reflectSection}>
-              <Text style={styles.reflectLabel}>REFLECT</Text>
+              <SectionLabel marginBottom={14}>REFLECT</SectionLabel>
               <Text style={styles.reflectQuestion}>
                 {keystone.reflect_question}
               </Text>
