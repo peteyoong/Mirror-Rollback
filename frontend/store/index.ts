@@ -572,10 +572,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       const storedUserId = await storage.getItem(SESSION_USER_ID_KEY);
       if (!storedUserId && !storedUser) {
         console.log('[SessionRestore] ✓ No stored user data - new user flow');
-        RESTORE_SET_COUNT++;
-        console.log(`[SessionRestore] SET #${RESTORE_SET_COUNT} (new-user)`);
+        RESTORE_GUARD.set++;
+        RESTORE_GUARD.last = "new-user";
+        console.log(`[SessionRestore] SET #${RESTORE_GUARD.set} (new-user)`);
         set({ isRestoringSession: false, hasTriedSessionRestore: true });
-        isRestoringSession = false;
+        RESTORE_GUARD.inFlight = false;
+        console.log(`[SessionRestore] ✓ FINAL: call=${RESTORE_GUARD.call}, set=${RESTORE_GUARD.set}, last=${RESTORE_GUARD.last}`);
         return false;
       }
       
