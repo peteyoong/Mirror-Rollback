@@ -72,16 +72,27 @@ const getLocalDateString = (): string => {
   return `${year}-${month}-${day}`;
 };
 
-// ===== ISOLATION FLAG: Set to true to render minimal UI and isolate crash =====
-const MINIMAL_MIRROR_RENDER = true;
+// ===== ISOLATION TEST: Incrementally enable pieces =====
+// Phase 1: Just store hooks (no effects) - if crashes, loop is in store subscription
+// Phase 2: Add useState hooks
+// Phase 3: Add useEffect hooks one by one
+const ISOLATION_PHASE = 1;  // Change to 2, 3, etc. to test more
 
 export default function MirrorScreen() {
-  // ===== ISOLATION TEST: Return minimal UI to check if crash is in this component =====
-  if (MINIMAL_MIRROR_RENDER) {
+  // ===== PHASE 1: Just store hooks =====
+  if (ISOLATION_PHASE === 1) {
+    // Test: Just reading from store - no effects
+    const user = useAppStore(s => s.user);
+    const hasTriedSessionRestore = useAppStore(s => s.hasTriedSessionRestore);
+    const isRestoringSession = useAppStore(s => s.isRestoringSession);
+    
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1a1a2e' }}>
-        <Text style={{ color: 'white', fontSize: 18 }}>Mirror tab minimal render</Text>
-        <Text style={{ color: '#888', fontSize: 12, marginTop: 10 }}>No hooks, no store calls</Text>
+        <Text style={{ color: 'white', fontSize: 18 }}>Mirror tab - Phase 1</Text>
+        <Text style={{ color: '#888', fontSize: 12, marginTop: 10 }}>Store hooks only (no effects)</Text>
+        <Text style={{ color: '#666', fontSize: 10, marginTop: 5 }}>
+          user: {user?.name || 'null'} | restore: {String(hasTriedSessionRestore)} | restoring: {String(isRestoringSession)}
+        </Text>
       </View>
     );
   }
