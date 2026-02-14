@@ -16,14 +16,16 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
 import { loadMessages, ChatMessage } from '../../utils/chatPersistence';
+import { DEFAULT_THREAD_KEY } from '../../utils/chatThread';
 
-const THREAD_KEY = 'mirror:home';
+// Use the SAME thread key as reflection-chat for unified persistence
+const THREAD_KEY = DEFAULT_THREAD_KEY;
 
 // ============================================================================
 // globalThis guard survives Fast Refresh / HMR
