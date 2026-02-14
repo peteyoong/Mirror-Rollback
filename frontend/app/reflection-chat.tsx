@@ -177,8 +177,7 @@ export default function ReflectionChat() {
   // Handle dismissing micro-reflection prompt
   const handleDismissMicroPrompt = () => {
     setMicroPromptDismissed(true);
-    // Remove the micro-prompt from messages
-    setMessages(prev => prev.filter(m => m.role !== 'micro-prompt'));
+    // Micro-prompts are session-only and handled in rendering logic
   };
 
   // Helper to append a system message (visible in chat) - persist to store
