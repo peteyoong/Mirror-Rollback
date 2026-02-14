@@ -130,7 +130,6 @@ export default function WelcomeGate() {
                   isLoading && styles.buttonDisabled,
                   pressed && styles.buttonPressed,
                 ]}
-                onPressIn={() => console.log('[WELCOME] Sign In pressIn')}
                 onPress={handleLogin}
                 disabled={isLoading}
               >
@@ -146,7 +145,6 @@ export default function WelcomeGate() {
                   styles.textButton,
                   pressed && styles.buttonPressed,
                 ]}
-                onPressIn={() => console.log('[WELCOME] Back pressIn')}
                 onPress={handleBack}
                 disabled={isLoading}
               >
