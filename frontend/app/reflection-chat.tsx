@@ -597,9 +597,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    paddingBottom: Platform.OS === 'web' ? 80 : 12, // Extra padding for web banner
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     gap: 12,
+    backgroundColor: Colors.background, // Ensure solid background
   },
   input: {
     flex: 1,
