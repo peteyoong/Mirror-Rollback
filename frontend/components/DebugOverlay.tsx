@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
 import { API_BASE_URL, API_URL_MISSING, joinUrl } from '../services/api';
+import { useAppStore } from '../store';
 
 /**
- * BUILD TAG: 2026-02-14-connectivity-probe
+ * BUILD TAG: 2026-02-14-send-debug-v2
  * 
- * DebugOverlay - Connectivity + Touch Probe (dev only)
+ * DebugOverlay - Full debug visibility for chat debugging
  * 
- * CRITICAL: All wrappers use pointerEvents="none" to NEVER intercept touches
- * 
- * Shows:
- * - API_BASE_URL (resolved)
- * - reflectionChatUrl (final)
- * - lastHttpStatus / lastResponseText / lastError
- * - pingStatus (ok/fail)
- * - touchProbeCount (proves no overlay is blocking)
+ * Shows (BIG + OBVIOUS):
+ * - BUILD_ID
+ * - userId (from store)
+ * - sendPressCount (proves button fires)
+ * - lastSendAt
+ * - lastBailReason
+ * - lastFetchUrl
+ * - lastHttpStatus
+ * - lastError
  */
+
+// BUILD ID - change this to verify you're on the right build
+const BUILD_ID = 'v2-send-debug-2026-02-14';
 
 // Toggle this to enable/disable the debug overlay globally
 const DEBUG_OVERLAY_ENABLED = true;
@@ -27,6 +32,11 @@ export interface DebugInfo {
   lastError: string;
   pingStatus: 'pending' | 'ok' | 'fail';
   pingError: string;
+  // NEW: Send button debug fields
+  sendPressCount: number;
+  lastSendAt: string;
+  lastBailReason: string;
+  lastFetchUrl: string;
 }
 
 // Global debug state - can be updated from other components
@@ -36,6 +46,11 @@ let globalDebugInfo: DebugInfo = {
   lastError: '',
   pingStatus: 'pending',
   pingError: '',
+  // NEW fields
+  sendPressCount: 0,
+  lastSendAt: '',
+  lastBailReason: '',
+  lastFetchUrl: '',
 };
 
 let debugListeners: ((info: DebugInfo) => void)[] = [];
@@ -43,6 +58,16 @@ let debugListeners: ((info: DebugInfo) => void)[] = [];
 export function updateDebugInfo(partial: Partial<DebugInfo>) {
   globalDebugInfo = { ...globalDebugInfo, ...partial };
   debugListeners.forEach(fn => fn(globalDebugInfo));
+}
+
+export function incrementSendPressCount() {
+  globalDebugInfo = { 
+    ...globalDebugInfo, 
+    sendPressCount: globalDebugInfo.sendPressCount + 1,
+    lastSendAt: new Date().toISOString(),
+  };
+  debugListeners.forEach(fn => fn(globalDebugInfo));
+  console.log('[DebugOverlay] sendPressCount:', globalDebugInfo.sendPressCount);
 }
 
 export function getDebugInfo(): DebugInfo {
