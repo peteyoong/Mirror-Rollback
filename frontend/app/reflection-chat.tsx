@@ -660,6 +660,23 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     textDecorationLine: 'underline',
   },
+  // Error Banner styles
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#330000',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FF4444',
+    gap: 8,
+  },
+  errorBannerText: {
+    color: '#FF4444',
+    fontSize: 13,
+    fontWeight: '600',
+    flex: 1,
+  },
   // Debug Panel styles
   debugPanel: {
     backgroundColor: '#1a1a1a',
