@@ -206,6 +206,15 @@ async def debug_cors(request: Request):
         }
     )
 
+
+@app.get("/api/debug/ping")
+async def debug_ping():
+    """
+    Simple ping endpoint to verify backend connectivity.
+    Used by frontend DebugOverlay to confirm API is reachable.
+    """
+    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
+
 # Note: Static file serving will be added at the END of the file, AFTER the api_router is included
 # This ensures API routes take precedence over the catch-all static file handler
 
