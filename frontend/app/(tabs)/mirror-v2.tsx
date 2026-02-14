@@ -147,15 +147,14 @@ export default function MirrorV2Screen() {
   };
   
   const loadChatPreview = async () => {
-    if (!userId) return;
-    const messages = await loadMessages(userId, THREAD_KEY);
-    setChatPreview(messages.slice(-3));
+    // Use the safe version instead
+    await loadChatPreviewSafe();
   };
   
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await loadKeystone();
-    await loadChatPreview();
+    await loadChatPreviewSafe(); // Use safe version
     setIsRefreshing(false);
   };
   
