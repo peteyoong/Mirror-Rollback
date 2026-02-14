@@ -244,6 +244,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  screenBanner: {
+    backgroundColor: '#cc6600',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+  },
+  screenName: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  screenSubtext: {
+    color: '#fff',
+    fontSize: 10,
+    textAlign: 'center',
+    opacity: 0.8,
+  },
   centered: {
     flex: 1,
     justifyContent: 'center',
@@ -258,12 +275,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.cardBorder,
+    borderBottomColor: Colors.border,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: Colors.text,
   },
   headerSubtitle: {
     fontSize: 14,
