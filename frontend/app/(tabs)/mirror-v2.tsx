@@ -21,8 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
-import { loadMessages, ChatMessage } from '../../utils/chatPersistence';
-import { DEFAULT_THREAD_KEY } from '../../utils/chatThread';
+import { loadMessages, ChatMessage, DEFAULT_THREAD_KEY } from '../../utils/chatPersistence';
 
 // Use the SAME thread key as reflection-chat for unified persistence
 const THREAD_KEY = DEFAULT_THREAD_KEY;
