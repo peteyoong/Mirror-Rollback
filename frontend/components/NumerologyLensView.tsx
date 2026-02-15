@@ -558,7 +558,7 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
     try {
       // Build URLs with backend base URL
       const unlockUrl = API_BASE_URL 
-        ? `${API_BASE_URL}/api/numerology/unlock-name/${userId}`
+        ? `${API_BASE_URL}/numerology/unlock-name/${userId}`
         : `/api/numerology/unlock-name/${userId}`;
       const profileUrl = API_BASE_URL 
         ? `${API_BASE_URL}/profile/${userId}`
