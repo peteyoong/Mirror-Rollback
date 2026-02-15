@@ -90,6 +90,9 @@ interface AppState {
   hasCompletedOnboarding: boolean;
   journalEntries: JournalEntry[];
   
+  // Chat state (in-memory only, no persist)
+  chatMessages: Record<string, ChatMessage[]>;
+  
   // Session state
   isRestoringSession: boolean;
   hasTriedSessionRestore: boolean;
@@ -101,6 +104,12 @@ interface AppState {
   clearUser: () => void;
   setJournalEntries: (entries: JournalEntry[]) => void;
   addJournalEntry: (entry: JournalEntry) => void;
+  
+  // Chat actions (in-memory)
+  setChatMessages: (storageKey: string, messages: ChatMessage[]) => void;
+  addChatMessage: (storageKey: string, message: ChatMessage) => void;
+  clearChatMessages: (storageKey: string) => void;
+  loadChatMessages: (storageKey: string) => Promise<void>;
   
   // Session restore - NO-OP for isolation
   restoreSession: () => Promise<boolean>;
