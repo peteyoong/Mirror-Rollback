@@ -161,25 +161,14 @@ export default function MirrorChat({
     let alive = true;
     
     const hydrate = async () => {
-      console.log(`[MirrorChat] Hydration starting for userId=${userId}, threadKey=${threadKey}`);
-      if (!userId) {
-        console.log('[MirrorChat] Hydration skipped - no userId');
-        return;
-      }
+      if (!userId) return;
       
       try {
         const loaded = await loadMessages(userId, threadKey);
-        console.log(`[MirrorChat] loadMessages returned ${loaded.length} messages`);
         if (!alive) return;
         
-        // Only update state if messages are different
-        const cur = messagesRef.current;
-        const isDiff = loaded.length !== cur.length ||
-          (loaded.length > 0 && cur.length > 0 && loaded[loaded.length - 1]?.id !== cur[cur.length - 1]?.id);
-        
-        console.log(`[MirrorChat] Hydration: loaded=${loaded.length}, current=${cur.length}, isDiff=${isDiff}`);
-        
-        if (isDiff) {
+        // Only update state if we have messages to load
+        if (loaded.length > 0) {
           console.log(`[MirrorChat] Hydrating ${loaded.length} messages for ${threadKey}`);
           setMessages(loaded);
         }
