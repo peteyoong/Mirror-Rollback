@@ -155,6 +155,7 @@ export default function WelcomeGate() {
                   onChangeText={(text) => {
                     setEmail(text);
                     setError('');
+                    setIsRetryable(false);
                   }}
                   placeholder="your@email.com"
                   placeholderTextColor={Colors.textTertiary}
@@ -164,9 +165,25 @@ export default function WelcomeGate() {
                   editable={!isLoading}
                 />
                 
+                {/* Debug: Show API base URL */}
+                {isDebugMode && (
+                  <Text style={styles.apiDebugText}>
+                    API: {apiBaseUrl}
+                  </Text>
+                )}
+                
                 {error ? (
                   <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>{error}</Text>
+                    {isRetryable && (
+                      <Pressable 
+                        style={styles.retryButton}
+                        onPress={handleLogin}
+                        disabled={isLoading}
+                      >
+                        <Text style={styles.retryButtonText}>Try again</Text>
+                      </Pressable>
+                    )}
                   </View>
                 ) : null}
                 
