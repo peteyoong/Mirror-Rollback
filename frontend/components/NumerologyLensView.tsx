@@ -903,6 +903,16 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
                   {activeTab === 'today' ? 'REFLECT' : activeTab === 'deep_dive' ? 'MIRROR MOMENT' : 'REFLECT'}
                 </Text>
                 <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
+                <TouchableOpacity
+                  style={styles.journalCTA}
+                  onPress={() => {
+                    const prefill = buildJournalPrefill(data.mirror_prompt, LENS_CONTINUATIONS.numerology);
+                    goToJournalWithPrefill(router, prefill, 'numerology');
+                  }}
+                >
+                  <Ionicons name="create-outline" size={16} color={Colors.accent} />
+                  <Text style={styles.journalCTAText}>Write in Journal</Text>
+                </TouchableOpacity>
               </View>
             )}
 
