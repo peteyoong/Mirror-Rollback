@@ -157,25 +157,6 @@ export default function MirrorChat({
   const [threadState, setThreadState] = useState<ThreadState | null>(null);
   const [showThreadModal, setShowThreadModal] = useState(false);
   
-  // ===== DEBUG STATE for send instrumentation =====
-  const [sendPressCount, setSendPressCount] = useState(0);
-  const [lastSendAt, setLastSendAt] = useState<string>('');
-  const [lastBailReason, setLastBailReason] = useState<string>('');
-  const [lastFetchUrl, setLastFetchUrl] = useState<string>('');
-  const [lastHttpStatus, setLastHttpStatus] = useState<string>('');
-  const [lastError, setLastError] = useState<string>('');
-  
-  // ===== DEBUG STATE for focus instrumentation =====
-  const [focusCount, setFocusCount] = useState(0);
-  const [blurCount, setBlurCount] = useState(0);
-  const [lastFocusAt, setLastFocusAt] = useState<string>('');
-  const [lastBlurAt, setLastBlurAt] = useState<string>('');
-  const [lastTouchAt, setLastTouchAt] = useState<string>('');
-  
-  // Get debug flag from URL params
-  const searchParams = useLocalSearchParams<{ debug?: string }>();
-  const isDebugMode = searchParams.debug === '1';
-  
   const flatListRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
   const insets = useSafeAreaInsets();
