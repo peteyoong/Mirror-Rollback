@@ -363,43 +363,10 @@ export default function MirrorChat({
     setShowEvidence(!showEvidence);
   };
 
-  // ===== BULLETPROOF SEND HANDLER =====
-  const handleSendPress = () => {
-    // Always increment press count and timestamp
-    setSendPressCount(prev => prev + 1);
-    setLastSendAt(new Date().toISOString());
-    console.log(`[MirrorChat] SEND PRESS #${sendPressCount + 1} at ${new Date().toISOString()}`);
-    
-    // Call the actual send logic
-    handleSend();
-  };
-
+  // ===== SEND HANDLER =====
   const handleSend = async () => {
-    // Clear previous debug state
-    setLastBailReason('');
-    setLastFetchUrl('');
-    setLastHttpStatus('');
-    setLastError('');
-    
-    // Bail checks with reason tracking
-    if (!userId) {
-      setLastBailReason('no_userId');
-      console.log('[MirrorChat] BAIL: no_userId');
-      return;
-    }
-    if (!inputText.trim()) {
-      setLastBailReason('empty_input');
-      console.log('[MirrorChat] BAIL: empty_input');
-      return;
-    }
-    if (isLoading) {
-      setLastBailReason('already_sending');
-      console.log('[MirrorChat] BAIL: already_sending');
-      return;
-    }
-    if (!sessionId) {
-      setLastBailReason('no_sessionId');
-      console.log('[MirrorChat] BAIL: no_sessionId');
+    // Bail checks
+    if (!userId || !inputText.trim() || isLoading || !sessionId) {
       return;
     }
 
@@ -424,11 +391,6 @@ export default function MirrorChat({
     setIsLoading(true);
     Keyboard.dismiss();
 
-    // Build the fetch URL - use api client's base
-    const fetchUrl = '/mirror/chat';
-    setLastFetchUrl(fetchUrl);
-    console.log(`[MirrorChat] Calling API: ${fetchUrl}`);
-
     // AbortController for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
@@ -436,7 +398,7 @@ export default function MirrorChat({
     }, 15000); // 15 second timeout
 
     try {
-      const response = await api.post(fetchUrl, {
+      const response = await api.post('/mirror/chat', {
         user_id: userId,
         message: messageContent,
         lens: lens,
@@ -448,10 +410,6 @@ export default function MirrorChat({
       });
 
       clearTimeout(timeoutId);
-      
-      // Capture HTTP status
-      setLastHttpStatus('200');
-      console.log('[MirrorChat] API response OK');
 
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
@@ -480,31 +438,9 @@ export default function MirrorChat({
       } else if (!lens && !response.data.thread) {
         setThreadState(null);
       }
-      
-      console.log(`[MirrorChat] Message sent successfully, total messages: ${displayMessages.length + 2}`);
     } catch (error: any) {
       clearTimeout(timeoutId);
-      
-      // Capture error details
-      if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
-        setLastError('timeout_15s');
-        console.error('[MirrorChat] Request timeout');
-      } else if (error.response) {
-        // HTTP error response
-        setLastHttpStatus(String(error.response.status));
-        const errorText = typeof error.response.data === 'string' 
-          ? error.response.data.substring(0, 300)
-          : JSON.stringify(error.response.data).substring(0, 300);
-        setLastError(`HTTP ${error.response.status}: ${errorText}`);
-        console.error(`[MirrorChat] HTTP Error ${error.response.status}:`, errorText);
-      } else if (error.request) {
-        // Network error
-        setLastError('network_error');
-        console.error('[MirrorChat] Network error:', error.message);
-      } else {
-        setLastError(error.message?.substring(0, 300) || 'unknown_error');
-        console.error('[MirrorChat] Unknown error:', error);
-      }
+      console.error('[MirrorChat] Send error:', error.message);
       
       // Add error message to chat
       const errorMessage: ChatMessage = {
@@ -522,7 +458,6 @@ export default function MirrorChat({
     } finally {
       // ALWAYS reset loading state
       setIsLoading(false);
-      console.log('[MirrorChat] isLoading reset to false');
     }
   };
 
