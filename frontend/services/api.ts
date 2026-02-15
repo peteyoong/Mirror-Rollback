@@ -1,108 +1,34 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 // ============================================
-// CANONICAL API BASE URL RESOLUTION - SAFE FALLBACKS
+// SINGLE DETERMINISTIC BACKEND URL
+// NO localhost, NO ngrok, NO window.location, NO fallbacks
 // ============================================
-// API base URL must be absolute (http:// or https://)
-// UI renders regardless of API availability
-// Only network actions are disabled when API missing
+const PRODUCTION_API_BASE = 'https://pulsifi.stage-preview.emergentagent.com/api';
 
 // Track if URL is missing for UI display (non-blocking)
 export let API_URL_MISSING = false;
 export let API_URL_ERROR_MESSAGE = '';
 
-const validateAbsoluteUrl = (url: string): boolean => {
-  return url.startsWith('http://') || url.startsWith('https://');
-};
-
-// Helper to detect Emergent preview hosts (which don't have /api routes)
-const isEmergentPreviewHost = (url: string): boolean => {
-  return url.includes('preview.emergentagent.com') || url.includes('emergent.host');
-};
-
-// Safely derive API URL with multiple fallbacks
+/**
+ * Get the API base URL.
+ * Uses env var if set, otherwise uses the hardcoded production URL.
+ */
 export const getApiBaseUrl = (): string => {
-  // Check for web environment
-  const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
-  const origin = isWeb ? window.location?.origin : '';
-  
-  // Detect if we're in an Emergent preview (frontend-only host)
-  const isEmergentPreview = origin && isEmergentPreviewHost(origin);
-  
-  // Priority 1: EXPO_PUBLIC_BACKEND_URL (explicit backend URL - preferred for Emergent previews)
-  const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-  if (backendUrl && typeof backendUrl === 'string' && backendUrl.trim().length > 0) {
-    const trimmed = backendUrl.trim().replace(/\/+$/, ''); // Remove trailing slashes
-    if (validateAbsoluteUrl(trimmed) && !trimmed.includes('loca.lt')) {
-      const derived = `${trimmed}/api`;
-      console.log('[API] ✅ Using EXPO_PUBLIC_BACKEND_URL:', derived);
-      if (__DEV__) {
-        console.log('[API] 🔍 DEBUG: origin=' + origin + ', isEmergentPreview=' + isEmergentPreview);
-      }
-      API_URL_MISSING = false;
-      return derived;
-    }
-  }
-  
-  // Priority 2: Explicit EXPO_PUBLIC_API_BASE_URL (skip localtunnel URLs)
-  const explicitApiUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
-  if (explicitApiUrl && typeof explicitApiUrl === 'string' && explicitApiUrl.trim().length > 0) {
-    const trimmed = explicitApiUrl.trim();
-    // Skip localtunnel URLs - prefer origin
-    if (validateAbsoluteUrl(trimmed) && !trimmed.includes('loca.lt')) {
-      console.log('[API] ✅ Using EXPO_PUBLIC_API_BASE_URL:', trimmed);
-      API_URL_MISSING = false;
-      return trimmed.replace(/\/+$/, ''); // Remove trailing slashes
-    }
-  }
-  
-  // Priority 3 (WEB ONLY): Use window.location.origin ONLY if NOT an Emergent preview
-  if (isWeb && origin && origin !== 'null' && validateAbsoluteUrl(origin) && !isEmergentPreview) {
-    const derived = `${origin}/api`;
-    console.log('[API] ✅ Using window.location.origin (non-preview):', derived);
+  // Check for explicit env var override
+  const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
+    const trimmed = envUrl.trim().replace(/\/+$/, '');
+    console.log('[API] ✅ Using EXPO_PUBLIC_API_BASE_URL:', trimmed);
     API_URL_MISSING = false;
-    return derived;
+    return trimmed;
   }
   
-  // Priority 4: expo-constants extra config
-  const extraApiUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_BASE_URL;
-  if (extraApiUrl && typeof extraApiUrl === 'string' && extraApiUrl.trim().length > 0) {
-    const trimmed = extraApiUrl.trim();
-    if (validateAbsoluteUrl(trimmed)) {
-      console.log('[API] ✅ Using Constants extra API URL:', trimmed);
-      API_URL_MISSING = false;
-      return trimmed.replace(/\/+$/, '');
-    }
-  }
-  
-  const extraBackendUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
-  if (extraBackendUrl && typeof extraBackendUrl === 'string' && extraBackendUrl.trim().length > 0) {
-    const trimmed = extraBackendUrl.trim().replace(/\/+$/, '');
-    if (validateAbsoluteUrl(trimmed)) {
-      const derived = `${trimmed}/api`;
-      console.log('[API] ✅ Derived from Constants extra BACKEND_URL:', derived);
-      API_URL_MISSING = false;
-      return derived;
-    }
-  }
-  
-  // Priority 5: Development localhost fallback
-  if (__DEV__) {
-    const localhost = 'http://localhost:8001/api';
-    console.log('[API] ⚠️ DEV MODE: Using localhost fallback:', localhost);
-    API_URL_MISSING = false;
-    return localhost;
-  }
-  
-  // ⚠️ No valid URL found - mark as missing but don't crash
-  API_URL_MISSING = true;
-  API_URL_ERROR_MESSAGE = 'No API URL configured - some features will be disabled';
-  console.warn('[API] ⚠️ API URL not configured - UI will render, API calls disabled');
-  
-  // Return a placeholder that will fail gracefully
-  return 'https://api-not-configured.invalid/api';
+  // Use hardcoded production URL
+  console.log('[API] ✅ Using hardcoded production:', PRODUCTION_API_BASE);
+  API_URL_MISSING = false;
+  return PRODUCTION_API_BASE;
 };
 
 // ============================================
@@ -110,13 +36,10 @@ export const getApiBaseUrl = (): string => {
 // ============================================
 /**
  * Safely join a base URL with a path
- * - Ensures base has no trailing slash
- * - Ensures path has leading slash
- * - Result: `${base}${path}`
  */
 export function joinUrl(base: string, path: string): string {
-  const cleanBase = base.replace(/\/+$/, ''); // Remove trailing slashes
-  const cleanPath = path.startsWith('/') ? path : `/${path}`; // Ensure leading slash
+  const cleanBase = base.replace(/\/+$/, '');
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
   return `${cleanBase}${cleanPath}`;
 }
 
