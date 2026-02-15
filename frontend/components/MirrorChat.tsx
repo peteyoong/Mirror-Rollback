@@ -1178,13 +1178,16 @@ export default function MirrorChat({
             multiline
             maxLength={2000}
             editable={!isLoading}
-            returnKeyType="send"
-            blurOnSubmit={false}
+            returnKeyType="done"
+            blurOnSubmit={true}
             showSoftInputOnFocus={true}
             autoCorrect={false}
+            inputAccessoryViewID={Platform.OS === 'ios' ? INPUT_ACCESSORY_VIEW_ID : undefined}
             onSubmitEditing={() => {
               if (canSend) {
                 handleSend();
+              } else {
+                Keyboard.dismiss();
               }
             }}
           />
@@ -1201,6 +1204,20 @@ export default function MirrorChat({
           </Pressable>
         </Pressable>
       </View>
+      
+      {/* iOS Input Accessory View with "Done" button */}
+      {Platform.OS === 'ios' && (
+        <InputAccessoryView nativeID={INPUT_ACCESSORY_VIEW_ID}>
+          <View style={styles.inputAccessoryBar}>
+            <TouchableOpacity
+              style={styles.doneButton}
+              onPress={() => Keyboard.dismiss()}
+            >
+              <Text style={styles.doneButtonText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </InputAccessoryView>
+      )}
     </KeyboardAvoidingView>
   );
 }
