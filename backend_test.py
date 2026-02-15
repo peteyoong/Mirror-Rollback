@@ -75,35 +75,122 @@ class MirrorChatTester:
         except Exception as e:
             return 0, {"error": str(e)}
     
-    async def test_mirror_chat_endpoint_availability(self):
-        """Test 0: Basic endpoint availability"""
-        test_name = "Mirror Chat Endpoint Availability"
+    async def test_login_endpoint(self):
+        """Test 1: Login endpoint to get valid user ID"""
+        test_name = "Login Endpoint"
         
-        # Simple test message
-        payload = {
-            "user_id": TEST_USER_ID,
-            "message": "Hello",
-            "session_id": "test_basic"
-        }
+        payload = {"email": TEST_EMAIL}
         
-        status, response = await self.make_request("POST", "/mirror/chat", payload)
+        status, response = await self.make_request("POST", "/users/login", payload)
         
-        if status == 200 and "response" in response:
+        if status == 200 and response.get("success") and response.get("user"):
+            user_id = response["user"]["id"]
+            global TEST_USER_ID
+            TEST_USER_ID = user_id
             self.log_result(
                 test_name,
                 "PASS",
-                f"✅ Mirror Chat endpoint accessible and responding",
-                {"status": status, "has_response": "response" in response}
+                f"✅ Login successful. Got user_id: {user_id}",
+                {"user_id": user_id, "email": TEST_EMAIL}
             )
-            return True
+            return user_id
         else:
             self.log_result(
                 test_name,
                 "FAIL",
-                f"❌ Mirror Chat endpoint not working. Status: {status}",
+                f"❌ Login failed. Status: {status}",
                 response
             )
+            return None
+    
+    async def test_mirror_chat_valid_user(self, user_id):
+        """Test 2: Mirror chat endpoint with valid user"""
+        test_name = "Mirror Chat - Valid User"
+        
+        payload = {
+            "user_id": user_id,
+            "message": "Hello, this is a test message",
+            "session_id": "test-session-123"
+        }
+        
+        status, response = await self.make_request("POST", "/mirror/chat", payload)
+        
+        if status != 200:
+            self.log_result(test_name, "FAIL", f"❌ HTTP {status} - Expected 200", response)
             return False
+        
+        # Check for response field
+        if "response" not in response:
+            self.log_result(test_name, "FAIL", "❌ Missing 'response' field", response)
+            return False
+        
+        # Check that response is not HTML
+        response_text = response["response"]
+        if "<html>" in response_text.lower() or "<!doctype" in response_text.lower():
+            self.log_result(test_name, "FAIL", "❌ Response contains HTML", {"response_preview": response_text[:200]})
+            return False
+        
+        # Check that response is JSON (we already parsed it successfully)
+        self.log_result(
+            test_name,
+            "PASS",
+            f"✅ Mirror chat working. Response length: {len(response_text)} chars",
+            {
+                "status_code": status,
+                "has_response_field": True,
+                "is_json": True,
+                "is_not_html": True,
+                "response_preview": response_text[:100] + "..." if len(response_text) > 100 else response_text
+            }
+        )
+        return True
+    
+    async def test_mirror_chat_invalid_user(self):
+        """Test 3: Mirror chat endpoint with invalid user ID"""
+        test_name = "Mirror Chat - Invalid User"
+        
+        payload = {
+            "user_id": "invalid-user-id-12345",
+            "message": "Hello, this is a test message",
+            "session_id": "test-session-456"
+        }
+        
+        status, response = await self.make_request("POST", "/mirror/chat", payload)
+        
+        # Should return an error status (not 200)
+        if status == 200:
+            self.log_result(test_name, "FAIL", "❌ Expected error status, got 200", response)
+            return False
+        
+        # Check that error response is JSON, not HTML
+        if isinstance(response, dict):
+            # Successfully parsed as JSON
+            response_str = json.dumps(response)
+            if "<html>" in response_str.lower() or "<!doctype" in response_str.lower():
+                self.log_result(test_name, "FAIL", "❌ Error response contains HTML", response)
+                return False
+            else:
+                self.log_result(
+                    test_name,
+                    "PASS",
+                    f"✅ Proper error handling. Status: {status}, JSON error response",
+                    {"status_code": status, "error_response": response}
+                )
+                return True
+        else:
+            # Check if it's HTML error
+            response_text = str(response.get("text", ""))
+            if "<html>" in response_text.lower() or "<!doctype" in response_text.lower():
+                self.log_result(test_name, "FAIL", "❌ Error response is HTML", {"response_preview": response_text[:200]})
+                return False
+            else:
+                self.log_result(
+                    test_name,
+                    "PASS",
+                    f"✅ Proper error handling. Status: {status}, Non-HTML error",
+                    {"status_code": status}
+                )
+                return True
     
     async def test_human_design_lens_context(self):
         """Test 1: Human Design Chat Context - Should know incarnation cross data"""
