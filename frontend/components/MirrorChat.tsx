@@ -111,9 +111,6 @@ function formatState(state: string): string {
   return labels[state] || state;
 }
 
-// ===== ISOLATION FLAG: Set to true to disable chat persistence and stop crash =====
-const DISABLE_CHAT_PERSISTENCE = true;  // TEMPORARY: Toggle to isolate loop source
-
 // Stable empty array to avoid new reference on each render
 const EMPTY_MESSAGES: Message[] = [];
 
@@ -126,23 +123,18 @@ export default function MirrorChat({
   onClose,
   keystoneContext = null,
 }: MirrorChatProps) {
-  // ===== PERSISTENCE: Use Zustand store as single source of truth =====
-  // Thread key for this chat context - stable primitive
-  const threadKey = lens ? `mirror:${lens}` : 'mirror:home';
-  const storageKey = userId ? `${userId}:${threadKey}` : null;
+  // Thread key for this chat context
+  // Use DEFAULT_THREAD_KEY for main Mirror chat, lens-specific for lens chats
+  const threadKey = lens ? `mirror:${lens}` : DEFAULT_THREAD_KEY;
   
-  // Get messages from store - use stable selector with null-safety and stable empty ref
-  const storeMessages = useAppStore(s => {
-    if (!storageKey) return EMPTY_MESSAGES;
-    const msgs = s.chatMessages?.[storageKey];
-    return msgs && msgs.length > 0 ? msgs : EMPTY_MESSAGES;
-  });
-  const loadChatMessages = useAppStore(s => s.loadChatMessages);
-  const addChatMessage = useAppStore(s => s.addChatMessage);
+  // Local state for messages - persisted via chatPersistence helpers
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const messagesRef = useRef<ChatMessage[]>([]);
   
-  // ===== ISOLATION: Use local state if persistence disabled =====
-  const [localMessages, setLocalMessages] = useState<Message[]>([]);
-  const messages = DISABLE_CHAT_PERSISTENCE ? localMessages : storeMessages;
+  // Keep ref in sync with state for comparison in hydration
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
   
   // Local UI state only (not persisted)
   const [inputText, setInputText] = useState('');
@@ -162,10 +154,42 @@ export default function MirrorChat({
   const inputRef = useRef<TextInput>(null);
   const insets = useSafeAreaInsets();
   
-  // ===== IDEMPOTENT HYDRATION REF - NEVER RESET =====
-  const didInitRef = useRef(false);
+  // ===== HYDRATION: Load messages on mount and when userId changes =====
+  const hydratedRef = useRef(false);
+  
+  useEffect(() => {
+    let alive = true;
+    
+    const hydrate = async () => {
+      if (!userId) return;
+      
+      try {
+        const loaded = await loadMessages(userId, threadKey);
+        if (!alive) return;
+        
+        // Only update state if messages are different
+        const cur = messagesRef.current;
+        const isDiff = loaded.length !== cur.length ||
+          (loaded.length > 0 && cur.length > 0 && loaded[loaded.length - 1]?.id !== cur[cur.length - 1]?.id);
+        
+        if (isDiff || !hydratedRef.current) {
+          console.log(`[MirrorChat] Hydrating ${loaded.length} messages for ${threadKey}`);
+          setMessages(loaded);
+          hydratedRef.current = true;
+        }
+      } catch (e) {
+        console.error('[MirrorChat] Hydration error:', e);
+      }
+    };
+    
+    hydrate();
+    
+    return () => {
+      alive = false;
+    };
+  }, [userId, threadKey]);
 
-  // Convert store messages to Message format with Date objects
+  // Convert messages to display format with Date objects
   const displayMessages: Message[] = messages.map((m: any) => ({
     ...m,
     timestamp: typeof m.timestamp === 'string' ? new Date(m.timestamp) : m.timestamp,
