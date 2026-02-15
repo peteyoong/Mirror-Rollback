@@ -161,16 +161,23 @@ export default function MirrorChat({
     let alive = true;
     
     const hydrate = async () => {
-      if (!userId) return;
+      console.log(`[MirrorChat] Hydration starting for userId=${userId}, threadKey=${threadKey}`);
+      if (!userId) {
+        console.log('[MirrorChat] Hydration skipped - no userId');
+        return;
+      }
       
       try {
         const loaded = await loadMessages(userId, threadKey);
+        console.log(`[MirrorChat] loadMessages returned ${loaded.length} messages`);
         if (!alive) return;
         
         // Only update state if messages are different
         const cur = messagesRef.current;
         const isDiff = loaded.length !== cur.length ||
           (loaded.length > 0 && cur.length > 0 && loaded[loaded.length - 1]?.id !== cur[cur.length - 1]?.id);
+        
+        console.log(`[MirrorChat] Hydration: loaded=${loaded.length}, current=${cur.length}, isDiff=${isDiff}`);
         
         if (isDiff) {
           console.log(`[MirrorChat] Hydrating ${loaded.length} messages for ${threadKey}`);
@@ -180,7 +187,7 @@ export default function MirrorChat({
         setIsHydrated(true);
       } catch (e) {
         console.error('[MirrorChat] Hydration error:', e);
-        setIsHydrated(true); // Mark as hydrated even on error so intro can be shown
+        setIsHydrated(true);
       }
     };
     
