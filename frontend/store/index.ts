@@ -15,6 +15,7 @@ import { Platform } from 'react-native';
 let __SET_COUNT = 0;
 let __SET_KILL_SWITCH = false;
 let __SET_START_TIME = Date.now();
+let __LAST_ACTION = '';
 
 const safeSet = (
   set: (partial: any) => void,
@@ -22,15 +23,19 @@ const safeSet = (
   partial: any
 ) => {
   __SET_COUNT++;
+  __LAST_ACTION = actionName;
   const elapsed = Date.now() - __SET_START_TIME;
   
   console.log(`[ZUSTAND set] #${__SET_COUNT} ${actionName} (${elapsed}ms)`);
   
-  // Kill switch: if >50 sets in <2 seconds, stop
-  if (__SET_COUNT > 50 && elapsed < 2000) {
+  // Kill switch: if >30 sets within 1000ms, we have a loop
+  if (__SET_COUNT > 30 && elapsed < 1000) {
     if (!__SET_KILL_SWITCH) {
-      console.error(`[ZUSTAND] LOOP DETECTED! ${__SET_COUNT} sets in ${elapsed}ms. KILL SWITCH ON.`);
+      const errorMsg = `[ZUSTAND] LOOP DETECTED! ${__SET_COUNT} sets in ${elapsed}ms. Last action: ${actionName}`;
+      console.error(errorMsg);
       __SET_KILL_SWITCH = true;
+      // Throw to break the loop and show in console
+      throw new Error(errorMsg);
     }
     return; // Don't execute the set
   }
@@ -42,7 +47,7 @@ const safeSet = (
 if (typeof window !== 'undefined') {
   setInterval(() => {
     if (__SET_COUNT > 0) {
-      console.log(`[ZUSTAND] Resetting counter. Last period: ${__SET_COUNT} sets`);
+      console.log(`[ZUSTAND] Resetting counter. Last period: ${__SET_COUNT} sets. Last action: ${__LAST_ACTION}`);
     }
     __SET_COUNT = 0;
     __SET_START_TIME = Date.now();
