@@ -155,7 +155,7 @@ export default function MirrorChat({
   const insets = useSafeAreaInsets();
   
   // ===== HYDRATION: Load messages on mount and when userId changes =====
-  const hydratedRef = useRef(false);
+  const [isHydrated, setIsHydrated] = useState(false);
   
   useEffect(() => {
     let alive = true;
@@ -172,13 +172,15 @@ export default function MirrorChat({
         const isDiff = loaded.length !== cur.length ||
           (loaded.length > 0 && cur.length > 0 && loaded[loaded.length - 1]?.id !== cur[cur.length - 1]?.id);
         
-        if (isDiff || !hydratedRef.current) {
+        if (isDiff) {
           console.log(`[MirrorChat] Hydrating ${loaded.length} messages for ${threadKey}`);
           setMessages(loaded);
-          hydratedRef.current = true;
         }
+        
+        setIsHydrated(true);
       } catch (e) {
         console.error('[MirrorChat] Hydration error:', e);
+        setIsHydrated(true); // Mark as hydrated even on error so intro can be shown
       }
     };
     
@@ -197,10 +199,10 @@ export default function MirrorChat({
 
   // ===== INTRO MESSAGE: Seed if no messages loaded =====
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !isHydrated) return;
     
     // Only seed intro if we've hydrated and have no messages
-    if (hydratedRef.current && messages.length === 0) {
+    if (messages.length === 0) {
       const greeting = lens
         ? `I'm here to explore your ${lens === 'human_design' ? 'Human Design' : lens.charAt(0).toUpperCase() + lens.slice(1)} chart with you. What would you like to understand?`
         : "I'm here as a companion for self-understanding. Share what's on your mind, and I'll reflect what I notice.";
@@ -216,7 +218,7 @@ export default function MirrorChat({
       saveMessages(userId, threadKey, [introMessage]);
       console.log(`[MirrorChat] Seeded intro message for ${threadKey}`);
     }
-  }, [userId, threadKey, messages.length]);
+  }, [userId, threadKey, isHydrated, messages.length]);
 
   // Load or create persistent session ID
   useEffect(() => {
