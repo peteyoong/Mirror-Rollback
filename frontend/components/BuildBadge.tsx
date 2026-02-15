@@ -2,12 +2,8 @@
  * Build Badge Component
  * =====================
  * 
- * Displays BUILD_ID in a small corner badge for deploy verification.
- * ALWAYS visible (subtle) to confirm which bundle is running.
- * 
- * Shows expanded info when:
- * - URL has ?debug=1, OR
- * - EXPO_PUBLIC_DEBUG_MIRROR=true
+ * Displays BUILD_ID as a small watermark for deploy verification.
+ * ALWAYS visible to confirm which bundle is running.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -41,19 +37,21 @@ export function BuildBadge() {
     }
   }, []);
 
-  // ALWAYS show build badge - just more subtle when not in debug mode
+  // ALWAYS show build badge as watermark
   return (
     <TouchableOpacity 
       style={[
         styles.badge, 
         isDebugMode ? styles.badgeDebug : styles.badgeSubtle,
-        { pointerEvents: 'auto' }
       ]}
       onPress={() => setExpanded(!expanded)}
       activeOpacity={0.8}
     >
       <Text style={[styles.badgeText, !isDebugMode && styles.badgeTextSubtle]}>
-        {expanded ? `${BUILD_VERSION}\n${BUILD_ID}` : `BUILD: ${BUILD_ID.slice(0, 16)}`}
+        {expanded 
+          ? `${BUILD_VERSION}\n${BUILD_ID}` 
+          : `BUILD ${BUILD_ID}`
+        }
       </Text>
     </TouchableOpacity>
   );
@@ -64,24 +62,26 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 70, // Above tab bar
     right: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 3,
     zIndex: 9999,
   },
   badgeDebug: {
-    backgroundColor: 'rgba(0, 255, 0, 0.9)',
+    backgroundColor: 'rgba(0, 255, 0, 0.95)',
   },
   badgeSubtle: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   badgeText: {
-    fontSize: 9,
+    fontSize: 8,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    fontWeight: '500',
+    fontWeight: '600',
+    color: '#000',
   },
   badgeTextSubtle: {
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 7,
   },
 });
 
