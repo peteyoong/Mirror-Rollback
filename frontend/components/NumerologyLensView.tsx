@@ -210,7 +210,7 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
   const hydrateProfile = useCallback(async () => {
     setProfileLoading(true);
     try {
-      const profileUrl = API_BASE_URL `${API_BASE_URL}/profile/${userId}`
+      const profileUrl = `${API_BASE_URL}/profile/${userId}`
         : `/api/profile/${userId}`;
       
       if (isDebugEnabled()) {
@@ -556,9 +556,9 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
 
     try {
       // Build URLs with backend base URL
-      const unlockUrl = API_BASE_URL `${API_BASE_URL}/numerology/unlock-name/${userId}`
+      const unlockUrl = `${API_BASE_URL}/numerology/unlock-name/${userId}`
         : `/api/numerology/unlock-name/${userId}`;
-      const profileUrl = API_BASE_URL `${API_BASE_URL}/profile/${userId}`
+      const profileUrl = `${API_BASE_URL}/profile/${userId}`
         : `/api/profile/${userId}`;
       
       if (isDebugEnabled()) {
