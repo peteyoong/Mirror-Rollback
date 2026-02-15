@@ -1,9 +1,12 @@
 /**
- * Mirror V2 - CRASH-PROOF Implementation
+ * Mirror V2 - BINARY SEARCH ISOLATION VERSION
  * 
- * NO useFocusEffect - uses navigation.addListener instead
- * Kill-switch prevents crash loops
- * DEBUG mode gated by ?debug=1
+ * Safe mode and feature flags for crash isolation
+ * ?safe=1 → minimal static screen only
+ * ?m1=1 → Today's Mirror content
+ * ?m2=1 → Chat preview (no load)
+ * ?m3=1 → Chat persistence/loadMessages
+ * ?m4=1 → Focus refresh
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -16,6 +19,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Platform,
+  Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -26,10 +30,22 @@ import { useAppStore } from '../../store';
 import api from '../../services/api';
 import { loadMessages, ChatMessage, DEFAULT_THREAD_KEY } from '../../utils/chatPersistence';
 
-// Debug mode - only logs when ?debug=1 is in URL
-const DEBUG = Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.search?.includes('debug=1');
+// Feature flags from URL
+const getFlags = () => {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') {
+    return { SAFE: false, M1: true, M2: true, M3: true, M4: true, DEBUG: false };
+  }
+  const search = window.location?.search || '';
+  return {
+    SAFE: search.includes('safe=1'),
+    M1: search.includes('m1=1'),
+    M2: search.includes('m2=1'),
+    M3: search.includes('m3=1'),
+    M4: search.includes('m4=1'),
+    DEBUG: search.includes('debug=1'),
+  };
+};
 
-// Use the SAME thread key as reflection-chat for unified persistence
 const THREAD_KEY = DEFAULT_THREAD_KEY;
 
 interface DailyKeystone {
@@ -44,13 +60,66 @@ interface DailyKeystone {
 }
 
 export default function MirrorV2Screen() {
-  if (DEBUG) console.log("[MirrorV2] render", Date.now());
+  const flags = getFlags();
+  
+  if (flags.DEBUG) console.log("[MirrorV2] render, flags:", flags);
   
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  
+  // =========================================================================
+  // SAFE MODE: Render ONLY minimal static screen - NO store, NO loads
+  // =========================================================================
+  if (flags.SAFE) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.safeHeader}>
+          <Text style={styles.safeTitle}>Mirror (Safe Mode)</Text>
+          <Text style={styles.safeSubtitle}>No store calls, no loads, no effects</Text>
+        </View>
+        <View style={styles.safeCentered}>
+          <Text style={styles.safeText}>If you see this, Mirror tab can mount without crash.</Text>
+          <Text style={styles.safeText}>The loop is in a feature, not the tab itself.</Text>
+          
+          <View style={styles.flagButtons}>
+            <Text style={styles.flagTitle}>Test features one by one:</Text>
+            <Pressable style={styles.flagButton} onPress={() => {
+              if (typeof window !== 'undefined') window.location.search = '?m1=1';
+            }}>
+              <Text style={styles.flagButtonText}>?m1=1 - Today's Mirror API</Text>
+            </Pressable>
+            <Pressable style={styles.flagButton} onPress={() => {
+              if (typeof window !== 'undefined') window.location.search = '?m2=1';
+            }}>
+              <Text style={styles.flagButtonText}>?m2=1 - Chat Preview UI</Text>
+            </Pressable>
+            <Pressable style={styles.flagButton} onPress={() => {
+              if (typeof window !== 'undefined') window.location.search = '?m3=1';
+            }}>
+              <Text style={styles.flagButtonText}>?m3=1 - Chat Load/Persist</Text>
+            </Pressable>
+            <Pressable style={styles.flagButton} onPress={() => {
+              if (typeof window !== 'undefined') window.location.search = '?m4=1';
+            }}>
+              <Text style={styles.flagButtonText}>?m4=1 - Focus Refresh</Text>
+            </Pressable>
+            <Pressable style={[styles.flagButton, { backgroundColor: '#cc0000' }]} onPress={() => {
+              if (typeof window !== 'undefined') window.location.search = '';
+            }}>
+              <Text style={styles.flagButtonText}>Exit Safe Mode (full app)</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    );
+  }
+  
+  // =========================================================================
+  // NORMAL MODE with feature flags
+  // =========================================================================
   const navigation = useNavigation();
   
-  // ONLY pull stable primitives from store
+  // Store selectors - ONLY stable primitives
   const userId = useAppStore(s => s.user?.id);
   const userName = useAppStore(s => s.user?.name);
   const hasTriedRestore = useAppStore(s => s.hasTriedSessionRestore);
@@ -62,7 +131,7 @@ export default function MirrorV2Screen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [chatPreview, setChatPreview] = useState<ChatMessage[]>([]);
   
-  // CRITICAL REFS for crash prevention
+  // Refs for crash prevention
   const chatPreviewRef = useRef<ChatMessage[]>([]);
   const isMountedRef = useRef(true);
   const inFlightRef = useRef(false);
@@ -70,99 +139,75 @@ export default function MirrorV2Screen() {
   const lastFocusRefreshRef = useRef(0);
   const didInitRef = useRef(false);
   
-  // Track mounted state
   useEffect(() => {
     isMountedRef.current = true;
     return () => { isMountedRef.current = false; };
   }, []);
   
-  // Keep chatPreviewRef in sync (no setState here)
   useEffect(() => {
     chatPreviewRef.current = chatPreview;
   }, [chatPreview]);
   
-  // CRASH-PROOF refresh function with kill-switch
+  // M3: Chat refresh function (only if flag enabled)
   const refreshPreview = useCallback(async (reason: string) => {
-    if (DEBUG) console.log("[MirrorV2] refreshPreview called:", reason, Date.now());
+    if (!flags.M3) return; // Feature disabled
+    if (flags.DEBUG) console.log("[MirrorV2] refreshPreview:", reason);
     
-    // Kill-switch: if we've had errors, stop trying
-    if (killSwitchRef.current) {
-      if (DEBUG) console.log("[MirrorV2] kill-switch active, skipping");
-      return;
-    }
+    if (killSwitchRef.current) return;
+    if (!userId) return;
     
-    // No user = nothing to refresh
-    if (!userId) {
-      if (DEBUG) console.log("[MirrorV2] no userId, skipping");
-      return;
-    }
-    
-    // Debounce: prevent rapid calls
     const now = Date.now();
-    if (now - lastFocusRefreshRef.current < 500) {
-      if (DEBUG) console.log("[MirrorV2] debounce, skipping");
-      return;
-    }
-    
-    // Prevent concurrent calls
-    if (inFlightRef.current) {
-      if (DEBUG) console.log("[MirrorV2] in-flight, skipping");
-      return;
-    }
+    if (now - lastFocusRefreshRef.current < 500) return;
+    if (inFlightRef.current) return;
     
     inFlightRef.current = true;
     lastFocusRefreshRef.current = now;
     
     try {
-      if (DEBUG) console.log("[MirrorV2] load start", Date.now());
       const loaded = await loadMessages(userId, THREAD_KEY);
-      if (DEBUG) console.log("[MirrorV2] load end", Date.now(), "count:", loaded.length);
       
-      // Compare without causing rerenders
       const current = chatPreviewRef.current;
       const different = 
         loaded.length !== current.length ||
         (loaded.at(-1)?.id ?? "") !== (current.at(-1)?.id ?? "");
       
       if (different && isMountedRef.current) {
-        if (DEBUG) console.log("[MirrorV2] messages different, updating state");
         chatPreviewRef.current = loaded;
         setChatPreview(loaded);
-      } else {
-        if (DEBUG) console.log("[MirrorV2] messages same or unmounted, skipping setState");
       }
     } catch (e) {
-      // Kill-switch ON to prevent crash loops
       killSwitchRef.current = true;
-      console.error("[MirrorV2] preview refresh failed -> killSwitch ON", e);
+      console.error("[MirrorV2] refresh failed -> killSwitch ON", e);
     } finally {
       inFlightRef.current = false;
     }
-  }, [userId]); // ONLY depend on userId
+  }, [userId, flags.M3, flags.DEBUG]);
   
-  // NAVIGATION FOCUS LISTENER - does NOT recreate on every render
+  // M4: Focus listener (only if flag enabled)
   useEffect(() => {
+    if (!flags.M4) return; // Feature disabled
     if (!navigation) return;
     
     const unsubscribe = navigation.addListener('focus', () => {
-      if (DEBUG) console.log("[MirrorV2] focus event", Date.now());
+      if (flags.DEBUG) console.log("[MirrorV2] focus event");
       void refreshPreview("focus");
     });
     
     return unsubscribe;
-  }, [navigation, refreshPreview]); // refreshPreview is stable due to useCallback
+  }, [navigation, refreshPreview, flags.M4, flags.DEBUG]);
   
-  // ONE-TIME initial load
+  // Initial load
   useEffect(() => {
     if (!userId) return;
     if (!hasTriedRestore || isRestoring) return;
     if (didInitRef.current) return;
     didInitRef.current = true;
     
-    if (DEBUG) console.log("[MirrorV2] initial mount load");
-    loadKeystone();
-    void refreshPreview("mount");
-  }, [userId, hasTriedRestore, isRestoring, refreshPreview]);
+    if (flags.DEBUG) console.log("[MirrorV2] initial load");
+    
+    if (flags.M1) loadKeystone();
+    if (flags.M3) void refreshPreview("mount");
+  }, [userId, hasTriedRestore, isRestoring, flags.M1, flags.M3, refreshPreview, flags.DEBUG]);
   
   const loadKeystone = async () => {
     if (!userId) return;
@@ -180,10 +225,9 @@ export default function MirrorV2Screen() {
       setKeystone({
         date: new Date().toISOString().split('T')[0],
         title: "A Quiet Arrival",
-        keystone: "Something in you brought you here today. That's worth noticing.",
+        keystone: "Something in you brought you here today.",
         reflect_question: "What feels most present right now?",
-        micro_affirmation: "You don't have to have it figured out to be here.",
-        source_signals: { used: ["fallback"], tone: "grounding" },
+        micro_affirmation: "You don't have to have it figured out.",
         daily_seed: "fallback",
         is_first_visit: false,
       });
@@ -194,8 +238,8 @@ export default function MirrorV2Screen() {
   
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await loadKeystone();
-    await refreshPreview("pull-to-refresh");
+    if (flags.M1) await loadKeystone();
+    if (flags.M3) await refreshPreview("pull-to-refresh");
     setIsRefreshing(false);
   };
   
@@ -215,12 +259,11 @@ export default function MirrorV2Screen() {
     );
   }
   
-  // Not logged in
   if (!userId) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.centered}>
-          <Text style={styles.loadingText}>Please log in to continue</Text>
+          <Text style={styles.loadingText}>Please log in</Text>
         </View>
       </View>
     );
@@ -228,6 +271,15 @@ export default function MirrorV2Screen() {
   
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* Debug banner */}
+      {flags.DEBUG && (
+        <View style={styles.debugBanner}>
+          <Text style={styles.debugText}>
+            M1={flags.M1?'ON':'off'} M2={flags.M2?'ON':'off'} M3={flags.M3?'ON':'off'} M4={flags.M4?'ON':'off'}
+          </Text>
+        </View>
+      )}
+      
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Mirror</Text>
@@ -245,68 +297,60 @@ export default function MirrorV2Screen() {
           />
         }
       >
-        {/* Daily Keystone */}
-        {isLoading ? (
-          <View style={styles.centered}>
-            <ActivityIndicator size="large" color={Colors.accent} />
-          </View>
-        ) : keystone ? (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{keystone.title}</Text>
-            <Text style={styles.cardKeystone}>{keystone.keystone}</Text>
-            <Text style={styles.cardQuestion}>{keystone.reflect_question}</Text>
-            <Text style={styles.cardAffirmation}>{keystone.micro_affirmation}</Text>
-          </View>
-        ) : null}
+        {/* M1: Today's Mirror content */}
+        {flags.M1 && (
+          isLoading ? (
+            <View style={styles.centered}>
+              <ActivityIndicator size="large" color={Colors.accent} />
+            </View>
+          ) : keystone ? (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>{keystone.title}</Text>
+              <Text style={styles.cardKeystone}>{keystone.keystone}</Text>
+              <Text style={styles.cardQuestion}>{keystone.reflect_question}</Text>
+              <Text style={styles.cardAffirmation}>{keystone.micro_affirmation}</Text>
+            </View>
+          ) : null
+        )}
         
-        {/* Chat Preview */}
-        <View style={styles.chatPreviewCard}>
-          <View style={styles.chatPreviewHeader}>
-            <Text style={styles.chatPreviewTitle}>Recent Reflections</Text>
-            <TouchableOpacity onPress={handleOpenChat}>
-              <Text style={styles.openChatLink}>Open Chat →</Text>
-            </TouchableOpacity>
-          </View>
-          
-          {chatPreview.length === 0 ? (
-            <Text style={styles.noChatText}>No conversations yet. Start reflecting!</Text>
-          ) : (
-            chatPreview.slice(-3).map((msg) => (
-              <View
-                key={msg.id}
-                style={[
-                  styles.chatBubble,
-                  msg.role === 'user' ? styles.userBubble : styles.assistantBubble,
-                ]}
-              >
-                <Text
+        {/* M2: Chat Preview UI */}
+        {flags.M2 && (
+          <View style={styles.chatPreviewCard}>
+            <View style={styles.chatPreviewHeader}>
+              <Text style={styles.chatPreviewTitle}>Recent Reflections</Text>
+              <TouchableOpacity onPress={handleOpenChat}>
+                <Text style={styles.openChatLink}>Open Chat →</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {chatPreview.length === 0 ? (
+              <Text style={styles.noChatText}>No conversations yet.</Text>
+            ) : (
+              chatPreview.slice(-3).map((msg) => (
+                <View
+                  key={msg.id}
                   style={[
-                    styles.chatText,
-                    msg.role === 'user' ? styles.userText : styles.assistantText,
+                    styles.chatBubble,
+                    msg.role === 'user' ? styles.userBubble : styles.assistantBubble,
                   ]}
-                  numberOfLines={2}
                 >
-                  {msg.content}
-                </Text>
-              </View>
-            ))
-          )}
-          
-          <TouchableOpacity style={styles.openChatButton} onPress={handleOpenChat}>
-            <Ionicons name="chatbubble-outline" size={20} color={Colors.surface} />
-            <Text style={styles.openChatButtonText}>Continue Reflecting</Text>
-          </TouchableOpacity>
-        </View>
-        
-        {/* Welcome message for new users */}
-        {!chatPreview.length && (
-          <View style={[styles.card, styles.welcomeCard]}>
-            <Text style={styles.welcomeText}>
-              {userName ? `Welcome, ${userName}` : 'Welcome'}
-            </Text>
-            <Text style={styles.welcomeSubtext}>
-              This is your space to reflect, notice, and explore.
-            </Text>
+                  <Text
+                    style={[
+                      styles.chatText,
+                      msg.role === 'user' ? styles.userText : styles.assistantText,
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {msg.content}
+                  </Text>
+                </View>
+              ))
+            )}
+            
+            <TouchableOpacity style={styles.openChatButton} onPress={handleOpenChat}>
+              <Ionicons name="chatbubble-outline" size={20} color={Colors.surface} />
+              <Text style={styles.openChatButtonText}>Continue Reflecting</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -319,6 +363,67 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  // Safe mode styles
+  safeHeader: {
+    padding: 20,
+    backgroundColor: '#006600',
+    alignItems: 'center',
+  },
+  safeTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  safeSubtitle: {
+    fontSize: 14,
+    color: '#cfc',
+    marginTop: 4,
+  },
+  safeCentered: {
+    flex: 1,
+    padding: 20,
+    alignItems: 'center',
+  },
+  safeText: {
+    fontSize: 16,
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  flagButtons: {
+    marginTop: 24,
+    gap: 12,
+    width: '100%',
+  },
+  flagTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  flagButton: {
+    backgroundColor: '#333',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  flagButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  // Debug banner
+  debugBanner: {
+    backgroundColor: '#333',
+    padding: 8,
+  },
+  debugText: {
+    color: '#0f0',
+    fontSize: 12,
+    textAlign: 'center',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  // Normal styles
   centered: {
     flex: 1,
     justifyContent: 'center',
@@ -450,20 +555,5 @@ const styles = StyleSheet.create({
     color: Colors.surface,
     fontSize: 15,
     fontWeight: '600',
-  },
-  welcomeCard: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  welcomeText: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  welcomeSubtext: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
   },
 });
