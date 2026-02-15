@@ -1980,6 +1980,30 @@ const styles = StyleSheet.create({
     color: '#00FF00',
     marginBottom: 1,
   },
+  
+  // ============================================
+  // LAYOUT VERSION BADGE (PART B - debug only)
+  // ============================================
+  layoutVersionBadge: {
+    backgroundColor: '#4ade80',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    alignSelf: 'flex-start',
+  },
+  layoutVersionText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#000',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  layoutVersionSubtext: {
+    fontSize: 10,
+    color: '#166534',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginTop: 2,
+  },
 
   // ============================================
   // DEBUG WING OVERRIDE PANEL STYLES
