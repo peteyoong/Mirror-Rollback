@@ -540,6 +540,16 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
               <View style={styles.mirrorPromptCard}>
                 <Text style={styles.mirrorPromptLabel}>EXPERIMENT</Text>
                 <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
+                <TouchableOpacity
+                  style={styles.journalCTA}
+                  onPress={() => {
+                    const prefill = buildJournalPrefill(data.mirror_prompt, LENS_CONTINUATIONS.human_design);
+                    goToJournalWithPrefill(router, prefill, 'human_design');
+                  }}
+                >
+                  <Ionicons name="create-outline" size={16} color={Colors.accent} />
+                  <Text style={styles.journalCTAText}>Write in Journal</Text>
+                </TouchableOpacity>
               </View>
             )}
 
