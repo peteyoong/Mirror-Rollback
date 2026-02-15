@@ -1635,6 +1635,27 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   
+  // iOS Input Accessory View
+  inputAccessoryBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  doneButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  doneButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.accent,
+  },
+  
   // Debug panel (only shown when ?debug=1)
   debugPanel: {
     backgroundColor: '#1a1a2e',
