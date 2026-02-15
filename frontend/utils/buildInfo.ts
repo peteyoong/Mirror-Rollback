@@ -7,6 +7,7 @@
  */
 
 import Constants from 'expo-constants';
+import { API_BASE_URL } from './apiBase';
 
 // ============================================
 // BUILD_ID: Set at export time
@@ -14,25 +15,12 @@ import Constants from 'expo-constants';
 // This timestamp is baked into the bundle at build time.
 // If you see an old BUILD_ID after deploy, the client is using a stale bundle.
 // UPDATE THIS ON EVERY DEPLOY!
-export const BUILD_ID = '2026-02-15T14:50:00Z';
-export const BUILD_VERSION = 'v24-unified-backend-url';
+export const BUILD_ID = '2026-02-15T15:10:00Z';
+export const BUILD_VERSION = 'v25-clean-unified-api';
 
 // Log BUILD_ID immediately when this module loads
 if (typeof console !== 'undefined') {
   console.log(`%c[BUILD] ${BUILD_VERSION} | ${BUILD_ID}`, 'background: #00ff00; color: black; font-weight: bold; padding: 4px 8px;');
-}
-
-// ============================================
-// API Base URL Resolution
-// ============================================
-export function getApiBaseUrl(): string {
-  // Priority: EXPO_PUBLIC_BACKEND_URL > Constants > fallback
-  const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-  const constantsUrl = Constants.expoConfig?.extra?.backendUrl;
-  
-  if (envUrl) return envUrl;
-  if (constantsUrl) return constantsUrl;
-  return 'http://localhost:8001';
 }
 
 // ============================================
@@ -64,8 +52,7 @@ export async function getBackendHealth(forceRefresh = false): Promise<BackendHea
   // Fetch fresh health data
   healthFetchPromise = (async () => {
     try {
-      const baseUrl = getApiBaseUrl();
-      const response = await fetch(`${baseUrl}/api/health`, {
+      const response = await fetch(`${API_BASE_URL}/api/health`, {
         method: 'GET',
         headers: { 'Accept': 'application/json' },
       });
@@ -119,7 +106,7 @@ export function getBuildDebugInfo(): BuildDebugInfo {
   return {
     build_id: BUILD_ID,
     build_version: BUILD_VERSION,
-    api_base_url: getApiBaseUrl(),
+    api_base_url: API_BASE_URL,
     platform: typeof window !== 'undefined' ? 'web' : 'native',
     expo_sdk: Constants.expoConfig?.sdkVersion || null,
     debug_mirror_env: process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true',
