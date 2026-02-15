@@ -1210,6 +1210,7 @@ export default function MirrorChat({
           <View style={styles.debugPanel}>
             <Text style={styles.debugTitle}>API Debug</Text>
             <Text style={styles.debugText}>
+              API_BASE: {debugInfo.apiBaseUrl || getApiBaseUrl()}{'\n'}
               req: {debugInfo.lastRequestId || 'none'}{'\n'}
               url: {debugInfo.lastUrl || 'none'}{'\n'}
               status: {debugInfo.lastStatus ?? 'pending'}{'\n'}
@@ -1220,8 +1221,29 @@ export default function MirrorChat({
           </View>
         )}
         
-        {/* Ephemeral error banner (not persisted) */}
-        {ephemeralError && (
+        {/* RETRY BANNER - Always visible when failed (PART A requirement) */}
+        {showRetryBanner && !isLoading && (
+          <Pressable 
+            style={styles.retryBanner} 
+            onPress={handleRetry}
+          >
+            <Ionicons name="refresh" size={16} color="#fff" />
+            <Text style={styles.retryBannerText}>{retryBannerMessage}</Text>
+            <Pressable 
+              onPress={() => {
+                setShowRetryBanner(false);
+                setLastPayload(null);
+              }} 
+              hitSlop={8}
+              style={styles.retryBannerClose}
+            >
+              <Ionicons name="close" size={16} color="rgba(255,255,255,0.7)" />
+            </Pressable>
+          </Pressable>
+        )}
+        
+        {/* Ephemeral error banner (debug details - shown below retry banner) */}
+        {ephemeralError && isDebugMode && (
           <View style={styles.errorBanner}>
             <Ionicons name="alert-circle" size={16} color="#fff" />
             <Text style={styles.errorBannerText}>{ephemeralError}</Text>
