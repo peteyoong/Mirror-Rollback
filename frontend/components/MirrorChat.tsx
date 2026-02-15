@@ -580,8 +580,10 @@ export default function MirrorChat({
         message: messageContent,
         lens: lens,
         session_id: sessionId,
+        thread_key: threadKey,
         include_journal: true,
         include_history: true,
+        context_bundle: contextBundle, // Pass full user context (lenses + journal + timeline)
       }, controller.signal);
 
       clearTimeout(timeoutId);
