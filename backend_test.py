@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Test Configuration
-BASE_URL = "https://update-fix-3.preview.emergentagent.com/api"
+BASE_URL = "https://smart-mirror-9.preview.emergentagent.com/api"
 TEST_USER_ID = "697f0c6abf35c0528ff06954"  # User ID from review request
 FALLBACK_USER_ID = "69819f1a1e4549392d7cb6d1"  # Fallback user from test_result.md
 
