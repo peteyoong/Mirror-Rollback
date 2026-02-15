@@ -1072,7 +1072,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
     build_version: BUILD_VERSION,
     app_env: APP_ENV,
     platform: Platform.OS,
-    api_base_url: getEffectiveApiUrl(),
+    api_base_url: API_BASE_URL,
     // SERVER RESPONSE PROVENANCE (from API)
     user_id: result.user_id || userId,
     result_id: result.result_id || 'unknown',
