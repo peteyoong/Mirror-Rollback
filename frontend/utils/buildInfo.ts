@@ -15,10 +15,7 @@ import Constants from 'expo-constants';
 // If you see an old BUILD_ID after deploy, the client is using a stale bundle.
 // UPDATE THIS ON EVERY DEPLOY!
 export const BUILD_ID = '2026-02-15T17:30:00Z';
-export const BUILD_VERSION = 'v22-path-namespace';
-
-// Build namespace path - unique per deploy
-export const BUILD_PATH = `/_b/${BUILD_ID.replace(/[^a-zA-Z0-9-]/g, '-')}`;
+export const BUILD_VERSION = 'v22-query-namespace';
 
 // Log BUILD_ID immediately when this module loads
 if (typeof console !== 'undefined') {
