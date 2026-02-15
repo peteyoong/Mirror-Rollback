@@ -1359,15 +1359,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <TouchableOpacity
             style={styles.journalCTA}
             onPress={() => {
-              // Navigate to journal with prefilled prompt
-              router.dismissAll(); // Close any modals first
-              router.push({
-                pathname: '/(tabs)/journal',
-                params: {
-                  prefill: JOURNAL_PROMPTS[core],
-                  source: 'enneagram',
-                }
-              });
+              // Use shared helper for navigation
+              const prefill = buildJournalPrefill(JOURNAL_PROMPTS[core]);
+              goToJournalWithPrefill(router, prefill, 'enneagram');
             }}
           >
             <Ionicons name="create-outline" size={16} color={Colors.accent} />
