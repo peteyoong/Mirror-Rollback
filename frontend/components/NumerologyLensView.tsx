@@ -260,7 +260,7 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
         ? `/numerology/today/${userId}`
         : tab === 'deep_dive'
         ? `/numerology/deep-dive/${userId}`
-;
+        : `/numerology/summary/${userId}`;
 
       const response = await api.get(endpoint);
       
