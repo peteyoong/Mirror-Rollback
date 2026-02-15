@@ -114,6 +114,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   user: null,
   chart: null,
   hasCompletedOnboarding: false,
+  journalEntries: [], // Default empty array to prevent crashes
   isRestoringSession: false,
   hasTriedSessionRestore: false,
   sessionRestoreError: null,
@@ -128,7 +129,16 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   clearUser: () => {
-    safeSet(set, 'clearUser', { user: null, chart: null, hasCompletedOnboarding: false });
+    safeSet(set, 'clearUser', { user: null, chart: null, hasCompletedOnboarding: false, journalEntries: [] });
+  },
+  
+  setJournalEntries: (entries) => {
+    safeSet(set, 'setJournalEntries', { journalEntries: entries });
+  },
+  
+  addJournalEntry: (entry) => {
+    const current = get().journalEntries ?? [];
+    safeSet(set, 'addJournalEntry', { journalEntries: [entry, ...current] });
   },
   
   // Session restore - NO-OP
