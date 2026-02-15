@@ -5145,6 +5145,22 @@ async def mirror_chat(request: MirrorChatRequest):
                     await db.user_thread_state.delete_one({"user_id": request.user_id})
                     logger.info(f"[Thread] Cleared stale thread for user {request.user_id} (date mismatch)")
         
+        # ===== AI INSTRUCTION HARDENING: NO BIRTH DETAILS REQUESTS =====
+        # Prevent AI from asking for birth data that already exists in context
+        has_astrology_data = any("Sun:" in p or "Moon:" in p or "Rising:" in p for p in context_parts)
+        has_node_data = any("North Node:" in p or "South Node:" in p for p in context_parts)
+        
+        if has_astrology_data or has_node_data:
+            system_prompt += """
+
+=== CRITICAL INSTRUCTION ===
+The user's birth data and chart have ALREADY been computed. You have their astrology placements in context below.
+- Do NOT ask for birth time, birth place, or birth date.
+- Do NOT say "I don't have your birth details" or "Could you provide your birth info?"
+- Use the data provided in the context to answer questions.
+- If asked about a placement (e.g., "What about my North Node?"), use the computed data below.
+"""
+        
         # Add context
         system_prompt += "\n\n--- USER CONTEXT ---\n" + "\n".join(context_parts)
         
