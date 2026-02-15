@@ -844,6 +844,13 @@ export default function MirrorChat({
             multiline
             maxLength={2000}
             editable={!isLoading}
+            returnKeyType="send"
+            blurOnSubmit={false}
+            onSubmitEditing={() => {
+              if (canSend) {
+                handleSendPress();
+              }
+            }}
           />
           <Pressable
             style={[styles.sendButton, !canSend && styles.sendButtonDisabled, { pointerEvents: 'auto', zIndex: 100000 }]}
