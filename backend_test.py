@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Backend Testing Suite for Project Mirror
-Testing Mirror Chat lens context functionality and other backend features
+Testing Mirror Chat endpoint as requested in review
 """
 
 import asyncio
@@ -14,7 +14,8 @@ from typing import Dict, Any, Optional
 
 # Test Configuration
 BASE_URL = "https://mirror-fix.preview.emergentagent.com/api"
-TEST_USER_ID = "697f0c6abf35c0528ff06954"  # User ID from review request
+TEST_EMAIL = "pete@pulsifi.me"  # Email from review request
+TEST_USER_ID = None  # Will be obtained from login
 FALLBACK_USER_ID = "69819f1a1e4549392d7cb6d1"  # Fallback user from test_result.md
 
 class MirrorChatTester:
