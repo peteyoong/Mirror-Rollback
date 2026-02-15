@@ -1089,26 +1089,29 @@ export default function MirrorChat({
 
       {/* Input Bar */}
       <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-        {/* Context Debug Panel (only when ?debug=1) */}
+        {/* Context Debug Panel (only when debug mode enabled) */}
         {isDebugMode && contextDebug && (
           <View style={styles.contextDebugPanel}>
             <Text style={styles.contextDebugTitle}>CONTEXT DEBUG</Text>
             <Text style={styles.contextDebugText}>
-              LENSES: {contextDebug.lenses.length > 0 ? contextDebug.lenses.join(', ') : 'none'}
+              LENSES: astrology={String(contextDebug.lenses.astrology)} | human_design={String(contextDebug.lenses.human_design)} | numerology={String(contextDebug.lenses.numerology)} | enneagram={String(contextDebug.lenses.enneagram)}
             </Text>
             <Text style={styles.contextDebugText}>
-              ASTRO: planets={String(contextDebug.astrology.hasPlanets)} | nodes={String(contextDebug.astrology.hasNodes)} | houses={String(contextDebug.astrology.hasHouses)}
+              ASTRO: planets={String(contextDebug.astro.planets)} | nodes={String(contextDebug.astro.nodes)} | houses={String(contextDebug.astro.houses)}
             </Text>
             <Text style={styles.contextDebugText}>
-              PROFILE: name={String(contextDebug.profile.hasName)} | birth={String(contextDebug.profile.hasBirthData)}
+              PROFILE: name={String(contextDebug.profile.name)} | birth={String(contextDebug.profile.birth)}
+            </Text>
+            <Text style={styles.contextDebugText}>
+              has_context={String(contextDebug.hasContext)} | context_bytes={contextDebug.contextBytes}
             </Text>
           </View>
         )}
         
-        {/* Context Warning - Partial Astrology (nodes missing) */}
+        {/* Context Warning - Partial Astrology (nodes missing but planets exist) */}
         {contextDebug?.hasContext &&
-         contextDebug?.astrology?.hasPlanets &&
-         !contextDebug?.astrology?.hasNodes && (
+         contextDebug?.astro?.planets &&
+         !contextDebug?.astro?.nodes && (
           <View style={styles.contextWarningBanner}>
             <Ionicons name="alert-circle-outline" size={14} color="#ffaa00" />
             <Text style={styles.contextWarningText}>
@@ -1117,7 +1120,7 @@ export default function MirrorChat({
           </View>
         )}
         
-        {/* API Debug panel (only when ?debug=1) */}
+        {/* API Debug panel (only when debug mode enabled) */}
         {isDebugMode && (
           <View style={styles.debugPanel}>
             <Text style={styles.debugTitle}>API Debug</Text>
