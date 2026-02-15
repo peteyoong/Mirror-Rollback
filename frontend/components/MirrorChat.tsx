@@ -756,6 +756,9 @@ export default function MirrorChat({
   };
 
   const canSend = inputText.trim().length > 0 && !isLoading && sessionId;
+  
+  // Debug: log canSend status
+  console.log(`[MirrorChat] canSend=${canSend}: text="${inputText.trim().substring(0, 20)}", loading=${isLoading}, session=${!!sessionId}`);
 
   return (
     <KeyboardAvoidingView
