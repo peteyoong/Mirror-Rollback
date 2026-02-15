@@ -126,8 +126,8 @@ export default function MirrorChat({
   const threadKey = lens ? `mirror:${lens}` : 'mirror:home';
   const storageKey = userId ? `${userId}:${threadKey}` : null;
   
-  // Get messages from store - use stable selector
-  const storeMessages = useAppStore(s => (storageKey ? s.chatMessages[storageKey] : undefined) ?? []);
+  // Get messages from store - use stable selector with null-safety
+  const storeMessages = useAppStore(s => (storageKey ? (s.chatMessages?.[storageKey] ?? []) : []));
   const loadChatMessages = useAppStore(s => s.loadChatMessages);
   const addChatMessage = useAppStore(s => s.addChatMessage);
   
