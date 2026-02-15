@@ -20,7 +20,7 @@ export default function Root({ children }: PropsWithChildren) {
         <meta charSet="utf-8" />
         
         {/* BUILD marker in page title */}
-        <title>Mirror • BUILD {BUILD_ID}</title>
+        <title>{`Mirror • BUILD ${BUILD_ID}`}</title>
         
         {/* ============================================
             CACHE CONTROL - CRITICAL FOR REDEPLOYS
