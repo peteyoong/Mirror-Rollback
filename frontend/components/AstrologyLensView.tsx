@@ -661,6 +661,20 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontStyle: 'italic',
   },
+  journalCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  journalCTAText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.accent,
+  },
   chartReferenceCard: {
     backgroundColor: Colors.surface,
     borderRadius: 12,
