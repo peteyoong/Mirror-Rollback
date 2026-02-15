@@ -1,11 +1,12 @@
 /**
- * Mirror V2 - Loop-Proof Implementation
+ * Mirror V2 - CRASH-PROOF Implementation
  * 
- * Uses LOCAL state for everything except userId from store.
- * NO Zustand chatMessages dependency.
+ * NO useFocusEffect - uses navigation.addListener instead
+ * Kill-switch prevents crash loops
+ * DEBUG mode gated by ?debug=1
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,14 +15,19 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
 import { loadMessages, ChatMessage, DEFAULT_THREAD_KEY } from '../../utils/chatPersistence';
+
+// Debug mode - only logs when ?debug=1 is in URL
+const DEBUG = Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.search?.includes('debug=1');
 
 // Use the SAME thread key as reflection-chat for unified persistence
 const THREAD_KEY = DEFAULT_THREAD_KEY;
@@ -38,85 +44,125 @@ interface DailyKeystone {
 }
 
 export default function MirrorV2Screen() {
+  if (DEBUG) console.log("[MirrorV2] render", Date.now());
+  
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const navigation = useNavigation();
   
-  // ONLY pull stable primitives from store - NO arrays/objects that change
+  // ONLY pull stable primitives from store
   const userId = useAppStore(s => s.user?.id);
   const userName = useAppStore(s => s.user?.name);
   const hasTriedRestore = useAppStore(s => s.hasTriedSessionRestore);
   const isRestoring = useAppStore(s => s.isRestoringSession);
   
-  // LOCAL state - NOT from Zustand store
+  // LOCAL state
   const [keystone, setKeystone] = useState<DailyKeystone | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [chatPreview, setChatPreview] = useState<ChatMessage[]>([]);
   
-  // Guards to prevent loops
-  const didInitKeystoneRef = useRef(false);
-  const lastFocusRefreshRef = useRef(0);
+  // CRITICAL REFS for crash prevention
   const chatPreviewRef = useRef<ChatMessage[]>([]);
+  const isMountedRef = useRef(true);
+  const inFlightRef = useRef(false);
+  const killSwitchRef = useRef(false);
+  const lastFocusRefreshRef = useRef(0);
+  const didInitRef = useRef(false);
   
-  // Keep chatPreviewRef in sync
+  // Track mounted state
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
+  
+  // Keep chatPreviewRef in sync (no setState here)
   useEffect(() => {
     chatPreviewRef.current = chatPreview;
   }, [chatPreview]);
   
-  // LOOP-PROOF: Load keystone ONCE on mount
-  useEffect(() => {
-    if (!userId) return;
-    if (!hasTriedRestore || isRestoring) return;
-    if (didInitKeystoneRef.current) return;
-    didInitKeystoneRef.current = true;
+  // CRASH-PROOF refresh function with kill-switch
+  const refreshPreview = useCallback(async (reason: string) => {
+    if (DEBUG) console.log("[MirrorV2] refreshPreview called:", reason, Date.now());
     
-    console.log('[MirrorV2] Loading keystone...');
-    loadKeystone();
-    loadChatPreviewSafe(); // Also load chat preview once on init
-  }, [userId, hasTriedRestore, isRestoring]);
-  
-  // SAFE chat preview loader with deduplication
-  const loadChatPreviewSafe = async () => {
-    if (!userId) return;
-    
-    // Debounce: prevent rapid consecutive calls
-    const now = Date.now();
-    if (now - lastFocusRefreshRef.current < 500) {
-      console.log('[MirrorV2] Skipping chat preview load (debounce)');
+    // Kill-switch: if we've had errors, stop trying
+    if (killSwitchRef.current) {
+      if (DEBUG) console.log("[MirrorV2] kill-switch active, skipping");
       return;
     }
+    
+    // No user = nothing to refresh
+    if (!userId) {
+      if (DEBUG) console.log("[MirrorV2] no userId, skipping");
+      return;
+    }
+    
+    // Debounce: prevent rapid calls
+    const now = Date.now();
+    if (now - lastFocusRefreshRef.current < 500) {
+      if (DEBUG) console.log("[MirrorV2] debounce, skipping");
+      return;
+    }
+    
+    // Prevent concurrent calls
+    if (inFlightRef.current) {
+      if (DEBUG) console.log("[MirrorV2] in-flight, skipping");
+      return;
+    }
+    
+    inFlightRef.current = true;
     lastFocusRefreshRef.current = now;
     
     try {
-      const loaded = await loadMessages(userId, DEFAULT_THREAD_KEY);
+      if (DEBUG) console.log("[MirrorV2] load start", Date.now());
+      const loaded = await loadMessages(userId, THREAD_KEY);
+      if (DEBUG) console.log("[MirrorV2] load end", Date.now(), "count:", loaded.length);
       
-      // Only update state if messages actually changed
+      // Compare without causing rerenders
       const current = chatPreviewRef.current;
-      const isDifferent = loaded.length !== current.length ||
-        (loaded.length > 0 && current.length > 0 && loaded[loaded.length - 1]?.id !== current[current.length - 1]?.id);
+      const different = 
+        loaded.length !== current.length ||
+        (loaded.at(-1)?.id ?? "") !== (current.at(-1)?.id ?? "");
       
-      if (isDifferent) {
-        console.log('[MirrorV2] Chat preview changed, updating state');
+      if (different && isMountedRef.current) {
+        if (DEBUG) console.log("[MirrorV2] messages different, updating state");
+        chatPreviewRef.current = loaded;
         setChatPreview(loaded);
       } else {
-        console.log('[MirrorV2] Chat preview unchanged, skipping setState');
+        if (DEBUG) console.log("[MirrorV2] messages same or unmounted, skipping setState");
       }
     } catch (e) {
-      console.error('[MirrorV2] loadChatPreviewSafe error:', e);
+      // Kill-switch ON to prevent crash loops
+      killSwitchRef.current = true;
+      console.error("[MirrorV2] preview refresh failed -> killSwitch ON", e);
+    } finally {
+      inFlightRef.current = false;
     }
-  };
+  }, [userId]); // ONLY depend on userId
   
-  // Reload chat preview on focus - with proper guards
-  useFocusEffect(
-    React.useCallback(() => {
-      // Only refresh if we have a userId and have initialized
-      if (userId && didInitKeystoneRef.current) {
-        loadChatPreviewSafe();
-      }
-      // Return undefined (no cleanup needed)
-      return undefined;
-    }, [userId]) // Only depend on userId
-  );
+  // NAVIGATION FOCUS LISTENER - does NOT recreate on every render
+  useEffect(() => {
+    if (!navigation) return;
+    
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (DEBUG) console.log("[MirrorV2] focus event", Date.now());
+      void refreshPreview("focus");
+    });
+    
+    return unsubscribe;
+  }, [navigation, refreshPreview]); // refreshPreview is stable due to useCallback
+  
+  // ONE-TIME initial load
+  useEffect(() => {
+    if (!userId) return;
+    if (!hasTriedRestore || isRestoring) return;
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+    
+    if (DEBUG) console.log("[MirrorV2] initial mount load");
+    loadKeystone();
+    void refreshPreview("mount");
+  }, [userId, hasTriedRestore, isRestoring, refreshPreview]);
   
   const loadKeystone = async () => {
     if (!userId) return;
@@ -146,15 +192,10 @@ export default function MirrorV2Screen() {
     }
   };
   
-  const loadChatPreview = async () => {
-    // Use the safe version instead
-    await loadChatPreviewSafe();
-  };
-  
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await loadKeystone();
-    await loadChatPreviewSafe(); // Use safe version
+    await refreshPreview("pull-to-refresh");
     setIsRefreshing(false);
   };
   
@@ -179,13 +220,7 @@ export default function MirrorV2Screen() {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.centered}>
-          <Text style={styles.loadingText}>Please log in</Text>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => router.replace('/welcome')}
-          >
-            <Text style={styles.buttonText}>Go to Login</Text>
-          </TouchableOpacity>
+          <Text style={styles.loadingText}>Please log in to continue</Text>
         </View>
       </View>
     );
@@ -202,7 +237,6 @@ export default function MirrorV2Screen() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -211,10 +245,10 @@ export default function MirrorV2Screen() {
           />
         }
       >
-        {/* Daily Keystone Card */}
+        {/* Daily Keystone */}
         {isLoading ? (
-          <View style={styles.card}>
-            <ActivityIndicator size="small" color={Colors.accent} />
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" color={Colors.accent} />
           </View>
         ) : keystone ? (
           <View style={styles.card}>
@@ -237,7 +271,7 @@ export default function MirrorV2Screen() {
           {chatPreview.length === 0 ? (
             <Text style={styles.noChatText}>No conversations yet. Start reflecting!</Text>
           ) : (
-            chatPreview.map((msg) => (
+            chatPreview.slice(-3).map((msg) => (
               <View
                 key={msg.id}
                 style={[
@@ -260,14 +294,21 @@ export default function MirrorV2Screen() {
           
           <TouchableOpacity style={styles.openChatButton} onPress={handleOpenChat}>
             <Ionicons name="chatbubble-outline" size={20} color={Colors.surface} />
-            <Text style={styles.openChatButtonText}>Continue Reflection</Text>
+            <Text style={styles.openChatButtonText}>Continue Reflecting</Text>
           </TouchableOpacity>
         </View>
         
-        {/* Welcome message */}
-        <View style={styles.welcomeCard}>
-          <Text style={styles.welcomeText}>Welcome back, {userName || 'friend'}.</Text>
-        </View>
+        {/* Welcome message for new users */}
+        {!chatPreview.length && (
+          <View style={[styles.card, styles.welcomeCard]}>
+            <Text style={styles.welcomeText}>
+              {userName ? `Welcome, ${userName}` : 'Welcome'}
+            </Text>
+            <Text style={styles.welcomeSubtext}>
+              This is your space to reflect, notice, and explore.
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -277,23 +318,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-  },
-  screenBanner: {
-    backgroundColor: '#cc6600',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-  },
-  screenName: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  screenSubtext: {
-    color: '#fff',
-    fontSize: 10,
-    textAlign: 'center',
-    opacity: 0.8,
   },
   centered: {
     flex: 1,
@@ -432,19 +456,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   welcomeText: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  welcomeSubtext: {
     fontSize: 14,
-    color: Colors.textTertiary,
-  },
-  button: {
-    backgroundColor: Colors.accent,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 16,
-  },
-  buttonText: {
-    color: Colors.surface,
-    fontSize: 16,
-    fontWeight: '600',
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
 });
