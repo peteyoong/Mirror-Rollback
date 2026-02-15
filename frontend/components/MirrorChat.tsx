@@ -827,7 +827,7 @@ export default function MirrorChat({
       />
 
       {/* Input Bar */}
-      <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 12), pointerEvents: 'box-none' }]}>
         {/* Debug display (only when ?debug=1) */}
         {isDebugMode && (
           <View style={styles.debugDisplay}>
