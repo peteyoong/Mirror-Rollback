@@ -74,21 +74,33 @@ interface ChatMessage {
   timestamp: string;
 }
 
+interface JournalEntry {
+  id: string;
+  date: string;
+  title?: string;
+  content: string;
+  mood?: string;
+  tags?: string[];
+}
+
 interface AppState {
   // Core data
   user: User | null;
   chart: any | null;
   hasCompletedOnboarding: boolean;
+  journalEntries: JournalEntry[];
   
   // Session state
   isRestoringSession: boolean;
   hasTriedSessionRestore: boolean;
   sessionRestoreError: string | null;
   
-  // Actions - MINIMAL SET
+  // Actions
   setUser: (user: User) => void;
   setChart: (chart: any) => void;
   clearUser: () => void;
+  setJournalEntries: (entries: JournalEntry[]) => void;
+  addJournalEntry: (entry: JournalEntry) => void;
   
   // Session restore - NO-OP for isolation
   restoreSession: () => Promise<boolean>;
