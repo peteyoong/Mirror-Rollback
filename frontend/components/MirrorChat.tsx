@@ -271,9 +271,9 @@ export default function MirrorChat({
   // Ephemeral error message (not persisted)
   const [ephemeralError, setEphemeralError] = useState<string | null>(null);
   
-  // Check for debug mode from URL params
+  // Check for debug mode - use URL params if available, or check localStorage
   const searchParams = useLocalSearchParams<{ debug?: string }>();
-  const isDebugMode = searchParams.debug === '1';
+  const isDebugMode = searchParams.debug === '1' || (typeof window !== 'undefined' && window.location?.search?.includes('debug=1'));
   
   const flatListRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
