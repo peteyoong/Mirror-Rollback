@@ -6,12 +6,9 @@ import { Colors } from '../constants/colors';
 import WelcomeGate from '../components/WelcomeGate';
 
 /**
- * ROOT LAYOUT - Clean version
- * 
- * Simple session restore on mount, no globalThis hacks
+ * ROOT LAYOUT - RESTORE DISABLED FOR DEBUGGING
  */
 export default function RootLayout() {
-  const insets = useSafeAreaInsets();
   
   // Select stable primitives only
   const userId = useAppStore(s => s.user?.id);
