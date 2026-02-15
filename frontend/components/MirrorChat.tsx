@@ -1830,4 +1830,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#fff',
   },
+  
+  // RETRY BANNER (PART A - visible failure state)
+  retryBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f59e0b', // Amber - attention-grabbing but not alarming
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    marginBottom: 10,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  retryBannerText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  retryBannerClose: {
+    padding: 4,
+  },
 });
