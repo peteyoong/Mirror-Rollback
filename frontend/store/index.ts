@@ -189,3 +189,37 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 // Log store creation
 console.log('[ZUSTAND] Store created - isolation version');
+
+// ============================================================================
+// EXPORTS for other components
+// ============================================================================
+export type { ChatMessage };
+
+// Chat session storage keys
+export const CHAT_SESSION_KEYS = {
+  mirror: 'chat:mirror:home',
+  astrology: 'chat:mirror:astrology',
+  human_design: 'chat:mirror:human_design',
+  numerology: 'chat:mirror:numerology',
+  enneagram: 'chat:mirror:enneagram',
+};
+
+// Simple storage abstraction (in-memory for isolation, can be replaced with AsyncStorage later)
+export const storage = {
+  getItem: async (key: string): Promise<string | null> => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage.getItem(key);
+    }
+    return null;
+  },
+  setItem: async (key: string, value: string): Promise<void> => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(key, value);
+    }
+  },
+  removeItem: async (key: string): Promise<void> => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(key);
+    }
+  },
+};
