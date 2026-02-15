@@ -1197,21 +1197,4 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     fontStyle: 'italic',
   },
-  
-  // Debug display
-  debugDisplay: {
-    backgroundColor: '#1a1a2e',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    marginBottom: 8,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#3a3a5e',
-  },
-  debugText: {
-    fontSize: 9,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    color: '#4ade80',
-    lineHeight: 12,
-  },
 });
