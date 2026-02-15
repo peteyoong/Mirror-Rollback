@@ -86,6 +86,9 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
   const [fetchStatus, setFetchStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   
+  // Router for navigation
+  const router = useRouter();
+  
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
   
