@@ -3,8 +3,8 @@ import type { PropsWithChildren } from 'react';
 
 // BUILD_ID must be updated on every deploy for cache verification
 // MUST MATCH /app/frontend/utils/buildInfo.ts
-const BUILD_ID = '2026-02-15T16:45:00Z';
-const BUILD_VERSION = 'v20-deploy-verify';
+const BUILD_ID = '2026-02-15T17:00:00Z';
+const BUILD_VERSION = 'v21-pre-react-watermark';
 
 // Generate a cache-bust suffix for asset URLs
 const CACHE_BUST = `?v=${BUILD_ID.replace(/[^a-zA-Z0-9]/g, '')}`;
@@ -19,6 +19,9 @@ export default function Root({ children }: PropsWithChildren) {
       <head>
         <meta charSet="utf-8" />
         
+        {/* BUILD marker in page title */}
+        <title>Mirror • BUILD {BUILD_ID}</title>
+        
         {/* ============================================
             CACHE CONTROL - CRITICAL FOR REDEPLOYS
             ============================================ */}
@@ -29,6 +32,60 @@ export default function Root({ children }: PropsWithChildren) {
         {/* BUILD_ID in meta tag for verification */}
         <meta name="build-id" content={BUILD_ID} />
         <meta name="build-version" content={BUILD_VERSION} />
+        
+        {/* ============================================
+            PRE-REACT BUILD WATERMARK
+            Visible immediately on page load, before React mounts
+            ============================================ */}
+        <script dangerouslySetInnerHTML={{ __html: `
+(function() {
+  try {
+    var BUILD_ID = "${BUILD_ID}";
+    var BUILD_VERSION = "${BUILD_VERSION}";
+    
+    // Create watermark element
+    var watermark = document.createElement('div');
+    watermark.id = 'build-watermark';
+    watermark.textContent = 'BUILD ' + BUILD_ID + ' • ' + BUILD_VERSION;
+    watermark.style.cssText = [
+      'position: fixed',
+      'top: calc(env(safe-area-inset-top, 0px) + 8px)',
+      'left: 8px',
+      'z-index: 2147483647',
+      'background: rgba(0, 0, 0, 0.7)',
+      'color: #fff',
+      'padding: 6px 10px',
+      'border-radius: 10px',
+      'font-size: 10px',
+      'font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+      'font-weight: 500',
+      'letter-spacing: 0.3px',
+      'pointer-events: none',
+      'box-shadow: 0 2px 8px rgba(0,0,0,0.3)',
+      'white-space: nowrap'
+    ].join(';');
+    
+    // Add to DOM as soon as body exists
+    function addWatermark() {
+      if (document.body) {
+        document.body.appendChild(watermark);
+        console.log('[WATERMARK] Added: BUILD ' + BUILD_ID + ' • ' + BUILD_VERSION);
+      } else {
+        // Body not ready, try again
+        setTimeout(addWatermark, 10);
+      }
+    }
+    
+    // Start trying to add watermark
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', addWatermark);
+    } else {
+      addWatermark();
+    }
+    
+  } catch(e) { console.log('[WATERMARK] Error:', e); }
+})();
+        `}} />
         
         {/* ============================================
             HARD CACHE BUSTER - Service Worker unregister + Cache clear + Force reload
