@@ -37,9 +37,9 @@ interface ApiCallResult {
   attempts: number;
 }
 
-const RETRY_DELAYS = [500, 1500]; // Exponential backoff delays
+const RETRY_DELAYS = [800, 2000]; // Increased delays for lens chat which can be slow
 const RETRYABLE_STATUSES = [0, 502, 503, 504];
-const REQUEST_TIMEOUT = 20000; // 20 seconds
+const REQUEST_TIMEOUT = 45000; // 45 seconds for lens chat which uses more context
 
 async function callMirrorChatApi(
   payload: any,
@@ -80,31 +80,37 @@ async function callMirrorChatApi(
           : JSON.stringify(error.response.data).substring(0, 300);
       }
       
-      // Check if abort was triggered
-      if (error.name === 'AbortError' || error.code === 'ECONNABORTED' || signal?.aborted) {
-        return {
-          ok: false,
-          status: null,
-          text: null,
-          json: null,
-          err: 'Request timed out',
-          attempts,
-        };
-      }
+      // Check if timeout or abort
+      const isTimeout = error.name === 'AbortError' || 
+        error.code === 'ECONNABORTED' || 
+        signal?.aborted ||
+        error.message?.toLowerCase().includes('timeout');
       
-      // Check if retryable
-      const isRetryable = RETRYABLE_STATUSES.includes(status) || 
+      // Check if retryable (including timeouts)
+      const isRetryable = isTimeout ||
+        RETRYABLE_STATUSES.includes(status) || 
         error.code === 'ECONNREFUSED' ||
         error.message?.includes('Network Error');
       
       if (isRetryable && attempts < maxAttempts) {
         const delay = RETRY_DELAYS[attempts - 1];
-        console.log(`[MirrorChat] Retry ${attempts}/${maxAttempts} after ${delay}ms (status=${status})`);
+        console.log(`[MirrorChat] Retry ${attempts}/${maxAttempts} after ${delay}ms (status=${status}, timeout=${isTimeout})`);
         await new Promise(r => setTimeout(r, delay));
         continue;
       }
       
       // Non-retryable error or max retries reached
+      if (isTimeout) {
+        return {
+          ok: false,
+          status: null,
+          text: null,
+          json: null,
+          err: 'Request timed out. Tap to retry.',
+          attempts,
+        };
+      }
+      
       return {
         ok: false,
         status: lastStatus,
