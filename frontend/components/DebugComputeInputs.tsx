@@ -24,42 +24,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import axios from 'axios';
-import Constants from 'expo-constants';
 import { getStableUserId, maskUserId } from '../utils/stableUserId';
+import { API_BASE_URL } from '../utils/apiBase';
 
 // Check if debug mode is enabled
 // DISABLED FOR TESTER RELEASE
 const DEBUG_MIRROR = false;
-
-// Get backend URL (same logic as NumerologyLensView)
-const DEV_BACKEND_FALLBACK = 'http://localhost:8001';
-
-function getBackendBaseUrl(): string {
-  const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-  if (envUrl && typeof envUrl === 'string' && envUrl.length > 0) {
-    return envUrl;
-  }
-  
-  const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
-  if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
-    return extraUrl;
-  }
-  
-  if (Platform.OS === 'web') {
-    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
-    const isLocalDev = hostname === 'localhost' || hostname === '127.0.0.1';
-    const isPreview = hostname.includes('preview') || hostname.includes('emergent');
-    
-    if (isLocalDev || isPreview) {
-      return DEV_BACKEND_FALLBACK;
-    }
-    return '';
-  }
-  
-  return DEV_BACKEND_FALLBACK;
-}
-
-const BACKEND_BASE_URL = getBackendBaseUrl();
 
 interface ComputeInputs {
   user_id: string;
