@@ -124,6 +124,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   chart: null,
   hasCompletedOnboarding: false,
   journalEntries: [], // Default empty array to prevent crashes
+  chatMessages: {}, // In-memory chat state
   isRestoringSession: false,
   hasTriedSessionRestore: false,
   sessionRestoreError: null,
@@ -138,7 +139,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   clearUser: () => {
-    safeSet(set, 'clearUser', { user: null, chart: null, hasCompletedOnboarding: false, journalEntries: [] });
+    safeSet(set, 'clearUser', { user: null, chart: null, hasCompletedOnboarding: false, journalEntries: [], chatMessages: {} });
   },
   
   setJournalEntries: (entries) => {
@@ -148,6 +149,34 @@ export const useAppStore = create<AppState>((set, get) => ({
   addJournalEntry: (entry) => {
     const current = get().journalEntries ?? [];
     safeSet(set, 'addJournalEntry', { journalEntries: [entry, ...current] });
+  },
+  
+  // Chat actions (in-memory only - no persist)
+  setChatMessages: (storageKey, messages) => {
+    const current = get().chatMessages ?? {};
+    safeSet(set, 'setChatMessages', { 
+      chatMessages: { ...current, [storageKey]: messages } 
+    });
+  },
+  
+  addChatMessage: (storageKey, message) => {
+    const current = get().chatMessages ?? {};
+    const prev = current[storageKey] ?? [];
+    safeSet(set, 'addChatMessage', { 
+      chatMessages: { ...current, [storageKey]: [...prev, message] } 
+    });
+  },
+  
+  clearChatMessages: (storageKey) => {
+    const current = get().chatMessages ?? {};
+    const updated = { ...current };
+    delete updated[storageKey];
+    safeSet(set, 'clearChatMessages', { chatMessages: updated });
+  },
+  
+  // NO-OP for now - chat is in-memory only
+  loadChatMessages: async (storageKey) => {
+    console.log(`[loadChatMessages] NO-OP - chat is in-memory only (key: ${storageKey})`);
   },
   
   // Session restore - NO-OP
