@@ -691,49 +691,26 @@ export default function MirrorChat({
     setShowEvidence(!showEvidence);
   };
 
-  // ===== SEND HANDLER =====
-  const handleSend = async () => {
-    // Bail checks
-    if (!userId || !inputText.trim() || isLoading || !sessionId) {
-      return;
-    }
-
-    const messageContent = inputText.trim();
+  // ===== CORE SEND LOGIC (used by handleSend and handleRetry) =====
+  const executeSend = async (payload: any, messagesWithUser: ChatMessage[]) => {
     const requestId = `req_${Date.now()}`;
+    const apiBaseUrl = getApiBaseUrl();
     
-    // Clear ephemeral error
-    setEphemeralError(null);
-    
-    // Update debug info at start
+    // Update debug info at start (including API_BASE_URL)
     setDebugInfo(prev => ({
       ...prev,
       lastRequestId: requestId,
-      lastUrl: '/mirror/chat',
+      lastUrl: `${apiBaseUrl}/mirror/chat`,
       lastStatus: null,
       lastErr: null,
       lastResponseSnippet: null,
       lastAttemptCount: 0,
+      apiBaseUrl: apiBaseUrl,
     }));
     
-    // Optimistic UI: Add user message immediately
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: messageContent,
-      timestamp: new Date().toISOString(),
-    };
-
-    // Add to local state
-    const messagesWithUser = [...messages, userMessage];
-    setMessages(messagesWithUser);
+    // Store payload for potential retry
+    setLastPayload(payload);
     
-    // Save to storage immediately (user message only)
-    await saveMessages(userId, threadKey, messagesWithUser);
-    
-    setInputText('');
-    setIsLoading(true);
-    Keyboard.dismiss();
-
     // AbortController for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
@@ -741,16 +718,7 @@ export default function MirrorChat({
     }, REQUEST_TIMEOUT);
 
     try {
-      const result = await callMirrorChatApi({
-        user_id: userId,
-        message: messageContent,
-        lens: lens,
-        session_id: sessionId,
-        thread_key: threadKey,
-        include_journal: true,
-        include_history: true,
-        context_bundle: contextBundle, // Pass full user context (lenses + journal + timeline)
-      }, controller.signal);
+      const result = await callMirrorChatApi(payload, controller.signal);
 
       clearTimeout(timeoutId);
       
@@ -777,7 +745,7 @@ export default function MirrorChat({
         setMessages(messagesWithAssistant);
         
         // Save to storage (including successful response)
-        await saveMessages(userId, threadKey, messagesWithAssistant);
+        await saveMessages(userId!, threadKey, messagesWithAssistant);
         
         setSessionId(result.json.session_id);
         
@@ -792,20 +760,43 @@ export default function MirrorChat({
         } else if (!lens && !result.json.thread) {
           setThreadState(null);
         }
+        
+        // CLEAR retry banner on success
+        setShowRetryBanner(false);
+        setRetryBannerMessage('');
+        setLastPayload(null);
+        setEphemeralError(null);
+        
+        return true; // Success
       } else {
-        // FAILURE - show ephemeral error, do NOT persist
+        // FAILURE - show VISIBLE retry banner (PART A requirement)
         const errorDetail = result.err || `HTTP ${result.status}`;
         console.error(`[MirrorChat] Send failed after ${result.attempts} attempts: ${errorDetail}`);
         
-        // Set ephemeral error (shown in UI but not persisted)
+        // Determine user-friendly error message
+        let friendlyMessage = 'Message failed.';
+        if (result.status === 502 || result.status === 503 || result.status === 504) {
+          friendlyMessage = 'Server temporarily unavailable.';
+        } else if (result.status === 500) {
+          friendlyMessage = 'Server error.';
+        } else if (result.err?.toLowerCase().includes('timeout')) {
+          friendlyMessage = 'Request timed out.';
+        } else if (result.err?.toLowerCase().includes('network')) {
+          friendlyMessage = 'Network error.';
+        }
+        
+        // Show retry banner (ALWAYS visible, not just toast)
+        setShowRetryBanner(true);
+        setRetryBannerMessage(`${friendlyMessage} Tap to retry.`);
+        
+        // Also set ephemeral error for debug visibility
         setEphemeralError(
           result.status 
             ? `Request failed (HTTP ${result.status}) after ${result.attempts} attempt(s)`
             : `Request failed: ${result.err || 'Unknown error'}`
         );
         
-        // Do NOT add error message to messages array or save to storage
-        // The user can try again
+        return false; // Failure
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
@@ -817,10 +808,81 @@ export default function MirrorChat({
         lastStatus: null,
       }));
       
+      // Show retry banner for unexpected errors too
+      setShowRetryBanner(true);
+      setRetryBannerMessage('Unexpected error. Tap to retry.');
       setEphemeralError('Unexpected error. Please try again.');
-    } finally {
-      // ALWAYS reset loading state
-      setIsLoading(false);
+      
+      return false; // Failure
+    }
+  };
+
+  // ===== SEND HANDLER =====
+  const handleSend = async () => {
+    // Bail checks
+    if (!userId || !inputText.trim() || isLoading || !sessionId) {
+      return;
+    }
+
+    const messageContent = inputText.trim();
+    
+    // Clear previous error states
+    setEphemeralError(null);
+    setShowRetryBanner(false);
+    
+    // Optimistic UI: Add user message immediately
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: messageContent,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Add to local state
+    const messagesWithUser = [...messages, userMessage];
+    setMessages(messagesWithUser);
+    
+    // Save to storage immediately (user message only)
+    await saveMessages(userId, threadKey, messagesWithUser);
+    
+    setInputText('');
+    setIsLoading(true);
+    Keyboard.dismiss();
+
+    // Build payload
+    const payload = {
+      user_id: userId,
+      message: messageContent,
+      lens: lens,
+      session_id: sessionId,
+      thread_key: threadKey,
+      include_journal: true,
+      include_history: true,
+      context_bundle: contextBundle,
+    };
+    
+    await executeSend(payload, messagesWithUser);
+    
+    // ALWAYS reset loading state
+    setIsLoading(false);
+  };
+  
+  // ===== RETRY HANDLER (tap on retry banner) =====
+  const handleRetry = async () => {
+    if (!lastPayload || isLoading) return;
+    
+    console.log('[MirrorChat] Retrying last request...');
+    setIsLoading(true);
+    
+    // Get current messages (the user message is already there from the failed attempt)
+    const success = await executeSend(lastPayload, messages);
+    
+    setIsLoading(false);
+    
+    if (success) {
+      console.log('[MirrorChat] Retry succeeded!');
+    } else {
+      console.log('[MirrorChat] Retry failed - banner remains visible');
     }
   };
 
