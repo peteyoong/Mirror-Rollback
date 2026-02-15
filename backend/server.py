@@ -4409,6 +4409,270 @@ async def api_health_check():
 
 
 # ============================================
+# Mirror Context Endpoint - Combined User Context
+# ============================================
+
+class MirrorContextResponse(BaseModel):
+    user_id: str
+    profile: Dict[str, Any]
+    lenses: Dict[str, Any]
+    journal: Dict[str, Any]
+    timeline: Dict[str, Any]
+    meta: Dict[str, Any]
+
+@api_router.get("/mirror/context/{user_id}", response_model=MirrorContextResponse)
+async def get_mirror_context(user_id: str):
+    """
+    Returns comprehensive user context for Mirror chat:
+    - Profile (name, birth info)
+    - All computed lens data (astrology, human_design, numerology, enneagram, consciousness)
+    - Recent journal entries + themes
+    - Timeline signals
+    """
+    try:
+        # Get user
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get chart data
+        chart = await db.charts.find_one({"user_id": user_id})
+        
+        # Get enneagram results
+        enneagram_results = await db.enneagram_results.find_one({"user_id": user_id})
+        
+        # Get recent journal entries (last 10, trimmed)
+        journal_entries = await db.journal.find(
+            {"user_id": user_id}
+        ).sort("timestamp", -1).limit(10).to_list(10)
+        
+        # Get timeline events
+        timeline_events = await db.timeline_events.find(
+            {"user_id": user_id}
+        ).sort("event_date", -1).limit(20).to_list(20)
+        
+        # Get longitudinal summary for themes
+        longitudinal_summary = await db.longitudinal_summaries.find_one({"user_id": user_id})
+        
+        # Build profile
+        profile = {
+            "name": user.get('name', 'Unknown'),
+            "email": user.get('email', ''),
+            "birth": {
+                "date": user.get('birth_date'),
+                "time": user.get('birth_time'),
+                "place": user.get('birth_place'),
+                "timezone": user.get('timezone'),
+            }
+        }
+        
+        # Build lenses
+        lenses = {}
+        
+        # Astrology lens
+        if chart and chart.get('astrology'):
+            astro = chart.get('astrology', {})
+            planets = astro.get('planets', {})
+            houses = astro.get('houses', {})
+            nodes = astro.get('nodes', {})
+            
+            lenses['astrology'] = {
+                'computed': True,
+                'sun': planets.get('Sun', {}),
+                'moon': planets.get('Moon', {}),
+                'rising': houses.get('formatted_cusps', [{}])[0] if houses.get('formatted_cusps') else {},
+                'mercury': planets.get('Mercury', {}),
+                'venus': planets.get('Venus', {}),
+                'mars': planets.get('Mars', {}),
+                'jupiter': planets.get('Jupiter', {}),
+                'saturn': planets.get('Saturn', {}),
+                'north_node': nodes.get('north', {}),
+                'south_node': nodes.get('south', {}),
+                'aspects': astro.get('aspects', [])[:10],  # Limit aspects
+            }
+        else:
+            lenses['astrology'] = {
+                'computed': False,
+                'missing_reason': 'Chart not computed - requires birth date/time/place'
+            }
+        
+        # Human Design lens
+        if chart and chart.get('human_design'):
+            hd = chart.get('human_design', {})
+            lenses['human_design'] = {
+                'computed': True,
+                'type': hd.get('type'),
+                'strategy': hd.get('strategy'),
+                'authority': hd.get('authority'),
+                'profile': hd.get('profile'),
+                'definition': hd.get('definition'),
+                'incarnation_cross': hd.get('incarnation_cross'),
+                'defined_centers': hd.get('defined_centers', []),
+                'defined_channels': hd.get('defined_channels', [])[:5],
+                'gates': hd.get('gates', [])[:10],
+            }
+        else:
+            lenses['human_design'] = {
+                'computed': False,
+                'missing_reason': 'Human Design not computed - requires birth date/time/place'
+            }
+        
+        # Numerology lens
+        if chart and chart.get('numerology'):
+            num = chart.get('numerology', {})
+            
+            # Extract numbers handling both old and new formats
+            def extract_num(val):
+                if isinstance(val, int):
+                    return val
+                elif isinstance(val, dict):
+                    return val.get('number')
+                return None
+            
+            lenses['numerology'] = {
+                'computed': True,
+                'life_path': extract_num(num.get('life_path')),
+                'birthday': extract_num(num.get('birthday')),
+                'expression': extract_num(num.get('expression')),
+                'soul_urge': extract_num(num.get('soul_urge')),
+                'personality': extract_num(num.get('personality')),
+                'has_name_numbers': num.get('has_name_numbers', False),
+            }
+            
+            # Add current cycles
+            birth_date = user.get('birth_date')
+            if birth_date:
+                try:
+                    today = datetime.now()
+                    cycles = get_numerology_cycles(birth_date, today)
+                    lenses['numerology']['current_cycles'] = {
+                        'personal_year': cycles['personal_year']['number'],
+                        'personal_month': cycles['personal_month']['number'],
+                        'personal_day': cycles['personal_day']['number'],
+                    }
+                except:
+                    pass
+        else:
+            lenses['numerology'] = {
+                'computed': False,
+                'missing_reason': 'Numerology not computed - requires birth date'
+            }
+        
+        # Enneagram lens
+        if enneagram_results:
+            type_names = {
+                "1": "Reformer", "2": "Helper", "3": "Achiever", "4": "Individualist",
+                "5": "Investigator", "6": "Loyalist", "7": "Enthusiast", "8": "Challenger", "9": "Peacemaker"
+            }
+            core = enneagram_results.get('core_type')
+            computed = enneagram_results.get('enneagram_computed_details', {})
+            
+            lenses['enneagram'] = {
+                'computed': True,
+                'core_type': core,
+                'core_type_name': type_names.get(str(core), 'Unknown'),
+                'wing': enneagram_results.get('wing'),
+                'confidence': enneagram_results.get('confidence'),
+                'instinctual_stack': computed.get('instinctual_stack'),
+                'tritype': computed.get('tritype'),
+                'growth_direction': computed.get('growth_direction'),
+                'stress_direction': computed.get('stress_direction'),
+            }
+        else:
+            lenses['enneagram'] = {
+                'computed': False,
+                'missing_reason': 'Enneagram assessment not completed'
+            }
+        
+        # Map of Consciousness lens
+        if chart and chart.get('consciousness'):
+            cons = chart.get('consciousness', {})
+            lenses['map_of_consciousness'] = {
+                'computed': True,
+                'primary_level': cons.get('primary_level'),
+                'level_name': cons.get('level_name'),
+                'calibration': cons.get('calibration'),
+                'growth_indicators': cons.get('growth_indicators', []),
+            }
+        else:
+            lenses['map_of_consciousness'] = {
+                'computed': False,
+                'missing_reason': 'Consciousness framework not computed'
+            }
+        
+        # Build journal section
+        journal_data = {
+            'recent_entries': [],
+            'themes': [],
+        }
+        
+        for entry in journal_entries:
+            timestamp = entry.get('timestamp', datetime.now())
+            if isinstance(timestamp, str):
+                try:
+                    timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                except:
+                    timestamp = datetime.now()
+            
+            content = entry.get('content', '')
+            # Trim to first 800 chars
+            if len(content) > 800:
+                content = content[:800] + '...'
+            
+            journal_data['recent_entries'].append({
+                'id': str(entry.get('_id', '')),
+                'created_at': timestamp.isoformat(),
+                'text': content,
+            })
+        
+        # Extract themes from longitudinal summary
+        if longitudinal_summary:
+            themes = longitudinal_summary.get('themes', [])
+            journal_data['themes'] = themes[:5] if themes else []
+        
+        # Build timeline section
+        timeline_data = {
+            'signals': []
+        }
+        
+        for event in timeline_events:
+            event_date = event.get('event_date')
+            if isinstance(event_date, str):
+                date_str = event_date
+            elif isinstance(event_date, datetime):
+                date_str = event_date.isoformat()
+            else:
+                date_str = str(event_date)
+            
+            timeline_data['signals'].append({
+                'date': date_str,
+                'label': event.get('label', event.get('event_type', 'Unknown')),
+                'details': event.get('details', event.get('description', ''))[:200],
+            })
+        
+        # Build meta
+        meta = {
+            'context_version': 'v1',
+            'generated_at': datetime.now(timezone.utc).isoformat(),
+        }
+        
+        return MirrorContextResponse(
+            user_id=user_id,
+            profile=profile,
+            lenses=lenses,
+            journal=journal_data,
+            timeline=timeline_data,
+            meta=meta,
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[MIRROR_CONTEXT] Error fetching context for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================
 # Mirror Chat Endpoint - The Primary Intelligence
 # ============================================
 
