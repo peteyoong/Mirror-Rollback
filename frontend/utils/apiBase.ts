@@ -8,7 +8,7 @@
 // ============================================
 // SINGLE DETERMINISTIC BACKEND URL
 // ============================================
-const PRODUCTION_API_BASE = 'https://pulsifi.stage-preview.emergentagent.com/api';
+const PRODUCTION_API_BASE = 'https://mirror-fix.preview.emergentagent.com/api';
 
 /**
  * Get the API base URL.
