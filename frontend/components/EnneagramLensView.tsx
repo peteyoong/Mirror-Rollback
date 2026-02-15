@@ -1444,11 +1444,24 @@ export default function EnneagramLensView({ result, userId }: Props) {
     // This ensures Summary and Deep Dive render identically
     const typeLabel = wingInfo.typeLabel;
     const typeName = TYPE_NAMES[core];
+    
+    // LAYOUT VERSION MARKER (PART B requirement)
+    const ENNEAGRAM_LAYOUT_VERSION = 'v2';
 
     return (
       <>
         {/* DEBUG STAMP - visible with ?debug=1 */}
         {renderDebugStamp()}
+        
+        {/* ENNEAGRAM_LAYOUT DEBUG MARKER (PART B - ?debug=1 only) */}
+        {isDebugMode && (
+          <View style={styles.layoutVersionBadge}>
+            <Text style={styles.layoutVersionText}>ENNEAGRAM_LAYOUT={ENNEAGRAM_LAYOUT_VERSION}</Text>
+            <Text style={styles.layoutVersionSubtext}>
+              renderer={useNarrative ? 'narrative_v2' : 'legacy_fallback'}
+            </Text>
+          </View>
+        )}
         
         {/* ===== HEADER (consistent, no flicker) ===== */}
         <View style={styles.deepDiveHeader}>
