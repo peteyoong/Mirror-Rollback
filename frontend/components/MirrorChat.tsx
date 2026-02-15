@@ -200,6 +200,58 @@ function formatTime(date: Date): string {
   return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 }
 
+// ===== CONTEXT VALIDATION HELPER =====
+// Evaluates context_bundle to determine what data is available
+interface ContextEvaluation {
+  hasContext: boolean;
+  lenses: string[];
+  astrology: {
+    hasPlanets: boolean;
+    hasNodes: boolean;
+    hasHouses: boolean;
+  };
+  profile: {
+    hasName: boolean;
+    hasBirthData: boolean;
+  };
+}
+
+function evaluateContextBundle(context: any): ContextEvaluation {
+  if (!context) {
+    return {
+      hasContext: false,
+      lenses: [],
+      astrology: {
+        hasPlanets: false,
+        hasNodes: false,
+        hasHouses: false,
+      },
+      profile: {
+        hasName: false,
+        hasBirthData: false,
+      },
+    };
+  }
+
+  const lenses = context.lenses || {};
+  const astrology = lenses.astrology || {};
+  const profile = context.profile || {};
+
+  return {
+    hasContext: true,
+    lenses: Object.keys(lenses).filter(k => lenses[k]?.computed),
+    astrology: {
+      hasPlanets: !!(astrology.sun || astrology.moon || astrology.planets),
+      hasNodes: !!(astrology.north_node && astrology.south_node),
+      hasHouses: !!(astrology.houses || astrology.rising),
+    },
+    profile: {
+      hasName: !!profile.name,
+      hasBirthData: !!(profile.birth?.date || profile.birth_date),
+    },
+  };
+}
+
 // Format inferred state for display
 function formatState(state: string): string {
   const labels: Record<string, string> = {
