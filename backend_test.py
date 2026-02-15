@@ -379,40 +379,51 @@ class MirrorChatTester:
         return True
     
     async def run_all_tests(self):
-        """Run all Mirror Chat lens context tests"""
-        print("🧪 MIRROR CHAT LENS CONTEXT TESTING")
+        """Run all Mirror Chat endpoint tests as requested in review"""
+        print("🧪 MIRROR CHAT ENDPOINT TESTING")
         print("=" * 50)
         print(f"Base URL: {BASE_URL}")
-        print(f"Test User ID: {TEST_USER_ID}")
+        print(f"Test Email: {TEST_EMAIL}")
         print()
         
-        # Run tests in order
-        tests = [
-            self.test_mirror_chat_endpoint_availability,
-            self.test_human_design_lens_context,
-            self.test_system_context_verification,
-            self.test_enneagram_lens_context,
-            self.test_emergent_contract_analytics
-        ]
+        # Step 1: Get valid user ID via login
+        print("Step 1: Testing login endpoint...")
+        user_id = await self.test_login_endpoint()
         
-        passed = 0
-        total = len(tests)
+        if not user_id:
+            print("❌ Cannot proceed without valid user ID")
+            return 0, 3, self.results
         
-        for test_func in tests:
-            try:
-                result = await test_func()
-                if result:
-                    passed += 1
-            except Exception as e:
-                self.log_result(test_func.__name__, "ERROR", f"Test failed with exception: {str(e)}")
+        # Step 2: Test Mirror chat with valid user
+        print("Step 2: Testing Mirror chat with valid user...")
+        valid_test_result = await self.test_mirror_chat_valid_user(user_id)
+        
+        # Step 3: Test Mirror chat with invalid user
+        print("Step 3: Testing Mirror chat with invalid user...")
+        invalid_test_result = await self.test_mirror_chat_invalid_user()
+        
+        # Count results
+        passed = sum([
+            1 if user_id else 0,
+            1 if valid_test_result else 0,
+            1 if invalid_test_result else 0
+        ])
+        total = 3
         
         print("=" * 50)
         print(f"📊 TEST SUMMARY: {passed}/{total} PASSED")
         
         if passed == total:
-            print("🎉 ALL TESTS PASSED - Mirror Chat lens context working correctly!")
+            print("🎉 ALL TESTS PASSED - Mirror Chat endpoint working correctly!")
         else:
-            print(f"⚠️  {total - passed} TESTS FAILED - Issues found with lens context")
+            print(f"⚠️  {total - passed} TESTS FAILED - Issues found with Mirror Chat endpoint")
+        
+        # Print detailed results
+        print("\n📋 DETAILED RESULTS:")
+        for result in self.results:
+            status_emoji = "✅" if result["status"] == "PASS" else "❌"
+            print(f"{status_emoji} {result['test']}: {result['status']}")
+            print(f"   {result['details']}")
         
         return passed, total, self.results
 
