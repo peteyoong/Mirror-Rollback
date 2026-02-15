@@ -259,7 +259,7 @@ export default function MirrorChat({
       // Check if we've already triggered for this date (once per day)
       const KEYSTONE_FOLLOWUP_KEY = 'last_keystone_followup_date';
       try {
-        const lastFollowupDate = await storage.getItem(KEYSTONE_FOLLOWUP_KEY);
+        const lastFollowupDate = localStorage?.getItem(KEYSTONE_FOLLOWUP_KEY);
         if (lastFollowupDate === keystoneContext.date) {
           console.log('[MirrorChat] Keystone continuation already triggered today');
           setHasTriggeredKeystone(true);
@@ -274,14 +274,16 @@ export default function MirrorChat({
       setHasTriggeredKeystone(true);
       setIsLoading(true);
       
-      // Add a user message indicating continuation - use store
+      // Add a user message indicating continuation
       const userMessage: ChatMessage = {
         id: `user-keystone-${Date.now()}`,
         role: 'user',
         content: "Continue from today's reflection…",
         timestamp: new Date().toISOString(),
       };
-      await addChatMessage(threadKey, userMessage);
+      const messagesWithUser = [...messages, userMessage];
+      setMessages(messagesWithUser);
+      await saveMessages(userId!, threadKey, messagesWithUser);
       
       try {
         const response = await api.post('/mirror/chat', {
@@ -301,7 +303,9 @@ export default function MirrorChat({
           timestamp: response.data.timestamp || new Date().toISOString(),
         };
         
-        await addChatMessage(threadKey, assistantMessage);
+        const messagesWithAssistant = [...messagesWithUser, assistantMessage];
+        setMessages(messagesWithAssistant);
+        await saveMessages(userId!, threadKey, messagesWithAssistant);
         
         if (response.data.memory_update) {
           setMemoryUpdate(response.data.memory_update);
@@ -313,7 +317,9 @@ export default function MirrorChat({
         }
         
         // Mark this date as followed up
-        await storage.setItem(KEYSTONE_FOLLOWUP_KEY, keystoneContext.date);
+        try {
+          localStorage?.setItem(KEYSTONE_FOLLOWUP_KEY, keystoneContext.date);
+        } catch (e) {}
         console.log('[MirrorChat] Keystone continuation complete');
         
       } catch (error) {
@@ -325,7 +331,9 @@ export default function MirrorChat({
           content: "I'm here with you. What's present right now?",
           timestamp: new Date().toISOString(),
         };
-        await addChatMessage(threadKey, fallbackMessage);
+        const messagesWithFallback = [...messagesWithUser, fallbackMessage];
+        setMessages(messagesWithFallback);
+        await saveMessages(userId!, threadKey, messagesWithFallback);
       } finally {
         setIsLoading(false);
       }
@@ -334,7 +342,7 @@ export default function MirrorChat({
     if (keystoneContext && sessionId && !isLoadingSession && !hasTriggeredKeystone) {
       triggerKeystoneContinuation();
     }
-  }, [keystoneContext, sessionId, isLoadingSession, hasTriggeredKeystone, userId, threadKey]);
+  }, [keystoneContext, sessionId, isLoadingSession, hasTriggeredKeystone, userId, threadKey, messages]);
 
   const toggleMemoryExpanded = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
