@@ -1075,28 +1075,32 @@ export default function MirrorChat({
       {/* Thread Modal */}
       {renderThreadModal()}
 
-      {/* Messages */}
-      <FlatList
-        ref={flatListRef}
-        data={displayMessages}
-        keyExtractor={(item) => item.id}
-        renderItem={renderMessage}
-        contentContainerStyle={[
-          styles.messagesContainer,
-          { paddingBottom: 100 + insets.bottom }
-        ]}
-        showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-        keyboardShouldPersistTaps="always"
-        keyboardDismissMode="on-drag"
-        ListFooterComponent={
-          isLoading ? (
-            <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Reflecting…</Text>
-            </View>
-          ) : null
-        }
-      />
+      {/* Messages - wrapped in TouchableWithoutFeedback for keyboard dismiss */}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={{ flex: 1 }}>
+          <FlatList
+            ref={flatListRef}
+            data={displayMessages}
+            keyExtractor={(item) => item.id}
+            renderItem={renderMessage}
+            contentContainerStyle={[
+              styles.messagesContainer,
+              { paddingBottom: 100 + insets.bottom }
+            ]}
+            showsVerticalScrollIndicator={false}
+            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            ListFooterComponent={
+              isLoading ? (
+                <View style={styles.loadingContainer}>
+                  <Text style={styles.loadingText}>Reflecting…</Text>
+                </View>
+              ) : null
+            }
+          />
+        </View>
+      </TouchableWithoutFeedback>
 
       {/* Input Bar */}
       <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
