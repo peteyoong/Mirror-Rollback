@@ -1000,7 +1000,35 @@ export default function MirrorChat({
 
       {/* Input Bar */}
       <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-        {/* Debug panel (only when ?debug=1) */}
+        {/* Context Debug Panel (only when ?debug=1) */}
+        {isDebugMode && contextDebug && (
+          <View style={styles.contextDebugPanel}>
+            <Text style={styles.contextDebugTitle}>CONTEXT DEBUG</Text>
+            <Text style={styles.contextDebugText}>
+              LENSES: {contextDebug.lenses.length > 0 ? contextDebug.lenses.join(', ') : 'none'}
+            </Text>
+            <Text style={styles.contextDebugText}>
+              ASTRO: planets={String(contextDebug.astrology.hasPlanets)} | nodes={String(contextDebug.astrology.hasNodes)} | houses={String(contextDebug.astrology.hasHouses)}
+            </Text>
+            <Text style={styles.contextDebugText}>
+              PROFILE: name={String(contextDebug.profile.hasName)} | birth={String(contextDebug.profile.hasBirthData)}
+            </Text>
+          </View>
+        )}
+        
+        {/* Context Warning - Partial Astrology (nodes missing) */}
+        {contextDebug?.hasContext &&
+         contextDebug?.astrology?.hasPlanets &&
+         !contextDebug?.astrology?.hasNodes && (
+          <View style={styles.contextWarningBanner}>
+            <Ionicons name="alert-circle-outline" size={14} color="#ffaa00" />
+            <Text style={styles.contextWarningText}>
+              Astrology context partial — lunar nodes missing.
+            </Text>
+          </View>
+        )}
+        
+        {/* API Debug panel (only when ?debug=1) */}
         {isDebugMode && (
           <View style={styles.debugPanel}>
             <Text style={styles.debugTitle}>API Debug</Text>
