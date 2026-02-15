@@ -1,72 +1,35 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { Platform } from 'react-native';
+import { API_BASE_URL } from '../utils/apiBase';
 
-// ============================================
-// SINGLE DETERMINISTIC BACKEND URL
-// NO localhost, NO ngrok, NO window.location, NO fallbacks
-// ============================================
-const PRODUCTION_API_BASE = 'https://mirror-fix.preview.emergentagent.com/api';
+// Re-export for convenience
+export { API_BASE_URL };
 
 // Track if URL is missing for UI display (non-blocking)
 export let API_URL_MISSING = false;
 export let API_URL_ERROR_MESSAGE = '';
 
-/**
- * Get the API base URL.
- * Uses env var if set, otherwise uses the hardcoded production URL.
- */
-export const getApiBaseUrl = (): string => {
-  // Check for explicit env var override
-  const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
-  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
-    const trimmed = envUrl.trim().replace(/\/+$/, '');
-    console.log('[API] ✅ Using EXPO_PUBLIC_API_BASE_URL:', trimmed);
-    API_URL_MISSING = false;
-    return trimmed;
-  }
-  
-  // Use hardcoded production URL
-  console.log('[API] ✅ Using hardcoded production:', PRODUCTION_API_BASE);
-  API_URL_MISSING = false;
-  return PRODUCTION_API_BASE;
-};
-
-// ============================================
-// URL JOINING HELPER - Prevents /api/api bugs
-// ============================================
-/**
- * Safely join a base URL with a path
- */
-export function joinUrl(base: string, path: string): string {
-  const cleanBase = base.replace(/\/+$/, '');
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  return `${cleanBase}${cleanPath}`;
-}
-
-// Resolved once at module load
-export const API_BASE_URL = getApiBaseUrl();
+// Legacy function kept for compatibility - just returns the canonical URL
+export const getApiBaseUrl = (): string => API_BASE_URL;
 
 // Debug log for troubleshooting
 console.log('[API] ══════════════════════════════════');
-console.log('[API] Resolved API_BASE_URL:', API_BASE_URL);
-console.log('[API] API_URL_MISSING:', API_URL_MISSING);
+console.log('[API] API_BASE_URL:', API_BASE_URL);
 console.log('[API] Platform:', Platform.OS);
 console.log('[API] ══════════════════════════════════');
 
+// Create axios instance with /api prefix
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: `${API_BASE_URL}/api`,
   timeout: 120000, // 2 min for slow LLM responses
   headers: {
     'Content-Type': 'application/json',
-    // Bypass LocalTunnel authentication page (required for loca.lt tunnels)
-    'bypass-tunnel-reminder': 'true',
   },
 });
 
 // ============================================
 // RETRY LOGIC FOR NETWORK RESILIENCE
 // ============================================
-// Handles transient failures: DNS issues, connection drops, tunnel restarts
 
 interface RetryConfig {
   maxRetries?: number;
@@ -80,16 +43,8 @@ const DEFAULT_RETRY_CONFIG: Required<RetryConfig> = {
   baseDelayMs: 1000,
   maxDelayMs: 10000,
   retryCondition: (error: AxiosError) => {
-    // Retry on network errors (no response received)
-    if (!error.response) {
-      // This includes: ENOTFOUND (hostname not found), ETIMEDOUT, ECONNREFUSED, etc.
-      return true;
-    }
-    // Retry on 5xx server errors (temporary issues)
-    if (error.response.status >= 500) {
-      return true;
-    }
-    // Don't retry on 4xx client errors
+    if (!error.response) return true;
+    if (error.response.status >= 500) return true;
     return false;
   },
 };
@@ -113,8 +68,6 @@ async function requestWithRetry<T>(
     } catch (error) {
       const axiosError = error as AxiosError;
       lastError = axiosError;
-
-      // Check if we should retry
       const shouldRetry = attempt < maxRetries && retryCondition(axiosError);
 
       if (__DEV__) {
@@ -125,20 +78,12 @@ async function requestWithRetry<T>(
         );
       }
 
-      if (!shouldRetry) {
-        throw error;
-      }
+      if (!shouldRetry) throw error;
 
-      // Exponential backoff with jitter
       const delay = Math.min(
         baseDelayMs * Math.pow(2, attempt) + Math.random() * 500,
         maxDelayMs
       );
-
-      if (__DEV__) {
-        console.log(`[API] Retrying in ${Math.round(delay)}ms...`);
-      }
-
       await sleep(delay);
     }
   }
@@ -164,7 +109,7 @@ const apiWithRetry = {
     requestWithRetry(() => api.patch<T>(url, data, config)),
 };
 
-// Daily Focus API (Context Selector Layer)
+// Daily Focus API
 export interface DailyFocusResponse {
   ambient_line: string;
   context: string | null;
@@ -197,7 +142,6 @@ export const getUser = async (userId: string) => {
   return response.data;
 };
 
-// Login API - for existing users
 export const loginUser = async (email: string) => {
   const response = await apiWithRetry.post('/users/login', { email });
   return response.data;
@@ -278,12 +222,10 @@ export const saveEnneagramResult = async (data: {
       left: number; 
       right: number; 
       diff: number;
-      // Enhanced debug fields
       left_type?: number;
       right_type?: number;
       has_wing_data?: boolean;
     };
-    // Extended debug data (v2 - optional)
     mean_likert?: { [key: string]: number };
     forced_hits?: { [key: string]: number };
     probabilities?: { [key: string]: number };
@@ -305,11 +247,7 @@ export const getEnneagramResult = async (userId: string) => {
   return response.data;
 };
 
-// ============================================
 // P1: DEEP ENNEAGRAM ASSESSMENT API
-// ============================================
-
-// Types for deep assessment
 export interface DeepAssessmentQuestion {
   id: string;
   type: 'forced_choice' | 'likert' | 'ranked';
@@ -393,19 +331,16 @@ export interface DeepAssessmentResult {
   completed_at: string;
 }
 
-// Start a new deep assessment session
 export const startDeepAssessment = async (userId: string): Promise<DeepAssessmentSession> => {
   const response = await apiWithRetry.post(`/enneagram/deep/start/${userId}`);
   return response.data;
 };
 
-// Get existing session state
 export const getDeepAssessmentSession = async (sessionId: string): Promise<DeepAssessmentSession> => {
   const response = await apiWithRetry.get(`/enneagram/deep/session/${sessionId}`);
   return response.data;
 };
 
-// Submit an answer
 export const submitDeepAssessmentAnswer = async (
   sessionId: string,
   questionId: string,
@@ -425,7 +360,6 @@ export const submitDeepAssessmentAnswer = async (
   return result.data;
 };
 
-// Complete the assessment and get results
 export const completeDeepAssessment = async (sessionId: string): Promise<{
   success: boolean;
   already_completed: boolean;
@@ -435,7 +369,6 @@ export const completeDeepAssessment = async (sessionId: string): Promise<{
   return response.data;
 };
 
-// Enneagram Chat API
 export const sendEnneagramChat = async (data: {
   user_id: string;
   message: string;
@@ -453,7 +386,6 @@ export const sendEnneagramChat = async (data: {
   return response.data;
 };
 
-// Enneagram Feedback API
 export const submitEnneagramFeedback = async (data: {
   user_id: string;
   accuracy_feedback: 'yes' | 'mostly' | 'no';
@@ -469,7 +401,7 @@ export const submitEnneagramFeedback = async (data: {
   return response.data;
 };
 
-// Enneagram Q&A API (Knowledge Base)
+// Enneagram Q&A API
 export interface EnneagramAskResponse {
   answer: string;
   citations: Array<{
@@ -583,7 +515,7 @@ export const getEnneagramDeepDive = async (userId: string): Promise<EnneagramDee
   return response.data;
 };
 
-// Enneagram Narrative Engine Types
+// Enneagram Narrative Engine
 export interface EnneagramNarrativeSection {
   id: string;
   label: string;
@@ -605,10 +537,6 @@ export interface EnneagramNarrativeResponse {
   message?: string;
 }
 
-/**
- * Get Enneagram narrative content (layered reflective stories)
- * This is the new Narrative Engine output for the Deep Dive lens
- */
 export const getEnneagramNarrative = async (
   userId: string, 
   forceRefresh: boolean = false
@@ -659,12 +587,7 @@ export const getAllLifeContexts = async (userId: string): Promise<{
   return response.data;
 };
 
-// ============================================
-// P2 ENNEAGRAM DEEP ASSESSMENT (Single-Sitting)
-// ============================================
-// A 20-30 minute reflective assessment using the new
-// multi-stage adaptive question flow (center → core → diff → wing → instinct → consistency)
-
+// P2 ENNEAGRAM DEEP ASSESSMENT
 export interface P2AssessmentQuestion {
   id: string;
   prompt: string;
@@ -694,7 +617,7 @@ export interface P2AssessmentStartResponse {
 
 export interface P2AssessmentAnswer {
   type: 'likert' | 'forced';
-  value: number | string;  // 1-5 for likert, "A"|"B"|"C"|"both"|"neither" for forced
+  value: number | string;
 }
 
 export interface P2AssessmentResult {
@@ -736,9 +659,6 @@ export interface P2AssessmentStatusResponse {
   updated_at_iso: string;
 }
 
-/**
- * Start a new P2 deep assessment session
- */
 export const startP2DeepAssessment = async (userId: string): Promise<P2AssessmentStartResponse> => {
   const response = await apiWithRetry.post('/enneagram/deep-assessment/start', {
     user_id: userId
@@ -746,9 +666,6 @@ export const startP2DeepAssessment = async (userId: string): Promise<P2Assessmen
   return response.data;
 };
 
-/**
- * Submit an answer to the current P2 assessment question
- */
 export const submitP2AssessmentAnswer = async (
   userId: string,
   sessionId: string,
@@ -764,9 +681,6 @@ export const submitP2AssessmentAnswer = async (
   return response.data;
 };
 
-/**
- * Get the status of a P2 assessment session
- */
 export const getP2AssessmentStatus = async (sessionId: string): Promise<P2AssessmentStatusResponse> => {
   const response = await apiWithRetry.get(`/enneagram/deep-assessment/status/${sessionId}`);
   return response.data;
