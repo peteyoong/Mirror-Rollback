@@ -251,6 +251,30 @@ export default function MirrorChat({
   const [threadState, setThreadState] = useState<ThreadState | null>(null);
   const [showThreadModal, setShowThreadModal] = useState(false);
   
+  // ===== DEBUG STATE for API calls (only shown when ?debug=1) =====
+  const [debugInfo, setDebugInfo] = useState<{
+    lastRequestId: string | null;
+    lastUrl: string | null;
+    lastStatus: number | null;
+    lastErr: string | null;
+    lastResponseSnippet: string | null;
+    lastAttemptCount: number;
+  }>({
+    lastRequestId: null,
+    lastUrl: null,
+    lastStatus: null,
+    lastErr: null,
+    lastResponseSnippet: null,
+    lastAttemptCount: 0,
+  });
+  
+  // Ephemeral error message (not persisted)
+  const [ephemeralError, setEphemeralError] = useState<string | null>(null);
+  
+  // Check for debug mode from URL params
+  const searchParams = useLocalSearchParams<{ debug?: string }>();
+  const isDebugMode = searchParams.debug === '1';
+  
   const flatListRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
   const insets = useSafeAreaInsets();
