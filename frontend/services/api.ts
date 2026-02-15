@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 // SINGLE DETERMINISTIC BACKEND URL
 // NO localhost, NO ngrok, NO window.location, NO fallbacks
 // ============================================
-const PRODUCTION_API_BASE = 'https://pulsifi.stage-preview.emergentagent.com/api';
+const PRODUCTION_API_BASE = 'https://mirror-fix.preview.emergentagent.com/api';
 
 // Track if URL is missing for UI display (non-blocking)
 export let API_URL_MISSING = false;
