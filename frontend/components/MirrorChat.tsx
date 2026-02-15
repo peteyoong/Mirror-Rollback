@@ -15,6 +15,7 @@ import {
   Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLocalSearchParams } from 'expo-router';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
@@ -24,6 +25,106 @@ import { loadMessages, saveMessages, DEFAULT_THREAD_KEY } from '../utils/chatPer
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+// ===== API CALL HELPER WITH RETRY =====
+interface ApiCallResult {
+  ok: boolean;
+  status: number | null;
+  text: string | null;
+  json: any | null;
+  err: string | null;
+  attempts: number;
+}
+
+const RETRY_DELAYS = [500, 1500]; // Exponential backoff delays
+const RETRYABLE_STATUSES = [0, 502, 503, 504];
+const REQUEST_TIMEOUT = 20000; // 20 seconds
+
+async function callMirrorChatApi(
+  payload: any,
+  signal?: AbortSignal
+): Promise<ApiCallResult> {
+  let attempts = 0;
+  let lastError: string | null = null;
+  let lastStatus: number | null = null;
+  let lastText: string | null = null;
+  
+  const maxAttempts = RETRY_DELAYS.length + 1;
+  
+  while (attempts < maxAttempts) {
+    attempts++;
+    
+    try {
+      const response = await api.post('/mirror/chat', payload, { signal });
+      
+      // Success
+      return {
+        ok: true,
+        status: response.status || 200,
+        text: null,
+        json: response.data,
+        err: null,
+        attempts,
+      };
+    } catch (error: any) {
+      // Determine if retryable
+      const status = error.response?.status || 0;
+      lastStatus = status;
+      lastError = error.message || 'Unknown error';
+      
+      // Try to get response text
+      if (error.response?.data) {
+        lastText = typeof error.response.data === 'string'
+          ? error.response.data.substring(0, 300)
+          : JSON.stringify(error.response.data).substring(0, 300);
+      }
+      
+      // Check if abort was triggered
+      if (error.name === 'AbortError' || error.code === 'ECONNABORTED' || signal?.aborted) {
+        return {
+          ok: false,
+          status: null,
+          text: null,
+          json: null,
+          err: 'Request timed out',
+          attempts,
+        };
+      }
+      
+      // Check if retryable
+      const isRetryable = RETRYABLE_STATUSES.includes(status) || 
+        error.code === 'ECONNREFUSED' ||
+        error.message?.includes('Network Error');
+      
+      if (isRetryable && attempts < maxAttempts) {
+        const delay = RETRY_DELAYS[attempts - 1];
+        console.log(`[MirrorChat] Retry ${attempts}/${maxAttempts} after ${delay}ms (status=${status})`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      
+      // Non-retryable error or max retries reached
+      return {
+        ok: false,
+        status: lastStatus,
+        text: lastText,
+        json: null,
+        err: lastError,
+        attempts,
+      };
+    }
+  }
+  
+  // Should not reach here
+  return {
+    ok: false,
+    status: lastStatus,
+    text: lastText,
+    json: null,
+    err: lastError || 'Max retries exceeded',
+    attempts,
+  };
 }
 
 interface Message {
