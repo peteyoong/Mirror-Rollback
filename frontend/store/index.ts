@@ -5,6 +5,18 @@ import { getChart, getUser } from '../services/api';
 import { getStableUserId, assertUserIdStable, maskUserId } from '../utils/stableUserId';
 
 // ============================================================================
+// GLOBAL SET() LOGGER - TEMPORARY FOR DEBUGGING
+// ============================================================================
+let __SET_COUNT = 0;
+const logSet = (actionName: string) => {
+  __SET_COUNT++;
+  console.log(`[ZUSTAND set] #${__SET_COUNT} ${actionName}`);
+  if (__SET_COUNT > 50) {
+    console.error('[ZUSTAND] SET COUNT > 50 - POSSIBLE INFINITE LOOP!');
+  }
+};
+
+// ============================================================================
 // SESSION RESTORE - Simple module-level flag (no globalThis hacks)
 // ============================================================================
 let _sessionRestoreStarted = false;
