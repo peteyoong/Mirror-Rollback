@@ -404,6 +404,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
+  retryButton: {
+    marginTop: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255, 107, 107, 0.2)',
+    borderRadius: 6,
+    alignSelf: 'center',
+  },
+  retryButtonText: {
+    color: '#ff6b6b',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  apiDebugText: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    marginBottom: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
   textButton: {
     paddingVertical: 12,
     alignItems: 'center',
