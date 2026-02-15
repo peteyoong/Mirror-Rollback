@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   mirrorPromptCard: {
-    backgroundColor: '#FDFCFA',
+    backgroundColor: Colors.surfaceLight,
     borderRadius: 12,
     padding: 20,
     marginTop: 8,
