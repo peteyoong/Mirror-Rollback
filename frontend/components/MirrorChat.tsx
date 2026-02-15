@@ -1236,6 +1236,12 @@ const styles = StyleSheet.create({
     color: Colors.text,
     letterSpacing: -0.3,
   },
+  debugTapIndicator: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: Colors.textTertiary,
+    opacity: 0.6,
+  },
   headerSubtitle: {
     fontSize: 13,
     color: Colors.textTertiary,
