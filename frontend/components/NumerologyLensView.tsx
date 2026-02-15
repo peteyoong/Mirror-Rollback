@@ -186,9 +186,7 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
     
     const checkHealth = async () => {
       try {
-        const healthUrl = BACKEND_BASE_URL 
-          ? `${BACKEND_BASE_URL}/api/health`
-          : `/api/health`;
+        const healthUrl = `${API_BASE_URL}/health`;
         
         console.log('[DEBUG_MIRROR] Checking backend health:', healthUrl);
         
