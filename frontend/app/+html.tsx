@@ -3,8 +3,8 @@ import type { PropsWithChildren } from 'react';
 
 // BUILD_ID must be updated on every deploy for cache verification
 // MUST MATCH /app/frontend/utils/buildInfo.ts
-const BUILD_ID = '2026-02-12T11:00:00Z';
-const BUILD_VERSION = 'v17-cache-bust';
+const BUILD_ID = '2026-02-15T15:45:00Z';
+const BUILD_VERSION = 'v18-cache-bust';
 
 // Generate a cache-bust suffix for asset URLs
 const CACHE_BUST = `?v=${BUILD_ID.replace(/[^a-zA-Z0-9]/g, '')}`;
