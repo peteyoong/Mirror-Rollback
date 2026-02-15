@@ -167,7 +167,7 @@ export default function WelcomeGate() {
                 {/* Debug: Show API base URL */}
                 {isDebugMode && (
                   <Text style={styles.apiDebugText}>
-                    API: {apiBaseUrl}
+                    API: {API_BASE_URL}
                   </Text>
                 )}
                 
