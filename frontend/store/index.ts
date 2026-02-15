@@ -209,6 +209,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   sessionRestoreError: null,
   
   setUser: async (user) => {
+    logSet('setUser');
     set({ user });
     // Persist user ID for session restore
     await storage.setItem(SESSION_USER_ID_KEY, user.id);
@@ -216,15 +217,18 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   setChart: async (chart) => {
+    logSet('setChart');
     set({ chart });
     await storage.setItem('chart', JSON.stringify(chart));
   },
   
   setDailyReflection: (reflection) => {
+    logSet('setDailyReflection');
     set({ dailyReflection: reflection });
   },
   
   setJournalEntries: (entries) => {
+    logSet('setJournalEntries');
     set({ journalEntries: entries });
   },
   
