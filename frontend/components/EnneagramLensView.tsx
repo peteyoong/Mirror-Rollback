@@ -50,12 +50,15 @@ const getUrlDebugParam = (): boolean => {
 
 const APP_ENV = process.env.NODE_ENV || 'unknown';
 
-// Get effective API base URL
+// === SIMPLIFIED: Single deterministic backend URL ===
+const PRODUCTION_BACKEND_BASE = 'https://pulsifi.stage-preview.emergentagent.com';
+
 const getEffectiveApiUrl = (): string => {
   const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-  if (envUrl) return envUrl;
-  if (Platform.OS === 'web') return window.location.origin;
-  return 'http://localhost:8001';
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+  return PRODUCTION_BACKEND_BASE;
 };
 
 // ============================================
