@@ -227,7 +227,7 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
           numerology_full_name: serverProfile.numerology_full_name,
           updated_at: serverProfile.updated_at,
           exists: serverProfile.exists,
-          backend_base_url: API_BASE_URL || '(relative)'
+          api_base_url: API_BASE_URL
         });
       }
     } catch (err) {
@@ -887,7 +887,7 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
                 rawDataLength={rawDataLength}
                 debugStamp={data.debug_stamp}
                 extraDebug={{
-                  backend_base_url: API_BASE_URL || '(relative)',
+                  api_base_url: API_BASE_URL,
                   backend_health_ok: backendHealthOk === null ? 'checking...' : backendHealthOk ? 'YES' : 'NO',
                   prop_user_id: maskUserId(userId),
                   stable_user_id: maskUserId(stableUserId),
