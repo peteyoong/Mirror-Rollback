@@ -140,9 +140,12 @@ export default function JournalScreen() {
 
   // Handle prefill from lens screens (e.g., Enneagram journal prompt)
   useEffect(() => {
-    if (params.prefill && !prefillAppliedRef.current && !newEntry.trim()) {
+    // Safely decode prefill param (could be array or string)
+    const prefillText = typeof params.prefill === 'string' ? params.prefill : '';
+    
+    if (prefillText && !prefillAppliedRef.current && !newEntry.trim()) {
       console.log('[JournalScreen] Applying prefill from:', params.source);
-      setNewEntry(params.prefill);
+      setNewEntry(prefillText);
       prefillAppliedRef.current = true;
       // Auto-focus the input after a brief delay
       setTimeout(() => {
