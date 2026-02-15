@@ -112,6 +112,9 @@ function formatState(state: string): string {
 // ===== ISOLATION FLAG: Set to true to disable chat persistence and stop crash =====
 const DISABLE_CHAT_PERSISTENCE = true;  // TEMPORARY: Toggle to isolate loop source
 
+// Stable empty array to avoid new reference on each render
+const EMPTY_MESSAGES: Message[] = [];
+
 export default function MirrorChat({
   userId,
   lens = null,
@@ -126,8 +129,12 @@ export default function MirrorChat({
   const threadKey = lens ? `mirror:${lens}` : 'mirror:home';
   const storageKey = userId ? `${userId}:${threadKey}` : null;
   
-  // Get messages from store - use stable selector with null-safety
-  const storeMessages = useAppStore(s => (storageKey ? (s.chatMessages?.[storageKey] ?? []) : []));
+  // Get messages from store - use stable selector with null-safety and stable empty ref
+  const storeMessages = useAppStore(s => {
+    if (!storageKey) return EMPTY_MESSAGES;
+    const msgs = s.chatMessages?.[storageKey];
+    return msgs && msgs.length > 0 ? msgs : EMPTY_MESSAGES;
+  });
   const loadChatMessages = useAppStore(s => s.loadChatMessages);
   const addChatMessage = useAppStore(s => s.addChatMessage);
   
