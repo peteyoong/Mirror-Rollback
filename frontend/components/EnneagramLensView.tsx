@@ -1841,8 +1841,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const renderDebugWatermark = () => {
     if (!isDebugMode) return null;
     
-    const apiBaseUrl = getApiBaseUrl();
-    const deepDiveEndpoint = `${apiBaseUrl}/api/enneagram/deep-dive/${userId}`;
+    const deepDiveEndpoint = `${API_BASE_URL}/api/enneagram/deep-dive/${userId}`;
     
     return (
       <View style={styles.debugWatermark}>
@@ -1855,7 +1854,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         <Text style={styles.debugWatermarkValue}>{BUILD_VERSION}</Text>
         
         <Text style={styles.debugWatermarkLabel}>API_BASE_URL:</Text>
-        <Text style={styles.debugWatermarkValue}>{apiBaseUrl}</Text>
+        <Text style={styles.debugWatermarkValue}>{API_BASE_URL}</Text>
         
         <Text style={styles.debugWatermarkLabel}>ENNEAGRAM_DEEP_DIVE_ENDPOINT:</Text>
         <Text style={styles.debugWatermarkValue}>{deepDiveEndpoint}</Text>
