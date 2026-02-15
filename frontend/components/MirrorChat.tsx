@@ -204,50 +204,95 @@ function formatTime(date: Date): string {
 // Evaluates context_bundle to determine what data is available
 interface ContextEvaluation {
   hasContext: boolean;
-  lenses: string[];
-  astrology: {
-    hasPlanets: boolean;
-    hasNodes: boolean;
-    hasHouses: boolean;
+  contextBytes: number;
+  lenses: {
+    astrology: boolean;
+    human_design: boolean;
+    numerology: boolean;
+    enneagram: boolean;
+  };
+  astro: {
+    planets: boolean;
+    nodes: boolean;
+    houses: boolean;
   };
   profile: {
-    hasName: boolean;
-    hasBirthData: boolean;
+    name: boolean;
+    birth: boolean;
   };
 }
 
 function evaluateContextBundle(context: any): ContextEvaluation {
-  if (!context) {
-    return {
-      hasContext: false,
-      lenses: [],
-      astrology: {
-        hasPlanets: false,
-        hasNodes: false,
-        hasHouses: false,
-      },
-      profile: {
-        hasName: false,
-        hasBirthData: false,
-      },
-    };
-  }
+  const empty: ContextEvaluation = {
+    hasContext: false,
+    contextBytes: 0,
+    lenses: {
+      astrology: false,
+      human_design: false,
+      numerology: false,
+      enneagram: false,
+    },
+    astro: {
+      planets: false,
+      nodes: false,
+      houses: false,
+    },
+    profile: {
+      name: false,
+      birth: false,
+    },
+  };
+
+  if (!context) return empty;
 
   const lenses = context.lenses || {};
   const astrology = lenses.astrology || {};
+  const humanDesign = lenses.human_design || {};
+  const numerology = lenses.numerology || {};
+  const enneagram = lenses.enneagram || {};
   const profile = context.profile || {};
+
+  // Check for planets (any of the major planets)
+  const planetKeys = ['sun', 'moon', 'ascendant', 'rising', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto'];
+  const hasPlanets = planetKeys.some(k => astrology[k]?.sign || astrology[k]?.formatted);
+
+  // Check for nodes
+  const hasNodes = !!(astrology.north_node?.sign && astrology.south_node?.sign);
+
+  // Check for houses (house placements on planets or explicit houses object)
+  const hasHouses = !!(
+    astrology.houses || 
+    astrology.rising?.sign || 
+    astrology.sun?.house || 
+    astrology.moon?.house
+  );
+
+  // Check profile
+  const hasName = !!profile.name;
+  const hasBirth = !!(
+    profile.birth_date || 
+    profile.birth?.date || 
+    (profile.birth_place && profile.birth_time) ||
+    (profile.birth?.place && profile.birth?.time)
+  );
 
   return {
     hasContext: true,
-    lenses: Object.keys(lenses).filter(k => lenses[k]?.computed),
-    astrology: {
-      hasPlanets: !!(astrology.sun || astrology.moon || astrology.planets),
-      hasNodes: !!(astrology.north_node && astrology.south_node),
-      hasHouses: !!(astrology.houses || astrology.rising),
+    contextBytes: JSON.stringify(context).length,
+    lenses: {
+      astrology: !!astrology.computed || hasPlanets,
+      human_design: !!humanDesign.computed || !!humanDesign.type,
+      numerology: !!numerology.computed || !!numerology.life_path,
+      enneagram: !!enneagram.computed || !!enneagram.core_type,
+    },
+    astro: {
+      planets: hasPlanets,
+      nodes: hasNodes,
+      houses: hasHouses,
     },
     profile: {
-      hasName: !!profile.name,
-      hasBirthData: !!(profile.birth?.date || profile.birth_date),
+      name: hasName,
+      birth: hasBirth,
     },
   };
 }
