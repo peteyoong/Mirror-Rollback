@@ -29,7 +29,7 @@ import {
 import { buildJournalPrefill, goToJournalWithPrefill, LENS_CONTINUATIONS } from '../utils/journalPrefill';
 
 // === SIMPLIFIED: Single deterministic backend URL ===
-const PRODUCTION_BACKEND_BASE = 'https://pulsifi.stage-preview.emergentagent.com';
+const PRODUCTION_BACKEND_BASE = 'https://mirror-fix.preview.emergentagent.com';
 
 function getBackendBaseUrl(): string {
   // Check for explicit env var override
