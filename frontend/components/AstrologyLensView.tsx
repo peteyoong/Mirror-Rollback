@@ -60,6 +60,9 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
   const [showChartModal, setShowChartModal] = useState(false);
   const [isRecomputing, setIsRecomputing] = useState(false);
   
+  // Router for navigation
+  const router = useRouter();
+  
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
   
