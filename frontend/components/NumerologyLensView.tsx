@@ -211,7 +211,7 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
     setProfileLoading(true);
     try {
       const profileUrl = `${API_BASE_URL}/profile/${userId}`
-        : `/api/profile/${userId}`;
+;
       
       if (isDebugEnabled()) {
         console.log('[DEBUG_MIRROR] Fetching profile from:', profileUrl);
@@ -559,7 +559,7 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
       const unlockUrl = `${API_BASE_URL}/numerology/unlock-name/${userId}`
         : `/api/numerology/unlock-name/${userId}`;
       const profileUrl = `${API_BASE_URL}/profile/${userId}`
-        : `/api/profile/${userId}`;
+;
       
       if (isDebugEnabled()) {
         console.log('[DEBUG_MIRROR] Step 1: POST unlock-name to:', unlockUrl);
