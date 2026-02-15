@@ -4768,20 +4768,24 @@ async def mirror_chat(request: MirrorChatRequest):
                 if venus:
                     context_parts.append(f"Venus: {venus.get('formatted', venus.get('sign', 'Unknown'))}")
                 
-                # Other planets for astrology lens
+                # Lunar Nodes - ALWAYS include (important for soul purpose / karmic questions)
+                north_node = astro.get('north_node', {})
+                south_node = astro.get('south_node', {})
+                if north_node.get('sign'):
+                    nn_house = north_node.get('house')
+                    nn_formatted = north_node.get('formatted', north_node.get('sign'))
+                    context_parts.append(f"North Node: {nn_formatted}" + (f" (House {nn_house})" if nn_house else ""))
+                if south_node.get('sign'):
+                    sn_house = south_node.get('house')
+                    sn_formatted = south_node.get('formatted', south_node.get('sign'))
+                    context_parts.append(f"South Node: {sn_formatted}" + (f" (House {sn_house})" if sn_house else ""))
+                
+                # Other planets for astrology lens only
                 if request.lens == "astrology":
                     for planet_name in ['mercury', 'jupiter', 'saturn']:
                         planet = astro.get(planet_name, {})
                         if planet:
                             context_parts.append(f"{planet_name.capitalize()}: {planet.get('formatted', planet.get('sign', 'Unknown'))}")
-                    
-                    # Lunar Nodes
-                    north_node = astro.get('north_node', {})
-                    south_node = astro.get('south_node', {})
-                    if north_node.get('sign'):
-                        context_parts.append(f"North Node: {north_node.get('formatted', north_node.get('sign'))}")
-                    if south_node.get('sign'):
-                        context_parts.append(f"South Node: {south_node.get('formatted', south_node.get('sign'))}")
             elif astro.get('missing_reason'):
                 context_parts.append(f"\n--- ASTROLOGY ---")
                 context_parts.append(f"[Not computed: {astro.get('missing_reason')}]")
