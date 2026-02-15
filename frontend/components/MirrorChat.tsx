@@ -890,6 +890,32 @@ export default function MirrorChat({
 
       {/* Input Bar */}
       <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        {/* Debug panel (only when ?debug=1) */}
+        {isDebugMode && (
+          <View style={styles.debugPanel}>
+            <Text style={styles.debugTitle}>API Debug</Text>
+            <Text style={styles.debugText}>
+              req: {debugInfo.lastRequestId || 'none'}{'\n'}
+              url: {debugInfo.lastUrl || 'none'}{'\n'}
+              status: {debugInfo.lastStatus ?? 'pending'}{'\n'}
+              attempts: {debugInfo.lastAttemptCount}{'\n'}
+              err: {debugInfo.lastErr || 'none'}{'\n'}
+              resp: {debugInfo.lastResponseSnippet || 'none'}
+            </Text>
+          </View>
+        )}
+        
+        {/* Ephemeral error banner (not persisted) */}
+        {ephemeralError && (
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle" size={16} color="#fff" />
+            <Text style={styles.errorBannerText}>{ephemeralError}</Text>
+            <Pressable onPress={() => setEphemeralError(null)} hitSlop={8}>
+              <Ionicons name="close" size={16} color="#fff" />
+            </Pressable>
+          </View>
+        )}
+        
         {/* Transparency line (only in generalist Mirror Chat, not lens modals) */}
         {!lens && (
           <Text style={styles.transparencyLine}>
