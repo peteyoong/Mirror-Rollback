@@ -842,9 +842,21 @@ export default function MirrorChat({
             Mirror reflects patterns from what you share. Nothing here predicts your future.
           </Text>
         )}
-        <View style={[styles.inputContainer, { pointerEvents: 'auto', zIndex: 99999, position: 'relative' }]}>
+        {/* Input container with tap-to-focus wrapper */}
+        <Pressable
+          onPress={() => {
+            console.log('[MirrorChat] Input wrapper tapped - calling focus()');
+            inputRef.current?.focus();
+          }}
+          onPressIn={() => {
+            console.log('[MirrorChat] Input wrapper onPressIn');
+            setLastTouchAt(new Date().toLocaleTimeString());
+          }}
+          style={[styles.inputContainer, { pointerEvents: 'auto', zIndex: 99999, position: 'relative' }]}
+        >
           <TextInput
-            style={styles.input}
+            ref={inputRef}
+            style={[styles.input, { pointerEvents: 'auto' }]}
             value={inputText}
             onChangeText={setInputText}
             placeholder={placeholder}
@@ -854,6 +866,22 @@ export default function MirrorChat({
             editable={!isLoading}
             returnKeyType="send"
             blurOnSubmit={false}
+            showSoftInputOnFocus={true}
+            autoCorrect={false}
+            onFocus={() => {
+              console.log('[MirrorChat] TextInput onFocus');
+              setFocusCount(prev => prev + 1);
+              setLastFocusAt(new Date().toLocaleTimeString());
+            }}
+            onBlur={() => {
+              console.log('[MirrorChat] TextInput onBlur');
+              setBlurCount(prev => prev + 1);
+              setLastBlurAt(new Date().toLocaleTimeString());
+            }}
+            onTouchStart={() => {
+              console.log('[MirrorChat] TextInput onTouchStart');
+              setLastTouchAt(new Date().toLocaleTimeString());
+            }}
             onSubmitEditing={() => {
               if (canSend) {
                 handleSendPress();
@@ -872,7 +900,15 @@ export default function MirrorChat({
               color={canSend ? Colors.surface : Colors.textTertiary} 
             />
           </Pressable>
-        </View>
+        </Pressable>
+        {/* Focus debug display (only when ?debug=1) */}
+        {isDebugMode && (
+          <View style={styles.debugDisplay}>
+            <Text style={styles.debugText}>
+              FOCUS={focusCount} BLUR={blurCount} touch={lastTouchAt || 'none'} focusAt={lastFocusAt || 'none'} blurAt={lastBlurAt || 'none'}
+            </Text>
+          </View>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
