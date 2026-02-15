@@ -9,9 +9,6 @@ export { API_BASE_URL };
 export let API_URL_MISSING = false;
 export let API_URL_ERROR_MESSAGE = '';
 
-// Legacy function kept for compatibility - just returns the canonical URL
-export const getApiBaseUrl = (): string => API_BASE_URL;
-
 // Debug log for troubleshooting
 console.log('[API] ══════════════════════════════════');
 console.log('[API] API_BASE_URL:', API_BASE_URL);
