@@ -17,14 +17,30 @@ const validateAbsoluteUrl = (url: string): boolean => {
   return url.startsWith('http://') || url.startsWith('https://');
 };
 
+// Helper to detect Emergent preview hosts (which don't have /api routes)
+const isEmergentPreviewHost = (url: string): boolean => {
+  return url.includes('preview.emergentagent.com') || url.includes('emergent.host');
+};
+
 // Safely derive API URL with multiple fallbacks
 export const getApiBaseUrl = (): string => {
-  // Priority 1 (WEB): Derive from window.location.origin - FIRST for web preview
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    const origin = window.location?.origin;
-    if (origin && origin !== 'null' && validateAbsoluteUrl(origin)) {
-      const derived = `${origin}/api`;
-      console.log('[API] ✅ Derived from window.location.origin:', derived);
+  // Check for web environment
+  const isWeb = Platform.OS === 'web' && typeof window !== 'undefined';
+  const origin = isWeb ? window.location?.origin : '';
+  
+  // Detect if we're in an Emergent preview (frontend-only host)
+  const isEmergentPreview = origin && isEmergentPreviewHost(origin);
+  
+  // Priority 1: EXPO_PUBLIC_BACKEND_URL (explicit backend URL - preferred for Emergent previews)
+  const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
+  if (backendUrl && typeof backendUrl === 'string' && backendUrl.trim().length > 0) {
+    const trimmed = backendUrl.trim().replace(/\/+$/, ''); // Remove trailing slashes
+    if (validateAbsoluteUrl(trimmed) && !trimmed.includes('loca.lt')) {
+      const derived = `${trimmed}/api`;
+      console.log('[API] ✅ Using EXPO_PUBLIC_BACKEND_URL:', derived);
+      if (__DEV__) {
+        console.log('[API] 🔍 DEBUG: origin=' + origin + ', isEmergentPreview=' + isEmergentPreview);
+      }
       API_URL_MISSING = false;
       return derived;
     }
@@ -42,16 +58,12 @@ export const getApiBaseUrl = (): string => {
     }
   }
   
-  // Priority 3: Derive from EXPO_PUBLIC_BACKEND_URL + /api
-  const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-  if (backendUrl && typeof backendUrl === 'string' && backendUrl.trim().length > 0) {
-    const trimmed = backendUrl.trim().replace(/\/+$/, ''); // Remove trailing slashes
-    if (validateAbsoluteUrl(trimmed)) {
-      const derived = `${trimmed}/api`;
-      console.log('[API] ✅ Derived from EXPO_PUBLIC_BACKEND_URL:', derived);
-      API_URL_MISSING = false;
-      return derived;
-    }
+  // Priority 3 (WEB ONLY): Use window.location.origin ONLY if NOT an Emergent preview
+  if (isWeb && origin && origin !== 'null' && validateAbsoluteUrl(origin) && !isEmergentPreview) {
+    const derived = `${origin}/api`;
+    console.log('[API] ✅ Using window.location.origin (non-preview):', derived);
+    API_URL_MISSING = false;
+    return derived;
   }
   
   // Priority 4: expo-constants extra config
