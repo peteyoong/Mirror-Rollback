@@ -907,6 +907,16 @@ export default function MirrorChat({
             <Text style={styles.debugText}>
               FOCUS={focusCount} BLUR={blurCount} touch={lastTouchAt || 'none'} focusAt={lastFocusAt || 'none'} blurAt={lastBlurAt || 'none'}
             </Text>
+            {/* Debug focus button for iOS testing */}
+            <Pressable 
+              onPress={() => {
+                console.log('[MirrorChat] DEBUG: Manual focus button pressed');
+                inputRef.current?.focus();
+              }}
+              style={{ backgroundColor: '#4ade80', padding: 8, borderRadius: 4, marginTop: 4 }}
+            >
+              <Text style={{ color: '#000', fontSize: 12, fontWeight: '600', textAlign: 'center' }}>TAP TO FOCUS INPUT</Text>
+            </Pressable>
           </View>
         )}
       </View>
