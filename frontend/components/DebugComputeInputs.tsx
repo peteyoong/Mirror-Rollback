@@ -73,9 +73,7 @@ export default function DebugComputeInputs({ userId }: Props) {
     
     try {
       // Fetch user data from API
-      const userUrl = BACKEND_BASE_URL 
-        ? `${BACKEND_BASE_URL}/api/users/${userId}`
-        : `/api/users/${userId}`;
+      const userUrl = `${API_BASE_URL}/api/users/${userId}`;
       
       console.log('[DEBUG_MIRROR] Fetching compute inputs from:', userUrl);
       
