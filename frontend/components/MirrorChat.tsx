@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
-import api, { getApiBaseUrl } from '../services/api';
+import api, { API_BASE_URL } from '../services/api';
 import { useAppStore, ChatMessage, storage, CHAT_SESSION_KEYS } from '../store';
 import { loadMessages, saveMessages, DEFAULT_THREAD_KEY } from '../utils/chatPersistence';
 
