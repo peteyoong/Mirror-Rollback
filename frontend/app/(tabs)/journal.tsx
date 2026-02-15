@@ -104,7 +104,13 @@ interface KeystoneContext {
 type ViewMode = 'journal' | 'mirror' | 'timeline';
 
 export default function JournalScreen() {
-  const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
+  // Use individual selectors to prevent unnecessary re-renders
+  const user = useAppStore(s => s.user);
+  const chart = useAppStore(s => s.chart);
+  const journalEntries = useAppStore(s => s.journalEntries ?? []);
+  const setJournalEntries = useAppStore(s => s.setJournalEntries);
+  const addJournalEntry = useAppStore(s => s.addJournalEntry);
+  
   const params = useLocalSearchParams<{ view?: string; fromKeystone?: string }>();
   const [viewMode, setViewMode] = useState<ViewMode>('journal');
   const [newEntry, setNewEntry] = useState('');
