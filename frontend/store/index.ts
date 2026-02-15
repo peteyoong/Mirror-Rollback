@@ -490,7 +490,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   // Session restore: fetch user/chart from API using persisted userId
-  // SIMPLE APPROACH: module-level flag, no globalThis hacks
+  // TEMPORARY NO-OP FOR DEBUGGING - REMOVE WHEN LOOP IS FOUND
+  restoreSession: async () => {
+    console.log('[restoreSession] NO-OP - DISABLED FOR DEBUGGING');
+    logSet('restoreSession-NOOP');
+    set({ hasTriedSessionRestore: true, isRestoringSession: false });
+    return false;
+  },
+  
+  /* ORIGINAL restoreSession - COMMENTED OUT FOR DEBUGGING
   restoreSession: async () => {
     // Guard: Only run once per app lifecycle
     if (_sessionRestoreStarted) {
@@ -504,11 +512,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     // If already have user and chart, just mark as tried
     if (user && chart) {
       console.log('[SessionRestore] Already have user and chart');
+      logSet('restoreSession-already-have');
       set({ hasTriedSessionRestore: true, isRestoringSession: false });
       return true;
     }
     
     console.log('[SessionRestore] Starting...');
+    logSet('restoreSession-start');
     set({ isRestoringSession: true, sessionRestoreError: null });
     
     try {
