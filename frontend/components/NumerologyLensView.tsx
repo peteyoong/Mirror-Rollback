@@ -139,6 +139,9 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
   const [error, setError] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   
+  // Router for navigation
+  const router = useRouter();
+  
   // === CANONICAL PROFILE STATE (single source of truth) ===
   // This is the ONLY state for the user's numerology name - driven entirely by server
   const [profile, setProfile] = useState<UserProfile | null>(null);
