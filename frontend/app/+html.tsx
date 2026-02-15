@@ -3,8 +3,11 @@ import type { PropsWithChildren } from 'react';
 
 // BUILD_ID must be updated on every deploy for cache verification
 // MUST MATCH /app/frontend/utils/buildInfo.ts
-const BUILD_ID = '2026-02-15T17:00:00Z';
-const BUILD_VERSION = 'v21-pre-react-watermark';
+const BUILD_ID = '2026-02-15T17:30:00Z';
+const BUILD_VERSION = 'v22-path-namespace';
+
+// Build namespace path - each deploy gets a unique path
+const BUILD_PATH = `/_b/${BUILD_ID.replace(/[^a-zA-Z0-9-]/g, '-')}`;
 
 // Generate a cache-bust suffix for asset URLs
 const CACHE_BUST = `?v=${BUILD_ID.replace(/[^a-zA-Z0-9]/g, '')}`;
@@ -19,6 +22,9 @@ export default function Root({ children }: PropsWithChildren) {
       <head>
         <meta charSet="utf-8" />
         
+        {/* Base href for SPA routing with build namespace */}
+        <base href={`${BUILD_PATH}/`} />
+        
         {/* BUILD marker in page title */}
         <title>Mirror • BUILD {BUILD_ID}</title>
         
@@ -32,6 +38,37 @@ export default function Root({ children }: PropsWithChildren) {
         {/* BUILD_ID in meta tag for verification */}
         <meta name="build-id" content={BUILD_ID} />
         <meta name="build-version" content={BUILD_VERSION} />
+        <meta name="build-path" content={BUILD_PATH} />
+        
+        {/* ============================================
+            PATH-BASED BUILD NAMESPACE REDIRECT
+            Forces URL to include build-specific path prefix
+            This runs FIRST, before anything else
+            ============================================ */}
+        <script dangerouslySetInnerHTML={{ __html: `
+(function() {
+  try {
+    var BUILD_ID = "${BUILD_ID}";
+    var BUILD_PATH = "${BUILD_PATH}";
+    var path = location.pathname;
+    
+    console.log("[BUILD-PATH] Current path:", path);
+    console.log("[BUILD-PATH] Expected prefix:", BUILD_PATH);
+    
+    // Check if we're already on the correct build path
+    if (!path.startsWith(BUILD_PATH)) {
+      // Not on build path - redirect to it
+      var newPath = BUILD_PATH + path;
+      var newUrl = newPath + location.search + location.hash;
+      console.log("[BUILD-PATH] Redirecting to:", newUrl);
+      location.replace(newUrl);
+      return; // Stop execution
+    }
+    
+    console.log("[BUILD-PATH] Already on correct build path");
+  } catch(e) { console.log("[BUILD-PATH] Error:", e); }
+})();
+        `}} />
         
         {/* ============================================
             PRE-REACT BUILD WATERMARK
@@ -42,6 +79,7 @@ export default function Root({ children }: PropsWithChildren) {
   try {
     var BUILD_ID = "${BUILD_ID}";
     var BUILD_VERSION = "${BUILD_VERSION}";
+    var BUILD_PATH = "${BUILD_PATH}";
     
     // Create watermark element
     var watermark = document.createElement('div');
