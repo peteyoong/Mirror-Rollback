@@ -4882,6 +4882,14 @@ async def mirror_chat(request: MirrorChatRequest):
                 context_parts.append(f"Moon: {moon.get('formatted', 'Unknown')} ({moon.get('sign', 'Unknown')})")
                 context_parts.append(f"Rising: {rising.get('formatted', 'Unknown')} ({rising.get('sign', 'Unknown')})")
                 
+                # Always include Venus and Mars (important for relationship/energy questions)
+                venus = planets.get('Venus', {})
+                mars = planets.get('Mars', {})
+                if venus.get('sign'):
+                    context_parts.append(f"Venus: {venus.get('formatted', 'Unknown')} ({venus.get('sign', 'Unknown')})")
+                if mars.get('sign'):
+                    context_parts.append(f"Mars: {mars.get('formatted', 'Unknown')} ({mars.get('sign', 'Unknown')})")
+                
                 # Add other planets if in astrology lens
                 if request.lens == "astrology":
                     for planet_name in ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto']:
