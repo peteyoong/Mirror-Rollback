@@ -212,7 +212,7 @@ export default function DebugComputeInputs({ userId }: Props) {
               <View style={styles.divider} />
               <View style={styles.row}>
                 <Text style={styles.label}>backend_url:</Text>
-                <Text style={styles.valueSmall}>{BACKEND_BASE_URL || '(relative)'}</Text>
+                <Text style={styles.valueSmall}>{API_BASE_URL}</Text>
               </View>
               
               {/* Refresh button */}
