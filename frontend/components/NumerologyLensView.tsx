@@ -28,56 +28,25 @@ import {
 } from '../utils/stableUserId';
 import { buildJournalPrefill, goToJournalWithPrefill, LENS_CONTINUATIONS } from '../utils/journalPrefill';
 
-// === V1-SAFE DEV FALLBACK FOR BACKEND URL ===
-// Web preview proxy /api is unreliable, so we need a direct backend URL fallback
-const DEV_BACKEND_FALLBACK = 'http://localhost:8001'; // Direct backend in dev
+// === SIMPLIFIED: Single deterministic backend URL ===
+const PRODUCTION_BACKEND_BASE = 'https://pulsifi.stage-preview.emergentagent.com';
 
 function getBackendBaseUrl(): string {
-  // 1. Try EXPO_PUBLIC_BACKEND_URL from env (works for all builds)
+  // Check for explicit env var override
   const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-  if (envUrl && typeof envUrl === 'string' && envUrl.length > 0) {
-    if (__DEV__) {
-      console.log('[NumerologyLensView] Using EXPO_PUBLIC_BACKEND_URL:', envUrl);
-    }
-    return envUrl;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
+    console.log('[NumerologyLensView] Using EXPO_PUBLIC_BACKEND_URL:', envUrl);
+    return envUrl.trim().replace(/\/+$/, '');
   }
   
-  // 2. Try expo-constants extra config
-  const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
-  if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
-    if (__DEV__) {
-      console.log('[NumerologyLensView] Using Constants extra URL:', extraUrl);
-    }
-    return extraUrl;
-  }
-  
-  // 3. For web platform, check if we're in dev/preview mode
-  if (Platform.OS === 'web') {
-    // Check if hostname indicates local dev or preview environment
-    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
-    const isLocalDev = hostname === 'localhost' || hostname === '127.0.0.1';
-    const isPreview = hostname.includes('preview') || hostname.includes('emergent');
-    
-    if (isLocalDev || isPreview) {
-      // Use direct backend URL to bypass unreliable proxy
-      if (__DEV__) {
-        console.log('[NumerologyLensView] Using DEV_BACKEND_FALLBACK:', DEV_BACKEND_FALLBACK);
-      }
-      return DEV_BACKEND_FALLBACK;
-    }
-    // Production web: use relative URL (proxy should work)
-    return '';
-  }
-  
-  // 4. Native fallback
-  return DEV_BACKEND_FALLBACK;
+  // Use hardcoded production URL
+  console.log('[NumerologyLensView] Using hardcoded production:', PRODUCTION_BACKEND_BASE);
+  return PRODUCTION_BACKEND_BASE;
 }
 
 // Resolved backend base URL (computed once)
 const BACKEND_BASE_URL = getBackendBaseUrl();
-if (__DEV__) {
-  console.log('[NumerologyLensView] BACKEND_BASE_URL resolved to:', BACKEND_BASE_URL || '(relative)')
-}
+console.log('[NumerologyLensView] BACKEND_BASE_URL resolved to:', BACKEND_BASE_URL);
 
 interface NumerologySection {
   id: string;      // Stable identifier (e.g., "life_path", "expression", "soul_urge")
