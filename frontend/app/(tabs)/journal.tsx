@@ -111,13 +111,16 @@ export default function JournalScreen() {
   const setJournalEntries = useAppStore(s => s.setJournalEntries);
   const addJournalEntry = useAppStore(s => s.addJournalEntry);
   
-  const params = useLocalSearchParams<{ view?: string; fromKeystone?: string }>();
+  const params = useLocalSearchParams<{ view?: string; fromKeystone?: string; prefill?: string; source?: string }>();
   const [viewMode, setViewMode] = useState<ViewMode>('journal');
   const [newEntry, setNewEntry] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef<TextInput>(null);
+  
+  // Track if we've applied the prefill to avoid overwriting user input
+  const prefillAppliedRef = useRef(false);
   
   // Mirror Reflection Modal state
   const [reflectionModalVisible, setReflectionModalVisible] = useState(false);
@@ -134,6 +137,19 @@ export default function JournalScreen() {
 
   // Keystone context for Mirror Chat continuation
   const [keystoneContext, setKeystoneContext] = useState<KeystoneContext | null>(null);
+
+  // Handle prefill from lens screens (e.g., Enneagram journal prompt)
+  useEffect(() => {
+    if (params.prefill && !prefillAppliedRef.current && !newEntry.trim()) {
+      console.log('[JournalScreen] Applying prefill from:', params.source);
+      setNewEntry(params.prefill);
+      prefillAppliedRef.current = true;
+      // Auto-focus the input after a brief delay
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 300);
+    }
+  }, [params.prefill, params.source]);
 
   // Handle deep link from Mirror home (fromKeystone=true)
   useEffect(() => {
