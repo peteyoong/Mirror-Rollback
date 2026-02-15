@@ -16,7 +16,7 @@ import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Colors } from '../constants/colors';
 import { useAppStore } from '../store';
 import { Ionicons } from '@expo/vector-icons';
-import { getApiBaseUrl, joinUrl } from '../utils/apiBase';
+import { API_BASE_URL, joinUrl } from '../utils/apiBase';
 import { getChatStorageKey, DEFAULT_THREAD_KEY, saveMessages, loadMessages, ChatMessage } from '../utils/chatPersistence';
 
 // Use shared thread key for unified persistence
