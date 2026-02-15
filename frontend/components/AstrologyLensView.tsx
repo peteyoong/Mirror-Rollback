@@ -10,9 +10,11 @@ import {
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 import { LensViewRef } from './HumanDesignLensView';
+import { buildJournalPrefill, goToJournalWithPrefill, LENS_CONTINUATIONS } from '../utils/journalPrefill';
 
 interface AstrologySection {
   id: string;      // Stable identifier (e.g., "sun", "moon", "ascendant")
