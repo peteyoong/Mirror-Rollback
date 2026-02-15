@@ -3,8 +3,8 @@ import type { PropsWithChildren } from 'react';
 
 // BUILD_ID must be updated on every deploy for cache verification
 // MUST MATCH /app/frontend/utils/buildInfo.ts
-const BUILD_ID = '2026-02-15T15:45:00Z';
-const BUILD_VERSION = 'v18-cache-bust';
+const BUILD_ID = '2026-02-15T16:10:00Z';
+const BUILD_VERSION = 'v19-hard-cache-bust';
 
 // Generate a cache-bust suffix for asset URLs
 const CACHE_BUST = `?v=${BUILD_ID.replace(/[^a-zA-Z0-9]/g, '')}`;
@@ -22,7 +22,7 @@ export default function Root({ children }: PropsWithChildren) {
         {/* ============================================
             CACHE CONTROL - CRITICAL FOR REDEPLOYS
             ============================================ */}
-        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
         <meta httpEquiv="Pragma" content="no-cache" />
         <meta httpEquiv="Expires" content="0" />
         
@@ -31,45 +31,65 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="build-version" content={BUILD_VERSION} />
         
         {/* ============================================
-            STALE BUNDLE DETECTOR - Auto-refresh on mismatch
+            HARD CACHE BUSTER - Service Worker unregister + Cache clear + Force reload
+            This runs BEFORE React loads
             ============================================ */}
         <script dangerouslySetInnerHTML={{ __html: `
-          (function() {
-            var EXPECTED_BUILD = "${BUILD_ID}";
-            var STORAGE_KEY = "mirror_last_build";
-            
-            // Check if we have a cached build ID
-            var cachedBuild = null;
-            try {
-              cachedBuild = localStorage.getItem(STORAGE_KEY);
-            } catch(e) {}
-            
-            // Store current build ID
-            try {
-              localStorage.setItem(STORAGE_KEY, EXPECTED_BUILD);
-            } catch(e) {}
-            
-            // If cached build differs and we're not already refreshing, force refresh
-            if (cachedBuild && cachedBuild !== EXPECTED_BUILD && !window.location.search.includes('refreshed=1')) {
-              console.log('[CACHE_BUST] Build mismatch detected! Cached:', cachedBuild, 'Expected:', EXPECTED_BUILD);
-              console.log('[CACHE_BUST] Forcing hard refresh...');
-              
-              // Clear any cached data
-              try {
-                if ('caches' in window) {
-                  caches.keys().then(function(names) {
-                    names.forEach(function(name) { caches.delete(name); });
-                  });
-                }
-              } catch(e) {}
-              
-              // Force reload bypassing cache
-              var separator = window.location.search ? '&' : '?';
-              window.location.href = window.location.pathname + window.location.search + separator + 'refreshed=1&t=' + Date.now();
-            } else if (cachedBuild !== EXPECTED_BUILD) {
-              console.log('[CACHE_BUST] New build detected:', EXPECTED_BUILD);
-            }
-          })();
+(function () {
+  try {
+    var EXPECTED_BUILD = "${BUILD_ID}";
+    var key = "mirror_last_build";
+    var prev = localStorage.getItem(key);
+    localStorage.setItem(key, EXPECTED_BUILD);
+
+    function nukeAndReload() {
+      console.log('[HARD_CACHE_BUST] Nuking caches and service workers...');
+      try {
+        // Unregister ALL service workers
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations()
+            .then(function(regs) { 
+              console.log('[HARD_CACHE_BUST] Unregistering ' + regs.length + ' service workers');
+              return Promise.all(regs.map(function(r) { return r.unregister(); })); 
+            })
+            .catch(function(e) { console.log('[HARD_CACHE_BUST] SW error:', e); });
+        }
+        // Clear ALL caches
+        if (window.caches && caches.keys) {
+          caches.keys()
+            .then(function(names) { 
+              console.log('[HARD_CACHE_BUST] Deleting ' + names.length + ' caches');
+              return Promise.all(names.map(function(n) { return caches.delete(n); })); 
+            })
+            .catch(function(e) { console.log('[HARD_CACHE_BUST] Cache error:', e); });
+        }
+      } catch (e) { console.log('[HARD_CACHE_BUST] Error:', e); }
+      
+      // Reload once with cache-buster query params
+      if (!location.search.includes("refreshed=1")) {
+        var newUrl = location.pathname + "?refreshed=1&b=" + EXPECTED_BUILD + "&t=" + Date.now();
+        console.log('[HARD_CACHE_BUST] Redirecting to:', newUrl);
+        location.replace(newUrl);
+      }
+    }
+
+    // Detect if we're on emergent host
+    var host = location.hostname || "";
+    var isEmergent = host.includes("emergent.host") || host.includes("emergentagent") || host.includes("preview.");
+    
+    // If build changed, force refresh
+    if (prev && prev !== EXPECTED_BUILD) {
+      console.log('[HARD_CACHE_BUST] Build changed! Old:', prev, 'New:', EXPECTED_BUILD);
+      nukeAndReload();
+    } else if (!prev && isEmergent && !location.search.includes("refreshed=1")) {
+      // First visit on emergent host - also clear to be safe
+      console.log('[HARD_CACHE_BUST] First visit on emergent host, clearing caches');
+      nukeAndReload();
+    } else {
+      console.log('[HARD_CACHE_BUST] Build OK:', EXPECTED_BUILD);
+    }
+  } catch (e) { console.log('[HARD_CACHE_BUST] Error:', e); }
+})();
         `}} />
         
         {/* ============================================
