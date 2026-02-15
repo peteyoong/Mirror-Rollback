@@ -817,13 +817,21 @@ export default function MirrorChat({
 
       {/* Input Bar */}
       <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        {/* Debug display (only when ?debug=1) */}
+        {isDebugMode && (
+          <View style={styles.debugDisplay}>
+            <Text style={styles.debugText}>
+              SEND_PRESS={sendPressCount} | bail={lastBailReason || 'none'} | url={lastFetchUrl || 'none'} | http={lastHttpStatus || 'none'} | err={lastError || 'none'}
+            </Text>
+          </View>
+        )}
         {/* Transparency line (only in generalist Mirror Chat, not lens modals) */}
         {!lens && (
           <Text style={styles.transparencyLine}>
             Mirror reflects patterns from what you share. Nothing here predicts your future.
           </Text>
         )}
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { pointerEvents: 'auto', zIndex: 99999, position: 'relative' }]}>
           <TextInput
             style={styles.input}
             value={inputText}
@@ -834,18 +842,18 @@ export default function MirrorChat({
             maxLength={2000}
             editable={!isLoading}
           />
-          <TouchableOpacity
-            style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
-            onPress={handleSend}
+          <Pressable
+            style={[styles.sendButton, !canSend && styles.sendButtonDisabled, { pointerEvents: 'auto', zIndex: 100000 }]}
+            onPress={handleSendPress}
+            onPressIn={() => console.log('[MirrorChat] onPressIn send button')}
             disabled={!canSend}
-            activeOpacity={0.7}
           >
             <Ionicons 
               name="arrow-up" 
               size={18} 
               color={canSend ? Colors.surface : Colors.textTertiary} 
             />
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     </KeyboardAvoidingView>
