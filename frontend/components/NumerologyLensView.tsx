@@ -210,8 +210,8 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
   const hydrateProfile = useCallback(async () => {
     setProfileLoading(true);
     try {
-      const profileUrl = BACKEND_BASE_URL 
-        ? `${BACKEND_BASE_URL}/api/profile/${userId}`
+      const profileUrl = API_BASE_URL 
+        ? `${API_BASE_URL}/api/profile/${userId}`
         : `/api/profile/${userId}`;
       
       if (isDebugEnabled()) {
@@ -228,7 +228,7 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
           numerology_full_name: serverProfile.numerology_full_name,
           updated_at: serverProfile.updated_at,
           exists: serverProfile.exists,
-          backend_base_url: BACKEND_BASE_URL || '(relative)'
+          backend_base_url: API_BASE_URL || '(relative)'
         });
       }
     } catch (err) {
@@ -557,11 +557,11 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
 
     try {
       // Build URLs with backend base URL
-      const unlockUrl = BACKEND_BASE_URL 
-        ? `${BACKEND_BASE_URL}/api/numerology/unlock-name/${userId}`
+      const unlockUrl = API_BASE_URL 
+        ? `${API_BASE_URL}/api/numerology/unlock-name/${userId}`
         : `/api/numerology/unlock-name/${userId}`;
-      const profileUrl = BACKEND_BASE_URL 
-        ? `${BACKEND_BASE_URL}/api/profile/${userId}`
+      const profileUrl = API_BASE_URL 
+        ? `${API_BASE_URL}/api/profile/${userId}`
         : `/api/profile/${userId}`;
       
       if (isDebugEnabled()) {
@@ -890,7 +890,7 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
                 rawDataLength={rawDataLength}
                 debugStamp={data.debug_stamp}
                 extraDebug={{
-                  backend_base_url: BACKEND_BASE_URL || '(relative)',
+                  backend_base_url: API_BASE_URL || '(relative)',
                   backend_health_ok: backendHealthOk === null ? 'checking...' : backendHealthOk ? 'YES' : 'NO',
                   prop_user_id: maskUserId(userId),
                   stable_user_id: maskUserId(stableUserId),
