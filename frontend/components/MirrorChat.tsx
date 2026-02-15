@@ -367,6 +367,7 @@ export default function MirrorChat({
     lastErr: string | null;
     lastResponseSnippet: string | null;
     lastAttemptCount: number;
+    apiBaseUrl: string | null;
   }>({
     lastRequestId: null,
     lastUrl: null,
@@ -374,9 +375,16 @@ export default function MirrorChat({
     lastErr: null,
     lastResponseSnippet: null,
     lastAttemptCount: 0,
+    apiBaseUrl: null,
   });
   
-  // Ephemeral error message (not persisted)
+  // ===== RETRY BANNER STATE (PART A - visible failures) =====
+  // Store the last payload so we can retry on tap
+  const [lastPayload, setLastPayload] = useState<any | null>(null);
+  const [showRetryBanner, setShowRetryBanner] = useState(false);
+  const [retryBannerMessage, setRetryBannerMessage] = useState<string>('');
+  
+  // Ephemeral error message (not persisted) - legacy, kept for compatibility
   const [ephemeralError, setEphemeralError] = useState<string | null>(null);
   
   // ===== USER CONTEXT STATE (lenses + journal + timeline) =====
