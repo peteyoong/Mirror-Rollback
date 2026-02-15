@@ -150,7 +150,7 @@ export default function ReflectionChat() {
     setIsLoading(true);
     
     try {
-      const endpoint = joinUrl(getApiBaseUrl(), '/reflection/chat');
+      const endpoint = joinUrl(API_BASE_URL, '/api/reflection/chat');
       
       const conversationHistory = newMessages
         .filter(m => m.role === 'user' || m.role === 'assistant')
