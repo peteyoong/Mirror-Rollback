@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import axios from 'axios';
 import Constants from 'expo-constants';
 import api from '../services/api';
@@ -25,6 +26,7 @@ import {
   maskUserId,
   getDebugUserIdInfo 
 } from '../utils/stableUserId';
+import { buildJournalPrefill, goToJournalWithPrefill, LENS_CONTINUATIONS } from '../utils/journalPrefill';
 
 // === V1-SAFE DEV FALLBACK FOR BACKEND URL ===
 // Web preview proxy /api is unreliable, so we need a direct backend URL fallback
