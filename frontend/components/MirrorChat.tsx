@@ -375,12 +375,49 @@ export default function MirrorChat({
     setShowEvidence(!showEvidence);
   };
 
+  // ===== BULLETPROOF SEND HANDLER =====
+  const handleSendPress = () => {
+    // Always increment press count and timestamp
+    setSendPressCount(prev => prev + 1);
+    setLastSendAt(new Date().toISOString());
+    console.log(`[MirrorChat] SEND PRESS #${sendPressCount + 1} at ${new Date().toISOString()}`);
+    
+    // Call the actual send logic
+    handleSend();
+  };
+
   const handleSend = async () => {
-    if (!inputText.trim() || isLoading || !sessionId) return;
+    // Clear previous debug state
+    setLastBailReason('');
+    setLastFetchUrl('');
+    setLastHttpStatus('');
+    setLastError('');
+    
+    // Bail checks with reason tracking
+    if (!userId) {
+      setLastBailReason('no_userId');
+      console.log('[MirrorChat] BAIL: no_userId');
+      return;
+    }
+    if (!inputText.trim()) {
+      setLastBailReason('empty_input');
+      console.log('[MirrorChat] BAIL: empty_input');
+      return;
+    }
+    if (isLoading) {
+      setLastBailReason('already_sending');
+      console.log('[MirrorChat] BAIL: already_sending');
+      return;
+    }
+    if (!sessionId) {
+      setLastBailReason('no_sessionId');
+      console.log('[MirrorChat] BAIL: no_sessionId');
+      return;
+    }
 
     const messageContent = inputText.trim();
     
-    // Optimistic UI: Add user message immediately via store
+    // Optimistic UI: Add user message immediately
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: 'user',
@@ -388,20 +425,45 @@ export default function MirrorChat({
       timestamp: new Date().toISOString(),
     };
 
-    await addChatMessage(threadKey, userMessage);
+    // Handle message addition based on persistence mode
+    if (DISABLE_CHAT_PERSISTENCE) {
+      setLocalMessages(prev => [...prev, userMessage as any]);
+    } else {
+      await addChatMessage(threadKey, userMessage);
+    }
+    
     setInputText('');
     setIsLoading(true);
     Keyboard.dismiss();
 
+    // Build the fetch URL - use api client's base
+    const fetchUrl = '/mirror/chat';
+    setLastFetchUrl(fetchUrl);
+    console.log(`[MirrorChat] Calling API: ${fetchUrl}`);
+
+    // AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 15000); // 15 second timeout
+
     try {
-      const response = await api.post('/mirror/chat', {
+      const response = await api.post(fetchUrl, {
         user_id: userId,
         message: messageContent,
         lens: lens,
         session_id: sessionId,
         include_journal: true,
         include_history: true,
+      }, {
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
+      
+      // Capture HTTP status
+      setLastHttpStatus('200');
+      console.log('[MirrorChat] API response OK');
 
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
@@ -410,7 +472,13 @@ export default function MirrorChat({
         timestamp: response.data.timestamp || new Date().toISOString(),
       };
 
-      await addChatMessage(threadKey, assistantMessage);
+      // Handle message addition based on persistence mode
+      if (DISABLE_CHAT_PERSISTENCE) {
+        setLocalMessages(prev => [...prev, assistantMessage as any]);
+      } else {
+        await addChatMessage(threadKey, assistantMessage);
+      }
+      
       setSessionId(response.data.session_id);
       
       // Store memory update if present
@@ -427,16 +495,46 @@ export default function MirrorChat({
       
       console.log(`[MirrorChat] Message sent successfully, total messages: ${displayMessages.length + 2}`);
     } catch (error: any) {
-      console.error('Mirror chat error:', error);
+      clearTimeout(timeoutId);
+      
+      // Capture error details
+      if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+        setLastError('timeout_15s');
+        console.error('[MirrorChat] Request timeout');
+      } else if (error.response) {
+        // HTTP error response
+        setLastHttpStatus(String(error.response.status));
+        const errorText = typeof error.response.data === 'string' 
+          ? error.response.data.substring(0, 300)
+          : JSON.stringify(error.response.data).substring(0, 300);
+        setLastError(`HTTP ${error.response.status}: ${errorText}`);
+        console.error(`[MirrorChat] HTTP Error ${error.response.status}:`, errorText);
+      } else if (error.request) {
+        // Network error
+        setLastError('network_error');
+        console.error('[MirrorChat] Network error:', error.message);
+      } else {
+        setLastError(error.message?.substring(0, 300) || 'unknown_error');
+        console.error('[MirrorChat] Unknown error:', error);
+      }
+      
+      // Add error message to chat
       const errorMessage: ChatMessage = {
         id: `error-${Date.now()}`,
         role: 'assistant',
         content: "I'm having trouble connecting right now. Please try again in a moment.",
         timestamp: new Date().toISOString(),
       };
-      await addChatMessage(threadKey, errorMessage);
+      
+      if (DISABLE_CHAT_PERSISTENCE) {
+        setLocalMessages(prev => [...prev, errorMessage as any]);
+      } else {
+        await addChatMessage(threadKey, errorMessage);
+      }
     } finally {
+      // ALWAYS reset loading state
       setIsLoading(false);
+      console.log('[MirrorChat] isLoading reset to false');
     }
   };
 
