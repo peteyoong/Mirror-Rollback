@@ -31,9 +31,9 @@ import BuildBadge from '../../components/BuildBadge';
 import { BUILD_ID as CANONICAL_BUILD_ID } from '../../utils/buildInfo';
 
 // =========================================
-// BUILD ID - Update on each deployment
+// BUILD ID - Use canonical source
 // =========================================
-const BUILD_ID = '2026-02-14-nav-gate-fix-v1';
+const BUILD_ID = CANONICAL_BUILD_ID;
 const APP_HOST = Platform.OS === 'web' && typeof window !== 'undefined' 
   ? window.location?.origin || 'unknown'
   : 'native-app';
