@@ -15,6 +15,7 @@ import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { buildJournalPrefill, goToJournalWithPrefill } from '../utils/journalPrefill';
 import { 
   sendEnneagramChat, 
   getEnneagramTraits,
