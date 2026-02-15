@@ -3,11 +3,11 @@
  * =====================
  * 
  * Displays BUILD_ID in a small corner badge for deploy verification.
- * Shows only when:
+ * ALWAYS visible (subtle) to confirm which bundle is running.
+ * 
+ * Shows expanded info when:
  * - URL has ?debug=1, OR
  * - EXPO_PUBLIC_DEBUG_MIRROR=true
- * 
- * This allows instant verification of which bundle is running.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -23,13 +23,13 @@ const getUrlDebugParam = (): boolean => {
 };
 
 export function BuildBadge() {
-  const [showDebug, setShowDebug] = useState(false);
+  const [isDebugMode, setIsDebugMode] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     // Check debug mode on mount and URL changes
     const checkDebug = () => {
-      setShowDebug(DEBUG_MIRROR_ENV || getUrlDebugParam());
+      setIsDebugMode(DEBUG_MIRROR_ENV || getUrlDebugParam());
     };
     
     checkDebug();
@@ -41,16 +41,19 @@ export function BuildBadge() {
     }
   }, []);
 
-  if (!showDebug) return null;
-
+  // ALWAYS show build badge - just more subtle when not in debug mode
   return (
     <TouchableOpacity 
-      style={[styles.badge, { pointerEvents: 'auto' }]}
+      style={[
+        styles.badge, 
+        isDebugMode ? styles.badgeDebug : styles.badgeSubtle,
+        { pointerEvents: 'auto' }
+      ]}
       onPress={() => setExpanded(!expanded)}
       activeOpacity={0.8}
     >
-      <Text style={styles.badgeText}>
-        {expanded ? `${BUILD_VERSION}\n${BUILD_ID}` : `🔧 ${BUILD_VERSION.slice(0, 12)}`}
+      <Text style={[styles.badgeText, !isDebugMode && styles.badgeTextSubtle]}>
+        {expanded ? `${BUILD_VERSION}\n${BUILD_ID}` : `BUILD: ${BUILD_ID.slice(0, 16)}`}
       </Text>
     </TouchableOpacity>
   );
@@ -61,17 +64,24 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 70, // Above tab bar
     right: 8,
-    backgroundColor: 'rgba(0, 255, 0, 0.9)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
     zIndex: 9999,
   },
+  badgeDebug: {
+    backgroundColor: 'rgba(0, 255, 0, 0.9)',
+  },
+  badgeSubtle: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
   badgeText: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    color: '#000',
-    fontWeight: 'bold',
+    fontWeight: '500',
+  },
+  badgeTextSubtle: {
+    color: 'rgba(255, 255, 255, 0.4)',
   },
 });
 
