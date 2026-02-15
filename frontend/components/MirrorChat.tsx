@@ -1396,7 +1396,7 @@ const styles = StyleSheet.create({
   memoryCard: {
     marginHorizontal: 16,
     marginBottom: 8,
-    backgroundColor: '#FDFCFA',
+    backgroundColor: Colors.surfaceLight,
     borderRadius: 14,
     overflow: 'hidden',
     shadowColor: '#000',
