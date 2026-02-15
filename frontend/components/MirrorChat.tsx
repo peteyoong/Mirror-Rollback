@@ -694,18 +694,17 @@ export default function MirrorChat({
   // ===== CORE SEND LOGIC (used by handleSend and handleRetry) =====
   const executeSend = async (payload: any, messagesWithUser: ChatMessage[]) => {
     const requestId = `req_${Date.now()}`;
-    const apiBaseUrl = getApiBaseUrl();
     
     // Update debug info at start (including API_BASE_URL)
     setDebugInfo(prev => ({
       ...prev,
       lastRequestId: requestId,
-      lastUrl: `${apiBaseUrl}/mirror/chat`,
+      lastUrl: `${API_BASE_URL}/api/mirror/chat`,
       lastStatus: null,
       lastErr: null,
       lastResponseSnippet: null,
       lastAttemptCount: 0,
-      apiBaseUrl: apiBaseUrl,
+      apiBaseUrl: API_BASE_URL,
     }));
     
     // Store payload for potential retry
