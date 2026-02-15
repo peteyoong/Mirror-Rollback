@@ -51,7 +51,7 @@ const getUrlDebugParam = (): boolean => {
 const APP_ENV = process.env.NODE_ENV || 'unknown';
 
 // === SIMPLIFIED: Single deterministic backend URL ===
-const PRODUCTION_BACKEND_BASE = 'https://pulsifi.stage-preview.emergentagent.com';
+const PRODUCTION_BACKEND_BASE = 'https://mirror-fix.preview.emergentagent.com';
 
 const getEffectiveApiUrl = (): string => {
   const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
