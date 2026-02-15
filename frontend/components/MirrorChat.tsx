@@ -13,6 +13,8 @@ import {
   UIManager,
   Modal,
   Pressable,
+  TouchableWithoutFeedback,
+  InputAccessoryView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
@@ -26,6 +28,9 @@ import { loadMessages, saveMessages, DEFAULT_THREAD_KEY } from '../utils/chatPer
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
+
+// Unique ID for InputAccessoryView
+const INPUT_ACCESSORY_VIEW_ID = 'mirror-chat-input-accessory';
 
 // ===== API CALL HELPER WITH RETRY =====
 interface ApiCallResult {
