@@ -405,12 +405,12 @@ export default function MirrorChat({
       timestamp: new Date().toISOString(),
     };
 
-    // Handle message addition based on persistence mode
-    if (DISABLE_CHAT_PERSISTENCE) {
-      setLocalMessages(prev => [...prev, userMessage as any]);
-    } else {
-      await addChatMessage(threadKey, userMessage);
-    }
+    // Add to local state
+    const messagesWithUser = [...messages, userMessage];
+    setMessages(messagesWithUser);
+    
+    // Save to storage immediately
+    await saveMessages(userId, threadKey, messagesWithUser);
     
     setInputText('');
     setIsLoading(true);
@@ -443,12 +443,12 @@ export default function MirrorChat({
         timestamp: response.data.timestamp || new Date().toISOString(),
       };
 
-      // Handle message addition based on persistence mode
-      if (DISABLE_CHAT_PERSISTENCE) {
-        setLocalMessages(prev => [...prev, assistantMessage as any]);
-      } else {
-        await addChatMessage(threadKey, assistantMessage);
-      }
+      // Add assistant message to local state
+      const messagesWithAssistant = [...messagesWithUser, assistantMessage];
+      setMessages(messagesWithAssistant);
+      
+      // Save to storage
+      await saveMessages(userId, threadKey, messagesWithAssistant);
       
       setSessionId(response.data.session_id);
       
@@ -475,11 +475,9 @@ export default function MirrorChat({
         timestamp: new Date().toISOString(),
       };
       
-      if (DISABLE_CHAT_PERSISTENCE) {
-        setLocalMessages(prev => [...prev, errorMessage as any]);
-      } else {
-        await addChatMessage(threadKey, errorMessage);
-      }
+      const messagesWithError = [...messagesWithUser, errorMessage];
+      setMessages(messagesWithError);
+      await saveMessages(userId, threadKey, messagesWithError);
     } finally {
       // ALWAYS reset loading state
       setIsLoading(false);
