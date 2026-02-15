@@ -67,7 +67,7 @@ export default function WelcomeGate() {
     setIsRetryable(false);
     
     try {
-      const loginUrl = joinUrl(apiBaseUrl, '/users/login');
+      const loginUrl = joinUrl(API_BASE_URL, '/api/users/login');
       
       const res = await fetch(loginUrl, {
         method: 'POST',
