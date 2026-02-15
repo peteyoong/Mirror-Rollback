@@ -1209,7 +1209,7 @@ export default function MirrorChat({
           <View style={styles.debugPanel}>
             <Text style={styles.debugTitle}>API Debug</Text>
             <Text style={styles.debugText}>
-              API_BASE: {debugInfo.apiBaseUrl || getApiBaseUrl()}{'\n'}
+              API_BASE: {debugInfo.apiBaseUrl || API_BASE_URL}{'\n'}
               req: {debugInfo.lastRequestId || 'none'}{'\n'}
               url: {debugInfo.lastUrl || 'none'}{'\n'}
               status: {debugInfo.lastStatus ?? 'pending'}{'\n'}
