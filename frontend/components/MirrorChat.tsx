@@ -329,6 +329,9 @@ export default function MirrorChat({
   const [contextError, setContextError] = useState<string | null>(null);
   const contextFetchedRef = useRef(false);
   
+  // ===== CONTEXT DEBUG STATE =====
+  const [contextDebug, setContextDebug] = useState<ContextEvaluation | null>(null);
+  
   // Check for debug mode - use URL params if available, or check localStorage
   const searchParams = useLocalSearchParams<{ debug?: string }>();
   const isDebugMode = searchParams.debug === '1' || (typeof window !== 'undefined' && window.location?.search?.includes('debug=1'));
