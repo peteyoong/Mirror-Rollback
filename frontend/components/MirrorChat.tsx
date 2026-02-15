@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
-import { useAppStore, ChatMessage, storage } from '../store';
+import { useAppStore, ChatMessage, storage, CHAT_SESSION_KEYS } from '../store';
 import { loadMessages, saveMessages, DEFAULT_THREAD_KEY } from '../utils/chatPersistence';
 
 // Enable LayoutAnimation on Android
