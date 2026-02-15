@@ -1032,10 +1032,15 @@ export default function MirrorChat({
     >
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>{headerTitle}</Text>
+        <Pressable style={styles.headerContent} onPress={handleTitlePress}>
+          <Text style={styles.headerTitle}>
+            {headerTitle}
+            {debugTapCount > 0 && debugTapCount < 7 && (
+              <Text style={styles.debugTapIndicator}> ({debugTapCount}/7)</Text>
+            )}
+          </Text>
           <Text style={styles.headerSubtitle}>{headerSubtitle}</Text>
-        </View>
+        </Pressable>
         {lens && (
           <View style={styles.lensTag}>
             <Text style={styles.lensTagText}>
