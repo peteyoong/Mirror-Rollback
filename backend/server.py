@@ -4727,12 +4727,145 @@ async def mirror_chat(request: MirrorChatRequest):
             except Exception as e:
                 logger.error(f"[MIRROR_CHAT] Migration check failed for user {request.user_id}: {e}")
         
-        # Build context from chart data
+        # Build context from chart data OR use provided context_bundle
         context_parts = []
         
-        # User basics
-        context_parts.append(f"User's name: {user.get('name', 'Unknown')}")
-        context_parts.append(f"Birth date: {user.get('birth_date')}")
+        # If context_bundle is provided, use it for richer context
+        if request.context_bundle:
+            cb = request.context_bundle
+            profile = cb.get('profile', {})
+            lenses = cb.get('lenses', {})
+            journal_data = cb.get('journal', {})
+            timeline_data = cb.get('timeline', {})
+            
+            # User profile
+            context_parts.append(f"User's name: {profile.get('name', 'Unknown')}")
+            birth = profile.get('birth', {})
+            if birth.get('date'):
+                context_parts.append(f"Birth date: {birth.get('date')}")
+                if birth.get('time'):
+                    context_parts.append(f"Birth time: {birth.get('time')}")
+                if birth.get('place'):
+                    context_parts.append(f"Birth place: {birth.get('place')}")
+            
+            # Astrology from context bundle
+            astro = lenses.get('astrology', {})
+            if astro.get('computed') and (request.lens is None or request.lens == "astrology"):
+                context_parts.append("\n--- ASTROLOGY (True Sidereal) ---")
+                sun = astro.get('sun', {})
+                moon = astro.get('moon', {})
+                rising = astro.get('rising', {})
+                
+                context_parts.append(f"Sun: {sun.get('formatted', sun.get('sign', 'Unknown'))}")
+                context_parts.append(f"Moon: {moon.get('formatted', moon.get('sign', 'Unknown'))}")
+                context_parts.append(f"Rising: {rising.get('formatted', rising.get('sign', 'Unknown'))}")
+                
+                # Mars and Venus - IMPORTANT for relationship questions
+                mars = astro.get('mars', {})
+                venus = astro.get('venus', {})
+                if mars:
+                    context_parts.append(f"Mars: {mars.get('formatted', mars.get('sign', 'Unknown'))}")
+                if venus:
+                    context_parts.append(f"Venus: {venus.get('formatted', venus.get('sign', 'Unknown'))}")
+                
+                # Other planets for astrology lens
+                if request.lens == "astrology":
+                    for planet_name in ['mercury', 'jupiter', 'saturn']:
+                        planet = astro.get(planet_name, {})
+                        if planet:
+                            context_parts.append(f"{planet_name.capitalize()}: {planet.get('formatted', planet.get('sign', 'Unknown'))}")
+                    
+                    # Lunar Nodes
+                    north_node = astro.get('north_node', {})
+                    south_node = astro.get('south_node', {})
+                    if north_node.get('sign'):
+                        context_parts.append(f"North Node: {north_node.get('formatted', north_node.get('sign'))}")
+                    if south_node.get('sign'):
+                        context_parts.append(f"South Node: {south_node.get('formatted', south_node.get('sign'))}")
+            elif astro.get('missing_reason'):
+                context_parts.append(f"\n--- ASTROLOGY ---")
+                context_parts.append(f"[Not computed: {astro.get('missing_reason')}]")
+            
+            # Human Design from context bundle
+            hd = lenses.get('human_design', {})
+            if hd.get('computed') and (request.lens is None or request.lens == "human_design"):
+                context_parts.append("\n--- HUMAN DESIGN ---")
+                context_parts.append(f"Type: {hd.get('type', 'Unknown')}")
+                context_parts.append(f"Strategy: {hd.get('strategy', 'Unknown')}")
+                context_parts.append(f"Authority: {hd.get('authority', 'Unknown')}")
+                context_parts.append(f"Profile: {hd.get('profile', 'Unknown')}")
+                context_parts.append(f"Definition: {hd.get('definition', 'Unknown')}")
+                if hd.get('incarnation_cross'):
+                    context_parts.append(f"Incarnation Cross: {hd.get('incarnation_cross')}")
+                if hd.get('defined_centers'):
+                    context_parts.append(f"Defined Centers: {', '.join(hd.get('defined_centers', []))}")
+            elif hd.get('missing_reason'):
+                context_parts.append(f"\n--- HUMAN DESIGN ---")
+                context_parts.append(f"[Not computed: {hd.get('missing_reason')}]")
+            
+            # Numerology from context bundle
+            num = lenses.get('numerology', {})
+            if num.get('computed') and (request.lens is None or request.lens == "numerology"):
+                context_parts.append("\n--- NUMEROLOGY ---")
+                context_parts.append(f"Life Path: {num.get('life_path', 'Unknown')}")
+                if num.get('birthday'):
+                    context_parts.append(f"Birthday Number: {num.get('birthday')}")
+                if num.get('expression'):
+                    context_parts.append(f"Expression: {num.get('expression')}")
+                if num.get('soul_urge'):
+                    context_parts.append(f"Soul Urge: {num.get('soul_urge')}")
+                if num.get('current_cycles'):
+                    cycles = num.get('current_cycles', {})
+                    context_parts.append(f"Personal Year: {cycles.get('personal_year', 'Unknown')}")
+                    context_parts.append(f"Personal Month: {cycles.get('personal_month', 'Unknown')}")
+            elif num.get('missing_reason'):
+                context_parts.append(f"\n--- NUMEROLOGY ---")
+                context_parts.append(f"[Not computed: {num.get('missing_reason')}]")
+            
+            # Enneagram from context bundle
+            enn = lenses.get('enneagram', {})
+            if enn.get('computed') and (request.lens is None or request.lens == "enneagram"):
+                context_parts.append("\n--- ENNEAGRAM ---")
+                context_parts.append(f"Core Type: {enn.get('core_type')} ({enn.get('core_type_name', 'Unknown')})")
+                if enn.get('wing'):
+                    context_parts.append(f"Wing: {enn.get('wing')}")
+                if enn.get('instinctual_stack'):
+                    context_parts.append(f"Instinctual Stack: {enn.get('instinctual_stack')}")
+                if enn.get('tritype'):
+                    context_parts.append(f"Tritype: {enn.get('tritype')}")
+            elif enn.get('missing_reason'):
+                context_parts.append(f"\n--- ENNEAGRAM ---")
+                context_parts.append(f"[Not computed: {enn.get('missing_reason')}]")
+            
+            # Map of Consciousness from context bundle
+            cons = lenses.get('map_of_consciousness', {})
+            if cons.get('computed') and request.lens is None:
+                context_parts.append("\n--- MAP OF CONSCIOUSNESS ---")
+                context_parts.append(f"Primary Level: {cons.get('primary_level', 'Unknown')}")
+                context_parts.append(f"Level Name: {cons.get('level_name', 'Unknown')}")
+            
+            # Journal entries from context bundle
+            if request.include_journal and journal_data.get('recent_entries'):
+                context_parts.append("\n--- RECENT JOURNAL ENTRIES ---")
+                for entry in journal_data.get('recent_entries', [])[-5:]:  # Last 5 entries
+                    context_parts.append(f"[{entry.get('created_at', 'Unknown')}] {entry.get('text', '')[:300]}")
+                
+                # Journal themes
+                if journal_data.get('themes'):
+                    context_parts.append(f"\nEmerging themes from journals: {', '.join(journal_data.get('themes', []))}")
+            
+            # Timeline signals from context bundle
+            if timeline_data.get('signals'):
+                context_parts.append("\n--- RECENT TIMELINE SIGNALS ---")
+                for signal in timeline_data.get('signals', [])[:5]:  # Last 5 signals
+                    context_parts.append(f"[{signal.get('date', 'Unknown')}] {signal.get('label', '')}: {signal.get('details', '')[:100]}")
+            
+            logger.info(f"[MIRROR_CHAT] Using context_bundle for user {request.user_id}")
+        else:
+            # Fall back to building context from DB (original logic)
+            # User basics
+            context_parts.append(f"User's name: {user.get('name', 'Unknown')}")
+            context_parts.append(f"Birth date: {user.get('birth_date')}")
         
         if chart:
             # Astrology context
