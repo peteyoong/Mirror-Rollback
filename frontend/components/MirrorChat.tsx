@@ -361,6 +361,12 @@ export default function MirrorChat({
           if (response.data) {
             console.log('[MirrorChat] Context loaded:', Object.keys(response.data.lenses || {}).filter(k => response.data.lenses[k]?.computed).join(', '));
             setContextBundle(response.data);
+            
+            // Evaluate and set debug info
+            const evaluated = evaluateContextBundle(response.data);
+            setContextDebug(evaluated);
+            console.log('[MirrorChat] Context evaluated:', JSON.stringify(evaluated));
+            
             contextFetchedRef.current = true;
             setIsLoadingContext(false);
             return;
@@ -369,6 +375,8 @@ export default function MirrorChat({
           console.error(`[MirrorChat] Context fetch attempt ${i + 1} failed:`, error.message);
           if (i === retries.length - 1) {
             setContextError('Unable to load your profile data. Chat may not have full context.');
+            // Set empty context debug
+            setContextDebug(evaluateContextBundle(null));
           }
         }
       }
