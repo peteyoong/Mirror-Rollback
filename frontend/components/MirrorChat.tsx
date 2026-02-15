@@ -195,65 +195,26 @@ export default function MirrorChat({
     timestamp: typeof m.timestamp === 'string' ? new Date(m.timestamp) : m.timestamp,
   })) as Message[];
 
-  // ===== HYDRATION: One-time initialization on mount =====
+  // ===== INTRO MESSAGE: Seed if no messages loaded =====
   useEffect(() => {
     if (!userId) return;
-    if (didInitRef.current) return;
-    didInitRef.current = true;
     
-    console.log(`[MirrorChat] Initializing chat for ${threadKey}, persistence=${!DISABLE_CHAT_PERSISTENCE}`);
-    
-    if (DISABLE_CHAT_PERSISTENCE) {
-      // Just add intro message locally
+    // Only seed intro if we've hydrated and have no messages
+    if (hydratedRef.current && messages.length === 0) {
       const greeting = lens
         ? `I'm here to explore your ${lens === 'human_design' ? 'Human Design' : lens.charAt(0).toUpperCase() + lens.slice(1)} chart with you. What would you like to understand?`
         : "I'm here as a companion for self-understanding. Share what's on your mind, and I'll reflect what I notice.";
       
-      setLocalMessages([{
+      const introMessage: ChatMessage = {
         id: `intro_${Date.now()}`,
         role: 'assistant',
         content: greeting,
-        timestamp: new Date(),
-      }]);
-      return;
-    }
-    
-    (async () => {
-      const loaded = await loadChatMessages(threadKey);
+        timestamp: new Date().toISOString(),
+      };
       
-      // Update debug overlay
-      (globalThis as any).__MIRROR_CHAT_KEY = `mirror_chat_messages:${userId}:${threadKey}`;
-      (globalThis as any).__MIRROR_CHAT_COUNT = loaded?.length ?? 0;
-      (globalThis as any).__MIRROR_THREAD_KEY = threadKey;
-      
-      console.log(`[MirrorChat] Loaded ${loaded?.length ?? 0} messages from storage`);
-      
-      // Seed intro ONCE if empty after load
-      if (!loaded || loaded.length === 0) {
-        const greeting = lens
-          ? `I'm here to explore your ${lens === 'human_design' ? 'Human Design' : lens.charAt(0).toUpperCase() + lens.slice(1)} chart with you. What would you like to understand?`
-          : "I'm here as a companion for self-understanding. Share what's on your mind, and I'll reflect what I notice.";
-        
-        await addChatMessage(threadKey, {
-          id: `intro_${Date.now()}`,
-          role: 'assistant',
-          content: greeting,
-          timestamp: new Date().toISOString(),
-        });
-        
-        // Update debug count after adding intro
-        (globalThis as any).__MIRROR_CHAT_COUNT = 1;
-        console.log(`[MirrorChat] Seeded intro message for ${threadKey}`);
-      }
-    })();
-  }, [userId]); // ONLY depends on userId - threadKey is derived from props
-
-  // ===== DEBUG: Update overlay with chat count on message changes =====
-  useEffect(() => {
-    if (userId && threadKey) {
-      (globalThis as any).__MIRROR_CHAT_KEY = `mirror_chat_messages:${userId}:${threadKey}`;
-      (globalThis as any).__MIRROR_CHAT_COUNT = messages.length;
-      (globalThis as any).__MIRROR_THREAD_KEY = threadKey;
+      setMessages([introMessage]);
+      saveMessages(userId, threadKey, [introMessage]);
+      console.log(`[MirrorChat] Seeded intro message for ${threadKey}`);
     }
   }, [userId, threadKey, messages.length]);
 
