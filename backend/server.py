@@ -460,9 +460,11 @@ class MirrorChatRequest(BaseModel):
     message: str
     lens: Optional[str] = None  # None = generalist, "astrology", "human_design", "numerology"
     session_id: Optional[str] = None  # For conversation continuity
+    thread_key: Optional[str] = None  # Thread key for persistence
     include_journal: bool = True  # Include recent journal entries
     include_history: bool = True  # Include chat history
     keystone_context: Optional[KeystoneContext] = None  # For keystone continuation
+    context_bundle: Optional[Dict[str, Any]] = None  # Full user context from /mirror/context
 
 
 # Memory Update - "You Over Time" structured tracking
