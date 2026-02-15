@@ -804,6 +804,8 @@ export default function MirrorChat({
         ]}
         showsVerticalScrollIndicator={false}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        keyboardShouldPersistTaps="always"
+        keyboardDismissMode="on-drag"
         ListFooterComponent={
           isLoading ? (
             <View style={styles.loadingContainer}>
