@@ -377,9 +377,48 @@ export default function MirrorChat({
   // ===== CONTEXT DEBUG STATE =====
   const [contextDebug, setContextDebug] = useState<ContextEvaluation | null>(null);
   
-  // Check for debug mode - use URL params if available, or check localStorage
+  // ===== DEBUG MODE: Web + Native Support =====
+  // Web: ?debug=1 query param or EXPO_PUBLIC_DEBUG_MIRROR env
+  // Native: Tap "Mirror" title 7 times within 2 seconds
   const searchParams = useLocalSearchParams<{ debug?: string }>();
-  const isDebugMode = searchParams.debug === '1' || (typeof window !== 'undefined' && window.location?.search?.includes('debug=1'));
+  const [debugEnabled, setDebugEnabled] = useState(false);
+  const [debugTapCount, setDebugTapCount] = useState(0);
+  const debugTapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Handle title tap for native debug mode
+  const handleTitlePress = () => {
+    // Increment tap count
+    const newCount = debugTapCount + 1;
+    setDebugTapCount(newCount);
+    
+    // Clear existing timeout
+    if (debugTapTimeoutRef.current) {
+      clearTimeout(debugTapTimeoutRef.current);
+    }
+    
+    // Check if we hit 7 taps
+    if (newCount >= 7) {
+      setDebugEnabled(true);
+      setDebugTapCount(0);
+      console.log('[MirrorChat] Debug mode enabled via tap gesture');
+    } else {
+      // Reset count after 2 seconds of inactivity
+      debugTapTimeoutRef.current = setTimeout(() => {
+        setDebugTapCount(0);
+      }, 2000);
+    }
+  };
+  
+  // Compute isDebugMode from multiple sources (no window.location.search)
+  const isDebugMode = useMemo(() => {
+    // 1. Native tap gesture enabled
+    if (debugEnabled) return true;
+    // 2. URL param via expo-router
+    if (searchParams.debug === '1') return true;
+    // 3. Environment variable
+    if (process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true') return true;
+    return false;
+  }, [debugEnabled, searchParams.debug]);
   
   const flatListRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
