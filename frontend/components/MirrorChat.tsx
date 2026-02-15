@@ -166,11 +166,19 @@ export default function MirrorChat({
   const [lastHttpStatus, setLastHttpStatus] = useState<string>('');
   const [lastError, setLastError] = useState<string>('');
   
+  // ===== DEBUG STATE for focus instrumentation =====
+  const [focusCount, setFocusCount] = useState(0);
+  const [blurCount, setBlurCount] = useState(0);
+  const [lastFocusAt, setLastFocusAt] = useState<string>('');
+  const [lastBlurAt, setLastBlurAt] = useState<string>('');
+  const [lastTouchAt, setLastTouchAt] = useState<string>('');
+  
   // Get debug flag from URL params
   const searchParams = useLocalSearchParams<{ debug?: string }>();
   const isDebugMode = searchParams.debug === '1';
   
   const flatListRef = useRef<FlatList>(null);
+  const inputRef = useRef<TextInput>(null);
   const insets = useSafeAreaInsets();
   
   // ===== IDEMPOTENT HYDRATION REF - NEVER RESET =====
