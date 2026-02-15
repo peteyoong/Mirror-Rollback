@@ -1531,6 +1531,46 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   
+  // Context Debug Panel (only shown when ?debug=1)
+  contextDebugPanel: {
+    backgroundColor: '#111',
+    padding: 8,
+    borderRadius: 6,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  contextDebugTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#0f0',
+    marginBottom: 4,
+    letterSpacing: 0.5,
+  },
+  contextDebugText: {
+    fontSize: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    color: '#0f0',
+    lineHeight: 14,
+  },
+  
+  // Context Warning Banner (partial context)
+  contextWarningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#442200',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    marginBottom: 8,
+    gap: 6,
+  },
+  contextWarningText: {
+    flex: 1,
+    fontSize: 12,
+    color: '#ffaa00',
+  },
+  
   // Error banner (ephemeral, not persisted)
   errorBanner: {
     flexDirection: 'row',
