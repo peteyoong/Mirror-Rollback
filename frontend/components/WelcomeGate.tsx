@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,25 +12,41 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { useLocalSearchParams } from 'expo-router';
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
 import { getApiBaseUrl, joinUrl } from '../utils/apiBase';
+import { parseApiError, GATEWAY_ERROR_CODES } from '../utils/safeErrorParser';
 
 // Import the Onboarding component to render inline
 import Onboarding from '../app/onboarding/index';
 
+// Debug mode check
+const DEBUG_MIRROR_ENV = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
+
 /**
  * WelcomeGate - Clean Authentication Component
- * No debug panels, uses new apiBase utility
+ * With safe error handling and API base visibility
  */
 export default function WelcomeGate() {
   const { setUser, setChart } = useAppStore();
+  const searchParams = useLocalSearchParams<{ debug?: string }>();
   
   const [showLogin, setShowLogin] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isRetryable, setIsRetryable] = useState(false);
+  
+  // Debug mode
+  const isDebugMode = DEBUG_MIRROR_ENV || searchParams.debug === '1';
+  const apiBaseUrl = getApiBaseUrl();
+  
+  // Log API base URL once on mount
+  useEffect(() => {
+    console.log(`[API_BASE] ${apiBaseUrl}`);
+  }, []);
 
   const handleBeginReflection = () => {
     setShowOnboarding(true);
@@ -43,14 +59,16 @@ export default function WelcomeGate() {
   const handleLogin = async () => {
     if (!email.trim()) {
       setError('Please enter your email');
+      setIsRetryable(false);
       return;
     }
     
     setIsLoading(true);
     setError('');
+    setIsRetryable(false);
     
     try {
-      const loginUrl = joinUrl(getApiBaseUrl(), '/users/login');
+      const loginUrl = joinUrl(apiBaseUrl, '/users/login');
       
       const res = await fetch(loginUrl, {
         method: 'POST',
@@ -63,14 +81,17 @@ export default function WelcomeGate() {
       const responseText = await res.text();
       
       if (!res.ok) {
-        let errorMsg = `HTTP ${res.status}`;
-        try {
-          const errorData = JSON.parse(responseText);
-          errorMsg = errorData.detail || errorMsg;
-        } catch {
-          errorMsg = responseText.slice(0, 100) || errorMsg;
-        }
-        throw new Error(errorMsg);
+        // Use safe error parser
+        const parsed = parseApiError({
+          response: {
+            status: res.status,
+            data: responseText,
+          }
+        });
+        
+        setError(parsed.message);
+        setIsRetryable(parsed.isRetryable);
+        return;
       }
       
       const result = JSON.parse(responseText);
@@ -85,7 +106,10 @@ export default function WelcomeGate() {
       }
       
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please try again.');
+      // Use safe error parser for all errors
+      const parsed = parseApiError(err);
+      setError(parsed.message);
+      setIsRetryable(parsed.isRetryable);
     } finally {
       setIsLoading(false);
     }
@@ -96,6 +120,7 @@ export default function WelcomeGate() {
     setShowOnboarding(false);
     setEmail('');
     setError('');
+    setIsRetryable(false);
   };
 
   // Show onboarding flow inline
