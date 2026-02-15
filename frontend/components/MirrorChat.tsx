@@ -742,36 +742,21 @@ export default function MirrorChat({
       />
 
       {/* Input Bar */}
-      <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 12), pointerEvents: 'box-none' }]}>
-        {/* Debug display (only when ?debug=1) */}
-        {isDebugMode && (
-          <View style={styles.debugDisplay}>
-            <Text style={styles.debugText}>
-              SEND_PRESS={sendPressCount} | bail={lastBailReason || 'none'} | url={lastFetchUrl || 'none'} | http={lastHttpStatus || 'none'} | err={lastError || 'none'}
-            </Text>
-          </View>
-        )}
+      <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         {/* Transparency line (only in generalist Mirror Chat, not lens modals) */}
         {!lens && (
           <Text style={styles.transparencyLine}>
             Mirror reflects patterns from what you share. Nothing here predicts your future.
           </Text>
         )}
-        {/* Input container with tap-to-focus wrapper */}
+        {/* Input container with tap-to-focus wrapper for iOS */}
         <Pressable
-          onPress={() => {
-            console.log('[MirrorChat] Input wrapper tapped - calling focus()');
-            inputRef.current?.focus();
-          }}
-          onPressIn={() => {
-            console.log('[MirrorChat] Input wrapper onPressIn');
-            setLastTouchAt(new Date().toLocaleTimeString());
-          }}
-          style={[styles.inputContainer, { pointerEvents: 'auto', zIndex: 99999, position: 'relative' }]}
+          onPress={() => inputRef.current?.focus()}
+          style={styles.inputContainer}
         >
           <TextInput
             ref={inputRef}
-            style={[styles.input, { pointerEvents: 'auto' }]}
+            style={styles.input}
             value={inputText}
             onChangeText={setInputText}
             placeholder={placeholder}
@@ -783,30 +768,15 @@ export default function MirrorChat({
             blurOnSubmit={false}
             showSoftInputOnFocus={true}
             autoCorrect={false}
-            onFocus={() => {
-              console.log('[MirrorChat] TextInput onFocus');
-              setFocusCount(prev => prev + 1);
-              setLastFocusAt(new Date().toLocaleTimeString());
-            }}
-            onBlur={() => {
-              console.log('[MirrorChat] TextInput onBlur');
-              setBlurCount(prev => prev + 1);
-              setLastBlurAt(new Date().toLocaleTimeString());
-            }}
-            onTouchStart={() => {
-              console.log('[MirrorChat] TextInput onTouchStart');
-              setLastTouchAt(new Date().toLocaleTimeString());
-            }}
             onSubmitEditing={() => {
               if (canSend) {
-                handleSendPress();
+                handleSend();
               }
             }}
           />
           <Pressable
-            style={[styles.sendButton, !canSend && styles.sendButtonDisabled, { pointerEvents: 'auto', zIndex: 100000 }]}
-            onPress={handleSendPress}
-            onPressIn={() => console.log('[MirrorChat] onPressIn send button')}
+            style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
+            onPress={handleSend}
             disabled={!canSend}
           >
             <Ionicons 
@@ -816,24 +786,6 @@ export default function MirrorChat({
             />
           </Pressable>
         </Pressable>
-        {/* Focus debug display (only when ?debug=1) */}
-        {isDebugMode && (
-          <View style={styles.debugDisplay}>
-            <Text style={styles.debugText}>
-              FOCUS={focusCount} BLUR={blurCount} touch={lastTouchAt || 'none'} focusAt={lastFocusAt || 'none'} blurAt={lastBlurAt || 'none'}
-            </Text>
-            {/* Debug focus button for iOS testing */}
-            <Pressable 
-              onPress={() => {
-                console.log('[MirrorChat] DEBUG: Manual focus button pressed');
-                inputRef.current?.focus();
-              }}
-              style={{ backgroundColor: '#4ade80', padding: 8, borderRadius: 4, marginTop: 4 }}
-            >
-              <Text style={{ color: '#000', fontSize: 12, fontWeight: '600', textAlign: 'center' }}>TAP TO FOCUS INPUT</Text>
-            </Pressable>
-          </View>
-        )}
       </View>
     </KeyboardAvoidingView>
   );
