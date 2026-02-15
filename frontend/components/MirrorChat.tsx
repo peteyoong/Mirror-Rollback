@@ -271,6 +271,12 @@ export default function MirrorChat({
   // Ephemeral error message (not persisted)
   const [ephemeralError, setEphemeralError] = useState<string | null>(null);
   
+  // ===== USER CONTEXT STATE (lenses + journal + timeline) =====
+  const [contextBundle, setContextBundle] = useState<any | null>(null);
+  const [isLoadingContext, setIsLoadingContext] = useState(false);
+  const [contextError, setContextError] = useState<string | null>(null);
+  const contextFetchedRef = useRef(false);
+  
   // Check for debug mode - use URL params if available, or check localStorage
   const searchParams = useLocalSearchParams<{ debug?: string }>();
   const isDebugMode = searchParams.debug === '1' || (typeof window !== 'undefined' && window.location?.search?.includes('debug=1'));
@@ -278,6 +284,45 @@ export default function MirrorChat({
   const flatListRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
   const insets = useSafeAreaInsets();
+  
+  // ===== FETCH USER CONTEXT ON MOUNT =====
+  useEffect(() => {
+    if (!userId || contextFetchedRef.current) return;
+    
+    const fetchContext = async () => {
+      setIsLoadingContext(true);
+      setContextError(null);
+      
+      // Retry up to 2 times with backoff
+      const retries = [0, 500, 1500];
+      
+      for (let i = 0; i < retries.length; i++) {
+        if (i > 0) {
+          await new Promise(r => setTimeout(r, retries[i]));
+        }
+        
+        try {
+          const response = await api.get(`/mirror/context/${userId}`);
+          if (response.data) {
+            console.log('[MirrorChat] Context loaded:', Object.keys(response.data.lenses || {}).filter(k => response.data.lenses[k]?.computed).join(', '));
+            setContextBundle(response.data);
+            contextFetchedRef.current = true;
+            setIsLoadingContext(false);
+            return;
+          }
+        } catch (error: any) {
+          console.error(`[MirrorChat] Context fetch attempt ${i + 1} failed:`, error.message);
+          if (i === retries.length - 1) {
+            setContextError('Unable to load your profile data. Chat may not have full context.');
+          }
+        }
+      }
+      
+      setIsLoadingContext(false);
+    };
+    
+    fetchContext();
+  }, [userId]);
   
   // ===== HYDRATION: Load messages on mount and when userId changes =====
   const [isHydrated, setIsHydrated] = useState(false);
