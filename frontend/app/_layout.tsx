@@ -11,17 +11,25 @@ import WelcomeGate from '../components/WelcomeGate';
  * Simple session restore on mount, no globalThis hacks
  */
 export default function RootLayout() {
+  const insets = useSafeAreaInsets();
+  
   // Select stable primitives only
   const userId = useAppStore(s => s.user?.id);
   const isRestoringSession = useAppStore(s => s.isRestoringSession);
   const hasTriedSessionRestore = useAppStore(s => s.hasTriedSessionRestore);
 
-  // Call restoreSession ONCE on mount
+  // STEP 1: DISABLED restoreSession - DO NOT CALL
+  // useEffect(() => {
+  //   useAppStore.getState().restoreSession();
+  // }, []);
+  
+  // TEMP: Mark session restore as "tried" immediately so UI doesn't block
   useEffect(() => {
-    useAppStore.getState().restoreSession();
+    console.log("[RootLayout] Setting hasTriedSessionRestore=true (NO restore call)");
+    useAppStore.setState({ hasTriedSessionRestore: true, isRestoringSession: false });
   }, []);
 
-  // Show loading while restoring
+  // Show loading while restoring - but we've disabled restore so this should be brief
   if (!hasTriedSessionRestore || isRestoringSession) {
     return (
       <View style={styles.loadingContainer}>
