@@ -15,7 +15,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams } from 'expo-router';
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
-import { getApiBaseUrl, joinUrl } from '../utils/apiBase';
+import { API_BASE_URL, joinUrl } from '../utils/apiBase';
 import { parseApiError, GATEWAY_ERROR_CODES } from '../utils/safeErrorParser';
 
 // Import the Onboarding component to render inline
@@ -41,11 +41,10 @@ export default function WelcomeGate() {
   
   // Debug mode
   const isDebugMode = DEBUG_MIRROR_ENV || searchParams.debug === '1';
-  const apiBaseUrl = getApiBaseUrl();
   
   // Log API base URL once on mount
   useEffect(() => {
-    console.log(`[API_BASE] ${apiBaseUrl}`);
+    console.log(`[API_BASE] ${API_BASE_URL}`);
   }, []);
 
   const handleBeginReflection = () => {
