@@ -27,26 +27,7 @@ import {
   getDebugUserIdInfo 
 } from '../utils/stableUserId';
 import { buildJournalPrefill, goToJournalWithPrefill, LENS_CONTINUATIONS } from '../utils/journalPrefill';
-
-// === SIMPLIFIED: Single deterministic backend URL ===
-const PRODUCTION_BACKEND_BASE = 'https://mirror-fix.preview.emergentagent.com';
-
-function getBackendBaseUrl(): string {
-  // Check for explicit env var override
-  const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
-    console.log('[NumerologyLensView] Using EXPO_PUBLIC_BACKEND_URL:', envUrl);
-    return envUrl.trim().replace(/\/+$/, '');
-  }
-  
-  // Use hardcoded production URL
-  console.log('[NumerologyLensView] Using hardcoded production:', PRODUCTION_BACKEND_BASE);
-  return PRODUCTION_BACKEND_BASE;
-}
-
-// Resolved backend base URL (computed once)
-const BACKEND_BASE_URL = getBackendBaseUrl();
-console.log('[NumerologyLensView] BACKEND_BASE_URL resolved to:', BACKEND_BASE_URL);
+import { API_BASE_URL } from '../utils/apiBase';
 
 interface NumerologySection {
   id: string;      // Stable identifier (e.g., "life_path", "expression", "soul_urge")
