@@ -1370,4 +1370,43 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     fontStyle: 'italic',
   },
+  
+  // Debug panel (only shown when ?debug=1)
+  debugPanel: {
+    backgroundColor: '#1a1a2e',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#3a3a5e',
+  },
+  debugTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#4ade80',
+    marginBottom: 6,
+  },
+  debugText: {
+    fontSize: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    color: '#888',
+    lineHeight: 14,
+  },
+  
+  // Error banner (ephemeral, not persisted)
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#dc2626',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+    gap: 8,
+  },
+  errorBannerText: {
+    flex: 1,
+    fontSize: 12,
+    color: '#fff',
+  },
 });
