@@ -488,6 +488,21 @@ export default function MirrorChat({
     }
 
     const messageContent = inputText.trim();
+    const requestId = `req_${Date.now()}`;
+    
+    // Clear ephemeral error
+    setEphemeralError(null);
+    
+    // Update debug info at start
+    setDebugInfo(prev => ({
+      ...prev,
+      lastRequestId: requestId,
+      lastUrl: '/mirror/chat',
+      lastStatus: null,
+      lastErr: null,
+      lastResponseSnippet: null,
+      lastAttemptCount: 0,
+    }));
     
     // Optimistic UI: Add user message immediately
     const userMessage: ChatMessage = {
@@ -501,7 +516,7 @@ export default function MirrorChat({
     const messagesWithUser = [...messages, userMessage];
     setMessages(messagesWithUser);
     
-    // Save to storage immediately
+    // Save to storage immediately (user message only)
     await saveMessages(userId, threadKey, messagesWithUser);
     
     setInputText('');
@@ -512,64 +527,84 @@ export default function MirrorChat({
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 15000); // 15 second timeout
+    }, REQUEST_TIMEOUT);
 
     try {
-      const response = await api.post('/mirror/chat', {
+      const result = await callMirrorChatApi({
         user_id: userId,
         message: messageContent,
         lens: lens,
         session_id: sessionId,
         include_journal: true,
         include_history: true,
-      }, {
-        signal: controller.signal,
-      });
+      }, controller.signal);
 
       clearTimeout(timeoutId);
+      
+      // Update debug info with result
+      setDebugInfo(prev => ({
+        ...prev,
+        lastStatus: result.status,
+        lastErr: result.err,
+        lastResponseSnippet: result.text || (result.json ? JSON.stringify(result.json).substring(0, 100) : null),
+        lastAttemptCount: result.attempts,
+      }));
 
-      const assistantMessage: ChatMessage = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: response.data.response,
-        timestamp: response.data.timestamp || new Date().toISOString(),
-      };
+      if (result.ok && result.json) {
+        // SUCCESS - create and persist assistant message
+        const assistantMessage: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          content: result.json.response,
+          timestamp: result.json.timestamp || new Date().toISOString(),
+        };
 
-      // Add assistant message to local state
-      const messagesWithAssistant = [...messagesWithUser, assistantMessage];
-      setMessages(messagesWithAssistant);
-      
-      // Save to storage
-      await saveMessages(userId, threadKey, messagesWithAssistant);
-      
-      setSessionId(response.data.session_id);
-      
-      // Store memory update if present
-      if (response.data.memory_update) {
-        setMemoryUpdate(response.data.memory_update);
-      }
-      
-      // Update thread state from response (only for generalist chat)
-      if (!lens && response.data.thread) {
-        setThreadState(response.data.thread);
-      } else if (!lens && !response.data.thread) {
-        setThreadState(null);
+        // Add assistant message to local state
+        const messagesWithAssistant = [...messagesWithUser, assistantMessage];
+        setMessages(messagesWithAssistant);
+        
+        // Save to storage (including successful response)
+        await saveMessages(userId, threadKey, messagesWithAssistant);
+        
+        setSessionId(result.json.session_id);
+        
+        // Store memory update if present
+        if (result.json.memory_update) {
+          setMemoryUpdate(result.json.memory_update);
+        }
+        
+        // Update thread state from response (only for generalist chat)
+        if (!lens && result.json.thread) {
+          setThreadState(result.json.thread);
+        } else if (!lens && !result.json.thread) {
+          setThreadState(null);
+        }
+      } else {
+        // FAILURE - show ephemeral error, do NOT persist
+        const errorDetail = result.err || `HTTP ${result.status}`;
+        console.error(`[MirrorChat] Send failed after ${result.attempts} attempts: ${errorDetail}`);
+        
+        // Set ephemeral error (shown in UI but not persisted)
+        setEphemeralError(
+          result.status 
+            ? `Request failed (HTTP ${result.status}) after ${result.attempts} attempt(s)`
+            : `Request failed: ${result.err || 'Unknown error'}`
+        );
+        
+        // Do NOT add error message to messages array or save to storage
+        // The user can try again
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error('[MirrorChat] Send error:', error.message);
+      console.error('[MirrorChat] Unexpected send error:', error.message);
       
-      // Add error message to chat
-      const errorMessage: ChatMessage = {
-        id: `error-${Date.now()}`,
-        role: 'assistant',
-        content: "I'm having trouble connecting right now. Please try again in a moment.",
-        timestamp: new Date().toISOString(),
-      };
+      setDebugInfo(prev => ({
+        ...prev,
+        lastErr: error.message,
+        lastStatus: null,
+      }));
       
-      const messagesWithError = [...messagesWithUser, errorMessage];
-      setMessages(messagesWithError);
-      await saveMessages(userId, threadKey, messagesWithError);
+      setEphemeralError('Unexpected error. Please try again.');
     } finally {
       // ALWAYS reset loading state
       setIsLoading(false);
