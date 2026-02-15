@@ -3,8 +3,8 @@ import type { PropsWithChildren } from 'react';
 
 // BUILD_ID must be updated on every deploy for cache verification
 // MUST MATCH /app/frontend/utils/buildInfo.ts
-const BUILD_ID = '2026-02-15T16:10:00Z';
-const BUILD_VERSION = 'v19-hard-cache-bust';
+const BUILD_ID = '2026-02-15T16:45:00Z';
+const BUILD_VERSION = 'v20-deploy-verify';
 
 // Generate a cache-bust suffix for asset URLs
 const CACHE_BUST = `?v=${BUILD_ID.replace(/[^a-zA-Z0-9]/g, '')}`;
@@ -37,58 +37,58 @@ export default function Root({ children }: PropsWithChildren) {
         <script dangerouslySetInnerHTML={{ __html: `
 (function () {
   try {
-    var EXPECTED_BUILD = "${BUILD_ID}";
-    var key = "mirror_last_build";
-    var prev = localStorage.getItem(key);
-    localStorage.setItem(key, EXPECTED_BUILD);
-
-    function nukeAndReload() {
-      console.log('[HARD_CACHE_BUST] Nuking caches and service workers...');
-      try {
-        // Unregister ALL service workers
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations()
-            .then(function(regs) { 
-              console.log('[HARD_CACHE_BUST] Unregistering ' + regs.length + ' service workers');
-              return Promise.all(regs.map(function(r) { return r.unregister(); })); 
-            })
-            .catch(function(e) { console.log('[HARD_CACHE_BUST] SW error:', e); });
-        }
-        // Clear ALL caches
-        if (window.caches && caches.keys) {
-          caches.keys()
-            .then(function(names) { 
-              console.log('[HARD_CACHE_BUST] Deleting ' + names.length + ' caches');
-              return Promise.all(names.map(function(n) { return caches.delete(n); })); 
-            })
-            .catch(function(e) { console.log('[HARD_CACHE_BUST] Cache error:', e); });
-        }
-      } catch (e) { console.log('[HARD_CACHE_BUST] Error:', e); }
-      
-      // Reload once with cache-buster query params
-      if (!location.search.includes("refreshed=1")) {
-        var newUrl = location.pathname + "?refreshed=1&b=" + EXPECTED_BUILD + "&t=" + Date.now();
-        console.log('[HARD_CACHE_BUST] Redirecting to:', newUrl);
-        location.replace(newUrl);
-      }
-    }
-
-    // Detect if we're on emergent host
+    var BUILD_ID = "${BUILD_ID}";
+    var STORAGE_KEY = "mirror_build_id";
+    var cached = null;
+    
+    try { cached = localStorage.getItem(STORAGE_KEY); } catch(e) {}
+    
+    console.log("[BUILD] expected=" + BUILD_ID + " current=" + (cached || "none"));
+    
+    // Detect emergent hosts
     var host = location.hostname || "";
     var isEmergent = host.includes("emergent.host") || host.includes("emergentagent") || host.includes("preview.");
+    var isFirstVisit = !cached;
+    var buildMismatch = cached && cached !== BUILD_ID;
+    var alreadyRefreshed = location.search.includes("refreshed=1");
     
-    // If build changed, force refresh
-    if (prev && prev !== EXPECTED_BUILD) {
-      console.log('[HARD_CACHE_BUST] Build changed! Old:', prev, 'New:', EXPECTED_BUILD);
-      nukeAndReload();
-    } else if (!prev && isEmergent && !location.search.includes("refreshed=1")) {
-      // First visit on emergent host - also clear to be safe
-      console.log('[HARD_CACHE_BUST] First visit on emergent host, clearing caches');
-      nukeAndReload();
+    // Force refresh if: build mismatch OR (first visit on emergent AND not already refreshed)
+    if ((buildMismatch || (isFirstVisit && isEmergent)) && !alreadyRefreshed) {
+      console.log("[BUILD] Clearing caches and service workers...");
+      
+      // Unregister ALL service workers
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations()
+          .then(function(regs) { 
+            console.log("[BUILD] Unregistering " + regs.length + " service workers");
+            return Promise.all(regs.map(function(r) { return r.unregister(); })); 
+          })
+          .catch(function(e) { console.log("[BUILD] SW error:", e); });
+      }
+      
+      // Clear ALL caches
+      if (window.caches && caches.keys) {
+        caches.keys()
+          .then(function(names) { 
+            console.log("[BUILD] Deleting " + names.length + " caches");
+            return Promise.all(names.map(function(n) { return caches.delete(n); })); 
+          })
+          .catch(function(e) { console.log("[BUILD] Cache error:", e); });
+      }
+      
+      // Store new build ID
+      try { localStorage.setItem(STORAGE_KEY, BUILD_ID); } catch(e) {}
+      
+      // Reload with cache-buster
+      var newUrl = location.pathname + "?refreshed=1&b=" + BUILD_ID + "&t=" + Date.now();
+      console.log("[BUILD] Redirecting to:", newUrl);
+      setTimeout(function() { location.replace(newUrl); }, 100);
     } else {
-      console.log('[HARD_CACHE_BUST] Build OK:', EXPECTED_BUILD);
+      // Store build ID for next time
+      try { localStorage.setItem(STORAGE_KEY, BUILD_ID); } catch(e) {}
+      console.log("[BUILD] OK - " + BUILD_ID);
     }
-  } catch (e) { console.log('[HARD_CACHE_BUST] Error:', e); }
+  } catch (e) { console.log("[BUILD] Error:", e); }
 })();
         `}} />
         
