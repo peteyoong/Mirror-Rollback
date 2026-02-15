@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { buildJournalPrefill, goToJournalWithPrefill } from '../utils/journalPrefill';
+import { API_BASE_URL } from '../utils/apiBase';
 import { 
   sendEnneagramChat, 
   getEnneagramTraits,
@@ -31,7 +32,6 @@ import {
 import {
   BUILD_ID,
   BUILD_VERSION,
-  getApiBaseUrl,
   getBackendHealth,
   BackendHealthInfo,
 } from '../utils/buildInfo';
@@ -49,17 +49,6 @@ const getUrlDebugParam = (): boolean => {
 };
 
 const APP_ENV = process.env.NODE_ENV || 'unknown';
-
-// === SIMPLIFIED: Single deterministic backend URL ===
-const PRODUCTION_BACKEND_BASE = 'https://mirror-fix.preview.emergentagent.com';
-
-const getEffectiveApiUrl = (): string => {
-  const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
-    return envUrl.trim().replace(/\/+$/, '');
-  }
-  return PRODUCTION_BACKEND_BASE;
-};
 
 // ============================================
 // TYPE LABEL NORMALIZER (Task B - Fix "7wbalanced" bug)
