@@ -75,7 +75,9 @@ export default function EnneagramScreen() {
   };
   
   const handleBack = () => {
-    router.back();
+    // Use deterministic navigation to lenses tab
+    // Avoids issues when user lands directly via deep link or browser refresh
+    navigateToLenses(router);
   };
   
   if (loading) {
