@@ -48,11 +48,7 @@ export default function TabLayout() {
           options={{
             title: 'Mirror',
             tabBarIcon: ({ color, size }) => (
-              <View>
-                <Text style={{ color }}>
-                  <Ionicons name="moon-outline" size={size} color={color} />
-                </Text>
-              </View>
+              <Ionicons name="moon-outline" size={size} color={color} />
             ),
             headerShown: false,
           }}
@@ -69,11 +65,7 @@ export default function TabLayout() {
           options={{
             title: 'Life',
             tabBarIcon: ({ color, size }) => (
-              <View>
-                <Text style={{ color }}>
-                  <Ionicons name="leaf-outline" size={size} color={color} />
-                </Text>
-              </View>
+              <Ionicons name="leaf-outline" size={size} color={color} />
             ),
           }}
         />
@@ -82,11 +74,7 @@ export default function TabLayout() {
           options={{
             title: 'Journal',
             tabBarIcon: ({ color, size }) => (
-              <View>
-                <Text style={{ color }}>
-                  <Ionicons name="book-outline" size={size} color={color} />
-                </Text>
-              </View>
+              <Ionicons name="book-outline" size={size} color={color} />
             ),
           }}
         />
@@ -95,11 +83,7 @@ export default function TabLayout() {
           options={{
             title: 'Lenses',
             tabBarIcon: ({ color, size }) => (
-              <View>
-                <Text style={{ color }}>
-                  <Ionicons name="eye-outline" size={size} color={color} />
-                </Text>
-              </View>
+              <Ionicons name="eye-outline" size={size} color={color} />
             ),
           }}
         />
