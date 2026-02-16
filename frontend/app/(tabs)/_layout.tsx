@@ -88,9 +88,6 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      
-      {/* Always-visible BUILD watermark */}
-      <BuildBadge />
     </View>
   );
 }
