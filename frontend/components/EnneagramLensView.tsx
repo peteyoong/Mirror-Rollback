@@ -1603,7 +1603,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
     const typeName = TYPE_NAMES[core];
     
     // LAYOUT VERSION MARKER (PART B requirement)
-    const ENNEAGRAM_LAYOUT_VERSION = 'v2';
+    const ENNEAGRAM_LAYOUT_VERSION = 'v3';
 
     return (
       <>
