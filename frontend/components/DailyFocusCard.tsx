@@ -153,9 +153,7 @@ export default function DailyFocusCard({ userId, onStateChange }: DailyFocusCard
             onPress={handleDismiss}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Text>
-              <Ionicons name="close" size={18} color={Colors.textTertiary} />
-            </Text>
+            <Ionicons name="close" size={18} color={Colors.textTertiary} />
           </TouchableOpacity>
         </View>
         
