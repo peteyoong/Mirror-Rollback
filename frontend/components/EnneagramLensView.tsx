@@ -157,6 +157,59 @@ const TYPE_NAMES: { [key: number]: string } = {
   9: 'The Peacemaker',
 };
 
+// Growth and Stress Lines
+const GROWTH_LINES: { [key: number]: number } = {
+  1: 7, 2: 4, 3: 6, 4: 1, 5: 8, 6: 9, 7: 5, 8: 2, 9: 3
+};
+
+const STRESS_LINES: { [key: number]: number } = {
+  1: 4, 2: 8, 3: 9, 4: 2, 5: 7, 6: 3, 7: 1, 8: 5, 9: 6
+};
+
+// Basic Fears and Desires for Snapshot
+const TYPE_FEARS: { [key: number]: string } = {
+  1: 'Being corrupt or defective',
+  2: 'Being unwanted or unworthy of love',
+  3: 'Being worthless or without value',
+  4: 'Having no identity or significance',
+  5: 'Being useless or incapable',
+  6: 'Being without support or guidance',
+  7: 'Being deprived or trapped in pain',
+  8: 'Being controlled or harmed by others',
+  9: 'Loss of connection and fragmentation',
+};
+
+const TYPE_DESIRES: { [key: number]: string } = {
+  1: 'To be good, right, and ethical',
+  2: 'To be loved and appreciated',
+  3: 'To be valuable and worthwhile',
+  4: 'To find their significance',
+  5: 'To be capable and competent',
+  6: 'To have security and support',
+  7: 'To be satisfied and content',
+  8: 'To protect themselves',
+  9: 'To have inner peace and stability',
+};
+
+// Helper functions for Snapshot
+const getCenter = (type: number): string => {
+  if ([8, 9, 1].includes(type)) return 'Body (Gut)';
+  if ([2, 3, 4].includes(type)) return 'Heart (Feeling)';
+  return 'Head (Thinking)';
+};
+
+const getHornevianGroup = (type: number): string => {
+  if ([3, 7, 8].includes(type)) return 'Assertive';
+  if ([1, 2, 6].includes(type)) return 'Compliant';
+  return 'Withdrawn';
+};
+
+const getHarmonicGroup = (type: number): string => {
+  if ([2, 7, 9].includes(type)) return 'Positive Outlook';
+  if ([1, 3, 5].includes(type)) return 'Competency';
+  return 'Reactive';
+};
+
 // Energetic Flow: Stress line descriptions (Mirror-safe)
 const STRESS_DESCRIPTIONS: { [key: number]: { [key: number]: string } } = {
   1: { 4: "a pull toward feeling misunderstood, melancholic, or withdrawn." },
