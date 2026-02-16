@@ -27,7 +27,6 @@ import ReflectionEntry from '../../components/ReflectionEntry';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
 import SectionLabel from '../../components/SectionLabel';
 import ApiOfflineBanner, { InlineRetry } from '../../components/ApiOfflineBanner';
-import BuildBadge from '../../components/BuildBadge';
 import { BUILD_ID as CANONICAL_BUILD_ID } from '../../utils/buildInfo';
 
 // =========================================
