@@ -1511,8 +1511,8 @@ export default function EnneagramAssessment() {
         setCurrentQuestionIndex(prevSectionQuestions.length - 1);
         setShowSectionIntro(false);
       } else {
-        // Exit assessment
-        router.back();
+        // Exit assessment - use deterministic navigation to lenses
+        navigateToLenses(router);
       }
     } else if (currentQuestionIndex > 0) {
       // Go to previous question in current section
