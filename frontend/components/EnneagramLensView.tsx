@@ -2075,6 +2075,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {renderDebugWingOverridePanel()}
         
         {activeTab === 'summary' && renderSummaryTab()}
+        {activeTab === 'snapshot' && renderSnapshotTab()}
         {activeTab === 'today' && renderTodayTab()}
         {activeTab === 'deep_dive' && renderDeepDiveTab()}
         
