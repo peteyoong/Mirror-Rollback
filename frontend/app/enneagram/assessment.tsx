@@ -526,7 +526,7 @@ export default function P2DeepAssessment() {
           <Pressable style={styles.errorButton} onPress={handleRestart}>
             <Text style={styles.errorButtonText}>Restart</Text>
           </Pressable>
-          <Pressable style={[styles.errorButton, styles.errorButtonSecondary]} onPress={() => router.back()}>
+          <Pressable style={[styles.errorButton, styles.errorButtonSecondary]} onPress={() => navigateToLenses(router)}>
             <Text style={[styles.errorButtonText, styles.errorButtonTextSecondary]}>Go Back</Text>
           </Pressable>
         </View>
