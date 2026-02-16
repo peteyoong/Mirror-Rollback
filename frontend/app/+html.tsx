@@ -121,6 +121,26 @@ export default function Root({ children }: PropsWithChildren) {
         `}} />
         
         {/* ============================================
+            LOCAL IONICONS FONT - Eliminates CDN Dependency
+            ============================================ */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          @font-face {
+            font-family: 'Ionicons';
+            src: url('/assets/fonts/Ionicons.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: block;
+          }
+          @font-face {
+            font-family: 'ionicons';
+            src: url('/assets/fonts/Ionicons.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: block;
+          }
+        `}} />
+        
+        {/* ============================================
             VIEWPORT - Critical for iOS PWA
             ============================================ */}
         <meta 
