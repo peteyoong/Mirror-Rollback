@@ -215,36 +215,6 @@ async def debug_ping():
     """
     return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
 
-# Dedicated font serving endpoint to bypass proxy issues with static files
-@app.get("/api/fonts/ionicons.ttf")
-async def serve_ionicons_font():
-    """
-    Serve Ionicons.ttf font from the backend.
-    This bypasses CDN/proxy issues with static font files.
-    """
-    font_path = WEB_BUILD_PATH / "assets" / "fonts" / "Ionicons.ttf"
-    if not font_path.exists():
-        # Try alternative locations
-        alt_paths = [
-            Path("/app/frontend/dist/assets/fonts/Ionicons.ttf"),
-            Path("/app/frontend/assets/fonts/Ionicons.ttf"),
-        ]
-        for alt in alt_paths:
-            if alt.exists():
-                font_path = alt
-                break
-    
-    if font_path.exists():
-        return FileResponse(
-            str(font_path),
-            media_type="font/ttf",
-            headers={
-                "Cache-Control": "public, max-age=31536000, immutable",
-                "Access-Control-Allow-Origin": "*",
-            }
-        )
-    raise HTTPException(status_code=404, detail="Ionicons.ttf not found")
-
 # Note: Static file serving will be added at the END of the file, AFTER the api_router is included
 # This ensures API routes take precedence over the catch-all static file handler
 
