@@ -3311,4 +3311,125 @@ const styles = StyleSheet.create({
     color: '#FF4444',
     fontWeight: 'bold',
   },
+  
+  // ============================================
+  // SNAPSHOT TAB STYLES (v3 - Parity with Astrology/HD)
+  // ============================================
+  snapshotHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 16,
+  },
+  snapshotHeroBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  snapshotHeroBadgeText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: Colors.background,
+  },
+  snapshotHeroInfo: {
+    flex: 1,
+  },
+  snapshotHeroTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  snapshotHeroSubtitle: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+  },
+  snapshotCard: {
+    backgroundColor: Colors.surfaceLight,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+  },
+  snapshotCardTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  snapshotRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  snapshotRowLast: {
+    borderBottomWidth: 0,
+  },
+  snapshotLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  snapshotLabel: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  snapshotValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.text,
+    flex: 1,
+    textAlign: 'right',
+    marginLeft: 8,
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  styleTag: {
+    backgroundColor: Colors.accent + '20',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+  },
+  styleTagText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.accent,
+  },
+  quickRefGrid: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  quickRefItem: {
+    flex: 1,
+  },
+  quickRefLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
+  quickRefValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.text,
+    lineHeight: 20,
+  },
+  snapshotFooter: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  snapshotFooterText: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
 });
