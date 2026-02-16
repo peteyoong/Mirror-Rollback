@@ -7,9 +7,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import { getDailyFocus, DailyFocusResponse } from '../services/api';
+import { SafeIcon } from './SafeIcon';
 
 interface DailyFocusCardProps {
   userId: string;
