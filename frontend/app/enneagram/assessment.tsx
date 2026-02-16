@@ -313,10 +313,10 @@ export default function P2DeepAssessment() {
     setResumeProgress(null);
   }, [clearSession, resumeProgress]);
 
-  // Dismiss resume modal ("Not now") - returns to previous screen
+  // Dismiss resume modal ("Not now") - returns to lenses
   const handleDismissResume = useCallback(() => {
     setShowResumePrompt(false);
-    router.back();
+    navigateToLenses(router);
   }, [router]);
 
   // Start assessment
