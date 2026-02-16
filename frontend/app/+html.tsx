@@ -66,60 +66,6 @@ export default function Root({ children }: PropsWithChildren) {
         `}} />
         
         {/* ============================================
-            PRE-REACT BUILD WATERMARK
-            Visible immediately on page load, before React mounts
-            ============================================ */}
-        <script dangerouslySetInnerHTML={{ __html: `
-(function() {
-  try {
-    var BUILD_ID = "${BUILD_ID}";
-    var BUILD_VERSION = "${BUILD_VERSION}";
-    
-    // Create watermark element
-    var watermark = document.createElement('div');
-    watermark.id = 'build-watermark';
-    watermark.textContent = 'BUILD ' + BUILD_ID + ' • ' + BUILD_VERSION;
-    watermark.style.cssText = [
-      'position: fixed',
-      'top: calc(env(safe-area-inset-top, 0px) + 8px)',
-      'left: 8px',
-      'z-index: 2147483647',
-      'background: rgba(0, 0, 0, 0.7)',
-      'color: #fff',
-      'padding: 6px 10px',
-      'border-radius: 10px',
-      'font-size: 10px',
-      'font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-      'font-weight: 500',
-      'letter-spacing: 0.3px',
-      'pointer-events: none',
-      'box-shadow: 0 2px 8px rgba(0,0,0,0.3)',
-      'white-space: nowrap'
-    ].join(';');
-    
-    // Add to DOM as soon as body exists
-    function addWatermark() {
-      if (document.body) {
-        document.body.appendChild(watermark);
-        console.log('[WATERMARK] Added: BUILD ' + BUILD_ID + ' • ' + BUILD_VERSION);
-      } else {
-        // Body not ready, try again
-        setTimeout(addWatermark, 10);
-      }
-    }
-    
-    // Start trying to add watermark
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', addWatermark);
-    } else {
-      addWatermark();
-    }
-    
-  } catch(e) { console.log('[WATERMARK] Error:', e); }
-})();
-        `}} />
-        
-        {/* ============================================
             HARD CACHE BUSTER - Service Worker unregister + Cache clear + Force reload
             This runs BEFORE React loads
             ============================================ */}
