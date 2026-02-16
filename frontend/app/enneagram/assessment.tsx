@@ -36,6 +36,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
+import { navigateToLenses, safeGoBack } from '../../utils/navigation';
 import {
   startP2DeepAssessment,
   submitP2AssessmentAnswer,
