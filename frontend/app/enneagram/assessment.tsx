@@ -246,7 +246,7 @@ export default function P2DeepAssessment() {
             'Your progress may be lost if you leave now.',
             [
               { text: 'Stay', style: 'cancel' },
-              { text: 'Leave', style: 'destructive', onPress: () => router.back() },
+              { text: 'Leave', style: 'destructive', onPress: () => navigateToLenses(router) },
             ]
           );
           return true;
