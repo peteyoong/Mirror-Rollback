@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import { Spacing } from '../constants/spacing';
 import { API_URL_MISSING } from '../services/api';
+import { SafeIcon } from './SafeIcon';
 
 interface ApiOfflineBannerProps {
   onRetry?: () => void;
@@ -21,7 +21,7 @@ export default function ApiOfflineBanner({ onRetry, message }: ApiOfflineBannerP
   
   return (
     <View style={styles.banner}>
-      <Ionicons name="cloud-offline-outline" size={14} color={Colors.warning} />
+      <SafeIcon name="cloud-offline-outline" size={14} color={Colors.warning} />
       <Text style={styles.text}>
         {message || 'API not configured — some features disabled'}
       </Text>
@@ -40,7 +40,7 @@ export default function ApiOfflineBanner({ onRetry, message }: ApiOfflineBannerP
 export function InlineRetry({ onRetry, message }: { onRetry: () => void; message?: string }) {
   return (
     <TouchableOpacity style={styles.inlineRetry} onPress={onRetry} activeOpacity={0.7}>
-      <Ionicons name="refresh-outline" size={16} color={Colors.textSecondary} />
+      <SafeIcon name="refresh-outline" size={16} color={Colors.textSecondary} />
       <Text style={styles.inlineRetryText}>{message || 'Tap to retry'}</Text>
     </TouchableOpacity>
   );
