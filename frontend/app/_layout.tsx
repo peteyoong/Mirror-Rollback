@@ -1,14 +1,32 @@
 import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
 import WelcomeGate from '../components/WelcomeGate';
 
+// Keep splash screen visible while fonts load
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // Ignore errors - splash screen may already be hidden
+});
+
 /**
- * ROOT LAYOUT - RESTORE DISABLED FOR DEBUGGING
+ * ROOT LAYOUT - With Local Font Loading
+ * 
+ * Loads Ionicons.ttf from local assets to eliminate CDN dependency.
+ * This prevents 520 errors and "Unexpected text node" issues.
  */
 export default function RootLayout() {
+  
+  // Load fonts from local assets (NOT from CDN)
+  const [fontsLoaded, fontError] = useFonts({
+    // Load Ionicons from local assets folder
+    'Ionicons': require('../assets/fonts/Ionicons.ttf'),
+    // Also load SpaceMono if needed
+    'SpaceMono': require('../assets/fonts/SpaceMono-Regular.ttf'),
+  });
   
   // Select stable primitives only
   const userId = useAppStore(s => s.user?.id);
@@ -26,12 +44,33 @@ export default function RootLayout() {
     useAppStore.setState({ hasTriedSessionRestore: true, isRestoringSession: false });
   }, []);
 
-  // Show loading while restoring - but we've disabled restore so this should be brief
-  if (!hasTriedSessionRestore || isRestoringSession) {
+  // Hide splash screen when fonts are loaded
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync().catch(() => {
+        // Ignore errors
+      });
+    }
+  }, [fontsLoaded, fontError]);
+
+  // Log font loading status
+  useEffect(() => {
+    if (fontsLoaded) {
+      console.log('[RootLayout] ✅ Fonts loaded successfully (Ionicons bundled locally)');
+    }
+    if (fontError) {
+      console.error('[RootLayout] ❌ Font loading error:', fontError);
+    }
+  }, [fontsLoaded, fontError]);
+
+  // Show loading while fonts load OR session restore
+  if (!fontsLoaded || !hasTriedSessionRestore || isRestoringSession) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.textSecondary} />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>
+          {!fontsLoaded ? 'Loading fonts...' : 'Loading...'}
+        </Text>
       </View>
     );
   }
