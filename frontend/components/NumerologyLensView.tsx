@@ -186,11 +186,9 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
     
     const checkHealth = async () => {
       try {
-        const healthUrl = `${API_BASE_URL}/health`;
+        console.log('[DEBUG_MIRROR] Checking backend health via api client');
         
-        console.log('[DEBUG_MIRROR] Checking backend health:', healthUrl);
-        
-        const response = await axios.get(healthUrl, { timeout: 5000 });
+        const response = await api.get('/health', { timeout: 5000 });
         const isOk = response.data?.ok === true && response.data?.service === 'backend';
         
         setBackendHealthOk(isOk);
@@ -206,18 +204,15 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
 
   // === PROFILE HYDRATION FROM SERVER ===
   // Fetch profile from GET /api/profile/{user_id} - this is the canonical source
-  // Uses direct backend URL to bypass unreliable web preview proxy
+  // Uses centralized api client which has /api prefix baked in
   const hydrateProfile = useCallback(async () => {
     setProfileLoading(true);
     try {
-      const profileUrl = `${API_BASE_URL}/profile/${userId}`
-;
-      
       if (isDebugEnabled()) {
-        console.log('[DEBUG_MIRROR] Fetching profile from:', profileUrl);
+        console.log('[DEBUG_MIRROR] Fetching profile for user:', userId);
       }
       
-      const response = await axios.get(profileUrl, { timeout: 10000 });
+      const response = await api.get(`/profile/${userId}`, { timeout: 10000 });
       const serverProfile: UserProfile = response.data;
       setProfile(serverProfile);
       
