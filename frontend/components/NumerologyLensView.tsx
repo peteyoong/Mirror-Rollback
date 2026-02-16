@@ -14,8 +14,6 @@ import {
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import axios from 'axios';
-import Constants from 'expo-constants';
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 import { LensViewRef } from './HumanDesignLensView';
@@ -27,7 +25,6 @@ import {
   getDebugUserIdInfo 
 } from '../utils/stableUserId';
 import { buildJournalPrefill, goToJournalWithPrefill, LENS_CONTINUATIONS } from '../utils/journalPrefill';
-import { API_BASE_URL } from '../utils/apiBase';
 
 interface NumerologySection {
   id: string;      // Stable identifier (e.g., "life_path", "expression", "soul_urge")
