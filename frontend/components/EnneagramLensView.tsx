@@ -10,6 +10,8 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  LayoutAnimation,
+  UIManager,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +19,7 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { buildJournalPrefill, goToJournalWithPrefill } from '../utils/journalPrefill';
 import { API_BASE_URL } from '../utils/apiBase';
+import { Accordion } from './Accordion';
 import { 
   sendEnneagramChat, 
   getEnneagramTraits,
@@ -35,6 +38,11 @@ import {
   getBackendHealth,
   BackendHealthInfo,
 } from '../utils/buildInfo';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 // ============================================
 // DEBUG CONFIGURATION
