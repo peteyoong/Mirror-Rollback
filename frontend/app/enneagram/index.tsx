@@ -15,6 +15,7 @@ import { useAppStore } from '../../store';
 import { Ionicons } from '@expo/vector-icons';
 import { getEnneagramResult } from '../../services/api';
 import EnneagramLensView from '../../components/EnneagramLensView';
+import { navigateToLenses } from '../../utils/navigation';
 
 interface EnneagramResult {
   inferred_core: number;
