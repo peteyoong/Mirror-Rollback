@@ -550,18 +550,12 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
     setUnlockError(null);
 
     try {
-      // Build URLs with backend base URL
-      const unlockUrl = `${API_BASE_URL}/numerology/unlock-name/${userId}`
-;
-      const profileUrl = `${API_BASE_URL}/profile/${userId}`
-;
-      
       if (isDebugEnabled()) {
-        console.log('[DEBUG_MIRROR] Step 1: POST unlock-name to:', unlockUrl);
+        console.log('[DEBUG_MIRROR] Step 1: POST unlock-name for user:', userId);
       }
       
-      // === STEP 1: POST to save the name ===
-      const saveResponse = await axios.post(unlockUrl, {
+      // === STEP 1: POST to save the name (using centralized api client) ===
+      const saveResponse = await api.post(`/numerology/unlock-name/${userId}`, {
         full_birth_name: nameToSave
       }, { timeout: 15000 });
       
@@ -571,10 +565,10 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
       
       // === STEP 2: GET profile to confirm persistence ===
       if (isDebugEnabled()) {
-        console.log('[DEBUG_MIRROR] Step 2: GET profile from:', profileUrl);
+        console.log('[DEBUG_MIRROR] Step 2: GET profile for user:', userId);
       }
       
-      const profileResponse = await axios.get(profileUrl, { timeout: 10000 });
+      const profileResponse = await api.get(`/profile/${userId}`, { timeout: 10000 });
       const updatedProfile: UserProfile = profileResponse.data;
       
       if (isDebugEnabled()) {
