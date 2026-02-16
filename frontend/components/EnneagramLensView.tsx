@@ -1239,6 +1239,110 @@ export default function EnneagramLensView({ result, userId }: Props) {
   );
 
   // ============================================
+  // SNAPSHOT TAB (NEW - Parity with Astrology/HD)
+  // ============================================
+  // Compact structural overview mirroring Astrology Snapshot density
+  
+  const renderSnapshotTab = () => {
+    // Get computed details for snapshot display
+    const cd = computedDetails || {};
+    const wings = WING_NUMBERS[core] || { left: core === 1 ? 9 : core - 1, right: core === 9 ? 1 : core + 1 };
+    
+    // Wing stance description
+    const getWingStanceDescription = (): string => {
+      if (wingInfo.wingState === 'balanced') {
+        return `You appear to access both wings (${wings.left} & ${wings.right}) depending on context.`;
+      } else if (wingInfo.wingState === 'right-dominant') {
+        return `Leans toward ${wings.right}-wing qualities`;
+      } else if (wingInfo.wingState === 'left-dominant') {
+        return `Leans toward ${wings.left}-wing qualities`;
+      } else if (wingInfo.wingState === 'leaning') {
+        return `Slight lean toward ${wing}-wing`;
+      }
+      return 'Wing access still developing';
+    };
+    
+    // Snapshot data rows
+    const snapshotData = [
+      { label: 'Core Type', value: `Type ${core} — ${TYPE_NAMES[core]}`, icon: 'diamond-outline' },
+      { label: 'Wing Stance', value: getWingStanceDescription(), icon: 'git-branch-outline' },
+      { label: 'Center', value: cd.center || getCenter(core), icon: 'radio-button-on-outline' },
+      { label: 'Hornevian Group', value: cd.hornevian_group || getHornevianGroup(core), icon: 'people-outline' },
+      { label: 'Harmonic Group', value: cd.harmonic_group || getHarmonicGroup(core), icon: 'musical-notes-outline' },
+      { label: 'Growth Direction', value: cd.growth_line_to ? `Toward Type ${cd.growth_line_to}` : `Toward Type ${GROWTH_LINES[core]}`, icon: 'trending-up-outline' },
+      { label: 'Stress Direction', value: cd.stress_line_to ? `Toward Type ${cd.stress_line_to}` : `Toward Type ${STRESS_LINES[core]}`, icon: 'trending-down-outline' },
+    ];
+    
+    return (
+      <>
+        {/* Snapshot Header */}
+        <View style={styles.snapshotHeader}>
+          <View style={styles.snapshotHeroBadge}>
+            <Text style={styles.snapshotHeroBadgeText}>{core}</Text>
+          </View>
+          <View style={styles.snapshotHeroInfo}>
+            <Text style={styles.snapshotHeroTitle}>{wingInfo.typeLabel}</Text>
+            <Text style={styles.snapshotHeroSubtitle}>{TYPE_NAMES[core]}</Text>
+          </View>
+        </View>
+        
+        {/* Snapshot Grid */}
+        <View style={styles.snapshotCard}>
+          <Text style={styles.snapshotCardTitle}>Enneagram Snapshot</Text>
+          {snapshotData.map((item, index) => (
+            <View key={index} style={[
+              styles.snapshotRow,
+              index === snapshotData.length - 1 && styles.snapshotRowLast
+            ]}>
+              <View style={styles.snapshotLabelContainer}>
+                <Ionicons name={item.icon as any} size={16} color={Colors.textSecondary} />
+                <Text style={styles.snapshotLabel}>{item.label}</Text>
+              </View>
+              <Text style={styles.snapshotValue}>{item.value}</Text>
+            </View>
+          ))}
+        </View>
+        
+        {/* Social Style Tags */}
+        {cd.social_style_tags && cd.social_style_tags.length > 0 && (
+          <View style={styles.snapshotCard}>
+            <Text style={styles.snapshotCardTitle}>Social Style</Text>
+            <View style={styles.tagContainer}>
+              {cd.social_style_tags.map((tag, index) => (
+                <View key={index} style={styles.styleTag}>
+                  <Text style={styles.styleTagText}>{tag}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+        
+        {/* Quick Reference Card */}
+        <View style={styles.snapshotCard}>
+          <Text style={styles.snapshotCardTitle}>Quick Reference</Text>
+          <View style={styles.quickRefGrid}>
+            <View style={styles.quickRefItem}>
+              <Text style={styles.quickRefLabel}>Basic Fear</Text>
+              <Text style={styles.quickRefValue}>{TYPE_FEARS[core] || 'Being limited'}</Text>
+            </View>
+            <View style={styles.quickRefItem}>
+              <Text style={styles.quickRefLabel}>Basic Desire</Text>
+              <Text style={styles.quickRefValue}>{TYPE_DESIRES[core] || 'To be fulfilled'}</Text>
+            </View>
+          </View>
+        </View>
+        
+        {/* Confidence Info */}
+        <View style={styles.snapshotFooter}>
+          <Text style={styles.snapshotFooterText}>
+            {wingInfo.confidenceBadge} confidence • Based on {result.method || 'assessment'} results
+          </Text>
+        </View>
+      </>
+    );
+  };
+
+  // ============================================
   // TODAY TAB
   // ============================================
 
