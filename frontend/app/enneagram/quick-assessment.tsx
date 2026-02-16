@@ -16,6 +16,7 @@ import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import { Ionicons } from '@expo/vector-icons';
 import { saveEnneagramResult } from '../../services/api';
+import { navigateToLenses } from '../../utils/navigation';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
