@@ -12860,10 +12860,12 @@ if ACTUAL_WEB_BUILD_PATH:
     @app.get("/")
     async def serve_root():
         response = FileResponse(str(ACTUAL_WEB_BUILD_PATH / "index.html"))
-        # Critical: Prevent caching of index.html to ensure fresh builds
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        # Critical: Aggressive no-cache headers for index.html to ensure fresh builds
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0, s-maxage=0, proxy-revalidate"
         response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
+        response.headers["Expires"] = "-1"
+        response.headers["Surrogate-Control"] = "no-store"
+        response.headers["Vary"] = "*"
         return response
     
     # Catch-all route for SPA - serves index.html for all non-API routes
@@ -12881,9 +12883,11 @@ if ACTUAL_WEB_BUILD_PATH:
         
         # For all other routes, serve index.html (SPA routing) - NO CACHING
         response = FileResponse(str(ACTUAL_WEB_BUILD_PATH / "index.html"))
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0, s-maxage=0, proxy-revalidate"
         response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
+        response.headers["Expires"] = "-1"
+        response.headers["Surrogate-Control"] = "no-store"
+        response.headers["Vary"] = "*"
         return response
 else:
     logger.warning(f"[Startup] Web build not found. Checked paths: {WEB_BUILD_PATH}, {FALLBACK_WEB_PATHS}")
