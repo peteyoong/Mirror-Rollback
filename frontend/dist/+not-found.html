@@ -1,82 +1,80 @@
-<!DOCTYPE html><html  lang="en"><head><title data-rh="true"></title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/><title>Mirror • BUILD 2026-02-16T08:35:00Z</title><meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><meta name="build-id" content="2026-02-16T08:35:00Z"/><meta name="build-version" content="v27-enneagram-parity"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="apple-mobile-web-app-title" content="Project Mirror"/><meta name="mobile-web-app-capable" content="yes"/><meta name="theme-color" content="#FAF9F7"/><meta name="format-detection" content="telephone=no"/><link rel="manifest" href="/manifest.webmanifest"/><link rel="apple-touch-icon" href="/apple-touch-icon.png"/><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png"/><link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png"/><link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png"/><link rel="apple-touch-startup-image" href="/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)"/><link rel="apple-touch-startup-image" href="/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)"/><link rel="apple-touch-startup-image" href="/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)"/><script>
+<!DOCTYPE html><html  lang="en"><head><title data-rh="true"></title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/><title>Mirror • BUILD 2026-02-16T09:00:00Z</title><meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0, s-maxage=0, proxy-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="-1"/><meta http-equiv="Surrogate-Control" content="no-store"/><meta name="build-id" content="2026-02-16T09:00:00Z"/><meta name="build-version" content="v27-enneagram-parity-cachebust"/><meta name="build-timestamp" content="1771231527530"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="apple-mobile-web-app-title" content="Project Mirror"/><meta name="mobile-web-app-capable" content="yes"/><meta name="theme-color" content="#FAF9F7"/><meta name="format-detection" content="telephone=no"/><link rel="manifest" href="/manifest.webmanifest"/><link rel="apple-touch-icon" href="/apple-touch-icon.png"/><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png"/><link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png"/><link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png"/><link rel="apple-touch-startup-image" href="/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)"/><link rel="apple-touch-startup-image" href="/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)"/><link rel="apple-touch-startup-image" href="/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)"/><script>
 (function() {
+  var BUILD_ID = "2026-02-16T09:00:00Z";
+  var BUILD_VERSION = "v27-enneagram-parity-cachebust";
+  var STORAGE_KEY = "mirror_build_v3";
+  var FORCE_REFRESH_KEY = "mirror_force_refresh";
+  
+  console.log("%c[CACHE-BUST] BUILD " + BUILD_VERSION + " | " + BUILD_ID, "background: #4ade80; color: black; padding: 4px 8px; font-weight: bold;");
+  
   try {
-    var BUILD_ID = "2026-02-16T08:35:00Z";
-    var BUILD_KEY = "b";
-    var params = new URLSearchParams(location.search);
-    var urlBuild = params.get(BUILD_KEY);
+    var cached = localStorage.getItem(STORAGE_KEY);
+    var forceRefresh = sessionStorage.getItem(FORCE_REFRESH_KEY);
+    var urlParams = new URLSearchParams(location.search);
+    var urlBuild = urlParams.get("b");
     
-    console.log("[BUILD-NS] Current URL build:", urlBuild || "none");
-    console.log("[BUILD-NS] Expected build:", BUILD_ID);
+    console.log("[CACHE-BUST] stored=" + (cached || "none") + " url=" + (urlBuild || "none") + " expected=" + BUILD_ID);
     
-    // If URL doesn't have the correct build param, redirect
-    if (urlBuild !== BUILD_ID) {
-      // Set or update the build param
-      params.set(BUILD_KEY, BUILD_ID);
-      var newUrl = location.pathname + "?" + params.toString() + location.hash;
-      console.log("[BUILD-NS] Redirecting to:", newUrl);
-      location.replace(newUrl);
-      return; // Stop execution
+    // Clear force refresh flag if present
+    if (forceRefresh) {
+      sessionStorage.removeItem(FORCE_REFRESH_KEY);
+      console.log("[CACHE-BUST] Force refresh completed");
     }
     
-    console.log("[BUILD-NS] URL has correct build namespace");
-  } catch(e) { console.log("[BUILD-NS] Error:", e); }
-})();
-        </script><script>
-(function () {
-  try {
-    var BUILD_ID = "2026-02-16T08:35:00Z";
-    var STORAGE_KEY = "mirror_build_id";
-    var cached = null;
-    
-    try { cached = localStorage.getItem(STORAGE_KEY); } catch(e) {}
-    
-    console.log("[BUILD] expected=" + BUILD_ID + " current=" + (cached || "none"));
-    
-    // Detect emergent hosts
-    var host = location.hostname || "";
-    var isEmergent = host.includes("emergent.host") || host.includes("emergentagent") || host.includes("preview.");
-    var isFirstVisit = !cached;
+    // Check for build mismatch
     var buildMismatch = cached && cached !== BUILD_ID;
-    var alreadyRefreshed = location.search.includes("refreshed=1");
+    var urlMismatch = urlBuild && urlBuild !== BUILD_ID;
+    var needsRefresh = buildMismatch || urlMismatch;
     
-    // Force refresh if: build mismatch OR (first visit on emergent AND not already refreshed)
-    if ((buildMismatch || (isFirstVisit && isEmergent)) && !alreadyRefreshed) {
-      console.log("[BUILD] Clearing caches and service workers...");
+    if (needsRefresh && !forceRefresh) {
+      console.log("[CACHE-BUST] BUILD MISMATCH - Clearing ALL caches...");
+      
+      // Set force refresh flag to prevent infinite loop
+      sessionStorage.setItem(FORCE_REFRESH_KEY, "1");
+      
+      // Clear localStorage build marker
+      localStorage.setItem(STORAGE_KEY, BUILD_ID);
       
       // Unregister ALL service workers
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations()
-          .then(function(regs) { 
-            console.log("[BUILD] Unregistering " + regs.length + " service workers");
-            return Promise.all(regs.map(function(r) { return r.unregister(); })); 
-          })
-          .catch(function(e) { console.log("[BUILD] SW error:", e); });
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          console.log("[CACHE-BUST] Unregistering " + regs.length + " service workers");
+          regs.forEach(function(r) { r.unregister(); });
+        }).catch(function(e) {});
       }
       
-      // Clear ALL caches
+      // Clear ALL Cache Storage
       if (window.caches && caches.keys) {
-        caches.keys()
-          .then(function(names) { 
-            console.log("[BUILD] Deleting " + names.length + " caches");
-            return Promise.all(names.map(function(n) { return caches.delete(n); })); 
-          })
-          .catch(function(e) { console.log("[BUILD] Cache error:", e); });
+        caches.keys().then(function(names) {
+          console.log("[CACHE-BUST] Deleting " + names.length + " caches");
+          names.forEach(function(n) { caches.delete(n); });
+        }).catch(function(e) {});
       }
       
-      // Store new build ID
-      try { localStorage.setItem(STORAGE_KEY, BUILD_ID); } catch(e) {}
-      
-      // Reload with cache-buster
-      var newUrl = location.pathname + "?refreshed=1&b=" + BUILD_ID + "&t=" + Date.now();
-      console.log("[BUILD] Redirecting to:", newUrl);
-      setTimeout(function() { location.replace(newUrl); }, 100);
-    } else {
-      // Store build ID for next time
-      try { localStorage.setItem(STORAGE_KEY, BUILD_ID); } catch(e) {}
-      console.log("[BUILD] OK - " + BUILD_ID);
+      // Force hard reload with new build param
+      var newUrl = location.pathname + "?b=" + BUILD_ID + "&t=" + Date.now() + location.hash;
+      console.log("[CACHE-BUST] Redirecting to: " + newUrl);
+      setTimeout(function() { location.replace(newUrl); }, 150);
+      return;
     }
-  } catch (e) { console.log("[BUILD] Error:", e); }
+    
+    // Store current build ID
+    localStorage.setItem(STORAGE_KEY, BUILD_ID);
+    
+    // Ensure URL has correct build param
+    if (!urlBuild || urlBuild !== BUILD_ID) {
+      var newParams = new URLSearchParams(location.search);
+      newParams.set("b", BUILD_ID);
+      var newUrl = location.pathname + "?" + newParams.toString() + location.hash;
+      history.replaceState(null, "", newUrl);
+      console.log("[CACHE-BUST] Updated URL build param");
+    }
+    
+    console.log("[CACHE-BUST] ✓ Build verified: " + BUILD_VERSION);
+    
+  } catch(e) {
+    console.log("[CACHE-BUST] Error:", e);
+  }
 })();
         </script><style>
           /* ============================================
@@ -706,5 +704,5 @@ input::-webkit-search-cancel-button,input::-webkit-search-decoration,input::-web
 @keyframes r-1pzkwqh{0%{transform:translateY(100%);}100%{transform:translateY(0%);}}
 @keyframes r-imtty0{0%{opacity:0;}100%{opacity:1;}}
 @keyframes r-q67da2{0%{transform:translateX(-100%);}100%{transform:translateX(400%);}}
-@keyframes r-t2lo5v{0%{opacity:1;}100%{opacity:0;}}</style><script type="module">globalThis.__EXPO_ROUTER_HYDRATE__=true;</script><link rel="icon" href="/favicon.ico" /></head><body><div id="root"><div class="css-g5y9jx r-13awgt0"></div></div><script src="/_expo/static/js/web/entry-db737a0671ce4d071799e82f237607b3.js" defer></script>
+@keyframes r-t2lo5v{0%{opacity:1;}100%{opacity:0;}}</style><script type="module">globalThis.__EXPO_ROUTER_HYDRATE__=true;</script><link rel="icon" href="/favicon.ico" /></head><body><div id="root"><div class="css-g5y9jx r-13awgt0"></div></div><script src="/_expo/static/js/web/entry-f58eb724a15e610576a8bf5d70400c2a.js" defer></script>
 </body></html>
