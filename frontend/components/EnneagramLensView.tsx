@@ -3450,4 +3450,96 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textSecondary,
   },
+  
+  // ============================================
+  // DEEP DIVE ACCORDION STYLES (v4)
+  // ============================================
+  accordionContainer: {
+    marginTop: 8,
+  },
+  accordionSection: {
+    marginBottom: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+  },
+  accordionBody: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: Colors.textSecondary,
+  },
+  flowRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  flowIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    marginTop: 2,
+  },
+  flowText: {
+    flex: 1,
+  },
+  flowLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  alternativesIntro: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: Colors.textSecondary,
+    marginBottom: 16,
+    fontStyle: 'italic',
+  },
+  alternativeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  alternativeType: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+    width: 56,
+  },
+  alternativeName: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    flex: 1,
+    marginHorizontal: 8,
+  },
+  alternativeBar: {
+    width: 60,
+    height: 6,
+    backgroundColor: Colors.border,
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginRight: 8,
+  },
+  alternativeBarFill: {
+    height: '100%',
+    backgroundColor: Colors.accent,
+    borderRadius: 3,
+  },
+  alternativePercent: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    width: 36,
+    textAlign: 'right',
+  },
+  closingSection: {
+    marginTop: 12,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
 });
