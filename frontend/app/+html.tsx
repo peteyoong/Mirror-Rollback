@@ -121,19 +121,19 @@ export default function Root({ children }: PropsWithChildren) {
         `}} />
         
         {/* ============================================
-            LOCAL IONICONS FONT - Eliminates CDN Dependency
+            LOCAL IONICONS FONT - Served via API to bypass CDN/proxy issues
             ============================================ */}
         <style dangerouslySetInnerHTML={{ __html: `
           @font-face {
             font-family: 'Ionicons';
-            src: url('/assets/fonts/Ionicons.ttf') format('truetype');
+            src: url('/api/fonts/ionicons.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
             font-display: block;
           }
           @font-face {
             font-family: 'ionicons';
-            src: url('/assets/fonts/Ionicons.ttf') format('truetype');
+            src: url('/api/fonts/ionicons.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
             font-display: block;
