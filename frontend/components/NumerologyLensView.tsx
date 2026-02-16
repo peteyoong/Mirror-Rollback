@@ -14,7 +14,7 @@ import {
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import api from '../services/api';
+import api, { API_BASE_URL } from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 import { LensViewRef } from './HumanDesignLensView';
 import { 
