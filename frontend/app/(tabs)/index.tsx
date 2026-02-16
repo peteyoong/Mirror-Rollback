@@ -615,9 +615,6 @@ export default function MirrorScreen() {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
-      
-      {/* Build Badge - ALWAYS visible for deploy verification */}
-      <BuildBadge />
     </SafeAreaView>
   );
 }
