@@ -736,7 +736,7 @@ export default function LensDetail() {
       
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
+        <TouchableOpacity onPress={() => router.replace('/lenses')} style={styles.closeButton}>
           <Ionicons name="close" size={24} color={Colors.text} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
