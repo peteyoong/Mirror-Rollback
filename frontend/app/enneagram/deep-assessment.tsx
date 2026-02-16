@@ -612,7 +612,7 @@ export default function DeepAssessmentScreen() {
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Exit',
-          onPress: () => router.back()
+          onPress: () => navigateToLenses(router)
         }
       ]
     );
