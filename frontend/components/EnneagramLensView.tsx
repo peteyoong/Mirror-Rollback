@@ -938,6 +938,14 @@ export default function EnneagramLensView({ result, userId }: Props) {
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
+        style={[styles.tab, activeTab === 'snapshot' && styles.activeTab]}
+        onPress={() => setActiveTab('snapshot')}
+      >
+        <Text style={[styles.tabText, activeTab === 'snapshot' && styles.activeTabText]}>
+          Snapshot
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         style={[styles.tab, activeTab === 'today' && styles.activeTab]}
         onPress={() => setActiveTab('today')}
       >
