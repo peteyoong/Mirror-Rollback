@@ -1653,102 +1653,143 @@ export default function EnneagramLensView({ result, userId }: Props) {
         </View>
 
         {/* ===== NARRATIVE SECTIONS (Story-only when available) ===== */}
-        {useNarrative && narrativeData.sections.map((section, index) => {
-          // Identify section types for collapsible behavior
-          const sectionId = section.id || '';
-          const labelLower = (section.label || '').toLowerCase();
+        {useNarrative && (() => {
+          // Parse narrative sections into structured accordion data
+          const coreStorySection = narrativeData.sections.find(s => 
+            s.id === 'core_story' || (s.label || '').toLowerCase().includes('core story')
+          );
+          const wingStorySection = narrativeData.sections.find(s => 
+            s.id === 'wing_story' || (s.label || '').toLowerCase().includes('your wing')
+          );
+          const otherWingSection = narrativeData.sections.find(s => 
+            s.id === 'other_wing' || (s.label || '').toLowerCase().includes('other wing')
+          );
+          const deeperPatternsSection = narrativeData.sections.find(s => 
+            s.id === 'deeper_patterns' || (s.label || '').toLowerCase().includes('deeper pattern')
+          );
+          const closingSection = narrativeData.sections.find(s => !s.label);
           
-          const isCoreStory = sectionId === 'core_story' || labelLower.includes('core story');
-          const isWingStory = sectionId === 'wing_story' || labelLower.includes('your wing');
-          const isOtherWing = sectionId === 'other_wing' || labelLower.includes('other wing');
-          const isDeeperPatterns = sectionId === 'deeper_patterns' || labelLower.includes('deeper pattern');
-          const isClosing = !section.label;
-          
-          // Core Story - always expanded (no collapsible)
-          if (isCoreStory) {
-            return (
-              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-                <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
-                <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
-              </View>
-            );
-          }
-          
-          // Core + Wing - always expanded (no collapsible)
-          if (isWingStory) {
-            return (
-              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-                <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
-                <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
-              </View>
-            );
-          }
-          
-          // The Other Wing - collapsible, collapsed by default
-          if (isOtherWing) {
-            return (
-              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-                <TouchableOpacity 
-                  style={styles.collapsibleHeader}
-                  onPress={() => setOtherWingExpanded(!otherWingExpanded)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
-                  <Ionicons 
-                    name={otherWingExpanded ? "chevron-up" : "chevron-down"} 
-                    size={20} 
-                    color={Colors.textSecondary} 
-                  />
-                </TouchableOpacity>
-                {otherWingExpanded && (
-                  <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
-                )}
-              </View>
-            );
-          }
-          
-          // Deeper Patterns - collapsible, collapsed by default
-          if (isDeeperPatterns) {
-            return (
-              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-                <TouchableOpacity 
-                  style={styles.collapsibleHeader}
-                  onPress={() => setDeeperPatternsExpanded(!deeperPatternsExpanded)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
-                  <Ionicons 
-                    name={deeperPatternsExpanded ? "chevron-up" : "chevron-down"} 
-                    size={20} 
-                    color={Colors.textSecondary} 
-                  />
-                </TouchableOpacity>
-                {deeperPatternsExpanded && (
-                  <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
-                )}
-              </View>
-            );
-          }
-          
-          // Closing reflection - always visible, special styling
-          if (isClosing) {
-            return (
-              <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-                <Text style={styles.closingReflection}>{section.body}</Text>
-              </View>
-            );
-          }
-          
-          // Default: regular section
           return (
-            <View key={`narrative-${index}`} style={styles.deepDiveSection}>
-              {section.label && (
-                <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
+            <View style={styles.accordionContainer}>
+              {/* SECTION 1: Core Strategy (default expanded) */}
+              {coreStorySection && (
+                <Accordion 
+                  title={coreStorySection.label || 'Core Strategy'}
+                  subtitle="Your primary pattern and motivation"
+                  defaultExpanded={true}
+                  style={styles.accordionSection}
+                >
+                  <Text style={styles.accordionBody}>{coreStorySection.body}</Text>
+                </Accordion>
               )}
-              <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
+              
+              {/* SECTION 2: Wing Nuance */}
+              {wingStorySection && (
+                <Accordion 
+                  title={wingStorySection.label || 'Wing Access'}
+                  subtitle="How your dominant wing colors your expression"
+                  defaultExpanded={false}
+                  style={styles.accordionSection}
+                >
+                  <Text style={styles.accordionBody}>{wingStorySection.body}</Text>
+                </Accordion>
+              )}
+              
+              {/* SECTION 3: Other Wing Access */}
+              {otherWingSection && (
+                <Accordion 
+                  title={otherWingSection.label || 'The Other Wing'}
+                  subtitle="Alternate access point for growth"
+                  defaultExpanded={false}
+                  style={styles.accordionSection}
+                >
+                  <Text style={styles.accordionBody}>{otherWingSection.body}</Text>
+                </Accordion>
+              )}
+              
+              {/* SECTION 4: Tradeoffs / Blindspots */}
+              {deeperPatternsSection && (
+                <Accordion 
+                  title={deeperPatternsSection.label || 'Deeper Patterns'}
+                  subtitle="Tendencies and tradeoffs you may notice"
+                  defaultExpanded={false}
+                  style={styles.accordionSection}
+                >
+                  <Text style={styles.accordionBody}>{deeperPatternsSection.body}</Text>
+                </Accordion>
+              )}
+              
+              {/* SECTION 5: Stress → / Growth → Pattern */}
+              {computedDetails && (
+                <Accordion 
+                  title="Energetic Flow"
+                  subtitle="Movement under stress and when resourced"
+                  defaultExpanded={false}
+                  style={styles.accordionSection}
+                >
+                  <View style={styles.energeticFlowContent}>
+                    <View style={styles.flowRow}>
+                      <View style={styles.flowIcon}>
+                        <Ionicons name="trending-down-outline" size={16} color={Colors.warning} />
+                      </View>
+                      <View style={styles.flowText}>
+                        <Text style={styles.flowLabel}>Under Pressure</Text>
+                        <Text style={styles.accordionBody}>
+                          Attention may shift toward Type {computedDetails.stress_line_to || '?'} patterns — {getStressDescription(core, computedDetails.stress_line_to)}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={[styles.flowRow, { marginTop: 16 }]}>
+                      <View style={styles.flowIcon}>
+                        <Ionicons name="trending-up-outline" size={16} color={Colors.success} />
+                      </View>
+                      <View style={styles.flowText}>
+                        <Text style={styles.flowLabel}>When Resourced</Text>
+                        <Text style={styles.accordionBody}>
+                          Often access to Type {computedDetails.growth_line_to || '?'} qualities — {getGrowthDescription(core, computedDetails.growth_line_to)}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.energeticFlowNote}>
+                      These aren't destinations — just movements you may notice.
+                    </Text>
+                  </View>
+                </Accordion>
+              )}
+              
+              {/* SECTION 6: Top Alternatives (Self-Verification) */}
+              {(traitsData?.top_alternatives && traitsData.top_alternatives.length > 0) && (
+                <Accordion 
+                  title="Top Alternatives"
+                  subtitle="Other patterns worth considering"
+                  defaultExpanded={false}
+                  style={styles.accordionSection}
+                >
+                  <Text style={styles.alternativesIntro}>
+                    Based on your responses, these types also showed notable resonance. Exploring them may help clarify or enrich your understanding.
+                  </Text>
+                  {traitsData.top_alternatives.slice(0, 3).map((alt, idx) => (
+                    <View key={idx} style={styles.alternativeRow}>
+                      <Text style={styles.alternativeType}>Type {alt.type}</Text>
+                      <Text style={styles.alternativeName}>{TYPE_NAMES[alt.type] || 'Unknown'}</Text>
+                      <View style={styles.alternativeBar}>
+                        <View style={[styles.alternativeBarFill, { width: `${Math.min(alt.percentage, 100)}%` }]} />
+                      </View>
+                      <Text style={styles.alternativePercent}>{alt.percentage.toFixed(0)}%</Text>
+                    </View>
+                  ))}
+                </Accordion>
+              )}
+              
+              {/* CLOSING REFLECTION */}
+              {closingSection && (
+                <View style={styles.closingSection}>
+                  <Text style={styles.closingReflection}>{closingSection.body}</Text>
+                </View>
+              )}
             </View>
           );
-        })}
+        })()}
         
         {/* ===== ENERGETIC FLOW SECTION (Stress/Growth Movement) ===== */}
         {useNarrative && computedDetails && (
