@@ -16,15 +16,18 @@ SplashScreen.preventAutoHideAsync().catch(() => {
  * ROOT LAYOUT - With Local Font Loading
  * 
  * Loads Ionicons.ttf from local assets to eliminate CDN dependency.
- * This prevents 520 errors and "Unexpected text node" issues.
+ * The font is registered with the exact family name that @expo/vector-icons expects.
  */
 export default function RootLayout() {
   
-  // Load fonts from local assets (NOT from CDN)
+  // Load fonts from local assets
+  // IMPORTANT: 'ionicons' (lowercase) is the font family name used by @expo/vector-icons
   const [fontsLoaded, fontError] = useFonts({
-    // Load Ionicons from local assets folder
+    // Register with the exact name @expo/vector-icons uses internally
+    'ionicons': require('../assets/fonts/Ionicons.ttf'),
+    // Also register capitalized version for compatibility
     'Ionicons': require('../assets/fonts/Ionicons.ttf'),
-    // Also load SpaceMono if needed
+    // SpaceMono for any text that needs it
     'SpaceMono': require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
   
