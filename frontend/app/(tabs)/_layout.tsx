@@ -3,7 +3,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { View, Text } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { Spacing } from '../../constants/spacing';
-import BuildBadge from '../../components/BuildBadge';
 
 // STEP 5: MIRROR TAB PLACEHOLDER - No imports from mirror-v2
 // If this crashes, the issue is in tabs/_layout or root layout, not Mirror code
