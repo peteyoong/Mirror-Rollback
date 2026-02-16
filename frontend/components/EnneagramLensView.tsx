@@ -1790,37 +1790,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
             </View>
           );
         })()}
-        
-        {/* ===== ENERGETIC FLOW SECTION (Stress/Growth Movement) ===== */}
-        {useNarrative && computedDetails && (
-          <View style={styles.deepDiveSection}>
-            <TouchableOpacity 
-              style={styles.collapsibleHeader}
-              onPress={() => setEnergeticFlowExpanded(!energeticFlowExpanded)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.deepDiveSectionTitle}>Energetic Flow</Text>
-              <Ionicons 
-                name={energeticFlowExpanded ? "chevron-up" : "chevron-down"} 
-                size={20} 
-                color={Colors.textSecondary} 
-              />
-            </TouchableOpacity>
-            {energeticFlowExpanded && (
-              <View style={styles.energeticFlowContent}>
-                <Text style={styles.deepDiveSectionBody}>
-                  {`Under pressure, attention may shift toward Type ${computedDetails.stress_line_to || '?'} patterns — ${getStressDescription(core, computedDetails.stress_line_to)}`}
-                </Text>
-                <Text style={[styles.deepDiveSectionBody, { marginTop: 12 }]}>
-                  {`When resourced, there's often access to Type ${computedDetails.growth_line_to || '?'} qualities — ${getGrowthDescription(core, computedDetails.growth_line_to)}`}
-                </Text>
-                <Text style={styles.energeticFlowNote}>
-                  These aren't destinations — just movements you may notice.
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
 
         {/* ===== FALLBACK: Legacy Deep Dive (only when narrative unavailable) ===== */}
         {!useNarrative && narrativeStatus === 'error' && deepDiveData?.sections && (
