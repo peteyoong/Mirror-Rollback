@@ -1758,7 +1758,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
               )}
               
               {/* SECTION 6: Top Alternatives (Self-Verification) */}
-              {(traitsData?.top_alternatives && traitsData.top_alternatives.length > 0) && (
+              {(result?.top_candidates && result.top_candidates.length > 0) && (
                 <Accordion 
                   title="Top Alternatives"
                   subtitle="Other patterns worth considering"
@@ -1768,14 +1768,14 @@ export default function EnneagramLensView({ result, userId }: Props) {
                   <Text style={styles.alternativesIntro}>
                     Based on your responses, these types also showed notable resonance. Exploring them may help clarify or enrich your understanding.
                   </Text>
-                  {traitsData.top_alternatives.slice(0, 3).map((alt, idx) => (
+                  {result.top_candidates.slice(0, 3).map((alt, idx) => (
                     <View key={idx} style={styles.alternativeRow}>
                       <Text style={styles.alternativeType}>Type {alt.type}</Text>
                       <Text style={styles.alternativeName}>{TYPE_NAMES[alt.type] || 'Unknown'}</Text>
                       <View style={styles.alternativeBar}>
-                        <View style={[styles.alternativeBarFill, { width: `${Math.min(alt.percentage, 100)}%` }]} />
+                        <View style={[styles.alternativeBarFill, { width: `${Math.min(alt.probability * 100, 100)}%` }]} />
                       </View>
-                      <Text style={styles.alternativePercent}>{alt.percentage.toFixed(0)}%</Text>
+                      <Text style={styles.alternativePercent}>{(alt.probability * 100).toFixed(0)}%</Text>
                     </View>
                   ))}
                 </Accordion>
