@@ -15,7 +15,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { Spacing } from '../../constants/spacing';
@@ -28,6 +27,7 @@ import DebugComputeInputs from '../../components/DebugComputeInputs';
 import SectionLabel from '../../components/SectionLabel';
 import ApiOfflineBanner, { InlineRetry } from '../../components/ApiOfflineBanner';
 import { BUILD_ID as CANONICAL_BUILD_ID } from '../../utils/buildInfo';
+import { SafeIcon } from '../../components/SafeIcon';
 
 // =========================================
 // BUILD ID - Use canonical source
