@@ -12876,8 +12876,8 @@ if ACTUAL_WEB_BUILD_PATH:
         file_path = ACTUAL_WEB_BUILD_PATH / full_path
         if file_path.exists() and file_path.is_file():
             response = FileResponse(str(file_path))
-            # Hashed files (*.js, *.css with hashes) can be cached long-term
-            if any(ext in full_path for ext in ['.js', '.css', '.woff', '.woff2']):
+            # Hashed files (*.js, *.css with hashes) and fonts can be cached long-term
+            if any(ext in full_path for ext in ['.js', '.css', '.woff', '.woff2', '.ttf', '.otf', '.eot']):
                 response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
             return response
         
