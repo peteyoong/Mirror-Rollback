@@ -528,9 +528,7 @@ export default function MirrorScreen() {
           <Text style={styles.userName} numberOfLines={1} ellipsizeMode="tail">
             {user?.name || 'Account'}
           </Text>
-          <Text>
-            <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
-          </Text>
+          <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
         </Pressable>
       </View>
       
