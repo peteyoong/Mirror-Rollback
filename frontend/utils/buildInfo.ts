@@ -15,8 +15,12 @@ import { API_BASE_URL } from './apiBase';
 // This timestamp is baked into the bundle at build time.
 // If you see an old BUILD_ID after deploy, the client is using a stale bundle.
 // UPDATE THIS ON EVERY DEPLOY!
-export const BUILD_ID = '2026-02-17T13:00:00Z';
-export const BUILD_VERSION = 'v29-debug-stamp-diagnostic';
+export const BUILD_ID = '2026-02-17T14:00:00Z';
+export const BUILD_VERSION = 'v30-environment-separation';
+
+// Environment from env vars
+export const BUILD_ENV = process.env.EXPO_PUBLIC_ENV || 'dev';
+export const DEBUG_MIRROR = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
 
 // Log BUILD_ID immediately when this module loads
 if (typeof console !== 'undefined') {
