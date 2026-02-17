@@ -3017,15 +3017,18 @@ const styles = StyleSheet.create({
     padding: 14,
     paddingTop: 8,
   },
-  chatMessages: {
+  chatMessagesScroll: {
+    maxHeight: 280,
     marginBottom: 12,
-    maxHeight: 300,
+  },
+  chatMessagesContent: {
+    paddingBottom: 4,
   },
   chatMessage: {
     marginBottom: 10,
     padding: 12,
     borderRadius: 10,
-    maxWidth: '90%',
+    maxWidth: '85%',
   },
   chatMessageUser: {
     alignSelf: 'flex-end',
