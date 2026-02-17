@@ -447,6 +447,77 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
     );
   };
 
+  // Map API sections to TodayPanel props for Numerology
+  // Mapping: "Today" → Tone (bullets), "Background tone" → toneSecondary, "2-minute experiment" → Small Experiment
+  const mapSectionsToTodayPanel = useMemo(() => {
+    if (!data?.sections || activeTab !== 'today') return null;
+    
+    let toneBullets: string[] | undefined;
+    let toneSecondary: string | undefined;
+    let experimentText: string | undefined;
+    
+    for (const section of data.sections) {
+      const label = section.label?.toLowerCase() || '';
+      const body = section.body || '';
+      
+      // Map "Today" → Tone (try to extract bullets)
+      if (label === 'today' || label.includes('today') && !label.includes('background')) {
+        // Parse bullets from the text
+        if (body.includes('•') || body.includes('\n-') || body.includes('\n•')) {
+          toneBullets = body
+            .split(/\n/)
+            .map(line => line.replace(/^[•\-]\s*/, '').trim())
+            .filter(line => line.length > 0);
+        } else {
+          // Treat as single bullet if no bullet markers
+          toneBullets = [body];
+        }
+      }
+      // Map "Background tone" → toneSecondary (merged into tone section)
+      else if (label.includes('background')) {
+        toneSecondary = body;
+      }
+      // Map "2-minute experiment" → Small Experiment
+      else if (label.includes('experiment') || label.includes('minute')) {
+        experimentText = body;
+      }
+    }
+    
+    return {
+      toneBullets,
+      toneSecondary,
+      experimentText,
+      reflectQuestion: data.mirror_prompt,
+    };
+  }, [data, activeTab]);
+
+  // Render cycles header for TodayPanel (Numerology-specific)
+  const renderCyclesHeader = () => {
+    if (!data?.cycles) return null;
+    const { personal_day, personal_month, personal_year } = data.cycles;
+    
+    return (
+      <View style={styles.cyclesCard}>
+        <View style={styles.cyclesRow}>
+          <View style={styles.cycleItem}>
+            <Text style={styles.cycleLabel}>Day</Text>
+            <Text style={styles.cycleNumber}>{personal_day}</Text>
+          </View>
+          <View style={styles.cycleDivider} />
+          <View style={styles.cycleItem}>
+            <Text style={styles.cycleLabel}>Month</Text>
+            <Text style={styles.cycleNumber}>{personal_month}</Text>
+          </View>
+          <View style={styles.cycleDivider} />
+          <View style={styles.cycleItem}>
+            <Text style={styles.cycleLabel}>Year</Text>
+            <Text style={styles.cycleNumber}>{personal_year}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   // === OPEN MODAL HANDLER ===
   // Determines mode based on latest profile.numerology_full_name
   // If profile is loading, defaults to 'add' mode
