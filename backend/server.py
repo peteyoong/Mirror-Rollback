@@ -3487,6 +3487,7 @@ async def create_user(profile: UserProfileCreate):
             birth_date=profile.birth_date,
             birth_time=profile.birth_time,
             birth_location=Location(**location_data),
+            timezone=timezone_raw,  # Return timezone in response
             has_chart=False
         )
     except Exception as e:
