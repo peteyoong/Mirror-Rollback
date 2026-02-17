@@ -1199,7 +1199,7 @@ backend:
 
 test_plan:
   current_focus:
-    - "Life Context Net Implementation"
+    - "Enneagram Deep Dive Accordion Single-Expand Behavior"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
