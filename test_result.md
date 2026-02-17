@@ -1273,6 +1273,36 @@ backend:
 
   - agent: "testing"
     message: |
+      TODAY ENDPOINTS TITLE VERIFICATION TESTING COMPLETE ✅
+      
+      🎯 REVIEW REQUEST SUCCESSFULLY COMPLETED:
+      
+      **Objective:** Test the "Today" endpoints for Astrology, Human Design, and Numerology to verify the API now returns `"title": "Today"` instead of `"title": "Today's Snapshot"`.
+      
+      **Test Results Summary:**
+      ✅ GET /api/astrology/today/{user_id} - Returns "title": "Today" ✓
+      ✅ GET /api/human-design/today/{user_id} - Returns "title": "Today" ✓  
+      ✅ GET /api/numerology/today/{user_id} - Returns "title": "Today" ✓
+      
+      **Test User:** 697f0c6abf35c0528ff06954 (retrieved via /api/users/login with pete@pulsifi.me)
+      
+      **Comprehensive Validation Performed:**
+      - Title field verification: All endpoints return "Today" as required
+      - JSON structure validation: All responses are valid JSON
+      - Response time validation: All endpoints respond within acceptable timeframes (4-12s)
+      - Field completeness: All required fields (title, date, sections, mirror_prompt) present
+      - Section structure: All sections contain proper label/body fields
+      
+      **Backend Integration Status:**
+      - All endpoints accessible via public URL
+      - No HTTP errors or timeouts encountered
+      - Backend logs confirm successful processing
+      - AI generation working correctly for all lens types
+      
+      **CONCLUSION:** The title change has been successfully implemented. All three "Today" endpoints now return `"title": "Today"` instead of the previous "Today's Snapshot" format.
+
+  - agent: "testing"
+    message: |
       MIRROR CHAT ENDPOINT TESTING COMPLETE ✅
       
       Successfully tested the Mirror Chat endpoint as requested in the review:
