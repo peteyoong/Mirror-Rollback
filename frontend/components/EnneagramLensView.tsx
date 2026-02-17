@@ -767,12 +767,18 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const [narrativeData, setNarrativeData] = useState<EnneagramNarrativeResponse | null>(null);
   const [narrativeStatus, setNarrativeStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   
-  // Collapsible state for Deeper Patterns section
-  const [deeperPatternsExpanded, setDeeperPatternsExpanded] = useState(false);
+  // ============================================
+  // SINGLE-EXPAND ACCORDION STATE
+  // Only one Deep Dive section can be open at a time
+  // ============================================
+  const [openSectionId, setOpenSectionId] = useState<string | null>('core_story');
   
-  // Collapsible state for other sections
-  const [otherWingExpanded, setOtherWingExpanded] = useState(false);
-  const [energeticFlowExpanded, setEnergeticFlowExpanded] = useState(false);
+  // Handler for accordion toggle (single-expand behavior)
+  const handleAccordionToggle = useCallback((expanded: boolean, sectionId?: string) => {
+    // If clicking an open section, close it (null)
+    // If clicking a closed section, open it (and close others)
+    setOpenSectionId(prev => prev === sectionId ? null : sectionId || null);
+  }, []);
   
   // Q&A Modal state (hidden initially per user request)
   const [showQAModal, setShowQAModal] = useState(false);
