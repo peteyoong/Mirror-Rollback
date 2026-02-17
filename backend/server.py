@@ -415,6 +415,7 @@ class UserProfileResponse(BaseModel):
     birth_date: str
     birth_time: Optional[str]
     birth_location: Location
+    timezone: Optional[str] = None  # IANA timezone string
     has_chart: bool = False
 
 
