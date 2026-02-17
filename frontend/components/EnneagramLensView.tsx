@@ -915,24 +915,52 @@ export default function EnneagramLensView({ result, userId }: Props) {
     requestAnimationFrame(() => {
       setTimeout(() => {
         chatInputRef.current?.focus();
-      }, 100);
+      }, 150);
     });
   }, []);
 
-  // Handle chat expansion - focus input when expanding
+  // Scroll chat container into view when expanding
+  const scrollChatIntoView = useCallback(() => {
+    // For web, use scrollIntoView
+    if (Platform.OS === 'web' && chatContainerRef.current) {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          // @ts-ignore - scrollIntoView exists on web
+          const element = chatContainerRef.current;
+          if (element && typeof element.scrollIntoView === 'function') {
+            element.scrollIntoView({ behavior: 'smooth', block: 'end' });
+          }
+        }, 200);
+      });
+    }
+    // For native, we rely on the parent ScrollView's scrollTo
+    // The chat container is at the bottom of the tab content
+  }, []);
+
+  // Handle chat expansion - only set flag for explicit tap
   const handleChatExpand = useCallback(() => {
     const willExpand = !chatExpanded;
     setChatExpanded(willExpand);
     
     if (willExpand) {
-      // Scroll to bottom when expanding if there are messages
+      // Set flag for auto-focus (gated to explicit tap only)
+      setShouldAutofocus(true);
+      // Scroll to bottom of chat messages when expanding if there are messages
       if (chatMessages.length > 0) {
         scrollChatToBottom(false);
       }
-      // Focus the input after expansion animation
-      focusChatInput();
+      // Scroll the chat container into view
+      scrollChatIntoView();
     }
-  }, [chatExpanded, chatMessages.length, scrollChatToBottom, focusChatInput]);
+  }, [chatExpanded, chatMessages.length, scrollChatToBottom, scrollChatIntoView]);
+
+  // Effect: Focus input only when explicitly triggered by header tap
+  useEffect(() => {
+    if (chatExpanded && shouldAutofocus) {
+      focusChatInput();
+      setShouldAutofocus(false); // Reset flag after focus
+    }
+  }, [chatExpanded, shouldAutofocus, focusChatInput]);
 
   // Send chat message
   const handleSendChat = useCallback(async () => {
