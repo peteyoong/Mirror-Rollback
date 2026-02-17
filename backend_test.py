@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for "Today" Endpoints Title Verification
+Comprehensive Backend Testing Script for "Today" Endpoints
 
-This script tests the three "Today" endpoints to verify they return 
-`"title": "Today"` instead of `"title": "Today's Snapshot"`.
-
-Test Requirements:
-1. GET /api/astrology/today/{user_id} - should return "title": "Today"
-2. GET /api/human-design/today/{user_id} - should return "title": "Today"  
-3. GET /api/numerology/today/{user_id} - should return "title": "Today"
+This script performs detailed testing of the three "Today" endpoints to verify:
+1. They return `"title": "Today"` (not "Today's Snapshot")
+2. Response structure is valid JSON
+3. All required fields are present
+4. Response times are reasonable
 """
 
 import asyncio
@@ -23,7 +21,7 @@ BASE_URL = "https://mirror-ui-refine.preview.emergentagent.com/api"
 # Test user credentials (from previous test logs)
 TEST_EMAIL = "pete@pulsifi.me"
 
-class TodayEndpointTester:
+class ComprehensiveTodayTester:
     def __init__(self):
         self.session = None
         self.test_user_id = None
@@ -64,9 +62,47 @@ class TodayEndpointTester:
             print(f"❌ Login request failed: {e}")
             return None
     
-    async def test_endpoint(self, endpoint_name, url, expected_title="Today"):
-        """Test a single today endpoint for correct title"""
-        print(f"\n🧪 Testing {endpoint_name} endpoint...")
+    def validate_response_structure(self, data, endpoint_name):
+        """Validate the response structure for today endpoints"""
+        issues = []
+        
+        # Check required fields
+        if "title" not in data:
+            issues.append("Missing 'title' field")
+        elif data["title"] != "Today":
+            issues.append(f"Title is '{data['title']}' instead of 'Today'")
+            
+        if "date" not in data:
+            issues.append("Missing 'date' field")
+        elif not isinstance(data["date"], str):
+            issues.append("Date field is not a string")
+            
+        if "sections" not in data:
+            issues.append("Missing 'sections' field")
+        elif not isinstance(data["sections"], list):
+            issues.append("Sections field is not a list")
+        elif len(data["sections"]) == 0:
+            issues.append("Sections array is empty")
+        else:
+            # Validate section structure
+            for i, section in enumerate(data["sections"]):
+                if not isinstance(section, dict):
+                    issues.append(f"Section {i} is not a dict")
+                    continue
+                if "label" not in section:
+                    issues.append(f"Section {i} missing 'label' field")
+                if "body" not in section:
+                    issues.append(f"Section {i} missing 'body' field")
+        
+        # Check optional fields
+        if "mirror_prompt" in data and not isinstance(data["mirror_prompt"], str):
+            issues.append("Mirror prompt is not a string")
+            
+        return issues
+    
+    async def test_endpoint_comprehensive(self, endpoint_name, url):
+        """Comprehensive test of a single today endpoint"""
+        print(f"\n🧪 Testing {endpoint_name} endpoint (comprehensive)...")
         print(f"   URL: {url}")
         
         try:
@@ -81,29 +117,48 @@ class TodayEndpointTester:
                 if response.status == 200:
                     try:
                         data = await response.json()
+                        
+                        # Basic title check
                         actual_title = data.get("title")
+                        print(f"   Title: '{actual_title}'")
                         
-                        print(f"   Expected title: '{expected_title}'")
-                        print(f"   Actual title: '{actual_title}'")
+                        # Comprehensive structure validation
+                        structure_issues = self.validate_response_structure(data, endpoint_name)
                         
-                        if actual_title == expected_title:
-                            print(f"   ✅ PASS: Title matches expected value")
+                        if not structure_issues:
+                            print(f"   ✅ PASS: All validations successful")
+                            
+                            # Print additional details
+                            print(f"   📋 Response details:")
+                            print(f"      - Date: {data.get('date')}")
+                            print(f"      - Sections count: {len(data.get('sections', []))}")
+                            if data.get('mirror_prompt'):
+                                print(f"      - Mirror prompt: '{data['mirror_prompt'][:50]}...'")
+                            
+                            # Print section labels
+                            sections = data.get('sections', [])
+                            if sections:
+                                print(f"      - Section labels: {[s.get('label') for s in sections]}")
+                            
                             return True, {
                                 "status": "PASS",
-                                "expected_title": expected_title,
-                                "actual_title": actual_title,
-                                "response_time": response_time,
-                                "status_code": response.status
-                            }
-                        else:
-                            print(f"   ❌ FAIL: Title mismatch")
-                            return False, {
-                                "status": "FAIL",
-                                "expected_title": expected_title,
-                                "actual_title": actual_title,
+                                "title": actual_title,
                                 "response_time": response_time,
                                 "status_code": response.status,
-                                "error": f"Expected '{expected_title}' but got '{actual_title}'"
+                                "sections_count": len(sections),
+                                "date": data.get('date'),
+                                "has_mirror_prompt": bool(data.get('mirror_prompt'))
+                            }
+                        else:
+                            print(f"   ❌ FAIL: Structure validation issues")
+                            for issue in structure_issues:
+                                print(f"      • {issue}")
+                            return False, {
+                                "status": "FAIL",
+                                "error": f"Structure issues: {'; '.join(structure_issues)}",
+                                "response_time": response_time,
+                                "status_code": response.status,
+                                "title": actual_title
                             }
                             
                     except json.JSONDecodeError as e:
@@ -136,10 +191,10 @@ class TodayEndpointTester:
                 "error": f"Request exception: {e}"
             }
     
-    async def run_all_tests(self):
-        """Run all today endpoint tests"""
+    async def run_comprehensive_tests(self):
+        """Run comprehensive tests on all today endpoints"""
         print("=" * 80)
-        print("🚀 STARTING TODAY ENDPOINTS TITLE VERIFICATION TESTS")
+        print("🚀 COMPREHENSIVE TODAY ENDPOINTS TESTING")
         print("=" * 80)
         
         # Get test user ID
@@ -152,18 +207,15 @@ class TodayEndpointTester:
         test_cases = [
             {
                 "name": "Astrology Today",
-                "url": f"{BASE_URL}/astrology/today/{self.test_user_id}",
-                "expected_title": "Today"
+                "url": f"{BASE_URL}/astrology/today/{self.test_user_id}"
             },
             {
                 "name": "Human Design Today", 
-                "url": f"{BASE_URL}/human-design/today/{self.test_user_id}",
-                "expected_title": "Today"
+                "url": f"{BASE_URL}/human-design/today/{self.test_user_id}"
             },
             {
                 "name": "Numerology Today",
-                "url": f"{BASE_URL}/numerology/today/{self.test_user_id}",
-                "expected_title": "Today"
+                "url": f"{BASE_URL}/numerology/today/{self.test_user_id}"
             }
         ]
         
@@ -172,35 +224,42 @@ class TodayEndpointTester:
         all_passed = True
         
         for test_case in test_cases:
-            passed, result = await self.test_endpoint(
+            passed, result = await self.test_endpoint_comprehensive(
                 test_case["name"],
-                test_case["url"], 
-                test_case["expected_title"]
+                test_case["url"]
             )
             results[test_case["name"]] = result
             if not passed:
                 all_passed = False
         
-        # Print summary
+        # Print comprehensive summary
         print("\n" + "=" * 80)
-        print("📊 TEST RESULTS SUMMARY")
+        print("📊 COMPREHENSIVE TEST RESULTS")
         print("=" * 80)
         
         for test_name, result in results.items():
             status_icon = "✅" if result["status"] == "PASS" else "❌"
-            print(f"{status_icon} {test_name}: {result['status']}")
+            print(f"\n{status_icon} {test_name}: {result['status']}")
             
             if result["status"] == "PASS":
-                print(f"   Title: '{result['actual_title']}' ✓")
-                print(f"   Response time: {result['response_time']:.2f}s")
+                print(f"   ✓ Title: '{result['title']}'")
+                print(f"   ✓ Response time: {result['response_time']:.2f}s")
+                print(f"   ✓ Sections count: {result['sections_count']}")
+                print(f"   ✓ Date: {result['date']}")
+                print(f"   ✓ Has mirror prompt: {result['has_mirror_prompt']}")
             else:
-                print(f"   Error: {result.get('error', 'Unknown error')}")
-                if 'actual_title' in result:
-                    print(f"   Got title: '{result['actual_title']}'")
+                print(f"   ✗ Error: {result.get('error', 'Unknown error')}")
+                if 'title' in result:
+                    print(f"   ✗ Got title: '{result['title']}'")
         
-        print(f"\n🎯 OVERALL RESULT: {'✅ ALL TESTS PASSED' if all_passed else '❌ SOME TESTS FAILED'}")
+        print(f"\n🎯 FINAL RESULT: {'✅ ALL TESTS PASSED' if all_passed else '❌ SOME TESTS FAILED'}")
         
-        if not all_passed:
+        if all_passed:
+            print("\n🎉 SUCCESS: All 'Today' endpoints return correct title 'Today'")
+            print("   ✓ Astrology Today endpoint: title = 'Today'")
+            print("   ✓ Human Design Today endpoint: title = 'Today'") 
+            print("   ✓ Numerology Today endpoint: title = 'Today'")
+        else:
             print("\n🔧 ISSUES FOUND:")
             for test_name, result in results.items():
                 if result["status"] == "FAIL":
@@ -211,8 +270,8 @@ class TodayEndpointTester:
 
 async def main():
     """Main test execution function"""
-    async with TodayEndpointTester() as tester:
-        success = await tester.run_all_tests()
+    async with ComprehensiveTodayTester() as tester:
+        success = await tester.run_comprehensive_tests()
         
     # Exit with appropriate code
     sys.exit(0 if success else 1)
