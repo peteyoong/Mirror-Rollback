@@ -333,6 +333,32 @@ const styles = StyleSheet.create({
     color: '#FF6B6B',
     lineHeight: 20,
   },
+  originWarningCard: {
+    backgroundColor: 'rgba(245, 166, 35, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#F5A623',
+  },
+  originWarningContent: {
+    flex: 1,
+  },
+  originWarningTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#F5A623',
+    marginBottom: 4,
+  },
+  originWarningText: {
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    color: '#B87D00',
+    lineHeight: 18,
+  },
   loadingCard: {
     backgroundColor: Colors.surface,
     borderRadius: 12,
