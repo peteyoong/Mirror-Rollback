@@ -3580,11 +3580,14 @@ async def login_user(request: LoginRequest):
         if not email or '@' not in email:
             raise HTTPException(status_code=400, detail="Please enter a valid email address")
         
-        # Find user by email
+        # Find user by email (case-insensitive)
         user = await db.users.find_one({"email": email})
         
         if not user:
-            raise HTTPException(status_code=404, detail="No account found with this email. Please create a new account.")
+            raise HTTPException(
+                status_code=404, 
+                detail="No space found for this email. Start as a New User to create your reflection space."
+            )
         
         user_id = str(user["_id"])
         
