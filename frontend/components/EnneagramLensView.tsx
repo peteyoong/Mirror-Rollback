@@ -262,15 +262,15 @@ const getGrowthDescription = (coreType: number, growthTo: number | string | unde
 // CORE MOTIVATIONS (Tightened, sharper language)
 // ============================================
 const CORE_MOTIVATIONS: { [key: number]: string } = {
-  1: 'A drive to be right, ethical, and above reproach. The motivation isn't perfectionism for its own sake—it's a deep need to live with integrity and improve what's broken.',
-  2: 'A drive to be indispensable through giving. The motivation isn't just kindness—it's a need to secure love and belonging by being the one who helps.',
-  3: 'A drive to be valuable through accomplishment. The motivation isn't vanity—it's a need to prove worth through visible success and external validation.',
-  4: 'A drive to be authentic and significant. The motivation isn't drama—it's a search for meaning, depth, and an identity that can't be dismissed as ordinary.',
-  5: 'A drive to be capable and self-sufficient. The motivation isn't coldness—it's a need for mastery, clarity, and enough inner resources to face the world.',
-  6: 'A drive to be secure and supported. The motivation isn't anxiety—it's a need for reliable ground, trustworthy guidance, and worst-case readiness.',
-  7: 'A drive to stay free and stimulated. The motivation isn't avoidance—it's a need to keep options open, pain at bay, and possibility alive.',
-  8: 'A drive to be strong and self-determined. The motivation isn't aggression—it's a need to protect autonomy and never be controlled or betrayed.',
-  9: 'A drive to maintain peace and connection. The motivation isn't passivity—it's a need to preserve harmony and avoid the disruption of conflict.',
+  1: "A drive to be right, ethical, and above reproach. The motivation isn't perfectionism for its own sake—it's a deep need to live with integrity and improve what's broken.",
+  2: "A drive to be indispensable through giving. The motivation isn't just kindness—it's a need to secure love and belonging by being the one who helps.",
+  3: "A drive to be valuable through accomplishment. The motivation isn't vanity—it's a need to prove worth through visible success and external validation.",
+  4: "A drive to be authentic and significant. The motivation isn't drama—it's a search for meaning, depth, and an identity that can't be dismissed as ordinary.",
+  5: "A drive to be capable and self-sufficient. The motivation isn't coldness—it's a need for mastery, clarity, and enough inner resources to face the world.",
+  6: "A drive to be secure and supported. The motivation isn't anxiety—it's a need for reliable ground, trustworthy guidance, and worst-case readiness.",
+  7: "A drive to stay free and stimulated. The motivation isn't avoidance—it's a need to keep options open, pain at bay, and possibility alive.",
+  8: "A drive to be strong and self-determined. The motivation isn't aggression—it's a need to protect autonomy and never be controlled or betrayed.",
+  9: "A drive to maintain peace and connection. The motivation isn't passivity—it's a need to preserve harmony and avoid the disruption of conflict.",
 };
 
 // ============================================
