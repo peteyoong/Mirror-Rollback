@@ -381,10 +381,9 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
           </View>
         ) : data ? (
           <>
-            {/* Title - Replace "Today's Snapshot" with "Today" */}
+            {/* Title */}
             <Text style={styles.title}>
-              {(data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : 'Astrology'))
-                .replace("Today's Snapshot", "Today")}
+              {data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : 'Astrology')}
             </Text>
 
             {/* Date for Today tab */}

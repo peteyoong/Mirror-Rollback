@@ -504,9 +504,9 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
           </View>
         ) : data ? (
           <>
-            {/* Title - Replace "Today's Snapshot" with "Today" */}
+            {/* Title */}
             <Text style={styles.title}>
-              {(data.title || 'Human Design').replace("Today's Snapshot", "Today")}
+              {data.title || 'Human Design'}
             </Text>
 
             {/* Date for Today tab */}
