@@ -59,6 +59,8 @@ export default function TabLayout() {
           options={{
             href: null,
             title: 'THE MIRROR',
+            headerTitle: 'THE MIRROR',
+            headerShown: false,
           }}
         />
         <Tabs.Screen
