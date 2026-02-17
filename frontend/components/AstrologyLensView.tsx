@@ -60,6 +60,7 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showChartModal, setShowChartModal] = useState(false);
   const [isRecomputing, setIsRecomputing] = useState(false);
+  const [showSiderealInfo, setShowSiderealInfo] = useState(false);
   
   // Router for navigation
   const router = useRouter();
