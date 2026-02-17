@@ -279,49 +279,49 @@ const CORE_MOTIVATIONS: { [key: number]: string } = {
 // ============================================
 const HIGH_SIGNAL_SNAPSHOT: { [key: number]: { whenActive: string; underPressure: string; whenResourced: string } } = {
   1: {
-    whenActive: 'A running inner commentary on how things could be better—noticing errors, inefficiencies, or "wrong" behavior before anything else.',
-    underPressure: 'Resentment, rigidity, and a sense that "no one else cares about doing it right."',
-    whenResourced: 'Principled action without self-righteousness. Able to let imperfection exist.',
+    whenActive: "A running inner commentary on how things could be better—noticing errors, inefficiencies, or 'wrong' behavior before anything else.",
+    underPressure: "Resentment, rigidity, and a sense that 'no one else cares about doing it right.'",
+    whenResourced: "Principled action without self-righteousness. Able to let imperfection exist.",
   },
   2: {
-    whenActive: 'Automatic scanning for what others need—often knowing before they ask, and moving to help without being invited.',
-    underPressure: 'Martyrdom, indirect manipulation, or a feeling of "after everything I've done."',
-    whenResourced: 'Genuine generosity without strings. Able to receive care without deflecting.',
+    whenActive: "Automatic scanning for what others need—often knowing before they ask, and moving to help without being invited.",
+    underPressure: "Martyrdom, indirect manipulation, or a feeling of 'after everything I've done.'",
+    whenResourced: "Genuine generosity without strings. Able to receive care without deflecting.",
   },
   3: {
-    whenActive: 'A mental scoreboard tracking progress, image, and how you're being perceived in the room.',
-    underPressure: 'Shape-shifting to fit expectations, or numbing out when achievement feels impossible.',
-    whenResourced: 'Authentic presence without performance. Success aligned with actual values.',
+    whenActive: "A mental scoreboard tracking progress, image, and how you're being perceived in the room.",
+    underPressure: "Shape-shifting to fit expectations, or numbing out when achievement feels impossible.",
+    whenResourced: "Authentic presence without performance. Success aligned with actual values.",
   },
   4: {
-    whenActive: 'A pull toward what's missing, what's deeper, or what others aren't seeing. Ordinary feels insufficient.',
-    underPressure: 'Emotional flooding, envy of others' ease, or withdrawal into melancholy.',
-    whenResourced: 'Creative flow and emotional honesty without drama. Able to appreciate the ordinary.',
+    whenActive: "A pull toward what's missing, what's deeper, or what others aren't seeing. Ordinary feels insufficient.",
+    underPressure: "Emotional flooding, envy of others' ease, or withdrawal into melancholy.",
+    whenResourced: "Creative flow and emotional honesty without drama. Able to appreciate the ordinary.",
   },
   5: {
-    whenActive: 'A need to observe before engaging, gather information, and conserve energy for what matters.',
-    underPressure: 'Detachment, hoarding time/knowledge, or retreating when demands feel overwhelming.',
-    whenResourced: 'Generous sharing of insight and engaged presence without depletion fears.',
+    whenActive: "A need to observe before engaging, gather information, and conserve energy for what matters.",
+    underPressure: "Detachment, hoarding time/knowledge, or retreating when demands feel overwhelming.",
+    whenResourced: "Generous sharing of insight and engaged presence without depletion fears.",
   },
   6: {
-    whenActive: 'A background radar scanning for threats, inconsistencies, or what could go wrong.',
-    underPressure: 'Doubt spirals, authority-testing, or oscillating between defiance and compliance.',
-    whenResourced: 'Grounded courage and trust in your own authority. Prepared but not paranoid.',
+    whenActive: "A background radar scanning for threats, inconsistencies, or what could go wrong.",
+    underPressure: "Doubt spirals, authority-testing, or oscillating between defiance and compliance.",
+    whenResourced: "Grounded courage and trust in your own authority. Prepared but not paranoid.",
   },
   7: {
-    whenActive: 'A pull toward the next interesting thing—planning, imagining, or reframing negatives into positives.',
-    underPressure: 'Scattered attention, escapism, or a frantic need to avoid being trapped in discomfort.',
-    whenResourced: 'Joyful presence without needing stimulation. Able to stay with difficulty.',
+    whenActive: "A pull toward the next interesting thing—planning, imagining, or reframing negatives into positives.",
+    underPressure: "Scattered attention, escapism, or a frantic need to avoid being trapped in discomfort.",
+    whenResourced: "Joyful presence without needing stimulation. Able to stay with difficulty.",
   },
   8: {
-    whenActive: 'An instinct to take charge, protect, and cut through indecision or weakness.',
-    underPressure: 'Excessive force, intimidation, or a need to dominate when feeling vulnerable.',
-    whenResourced: 'Protective strength without aggression. Able to show vulnerability without losing power.',
+    whenActive: "An instinct to take charge, protect, and cut through indecision or weakness.",
+    underPressure: "Excessive force, intimidation, or a need to dominate when feeling vulnerable.",
+    whenResourced: "Protective strength without aggression. Able to show vulnerability without losing power.",
   },
   9: {
-    whenActive: 'A pull toward harmony, seeing all sides, and avoiding positions that might create conflict.',
-    underPressure: 'Numbing out, stubborn passivity, or agreeing outwardly while disengaging inwardly.',
-    whenResourced: 'Engaged presence with clear priorities. Able to assert without losing connection.',
+    whenActive: "A pull toward harmony, seeing all sides, and avoiding positions that might create conflict.",
+    underPressure: "Numbing out, stubborn passivity, or agreeing outwardly while disengaging inwardly.",
+    whenResourced: "Engaged presence with clear priorities. Able to assert without losing connection.",
   },
 };
 
@@ -330,15 +330,15 @@ const HIGH_SIGNAL_SNAPSHOT: { [key: number]: { whenActive: string; underPressure
 // For Summary tab ending - invite self-reflection
 // ============================================
 const REFLECTIVE_QUESTIONS: { [key: number]: string } = {
-  1: 'Where did you hold to a standard today that was more about being right than being effective?',
-  2: 'What did you need today that you gave away to someone else instead?',
-  3: 'Where did you adjust who you were to match what you thought others wanted?',
-  4: 'What ordinary moment today could have been enough—if you'd let it?',
-  5: 'Where did you hold back from engaging because it might cost too much energy?',
-  6: 'What decision today did you delay because you weren't sure you could trust your own judgment?',
-  7: 'Where did you choose "what's next?" over "what's here?" recently?',
-  8: 'Where did you take control today when letting go might have been stronger?',
-  9: 'What did you actually want today that you didn't say out loud?',
+  1: "Where did you hold to a standard today that was more about being right than being effective?",
+  2: "What did you need today that you gave away to someone else instead?",
+  3: "Where did you adjust who you were to match what you thought others wanted?",
+  4: "What ordinary moment today could have been enough—if you'd let it?",
+  5: "Where did you hold back from engaging because it might cost too much energy?",
+  6: "What decision today did you delay because you weren't sure you could trust your own judgment?",
+  7: "Where did you choose 'what's next?' over 'what's here?' recently?",
+  8: "Where did you take control today when letting go might have been stronger?",
+  9: "What did you actually want today that you didn't say out loud?",
 };
 
 // Wing numbers for each core type
