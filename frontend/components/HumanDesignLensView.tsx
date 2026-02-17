@@ -560,7 +560,7 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
             {activeTab === 'summary' && (
               <View style={styles.siderealQualifier}>
                 <Text style={styles.siderealText}>
-                  Calculated using a True Sidereal astronomical framework.
+                  Based on a True Sidereal astronomical reference frame.
                 </Text>
                 <TouchableOpacity
                   onPress={() => setShowSiderealInfo(!showSiderealInfo)}
@@ -579,7 +579,7 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
             {activeTab === 'summary' && showSiderealInfo && (
               <View style={styles.siderealTooltip}>
                 <Text style={styles.siderealTooltipText}>
-                  Most Human Design systems use Tropical zodiac positioning. Mirror uses a True Sidereal reference frame for planetary calculations before computing gates and activations.
+                  Many systems use the Tropical zodiac, aligned to seasonal points of the year.{'\n\n'}Mirror calculates planetary positions relative to the observable constellations using a True Sidereal reference frame before deriving gates and activations.
                 </Text>
               </View>
             )}
