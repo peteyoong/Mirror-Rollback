@@ -130,6 +130,7 @@ export const getDailyFocus = async (userId: string): Promise<DailyFocusResponse>
 // User APIs
 export const createUser = async (data: {
   name?: string;
+  email?: string;
   birth_date: string;
   birth_time?: string;
   city: string;
