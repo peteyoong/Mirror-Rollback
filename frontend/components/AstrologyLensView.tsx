@@ -427,6 +427,34 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
               {data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : 'Astrology')}
             </Text>
 
+            {/* Sidereal Framework Qualifier (Overview tab only) */}
+            {activeTab === 'summary' && (
+              <View style={styles.siderealQualifier}>
+                <Text style={styles.siderealText}>
+                  Based on a True Sidereal astronomical reference frame.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowSiderealInfo(!showSiderealInfo)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons
+                    name={showSiderealInfo ? 'close-circle-outline' : 'information-circle-outline'}
+                    size={14}
+                    color={Colors.textTertiary}
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
+            
+            {/* Sidereal Info Tooltip */}
+            {activeTab === 'summary' && showSiderealInfo && (
+              <View style={styles.siderealTooltip}>
+                <Text style={styles.siderealTooltipText}>
+                  Many systems use the Tropical zodiac, aligned to seasonal points of the year.{'\n\n'}Mirror calculates planetary positions relative to the observable constellations using a True Sidereal reference frame before deriving planetary placements and aspects.
+                </Text>
+              </View>
+            )}
+
             {/* TODAY TAB: Use standardized TodayPanel */}
             {activeTab === 'today' && mapSectionsToTodayPanel && (
               <TodayPanel
