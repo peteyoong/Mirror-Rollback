@@ -236,15 +236,19 @@ function InfoRow({ label, value, highlight }: { label: string; value: string; hi
 }
 
 // Checklist Item Component
-function ChecklistItem({ label, passed }: { label: string; passed: boolean }) {
+function ChecklistItem({ label, passed, warning }: { label: string; passed: boolean; warning?: boolean }) {
+  const iconName = warning ? "alert-circle" : (passed ? "checkmark-circle" : "close-circle");
+  const iconColor = warning ? "#F5A623" : (passed ? "#4ADE80" : "#FF6B6B");
+  const textStyle = warning ? styles.checklistTextWarning : (!passed ? styles.checklistTextFailed : null);
+  
   return (
     <View style={styles.checklistItem}>
       <Ionicons 
-        name={passed ? "checkmark-circle" : "close-circle"} 
+        name={iconName} 
         size={18} 
-        color={passed ? "#4ADE80" : "#FF6B6B"} 
+        color={iconColor} 
       />
-      <Text style={[styles.checklistText, !passed && styles.checklistTextFailed]}>
+      <Text style={[styles.checklistText, textStyle]}>
         {label}
       </Text>
     </View>
