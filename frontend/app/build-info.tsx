@@ -108,7 +108,7 @@ export default function BuildInfoScreen() {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-        {/* Environment Mismatch Warning */}
+        {/* Environment Mismatch Warning - RED */}
         {hasEnvMismatch && (
           <View style={styles.warningCard}>
             <Ionicons name="warning" size={24} color="#FF6B6B" />
@@ -116,6 +116,20 @@ export default function BuildInfoScreen() {
               Environment Mismatch Detected!{'\n'}
               Frontend: {ENV} | Backend: {backendHealth?.expected_frontend_env}
             </Text>
+          </View>
+        )}
+
+        {/* Origin Mismatch Warning - YELLOW */}
+        {hasOriginMismatch && (
+          <View style={styles.originWarningCard}>
+            <Ionicons name="alert-circle" size={24} color="#F5A623" />
+            <View style={styles.originWarningContent}>
+              <Text style={styles.originWarningTitle}>Origin Mismatch</Text>
+              <Text style={styles.originWarningText}>
+                window.location: {windowOrigin}{'\n'}
+                api_origin: {backendHealth?.api_origin}
+              </Text>
+            </View>
           </View>
         )}
 
@@ -127,6 +141,7 @@ export default function BuildInfoScreen() {
             <InfoRow label="BUILD_VERSION" value={BUILD_VERSION} />
             <InfoRow label="BUILD_ID" value={BUILD_ID} />
             <InfoRow label="API_BASE_URL" value={API_BASE_URL} />
+            {Platform.OS === 'web' && <InfoRow label="window.origin" value={windowOrigin} />}
             <InfoRow label="DEBUG_MIRROR" value={DEBUG_MIRROR ? 'true' : 'false'} />
             <InfoRow label="Platform" value={Platform.OS} />
           </View>
