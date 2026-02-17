@@ -753,6 +753,31 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 8,
   },
+  siderealQualifier: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 16,
+  },
+  siderealText: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    opacity: 0.8,
+    letterSpacing: 0.2,
+  },
+  siderealTooltip: {
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+  },
+  siderealTooltipText: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: Colors.textSecondary,
+  },
   dateLabel: {
     fontSize: 12,
     color: Colors.textTertiary,
