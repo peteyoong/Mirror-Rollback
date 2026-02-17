@@ -3206,6 +3206,8 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.border,
     backgroundColor: Colors.surface,
+    zIndex: 10, // Ensure composer is above other elements
+    elevation: 5, // Android elevation
   },
   chatInputContainer: {
     flexDirection: 'row',
