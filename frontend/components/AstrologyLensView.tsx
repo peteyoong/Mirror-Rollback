@@ -387,7 +387,7 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
                 .replace("Today's Snapshot", "Today")}
             </Text>
 
-            {/* Date for Today's Snapshot tab only */}
+            {/* Date for Today tab */}
             {activeTab === 'today' && data.date && (
               <Text style={styles.dateLabel}>{data.date}</Text>
             )}
