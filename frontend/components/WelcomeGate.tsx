@@ -183,6 +183,19 @@ export default function WelcomeGate() {
                         <Text style={styles.retryButtonText}>Try again</Text>
                       </Pressable>
                     )}
+                    {error.includes('No space found') && (
+                      <Pressable 
+                        style={styles.newUserCTAButton}
+                        onPress={() => {
+                          setShowLogin(false);
+                          setShowOnboarding(true);
+                          setError('');
+                        }}
+                        disabled={isLoading}
+                      >
+                        <Text style={styles.newUserCTAText}>Start as New User</Text>
+                      </Pressable>
+                    )}
                   </View>
                 ) : null}
                 
