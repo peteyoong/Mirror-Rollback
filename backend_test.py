@@ -1,27 +1,32 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Project Mirror
-Testing Mirror Chat endpoint as requested in review
+Backend Testing Script for "Today" Endpoints Title Verification
+
+This script tests the three "Today" endpoints to verify they return 
+`"title": "Today"` instead of `"title": "Today's Snapshot"`.
+
+Test Requirements:
+1. GET /api/astrology/today/{user_id} - should return "title": "Today"
+2. GET /api/human-design/today/{user_id} - should return "title": "Today"  
+3. GET /api/numerology/today/{user_id} - should return "title": "Today"
 """
 
 import asyncio
 import aiohttp
 import json
 import sys
-import time
 from datetime import datetime
-from typing import Dict, Any, Optional
 
-# Test Configuration
+# Backend URL from frontend environment
 BASE_URL = "https://mirror-ui-refine.preview.emergentagent.com/api"
-TEST_EMAIL = "pete@pulsifi.me"  # Email from review request
-TEST_USER_ID = None  # Will be obtained from login
-FALLBACK_USER_ID = "69819f1a1e4549392d7cb6d1"  # Fallback user from test_result.md
 
-class MirrorChatTester:
+# Test user credentials (from previous test logs)
+TEST_EMAIL = "pete@pulsifi.me"
+
+class TodayEndpointTester:
     def __init__(self):
         self.session = None
-        self.results = []
+        self.test_user_id = None
         
     async def __aenter__(self):
         self.session = aiohttp.ClientSession()
@@ -31,212 +36,187 @@ class MirrorChatTester:
         if self.session:
             await self.session.close()
     
-    def log_result(self, test_name: str, status: str, details: str, response_data: Optional[Dict] = None):
-        """Log test result"""
-        result = {
-            "test": test_name,
-            "status": status,
-            "details": details,
-            "timestamp": datetime.now().isoformat(),
-            "response_data": response_data
-        }
-        self.results.append(result)
+    async def get_test_user_id(self):
+        """Get a test user ID by logging in with known credentials"""
+        print(f"🔍 Getting test user ID via login...")
         
-        # Print result
-        status_emoji = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
-        print(f"{status_emoji} {test_name}: {status}")
-        print(f"   {details}")
-        if response_data and status == "FAIL":
-            print(f"   Response: {json.dumps(response_data, indent=2)[:200]}...")
-        print()
-    
-    async def make_request(self, method: str, endpoint: str, data: Optional[Dict] = None) -> tuple[int, Dict]:
-        """Make HTTP request and return status code and response data"""
-        url = f"{BASE_URL}{endpoint}"
+        login_url = f"{BASE_URL}/users/login"
+        login_payload = {"email": TEST_EMAIL}
         
         try:
-            if method.upper() == "GET":
-                async with self.session.get(url) as response:
-                    status = response.status
-                    try:
-                        response_data = await response.json()
-                    except:
-                        response_data = {"error": "Invalid JSON response", "text": await response.text()}
-                    return status, response_data
-            elif method.upper() == "POST":
-                headers = {"Content-Type": "application/json"}
-                async with self.session.post(url, json=data, headers=headers) as response:
-                    status = response.status
-                    try:
-                        response_data = await response.json()
-                    except:
-                        response_data = {"error": "Invalid JSON response", "text": await response.text()}
-                    return status, response_data
+            async with self.session.post(login_url, json=login_payload) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    user_id = data.get("user", {}).get("id")
+                    if user_id:
+                        print(f"✅ Successfully retrieved test user ID: {user_id}")
+                        return user_id
+                    else:
+                        print(f"❌ Login successful but no user ID found in response")
+                        return None
+                else:
+                    print(f"❌ Login failed with status {response.status}")
+                    error_text = await response.text()
+                    print(f"   Error: {error_text}")
+                    return None
+                    
         except Exception as e:
-            return 0, {"error": str(e)}
-    
-    async def test_login_endpoint(self):
-        """Test 1: Login endpoint to get valid user ID"""
-        test_name = "Login Endpoint"
-        
-        payload = {"email": TEST_EMAIL}
-        
-        status, response = await self.make_request("POST", "/users/login", payload)
-        
-        if status == 200 and response.get("success") and response.get("user"):
-            user_id = response["user"]["id"]
-            global TEST_USER_ID
-            TEST_USER_ID = user_id
-            self.log_result(
-                test_name,
-                "PASS",
-                f"✅ Login successful. Got user_id: {user_id}",
-                {"user_id": user_id, "email": TEST_EMAIL}
-            )
-            return user_id
-        else:
-            self.log_result(
-                test_name,
-                "FAIL",
-                f"❌ Login failed. Status: {status}",
-                response
-            )
+            print(f"❌ Login request failed: {e}")
             return None
     
-    async def test_mirror_chat_valid_user(self, user_id):
-        """Test 2: Mirror chat endpoint with valid user"""
-        test_name = "Mirror Chat - Valid User"
+    async def test_endpoint(self, endpoint_name, url, expected_title="Today"):
+        """Test a single today endpoint for correct title"""
+        print(f"\n🧪 Testing {endpoint_name} endpoint...")
+        print(f"   URL: {url}")
         
-        payload = {
-            "user_id": user_id,
-            "message": "Hello, this is a test message",
-            "session_id": "test-session-123"
-        }
-        
-        status, response = await self.make_request("POST", "/mirror/chat", payload)
-        
-        if status != 200:
-            self.log_result(test_name, "FAIL", f"❌ HTTP {status} - Expected 200", response)
-            return False
-        
-        # Check for response field
-        if "response" not in response:
-            self.log_result(test_name, "FAIL", "❌ Missing 'response' field", response)
-            return False
-        
-        # Check that response is not HTML
-        response_text = response["response"]
-        if "<html>" in response_text.lower() or "<!doctype" in response_text.lower():
-            self.log_result(test_name, "FAIL", "❌ Response contains HTML", {"response_preview": response_text[:200]})
-            return False
-        
-        # Check that response is JSON (we already parsed it successfully)
-        self.log_result(
-            test_name,
-            "PASS",
-            f"✅ Mirror chat working. Response length: {len(response_text)} chars",
-            {
-                "status_code": status,
-                "has_response_field": True,
-                "is_json": True,
-                "is_not_html": True,
-                "response_preview": response_text[:100] + "..." if len(response_text) > 100 else response_text
+        try:
+            start_time = datetime.now()
+            async with self.session.get(url) as response:
+                end_time = datetime.now()
+                response_time = (end_time - start_time).total_seconds()
+                
+                print(f"   Status: {response.status}")
+                print(f"   Response time: {response_time:.2f}s")
+                
+                if response.status == 200:
+                    try:
+                        data = await response.json()
+                        actual_title = data.get("title")
+                        
+                        print(f"   Expected title: '{expected_title}'")
+                        print(f"   Actual title: '{actual_title}'")
+                        
+                        if actual_title == expected_title:
+                            print(f"   ✅ PASS: Title matches expected value")
+                            return True, {
+                                "status": "PASS",
+                                "expected_title": expected_title,
+                                "actual_title": actual_title,
+                                "response_time": response_time,
+                                "status_code": response.status
+                            }
+                        else:
+                            print(f"   ❌ FAIL: Title mismatch")
+                            return False, {
+                                "status": "FAIL",
+                                "expected_title": expected_title,
+                                "actual_title": actual_title,
+                                "response_time": response_time,
+                                "status_code": response.status,
+                                "error": f"Expected '{expected_title}' but got '{actual_title}'"
+                            }
+                            
+                    except json.JSONDecodeError as e:
+                        print(f"   ❌ FAIL: Invalid JSON response")
+                        response_text = await response.text()
+                        print(f"   Response text: {response_text[:200]}...")
+                        return False, {
+                            "status": "FAIL",
+                            "error": f"JSON decode error: {e}",
+                            "response_time": response_time,
+                            "status_code": response.status
+                        }
+                        
+                else:
+                    error_text = await response.text()
+                    print(f"   ❌ FAIL: HTTP {response.status}")
+                    print(f"   Error: {error_text[:200]}...")
+                    return False, {
+                        "status": "FAIL",
+                        "error": f"HTTP {response.status}: {error_text[:100]}",
+                        "response_time": response_time,
+                        "status_code": response.status
+                    }
+                    
+        except Exception as e:
+            print(f"   ❌ FAIL: Request exception")
+            print(f"   Exception: {e}")
+            return False, {
+                "status": "FAIL",
+                "error": f"Request exception: {e}"
             }
-        )
-        return True
-    
-    async def test_mirror_chat_invalid_user(self):
-        """Test 3: Mirror chat endpoint with invalid user ID"""
-        test_name = "Mirror Chat - Invalid User"
-        
-        payload = {
-            "user_id": "invalid-user-id-12345",
-            "message": "Hello, this is a test message",
-            "session_id": "test-session-456"
-        }
-        
-        status, response = await self.make_request("POST", "/mirror/chat", payload)
-        
-        # Should return an error status (not 200)
-        if status == 200:
-            self.log_result(test_name, "FAIL", "❌ Expected error status, got 200", response)
-            return False
-        
-        # Check that error response is not a successful chat response
-        if isinstance(response, dict) and "response" in response:
-            # This would be a successful chat response, which is wrong for invalid user
-            self.log_result(test_name, "FAIL", "❌ Got successful chat response for invalid user", response)
-            return False
-        
-        # Any error response (JSON or HTML) is acceptable for invalid user ID
-        # The important thing is that it doesn't return a successful chat response
-        self.log_result(
-            test_name,
-            "PASS",
-            f"✅ Proper error handling for invalid user. Status: {status} (error as expected)",
-            {"status_code": status, "error_type": "HTML" if "html" in str(response).lower() else "JSON"}
-        )
-        return True
     
     async def run_all_tests(self):
-        """Run all Mirror Chat endpoint tests as requested in review"""
-        print("🧪 MIRROR CHAT ENDPOINT TESTING")
-        print("=" * 50)
-        print(f"Base URL: {BASE_URL}")
-        print(f"Test Email: {TEST_EMAIL}")
-        print()
+        """Run all today endpoint tests"""
+        print("=" * 80)
+        print("🚀 STARTING TODAY ENDPOINTS TITLE VERIFICATION TESTS")
+        print("=" * 80)
         
-        # Step 1: Get valid user ID via login
-        print("Step 1: Testing login endpoint...")
-        user_id = await self.test_login_endpoint()
+        # Get test user ID
+        self.test_user_id = await self.get_test_user_id()
+        if not self.test_user_id:
+            print("\n❌ CRITICAL: Cannot proceed without test user ID")
+            return False
         
-        if not user_id:
-            print("❌ Cannot proceed without valid user ID")
-            return 0, 3, self.results
+        # Define test endpoints
+        test_cases = [
+            {
+                "name": "Astrology Today",
+                "url": f"{BASE_URL}/astrology/today/{self.test_user_id}",
+                "expected_title": "Today"
+            },
+            {
+                "name": "Human Design Today", 
+                "url": f"{BASE_URL}/human-design/today/{self.test_user_id}",
+                "expected_title": "Today"
+            },
+            {
+                "name": "Numerology Today",
+                "url": f"{BASE_URL}/numerology/today/{self.test_user_id}",
+                "expected_title": "Today"
+            }
+        ]
         
-        # Step 2: Test Mirror chat with valid user
-        print("Step 2: Testing Mirror chat with valid user...")
-        valid_test_result = await self.test_mirror_chat_valid_user(user_id)
+        # Run tests
+        results = {}
+        all_passed = True
         
-        # Step 3: Test Mirror chat with invalid user
-        print("Step 3: Testing Mirror chat with invalid user...")
-        invalid_test_result = await self.test_mirror_chat_invalid_user()
+        for test_case in test_cases:
+            passed, result = await self.test_endpoint(
+                test_case["name"],
+                test_case["url"], 
+                test_case["expected_title"]
+            )
+            results[test_case["name"]] = result
+            if not passed:
+                all_passed = False
         
-        # Count results
-        passed = sum([
-            1 if user_id else 0,
-            1 if valid_test_result else 0,
-            1 if invalid_test_result else 0
-        ])
-        total = 3
+        # Print summary
+        print("\n" + "=" * 80)
+        print("📊 TEST RESULTS SUMMARY")
+        print("=" * 80)
         
-        print("=" * 50)
-        print(f"📊 TEST SUMMARY: {passed}/{total} PASSED")
+        for test_name, result in results.items():
+            status_icon = "✅" if result["status"] == "PASS" else "❌"
+            print(f"{status_icon} {test_name}: {result['status']}")
+            
+            if result["status"] == "PASS":
+                print(f"   Title: '{result['actual_title']}' ✓")
+                print(f"   Response time: {result['response_time']:.2f}s")
+            else:
+                print(f"   Error: {result.get('error', 'Unknown error')}")
+                if 'actual_title' in result:
+                    print(f"   Got title: '{result['actual_title']}'")
         
-        if passed == total:
-            print("🎉 ALL TESTS PASSED - Mirror Chat endpoint working correctly!")
-        else:
-            print(f"⚠️  {total - passed} TESTS FAILED - Issues found with Mirror Chat endpoint")
+        print(f"\n🎯 OVERALL RESULT: {'✅ ALL TESTS PASSED' if all_passed else '❌ SOME TESTS FAILED'}")
         
-        # Print detailed results
-        print("\n📋 DETAILED RESULTS:")
-        for result in self.results:
-            status_emoji = "✅" if result["status"] == "PASS" else "❌"
-            print(f"{status_emoji} {result['test']}: {result['status']}")
-            print(f"   {result['details']}")
+        if not all_passed:
+            print("\n🔧 ISSUES FOUND:")
+            for test_name, result in results.items():
+                if result["status"] == "FAIL":
+                    print(f"   • {test_name}: {result.get('error', 'Failed')}")
         
-        return passed, total, self.results
+        return all_passed
+
 
 async def main():
-    """Main test runner"""
-    async with MirrorChatTester() as tester:
-        passed, total, results = await tester.run_all_tests()
+    """Main test execution function"""
+    async with TodayEndpointTester() as tester:
+        success = await tester.run_all_tests()
         
-        # Return exit code based on results
-        if passed == total:
-            sys.exit(0)  # Success
-        else:
-            sys.exit(1)  # Failure
+    # Exit with appropriate code
+    sys.exit(0 if success else 1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
