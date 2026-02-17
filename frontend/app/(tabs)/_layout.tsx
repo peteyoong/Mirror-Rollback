@@ -43,9 +43,9 @@ export default function TabLayout() {
           unmountOnBlur: false,
         }}
       >
-        {/* Mirror tab - using placeholder or real component */}
+        {/* Mirror tab - The real Home screen */}
         <Tabs.Screen
-          name="mirror-v2"
+          name="index"
           options={{
             title: 'Mirror',
             tabBarIcon: ({ color, size }) => (
@@ -54,13 +54,11 @@ export default function TabLayout() {
             headerShown: false,
           }}
         />
-        {/* Hide the old index screen */}
+        {/* Hide debug mirror-v2 screen from normal navigation */}
         <Tabs.Screen
-          name="index"
+          name="mirror-v2"
           options={{
-            href: null,
-            title: 'THE MIRROR',
-            headerTitle: 'THE MIRROR',
+            href: null, // Hide from tab bar
             headerShown: false,
           }}
         />
