@@ -129,43 +129,66 @@ async def health_check():
 # BUILD VERIFICATION ENDPOINT
 # =====================================================
 # Returns build info for debugging environment mismatches
-BUILD_VERSION = "v15-wing-display-fix"
-BUILD_ENV = os.environ.get("APP_ENV", os.environ.get("NODE_ENV", "development"))
+BUILD_VERSION = "v30-environment-separation"
+BUILD_LABEL = os.environ.get("BUILD_LABEL", "dev-local")
+BUILD_ENV = os.environ.get("ENV", os.environ.get("APP_ENV", os.environ.get("NODE_ENV", "dev")))
 
 @app.get("/api/health")
 async def api_health():
     """
-    Build verification endpoint.
+    Build verification endpoint with full provenance.
     Returns current build info for debugging environment mismatches.
     No caching, no auth required.
     """
     import subprocess
     
     # Try to get git SHA
-    git_sha = None
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True,
-            text=True,
-            timeout=2,
-            cwd="/app"
-        )
-        if result.returncode == 0:
-            git_sha = result.stdout.strip()
-    except Exception:
-        pass
+    git_sha = os.environ.get("GIT_SHA", None)
+    if not git_sha:
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "--short", "HEAD"],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                cwd="/app"
+            )
+            if result.returncode == 0:
+                git_sha = result.stdout.strip()
+        except Exception:
+            git_sha = "unknown"
     
-    # Expected frontend BUILD_ID (must match /app/frontend/utils/buildInfo.ts)
-    expected_frontend_build = "2026-02-12T11:00:00Z"
+    # Get database info
+    db_name = os.environ.get("DB_NAME", "unknown")
+    mongo_url = os.environ.get("MONGO_URL", "")
+    
+    # Determine database type from connection string
+    if "mongodb+srv" in mongo_url:
+        db_type = "atlas"
+    elif "localhost" in mongo_url or "127.0.0.1" in mongo_url:
+        db_type = "local"
+    else:
+        db_type = "remote"
     
     return {
-        "build": BUILD_VERSION,
+        # Environment
         "env": BUILD_ENV,
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "status": "healthy",
+        
+        # Build provenance
+        "build_version": BUILD_VERSION,
+        "build_label": BUILD_LABEL,
         "git_sha": git_sha,
-        "db_name": os.environ.get("DB_NAME", "unknown"),
-        "expected_frontend_build": expected_frontend_build,
+        
+        # Database
+        "db_name": db_name,
+        "db_type": db_type,
+        
+        # Timestamp
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        
+        # For frontend verification
+        "expected_frontend_env": BUILD_ENV,
     }
 
 
