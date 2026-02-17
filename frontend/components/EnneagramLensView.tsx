@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { buildJournalPrefill, goToJournalWithPrefill } from '../utils/journalPrefill';
 import { API_BASE_URL } from '../utils/apiBase';
 import { Accordion } from './Accordion';
+import TodayPanel from './TodayPanel';
 import { 
   sendEnneagramChat, 
   getEnneagramTraits,
