@@ -152,7 +152,7 @@ export default function LensesScreen() {
                 style={styles.viewButton}
                 onPress={() => handleViewSummary(lens.name)}
               >
-                <Text style={styles.viewButtonText}>View Overview</Text>
+                <Text style={styles.viewButtonText}>Explore</Text>
                 <Ionicons name="arrow-forward" size={16} color={Colors.background} />
               </TouchableOpacity>
             </View>
