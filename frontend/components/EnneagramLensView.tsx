@@ -1144,94 +1144,149 @@ export default function EnneagramLensView({ result, userId }: Props) {
   
   // ============================================
   // CHAT BOX COMPONENT
+  // Proper flex-based containment with scroll-to-bottom
   // ============================================
   
-  const renderChatBox = () => (
-    <View style={styles.chatContainer}>
-      <TouchableOpacity 
-        style={styles.chatHeader}
-        onPress={() => setChatExpanded(!chatExpanded)}
-      >
-        <View style={styles.chatHeaderLeft}>
-          <Ionicons 
-            name="chatbubble-outline" 
-            size={18} 
-            color={Colors.textSecondary} 
-          />
-          <Text style={styles.chatHeaderText}>Ask about this</Text>
-        </View>
-        <Ionicons 
-          name={chatExpanded ? 'chevron-down' : 'chevron-up'} 
-          size={18} 
-          color={Colors.textTertiary} 
-        />
-      </TouchableOpacity>
-      
-      {chatExpanded && (
-        <View style={styles.chatBody}>
-          {/* Chat Messages - Scrollable Container */}
-          {chatMessages.length > 0 && (
-            <ScrollView 
-              style={styles.chatMessagesScroll}
-              contentContainerStyle={styles.chatMessagesContent}
-              showsVerticalScrollIndicator={true}
-              nestedScrollEnabled={true}
-            >
-              {chatMessages.map((msg, index) => (
-                <View 
-                  key={index} 
-                  style={[
-                    styles.chatMessage,
-                    msg.role === 'user' ? styles.chatMessageUser : styles.chatMessageAssistant
-                  ]}
-                >
-                  <Text style={[
-                    styles.chatMessageText,
-                    msg.role === 'user' && styles.chatMessageTextUser
-                  ]}>
-                    {msg.content}
-                  </Text>
-                </View>
-              ))}
-              {chatLoading && (
-                <View style={[styles.chatMessage, styles.chatMessageAssistant]}>
-                  <ActivityIndicator size="small" color={Colors.textSecondary} />
-                </View>
-              )}
-            </ScrollView>
-          )}
-          
-          {/* Chat Input - Pinned at Bottom */}
-          <View style={styles.chatInputContainer}>
-            <TextInput
-              style={styles.chatInput}
-              value={chatInput}
-              onChangeText={setChatInput}
-              placeholder="Ask about today's pattern, your wing, stress loops, or how to practice."
-              placeholderTextColor={Colors.textTertiary}
-              multiline
-              maxLength={500}
-              editable={!chatLoading}
+  const renderChatBox = () => {
+    // Calculate expanded height based on screen or fixed reasonable height
+    // Using a proportional height instead of maxHeight for better responsiveness
+    const CHAT_EXPANDED_HEIGHT = 340; // Reasonable fixed height for expanded chat
+    
+    return (
+      <View style={styles.chatContainer}>
+        {/* Collapsible Header */}
+        <TouchableOpacity 
+          style={styles.chatHeader}
+          onPress={() => {
+            setChatExpanded(!chatExpanded);
+            // Scroll to bottom when expanding if there are messages
+            if (!chatExpanded && chatMessages.length > 0) {
+              scrollChatToBottom(false);
+            }
+          }}
+        >
+          <View style={styles.chatHeaderLeft}>
+            <Ionicons 
+              name="chatbubble-outline" 
+              size={18} 
+              color={Colors.textSecondary} 
             />
-            <TouchableOpacity 
-              style={[
-                styles.chatSendButton,
-                (!chatInput.trim() || chatLoading) && styles.chatSendButtonDisabled
-              ]}
-              onPress={handleSendChat}
-              disabled={!chatInput.trim() || chatLoading}
-            >
-              <Ionicons 
-                name="send" 
-                size={18} 
-                color={(!chatInput.trim() || chatLoading) ? Colors.textTertiary : Colors.background} 
-              />
-            </TouchableOpacity>
+            <Text style={styles.chatHeaderText}>Ask about this</Text>
           </View>
-        </View>
-      )}
-    </View>
-  );
+          <Ionicons 
+            name={chatExpanded ? 'chevron-down' : 'chevron-up'} 
+            size={18} 
+            color={Colors.textTertiary} 
+          />
+        </TouchableOpacity>
+        
+        {/* Expanded Chat Body - Flex-based containment */}
+        {chatExpanded && (
+          <View style={[styles.chatBody, { height: CHAT_EXPANDED_HEIGHT }]}>
+            {/* Messages Container - Takes remaining space */}
+            <View style={styles.chatMessagesContainer}>
+              <ScrollView 
+                ref={chatScrollRef}
+                style={styles.chatMessagesScrollFlex}
+                contentContainerStyle={[
+                  styles.chatMessagesContentFlex,
+                  { paddingBottom: composerHeight + 16 }
+                ]}
+                showsVerticalScrollIndicator={true}
+                onScroll={handleChatScroll}
+                scrollEventThrottle={16}
+                onContentSizeChange={() => {
+                  // Auto-scroll to bottom when content changes (unless user scrolled up)
+                  if (!isScrolledUp) {
+                    scrollChatToBottom(false);
+                  }
+                }}
+              >
+                {chatMessages.length === 0 ? (
+                  <View style={styles.chatEmptyState}>
+                    <Text style={styles.chatEmptyText}>
+                      Ask anything about your type, patterns, growth edges, or how to work with today's energy.
+                    </Text>
+                  </View>
+                ) : (
+                  <>
+                    {chatMessages.map((msg, index) => (
+                      <View 
+                        key={index} 
+                        style={[
+                          styles.chatMessage,
+                          msg.role === 'user' ? styles.chatMessageUser : styles.chatMessageAssistant
+                        ]}
+                      >
+                        <Text style={[
+                          styles.chatMessageText,
+                          msg.role === 'user' && styles.chatMessageTextUser
+                        ]}>
+                          {msg.content}
+                        </Text>
+                      </View>
+                    ))}
+                    {chatLoading && (
+                      <View style={[styles.chatMessage, styles.chatMessageAssistant]}>
+                        <ActivityIndicator size="small" color={Colors.textSecondary} />
+                      </View>
+                    )}
+                  </>
+                )}
+              </ScrollView>
+              
+              {/* Jump to Latest Button - Shows when user scrolled up */}
+              {isScrolledUp && chatMessages.length > 2 && (
+                <TouchableOpacity 
+                  style={styles.jumpToLatestButton}
+                  onPress={() => {
+                    scrollChatToBottom(true);
+                    setIsScrolledUp(false);
+                  }}
+                >
+                  <Ionicons name="chevron-down" size={14} color={Colors.background} />
+                  <Text style={styles.jumpToLatestText}>Latest</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            
+            {/* Composer - Pinned at Bottom */}
+            <View 
+              style={styles.chatComposerContainer}
+              onLayout={(e) => setComposerHeight(e.nativeEvent.layout.height)}
+            >
+              <View style={styles.chatInputContainer}>
+                <TextInput
+                  style={styles.chatInput}
+                  value={chatInput}
+                  onChangeText={setChatInput}
+                  placeholder="Ask about patterns, stress, growth..."
+                  placeholderTextColor={Colors.textTertiary}
+                  multiline
+                  maxLength={500}
+                  editable={!chatLoading}
+                />
+                <TouchableOpacity 
+                  style={[
+                    styles.chatSendButton,
+                    (!chatInput.trim() || chatLoading) && styles.chatSendButtonDisabled
+                  ]}
+                  onPress={handleSendChat}
+                  disabled={!chatInput.trim() || chatLoading}
+                >
+                  <Ionicons 
+                    name="send" 
+                    size={18} 
+                    color={(!chatInput.trim() || chatLoading) ? Colors.textTertiary : Colors.background} 
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  };
 
   // ============================================
   // SUMMARY TAB
