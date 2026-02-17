@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"ab00539603114914a1c9ae093eec5147","collectionName":"enneagram_chat_history","type":"collection"}
