@@ -1126,7 +1126,7 @@ STRICT LENGTH: Total response must be under 150 words.
 
 Return ONLY valid JSON:
 {{
-  "title": "Today's Snapshot",
+  "title": "Today",
   "date": "{today_date}",
   "sections": [
     {{"label": "Today's Quality", "body": "..."}},
@@ -1952,7 +1952,7 @@ STRICT LENGTH: Total response must be under 150 words.
 
 Return ONLY valid JSON:
 {{
-  "title": "Today's Snapshot",
+  "title": "Today",
   "date": "{today_date}",
   "sections": [
     {{"label": "Today's Focus", "body": "..."}},
@@ -2540,7 +2540,7 @@ STRICT LENGTH: Total response must be under 150 words.
 
 Return ONLY valid JSON:
 {{
-  "title": "Today's Snapshot",
+  "title": "Today",
   "date": "{today_date}",
   "cycles": {{
     "personal_day": {personal_day_number},
