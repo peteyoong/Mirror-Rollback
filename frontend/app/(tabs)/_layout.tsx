@@ -22,17 +22,47 @@ export default function TabLayout() {
     <View style={{ flex: 1 }}>
       <Tabs
         screenOptions={{
+          // Active/Inactive colors - improved contrast
           tabBarActiveTintColor: Colors.accent,
-          tabBarInactiveTintColor: Colors.textTertiary,
+          tabBarInactiveTintColor: '#888888', // Brighter than textTertiary for better visibility
           tabBarHideOnKeyboard: true,
+          
+          // Tab bar container - more prominent
           tabBarStyle: {
-            backgroundColor: Colors.surface,
-            borderTopColor: Colors.border,
+            backgroundColor: '#1E2023', // Slightly lighter than page background for separation
+            borderTopColor: 'rgba(255, 255, 255, 0.08)', // Subtle light border for definition
             borderTopWidth: 1,
-            height: 60,
-            paddingBottom: Spacing.xs,
+            height: 72, // Increased height for better tap targets
+            paddingBottom: Spacing.sm, // More bottom padding for safe area
             paddingTop: Spacing.xs,
+            // Subtle shadow for depth
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.15,
+            shadowRadius: 8,
+            elevation: 8,
           },
+          
+          // Tab item styling
+          tabBarItemStyle: {
+            paddingVertical: Spacing.xxs, // Comfortable tap area
+          },
+          
+          // Label styling - more readable
+          tabBarLabelStyle: {
+            fontSize: 11, // Slightly larger for readability
+            fontWeight: '600', // Semi-bold for better visibility
+            marginTop: 2,
+          },
+          
+          // Active indicator - subtle pill background
+          tabBarActiveBackgroundColor: 'rgba(201, 169, 98, 0.12)', // Soft accent glow
+          
+          // Icon styling
+          tabBarIconStyle: {
+            marginTop: 4,
+          },
+          
           headerStyle: {
             backgroundColor: Colors.background,
           },
