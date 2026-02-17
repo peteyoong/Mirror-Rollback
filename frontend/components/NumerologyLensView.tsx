@@ -793,8 +793,10 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
           </View>
         ) : data ? (
           <>
-            {/* Title */}
-            <Text style={styles.title}>{data.title}</Text>
+            {/* Title - Replace "Today's Snapshot" with "Today" */}
+            <Text style={styles.title}>
+              {(data.title || 'Numerology').replace("Today's Snapshot", "Today")}
+            </Text>
 
             {/* Date for Today's Snapshot tab only */}
             {activeTab === 'today' && data.date && (
