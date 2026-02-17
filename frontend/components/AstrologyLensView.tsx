@@ -290,6 +290,45 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
     );
   };
 
+  // Map API sections to TodayPanel props for Astrology
+  // Mapping: "Today's Quality" → Tone, "What You May Notice" → What to Notice
+  const mapSectionsToTodayPanel = useMemo(() => {
+    if (!data?.sections || activeTab !== 'today') return null;
+    
+    let toneText: string | undefined;
+    let noticeText: string | undefined;
+    let noticeBullets: string[] | undefined;
+    
+    for (const section of data.sections) {
+      const label = section.label?.toLowerCase() || '';
+      
+      // Map "Today's Quality" → Tone
+      if (label.includes('quality') || label.includes('tone')) {
+        toneText = section.body;
+      }
+      // Map "What You May Notice" / "What to Notice" → What to Notice
+      else if (label.includes('notice')) {
+        // Check if content looks like bullets (starts with • or -)
+        const body = section.body || '';
+        if (body.includes('•') || body.includes('\n-') || body.includes('\n•')) {
+          noticeBullets = body
+            .split(/\n/)
+            .map(line => line.replace(/^[•\-]\s*/, '').trim())
+            .filter(line => line.length > 0);
+        } else {
+          noticeText = body;
+        }
+      }
+    }
+    
+    return {
+      toneText,
+      noticeText,
+      noticeBullets,
+      reflectQuestion: data.mirror_prompt,
+    };
+  }, [data, activeTab]);
+
   const renderNatalChartReference = () => {
     if (activeTab !== 'deep_dive') return null;
 
