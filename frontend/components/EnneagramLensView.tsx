@@ -907,6 +907,31 @@ export default function EnneagramLensView({ result, userId }: Props) {
     setIsScrolledUp(!isAtBottom);
   }, []);
 
+  // Focus the chat input with a small delay for animation
+  const focusChatInput = useCallback(() => {
+    // Use requestAnimationFrame to ensure the view has rendered
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        chatInputRef.current?.focus();
+      }, 100);
+    });
+  }, []);
+
+  // Handle chat expansion - focus input when expanding
+  const handleChatExpand = useCallback(() => {
+    const willExpand = !chatExpanded;
+    setChatExpanded(willExpand);
+    
+    if (willExpand) {
+      // Scroll to bottom when expanding if there are messages
+      if (chatMessages.length > 0) {
+        scrollChatToBottom(false);
+      }
+      // Focus the input after expansion animation
+      focusChatInput();
+    }
+  }, [chatExpanded, chatMessages.length, scrollChatToBottom, focusChatInput]);
+
   // Send chat message
   const handleSendChat = useCallback(async () => {
     if (!chatInput.trim() || chatLoading) return;
