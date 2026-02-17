@@ -398,11 +398,12 @@ class UserProfile(BaseModel):
 
 class UserProfileCreate(BaseModel):
     name: Optional[str] = None
+    email: Optional[str] = None  # Added email capture during onboarding
     birth_date: str  # YYYY-MM-DD
     birth_time: Optional[str] = None  # HH:MM
     city: str
     country: str
-    timezone: str  # "+07:30" or "Asia/Kuala_Lumpur"
+    timezone: str  # IANA timezone string (e.g., "Asia/Kuala_Lumpur") or offset ("+07:30")
     latitude: Optional[float] = None  # Optional: skip geocoding if provided
     longitude: Optional[float] = None  # Optional: skip geocoding if provided
 
