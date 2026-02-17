@@ -471,6 +471,51 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
     );
   };
 
+  // Map API sections to TodayPanel props for Human Design
+  // Mapping: "Today's Focus" → Tone, "A Small Experiment" → Small Experiment, "What to Notice" → What to Notice
+  const mapSectionsToTodayPanel = useMemo(() => {
+    if (!data?.sections || activeTab !== 'today') return null;
+    
+    let toneText: string | undefined;
+    let experimentText: string | undefined;
+    let noticeText: string | undefined;
+    let noticeBullets: string[] | undefined;
+    
+    for (const section of data.sections) {
+      const label = section.label?.toLowerCase() || '';
+      
+      // Map "Today's Focus" → Tone
+      if (label.includes('focus') || label.includes('tone')) {
+        toneText = section.body;
+      }
+      // Map "A Small Experiment" → Small Experiment  
+      else if (label.includes('experiment')) {
+        experimentText = section.body;
+      }
+      // Map "What to Notice" → What to Notice
+      else if (label.includes('notice')) {
+        const body = section.body || '';
+        // Check if content looks like bullets
+        if (body.includes('•') || body.includes('\n-') || body.includes('\n•')) {
+          noticeBullets = body
+            .split(/\n/)
+            .map(line => line.replace(/^[•\-]\s*/, '').trim())
+            .filter(line => line.length > 0);
+        } else {
+          noticeText = body;
+        }
+      }
+    }
+    
+    return {
+      toneText,
+      experimentText,
+      noticeText,
+      noticeBullets,
+      reflectQuestion: data.mirror_prompt,
+    };
+  }, [data, activeTab]);
+
   return (
     <View style={styles.container}>
       {/* Debug Panel (only with ?debug=1) */}
