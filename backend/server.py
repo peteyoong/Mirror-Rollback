@@ -3536,6 +3536,38 @@ class LoginRequest(BaseModel):
     email: str
 
 
+class LookupRequest(BaseModel):
+    email: str
+
+
+@api_router.post("/users/lookup")
+async def lookup_user(request: LookupRequest):
+    """
+    Check if a user exists by email (case-insensitive).
+    Returns exists: true/false without exposing user data.
+    Used by frontend to show appropriate UI before login attempt.
+    """
+    try:
+        email = request.email.strip().lower()
+        
+        if not email or '@' not in email:
+            raise HTTPException(status_code=400, detail="Please enter a valid email address")
+        
+        # Find user by email (case-insensitive)
+        user = await db.users.find_one({"email": email})
+        
+        return {
+            "exists": user is not None,
+            "email": email
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Lookup error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/users/login")
 async def login_user(request: LoginRequest):
     """
