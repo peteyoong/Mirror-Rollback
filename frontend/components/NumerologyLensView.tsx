@@ -297,7 +297,7 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
         onPress={() => setActiveTab('summary')}
       >
         <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>
-          Summary
+          Overview
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
