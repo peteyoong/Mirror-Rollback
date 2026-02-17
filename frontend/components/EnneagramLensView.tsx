@@ -3093,15 +3093,32 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   chatBody: {
-    padding: 14,
-    paddingTop: 8,
+    overflow: 'hidden', // Prevent any content from bleeding out
   },
-  chatMessagesScroll: {
-    maxHeight: 280,
-    marginBottom: 12,
+  chatMessagesContainer: {
+    flex: 1,
+    position: 'relative', // For jump-to-latest positioning
   },
-  chatMessagesContent: {
-    paddingBottom: 4,
+  chatMessagesScrollFlex: {
+    flex: 1,
+  },
+  chatMessagesContentFlex: {
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    flexGrow: 1,
+  },
+  chatEmptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  chatEmptyText: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: Colors.textTertiary,
+    textAlign: 'center',
   },
   chatMessage: {
     marginBottom: 10,
