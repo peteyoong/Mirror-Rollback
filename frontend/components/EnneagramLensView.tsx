@@ -869,7 +869,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // ============================================
   const [backendHealth, setBackendHealth] = useState<BackendHealthInfo | null>(null);
   const [rawDeepDiveTypeLabel, setRawDeepDiveTypeLabel] = useState<string | null>(null);
-  const isDebugMode = getUrlDebugParam();
+  const isDebugMode = DEBUG_MIRROR_ENV || getUrlDebugParam();
   
   // Fetch backend health once per session (debug mode only)
   useEffect(() => {
@@ -877,6 +877,85 @@ export default function EnneagramLensView({ result, userId }: Props) {
       getBackendHealth().then(setBackendHealth);
     }
   }, [isDebugMode]);
+
+  // ============================================
+  // DEBUG STAMP COMPONENT
+  // ============================================
+  // Displays deterministic diagnostic metadata for comparing
+  // Preview vs Production environments
+  // Visible only when EXPO_PUBLIC_DEBUG_MIRROR=true or ?debug=1
+  // ============================================
+  const renderDebugStamp = () => {
+    if (!isDebugMode) return null;
+    
+    return (
+      <View style={styles.debugStamp}>
+        <Text style={styles.debugStampHeader}>🔍 DEBUG STAMP</Text>
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>BUILD_VERSION:</Text>
+          <Text style={styles.debugStampValue}>{BUILD_VERSION}</Text>
+        </View>
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>BUILD_ID:</Text>
+          <Text style={styles.debugStampValue}>{BUILD_ID}</Text>
+        </View>
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>API_BASE_URL:</Text>
+          <Text style={styles.debugStampValue} numberOfLines={1}>{API_BASE_URL}</Text>
+        </View>
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>user_id:</Text>
+          <Text style={styles.debugStampValue}>{userId || 'N/A'}</Text>
+        </View>
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>result_id:</Text>
+          <Text style={styles.debugStampValue}>{result.result_id || 'N/A'}</Text>
+        </View>
+        <View style={styles.debugStampDivider} />
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>core_type:</Text>
+          <Text style={styles.debugStampValue}>{result.inferred_core}</Text>
+        </View>
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>wing (raw):</Text>
+          <Text style={styles.debugStampValue}>
+            {result.inferred_wing === null ? 'null' : 
+             result.inferred_wing === 'balanced' ? '"balanced"' : 
+             result.inferred_wing}
+          </Text>
+        </View>
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>confidence_tier:</Text>
+          <Text style={styles.debugStampValue}>{result.confidence_tier || 'N/A'}</Text>
+        </View>
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>wing_left_score:</Text>
+          <Text style={styles.debugStampValue}>{result.wing_left_score ?? 'N/A'}</Text>
+        </View>
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>wing_right_score:</Text>
+          <Text style={styles.debugStampValue}>{result.wing_right_score ?? 'N/A'}</Text>
+        </View>
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>assessment_depth:</Text>
+          <Text style={styles.debugStampValue}>{result.assessment_depth || 'N/A'}</Text>
+        </View>
+        <View style={styles.debugStampDivider} />
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>wingInfo.state:</Text>
+          <Text style={styles.debugStampValue}>{wingInfo.state}</Text>
+        </View>
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>wingInfo.typeLabel:</Text>
+          <Text style={styles.debugStampValue}>{wingInfo.typeLabel}</Text>
+        </View>
+        <View style={styles.debugStampRow}>
+          <Text style={styles.debugStampLabel}>wingInfo.badge:</Text>
+          <Text style={styles.debugStampValue}>{wingInfo.confidenceBadge}</Text>
+        </View>
+      </View>
+    );
+  };
 
   const core = result.inferred_core;
   const wing = result.inferred_wing;
