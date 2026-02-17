@@ -1262,119 +1262,190 @@ export default function EnneagramLensView({ result, userId }: Props) {
     );
   };
 
-  const renderSummaryTab = () => (
-    <>
-      {/* DEBUG STAMP - visible with ?debug=1 */}
-      {renderDebugStamp()}
-      
-      {/* Hero Card */}
-      <View style={styles.heroCard}>
-        <View style={styles.heroBadge}>
-          <Text style={styles.heroBadgeText}>{core}</Text>
-        </View>
-        <Text style={styles.heroTitle}>{wingInfo.typeLabel}</Text>
-        <Text style={styles.heroSubtitle}>
-          {TYPE_NAMES[core]}
-        </Text>
-        {/* Confidence Badge with new system */}
-        <View style={[
-          styles.confidenceBadge,
-          wingInfo.confidenceBadge === 'High' && styles.confidenceHigh,
-          wingInfo.confidenceBadge === 'Exploratory' && styles.confidenceMedium,
-          wingInfo.confidenceBadge === 'Low' && styles.confidenceLow,
-        ]}>
-          <Text style={styles.confidenceText}>
-            {wingInfo.confidenceBadge}
-          </Text>
-        </View>
-        {/* Helper text for non-dominant wing states */}
-        {wingInfo.helperText && (
-          <Text style={styles.heroHelperText}>
-            {wingInfo.helperText}
-          </Text>
-        )}
-        <Text style={styles.heroDisclaimer}>
-          This lens reflects motivation, not mood.
-        </Text>
-      </View>
+  // Handler for saving reflective question to journal
+  const handleSaveReflectionToJournal = useCallback(() => {
+    const question = REFLECTIVE_QUESTIONS[core];
+    const prefill = buildJournalPrefill({
+      title: `Type ${core} Reflection`,
+      prompt: question,
+      source: 'enneagram_summary',
+      tags: ['enneagram', `type-${core}`, 'reflection'],
+    });
+    goToJournalWithPrefill(router, prefill, 'enneagram');
+  }, [core, router]);
 
-      {/* Core Motivation Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Core Motivation</Text>
-        <Text style={styles.cardBody}>
-          {CORE_MOTIVATIONS[core]}
-        </Text>
-      </View>
-
-      {/* Wing Access Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Your Wing Access</Text>
-        {wingInfo.state === 'dominant' || wingInfo.state === 'leaning' ? (
-          <>
-            <Text style={styles.cardBody}>
-              Wings are access paths — capacities you can develop. The quieter wing often holds untapped potential.
-            </Text>
-            <View style={styles.wingRow}>
-              <View style={styles.wingItem}>
-                <Text style={styles.wingLabel}>
-                  {wingInfo.state === 'dominant' ? 'Dominant' : 'Leaning'}
-                </Text>
-                <Text style={styles.wingValue}>Wing {wing}</Text>
-              </View>
-              <View style={styles.wingDivider} />
-              <View style={styles.wingItem}>
-                <Text style={styles.wingLabel}>Growth access</Text>
-                <Text style={styles.wingValue}>Wing {otherWing}</Text>
-              </View>
-            </View>
-          </>
-        ) : wingInfo.state === 'balanced' ? (
-          <Text style={styles.cardBody}>
-            You show access to both wings ({wings.left} & {wings.right}). Balance comes from choosing consciously based on the situation, not defaulting to one pattern.
+  const renderSummaryTab = () => {
+    const snapshot = HIGH_SIGNAL_SNAPSHOT[core];
+    const reflectiveQuestion = REFLECTIVE_QUESTIONS[core];
+    
+    return (
+      <>
+        {/* DEBUG STAMP - visible with ?debug=1 */}
+        {renderDebugStamp()}
+        
+        {/* Hero Card */}
+        <View style={styles.heroCard}>
+          <View style={styles.heroBadge}>
+            <Text style={styles.heroBadgeText}>{core}</Text>
+          </View>
+          <Text style={styles.heroTitle}>{wingInfo.typeLabel}</Text>
+          <Text style={styles.heroSubtitle}>
+            {TYPE_NAMES[core]}
           </Text>
-        ) : (
-          <Text style={styles.cardBody}>
-            Your wing pattern is still emerging. Both adjacent types ({wings.left} & {wings.right}) are available to you, and clarity often develops through more reflection and experience.
-          </Text>
-        )}
-      </View>
-
-      {/* Top Alternatives Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Top Alternatives</Text>
-        <Text style={styles.cardSubtitle}>
-          Common mistypes included for self-verification
-        </Text>
-        {result.top_candidates.slice(0, 3).map((candidate, index) => (
-          <View key={candidate.type} style={styles.candidateRow}>
-            <Text style={styles.candidateRank}>{index + 1}</Text>
-            <Text style={styles.candidateType}>
-              Type {candidate.type} — {TYPE_NAMES[candidate.type]}
-            </Text>
-            <Text style={styles.candidatePercent}>
-              {Math.round(candidate.probability * 100)}%
+          {/* Confidence Badge with new system */}
+          <View style={[
+            styles.confidenceBadge,
+            wingInfo.confidenceBadge === 'High' && styles.confidenceHigh,
+            wingInfo.confidenceBadge === 'Exploratory' && styles.confidenceMedium,
+            wingInfo.confidenceBadge === 'Low' && styles.confidenceLow,
+          ]}>
+            <Text style={styles.confidenceText}>
+              {wingInfo.confidenceBadge}
             </Text>
           </View>
-        ))}
-      </View>
+          {/* Helper text for non-dominant wing states */}
+          {wingInfo.helperText && (
+            <Text style={styles.heroHelperText}>
+              {wingInfo.helperText}
+            </Text>
+          )}
+          <Text style={styles.heroDisclaimer}>
+            This lens reflects motivation, not mood.
+          </Text>
+        </View>
 
-      {/* CTA Row */}
-      <View style={styles.ctaRow}>
-        <TouchableOpacity
-          style={styles.ctaButtonPrimary}
-          onPress={() => router.push('/enneagram/results')}
-        >
-          <Text style={styles.ctaButtonPrimaryText}>View Full Results</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.ctaButtonSecondary}
-          onPress={() => setShowRetakeModal(true)}
-        >
-          <Text style={styles.ctaButtonSecondaryText}>Retake Assessment</Text>
-        </TouchableOpacity>
-      </View>
-    </>
-  );
+        {/* HIGH SIGNAL SNAPSHOT - Pattern Recognition Hooks */}
+        <View style={styles.signalSnapshotCard}>
+          <Text style={styles.signalSnapshotTitle}>Pattern Recognition</Text>
+          
+          <View style={styles.signalSnapshotRow}>
+            <View style={styles.signalSnapshotIcon}>
+              <Ionicons name="radio-button-on" size={10} color={Colors.accent} />
+            </View>
+            <View style={styles.signalSnapshotContent}>
+              <Text style={styles.signalSnapshotLabel}>When this pattern is active</Text>
+              <Text style={styles.signalSnapshotText}>{snapshot.whenActive}</Text>
+            </View>
+          </View>
+          
+          <View style={styles.signalSnapshotRow}>
+            <View style={styles.signalSnapshotIcon}>
+              <Ionicons name="flash" size={12} color={Colors.warning || '#f59e0b'} />
+            </View>
+            <View style={styles.signalSnapshotContent}>
+              <Text style={styles.signalSnapshotLabel}>Under pressure</Text>
+              <Text style={styles.signalSnapshotText}>{snapshot.underPressure}</Text>
+            </View>
+          </View>
+          
+          <View style={[styles.signalSnapshotRow, styles.signalSnapshotRowLast]}>
+            <View style={styles.signalSnapshotIcon}>
+              <Ionicons name="sunny" size={12} color={Colors.success || '#22c55e'} />
+            </View>
+            <View style={styles.signalSnapshotContent}>
+              <Text style={styles.signalSnapshotLabel}>When resourced</Text>
+              <Text style={styles.signalSnapshotText}>{snapshot.whenResourced}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Core Motivation Card (Tightened) */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Core Motivation</Text>
+          <Text style={styles.cardBody}>
+            {CORE_MOTIVATIONS[core]}
+          </Text>
+        </View>
+
+        {/* Wing Access Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Your Wing Access</Text>
+          {wingInfo.state === 'dominant' || wingInfo.state === 'leaning' ? (
+            <>
+              <Text style={styles.cardBody}>
+                Wings are access paths — capacities you can develop. The quieter wing often holds untapped potential.
+              </Text>
+              <View style={styles.wingRow}>
+                <View style={styles.wingItem}>
+                  <Text style={styles.wingLabel}>
+                    {wingInfo.state === 'dominant' ? 'Dominant' : 'Leaning'}
+                  </Text>
+                  <Text style={styles.wingValue}>Wing {wing}</Text>
+                </View>
+                <View style={styles.wingDivider} />
+                <View style={styles.wingItem}>
+                  <Text style={styles.wingLabel}>Growth access</Text>
+                  <Text style={styles.wingValue}>Wing {otherWing}</Text>
+                </View>
+              </View>
+            </>
+          ) : wingInfo.state === 'balanced' ? (
+            <Text style={styles.cardBody}>
+              You show access to both wings ({wings.left} & {wings.right}). Balance comes from choosing consciously based on the situation, not defaulting to one pattern.
+            </Text>
+          ) : (
+            <Text style={styles.cardBody}>
+              Your wing pattern is still emerging. Both adjacent types ({wings.left} & {wings.right}) are available to you, and clarity often develops through more reflection and experience.
+            </Text>
+          )}
+        </View>
+
+        {/* Top Alternatives Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Top Alternatives</Text>
+          <Text style={styles.cardSubtitle}>
+            Common mistypes included for self-verification
+          </Text>
+          {result.top_candidates.slice(0, 3).map((candidate, index) => (
+            <View key={candidate.type} style={styles.candidateRow}>
+              <Text style={styles.candidateRank}>{index + 1}</Text>
+              <Text style={styles.candidateType}>
+                Type {candidate.type} — {TYPE_NAMES[candidate.type]}
+              </Text>
+              <Text style={styles.candidatePercent}>
+                {Math.round(candidate.probability * 100)}%
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Reflective Question Card */}
+        <View style={styles.reflectionCard}>
+          <View style={styles.reflectionHeader}>
+            <Ionicons name="leaf-outline" size={18} color={Colors.accent} />
+            <Text style={styles.reflectionTitle}>A Question to Sit With</Text>
+          </View>
+          <Text style={styles.reflectionQuestion}>
+            "{reflectiveQuestion}"
+          </Text>
+          <TouchableOpacity
+            style={styles.reflectionJournalButton}
+            onPress={handleSaveReflectionToJournal}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="book-outline" size={16} color={Colors.accent} />
+            <Text style={styles.reflectionJournalText}>Save to Journal</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* CTA Row */}
+        <View style={styles.ctaRow}>
+          <TouchableOpacity
+            style={styles.ctaButtonPrimary}
+            onPress={() => router.push('/enneagram/results')}
+          >
+            <Text style={styles.ctaButtonPrimaryText}>View Full Results</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.ctaButtonSecondary}
+            onPress={() => setShowRetakeModal(true)}
+          >
+            <Text style={styles.ctaButtonSecondaryText}>Retake Assessment</Text>
+          </TouchableOpacity>
+        </View>
+      </>
+    );
+  };
 
   // ============================================
   // SNAPSHOT TAB (NEW - Parity with Astrology/HD)
