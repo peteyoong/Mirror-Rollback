@@ -2476,7 +2476,7 @@ const styles = StyleSheet.create({
   },
 
   // ============================================
-  // DEBUG ENV STAMP STYLES (Task A diagnostic)
+  // DEBUG DIAGNOSTIC STAMP STYLES
   // ============================================
   debugStamp: {
     backgroundColor: '#0a0a14',
@@ -2485,6 +2485,34 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 2,
     borderColor: '#00FF00',
+  },
+  debugStampHeader: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#00FF00',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  debugStampRow: {
+    flexDirection: 'row',
+    marginBottom: 3,
+  },
+  debugStampLabel: {
+    fontSize: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    color: '#888',
+    width: 120,
+  },
+  debugStampValue: {
+    fontSize: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    color: '#00FF00',
+    flex: 1,
+  },
+  debugStampDivider: {
+    height: 1,
+    backgroundColor: '#333',
+    marginVertical: 6,
   },
   debugStampTitle: {
     fontSize: 14,
