@@ -6,14 +6,22 @@ import { API_BASE_URL } from '../utils/apiBase';
 export { API_BASE_URL };
 
 // Track if URL is missing for UI display (non-blocking)
-export let API_URL_MISSING = false;
-export let API_URL_ERROR_MESSAGE = '';
+export const API_URL_MISSING = !API_BASE_URL || API_BASE_URL.trim().length === 0;
+export const API_URL_ERROR_MESSAGE = API_URL_MISSING 
+  ? 'EXPO_PUBLIC_API_BASE_URL not configured - API calls will fail' 
+  : '';
 
 // Debug log for troubleshooting
 console.log('[API] ══════════════════════════════════');
-console.log('[API] API_BASE_URL:', API_BASE_URL);
+console.log('[API] API_BASE_URL:', API_BASE_URL || '(NOT SET!)');
+console.log('[API] API_URL_MISSING:', API_URL_MISSING);
 console.log('[API] Platform:', Platform.OS);
 console.log('[API] ══════════════════════════════════');
+
+if (API_URL_MISSING) {
+  console.error('[API] ❌ CRITICAL: API_BASE_URL is not configured!');
+  console.error('[API] Set EXPO_PUBLIC_API_BASE_URL in .env or deployment environment');
+}
 
 // Create axios instance with /api prefix
 const api = axios.create({
