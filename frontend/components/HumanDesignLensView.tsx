@@ -556,6 +556,34 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
               {data.title || 'Human Design'}
             </Text>
 
+            {/* Sidereal Framework Qualifier (Overview tab only) */}
+            {activeTab === 'summary' && (
+              <View style={styles.siderealQualifier}>
+                <Text style={styles.siderealText}>
+                  Calculated using a True Sidereal astronomical framework.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowSiderealInfo(!showSiderealInfo)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons
+                    name={showSiderealInfo ? 'close-circle-outline' : 'information-circle-outline'}
+                    size={14}
+                    color={Colors.textTertiary}
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
+            
+            {/* Sidereal Info Tooltip */}
+            {activeTab === 'summary' && showSiderealInfo && (
+              <View style={styles.siderealTooltip}>
+                <Text style={styles.siderealTooltipText}>
+                  Most Human Design systems use Tropical zodiac positioning. Mirror uses a True Sidereal reference frame for planetary calculations before computing gates and activations.
+                </Text>
+              </View>
+            )}
+
             {/* TODAY TAB: Use standardized TodayPanel */}
             {activeTab === 'today' && mapSectionsToTodayPanel && (
               <TodayPanel
