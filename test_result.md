@@ -683,6 +683,56 @@ backend:
           CONCLUSION: Enneagram Knowledge Base and Enriched Computed Details implementation is fully functional. KB status endpoint provides proper debugging info, ask endpoint gracefully degrades when PDF unavailable, and results endpoints correctly compute and persist enriched details including center, hornevian groups, harmonic groups, stress/growth lines, and social style tags.
 
 frontend:
+  - task: "Enneagram Deep Dive Accordion Single-Expand Behavior"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/EnneagramLensView.tsx, /app/frontend/components/Accordion.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: |
+          ENNEAGRAM DEEP DIVE ACCORDION TESTING - SERVICE UNAVAILABLE ❌
+          
+          🚫 CRITICAL ISSUE: Unable to complete testing due to service unavailability
+          
+          **Service Status:**
+          - Frontend URL: https://ewluux-enyb9qkd6m6f.stage-preview.emergentagent.com
+          - Status: "Preview Unavailable!!!" - Service is down/inactive
+          - Wake-up attempts: Failed (clicked "Open Emergent" button, waited 30+ seconds)
+          - Backend logs show: Server running on http://0.0.0.0:8001 but not accessible via public URL
+          
+          **Code Analysis Completed:**
+          ✅ Reviewed EnneagramLensView.tsx implementation
+          ✅ Reviewed Accordion.tsx component
+          ✅ Confirmed single-expand behavior is implemented correctly in code:
+             - Uses `openSectionId` state to track which section is open
+             - `handleAccordionToggle` function ensures only one section open at a time
+             - Accordion component supports controlled mode with proper animations
+             - Default state: "Core Story" should be initially open (`openSectionId: 'core_story'`)
+          
+          **Expected Behavior (Based on Code Review):**
+          1. ✅ Core Story accordion initially open by default
+          2. ✅ Clicking Wing Story should open it AND close Core Story
+          3. ✅ Clicking Other Wing Access should open it AND close Wing Story  
+          4. ✅ Clicking currently open section should close it (no sections open)
+          5. ✅ Only ONE accordion section can be open at a time
+          6. ✅ Chevron icons rotate (down when closed, up when open)
+          7. ✅ Smooth LayoutAnimation transitions
+          8. ✅ Title color changes to accent when expanded
+          
+          **Implementation Quality:**
+          - Single-expand logic correctly implemented via controlled accordion pattern
+          - Proper state management with `setOpenSectionId(prev => prev === sectionId ? null : sectionId)`
+          - Accessibility support with aria-expanded states
+          - Mobile-optimized touch targets and animations
+          
+          **RECOMMENDATION:** 
+          Service needs to be restarted/fixed before UI testing can be completed. 
+          Code implementation appears correct based on static analysis.
+
   - task: "Daily Flow & Reflection UI"
     implemented: true
     working: true
