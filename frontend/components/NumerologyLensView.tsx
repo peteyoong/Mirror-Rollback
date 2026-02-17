@@ -870,13 +870,24 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
               {data.title || 'Numerology'}
             </Text>
 
-            {/* Date for Today tab */}
-            {activeTab === 'today' && data.date && (
-              <Text style={styles.dateLabel}>{data.date}</Text>
+            {/* TODAY TAB: Use standardized TodayPanel */}
+            {activeTab === 'today' && mapSectionsToTodayPanel && (
+              <TodayPanel
+                date={data.date}
+                toneBullets={mapSectionsToTodayPanel.toneBullets}
+                toneSecondary={mapSectionsToTodayPanel.toneSecondary}
+                experimentText={mapSectionsToTodayPanel.experimentText}
+                reflectQuestion={mapSectionsToTodayPanel.reflectQuestion}
+                cyclesHeader={renderCyclesHeader()}
+                onSaveToJournal={() => {
+                  const prefill = buildJournalPrefill(data.mirror_prompt || '', LENS_CONTINUATIONS.numerology);
+                  goToJournalWithPrefill(router, prefill, 'numerology');
+                }}
+              />
             )}
 
-            {/* Cycles Card (Today only) */}
-            {renderCycles()}
+            {/* Cycles Card (Today only - OLD, now using TodayPanel cyclesHeader) */}
+            {/* {renderCycles()} - Replaced by TodayPanel cyclesHeader */}
 
             {/* Core Numbers Card (Deep Dive only) */}
             {activeTab === 'deep_dive' && renderCoreNumbers()}
@@ -898,14 +909,14 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
               </TouchableOpacity>
             )}
 
-            {/* Sections */}
-            {data.sections.map((section, index) => renderSection(section, index))}
+            {/* Sections (Overview and Deep Dive only) */}
+            {activeTab !== 'today' && data.sections.map((section, index) => renderSection(section, index))}
 
-            {/* Mirror Prompt */}
-            {data.mirror_prompt && (
+            {/* Mirror Prompt (Overview and Deep Dive only) */}
+            {activeTab !== 'today' && data.mirror_prompt && (
               <View style={styles.mirrorPromptCard}>
                 <Text style={styles.mirrorPromptLabel}>
-                  {activeTab === 'today' ? 'REFLECT' : activeTab === 'deep_dive' ? 'MIRROR MOMENT' : 'REFLECT'}
+                  {activeTab === 'deep_dive' ? 'MIRROR MOMENT' : 'REFLECT'}
                 </Text>
                 <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
                 <TouchableOpacity
