@@ -22,7 +22,7 @@
       },
       "env": {
         "EXPO_PUBLIC_ENV": "staging",
-        "EXPO_PUBLIC_API_BASE_URL": "https://mirror-staging.emergentagent.com",
+        "EXPO_PUBLIC_API_BASE_URL": "https://api-staging.mirror.emergentagent.com",
         "EXPO_PUBLIC_BUILD_VERSION": "staging-v1.0.0",
         "EXPO_PUBLIC_DEBUG_MIRROR": "true"
       }
@@ -37,7 +37,7 @@
       },
       "env": {
         "EXPO_PUBLIC_ENV": "prod",
-        "EXPO_PUBLIC_API_BASE_URL": "https://mirror.emergentagent.com",
+        "EXPO_PUBLIC_API_BASE_URL": "https://api.mirror.emergentagent.com",
         "EXPO_PUBLIC_BUILD_VERSION": "prod-v1.0.0",
         "EXPO_PUBLIC_DEBUG_MIRROR": "false"
       }
