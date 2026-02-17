@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,7 @@ import {
   getDebugUserIdInfo 
 } from '../utils/stableUserId';
 import { buildJournalPrefill, goToJournalWithPrefill, LENS_CONTINUATIONS } from '../utils/journalPrefill';
+import TodayPanel from './TodayPanel';
 
 interface NumerologySection {
   id: string;      // Stable identifier (e.g., "life_path", "expression", "soul_urge")
