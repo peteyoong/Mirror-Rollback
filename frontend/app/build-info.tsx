@@ -38,7 +38,16 @@ interface BackendHealth {
   db_type: string;
   timestamp_utc: string;
   expected_frontend_env: string;
+  api_origin?: string;
 }
+
+// Get window origin for web platform
+const getWindowOrigin = (): string => {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return 'native-app';
+};
 
 export default function BuildInfoScreen() {
   const router = useRouter();
@@ -46,6 +55,7 @@ export default function BuildInfoScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshCount, setRefreshCount] = useState(0);
+  const windowOrigin = getWindowOrigin();
 
   const fetchBackendHealth = async () => {
     setLoading(true);
@@ -68,8 +78,15 @@ export default function BuildInfoScreen() {
     fetchBackendHealth();
   }, [refreshCount]);
 
-  // Check for environment mismatch
+  // Check for environment mismatch (RED warning)
   const hasEnvMismatch = backendHealth && backendHealth.expected_frontend_env !== ENV;
+  
+  // Check for origin mismatch (YELLOW warning) - only on web
+  const hasOriginMismatch = Platform.OS === 'web' && 
+    backendHealth?.api_origin && 
+    windowOrigin !== 'native-app' &&
+    !backendHealth.api_origin.includes(windowOrigin) &&
+    !windowOrigin.includes('localhost');
 
   return (
     <SafeAreaView style={styles.container}>
