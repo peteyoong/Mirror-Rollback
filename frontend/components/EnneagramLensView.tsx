@@ -1649,7 +1649,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         
         {/* Snapshot Grid */}
         <View style={styles.snapshotCard}>
-          <Text style={styles.snapshotCardTitle}>Enneagram Snapshot</Text>
+          <Text style={styles.snapshotCardTitle}>At a Glance</Text>
           {snapshotData.map((item, index) => (
             <View key={index} style={[
               styles.snapshotRow,
