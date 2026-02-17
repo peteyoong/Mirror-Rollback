@@ -348,39 +348,57 @@ export default function MirrorScreen() {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ['Cancel', 'Sign out', 'Start fresh (clear all data)'],
-          destructiveButtonIndex: 2,
+          options: ['Cancel', 'Build Info', 'Sign out', 'Start fresh (clear all data)'],
+          destructiveButtonIndex: 3,
           cancelButtonIndex: 0,
           title: user?.name || 'Account',
+          message: `${BUILD_ENV} • ${BUILD_VERSION}`,
         },
         async (buttonIndex) => {
           if (buttonIndex === 1) {
+            // Build Info
+            router.push('/build-info');
+          } else if (buttonIndex === 2) {
             // Sign out - keeps data but navigates to welcome
             await clearUser();
             router.replace('/welcome');
-          } else if (buttonIndex === 2) {
+          } else if (buttonIndex === 3) {
             // Start fresh - clears ALL local data
             await resetLocalSession(true);
           }
         }
       );
     } else if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      // Web: Use window.confirm for better visibility
-      const choice = window.confirm(
-        `${user?.name || 'Account'}\n\nClick OK to Sign out, or Cancel to stay.\n\nTo clear all local data, add ?reset=1 to the URL.`
+      // Web: Use Alert-style popup with Build Info option
+      Alert.alert(
+        user?.name || 'Account',
+        `${BUILD_ENV} • ${BUILD_VERSION}`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Build Info', 
+            onPress: () => router.push('/build-info')
+          },
+          { 
+            text: 'Sign out', 
+            onPress: async () => {
+              await clearUser();
+              router.replace('/welcome');
+            }
+          },
+        ]
       );
-      if (choice) {
-        clearUser().then(() => {
-          router.replace('/welcome');
-        });
-      }
     } else {
       // Android fallback using Alert
       Alert.alert(
         user?.name || 'Account',
-        'What would you like to do?',
+        `${BUILD_ENV} • ${BUILD_VERSION}`,
         [
           { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Build Info', 
+            onPress: () => router.push('/build-info')
+          },
           { 
             text: 'Sign out', 
             onPress: async () => {
