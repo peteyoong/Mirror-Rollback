@@ -415,6 +415,9 @@ const styles = StyleSheet.create({
   checklistTextFailed: {
     color: '#FF6B6B',
   },
+  checklistTextWarning: {
+    color: '#F5A623',
+  },
   jsonCard: {
     backgroundColor: '#0a0a14',
     borderRadius: 12,
