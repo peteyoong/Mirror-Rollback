@@ -1171,6 +1171,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // ============================================
   // CHAT BOX COMPONENT
   // Proper flex-based containment with scroll-to-bottom
+  // Fixed: keyboardShouldPersistTaps, zIndex, explicit focus
   // ============================================
   
   const renderChatBox = () => {
@@ -1183,13 +1184,8 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {/* Collapsible Header */}
         <TouchableOpacity 
           style={styles.chatHeader}
-          onPress={() => {
-            setChatExpanded(!chatExpanded);
-            // Scroll to bottom when expanding if there are messages
-            if (!chatExpanded && chatMessages.length > 0) {
-              scrollChatToBottom(false);
-            }
-          }}
+          onPress={handleChatExpand}
+          activeOpacity={0.7}
         >
           <View style={styles.chatHeaderLeft}>
             <Ionicons 
@@ -1210,7 +1206,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {chatExpanded && (
           <View style={[styles.chatBody, { height: CHAT_EXPANDED_HEIGHT }]}>
             {/* Messages Container - Takes remaining space */}
-            <View style={styles.chatMessagesContainer}>
+            <View style={styles.chatMessagesContainer} pointerEvents="box-none">
               <ScrollView 
                 ref={chatScrollRef}
                 style={styles.chatMessagesScrollFlex}
@@ -1221,6 +1217,8 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 showsVerticalScrollIndicator={true}
                 onScroll={handleChatScroll}
                 scrollEventThrottle={16}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="interactive"
                 onContentSizeChange={() => {
                   // Auto-scroll to bottom when content changes (unless user scrolled up)
                   if (!isScrolledUp) {
@@ -1276,13 +1274,19 @@ export default function EnneagramLensView({ result, userId }: Props) {
               )}
             </View>
             
-            {/* Composer - Pinned at Bottom */}
+            {/* Composer - Pinned at Bottom with high zIndex */}
             <View 
               style={styles.chatComposerContainer}
               onLayout={(e) => setComposerHeight(e.nativeEvent.layout.height)}
             >
-              <View style={styles.chatInputContainer}>
+              {/* Pressable wrapper to focus input when tapping anywhere in composer area */}
+              <TouchableOpacity 
+                style={styles.chatInputContainer}
+                activeOpacity={1}
+                onPress={() => chatInputRef.current?.focus()}
+              >
                 <TextInput
+                  ref={chatInputRef}
                   style={styles.chatInput}
                   value={chatInput}
                   onChangeText={setChatInput}
@@ -1291,6 +1295,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
                   multiline
                   maxLength={500}
                   editable={!chatLoading}
+                  returnKeyType="default"
+                  blurOnSubmit={false}
+                  autoCapitalize="sentences"
+                  autoCorrect={true}
                 />
                 <TouchableOpacity 
                   style={[
@@ -1306,7 +1314,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
                     color={(!chatInput.trim() || chatLoading) ? Colors.textTertiary : Colors.background} 
                   />
                 </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         )}
