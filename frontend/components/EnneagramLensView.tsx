@@ -1708,25 +1708,53 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // TODAY TAB
   // ============================================
 
-  const renderTodayTab = () => {
-    // Generate practice based on energy state
-    const getPractice = (): string => {
-      if (!energyState || energyState === 'low') {
-        return 'Ground yourself: feet on floor, three deep breaths. Then choose one small task you can complete in 10 minutes. Do only that.';
-      } else if (energyState === 'neutral') {
-        return 'Name one honest feeling without justifying it. Then pick your single most important priority for the next 2 hours. Focus only on that.';
-      } else {
-        return 'Use this energy for one courageous action: a difficult conversation, a focused sprint on deep work, or a decision you\'ve been avoiding.';
-      }
-    };
+  // Map Enneagram Today data to TodayPanel props
+  const mapEnneagramToTodayPanel = useMemo(() => {
+    if (!core || activeTab !== 'today') return null;
     
-    // Get today's micro-lesson
+    // Get today's micro-lesson for Tone
     const lessonIndex = getTodaysMicroLessonIndex(core);
     const todaysLesson = MICRO_LESSONS[core]?.[lessonIndex] || MICRO_LESSONS[1][0];
+    // Remove markdown bold markers for cleaner display
+    const cleanLesson = todaysLesson.replace(/\*\*/g, '');
+    
+    // Get stress and growth patterns for What to Notice
+    const stressPattern = STRESS_PATTERNS[core];
+    const growthPattern = GROWTH_PATTERNS[core];
+    
+    // Build notice bullets
+    const noticeBullets = [
+      `Watch for: ${stressPattern}`,
+      `Access: ${growthPattern}`,
+    ];
+    
+    // Get energy-based practice for Small Experiment
+    let experimentText = '';
+    if (!energyState || energyState === 'low') {
+      experimentText = 'Ground yourself: feet on floor, three deep breaths. Then choose one small task you can complete in 10 minutes. Do only that.';
+    } else if (energyState === 'neutral') {
+      experimentText = 'Name one honest feeling without justifying it. Then pick your single most important priority for the next 2 hours. Focus only on that.';
+    } else {
+      experimentText = 'Use this energy for one courageous action: a difficult conversation, a focused sprint on deep work, or a decision you\'ve been avoiding.';
+    }
+    
+    // Journal prompt for Reflect
+    const reflectQuestion = JOURNAL_PROMPTS[core];
+    
+    return {
+      toneText: cleanLesson,
+      noticeBullets,
+      experimentText,
+      reflectQuestion,
+    };
+  }, [core, activeTab, energyState]);
 
+  const renderTodayTab = () => {
+    const todayData = mapEnneagramToTodayPanel;
+    
     return (
       <>
-        {/* Today Check-in Card */}
+        {/* Energy Check-in Card - Interactive element stays separate */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Today Check-in</Text>
           <Text style={styles.cardBody}>What&apos;s your energy right now?</Text>
@@ -1756,86 +1784,21 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </View>
         </View>
         
-        {/* Daily Micro-Lesson Card */}
-        <View style={styles.microLessonCard}>
-          <View style={styles.microLessonHeader}>
-            <View>
-              <Text style={styles.microLessonTitle}>Daily Micro-Lesson</Text>
-              <Text style={styles.microLessonSubtitle}>Type {core} practice</Text>
-            </View>
-            <Ionicons name="bulb-outline" size={22} color={Colors.text} />
-          </View>
-          <Text style={styles.microLessonBody}>
-            {renderBoldText(todaysLesson, styles.microLessonBodyText, styles.microLessonBoldText)}
-          </Text>
-          <View style={styles.microLessonFooter}>
-            <View style={styles.microLessonRotates}>
-              <Ionicons name="refresh-outline" size={12} color={Colors.textTertiary} />
-              <Text style={styles.microLessonRotatesText}>Rotates daily</Text>
-            </View>
-            <TouchableOpacity 
-              style={styles.microLessonAskButton}
-              onPress={() => {
-                setChatExpanded(true);
-                setActiveCardContext('practice');
-              }}
-            >
-              <Text style={styles.microLessonAskText}>Ask about this</Text>
-              <Ionicons name="chatbubble-outline" size={12} color={Colors.text} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Stress Pattern Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="warning-outline" size={18} color={Colors.textSecondary} />
-            <Text style={styles.cardTitle}>Watch For (Stress)</Text>
-          </View>
-          <Text style={styles.cardBody}>
-            {STRESS_PATTERNS[core]}
-          </Text>
-        </View>
-
-        {/* Growth Pattern Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="trending-up-outline" size={18} color={Colors.textSecondary} />
-            <Text style={styles.cardTitle}>Access (Growth)</Text>
-          </View>
-          <Text style={styles.cardBody}>
-            {GROWTH_PATTERNS[core]}
-          </Text>
-        </View>
-
-        {/* 2-Minute Practice Card */}
-        <View style={styles.practiceCard}>
-          <Text style={styles.practiceLabel}>2-MINUTE PRACTICE</Text>
-          <Text style={styles.practiceBody}>
-            {getPractice()}
-          </Text>
-        </View>
-
-        {/* Journal Prompt Card */}
-        <View style={styles.promptCard}>
-          <Text style={styles.promptLabel}>JOURNAL PROMPT</Text>
-          <Text style={styles.promptBody}>
-            {JOURNAL_PROMPTS[core]}
-          </Text>
-          <TouchableOpacity
-            style={styles.journalCTA}
-            onPress={() => {
-              // Use shared helper for navigation
+        {/* TodayPanel - Standardized layout matching other lenses */}
+        {todayData && (
+          <TodayPanel
+            toneText={todayData.toneText}
+            noticeBullets={todayData.noticeBullets}
+            experimentText={todayData.experimentText}
+            reflectQuestion={todayData.reflectQuestion}
+            onSaveToJournal={() => {
               const prefill = buildJournalPrefill(JOURNAL_PROMPTS[core]);
               goToJournalWithPrefill(router, prefill, 'enneagram');
             }}
-          >
-            <Ionicons name="create-outline" size={16} color={Colors.accent} />
-            <Text style={styles.journalCTAText}>Write in Journal</Text>
-          </TouchableOpacity>
-        </View>
+          />
+        )}
         
-        {/* Chat Box */}
+        {/* Chat Box - Below TodayPanel */}
         {renderChatBox()}
       </>
     );
