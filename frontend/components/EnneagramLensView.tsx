@@ -2409,6 +2409,112 @@ const styles = StyleSheet.create({
     color: '#FFB800',
   },
 
+  // ============================================
+  // HIGH SIGNAL SNAPSHOT STYLES
+  // ============================================
+  signalSnapshotCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.accent + '30', // 20% opacity accent border
+  },
+  signalSnapshotTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 14,
+    letterSpacing: 0.3,
+  },
+  signalSnapshotRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingBottom: 14,
+    marginBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+  },
+  signalSnapshotRowLast: {
+    borderBottomWidth: 0,
+    marginBottom: 0,
+    paddingBottom: 0,
+  },
+  signalSnapshotIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    marginTop: 2,
+  },
+  signalSnapshotContent: {
+    flex: 1,
+  },
+  signalSnapshotLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  signalSnapshotText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.text,
+  },
+
+  // ============================================
+  // REFLECTIVE QUESTION CARD STYLES
+  // ============================================
+  reflectionCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.accent,
+  },
+  reflectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  reflectionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    letterSpacing: 0.3,
+  },
+  reflectionQuestion: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: Colors.text,
+    fontStyle: 'italic',
+    marginBottom: 16,
+  },
+  reflectionJournalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    backgroundColor: Colors.accent + '15', // 10% opacity
+    borderRadius: 8,
+    gap: 8,
+  },
+  reflectionJournalText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.accent,
+  },
+
   // Tabs
   tabContainer: {
     flexDirection: 'row',
