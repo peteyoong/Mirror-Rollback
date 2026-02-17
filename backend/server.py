@@ -134,7 +134,7 @@ BUILD_LABEL = os.environ.get("BUILD_LABEL", "dev-local")
 BUILD_ENV = os.environ.get("ENV", os.environ.get("APP_ENV", os.environ.get("NODE_ENV", "dev")))
 
 @app.get("/api/health")
-async def api_health():
+async def api_health(request: Request):
     """
     Build verification endpoint with full provenance.
     Returns current build info for debugging environment mismatches.
@@ -170,6 +170,17 @@ async def api_health():
     else:
         db_type = "remote"
     
+    # Determine API origin from request or env
+    # Priority: API_ORIGIN env var > X-Forwarded-Host header > request.base_url
+    api_origin = os.environ.get("API_ORIGIN")
+    if not api_origin:
+        forwarded_host = request.headers.get("x-forwarded-host")
+        forwarded_proto = request.headers.get("x-forwarded-proto", "https")
+        if forwarded_host:
+            api_origin = f"{forwarded_proto}://{forwarded_host}"
+        else:
+            api_origin = str(request.base_url).rstrip("/")
+    
     return {
         # Environment
         "env": BUILD_ENV,
@@ -189,6 +200,7 @@ async def api_health():
         
         # For frontend verification
         "expected_frontend_env": BUILD_ENV,
+        "api_origin": api_origin,
     }
 
 
