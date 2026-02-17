@@ -3436,6 +3436,17 @@ async def create_user(profile: UserProfileCreate):
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"Invalid timezone: {str(e)}")
         
+        # Validate and normalize email if provided
+        email = None
+        if profile.email:
+            email = profile.email.strip().lower()
+            if '@' not in email or len(email) < 5:
+                raise HTTPException(status_code=400, detail="Please enter a valid email address")
+            # Check if email already exists
+            existing_user = await db.users.find_one({"email": email})
+            if existing_user:
+                raise HTTPException(status_code=400, detail="This email is already registered. Try signing in instead.")
+        
         # Use provided lat/long if available, otherwise geocode
         if profile.latitude is not None and profile.longitude is not None:
             # Use provided coordinates (from fallback city database)
@@ -3457,6 +3468,7 @@ async def create_user(profile: UserProfileCreate):
         
         user_data = {
             "name": profile.name,
+            "email": email,  # Added email field
             "birth_date": birth_date,
             "birth_time": profile.birth_time,
             "birth_location": location_data,
@@ -3470,6 +3482,7 @@ async def create_user(profile: UserProfileCreate):
         return UserProfileResponse(
             id=str(result.inserted_id),
             name=profile.name,
+            email=email,  # Return email in response
             birth_date=profile.birth_date,
             birth_time=profile.birth_time,
             birth_location=Location(**location_data),
