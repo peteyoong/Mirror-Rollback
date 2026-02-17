@@ -426,9 +426,19 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
               {data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : 'Astrology')}
             </Text>
 
-            {/* Date for Today tab */}
-            {activeTab === 'today' && data.date && (
-              <Text style={styles.dateLabel}>{data.date}</Text>
+            {/* TODAY TAB: Use standardized TodayPanel */}
+            {activeTab === 'today' && mapSectionsToTodayPanel && (
+              <TodayPanel
+                date={data.date}
+                toneText={mapSectionsToTodayPanel.toneText}
+                noticeText={mapSectionsToTodayPanel.noticeText}
+                noticeBullets={mapSectionsToTodayPanel.noticeBullets}
+                reflectQuestion={mapSectionsToTodayPanel.reflectQuestion}
+                onSaveToJournal={() => {
+                  const prefill = buildJournalPrefill(data.mirror_prompt || '', LENS_CONTINUATIONS.astrology);
+                  goToJournalWithPrefill(router, prefill, 'astrology');
+                }}
+              />
             )}
 
             {/* Core Placements Card (Deep Dive only) - always show even if success=false */}
@@ -437,8 +447,8 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
             {/* ERROR CARD: Show when Deep Dive computation failed */}
             {activeTab === 'deep_dive' && data.success === false && renderComputeErrorCard()}
 
-            {/* Only show content sections if success !== false */}
-            {data.success !== false && (
+            {/* Only show content sections if success !== false AND not Today tab */}
+            {data.success !== false && activeTab !== 'today' && (
               <>
                 {/* Expand Button (Deep Dive only) */}
                 {activeTab === 'deep_dive' && (
@@ -457,10 +467,10 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
                   </TouchableOpacity>
                 )}
 
-                {/* Sections */}
+                {/* Sections (Overview and Deep Dive only) */}
                 {data.sections?.map((section, index) => renderSection(section, index))}
 
-                {/* Mirror Prompt */}
+                {/* Mirror Prompt (Overview and Deep Dive only) */}
                 {data.mirror_prompt && (
                   <View style={styles.mirrorPromptCard}>
                     <Text style={styles.mirrorPromptLabel}>REFLECT</Text>
