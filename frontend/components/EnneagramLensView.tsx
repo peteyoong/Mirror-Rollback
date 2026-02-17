@@ -258,16 +258,87 @@ const getGrowthDescription = (coreType: number, growthTo: number | string | unde
   return GROWTH_DESCRIPTIONS[coreType][growthNum] || "expanded capacity and resourcefulness.";
 };
 
+// ============================================
+// CORE MOTIVATIONS (Tightened, sharper language)
+// ============================================
 const CORE_MOTIVATIONS: { [key: number]: string } = {
-  1: 'Driven by integrity and high standards — a desire to improve and do what is right.',
-  2: 'Driven by connection through helping — a need to be needed and valued for giving.',
-  3: 'Driven by value through achievement — a need to succeed and be seen as capable.',
-  4: 'Driven by identity and meaning — a search for depth, authenticity, and significance.',
-  5: 'Driven by competence and understanding — a need for knowledge, clarity, and inner resources.',
-  6: 'Driven by security and trust — a need for certainty, support, and reliable foundations.',
-  7: 'Driven by freedom and possibility — a need to stay stimulated, open, and unconfined.',
-  8: 'Driven by autonomy and control — a need to be strong, independent, and uncontrolled.',
-  9: 'Driven by peace and harmony — a desire for stability, comfort, and inner calm.',
+  1: 'A drive to be right, ethical, and above reproach. The motivation isn't perfectionism for its own sake—it's a deep need to live with integrity and improve what's broken.',
+  2: 'A drive to be indispensable through giving. The motivation isn't just kindness—it's a need to secure love and belonging by being the one who helps.',
+  3: 'A drive to be valuable through accomplishment. The motivation isn't vanity—it's a need to prove worth through visible success and external validation.',
+  4: 'A drive to be authentic and significant. The motivation isn't drama—it's a search for meaning, depth, and an identity that can't be dismissed as ordinary.',
+  5: 'A drive to be capable and self-sufficient. The motivation isn't coldness—it's a need for mastery, clarity, and enough inner resources to face the world.',
+  6: 'A drive to be secure and supported. The motivation isn't anxiety—it's a need for reliable ground, trustworthy guidance, and worst-case readiness.',
+  7: 'A drive to stay free and stimulated. The motivation isn't avoidance—it's a need to keep options open, pain at bay, and possibility alive.',
+  8: 'A drive to be strong and self-determined. The motivation isn't aggression—it's a need to protect autonomy and never be controlled or betrayed.',
+  9: 'A drive to maintain peace and connection. The motivation isn't passivity—it's a need to preserve harmony and avoid the disruption of conflict.',
+};
+
+// ============================================
+// HIGH SIGNAL SNAPSHOT - Pattern Recognition Hooks
+// Short, concrete, pattern-based (no identity claims)
+// ============================================
+const HIGH_SIGNAL_SNAPSHOT: { [key: number]: { whenActive: string; underPressure: string; whenResourced: string } } = {
+  1: {
+    whenActive: 'A running inner commentary on how things could be better—noticing errors, inefficiencies, or "wrong" behavior before anything else.',
+    underPressure: 'Resentment, rigidity, and a sense that "no one else cares about doing it right."',
+    whenResourced: 'Principled action without self-righteousness. Able to let imperfection exist.',
+  },
+  2: {
+    whenActive: 'Automatic scanning for what others need—often knowing before they ask, and moving to help without being invited.',
+    underPressure: 'Martyrdom, indirect manipulation, or a feeling of "after everything I've done."',
+    whenResourced: 'Genuine generosity without strings. Able to receive care without deflecting.',
+  },
+  3: {
+    whenActive: 'A mental scoreboard tracking progress, image, and how you're being perceived in the room.',
+    underPressure: 'Shape-shifting to fit expectations, or numbing out when achievement feels impossible.',
+    whenResourced: 'Authentic presence without performance. Success aligned with actual values.',
+  },
+  4: {
+    whenActive: 'A pull toward what's missing, what's deeper, or what others aren't seeing. Ordinary feels insufficient.',
+    underPressure: 'Emotional flooding, envy of others' ease, or withdrawal into melancholy.',
+    whenResourced: 'Creative flow and emotional honesty without drama. Able to appreciate the ordinary.',
+  },
+  5: {
+    whenActive: 'A need to observe before engaging, gather information, and conserve energy for what matters.',
+    underPressure: 'Detachment, hoarding time/knowledge, or retreating when demands feel overwhelming.',
+    whenResourced: 'Generous sharing of insight and engaged presence without depletion fears.',
+  },
+  6: {
+    whenActive: 'A background radar scanning for threats, inconsistencies, or what could go wrong.',
+    underPressure: 'Doubt spirals, authority-testing, or oscillating between defiance and compliance.',
+    whenResourced: 'Grounded courage and trust in your own authority. Prepared but not paranoid.',
+  },
+  7: {
+    whenActive: 'A pull toward the next interesting thing—planning, imagining, or reframing negatives into positives.',
+    underPressure: 'Scattered attention, escapism, or a frantic need to avoid being trapped in discomfort.',
+    whenResourced: 'Joyful presence without needing stimulation. Able to stay with difficulty.',
+  },
+  8: {
+    whenActive: 'An instinct to take charge, protect, and cut through indecision or weakness.',
+    underPressure: 'Excessive force, intimidation, or a need to dominate when feeling vulnerable.',
+    whenResourced: 'Protective strength without aggression. Able to show vulnerability without losing power.',
+  },
+  9: {
+    whenActive: 'A pull toward harmony, seeing all sides, and avoiding positions that might create conflict.',
+    underPressure: 'Numbing out, stubborn passivity, or agreeing outwardly while disengaging inwardly.',
+    whenResourced: 'Engaged presence with clear priorities. Able to assert without losing connection.',
+  },
+};
+
+// ============================================
+// REFLECTIVE QUESTIONS (Gentle, non-judgmental)
+// For Summary tab ending - invite self-reflection
+// ============================================
+const REFLECTIVE_QUESTIONS: { [key: number]: string } = {
+  1: 'Where did you hold to a standard today that was more about being right than being effective?',
+  2: 'What did you need today that you gave away to someone else instead?',
+  3: 'Where did you adjust who you were to match what you thought others wanted?',
+  4: 'What ordinary moment today could have been enough—if you'd let it?',
+  5: 'Where did you hold back from engaging because it might cost too much energy?',
+  6: 'What decision today did you delay because you weren't sure you could trust your own judgment?',
+  7: 'Where did you choose "what's next?" over "what's here?" recently?',
+  8: 'Where did you take control today when letting go might have been stronger?',
+  9: 'What did you actually want today that you didn't say out loud?',
 };
 
 // Wing numbers for each core type
