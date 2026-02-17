@@ -1473,27 +1473,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
     }
   }, [showDebugStamp, debugStampData.result_id]);
 
-  // Reusable Debug Stamp Component
-  const renderDebugStamp = () => {
-    if (!showDebugStamp) return null;
-    return (
-      <View style={styles.debugStamp}>
-        <Text style={styles.debugStampTitle}>🔧 PROVENANCE DEBUG</Text>
-        <Text style={styles.debugStampSection}>Client:</Text>
-        <Text style={styles.debugStampText}>BUILD: {debugStampData.build_version} ({debugStampData.build_id})</Text>
-        <Text style={styles.debugStampText}>Platform: {debugStampData.platform} | API: {debugStampData.api_base_url}</Text>
-        <Text style={styles.debugStampSection}>Server Response:</Text>
-        <Text style={styles.debugStampText}>user_id: {debugStampData.user_id}</Text>
-        <Text style={styles.debugStampText}>result_id: {debugStampData.result_id}</Text>
-        <Text style={styles.debugStampText}>depth: {debugStampData.assessment_depth} | version: {debugStampData.assessment_version}</Text>
-        <Text style={styles.debugStampText}>updated_at: {debugStampData.updated_at}</Text>
-        <Text style={styles.debugStampSection}>Enneagram:</Text>
-        <Text style={styles.debugStampText}>core: {debugStampData.core_type} | wing: {debugStampData.wing_raw} | tier: {debugStampData.confidence_tier}</Text>
-        <Text style={styles.debugStampText}>wing_L: {debugStampData.wing_left_score} | wing_R: {debugStampData.wing_right_score}</Text>
-      </View>
-    );
-  };
-
   // Handler for saving reflective question to journal
   const handleSaveReflectionToJournal = useCallback(() => {
     const question = REFLECTIVE_QUESTIONS[core];
