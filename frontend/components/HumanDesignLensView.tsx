@@ -267,7 +267,7 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
         onPress={() => setActiveTab('today')}
       >
         <Text style={[styles.tabText, activeTab === 'today' && styles.activeTabText]}>
-          At a Glance
+          Today
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
