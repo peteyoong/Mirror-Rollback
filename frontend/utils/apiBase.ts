@@ -12,7 +12,7 @@
  */
 
 // Default fallback for development - DO NOT rely on this in production
-const DEV_FALLBACK_URL = 'https://cachebusting-fix.preview.emergentagent.com';
+const DEV_FALLBACK_URL = 'https://api-unifier-1.preview.emergentagent.com';
 
 // Get the configured API base URL
 const configuredUrl = process.env.EXPO_PUBLIC_API_BASE_URL;

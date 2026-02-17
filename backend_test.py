@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Test Configuration
-BASE_URL = "https://cachebusting-fix.preview.emergentagent.com/api"
+BASE_URL = "https://api-unifier-1.preview.emergentagent.com/api"
 TEST_EMAIL = "pete@pulsifi.me"  # Email from review request
 TEST_USER_ID = None  # Will be obtained from login
 FALLBACK_USER_ID = "69819f1a1e4549392d7cb6d1"  # Fallback user from test_result.md
