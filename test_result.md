@@ -1257,6 +1257,44 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: |
+      ENNEAGRAM DEEP DIVE ACCORDION TESTING - SERVICE UNAVAILABLE ❌
+      
+      **CRITICAL ISSUE:** Unable to complete UI testing due to service unavailability.
+      
+      **Service Status:**
+      - Frontend URL: https://ewluux-enyb9qkd6m6f.stage-preview.emergentagent.com shows "Preview Unavailable!!!"
+      - Backend logs show server running on http://0.0.0.0:8001 but not accessible via public URL
+      - Wake-up attempts failed (tried clicking "Open Emergent" button, waited 30+ seconds)
+      
+      **Code Analysis Completed ✅:**
+      I performed a thorough static code analysis of the accordion implementation:
+      
+      **EnneagramLensView.tsx (Lines 774-781):**
+      - Uses `openSectionId` state with initial value 'core_story' 
+      - `handleAccordionToggle` function: `setOpenSectionId(prev => prev === sectionId ? null : sectionId)`
+      - This ensures single-expand behavior: only one section open at a time
+      
+      **Accordion.tsx:**
+      - Supports controlled mode with `expanded` and `onToggle` props
+      - Proper animations with LayoutAnimation
+      - Accessibility support with aria-expanded states
+      - Chevron rotation and title color changes when expanded
+      
+      **Expected Behavior (Based on Code Review):**
+      1. ✅ Core Story initially open by default
+      2. ✅ Clicking Wing Story opens it AND closes Core Story  
+      3. ✅ Clicking Other Wing Access opens it AND closes Wing Story
+      4. ✅ Clicking currently open section closes it (no sections open)
+      5. ✅ Only ONE accordion section can be open at a time
+      6. ✅ Smooth animations and proper visual feedback
+      
+      **CONCLUSION:** 
+      The single-expand accordion behavior is correctly implemented in the code. The issue is service availability, not the implementation.
+      
+      **RECOMMENDATION:**
+      Service needs to be restarted before UI testing can be completed. The accordion implementation appears to meet all requirements based on static analysis.
+  - agent: "testing"
+    message: |
       NUMEROLOGY FULL NAME PERSISTENCE END-TO-END TESTING COMPLETE ✅
       
       Successfully tested the Numerology full name persistence feature as requested in the review:
