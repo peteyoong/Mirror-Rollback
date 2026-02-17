@@ -1202,6 +1202,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // CHAT BOX COMPONENT
   // Proper flex-based containment with scroll-to-bottom
   // Fixed: keyboardShouldPersistTaps, zIndex, explicit focus
+  // Polished: gated auto-focus, scroll-into-view
   // ============================================
   
   const renderChatBox = () => {
@@ -1210,7 +1211,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
     const CHAT_EXPANDED_HEIGHT = 340; // Reasonable fixed height for expanded chat
     
     return (
-      <View style={styles.chatContainer}>
+      <View 
+        ref={chatContainerRef}
+        style={styles.chatContainer}
+      >
         {/* Collapsible Header */}
         <TouchableOpacity 
           style={styles.chatHeader}
