@@ -1680,9 +1680,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
               {/* SECTION 1: Core Strategy (default expanded) */}
               {coreStorySection && (
                 <Accordion 
+                  id="core_story"
                   title={coreStorySection.label || 'Core Strategy'}
                   subtitle="Your primary pattern and motivation"
-                  defaultExpanded={true}
+                  expanded={openSectionId === 'core_story'}
+                  onToggle={handleAccordionToggle}
                   style={styles.accordionSection}
                 >
                   <Text style={styles.accordionBody}>{coreStorySection.body}</Text>
@@ -1692,9 +1694,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
               {/* SECTION 2: Wing Nuance */}
               {wingStorySection && (
                 <Accordion 
+                  id="wing_story"
                   title={wingStorySection.label || 'Wing Access'}
                   subtitle="How your dominant wing colors your expression"
-                  defaultExpanded={false}
+                  expanded={openSectionId === 'wing_story'}
+                  onToggle={handleAccordionToggle}
                   style={styles.accordionSection}
                 >
                   <Text style={styles.accordionBody}>{wingStorySection.body}</Text>
@@ -1704,9 +1708,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
               {/* SECTION 3: Other Wing Access */}
               {otherWingSection && (
                 <Accordion 
+                  id="other_wing"
                   title={otherWingSection.label || 'The Other Wing'}
                   subtitle="Alternate access point for growth"
-                  defaultExpanded={false}
+                  expanded={openSectionId === 'other_wing'}
+                  onToggle={handleAccordionToggle}
                   style={styles.accordionSection}
                 >
                   <Text style={styles.accordionBody}>{otherWingSection.body}</Text>
@@ -1716,9 +1722,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
               {/* SECTION 4: Tradeoffs / Blindspots */}
               {deeperPatternsSection && (
                 <Accordion 
+                  id="deeper_patterns"
                   title={deeperPatternsSection.label || 'Deeper Patterns'}
                   subtitle="Tendencies and tradeoffs you may notice"
-                  defaultExpanded={false}
+                  expanded={openSectionId === 'deeper_patterns'}
+                  onToggle={handleAccordionToggle}
                   style={styles.accordionSection}
                 >
                   <Text style={styles.accordionBody}>{deeperPatternsSection.body}</Text>
@@ -1728,9 +1736,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
               {/* SECTION 5: Stress → / Growth → Pattern */}
               {computedDetails && (
                 <Accordion 
+                  id="energetic_flow"
                   title="Energetic Flow"
                   subtitle="Movement under stress and when resourced"
-                  defaultExpanded={false}
+                  expanded={openSectionId === 'energetic_flow'}
+                  onToggle={handleAccordionToggle}
                   style={styles.accordionSection}
                 >
                   <View style={styles.energeticFlowContent}>
@@ -1766,9 +1776,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
               {/* SECTION 6: Top Alternatives (Self-Verification) */}
               {(result?.top_candidates && result.top_candidates.length > 0) && (
                 <Accordion 
+                  id="top_alternatives"
                   title="Top Alternatives"
                   subtitle="Other patterns worth considering"
-                  defaultExpanded={false}
+                  expanded={openSectionId === 'top_alternatives'}
+                  onToggle={handleAccordionToggle}
                   style={styles.accordionSection}
                 >
                   <Text style={styles.alternativesIntro}>
