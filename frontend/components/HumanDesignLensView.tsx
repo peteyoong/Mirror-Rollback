@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 import { buildJournalPrefill, goToJournalWithPrefill, LENS_CONTINUATIONS } from '../utils/journalPrefill';
+import TodayPanel from './TodayPanel';
 
 // Ref interface for imperative control
 export interface LensViewRef {
