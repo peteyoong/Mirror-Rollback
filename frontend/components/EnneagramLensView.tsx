@@ -1145,9 +1145,14 @@ export default function EnneagramLensView({ result, userId }: Props) {
       
       {chatExpanded && (
         <View style={styles.chatBody}>
-          {/* Chat Messages */}
+          {/* Chat Messages - Scrollable Container */}
           {chatMessages.length > 0 && (
-            <View style={styles.chatMessages}>
+            <ScrollView 
+              style={styles.chatMessagesScroll}
+              contentContainerStyle={styles.chatMessagesContent}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+            >
               {chatMessages.map((msg, index) => (
                 <View 
                   key={index} 
@@ -1165,14 +1170,14 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 </View>
               ))}
               {chatLoading && (
-                <View style={styles.chatMessageAssistant}>
+                <View style={[styles.chatMessage, styles.chatMessageAssistant]}>
                   <ActivityIndicator size="small" color={Colors.textSecondary} />
                 </View>
               )}
-            </View>
+            </ScrollView>
           )}
           
-          {/* Chat Input */}
+          {/* Chat Input - Pinned at Bottom */}
           <View style={styles.chatInputContainer}>
             <TextInput
               style={styles.chatInput}
