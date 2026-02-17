@@ -6,15 +6,13 @@
  * - Set EXPO_PUBLIC_API_BASE_URL in .env for local development
  * - Set EXPO_PUBLIC_API_BASE_URL in environment for production deployments
  * 
- * FALLBACK BEHAVIOR:
- * - If env var is missing, uses preview URL (for development only)
- * - Production builds MUST have EXPO_PUBLIC_API_BASE_URL set
+ * SAFETY:
+ * - Each Emergent app MUST set EXPO_PUBLIC_API_BASE_URL to its OWN backend origin
+ * - NO hardcoded fallback URLs - forces explicit configuration
+ * - Build Info screen warns RED if frontend env ≠ backend env
  */
 
-// Default fallback for development - DO NOT rely on this in production
-const DEV_FALLBACK_URL = 'https://env-versioner.preview.emergentagent.com';
-
-// Get the configured API base URL
+// Get the configured API base URL - NO HARDCODED FALLBACK
 const configuredUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 // Validate and export
@@ -25,16 +23,15 @@ export const API_BASE_URL: string = (() => {
     return url;
   }
   
-  // Development fallback
-  if (__DEV__) {
-    console.warn('[API_BASE] ⚠️ EXPO_PUBLIC_API_BASE_URL not set, using dev fallback:', DEV_FALLBACK_URL);
-    return DEV_FALLBACK_URL;
-  }
+  // NO FALLBACK - must be explicitly configured
+  // This prevents accidentally pointing to wrong environment
+  console.error('[API_BASE] ❌ EXPO_PUBLIC_API_BASE_URL is NOT SET!');
+  console.error('[API_BASE] Each app MUST set this to its own backend origin.');
+  console.error('[API_BASE] Check .env or deployment environment variables.');
   
-  // Production without config - use fallback but warn loudly
-  console.error('[API_BASE] ❌ EXPO_PUBLIC_API_BASE_URL not configured for production!');
-  console.error('[API_BASE] Using fallback URL - this should be fixed in deployment config');
-  return DEV_FALLBACK_URL;
+  // Return empty string - API calls will fail loudly
+  // This is intentional - better to fail fast than silently hit wrong backend
+  return '';
 })();
 
 // Flag to indicate if we're using fallback
