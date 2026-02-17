@@ -1418,12 +1418,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // Handler for saving reflective question to journal
   const handleSaveReflectionToJournal = useCallback(() => {
     const question = REFLECTIVE_QUESTIONS[core];
-    const prefill = buildJournalPrefill({
-      title: `Type ${core} Reflection`,
-      prompt: question,
-      source: 'enneagram_summary',
-      tags: ['enneagram', `type-${core}`, 'reflection'],
-    });
+    const prefill = buildJournalPrefill(question);
     goToJournalWithPrefill(router, prefill, 'enneagram');
   }, [core, router]);
 
