@@ -169,6 +169,7 @@ export default function BuildInfoScreen() {
               <InfoRow label="git_sha" value={backendHealth.git_sha} />
               <InfoRow label="db_name" value={backendHealth.db_name} />
               <InfoRow label="db_type" value={backendHealth.db_type} />
+              <InfoRow label="api_origin" value={backendHealth.api_origin || 'N/A'} />
               <InfoRow label="timestamp" value={backendHealth.timestamp_utc} />
             </View>
           ) : null}
