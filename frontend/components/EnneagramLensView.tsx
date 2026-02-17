@@ -825,6 +825,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const [activeCardContext, setActiveCardContext] = useState<string>('today_general');
   const [composerHeight, setComposerHeight] = useState(60); // Default composer height
   const chatScrollRef = useRef<ScrollView>(null);
+  const chatInputRef = useRef<TextInput>(null); // Ref for explicit focus
   const [isScrolledUp, setIsScrolledUp] = useState(false); // Track if user scrolled up
   
   // Trait cards and computed details state
