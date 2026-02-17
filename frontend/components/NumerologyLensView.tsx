@@ -305,7 +305,7 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
         onPress={() => setActiveTab('today')}
       >
         <Text style={[styles.tabText, activeTab === 'today' && styles.activeTabText]}>
-          Today's Snapshot
+          At a Glance
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
