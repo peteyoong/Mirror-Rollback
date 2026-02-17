@@ -80,11 +80,19 @@ export default function WelcomeGate() {
       const responseText = await res.text();
       
       if (!res.ok) {
+        // Try to parse as JSON first
+        let errorData: any = responseText;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch (e) {
+          // Not JSON, use as-is
+        }
+        
         // Use safe error parser
         const parsed = parseApiError({
           response: {
             status: res.status,
-            data: responseText,
+            data: errorData,
           }
         });
         
