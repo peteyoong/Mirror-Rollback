@@ -86,6 +86,7 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [fetchStatus, setFetchStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [showSiderealInfo, setShowSiderealInfo] = useState(false);
   
   // Router for navigation
   const router = useRouter();
