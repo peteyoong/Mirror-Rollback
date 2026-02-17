@@ -3,15 +3,22 @@
 
 ---
 
+## ⚠️ SECURITY NOTE
+
+**The `EMERGENT_LLM_KEY` value shown in previous messages should be considered COMPROMISED.**
+Always use a freshly generated key stored as a secret. Never commit API keys to version control.
+
+---
+
 ## 1. BACKEND ENVIRONMENT VARIABLES
 
 ### Required Variables (app will crash without these):
 
 | Variable | Example Value | Description |
 |----------|---------------|-------------|
-| `MONGO_URL` | `mongodb+srv://mirror-staging:SecurePass@cluster.mongodb.net/?retryWrites=true&w=majority` | MongoDB Atlas connection string |
-| `DB_NAME` | `mirror_staging` | Database name (must be unique per environment) |
-| `EMERGENT_LLM_KEY` | `sk-emergent-c740b6fF4020b7a102` | Emergent LLM API key |
+| `MONGO_URL` | `mongodb+srv://mirror-staging:PASSWORD@cluster.mongodb.net/mirror_staging?retryWrites=true&w=majority` | MongoDB Atlas connection string **with database name** |
+| `DB_NAME` | `mirror_staging` | Database name (must match the one in MONGO_URL) |
+| `EMERGENT_LLM_KEY` | `(stored as secret)` | Emergent LLM API key - **generate fresh, store as secret** |
 | `ENV` | `staging` | Environment identifier |
 
 ### Optional Variables (have defaults):
@@ -35,6 +42,19 @@
 | **Staging** | `mirror-staging` | `mirror_staging` |
 | Production | `mirror-prod` | `mirror_prod` |
 
+### Connection String Format:
+
+**IMPORTANT**: Include the database name in the connection string path:
+
+```
+mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database_name>?retryWrites=true&w=majority
+```
+
+**Example for staging:**
+```
+mongodb+srv://mirror-staging:SecurePassword@mirror-staging.abc123.mongodb.net/mirror_staging?retryWrites=true&w=majority
+```
+
 ### Steps to Create Staging Database:
 
 1. **Log into MongoDB Atlas**: https://cloud.mongodb.com
@@ -45,19 +65,19 @@
 
 3. **Create Database User**:
    - Username: `mirror-staging` (or your preference)
-   - Password: Generate secure password
+   - Password: Generate secure password (use Atlas password generator)
    - Role: `readWrite` on `mirror_staging` database
 
 4. **Get Connection String**:
    - Click "Connect" → "Connect your application"
    - Select: Driver = Python, Version = 3.12+
    - Copy the connection string
-   - Replace `<password>` with actual password
-   - Replace `<dbname>` with `mirror_staging` (or remove - it's set via `DB_NAME`)
+   - **Replace `<password>` with actual password**
+   - **Replace `<dbname>` or add `/mirror_staging` before the `?` query params**
 
 5. **Whitelist IPs**:
    - Add staging server IP to Network Access
-   - Or use `0.0.0.0/0` for testing (not recommended for production)
+   - Or use `0.0.0.0/0` for initial testing (restrict later)
 
 ---
 
@@ -68,10 +88,14 @@
 On your staging server, create `/app/backend/.env`:
 
 ```bash
-# Copy from .env.staging template and fill in real values
-MONGO_URL="mongodb+srv://mirror-staging:YOUR_PASSWORD@mirror-staging.abc123.mongodb.net/?retryWrites=true&w=majority"
+# MongoDB Atlas - include database name in path
+MONGO_URL="mongodb+srv://mirror-staging:YOUR_PASSWORD@mirror-staging.abc123.mongodb.net/mirror_staging?retryWrites=true&w=majority"
 DB_NAME="mirror_staging"
-EMERGENT_LLM_KEY="sk-emergent-c740b6fF4020b7a102"
+
+# LLM Key - use freshly generated key (previous key is compromised)
+EMERGENT_LLM_KEY="sk-emergent-YOUR_NEW_SECRET_KEY"
+
+# Environment
 ENV="staging"
 BUILD_LABEL="staging-v1.0.0"
 DEBUG_MIRROR="true"
@@ -82,9 +106,9 @@ DEBUG_MIRROR="true"
 Set these in your deployment platform (Railway, Render, Fly.io, etc.):
 
 ```
-MONGO_URL=mongodb+srv://mirror-staging:YOUR_PASSWORD@mirror-staging.abc123.mongodb.net/?retryWrites=true&w=majority
+MONGO_URL=mongodb+srv://mirror-staging:YOUR_PASSWORD@mirror-staging.abc123.mongodb.net/mirror_staging?retryWrites=true&w=majority
 DB_NAME=mirror_staging
-EMERGENT_LLM_KEY=sk-emergent-c740b6fF4020b7a102
+EMERGENT_LLM_KEY=sk-emergent-YOUR_NEW_SECRET_KEY
 ENV=staging
 BUILD_LABEL=staging-v1.0.0
 DEBUG_MIRROR=true
@@ -168,12 +192,13 @@ npx expo export --platform web
 ## 6. DEPLOYMENT SEQUENCE
 
 ### Backend First:
-1. ✅ Create MongoDB Atlas staging database
+1. ✅ Create MongoDB Atlas staging database (`mirror_staging`)
 2. ✅ Create database user with `readWrite` permissions
-3. ✅ Get connection string
-4. ✅ Set environment variables on staging server
-5. ✅ Deploy backend code
-6. ✅ Verify `/api/health` returns `env: "staging"` and `db_name: "mirror_staging"`
+3. ✅ Get connection string (include `/mirror_staging` in path)
+4. ✅ Generate fresh `EMERGENT_LLM_KEY` and store as secret
+5. ✅ Set environment variables on staging server
+6. ✅ Deploy backend code
+7. ✅ Verify `/api/health` returns `env: "staging"` and `db_name: "mirror_staging"`
 
 ### Frontend Second:
 1. ✅ Verify `.env.staging` points to `https://api-staging.mirror.emergentagent.com`
@@ -188,17 +213,24 @@ npx expo export --platform web
 ### Backend .env for Staging:
 
 ```env
-MONGO_URL="PASTE_YOUR_MONGODB_ATLAS_CONNECTION_STRING_HERE"
+# MongoDB Atlas - INCLUDE DATABASE NAME IN PATH
+MONGO_URL="mongodb+srv://mirror-staging:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/mirror_staging?retryWrites=true&w=majority"
 DB_NAME="mirror_staging"
-EMERGENT_LLM_KEY="sk-emergent-c740b6fF4020b7a102"
+
+# LLM Key - USE FRESH KEY (old key is compromised)
+EMERGENT_LLM_KEY="YOUR_NEW_EMERGENT_LLM_KEY"
+
+# Environment
 ENV="staging"
 BUILD_LABEL="staging-v1.0.0"
 GIT_SHA="manual-deploy"
 DEBUG_MIRROR="true"
 ```
 
-Replace:
-- `PASTE_YOUR_MONGODB_ATLAS_CONNECTION_STRING_HERE` with your actual MongoDB Atlas staging connection string
+**Replace:**
+- `YOUR_PASSWORD` - MongoDB Atlas user password
+- `YOUR_CLUSTER` - Your MongoDB Atlas cluster hostname
+- `YOUR_NEW_EMERGENT_LLM_KEY` - Freshly generated Emergent LLM key
 
 ---
 
@@ -219,3 +251,20 @@ Replace:
 ### Connection refused to MongoDB
 - **Problem**: Network access not configured
 - **Fix**: Whitelist server IP in MongoDB Atlas Network Access
+
+### Authentication failed
+- **Problem**: Wrong password or username
+- **Fix**: Verify credentials in MongoDB Atlas Database Access
+
+---
+
+## 9. VARIABLE REFERENCE
+
+**Backend reads these exact variable names:**
+- `MONGO_URL` ✅ (NOT `MONGODB_URI`)
+- `DB_NAME` ✅
+- `EMERGENT_LLM_KEY` ✅
+- `ENV` ✅
+- `BUILD_LABEL` ✅
+- `GIT_SHA` ✅
+- `DEBUG_MIRROR` ✅
