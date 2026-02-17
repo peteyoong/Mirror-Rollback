@@ -429,6 +429,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  newUserCTAButton: {
+    marginTop: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: Colors.accent,
+    borderRadius: 8,
+    alignSelf: 'center',
+  },
+  newUserCTAText: {
+    color: Colors.surface,
+    fontSize: 14,
+    fontWeight: '600',
+  },
   apiDebugText: {
     fontSize: 11,
     color: Colors.textTertiary,
