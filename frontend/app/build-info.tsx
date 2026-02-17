@@ -195,6 +195,13 @@ export default function BuildInfoScreen() {
               label="Database connected" 
               passed={!!backendHealth?.db_name && backendHealth?.db_name !== 'unknown'}
             />
+            {Platform.OS === 'web' && (
+              <ChecklistItem 
+                label="Origin matches API" 
+                passed={!hasOriginMismatch}
+                warning={hasOriginMismatch}
+              />
+            )}
           </View>
         </View>
 
