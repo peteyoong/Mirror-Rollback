@@ -891,6 +891,21 @@ export default function EnneagramLensView({ result, userId }: Props) {
     ? getWingDisplayInfo(core, debugOverride.mockWing, debugOverride.mockConfidenceTier)
     : getWingDisplayInfo(core, wing, result.confidence_tier);
   
+  // Scroll chat to bottom
+  const scrollChatToBottom = useCallback((animated = true) => {
+    setTimeout(() => {
+      chatScrollRef.current?.scrollToEnd({ animated });
+    }, 100); // Small delay to ensure content is rendered
+  }, []);
+
+  // Handle scroll position tracking for "jump to latest" affordance
+  const handleChatScroll = useCallback((event: any) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const paddingToBottom = 40;
+    const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
+    setIsScrolledUp(!isAtBottom);
+  }, []);
+
   // Send chat message
   const handleSendChat = useCallback(async () => {
     if (!chatInput.trim() || chatLoading) return;
@@ -899,6 +914,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
     setChatInput('');
     setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setChatLoading(true);
+    
+    // Scroll to bottom when user sends
+    scrollChatToBottom();
     
     try {
       const response = await sendEnneagramChat({
@@ -916,16 +934,19 @@ export default function EnneagramLensView({ result, userId }: Props) {
       });
       
       setChatMessages(prev => [...prev, { role: 'assistant', content: response.response }]);
+      // Scroll to bottom when assistant responds
+      scrollChatToBottom();
     } catch (error) {
       console.error('Enneagram chat error:', error);
       setChatMessages(prev => [...prev, { 
         role: 'assistant', 
         content: 'I couldn\'t process that right now. Try again in a moment.' 
       }]);
+      scrollChatToBottom();
     } finally {
       setChatLoading(false);
     }
-  }, [chatInput, chatLoading, userId, result, energyState, activeTab, activeCardContext]);
+  }, [chatInput, chatLoading, userId, result, energyState, activeTab, activeCardContext, scrollChatToBottom]);
 
   // Save energy state locally for session
   const handleEnergySelect = async (state: EnergyState) => {
