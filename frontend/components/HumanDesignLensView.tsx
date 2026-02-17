@@ -555,12 +555,23 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
               {data.title || 'Human Design'}
             </Text>
 
-            {/* Date for Today tab */}
-            {data.date && (
-              <Text style={styles.dateLabel}>{data.date}</Text>
+            {/* TODAY TAB: Use standardized TodayPanel */}
+            {activeTab === 'today' && mapSectionsToTodayPanel && (
+              <TodayPanel
+                date={data.date}
+                toneText={mapSectionsToTodayPanel.toneText}
+                experimentText={mapSectionsToTodayPanel.experimentText}
+                noticeText={mapSectionsToTodayPanel.noticeText}
+                noticeBullets={mapSectionsToTodayPanel.noticeBullets}
+                reflectQuestion={mapSectionsToTodayPanel.reflectQuestion}
+                onSaveToJournal={() => {
+                  const prefill = buildJournalPrefill(data.mirror_prompt || '', LENS_CONTINUATIONS.human_design);
+                  goToJournalWithPrefill(router, prefill, 'human_design');
+                }}
+              />
             )}
 
-            {/* Core Mechanics Card (Summary and Deep Dive) */}
+            {/* Core Mechanics Card (Summary and Deep Dive only) */}
             {(activeTab === 'summary' || activeTab === 'deep_dive') && renderCoreMechanics()}
 
             {/* Expand Button (Deep Dive only) */}
@@ -580,11 +591,11 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
               </TouchableOpacity>
             )}
 
-            {/* Sections */}
-            {data.sections.map((section, index) => renderSection(section, index))}
+            {/* Sections (Overview and Deep Dive only) */}
+            {activeTab !== 'today' && data.sections.map((section, index) => renderSection(section, index))}
 
-            {/* Mirror Prompt */}
-            {data.mirror_prompt && (
+            {/* Mirror Prompt (Overview and Deep Dive only) */}
+            {activeTab !== 'today' && data.mirror_prompt && (
               <View style={styles.mirrorPromptCard}>
                 <Text style={styles.mirrorPromptLabel}>EXPERIMENT</Text>
                 <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
