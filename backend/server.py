@@ -6776,7 +6776,7 @@ General atmosphere: supportive of inward focus.
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse astrology today JSON: {e}")
             return {
-                "title": "Today's Snapshot",
+                "title": "Today",
                 "date": today_date,
                 "sections": [
                     {"label": "Today's Quality", "body": "A day that may invite quiet attention to what's already present."},
@@ -8611,7 +8611,7 @@ async def get_numerology_today(user_id: str):
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse numerology today JSON: {e}")
             return {
-                "title": "Today's Snapshot",
+                "title": "Today",
                 "date": today_date,
                 "cycles": {
                     "personal_day": cycles["personal_day"]["number"],
