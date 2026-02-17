@@ -38,6 +38,7 @@ export default function TabLayout() {
           },
           headerTintColor: Colors.text,
           headerShadowVisible: false,
+          headerShown: false, // Hide header by default for all tabs
           lazy: false,
           unmountOnBlur: false,
         }}
