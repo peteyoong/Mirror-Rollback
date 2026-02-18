@@ -3429,47 +3429,147 @@ async def search_locations(request: LocationSearchRequest):
 
 @api_router.post("/users", response_model=UserProfileResponse)
 async def create_user(profile: UserProfileCreate):
-    """Create user profile"""
+    """Create user profile with robust error handling.
+    
+    Never returns 520 - all errors are caught and returned as JSON.
+    """
+    # Log incoming payload for debugging
+    logger.info(f"[CreateUser] Received payload: name={profile.name}, email={profile.email}, "
+                f"city={profile.city}, country={profile.country}, timezone={profile.timezone}")
+    
     try:
-        # Parse and validate timezone
-        try:
-            timezone_raw, parsed_timezone_minutes = parse_timezone(profile.timezone)
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=f"Invalid timezone: {str(e)}")
+        # 1. Validate timezone (most common error source)
+        timezone_raw = None
+        parsed_timezone_minutes = 0
         
-        # Validate and normalize email if provided
+        if not profile.timezone or not profile.timezone.strip():
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "VALIDATION_ERROR",
+                    "message": "Timezone is required. Please select your timezone.",
+                    "field": "timezone"
+                }
+            )
+        
+        # Check IANA format: Region/City pattern
+        tz_str = profile.timezone.strip()
+        iana_pattern = r'^[A-Za-z_]+\/[A-Za-z0-9_\-]+$'
+        offset_pattern = r'^[+-]\d{2}:\d{2}$'
+        
+        if not (re.match(iana_pattern, tz_str) or re.match(offset_pattern, tz_str) or tz_str in ('UTC', 'GMT')):
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "VALIDATION_ERROR",
+                    "message": f"Invalid timezone format: '{tz_str}'. Use format like 'Asia/Kuala_Lumpur' or '+08:00'.",
+                    "field": "timezone"
+                }
+            )
+        
+        try:
+            timezone_raw, parsed_timezone_minutes = parse_timezone(tz_str)
+        except ValueError as e:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "VALIDATION_ERROR",
+                    "message": str(e),
+                    "field": "timezone"
+                }
+            )
+        
+        # 2. Validate and normalize email if provided
         email = None
         if profile.email:
             email = profile.email.strip().lower()
             if '@' not in email or len(email) < 5:
-                raise HTTPException(status_code=400, detail="Please enter a valid email address")
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "error": "VALIDATION_ERROR",
+                        "message": "Please enter a valid email address.",
+                        "field": "email"
+                    }
+                )
             # Check if email already exists
             existing_user = await db.users.find_one({"email": email})
             if existing_user:
-                raise HTTPException(status_code=400, detail="This email is already registered. Try signing in instead.")
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "error": "VALIDATION_ERROR",
+                        "message": "This email is already registered. Try signing in instead.",
+                        "field": "email"
+                    }
+                )
+        
+        # 3. Validate location - accept flexible formats
+        if not profile.city or not profile.country:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "VALIDATION_ERROR",
+                    "message": "Please select a birth location.",
+                    "field": "location"
+                }
+            )
         
         # Use provided lat/long if available, otherwise geocode
+        location_data = None
         if profile.latitude is not None and profile.longitude is not None:
-            # Use provided coordinates (from fallback city database)
             location_data = {
                 "city": profile.city,
                 "country": profile.country,
                 "latitude": profile.latitude,
                 "longitude": profile.longitude
             }
-            logger.info(f"Using provided coordinates: {profile.city}, {profile.country} ({profile.latitude}, {profile.longitude})")
+            logger.info(f"[CreateUser] Using provided coordinates: {profile.city}, {profile.country}")
         else:
-            # Geocode location
-            location_data = await geocode_location(profile.city, profile.country)
+            # Try geocoding
+            try:
+                location_data = await geocode_location(profile.city, profile.country)
+            except Exception as geo_err:
+                logger.warning(f"[CreateUser] Geocoding failed: {geo_err}")
+                location_data = None
+            
             if not location_data:
-                raise HTTPException(status_code=400, detail="Could not geocode location")
+                # Fallback: accept location without coordinates
+                logger.warning(f"[CreateUser] Geocoding failed, storing without coordinates")
+                location_data = {
+                    "city": profile.city,
+                    "country": profile.country,
+                    "latitude": None,
+                    "longitude": None
+                }
         
-        # Parse birth date
-        birth_date = datetime.strptime(profile.birth_date, "%Y-%m-%d")
+        # 4. Validate birth date
+        if not profile.birth_date:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "VALIDATION_ERROR",
+                    "message": "Birth date is required.",
+                    "field": "birth_date"
+                }
+            )
         
+        try:
+            birth_date = datetime.strptime(profile.birth_date, "%Y-%m-%d")
+        except ValueError:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "VALIDATION_ERROR",
+                    "message": "Invalid birth date format. Use YYYY-MM-DD.",
+                    "field": "birth_date"
+                }
+            )
+        
+        # 5. Create user document
         user_data = {
             "name": profile.name,
-            "email": email,  # Added email field
+            "email": email,
             "birth_date": birth_date,
             "birth_time": profile.birth_time,
             "birth_location": location_data,
@@ -3479,20 +3579,35 @@ async def create_user(profile: UserProfileCreate):
         }
         
         result = await db.users.insert_one(user_data)
+        logger.info(f"[CreateUser] Successfully created user: {result.inserted_id}")
         
         return UserProfileResponse(
             id=str(result.inserted_id),
             name=profile.name,
-            email=email,  # Return email in response
+            email=email,
             birth_date=profile.birth_date,
             birth_time=profile.birth_time,
-            birth_location=Location(**location_data),
-            timezone=timezone_raw,  # Return timezone in response
+            birth_location=Location(**{k: v for k, v in location_data.items() if v is not None}),
+            timezone=timezone_raw,
             has_chart=False
         )
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
     except Exception as e:
-        logger.error(f"Create user error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Catch ALL other exceptions - never return 520
+        logger.error(f"[CreateUser] Unexpected error: {type(e).__name__}: {e}")
+        import traceback
+        logger.error(f"[CreateUser] Traceback: {traceback.format_exc()}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "SERVER_ERROR",
+                "message": "Something went wrong creating your space. Please try again.",
+                "detail": str(e) if os.environ.get("DEBUG_MIRROR") == "true" else None
+            }
+        )
 
 
 @api_router.get("/users/{user_id}", response_model=UserProfileResponse)
