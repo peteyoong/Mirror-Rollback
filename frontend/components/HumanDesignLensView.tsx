@@ -531,10 +531,39 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, user, onOp
 
   return (
     <View style={styles.container}>
-      {/* Debug Panel (only with ?debug=1) */}
-      {renderDebugPanel()}
-      
-      {renderTabs()}
+      {/* Birth Time Required State - Block entire view */}
+      {!hasBirthTime && (
+        <View style={styles.birthTimeRequired}>
+          <View style={styles.birthTimeContent}>
+            <View style={styles.birthTimeIcon}>
+              <Ionicons name="time-outline" size={48} color={Colors.accent} />
+            </View>
+            <Text style={styles.birthTimeTitle}>
+              {BIRTH_TIME_REQUIRED_MESSAGE.humanDesign.title}
+            </Text>
+            <Text style={styles.birthTimeBody}>
+              {BIRTH_TIME_REQUIRED_MESSAGE.humanDesign.body}
+            </Text>
+            <TouchableOpacity
+              style={styles.birthTimeCta}
+              onPress={() => router.push('/settings')}
+            >
+              <Text style={styles.birthTimeCtaText}>
+                {BIRTH_TIME_REQUIRED_MESSAGE.humanDesign.cta}
+              </Text>
+              <Ionicons name="arrow-forward" size={18} color={Colors.surface} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Normal content - only show when birth time is known */}
+      {hasBirthTime && (
+        <>
+          {/* Debug Panel (only with ?debug=1) */}
+          {renderDebugPanel()}
+          
+          {renderTabs()}
 
       <ScrollView
         style={styles.content}
