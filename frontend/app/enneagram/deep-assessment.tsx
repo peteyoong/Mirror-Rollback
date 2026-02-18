@@ -885,6 +885,20 @@ export default function DeepAssessmentScreen() {
         {viewState === 'computing' && renderComputing()}
         {viewState === 'error' && renderError()}
       </View>
+      
+      {/* Debug Drawer - Hidden by default, activated via URL param or gesture */}
+      {session && (
+        <DebugDrawer
+          gestureActivated={debugGestureActivated}
+          data={{
+            session_id: session.session_id.slice(-8),
+            question_index: `${currentQuestionIndex + 1}/${session.questions.length}`,
+            responses_count: session.responses.length,
+            save_status: saveStatus,
+          }}
+          title="Deep Assessment Debug"
+        />
+      )}
     </SafeAreaView>
   );
 }
