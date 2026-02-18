@@ -131,6 +131,18 @@ async def health_check():
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
+# Build version endpoint for frontend cache-busting
+@app.get("/api/build-version")
+async def get_build_version():
+    """Returns current build version for frontend cache validation."""
+    build_id = os.environ.get("BUILD_ID", os.environ.get("EXPO_PUBLIC_BUILD_ID", "unknown"))
+    build_version = os.environ.get("BUILD_LABEL", os.environ.get("EXPO_PUBLIC_BUILD_VERSION", "dev"))
+    return {
+        "build_id": build_id,
+        "build_version": build_version,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
 # =====================================================
 # BUILD VERIFICATION ENDPOINT
 # =====================================================
