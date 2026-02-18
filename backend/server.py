@@ -13127,6 +13127,9 @@ if ACTUAL_WEB_BUILD_PATH:
     # Serve index.html for root - NO CACHING to ensure fresh builds
     @app.get("/")
     async def serve_root():
+        # Get build ID for ETag to force WKWebView cache invalidation
+        build_id_for_etag = os.environ.get("BUILD_ID", str(int(datetime.now(timezone.utc).timestamp())))
+        
         response = FileResponse(str(ACTUAL_WEB_BUILD_PATH / "index.html"))
         # Critical: Aggressive no-cache headers for index.html to ensure fresh builds
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0, s-maxage=0, proxy-revalidate"
@@ -13134,6 +13137,9 @@ if ACTUAL_WEB_BUILD_PATH:
         response.headers["Expires"] = "-1"
         response.headers["Surrogate-Control"] = "no-store"
         response.headers["Vary"] = "*"
+        # WKWebView-specific: ETag changes with each build to force revalidation
+        response.headers["ETag"] = f'"{build_id_for_etag}"'
+        response.headers["Last-Modified"] = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
         return response
     
     # Catch-all route for SPA - serves index.html for all non-API routes
