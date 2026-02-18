@@ -20,8 +20,8 @@ export default function Root({ children }: PropsWithChildren) {
       <head>
         <meta charSet="utf-8" />
         
-        {/* BUILD marker in page title */}
-        <title>{`Mirror • BUILD ${BUILD_ID}`}</title>
+        {/* BUILD marker in page title - Default title for PWA */}
+        <title>Project Mirror</title>
         
         {/* ============================================
             AGGRESSIVE CACHE CONTROL - CRITICAL FOR REDEPLOYS
