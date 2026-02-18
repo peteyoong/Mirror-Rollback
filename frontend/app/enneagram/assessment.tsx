@@ -132,8 +132,6 @@ export default function P2DeepAssessment() {
   // Results (for computing screen)
   const [results, setResults] = useState<P2AssessmentResult | null>(null);
   
-  // Debug modal state (collapsed by default)
-  const [debugModalVisible, setDebugModalVisible] = useState(false);
   
   // Stored session for resume
   const storedSessionRef = useRef<StoredSession | null>(null);
