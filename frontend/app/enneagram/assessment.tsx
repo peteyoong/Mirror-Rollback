@@ -697,27 +697,59 @@ const styles = StyleSheet.create({
   errorButtonTextSecondary: {
     color: Colors.text,
   },
-  // Debug Panel
-  debugPanel: {
+  // Debug Floating Button & Modal
+  debugFloatingButton: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    top: Platform.OS === 'ios' ? 50 : 10,
+    right: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 16,
+    zIndex: 100,
+    gap: 4,
+  },
+  debugFloatingText: {
+    fontSize: 11,
+    color: '#00ff00',
+    fontWeight: '600',
+  },
+  debugModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  debugModalContent: {
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    maxHeight: '60%',
+    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+  },
+  debugModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 12,
-    maxHeight: 200,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  debugModalScroll: {
+    padding: 12,
   },
   debugTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     color: '#00ff00',
-    marginTop: 8,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   debugText: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#00ff00',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    lineHeight: 14,
+    lineHeight: 16,
+    marginBottom: 4,
   },
 });
