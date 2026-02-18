@@ -345,6 +345,22 @@ export default function Onboarding() {
     }
     setFieldErrors(prev => ({ ...prev, birthDate: '' }));
     
+    // Validate birth time if user says they know it
+    if (birthTimeKnown) {
+      const hour = parseInt(birthHour, 10);
+      const minute = parseInt(birthMinute, 10);
+      
+      if (!birthHour || isNaN(hour) || hour < 0 || hour > 23) {
+        setFieldErrors(prev => ({ ...prev, birthTime: 'Please enter a valid hour (0-23).' }));
+        return false;
+      }
+      if (!birthMinute || isNaN(minute) || minute < 0 || minute > 59) {
+        setFieldErrors(prev => ({ ...prev, birthTime: 'Please enter a valid minute (0-59).' }));
+        return false;
+      }
+    }
+    setFieldErrors(prev => ({ ...prev, birthTime: '' }));
+    
     // Validate timezone
     if (!isValidTimezone(timezone)) {
       setFieldErrors(prev => ({ ...prev, timezone: 'Please select a valid timezone.' }));
