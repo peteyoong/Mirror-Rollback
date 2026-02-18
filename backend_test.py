@@ -332,6 +332,52 @@ class BackendTester:
             details = {'error': str(e)}
             self.log_test("Backend Health Check", False, details)
             return False
+
+    def test_backend_health(self):
+        """TEST: Health Check - Should return env: 'staging'"""
+        print("\n" + "="*60)
+        print("TEST: Health Check")
+        print("="*60)
+        
+        try:
+            response = self.session.get(f"{self.base_url}/health", timeout=10)
+            
+            details = {
+                'status_code': response.status_code,
+                'response_time': response.elapsed.total_seconds(),
+                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+            }
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                health_checks = {
+                    'env_is_staging': data.get('env') == 'staging',
+                    'has_status': 'status' in data,
+                    'has_timestamp': 'timestamp_utc' in data or 'timestamp' in data
+                }
+                
+                details['validation_checks'] = health_checks
+                details['env_value'] = data.get('env')
+                details['status_value'] = data.get('status')
+                
+                success = all(health_checks.values())
+                
+                if not success:
+                    details['error'] = f"Expected env='staging', got {data.get('env')}"
+                    
+            else:
+                success = False
+                details['error'] = f"Expected 200, got {response.status_code}"
+                
+            self.log_test("Health Check", success, details)
+            return success
+            
+        except Exception as e:
+            details = {'error': str(e)}
+            self.log_test("Health Check", False, details)
+            return False
     
     def test_user_creation_valid(self):
         """TEST 1a: Create user with valid data"""
