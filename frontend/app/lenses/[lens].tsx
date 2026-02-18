@@ -757,6 +757,7 @@ export default function LensDetail() {
             ref={astrologyRef}
             key={`astrology-${forceRefreshKey}`}
             userId={user.id}
+            user={user}
             onOpenChat={() => setLensChatVisible(true)}
           />
           
