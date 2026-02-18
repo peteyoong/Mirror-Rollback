@@ -1,620 +1,305 @@
 #!/usr/bin/env python3
 """
-Backend Testing for Birth Time Handling Feature - STAGING Environment
-Testing birth_time and birth_time_known fields in user creation and retrieval
+Backend Testing Suite for Project Mirror
+Testing Enneagram Deep Assessment MongoDB Bug Fix
 """
 
-import requests
+import asyncio
+import aiohttp
 import json
+import sys
 import time
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional
 
-# Base URL for staging environment
+# Configuration
 BASE_URL = "https://cachebuster-2.preview.emergentagent.com/api"
+TEST_USER_ID = "69954fa73125ba897cbea948"  # From review request
 
-class BackendTester:
+class EnneagramDeepAssessmentTester:
     def __init__(self):
         self.base_url = BASE_URL
-        self.session = requests.Session()
-        self.session.headers.update({
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        })
+        self.session = None
         self.test_results = []
         
-    def log_test(self, test_name: str, success: bool, details: Dict[str, Any]):
-        """Log test results"""
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession()
+        return self
+        
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            await self.session.close()
+    
+    def log_test(self, test_name: str, status: str, details: str = "", response_data: Dict = None):
+        """Log test results for reporting"""
         result = {
-            'test_name': test_name,
-            'success': success,
-            'timestamp': datetime.now().isoformat(),
-            'details': details
+            "test": test_name,
+            "status": status,
+            "details": details,
+            "timestamp": datetime.now().isoformat(),
+            "response_data": response_data
         }
         self.test_results.append(result)
         
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"\n{status} {test_name}")
-        if details.get('error'):
-            print(f"   Error: {details['error']}")
-        if details.get('response_data'):
-            print(f"   Response: {json.dumps(details['response_data'], indent=2)}")
-        
-    def test_birth_time_unknown(self):
-        """TEST: Create User with Unknown Birth Time"""
-        print("\n" + "="*60)
-        print("TEST: Create User with Unknown Birth Time")
-        print("="*60)
-        
-        # Generate unique timestamp for test emails
-        timestamp = int(time.time())
-        
-        test_payload = {
-            "name": "Sarah Chen",
-            "email": f"sarah.chen.{timestamp}@test.com",
-            "birth_date": "1990-01-15",
-            "birth_time": None,
-            "birth_time_known": False,
-            "city": "Kuala Lumpur",
-            "country": "Malaysia",
-            "timezone": "Asia/Kuala_Lumpur",
-            "latitude": 3.139,
-            "longitude": 101.6869
-        }
-        
-        try:
-            response = self.session.post(f"{self.base_url}/users", 
-                                       json=test_payload, 
-                                       timeout=15)
-            
-            details = {
-                'status_code': response.status_code,
-                'response_time': response.elapsed.total_seconds(),
-                'payload': test_payload,
-                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
-            }
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Check birth_time and birth_time_known fields
-                birth_time_checks = {
-                    'birth_time_is_null': data.get('birth_time') is None,
-                    'birth_time_known_is_false': data.get('birth_time_known') is False,
-                    'has_user_id': 'id' in data and data['id'] is not None
-                }
-                
-                details['validation_checks'] = birth_time_checks
-                details['birth_time_value'] = data.get('birth_time')
-                details['birth_time_known_value'] = data.get('birth_time_known')
-                details['user_id'] = data.get('id')
-                
-                # Store user ID for retrieval test
-                if data.get('id'):
-                    self.unknown_time_user_id = data.get('id')
-                
-                success = all(birth_time_checks.values())
-                
-                if not success:
-                    details['error'] = f"Expected birth_time=null, birth_time_known=false, got birth_time={data.get('birth_time')}, birth_time_known={data.get('birth_time_known')}"
-                    
-            else:
-                success = False
-                details['error'] = f"Expected 200, got {response.status_code}"
-                
-            self.log_test("Create User with Unknown Birth Time", success, details)
-            return success
-            
-        except Exception as e:
-            details = {'error': str(e), 'payload': test_payload}
-            self.log_test("Create User with Unknown Birth Time", False, details)
-            return False
-
-    def test_birth_time_known(self):
-        """TEST: Create User with Known Birth Time (24h format)"""
-        print("\n" + "="*60)
-        print("TEST: Create User with Known Birth Time (24h format)")
-        print("="*60)
-        
-        # Generate unique timestamp for test emails
-        timestamp = int(time.time())
-        
-        test_payload = {
-            "name": "Marcus Tan",
-            "email": f"marcus.tan.{timestamp}@test.com",
-            "birth_date": "1990-01-15",
-            "birth_time": "19:30",
-            "birth_time_known": True,
-            "city": "Singapore",
-            "country": "Singapore",
-            "timezone": "Asia/Singapore",
-            "latitude": 1.3521,
-            "longitude": 103.8198
-        }
-        
-        try:
-            response = self.session.post(f"{self.base_url}/users", 
-                                       json=test_payload, 
-                                       timeout=15)
-            
-            details = {
-                'status_code': response.status_code,
-                'response_time': response.elapsed.total_seconds(),
-                'payload': test_payload,
-                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
-            }
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Check birth_time and birth_time_known fields
-                birth_time_checks = {
-                    'birth_time_is_1930': data.get('birth_time') == "19:30",
-                    'birth_time_known_is_true': data.get('birth_time_known') is True,
-                    'has_user_id': 'id' in data and data['id'] is not None
-                }
-                
-                details['validation_checks'] = birth_time_checks
-                details['birth_time_value'] = data.get('birth_time')
-                details['birth_time_known_value'] = data.get('birth_time_known')
-                details['user_id'] = data.get('id')
-                
-                success = all(birth_time_checks.values())
-                
-                if not success:
-                    details['error'] = f"Expected birth_time='19:30', birth_time_known=true, got birth_time={data.get('birth_time')}, birth_time_known={data.get('birth_time_known')}"
-                    
-            else:
-                success = False
-                details['error'] = f"Expected 200, got {response.status_code}"
-                
-            self.log_test("Create User with Known Birth Time", success, details)
-            return success
-            
-        except Exception as e:
-            details = {'error': str(e), 'payload': test_payload}
-            self.log_test("Create User with Known Birth Time", False, details)
-            return False
-
-    def test_user_retrieval_birth_time_known(self):
-        """TEST: Get User - Should return birth_time_known"""
-        print("\n" + "="*60)
-        print("TEST: Get User - Should return birth_time_known")
-        print("="*60)
-        
-        if not hasattr(self, 'unknown_time_user_id') or not self.unknown_time_user_id:
-            details = {'error': 'No user ID from unknown birth time test to retrieve'}
-            self.log_test("Get User - birth_time_known field", False, details)
-            return False
-            
-        try:
-            response = self.session.get(f"{self.base_url}/users/{self.unknown_time_user_id}", timeout=10)
-            
-            details = {
-                'status_code': response.status_code,
-                'response_time': response.elapsed.total_seconds(),
-                'user_id': self.unknown_time_user_id,
-                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
-            }
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Check that birth_time_known field is present and correct
-                retrieval_checks = {
-                    'has_birth_time_known_field': 'birth_time_known' in data,
-                    'birth_time_known_is_false': data.get('birth_time_known') is False,
-                    'birth_time_is_null': data.get('birth_time') is None
-                }
-                
-                details['validation_checks'] = retrieval_checks
-                details['birth_time_known_value'] = data.get('birth_time_known')
-                details['birth_time_value'] = data.get('birth_time')
-                
-                success = all(retrieval_checks.values())
-                
-                if not success:
-                    details['error'] = f"Expected birth_time_known=false in response, got {data.get('birth_time_known')}"
-                    
-            else:
-                success = False
-                details['error'] = f"Expected 200, got {response.status_code}"
-                
-            self.log_test("Get User - birth_time_known field", success, details)
-            return success
-            
-        except Exception as e:
-            details = {'error': str(e), 'user_id': self.unknown_time_user_id}
-            self.log_test("Get User - birth_time_known field", False, details)
-            return False
-
-    def test_invalid_time_format(self):
-        """TEST: Validate 24h Time Format (Invalid)"""
-        print("\n" + "="*60)
-        print("TEST: Validate 24h Time Format (Invalid)")
-        print("="*60)
-        
-        # Generate unique timestamp for test emails
-        timestamp = int(time.time())
-        
-        test_payload = {
-            "name": "Emma Wilson",
-            "email": f"emma.wilson.{timestamp}@test.com",
-            "birth_date": "1990-01-15",
-            "birth_time": "25:00",  # Invalid time
-            "birth_time_known": True,
-            "city": "London",
-            "country": "United Kingdom",
-            "timezone": "Europe/London"
-        }
-        
-        try:
-            response = self.session.post(f"{self.base_url}/users", 
-                                       json=test_payload, 
-                                       timeout=15)
-            
-            details = {
-                'status_code': response.status_code,
-                'response_time': response.elapsed.total_seconds(),
-                'payload': test_payload,
-                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
-            }
-            
-            if response.status_code == 400:
-                data = response.json()
-                
-                # Check for VALIDATION_ERROR
-                validation_checks = {
-                    'is_validation_error': data.get('error') == 'VALIDATION_ERROR',
-                    'has_error_field': 'error' in data,
-                    'is_json_response': response.headers.get('content-type', '').startswith('application/json')
-                }
-                
-                details['validation_checks'] = validation_checks
-                details['error_value'] = data.get('error')
-                details['message_value'] = data.get('message')
-                
-                success = all(validation_checks.values())
-                
-                if not success:
-                    details['error'] = f"Expected VALIDATION_ERROR, got {data.get('error')}"
-                    
-            else:
-                success = False
-                details['error'] = f"Expected 400 validation error, got {response.status_code}"
-                
-            self.log_test("Validate Invalid Time Format", success, details)
-            return success
-            
-        except Exception as e:
-            details = {'error': str(e), 'payload': test_payload}
-            self.log_test("Validate Invalid Time Format", False, details)
-            return False
-        """TEST 2: Verify Backend Health"""
-        print("\n" + "="*60)
-        print("TEST 2: Backend Health Check")
-        print("="*60)
-        
-        try:
-            response = self.session.get(f"{self.base_url}/health", timeout=10)
-            
-            details = {
-                'status_code': response.status_code,
-                'response_time': response.elapsed.total_seconds(),
-                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
-            }
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Check required fields
-                required_checks = {
-                    'env_is_staging': data.get('env') == 'staging',
-                    'db_type_present': 'db_type' in data and data['db_type'] is not None,
-                    'build_version_present': 'build_version' in data and data['build_version'] is not None
-                }
-                
-                details['validation_checks'] = required_checks
-                details['env_value'] = data.get('env')
-                details['db_type_value'] = data.get('db_type')
-                details['build_version_value'] = data.get('build_version')
-                
-                all_checks_pass = all(required_checks.values())
-                
-                self.log_test("Backend Health Check", all_checks_pass, details)
-                return all_checks_pass
-            else:
-                details['error'] = f"Unexpected status code: {response.status_code}"
-                self.log_test("Backend Health Check", False, details)
-                return False
-                
-        except Exception as e:
-            details = {'error': str(e)}
-            self.log_test("Backend Health Check", False, details)
-            return False
-
-    def test_backend_health(self):
-        """TEST: Health Check - Should return env: 'staging'"""
-        print("\n" + "="*60)
-        print("TEST: Health Check")
-        print("="*60)
-        
-        try:
-            response = self.session.get(f"{self.base_url}/health", timeout=10)
-            
-            details = {
-                'status_code': response.status_code,
-                'response_time': response.elapsed.total_seconds(),
-                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
-            }
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Check required fields
-                health_checks = {
-                    'env_is_staging': data.get('env') == 'staging',
-                    'has_status': 'status' in data,
-                    'has_timestamp': 'timestamp_utc' in data or 'timestamp' in data
-                }
-                
-                details['validation_checks'] = health_checks
-                details['env_value'] = data.get('env')
-                details['status_value'] = data.get('status')
-                
-                success = all(health_checks.values())
-                
-                if not success:
-                    details['error'] = f"Expected env='staging', got {data.get('env')}"
-                    
-            else:
-                success = False
-                details['error'] = f"Expected 200, got {response.status_code}"
-                
-            self.log_test("Health Check", success, details)
-            return success
-            
-        except Exception as e:
-            details = {'error': str(e)}
-            self.log_test("Health Check", False, details)
-            return False
+        # Print immediate feedback
+        status_emoji = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
+        print(f"{status_emoji} {test_name}: {status}")
+        if details:
+            print(f"   {details}")
+        print()
     
-    def test_user_creation_valid(self):
-        """TEST 1a: Create user with valid data"""
-        print("\n" + "="*60)
-        print("TEST 1a: User Creation - Valid Data")
-        print("="*60)
-        
-        # Create unique email with timestamp
-        timestamp = int(time.time())
-        test_payload = {
-            "name": "Test User P0",
-            "email": f"unique-test-{timestamp}@example.com",
-            "birth_date": "1990-01-15",
-            "birth_time": "10:30",
-            "city": "Kuala Lumpur",
-            "country": "Malaysia",
-            "timezone": "Asia/Kuala_Lumpur",
-            "latitude": 3.139,
-            "longitude": 101.6869
-        }
+    async def make_request(self, method: str, endpoint: str, data: Dict = None) -> tuple[int, Dict]:
+        """Make HTTP request and return status code and response data"""
+        url = f"{self.base_url}{endpoint}"
         
         try:
-            response = self.session.post(f"{self.base_url}/users", 
-                                       json=test_payload, 
-                                       timeout=15)
+            if method.upper() == "GET":
+                async with self.session.get(url) as response:
+                    status = response.status
+                    try:
+                        response_data = await response.json()
+                    except:
+                        response_data = {"error": "Invalid JSON response", "text": await response.text()}
+                    return status, response_data
             
-            details = {
-                'status_code': response.status_code,
-                'response_time': response.elapsed.total_seconds(),
-                'payload': test_payload,
-                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
-            }
-            
-            success = response.status_code == 200
-            if success:
-                data = response.json()
-                # Store email for duplicate test
-                self.test_email = test_payload['email']
-                details['user_created'] = True
-                details['user_id'] = data.get('user', {}).get('id') if isinstance(data.get('user'), dict) else None
-            else:
-                details['error'] = f"Expected 200, got {response.status_code}"
-                
-            self.log_test("User Creation - Valid Data", success, details)
-            return success
-            
-        except Exception as e:
-            details = {'error': str(e), 'payload': test_payload}
-            self.log_test("User Creation - Valid Data", False, details)
-            return False
-    
-    def test_user_creation_duplicate_email(self):
-        """TEST 1b: Create user with duplicate email"""
-        print("\n" + "="*60)
-        print("TEST 1b: User Creation - Duplicate Email")
-        print("="*60)
-        
-        if not hasattr(self, 'test_email'):
-            print("   Skipping: No test email from previous test")
-            return False
-            
-        # Use the same email from the previous test
-        test_payload = {
-            "name": "Duplicate Test User",
-            "email": self.test_email,  # Same email as before
-            "birth_date": "1985-05-20",
-            "birth_time": "14:15",
-            "city": "Singapore",
-            "country": "Singapore",
-            "timezone": "Asia/Singapore",
-            "latitude": 1.3521,
-            "longitude": 103.8198
-        }
-        
-        try:
-            response = self.session.post(f"{self.base_url}/users", 
-                                       json=test_payload, 
-                                       timeout=15)
-            
-            details = {
-                'status_code': response.status_code,
-                'response_time': response.elapsed.total_seconds(),
-                'payload': test_payload,
-                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
-            }
-            
-            if response.status_code == 400:
-                data = response.json()
-                
-                # Check for required error structure
-                required_fields = {
-                    'error_present': 'error' in data,
-                    'message_present': 'message' in data,
-                    'field_present': 'field' in data,
-                    'error_is_validation': data.get('error') == 'VALIDATION_ERROR',
-                    'field_is_email': data.get('field') == 'email',
-                    'message_contains_registered': 'already registered' in data.get('message', '').lower()
-                }
-                
-                details['validation_checks'] = required_fields
-                details['error_value'] = data.get('error')
-                details['message_value'] = data.get('message')
-                details['field_value'] = data.get('field')
-                
-                success = all(required_fields.values())
-                
-                if not success:
-                    details['error'] = "Response structure doesn't match expected validation error format"
+            elif method.upper() == "POST":
+                headers = {"Content-Type": "application/json"}
+                async with self.session.post(url, json=data, headers=headers) as response:
+                    status = response.status
+                    try:
+                        response_data = await response.json()
+                    except:
+                        response_data = {"error": "Invalid JSON response", "text": await response.text()}
+                    return status, response_data
                     
-            else:
-                success = False
-                details['error'] = f"Expected 400 status code, got {response.status_code}"
-                
-            self.log_test("User Creation - Duplicate Email", success, details)
-            return success
-            
         except Exception as e:
-            details = {'error': str(e), 'payload': test_payload}
-            self.log_test("User Creation - Duplicate Email", False, details)
-            return False
+            return 0, {"error": f"Request failed: {str(e)}"}
     
-    def test_user_creation_invalid_timezone(self):
-        """TEST 1c: Create user with invalid timezone"""
-        print("\n" + "="*60)
-        print("TEST 1c: User Creation - Invalid Timezone")
-        print("="*60)
+    async def test_1_start_assessment(self) -> Optional[str]:
+        """Test 1: Start Deep Assessment"""
+        print("🧪 TEST 1: Starting Enneagram Deep Assessment")
         
-        # Create unique email with timestamp
-        timestamp = int(time.time())
-        test_payload = {
-            "name": "Invalid Timezone User",
-            "email": f"invalid-tz-test-{timestamp}@example.com",
-            "birth_date": "1992-03-10",
-            "birth_time": "09:45",
-            "city": "London",
-            "country": "United Kingdom",
-            "timezone": "Invalid/Timezone",  # Invalid timezone
-            "latitude": 51.5074,
-            "longitude": -0.1278
-        }
+        payload = {"user_id": TEST_USER_ID}
+        status, response = await self.make_request("POST", "/enneagram/deep-assessment/start", payload)
         
-        try:
-            response = self.session.post(f"{self.base_url}/users", 
-                                       json=test_payload, 
-                                       timeout=15)
-            
-            details = {
-                'status_code': response.status_code,
-                'response_time': response.elapsed.total_seconds(),
-                'payload': test_payload,
-                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
-            }
-            
-            # Should return 400 with validation error
-            if response.status_code == 400:
-                data = response.json()
+        if status == 200:
+            if "session_id" in response and "question" in response and "progress" in response:
+                session_id = response["session_id"]
+                question = response["question"]
+                progress = response["progress"]
                 
-                # Check that it's a proper JSON validation error (not 520)
-                validation_checks = {
-                    'is_json_response': response.headers.get('content-type', '').startswith('application/json'),
-                    'has_error_field': 'error' in data,
-                    'not_520_error': response.status_code != 520
-                }
-                
-                details['validation_checks'] = validation_checks
-                success = all(validation_checks.values())
-                
-                if not success:
-                    details['error'] = "Response is not proper JSON validation error"
-                    
+                details = f"Session ID: {session_id}, Question ID: {question.get('id', 'N/A')}, Progress: {progress.get('current', 0)}/{progress.get('total', 0)}"
+                self.log_test("Start Assessment", "PASS", details, response)
+                return session_id
             else:
-                success = False
-                details['error'] = f"Expected 400 status code for invalid timezone, got {response.status_code}"
+                missing_fields = []
+                if "session_id" not in response:
+                    missing_fields.append("session_id")
+                if "question" not in response:
+                    missing_fields.append("question")
+                if "progress" not in response:
+                    missing_fields.append("progress")
                 
-            self.log_test("User Creation - Invalid Timezone", success, details)
-            return success
-            
-        except Exception as e:
-            details = {'error': str(e), 'payload': test_payload}
-            self.log_test("User Creation - Invalid Timezone", False, details)
-            return False
-    
-    def run_all_tests(self):
-        """Run all Birth Time handling tests"""
-        print("="*80)
-        print("BACKEND BIRTH TIME HANDLING TESTING - STAGING ENVIRONMENT")
-        print("="*80)
-        print(f"Base URL: {self.base_url}")
-        print(f"Test Start Time: {datetime.now().isoformat()}")
-        
-        # Run Birth Time handling tests in order
-        test_results = []
-        
-        # Birth Time Tests
-        test_results.append(self.test_birth_time_unknown())
-        test_results.append(self.test_birth_time_known())
-        test_results.append(self.test_user_retrieval_birth_time_known())
-        test_results.append(self.test_invalid_time_format())
-        test_results.append(self.test_backend_health())
-        
-        # Summary
-        print("\n" + "="*80)
-        print("BIRTH TIME HANDLING TEST SUMMARY")
-        print("="*80)
-        
-        passed = sum(test_results)
-        total = len(test_results)
-        
-        print(f"Tests Passed: {passed}/{total}")
-        print(f"Success Rate: {(passed/total)*100:.1f}%")
-        
-        if passed == total:
-            print("🎉 ALL BIRTH TIME HANDLING TESTS PASSED")
+                self.log_test("Start Assessment", "FAIL", f"Missing required fields: {missing_fields}", response)
+                return None
         else:
-            print("⚠️  SOME BIRTH TIME HANDLING TESTS FAILED")
-            
-        # Detailed results
-        print("\nDetailed Results:")
-        for result in self.test_results:
-            status = "✅" if result['success'] else "❌"
-            print(f"  {status} {result['test_name']}")
-            if not result['success'] and result['details'].get('error'):
-                print(f"     Error: {result['details']['error']}")
-        
-        return passed == total
-
-def main():
-    """Main test execution"""
-    tester = BackendTester()
-    success = tester.run_all_tests()
+            self.log_test("Start Assessment", "FAIL", f"HTTP {status}: {response.get('detail', 'Unknown error')}", response)
+            return None
     
-    if success:
-        print(f"\n✅ All Birth Time handling tests passed in STAGING environment")
-        exit(0)
-    else:
-        print(f"\n❌ Some Birth Time handling tests failed")
-        exit(1)
+    async def test_2_submit_answers_until_completion(self, session_id: str) -> Optional[Dict]:
+        """Test 2: Submit Multiple Answers Until Assessment Completion"""
+        print("🧪 TEST 2: Submitting Answers Until Assessment Completion")
+        
+        answers_submitted = 0
+        max_answers = 70  # Safety limit (should complete around 58)
+        results = None
+        
+        while answers_submitted < max_answers:
+            # Get current question by submitting a dummy answer first to see what question we're on
+            # Actually, let's start by getting the first question from start response
+            if answers_submitted == 0:
+                # We need to get the first question - let's restart to get it
+                payload = {"user_id": TEST_USER_ID}
+                status, response = await self.make_request("POST", "/enneagram/deep-assessment/start", payload)
+                if status != 200 or "question" not in response:
+                    self.log_test("Get First Question", "FAIL", f"Could not get first question: {response}", response)
+                    return None
+                
+                session_id = response["session_id"]  # Update session_id
+                current_question = response["question"]
+            else:
+                # For subsequent questions, we'll get them from the previous answer response
+                pass
+            
+            # Submit answer for current question
+            question_id = current_question["id"]
+            
+            # Use likert scale answer (value 3 = neutral)
+            answer_payload = {
+                "user_id": TEST_USER_ID,
+                "session_id": session_id,
+                "question_id": question_id,
+                "answer": {"type": "likert", "value": 3}
+            }
+            
+            status, response = await self.make_request("POST", "/enneagram/deep-assessment/answer", answer_payload)
+            answers_submitted += 1
+            
+            if status != 200:
+                # Check if this is the MongoDB error we're testing for
+                error_detail = response.get("detail", "")
+                if "documents must have only string keys, key was" in error_detail:
+                    self.log_test("Submit Answers", "FAIL", f"MongoDB bug detected after {answers_submitted} answers: {error_detail}", response)
+                    return None
+                else:
+                    self.log_test("Submit Answers", "FAIL", f"HTTP {status} after {answers_submitted} answers: {error_detail}", response)
+                    return None
+            
+            # Check if assessment is complete
+            if "results" in response:
+                results = response["results"]
+                progress = response.get("progress", {})
+                self.log_test("Submit Answers", "PASS", f"Assessment completed after {answers_submitted} answers. Progress: {progress}", response)
+                return results
+            
+            # Check if we have next question
+            if "question" in response:
+                current_question = response["question"]
+                progress = response.get("progress", {})
+                print(f"   Answer {answers_submitted}: Question {question_id} → Next: {current_question['id']} (Progress: {progress.get('current', 0)}/{progress.get('total', 0)})")
+            else:
+                self.log_test("Submit Answers", "FAIL", f"No 'question' or 'results' in response after {answers_submitted} answers", response)
+                return None
+        
+        # If we reach here, we hit the safety limit
+        self.log_test("Submit Answers", "FAIL", f"Assessment did not complete after {max_answers} answers (safety limit)", None)
+        return None
+    
+    async def test_3_verify_results_structure(self, results: Dict) -> bool:
+        """Test 3: Verify Results Structure"""
+        print("🧪 TEST 3: Verifying Results Structure")
+        
+        required_fields = ["core_type", "wing", "confidence", "confidence_tier"]
+        missing_fields = []
+        invalid_fields = []
+        
+        # Check required fields exist
+        for field in required_fields:
+            if field not in results:
+                missing_fields.append(field)
+        
+        if missing_fields:
+            self.log_test("Results Structure", "FAIL", f"Missing required fields: {missing_fields}", results)
+            return False
+        
+        # Validate field values
+        core_type = results.get("core_type")
+        if not isinstance(core_type, int) or core_type < 1 or core_type > 9:
+            invalid_fields.append(f"core_type must be 1-9, got: {core_type}")
+        
+        wing = results.get("wing")
+        if not isinstance(wing, (int, str)):
+            invalid_fields.append(f"wing must be int or string, got: {type(wing)}")
+        
+        confidence = results.get("confidence")
+        if not isinstance(confidence, (int, float)):
+            invalid_fields.append(f"confidence must be number, got: {type(confidence)}")
+        
+        confidence_tier = results.get("confidence_tier")
+        valid_tiers = ["high", "moderate", "exploratory"]
+        if confidence_tier not in valid_tiers:
+            invalid_fields.append(f"confidence_tier must be one of {valid_tiers}, got: {confidence_tier}")
+        
+        if invalid_fields:
+            self.log_test("Results Structure", "FAIL", f"Invalid field values: {invalid_fields}", results)
+            return False
+        
+        # Success
+        details = f"core_type: {core_type}, wing: {wing}, confidence: {confidence}, confidence_tier: {confidence_tier}"
+        self.log_test("Results Structure", "PASS", details, results)
+        return True
+    
+    async def run_all_tests(self):
+        """Run the complete test suite"""
+        print("=" * 80)
+        print("🧪 ENNEAGRAM DEEP ASSESSMENT MONGODB BUG FIX TESTING")
+        print("=" * 80)
+        print(f"Base URL: {self.base_url}")
+        print(f"Test User ID: {TEST_USER_ID}")
+        print()
+        
+        # Test 1: Start Assessment
+        session_id = await self.test_1_start_assessment()
+        if not session_id:
+            print("❌ Cannot continue testing - failed to start assessment")
+            return False
+        
+        # Test 2: Submit Answers Until Completion
+        results = await self.test_2_submit_answers_until_completion(session_id)
+        if not results:
+            print("❌ Cannot continue testing - failed to complete assessment")
+            return False
+        
+        # Test 3: Verify Results Structure
+        structure_valid = await self.test_3_verify_results_structure(results)
+        if not structure_valid:
+            print("❌ Results structure validation failed")
+            return False
+        
+        return True
+    
+    def print_summary(self):
+        """Print test summary"""
+        print("=" * 80)
+        print("📊 TEST SUMMARY")
+        print("=" * 80)
+        
+        total_tests = len(self.test_results)
+        passed_tests = len([t for t in self.test_results if t["status"] == "PASS"])
+        failed_tests = len([t for t in self.test_results if t["status"] == "FAIL"])
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests} ✅")
+        print(f"Failed: {failed_tests} ❌")
+        print(f"Success Rate: {(passed_tests/total_tests*100):.1f}%")
+        print()
+        
+        if failed_tests > 0:
+            print("❌ FAILED TESTS:")
+            for test in self.test_results:
+                if test["status"] == "FAIL":
+                    print(f"   • {test['test']}: {test['details']}")
+            print()
+        
+        # Key findings
+        mongodb_error_found = any("MongoDB bug detected" in t.get("details", "") for t in self.test_results)
+        assessment_completed = any("Assessment completed" in t.get("details", "") for t in self.test_results)
+        
+        print("🔍 KEY FINDINGS:")
+        if mongodb_error_found:
+            print("   ❌ MongoDB bug 'documents must have only string keys, key was 1' STILL EXISTS")
+        else:
+            print("   ✅ MongoDB bug 'documents must have only string keys, key was 1' NOT detected")
+        
+        if assessment_completed:
+            print("   ✅ Assessment completed successfully with results object")
+        else:
+            print("   ❌ Assessment did not complete successfully")
+        
+        print()
+        
+        return failed_tests == 0
+
+
+async def main():
+    """Main test execution"""
+    async with EnneagramDeepAssessmentTester() as tester:
+        success = await tester.run_all_tests()
+        tester.print_summary()
+        
+        # Exit with appropriate code
+        sys.exit(0 if success else 1)
+
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
