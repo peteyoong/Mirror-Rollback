@@ -364,12 +364,24 @@ class EnneagramDeepAssessmentTester:
         # Key findings
         mongodb_error_found = any("MongoDB bug detected" in t.get("details", "") for t in self.test_results)
         assessment_completed = any("Assessment completed" in t.get("details", "") for t in self.test_results)
+        html_error_found = any("520 error detected" in t.get("details", "") or "HTML instead of JSON" in t.get("details", "") for t in self.test_results)
+        wing_logic_error = any("Wing is 'balanced' but both wing scores are 0/null" in t.get("details", "") for t in self.test_results)
         
         print("🔍 KEY FINDINGS:")
         if mongodb_error_found:
             print("   ❌ MongoDB bug 'documents must have only string keys, key was 1' STILL EXISTS")
         else:
             print("   ✅ MongoDB bug 'documents must have only string keys, key was 1' NOT detected")
+        
+        if html_error_found:
+            print("   ❌ 520/HTML errors detected (should always return JSON)")
+        else:
+            print("   ✅ NO 520/HTML errors - always returns JSON as required")
+        
+        if wing_logic_error:
+            print("   ❌ Wing logic error: 'balanced' when both scores are 0/null")
+        else:
+            print("   ✅ Wing logic correct: NOT 'balanced' when scores are 0/null")
         
         if assessment_completed:
             print("   ✅ Assessment completed successfully with results object")
