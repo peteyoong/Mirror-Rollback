@@ -110,35 +110,32 @@ class EnneagramDeepAssessmentTester:
         details = f"env: '{actual_env}', db_name: '{actual_db_name}', debug_mirror: {actual_debug_mirror}"
         self.log_test("Health Endpoint", "PASS", details, response)
         return True
-        """Test 1: Start Deep Assessment"""
+    async def test_1_start_assessment(self) -> Optional[str]:
+        """Test 1: Start Deep Assessment (Review Request Test 2)"""
         print("🧪 TEST 1: Starting Enneagram Deep Assessment")
         
         payload = {"user_id": TEST_USER_ID}
         status, response = await self.make_request("POST", "/enneagram/deep-assessment/start", payload)
         
-        if status == 200:
-            if "session_id" in response and "question" in response and "progress" in response:
-                session_id = response["session_id"]
-                question = response["question"]
-                progress = response["progress"]
-                
-                details = f"Session ID: {session_id}, Question ID: {question.get('id', 'N/A')}, Progress: {progress.get('current', 0)}/{progress.get('total', 0)}"
-                self.log_test("Start Assessment", "PASS", details, response)
-                return session_id
-            else:
-                missing_fields = []
-                if "session_id" not in response:
-                    missing_fields.append("session_id")
-                if "question" not in response:
-                    missing_fields.append("question")
-                if "progress" not in response:
-                    missing_fields.append("progress")
-                
-                self.log_test("Start Assessment", "FAIL", f"Missing required fields: {missing_fields}", response)
-                return None
-        else:
+        if status != 200:
             self.log_test("Start Assessment", "FAIL", f"HTTP {status}: {response.get('detail', 'Unknown error')}", response)
             return None
+            
+        # Check required fields from review request
+        required_fields = ["session_id", "question", "progress"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            self.log_test("Start Assessment", "FAIL", f"Missing required fields: {missing_fields}", response)
+            return None
+        
+        session_id = response["session_id"]
+        question = response["question"]
+        progress = response["progress"]
+        
+        details = f"Session ID: {session_id}, Question ID: {question.get('id', 'N/A')}, Progress: {progress.get('current', 0)}/{progress.get('total', 0)}"
+        self.log_test("Start Assessment", "PASS", details, response)
+        return session_id
     
     async def test_2_submit_answers_until_completion(self, session_id: str) -> Optional[Dict]:
         """Test 2: Submit Multiple Answers Until Assessment Completion"""
