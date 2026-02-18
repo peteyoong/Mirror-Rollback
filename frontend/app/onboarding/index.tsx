@@ -289,18 +289,20 @@ export default function Onboarding() {
     setFieldErrors(prev => ({ ...prev, location: '' }));
   };
 
-  // Convert 12-hour to 24-hour format
-  const get24HourTime = (): string => {
-    if (!birthHour || !birthMinute) return '';
+  // Build canonical birth time string (24-hour format "HH:MM")
+  const get24HourTime = (): string | null => {
+    // Only return time if user knows their birth time AND has entered valid values
+    if (!birthTimeKnown) return null;
+    if (!birthHour || !birthMinute) return null;
     
-    let hour = parseInt(birthHour, 10);
-    if (amPm === 'PM' && hour !== 12) {
-      hour += 12;
-    } else if (amPm === 'AM' && hour === 12) {
-      hour = 0;
-    }
+    const hour = parseInt(birthHour, 10);
+    const minute = parseInt(birthMinute, 10);
     
-    return `${String(hour).padStart(2, '0')}:${birthMinute.padStart(2, '0')}`;
+    // Validate ranges
+    if (isNaN(hour) || hour < 0 || hour > 23) return null;
+    if (isNaN(minute) || minute < 0 || minute > 59) return null;
+    
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   };
 
   // Format date as YYYY-MM-DD
