@@ -712,6 +712,8 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, user, onOp
           renderEmptyFallback()
         )}
       </ScrollView>
+        </>
+      )}
     </View>
   );
 });
