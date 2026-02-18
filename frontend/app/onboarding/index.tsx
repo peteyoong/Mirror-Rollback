@@ -152,9 +152,9 @@ export default function Onboarding() {
   const [birthDay, setBirthDay] = useState('');
   const [birthMonth, setBirthMonth] = useState('');
   const [birthYear, setBirthYear] = useState('');
-  const [birthHour, setBirthHour] = useState('');
+  const [birthTimeKnown, setBirthTimeKnown] = useState(false); // Default: "I don't know"
+  const [birthHour, setBirthHour] = useState('');   // 24-hour format (0-23)
   const [birthMinute, setBirthMinute] = useState('');
-  const [amPm, setAmPm] = useState<'AM' | 'PM'>('AM');
   const [timezone, setTimezone] = useState(detectTimezone());
   const [showTimezoneModal, setShowTimezoneModal] = useState(false);
   const [locationQuery, setLocationQuery] = useState('');
