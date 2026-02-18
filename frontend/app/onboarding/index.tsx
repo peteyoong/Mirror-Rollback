@@ -610,7 +610,7 @@ export default function Onboarding() {
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Birth Date *</Text>
         <View style={styles.dateRow}>
-          <View style={styles.dateInputContainer}>
+          <View style={styles.dateFieldWrapper}>
             <TextInput
               style={[styles.dateInput, fieldErrors.birthDate ? styles.inputError : null]}
               value={birthDay}
@@ -626,7 +626,7 @@ export default function Onboarding() {
             <Text style={styles.dateLabel}>Day</Text>
           </View>
           <Text style={styles.dateSeparator}>/</Text>
-          <View style={styles.dateInputContainer}>
+          <View style={styles.dateFieldWrapper}>
             <TextInput
               style={[styles.dateInput, fieldErrors.birthDate ? styles.inputError : null]}
               value={birthMonth}
@@ -642,9 +642,9 @@ export default function Onboarding() {
             <Text style={styles.dateLabel}>Month</Text>
           </View>
           <Text style={styles.dateSeparator}>/</Text>
-          <View style={[styles.dateInputContainer, styles.yearInputContainer]}>
+          <View style={styles.dateFieldWrapper}>
             <TextInput
-              style={[styles.dateInput, fieldErrors.birthDate ? styles.inputError : null]}
+              style={[styles.dateInputYear, fieldErrors.birthDate ? styles.inputError : null]}
               value={birthYear}
               onChangeText={(text) => {
                 setBirthYear(text.replace(/[^0-9]/g, '').slice(0, 4));
