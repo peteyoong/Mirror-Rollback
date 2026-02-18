@@ -40,7 +40,256 @@ class BackendTester:
         if details.get('response_data'):
             print(f"   Response: {json.dumps(details['response_data'], indent=2)}")
         
-    def test_backend_health(self):
+    def test_birth_time_unknown(self):
+        """TEST: Create User with Unknown Birth Time"""
+        print("\n" + "="*60)
+        print("TEST: Create User with Unknown Birth Time")
+        print("="*60)
+        
+        # Generate unique timestamp for test emails
+        timestamp = int(time.time())
+        
+        test_payload = {
+            "name": "Sarah Chen",
+            "email": f"sarah.chen.{timestamp}@test.com",
+            "birth_date": "1990-01-15",
+            "birth_time": None,
+            "birth_time_known": False,
+            "city": "Kuala Lumpur",
+            "country": "Malaysia",
+            "timezone": "Asia/Kuala_Lumpur",
+            "latitude": 3.139,
+            "longitude": 101.6869
+        }
+        
+        try:
+            response = self.session.post(f"{self.base_url}/users", 
+                                       json=test_payload, 
+                                       timeout=15)
+            
+            details = {
+                'status_code': response.status_code,
+                'response_time': response.elapsed.total_seconds(),
+                'payload': test_payload,
+                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+            }
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check birth_time and birth_time_known fields
+                birth_time_checks = {
+                    'birth_time_is_null': data.get('birth_time') is None,
+                    'birth_time_known_is_false': data.get('birth_time_known') is False,
+                    'has_user_id': 'id' in data and data['id'] is not None
+                }
+                
+                details['validation_checks'] = birth_time_checks
+                details['birth_time_value'] = data.get('birth_time')
+                details['birth_time_known_value'] = data.get('birth_time_known')
+                details['user_id'] = data.get('id')
+                
+                # Store user ID for retrieval test
+                if data.get('id'):
+                    self.unknown_time_user_id = data.get('id')
+                
+                success = all(birth_time_checks.values())
+                
+                if not success:
+                    details['error'] = f"Expected birth_time=null, birth_time_known=false, got birth_time={data.get('birth_time')}, birth_time_known={data.get('birth_time_known')}"
+                    
+            else:
+                success = False
+                details['error'] = f"Expected 200, got {response.status_code}"
+                
+            self.log_test("Create User with Unknown Birth Time", success, details)
+            return success
+            
+        except Exception as e:
+            details = {'error': str(e), 'payload': test_payload}
+            self.log_test("Create User with Unknown Birth Time", False, details)
+            return False
+
+    def test_birth_time_known(self):
+        """TEST: Create User with Known Birth Time (24h format)"""
+        print("\n" + "="*60)
+        print("TEST: Create User with Known Birth Time (24h format)")
+        print("="*60)
+        
+        # Generate unique timestamp for test emails
+        timestamp = int(time.time())
+        
+        test_payload = {
+            "name": "Marcus Tan",
+            "email": f"marcus.tan.{timestamp}@test.com",
+            "birth_date": "1990-01-15",
+            "birth_time": "19:30",
+            "birth_time_known": True,
+            "city": "Singapore",
+            "country": "Singapore",
+            "timezone": "Asia/Singapore",
+            "latitude": 1.3521,
+            "longitude": 103.8198
+        }
+        
+        try:
+            response = self.session.post(f"{self.base_url}/users", 
+                                       json=test_payload, 
+                                       timeout=15)
+            
+            details = {
+                'status_code': response.status_code,
+                'response_time': response.elapsed.total_seconds(),
+                'payload': test_payload,
+                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+            }
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check birth_time and birth_time_known fields
+                birth_time_checks = {
+                    'birth_time_is_1930': data.get('birth_time') == "19:30",
+                    'birth_time_known_is_true': data.get('birth_time_known') is True,
+                    'has_user_id': 'id' in data and data['id'] is not None
+                }
+                
+                details['validation_checks'] = birth_time_checks
+                details['birth_time_value'] = data.get('birth_time')
+                details['birth_time_known_value'] = data.get('birth_time_known')
+                details['user_id'] = data.get('id')
+                
+                success = all(birth_time_checks.values())
+                
+                if not success:
+                    details['error'] = f"Expected birth_time='19:30', birth_time_known=true, got birth_time={data.get('birth_time')}, birth_time_known={data.get('birth_time_known')}"
+                    
+            else:
+                success = False
+                details['error'] = f"Expected 200, got {response.status_code}"
+                
+            self.log_test("Create User with Known Birth Time", success, details)
+            return success
+            
+        except Exception as e:
+            details = {'error': str(e), 'payload': test_payload}
+            self.log_test("Create User with Known Birth Time", False, details)
+            return False
+
+    def test_user_retrieval_birth_time_known(self):
+        """TEST: Get User - Should return birth_time_known"""
+        print("\n" + "="*60)
+        print("TEST: Get User - Should return birth_time_known")
+        print("="*60)
+        
+        if not hasattr(self, 'unknown_time_user_id') or not self.unknown_time_user_id:
+            details = {'error': 'No user ID from unknown birth time test to retrieve'}
+            self.log_test("Get User - birth_time_known field", False, details)
+            return False
+            
+        try:
+            response = self.session.get(f"{self.base_url}/users/{self.unknown_time_user_id}", timeout=10)
+            
+            details = {
+                'status_code': response.status_code,
+                'response_time': response.elapsed.total_seconds(),
+                'user_id': self.unknown_time_user_id,
+                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+            }
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check that birth_time_known field is present and correct
+                retrieval_checks = {
+                    'has_birth_time_known_field': 'birth_time_known' in data,
+                    'birth_time_known_is_false': data.get('birth_time_known') is False,
+                    'birth_time_is_null': data.get('birth_time') is None
+                }
+                
+                details['validation_checks'] = retrieval_checks
+                details['birth_time_known_value'] = data.get('birth_time_known')
+                details['birth_time_value'] = data.get('birth_time')
+                
+                success = all(retrieval_checks.values())
+                
+                if not success:
+                    details['error'] = f"Expected birth_time_known=false in response, got {data.get('birth_time_known')}"
+                    
+            else:
+                success = False
+                details['error'] = f"Expected 200, got {response.status_code}"
+                
+            self.log_test("Get User - birth_time_known field", success, details)
+            return success
+            
+        except Exception as e:
+            details = {'error': str(e), 'user_id': self.unknown_time_user_id}
+            self.log_test("Get User - birth_time_known field", False, details)
+            return False
+
+    def test_invalid_time_format(self):
+        """TEST: Validate 24h Time Format (Invalid)"""
+        print("\n" + "="*60)
+        print("TEST: Validate 24h Time Format (Invalid)")
+        print("="*60)
+        
+        # Generate unique timestamp for test emails
+        timestamp = int(time.time())
+        
+        test_payload = {
+            "name": "Emma Wilson",
+            "email": f"emma.wilson.{timestamp}@test.com",
+            "birth_date": "1990-01-15",
+            "birth_time": "25:00",  # Invalid time
+            "birth_time_known": True,
+            "city": "London",
+            "country": "United Kingdom",
+            "timezone": "Europe/London"
+        }
+        
+        try:
+            response = self.session.post(f"{self.base_url}/users", 
+                                       json=test_payload, 
+                                       timeout=15)
+            
+            details = {
+                'status_code': response.status_code,
+                'response_time': response.elapsed.total_seconds(),
+                'payload': test_payload,
+                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+            }
+            
+            if response.status_code == 400:
+                data = response.json()
+                
+                # Check for VALIDATION_ERROR
+                validation_checks = {
+                    'is_validation_error': data.get('error') == 'VALIDATION_ERROR',
+                    'has_error_field': 'error' in data,
+                    'is_json_response': response.headers.get('content-type', '').startswith('application/json')
+                }
+                
+                details['validation_checks'] = validation_checks
+                details['error_value'] = data.get('error')
+                details['message_value'] = data.get('message')
+                
+                success = all(validation_checks.values())
+                
+                if not success:
+                    details['error'] = f"Expected VALIDATION_ERROR, got {data.get('error')}"
+                    
+            else:
+                success = False
+                details['error'] = f"Expected 400 validation error, got {response.status_code}"
+                
+            self.log_test("Validate Invalid Time Format", success, details)
+            return success
+            
+        except Exception as e:
+            details = {'error': str(e), 'payload': test_payload}
+            self.log_test("Validate Invalid Time Format", False, details)
+            return False
         """TEST 2: Verify Backend Health"""
         print("\n" + "="*60)
         print("TEST 2: Backend Health Check")
