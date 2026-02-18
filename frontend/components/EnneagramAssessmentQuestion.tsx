@@ -3,6 +3,11 @@
  * ===========================
  * Displays one question at a time with appropriate input controls.
  * Supports likert (1-5) and forced choice (A/B + both/neither) formats.
+ * 
+ * iOS Safari Fix:
+ * - Uses flex layout instead of 100vh
+ * - ScrollView for content with proper safe area padding
+ * - Continue button fixed at bottom with safe area inset
  */
 
 import React from 'react';
@@ -12,7 +17,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  ScrollView,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import { P2AssessmentQuestion, P2AssessmentAnswer } from '../services/api';
