@@ -3597,13 +3597,16 @@ async def create_user(profile: UserProfileCreate):
         raise
     except Exception as e:
         # Catch ALL other exceptions - never return 520
-        logger.error(f"[CreateUser] Unexpected error: {type(e).__name__}: {e}")
+        # Generate unique error ID for debugging
+        error_id = f"ERR-{uuid.uuid4().hex[:8].upper()}"
+        logger.error(f"[CreateUser] [{error_id}] Unexpected error: {type(e).__name__}: {e}")
         import traceback
-        logger.error(f"[CreateUser] Traceback: {traceback.format_exc()}")
+        logger.error(f"[CreateUser] [{error_id}] Traceback: {traceback.format_exc()}")
         return JSONResponse(
             status_code=500,
             content={
                 "error": "SERVER_ERROR",
+                "error_id": error_id,
                 "message": "Something went wrong creating your space. Please try again.",
                 "detail": str(e) if os.environ.get("DEBUG_MIRROR") == "true" else None
             }
