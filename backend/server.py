@@ -3652,7 +3652,9 @@ async def get_user(user_id: str):
             email=user.get("email"),
             birth_date=user["birth_date"].strftime("%Y-%m-%d"),
             birth_time=user.get("birth_time"),
+            birth_time_known=user.get("birth_time_known"),
             birth_location=Location(**user["birth_location"]),
+            timezone=user.get("timezone"),
             has_chart=chart is not None
         )
     except Exception as e:
