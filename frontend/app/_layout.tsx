@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useAppStore } from '../store';
@@ -12,6 +12,70 @@ import { StagingBuildFooter } from '../components/StagingBuildFooter';
 SplashScreen.preventAutoHideAsync().catch(() => {
   // Ignore errors - splash screen may already be hidden
 });
+
+/**
+ * WEB BUILD VERSION CHECK
+ * 
+ * Checks the backend build version and forces a hard refresh if the
+ * frontend's cached version doesn't match. This ensures users always
+ * get the latest assets after a new deployment.
+ * 
+ * Only runs on web platform where caching is a concern.
+ */
+const BUILD_VERSION_KEY = 'mirror_build_id';
+
+async function checkBuildVersionAndRefresh(): Promise<void> {
+  // Only run on web
+  if (Platform.OS !== 'web') return;
+  
+  // Guard against SSR - ensure window is available
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const response = await fetch('/api/build-version', {
+      cache: 'no-store', // Bypass any HTTP caching
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+      },
+    });
+    
+    if (!response.ok) {
+      console.warn('[BuildCheck] Failed to fetch build version:', response.status);
+      return;
+    }
+    
+    const data = await response.json();
+    const serverBuildId = data.build_id;
+    
+    if (!serverBuildId || serverBuildId === 'unknown') {
+      console.log('[BuildCheck] Server build ID not set, skipping check');
+      return;
+    }
+    
+    const storedBuildId = localStorage.getItem(BUILD_VERSION_KEY);
+    
+    console.log('[BuildCheck] Server build:', serverBuildId, '| Stored build:', storedBuildId);
+    
+    if (storedBuildId && storedBuildId !== serverBuildId) {
+      console.log('[BuildCheck] Build mismatch detected! Forcing refresh...');
+      // Update stored version before refresh to prevent infinite loop
+      localStorage.setItem(BUILD_VERSION_KEY, serverBuildId);
+      // Force hard refresh to bypass cache
+      window.location.reload();
+      return;
+    }
+    
+    // First visit or matching version - store the current build ID
+    if (!storedBuildId) {
+      console.log('[BuildCheck] First visit, storing build ID:', serverBuildId);
+      localStorage.setItem(BUILD_VERSION_KEY, serverBuildId);
+    }
+  } catch (error) {
+    console.warn('[BuildCheck] Error checking build version:', error);
+    // Don't block the app if this fails
+  }
+}
 
 /**
  * ROOT LAYOUT - With Local Font Loading
