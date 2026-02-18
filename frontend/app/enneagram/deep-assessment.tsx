@@ -301,6 +301,7 @@ export default function DeepAssessmentScreen() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<DeepAssessmentResult | null>(null);
+  const [debugCollapsed, setDebugCollapsed] = useState(true); // Collapsed by default
   
   // Refs
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
