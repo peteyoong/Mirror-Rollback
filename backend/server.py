@@ -201,6 +201,10 @@ async def api_health(request: Request):
         # For frontend verification
         "expected_frontend_env": BUILD_ENV,
         "api_origin": api_origin,
+        
+        # Debug flag - explicitly exposed for verification
+        # MUST be false in production
+        "debug_mirror": os.environ.get("DEBUG_MIRROR", "false").lower() == "true",
     }
 
 
