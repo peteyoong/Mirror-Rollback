@@ -1,10 +1,9 @@
 import { ScrollViewStyleReset } from 'expo-router/html';
 import type { PropsWithChildren } from 'react';
 
-// BUILD_ID must be updated on every deploy for cache verification
-// MUST MATCH /app/frontend/utils/buildInfo.ts
-const BUILD_ID = '2026-02-16T09:00:00Z';
-const BUILD_VERSION = 'v27-enneagram-parity-cachebust';
+// BUILD_ID from environment variable - updated automatically on deploy
+const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'dev';
+const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'dev';
 
 // Generate a cache-bust suffix for asset URLs
 const CACHE_BUST = `?v=${BUILD_ID.replace(/[^a-zA-Z0-9]/g, '')}`;
