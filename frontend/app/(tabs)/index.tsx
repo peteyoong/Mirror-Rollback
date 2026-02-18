@@ -345,75 +345,85 @@ export default function MirrorScreen() {
   const handleUserPress = () => {
     const { resetLocalSession } = useAppStore.getState();
     
+    // Check if dev reset should be shown (staging + debug mode only)
+    const showDevReset = BUILD_ENV === 'staging' && DEBUG_MIRROR;
+    
+    // Handle logout - clears session and redirects
+    const handleLogout = async () => {
+      try {
+        // Clear user from store (clears AsyncStorage session)
+        await clearUser();
+        // Navigate to welcome screen
+        router.replace('/welcome');
+      } catch (err) {
+        console.error('[Logout] Error:', err);
+        router.replace('/welcome');
+      }
+    };
+    
+    // Handle dev reset - clears EVERYTHING
+    const handleDevReset = async () => {
+      try {
+        await resetLocalSession(true);
+        // Force reload on web
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          window.location.reload();
+        }
+      } catch (err) {
+        console.error('[DevReset] Error:', err);
+      }
+    };
+    
     if (Platform.OS === 'ios') {
+      const options = showDevReset 
+        ? ['Cancel', 'View Build Info', 'Log Out', 'Reset App (Dev)']
+        : ['Cancel', 'View Build Info', 'Log Out'];
+      
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ['Cancel', 'Build Info', 'Sign out', 'Start fresh (clear all data)'],
-          destructiveButtonIndex: 3,
+          options,
+          destructiveButtonIndex: showDevReset ? 3 : undefined,
           cancelButtonIndex: 0,
           title: user?.name || 'Account',
           message: `${BUILD_ENV} • ${BUILD_VERSION}`,
         },
         async (buttonIndex) => {
           if (buttonIndex === 1) {
-            // Build Info
             router.push('/build-info');
           } else if (buttonIndex === 2) {
-            // Sign out - keeps data but navigates to welcome
-            await clearUser();
-            router.replace('/welcome');
-          } else if (buttonIndex === 3) {
-            // Start fresh - clears ALL local data
-            await resetLocalSession(true);
+            await handleLogout();
+          } else if (buttonIndex === 3 && showDevReset) {
+            await handleDevReset();
           }
         }
       );
-    } else if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      // Web: Use Alert-style popup with Build Info option
-      Alert.alert(
-        user?.name || 'Account',
-        `${BUILD_ENV} • ${BUILD_VERSION}`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Build Info', 
-            onPress: () => router.push('/build-info')
-          },
-          { 
-            text: 'Sign out', 
-            onPress: async () => {
-              await clearUser();
-              router.replace('/welcome');
-            }
-          },
-        ]
-      );
     } else {
-      // Android fallback using Alert
+      // Web + Android: Use Alert dialog
+      const buttons: any[] = [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'View Build Info', 
+          onPress: () => router.push('/build-info')
+        },
+        { 
+          text: 'Log Out', 
+          onPress: handleLogout
+        },
+      ];
+      
+      // Add dev reset only in staging with debug mode
+      if (showDevReset) {
+        buttons.push({ 
+          text: 'Reset App (Dev)', 
+          style: 'destructive',
+          onPress: handleDevReset
+        });
+      }
+      
       Alert.alert(
         user?.name || 'Account',
         `${BUILD_ENV} • ${BUILD_VERSION}`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Build Info', 
-            onPress: () => router.push('/build-info')
-          },
-          { 
-            text: 'Sign out', 
-            onPress: async () => {
-              await clearUser();
-              router.replace('/welcome');
-            }
-          },
-          { 
-            text: 'Start fresh (clear all)', 
-            style: 'destructive',
-            onPress: async () => {
-              await resetLocalSession(true);
-            }
-          },
-        ]
+        buttons
       );
     }
   };
