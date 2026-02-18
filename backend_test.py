@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Suite for Project Mirror
-Testing Enneagram Deep Assessment MongoDB Bug Fix
+Testing Enneagram Deep Assessment Completion Flow on STAGING
+Based on review request requirements
 """
 
 import asyncio
@@ -12,7 +13,7 @@ import time
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-# Configuration
+# Configuration from review request
 BASE_URL = "https://cachebuster-2.preview.emergentagent.com/api"
 TEST_USER_ID = "69954fa73125ba897cbea948"  # From review request
 
