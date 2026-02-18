@@ -118,6 +118,9 @@ interface AppState {
   
   // Session restore - NO-OP for isolation
   restoreSession: () => Promise<boolean>;
+  
+  // Dev reset - clears ALL local data
+  resetLocalSession: (reload?: boolean) => Promise<void>;
 }
 
 // ============================================================================
