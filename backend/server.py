@@ -416,6 +416,7 @@ class UserProfileResponse(BaseModel):
     email: Optional[str] = None
     birth_date: str
     birth_time: Optional[str]
+    birth_time_known: Optional[bool] = None  # True if user knows their birth time
     birth_location: Location
     timezone: Optional[str] = None  # IANA timezone string
     has_chart: bool = False
