@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
 import WelcomeGate from '../components/WelcomeGate';
+import { StagingBuildFooter } from '../components/StagingBuildFooter';
 
 // Keep splash screen visible while fonts load
 SplashScreen.preventAutoHideAsync().catch(() => {
