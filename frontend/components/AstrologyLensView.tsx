@@ -602,6 +602,46 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  // Birth Time Banner (for astrology - shows notice but doesn't block)
+  birthTimeBanner: {
+    backgroundColor: 'rgba(147, 130, 255, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(147, 130, 255, 0.2)',
+  },
+  birthTimeBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  birthTimeBannerText: {
+    flex: 1,
+  },
+  birthTimeBannerTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  birthTimeBannerBody: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
+  birthTimeBannerCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 6,
+    marginTop: 12,
+  },
+  birthTimeBannerCtaText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.accent,
+  },
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
