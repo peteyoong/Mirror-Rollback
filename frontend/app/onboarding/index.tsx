@@ -411,33 +411,51 @@ export default function Onboarding() {
     }
   };
 
-  // Submit handler
+  // Submit handler with timeout and robust error handling
   const handleSubmit = async () => {
     if (isSubmitting) return; // Prevent double-submit
     
     setStepErrors({});
+    setFieldErrors({});
     setIsSubmitting(true);
+    
+    // Create abort controller for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
     
     try {
       const birthDate = getFormattedDate();
       const birthTime = get24HourTime();
+      
+      // Final client-side validation
+      if (!selectedLocation) {
+        setFieldErrors(prev => ({ ...prev, location: 'Please select a birth location.' }));
+        return;
+      }
+      
+      if (!isValidTimezone(timezone)) {
+        setFieldErrors(prev => ({ ...prev, timezone: 'Please select a valid timezone (e.g., Asia/Kuala_Lumpur).' }));
+        return;
+      }
       
       const payload = {
         name: name.trim(),
         email: email.trim().toLowerCase(),
         birth_date: birthDate,
         birth_time: birthTime || undefined,
-        city: selectedLocation!.city,
-        country: selectedLocation!.country,
+        city: selectedLocation.city,
+        country: selectedLocation.country,
         timezone: timezone.trim(),
-        latitude: selectedLocation!.latitude,
-        longitude: selectedLocation!.longitude,
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude,
       };
       
       console.log('[Onboarding] Submitting payload:', JSON.stringify(payload, null, 2));
       
       const userData = await createUser(payload);
 
+      clearTimeout(timeoutId);
+      
       await setUser(userData);
       const chartData = await calculateChart(userData.id);
       await setChart(chartData.data);
@@ -446,29 +464,50 @@ export default function Onboarding() {
       
       router.replace('/questionnaire');
     } catch (err: any) {
+      clearTimeout(timeoutId);
       console.error('[Onboarding] Submit error:', err);
       
       // Parse error response
       let errorMsg = 'Something went wrong. Please try again.';
-      let errorField = null;
+      let errorField: string | null = null;
       
-      if (err.response?.data) {
+      // Handle timeout
+      if (err.name === 'AbortError' || err.code === 'ECONNABORTED') {
+        errorMsg = 'Connection timed out — please try again.';
+      }
+      // Handle network error
+      else if (err.message === 'Network Error' || !err.response) {
+        errorMsg = 'Network error — please check your connection and try again.';
+      }
+      // Handle server errors (500+)
+      else if (err.response?.status >= 500) {
+        const errorId = err.response?.data?.error_id || 'unknown';
+        errorMsg = `Server error — please try again in a moment. (ref: ${errorId})`;
+      }
+      // Handle validation/client errors (400-499)
+      else if (err.response?.data) {
         const data = err.response.data;
         if (data.message) {
           errorMsg = data.message;
         } else if (data.detail) {
-          errorMsg = data.detail;
+          errorMsg = typeof data.detail === 'string' ? data.detail : 'Validation error — please check your inputs.';
         }
         if (data.field) {
           errorField = data.field;
         }
-      } else if (err.message) {
-        errorMsg = err.message;
+        // Include error_id if present
+        if (data.error_id) {
+          errorMsg += ` (ref: ${data.error_id})`;
+        }
       }
       
       // Show field-specific error or general error
       if (errorField) {
-        setFieldErrors(prev => ({ ...prev, [errorField]: errorMsg }));
+        setFieldErrors(prev => ({ ...prev, [errorField!]: errorMsg }));
+        // If it's email error, go back to step 2
+        if (errorField === 'email') {
+          setStep(2);
+        }
       } else {
         setStepErrors({ [step]: errorMsg });
       }
