@@ -3569,12 +3569,30 @@ async def create_user(profile: UserProfileCreate):
                 }
             )
         
-        # 5. Create user document
+        # 5. Validate birth_time format if provided (24-hour HH:MM)
+        birth_time = profile.birth_time
+        birth_time_known = profile.birth_time_known if profile.birth_time_known is not None else (birth_time is not None)
+        
+        if birth_time:
+            # Validate 24-hour format
+            import re
+            if not re.match(r'^([01]?[0-9]|2[0-3]):([0-5][0-9])$', birth_time):
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "error": "VALIDATION_ERROR",
+                        "message": "Invalid birth time format. Use 24-hour HH:MM (e.g., 07:25 or 19:40).",
+                        "field": "birth_time"
+                    }
+                )
+        
+        # 6. Create user document
         user_data = {
             "name": profile.name,
             "email": email,
             "birth_date": birth_date,
-            "birth_time": profile.birth_time,
+            "birth_time": birth_time,
+            "birth_time_known": birth_time_known,
             "birth_location": location_data,
             "timezone": timezone_raw,
             "timezone_minutes": parsed_timezone_minutes,
@@ -3582,14 +3600,15 @@ async def create_user(profile: UserProfileCreate):
         }
         
         result = await db.users.insert_one(user_data)
-        logger.info(f"[CreateUser] Successfully created user: {result.inserted_id}")
+        logger.info(f"[CreateUser] Successfully created user: {result.inserted_id} (birth_time_known={birth_time_known})")
         
         return UserProfileResponse(
             id=str(result.inserted_id),
             name=profile.name,
             email=email,
             birth_date=profile.birth_date,
-            birth_time=profile.birth_time,
+            birth_time=birth_time,
+            birth_time_known=birth_time_known,
             birth_location=Location(**{k: v for k, v in location_data.items() if v is not None}),
             timezone=timezone_raw,
             has_chart=False
