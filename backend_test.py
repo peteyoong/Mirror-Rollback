@@ -134,13 +134,25 @@ class EnneagramDeepAssessmentTester:
             # Submit answer for current question
             question_id = current_question["id"]
             
-            # Use likert scale answer (value 3 = neutral)
-            answer_payload = {
-                "user_id": TEST_USER_ID,
-                "session_id": session_id,
-                "question_id": question_id,
-                "answer": {"type": "likert", "value": 3}
-            }
+            # Determine answer type based on question format
+            question_type = current_question.get("type", "likert")
+            
+            if question_type == "forced" or "options" in current_question:
+                # Forced choice question - use "A" as default
+                answer_payload = {
+                    "user_id": TEST_USER_ID,
+                    "session_id": session_id,
+                    "question_id": question_id,
+                    "answer": {"type": "forced", "value": "A"}
+                }
+            else:
+                # Likert scale question - use 3 (neutral)
+                answer_payload = {
+                    "user_id": TEST_USER_ID,
+                    "session_id": session_id,
+                    "question_id": question_id,
+                    "answer": {"type": "likert", "value": 3}
+                }
             
             status, response = await self.make_request("POST", "/enneagram/deep-assessment/answer", answer_payload)
             answers_submitted += 1
