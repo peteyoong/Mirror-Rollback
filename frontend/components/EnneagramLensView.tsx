@@ -869,7 +869,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // ============================================
   const [backendHealth, setBackendHealth] = useState<BackendHealthInfo | null>(null);
   const [rawDeepDiveTypeLabel, setRawDeepDiveTypeLabel] = useState<string | null>(null);
-  const isDebugMode = DEBUG_MIRROR_ENV || getUrlDebugParam();
+  
+  // CRITICAL: Debug mode requires DEBUG_MIRROR_ENV to be true FIRST
+  // URL param only works in staging/dev - NEVER in prod
+  const isDebugMode = DEBUG_MIRROR_ENV && getUrlDebugParam();
   
   // Fetch backend health once per session (debug mode only)
   useEffect(() => {
@@ -883,13 +886,14 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // ============================================
   // Displays deterministic diagnostic metadata for comparing
   // Preview vs Production environments
-  // Visible only when EXPO_PUBLIC_DEBUG_MIRROR=true or ?debug=1
+  // Visible ONLY when EXPO_PUBLIC_DEBUG_MIRROR=true AND ?debug=1
+  // NEVER visible in production (DEBUG_MIRROR=false)
   // ============================================
   const renderDebugStamp = () => {
     if (!isDebugMode) return null;
     
     return (
-      <View style={styles.debugStamp}>
+      <View style={styles.debugStamp} pointerEvents="none">
         <Text style={styles.debugStampHeader}>🔍 DEBUG STAMP</Text>
         <View style={styles.debugStampRow}>
           <Text style={styles.debugStampLabel}>BUILD_VERSION:</Text>
