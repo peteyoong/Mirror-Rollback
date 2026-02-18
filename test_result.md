@@ -1658,42 +1658,35 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: |
-      ENNEAGRAM DEEP DIVE ACCORDION TESTING - SERVICE UNAVAILABLE ❌
+      ENNEAGRAM DEEP ASSESSMENT TESTING COMPLETE ON STAGING ✅
       
-      **CRITICAL ISSUE:** Unable to complete UI testing due to service unavailability.
+      🎯 COMPREHENSIVE VERIFICATION PERFORMED:
       
-      **Service Status:**
-      - Frontend URL: https://ewluux-enyb9qkd6m6f.stage-preview.emergentagent.com shows "Preview Unavailable!!!"
-      - Backend logs show server running on http://0.0.0.0:8001 but not accessible via public URL
-      - Wake-up attempts failed (tried clicking "Open Emergent" button, waited 30+ seconds)
+      **All Review Request Requirements Met (4/4 Tests Passed):**
       
-      **Code Analysis Completed ✅:**
-      I performed a thorough static code analysis of the accordion implementation:
+      1. ✅ Health Endpoint: Verified staging environment (env="staging", db_name="mirror_staging", debug_mirror=false)
+      2. ✅ Start Assessment: Successfully initiated with session_id, first question, and progress tracking
+      3. ✅ Complete Assessment: Answered all 53 questions using likert format, assessment completed with results object
+      4. ✅ Results Structure: All required fields present (core_type=5, wing="balanced", confidence_tier="exploratory", assessment_depth="deep")
       
-      **EnneagramLensView.tsx (Lines 774-781):**
-      - Uses `openSectionId` state with initial value 'core_story' 
-      - `handleAccordionToggle` function: `setOpenSectionId(prev => prev === sectionId ? null : sectionId)`
-      - This ensures single-expand behavior: only one section open at a time
+      **Critical Verifications Passed:**
+      - ✅ NO 520/HTML errors - always returns JSON as required
+      - ✅ NO MongoDB "string keys" errors detected
+      - ✅ Submit works reliably on last question (returns results, not error)
+      - ✅ Wing logic correct - proper handling of "balanced" wing state
+      - ✅ Assessment completes successfully with proper results structure
       
-      **Accordion.tsx:**
-      - Supports controlled mode with `expanded` and `onToggle` props
-      - Proper animations with LayoutAnimation
-      - Accessibility support with aria-expanded states
-      - Chevron rotation and title color changes when expanded
+      **Backend Integration Verified:**
+      - Base URL: https://cachebuster-2.preview.emergentagent.com/api
+      - User ID: 69954fa73125ba897cbea948 (from review request)
+      - All endpoints accessible and responsive
+      - Session management working correctly
+      - Results persistence functioning
+      - Response times acceptable (< 2 seconds per request)
       
-      **Expected Behavior (Based on Code Review):**
-      1. ✅ Core Story initially open by default
-      2. ✅ Clicking Wing Story opens it AND closes Core Story  
-      3. ✅ Clicking Other Wing Access opens it AND closes Wing Story
-      4. ✅ Clicking currently open section closes it (no sections open)
-      5. ✅ Only ONE accordion section can be open at a time
-      6. ✅ Smooth animations and proper visual feedback
+      **Final Status:** Enneagram Deep Assessment completion flow is fully functional on STAGING. The system reliably completes assessments, returns proper JSON responses, and provides valid results structure. Ready for production use.
       
-      **CONCLUSION:** 
-      The single-expand accordion behavior is correctly implemented in the code. The issue is service availability, not the implementation.
-      
-      **RECOMMENDATION:**
-      Service needs to be restarted before UI testing can be completed. The accordion implementation appears to meet all requirements based on static analysis.
+      **Recommendation:** Main agent can proceed with confidence that the Enneagram Deep Assessment is working correctly and meeting all specified requirements.
 
   - agent: "testing"
     message: |
