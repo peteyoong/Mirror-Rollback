@@ -433,6 +433,32 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, user, onOpen
           </View>
         ) : data ? (
           <>
+            {/* Birth Time Banner (for astrology, show notice but don't block) */}
+            {!hasBirthTime && (
+              <View style={styles.birthTimeBanner}>
+                <View style={styles.birthTimeBannerContent}>
+                  <Ionicons name="time-outline" size={24} color={Colors.accent} />
+                  <View style={styles.birthTimeBannerText}>
+                    <Text style={styles.birthTimeBannerTitle}>
+                      {BIRTH_TIME_REQUIRED_MESSAGE.astrology.title}
+                    </Text>
+                    <Text style={styles.birthTimeBannerBody}>
+                      {BIRTH_TIME_REQUIRED_MESSAGE.astrology.body}
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={styles.birthTimeBannerCta}
+                  onPress={() => router.push('/settings')}
+                >
+                  <Text style={styles.birthTimeBannerCtaText}>
+                    {BIRTH_TIME_REQUIRED_MESSAGE.astrology.cta}
+                  </Text>
+                  <Ionicons name="arrow-forward" size={14} color={Colors.accent} />
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Title */}
             <Text style={styles.title}>
               {data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : 'Astrology')}
