@@ -26,7 +26,7 @@ import ReflectionEntry from '../../components/ReflectionEntry';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
 import SectionLabel from '../../components/SectionLabel';
 import ApiOfflineBanner, { InlineRetry } from '../../components/ApiOfflineBanner';
-import { BUILD_ID as CANONICAL_BUILD_ID, BUILD_VERSION, BUILD_ENV } from '../../utils/buildInfo';
+import { BUILD_ID as CANONICAL_BUILD_ID, BUILD_VERSION, BUILD_ENV, DEBUG_MIRROR } from '../../utils/buildInfo';
 import { SafeIcon } from '../../components/SafeIcon';
 
 // =========================================
