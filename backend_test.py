@@ -76,7 +76,40 @@ class EnneagramDeepAssessmentTester:
         except Exception as e:
             return 0, {"error": f"Request failed: {str(e)}"}
     
-    async def test_1_start_assessment(self) -> Optional[str]:
+    async def test_0_health_endpoint(self) -> bool:
+        """Test 0: Verify Health Endpoint (Review Request Test 1)"""
+        print("🧪 TEST 0: Health Endpoint Verification")
+        
+        status, response = await self.make_request("GET", "/health")
+        
+        if status != 200:
+            self.log_test("Health Endpoint", "FAIL", f"HTTP {status}: {response.get('detail', 'Unknown error')}", response)
+            return False
+        
+        # Check required fields from review request
+        expected_env = "staging"
+        expected_db_name = "mirror_staging"
+        expected_debug_mirror = False
+        
+        actual_env = response.get("env")
+        actual_db_name = response.get("db_name")
+        actual_debug_mirror = response.get("debug_mirror")
+        
+        issues = []
+        if actual_env != expected_env:
+            issues.append(f"env: expected '{expected_env}', got '{actual_env}'")
+        if actual_db_name != expected_db_name:
+            issues.append(f"db_name: expected '{expected_db_name}', got '{actual_db_name}'")
+        if actual_debug_mirror != expected_debug_mirror:
+            issues.append(f"debug_mirror: expected {expected_debug_mirror}, got {actual_debug_mirror}")
+        
+        if issues:
+            self.log_test("Health Endpoint", "FAIL", f"Health check issues: {'; '.join(issues)}", response)
+            return False
+        
+        details = f"env: '{actual_env}', db_name: '{actual_db_name}', debug_mirror: {actual_debug_mirror}"
+        self.log_test("Health Endpoint", "PASS", details, response)
+        return True
         """Test 1: Start Deep Assessment"""
         print("🧪 TEST 1: Starting Enneagram Deep Assessment")
         
