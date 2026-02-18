@@ -63,12 +63,15 @@ interface User {
   email?: string;
   name?: string;
   birth_date: string;
+  birth_time?: string | null;          // HH:MM format (24-hour)
+  birth_time_known?: boolean | null;   // True if user knows their birth time
   birth_location: {
     city: string;
     country: string;
     latitude: number;
     longitude: number;
   };
+  timezone?: string;
   has_chart?: boolean;
 }
 
