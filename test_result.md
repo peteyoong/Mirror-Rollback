@@ -682,6 +682,86 @@ backend:
           
           CONCLUSION: Enneagram Knowledge Base and Enriched Computed Details implementation is fully functional. KB status endpoint provides proper debugging info, ask endpoint gracefully degrades when PDF unavailable, and results endpoints correctly compute and persist enriched details including center, hornevian groups, harmonic groups, stress/growth lines, and social style tags.
 
+  - task: "Enneagram Deep Assessment MongoDB Bug Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/backend/enneagram_assessment.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          ENNEAGRAM DEEP ASSESSMENT MONGODB BUG FIX TESTING COMPLETE ✅
+          
+          🎯 REVIEW REQUEST REQUIREMENTS FULLY VERIFIED:
+          
+          **Test Objective:** Verify the MongoDB bug fix for Enneagram Deep Assessment completion flow
+          **Critical Bug:** "documents must have only string keys, key was 1" should NOT occur
+          **Expected Behavior:** Assessment should complete with results object (NOT 500 error)
+          
+          **COMPREHENSIVE TEST RESULTS (3/3 TESTS PASSED):**
+          
+          1. ✅ START ASSESSMENT (POST /api/enneagram/deep-assessment/start):
+             - Test User ID: 69954fa73125ba897cbea948 (from review request)
+             - Status: 200 OK
+             - Response Structure: Contains session_id, question, and progress ✓
+             - Session ID Generated: Multiple unique sessions tested
+             - First Question: C01 (Core motivation questions)
+          
+          2. ✅ SUBMIT MULTIPLE ANSWERS UNTIL COMPLETION:
+             - Total Questions Answered: 53 (within expected ~58 range)
+             - Question Flow Verified:
+               * C01-C12: Core motivation questions (12 questions)
+               * H5_01-H7_06: Hypothesis questions for types 5,6,7 (18 questions)
+               * D_5v6_01, D_6v7_01, D_4v5_01: Disambiguation questions (3 questions)
+               * W5_01-W5_08: Wing questions for Type 5 (8 questions)
+               * I_01-I_08: Integration questions (8 questions)
+               * CON_01-CON_04: Consistency stage questions (4 questions)
+             - Answer Types Handled Correctly:
+               * Likert scale (1-5) for core/hypothesis questions
+               * Forced choice ("A"/"B") for disambiguation questions
+             - Status: All 200 OK responses (NO 500 errors)
+             - Assessment Completion: ✅ Returns results object on final answer
+          
+          3. ✅ VERIFY RESULTS STRUCTURE:
+             - core_type: 5 (valid 1-9 range) ✓
+             - wing: "balanced" (valid string format) ✓
+             - confidence: 0.19 (valid numeric value) ✓
+             - confidence_tier: "exploratory" (valid tier: high/moderate/exploratory) ✓
+             - All required fields present and properly typed
+          
+          🔍 CRITICAL BUG VERIFICATION:
+          
+          **MongoDB Error Analysis:**
+          - ❌ BEFORE FIX (Backend logs 06:24:xx): Multiple "documents must have only string keys, key was 1" errors
+          - ✅ AFTER FIX (Backend logs 06:32:32+): NO MongoDB errors detected
+          - ✅ SUCCESSFUL COMPLETIONS: "Completed for user 69954fa73125ba897cbea948: Type 5wbalanced"
+          
+          **Test Consistency:**
+          - Ran assessment completion 3 times consecutively
+          - All 3 runs completed successfully (100% success rate)
+          - No 500 errors or MongoDB key validation failures
+          - Consistent results: Type 5 with balanced wing, exploratory confidence
+          
+          🔧 BACKEND INTEGRATION VERIFIED:
+          - All endpoints accessible via public URL (https://cachebuster-2.preview.emergentagent.com/api)
+          - No HTTP timeouts or connection issues
+          - Response times acceptable (< 2 seconds per answer submission)
+          - Backend logs confirm successful processing and completion
+          - User profile and enneagram_results collection properly updated
+          - Session management working correctly (unique session IDs)
+          
+          📊 COMPREHENSIVE VALIDATION PERFORMED:
+          - Question flow validation: All stages (Core → Hypothesis → Disambiguation → Wing → Integration → Consistency)
+          - Answer format validation: Both likert and forced choice formats accepted
+          - Error handling validation: Proper 400 errors for invalid answers (not 500)
+          - Results persistence validation: Data saved to both user profile and enneagram_results
+          - MongoDB document structure validation: No string key violations
+          
+          🎉 CONCLUSION: The MongoDB bug "documents must have only string keys, key was 1" has been successfully fixed. The Enneagram Deep Assessment now completes successfully with proper results structure. All 53+ questions can be answered without encountering the previous 500 Internal Server Error. The assessment flow is fully functional end-to-end.
+
 frontend:
   - task: "Enneagram Deep Dive Accordion Single-Expand Behavior"
     implemented: true
