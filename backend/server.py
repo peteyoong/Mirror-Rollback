@@ -13112,6 +13112,11 @@ if ACTUAL_WEB_BUILD_PATH:
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         """Serve the SPA for all non-API, non-static routes."""
+        # Skip API and health routes - they're handled by their own endpoints
+        if full_path.startswith("api/") or full_path == "health":
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Not found")
+        
         # Check if it's a static file
         file_path = ACTUAL_WEB_BUILD_PATH / full_path
         if file_path.exists() and file_path.is_file():
