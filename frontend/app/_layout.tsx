@@ -81,19 +81,27 @@ export default function RootLayout() {
 
   // No user - show WelcomeGate
   if (!userId) {
-    return <WelcomeGate />;
+    return (
+      <>
+        <WelcomeGate />
+        <StagingBuildFooter />
+      </>
+    );
   }
 
   // User exists - render app
   return (
-    <Stack screenOptions={{
-      headerShown: false,
-      contentStyle: { backgroundColor: Colors.background },
-    }}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="reflection-chat" options={{ presentation: 'modal' }} />
-      <Stack.Screen name="welcome" options={{ headerShown: false }} />
-    </Stack>
+    <>
+      <Stack screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: Colors.background },
+      }}>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="reflection-chat" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="welcome" options={{ headerShown: false }} />
+      </Stack>
+      <StagingBuildFooter />
+    </>
   );
 }
 
