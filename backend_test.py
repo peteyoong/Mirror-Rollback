@@ -306,11 +306,17 @@ class EnneagramDeepAssessmentTester:
     async def run_all_tests(self):
         """Run the complete test suite"""
         print("=" * 80)
-        print("🧪 ENNEAGRAM DEEP ASSESSMENT MONGODB BUG FIX TESTING")
+        print("🧪 ENNEAGRAM DEEP ASSESSMENT COMPLETION FLOW TESTING ON STAGING")
         print("=" * 80)
         print(f"Base URL: {self.base_url}")
         print(f"Test User ID: {TEST_USER_ID}")
         print()
+        
+        # Test 0: Health Endpoint
+        health_ok = await self.test_0_health_endpoint()
+        if not health_ok:
+            print("❌ Cannot continue testing - health check failed")
+            return False
         
         # Test 1: Start Assessment
         session_id = await self.test_1_start_assessment()
