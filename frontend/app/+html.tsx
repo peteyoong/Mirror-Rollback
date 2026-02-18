@@ -137,8 +137,8 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="apple-mobile-web-app-title" content="Project Mirror" />
         <meta name="mobile-web-app-capable" content="yes" />
         
-        {/* Theme color for browser chrome */}
-        <meta name="theme-color" content="#FAF9F7" />
+        {/* Theme color for browser chrome - matches app dark theme */}
+        <meta name="theme-color" content="#111214" />
         
         {/* Prevent phone number detection on iOS */}
         <meta name="format-detection" content="telephone=no" />
