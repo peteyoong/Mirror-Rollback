@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend Testing for P0 Fixes - STAGING Environment
-Testing specific fixes for user creation error handling and backend health
+Backend Testing for Birth Time Handling Feature - STAGING Environment
+Testing birth_time and birth_time_known fields in user creation and retrieval
 """
 
 import requests
