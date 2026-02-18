@@ -159,6 +159,29 @@ async def get_build_version():
         }
     )
 
+# Fresh redirect endpoint - use this URL to force cache bypass
+@app.get("/fresh")
+async def fresh_redirect():
+    """Redirects to app with cache-busting params. Use this URL to bypass cached content."""
+    from fastapi.responses import RedirectResponse
+    
+    build_id = os.environ.get("BUILD_ID", os.environ.get("EXPO_PUBLIC_BUILD_ID", "unknown"))
+    timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
+    
+    # Redirect to root with cache-bust params
+    redirect_url = f"/?b={build_id}&t={timestamp}&fresh=1"
+    
+    return RedirectResponse(
+        url=redirect_url,
+        status_code=302,
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+            "Clear-Site-Data": '"cache", "storage"'  # Modern browsers will clear cache
+        }
+    )
+
 # =====================================================
 # BUILD VERIFICATION ENDPOINT
 # =====================================================
