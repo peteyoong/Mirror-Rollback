@@ -11,7 +11,7 @@
  * Normal users never see this footer.
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -28,28 +28,43 @@ const IS_STAGING = APP_ENV === 'staging';
 // Inference version - hardcoded since this is the unified version
 const INFERENCE_VERSION = 'v2';
 
-/**
- * Check if debug mode is enabled via URL param
- */
-const getUrlDebugParam = (): boolean => {
-  if (Platform.OS !== 'web') return false;
-  if (typeof window === 'undefined') return false;
-  try {
-    return new URLSearchParams(window.location?.search || '').get('debug') === '1';
-  } catch {
-    return false;
-  }
-};
-
 export const StagingBuildFooter: React.FC = () => {
   const insets = useSafeAreaInsets();
+  const [showFooter, setShowFooter] = useState(false);
   
-  // Gate: Only render in staging AND only when debug is explicitly enabled
-  // Hidden by default - normal users never see this
-  const isDebugEnabled = DEBUG_MIRROR || getUrlDebugParam();
+  // Check URL param on mount (client-side only)
+  useEffect(() => {
+    // Must be staging environment
+    if (!IS_STAGING) {
+      setShowFooter(false);
+      return;
+    }
+    
+    // Check if DEBUG_MIRROR env is true
+    if (DEBUG_MIRROR) {
+      setShowFooter(true);
+      return;
+    }
+    
+    // Check URL param (web only)
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      try {
+        const urlParams = new URLSearchParams(window.location?.search || '');
+        if (urlParams.get('debug') === '1') {
+          setShowFooter(true);
+          return;
+        }
+      } catch {
+        // Ignore errors
+      }
+    }
+    
+    // Default: hidden
+    setShowFooter(false);
+  }, []);
   
-  if (!IS_STAGING || !isDebugEnabled) {
-    // Return null - no empty spacer, no layout shift
+  // Don't render if not showing - no layout shift
+  if (!showFooter) {
     return null;
   }
 
