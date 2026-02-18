@@ -1543,6 +1543,42 @@ backend:
       
       CONCLUSION: Mirror Chat API endpoint is fully functional and meets all requirements. All test scenarios pass successfully with proper response formats and error handling.
 
+  - agent: "testing"
+    message: |
+      ENNEAGRAM DEEP ASSESSMENT MONGODB BUG FIX TESTING COMPLETE ✅
+      
+      **CRITICAL BUG SUCCESSFULLY FIXED:** The MongoDB error "documents must have only string keys, key was 1" has been resolved.
+      
+      🎯 **REVIEW REQUEST FULLY VERIFIED:**
+      
+      **Test Results Summary:**
+      ✅ Assessment Start: POST /api/enneagram/deep-assessment/start - Working correctly
+      ✅ Assessment Completion: 53 answers submitted successfully (expected ~58 range)
+      ✅ Results Structure: All required fields present (core_type: 1-9, wing, confidence, confidence_tier)
+      ✅ MongoDB Bug: NO "documents must have only string keys" errors detected
+      ✅ Error Handling: Proper 400 errors for invalid answers (not 500 crashes)
+      
+      **Critical Evidence:**
+      - **BEFORE FIX:** Backend logs showed multiple "documents must have only string keys, key was 1" errors
+      - **AFTER FIX:** All assessments complete successfully with "Completed for user: Type 5wbalanced" logs
+      - **Test Consistency:** Ran 3 consecutive assessments - 100% success rate
+      
+      **Question Flow Verified:**
+      - C01-C12: Core motivation (12 questions) ✓
+      - H5_01-H7_06: Hypothesis testing (18 questions) ✓  
+      - D_5v6_01, etc: Disambiguation (3 questions) ✓
+      - W5_01-W5_08: Wing questions (8 questions) ✓
+      - I_01-I_08: Integration (8 questions) ✓
+      - CON_01-CON_04: Consistency (4 questions) ✓
+      
+      **Backend Integration Status:**
+      - All endpoints accessible via https://cachebuster-2.preview.emergentagent.com/api
+      - Response times acceptable (< 2s per answer)
+      - User profile and enneagram_results properly updated
+      - Session management working correctly
+      
+      🎉 **CONCLUSION:** The Enneagram Deep Assessment MongoDB bug fix is working perfectly. Users can now complete the full assessment without encountering 500 errors. The assessment flow is fully functional end-to-end.
+
 test_plan:
   current_focus:
     - "Enneagram Deep Dive Accordion Single-Expand Behavior"
