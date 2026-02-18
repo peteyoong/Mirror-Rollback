@@ -471,7 +471,8 @@ export default function Onboarding() {
         name: name.trim(),
         email: email.trim().toLowerCase(),
         birth_date: birthDate,
-        birth_time: birthTime || undefined,
+        birth_time: birthTime || null,  // null if unknown
+        birth_time_known: birthTimeKnown,
         city: selectedLocation.city,
         country: selectedLocation.country,
         timezone: timezone.trim(),
