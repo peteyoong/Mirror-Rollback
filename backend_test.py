@@ -223,46 +223,83 @@ class EnneagramDeepAssessmentTester:
         return None
     
     async def test_3_verify_results_structure(self, results: Dict) -> bool:
-        """Test 3: Verify Results Structure"""
+        """Test 3: Verify Results Structure (Review Request Test 4)"""
         print("🧪 TEST 3: Verifying Results Structure")
         
-        required_fields = ["core_type", "wing", "confidence", "confidence_tier"]
+        # Required fields from review request
+        required_fields = {
+            "core_type": int,
+            "wing": (int, str, type(None)),
+            "confidence_tier": str,
+            "assessment_depth": str,
+            "wing_left_score": (int, float, type(None)),
+            "wing_right_score": (int, float, type(None)),
+            "result_id": str
+        }
+        
         missing_fields = []
         invalid_fields = []
         
-        # Check required fields exist
-        for field in required_fields:
+        # Check required fields exist and have correct types
+        for field, expected_type in required_fields.items():
             if field not in results:
                 missing_fields.append(field)
+                continue
+                
+            value = results[field]
+            if isinstance(expected_type, tuple):
+                # Multiple allowed types
+                if not isinstance(value, expected_type):
+                    invalid_fields.append(f"{field}: expected {expected_type}, got {type(value)} ({value})")
+            else:
+                # Single expected type
+                if not isinstance(value, expected_type):
+                    invalid_fields.append(f"{field}: expected {expected_type}, got {type(value)} ({value})")
         
         if missing_fields:
             self.log_test("Results Structure", "FAIL", f"Missing required fields: {missing_fields}", results)
             return False
         
-        # Validate field values
+        if invalid_fields:
+            self.log_test("Results Structure", "FAIL", f"Invalid field types: {invalid_fields}", results)
+            return False
+        
+        # Validate specific field values
+        validation_errors = []
+        
+        # core_type must be 1-9
         core_type = results.get("core_type")
-        if not isinstance(core_type, int) or core_type < 1 or core_type > 9:
-            invalid_fields.append(f"core_type must be 1-9, got: {core_type}")
+        if not (1 <= core_type <= 9):
+            validation_errors.append(f"core_type must be 1-9, got: {core_type}")
         
-        wing = results.get("wing")
-        if not isinstance(wing, (int, str)):
-            invalid_fields.append(f"wing must be int or string, got: {type(wing)}")
-        
-        confidence = results.get("confidence")
-        if not isinstance(confidence, (int, float)):
-            invalid_fields.append(f"confidence must be number, got: {type(confidence)}")
-        
+        # confidence_tier must be valid
         confidence_tier = results.get("confidence_tier")
         valid_tiers = ["high", "moderate", "exploratory"]
         if confidence_tier not in valid_tiers:
-            invalid_fields.append(f"confidence_tier must be one of {valid_tiers}, got: {confidence_tier}")
+            validation_errors.append(f"confidence_tier must be one of {valid_tiers}, got: {confidence_tier}")
         
-        if invalid_fields:
-            self.log_test("Results Structure", "FAIL", f"Invalid field values: {invalid_fields}", results)
+        # assessment_depth must be "deep"
+        assessment_depth = results.get("assessment_depth")
+        if assessment_depth != "deep":
+            validation_errors.append(f"assessment_depth must be 'deep', got: {assessment_depth}")
+        
+        # CRITICAL VERIFICATION: Wing logic (Review Request requirement)
+        wing = results.get("wing")
+        wing_left_score = results.get("wing_left_score")
+        wing_right_score = results.get("wing_right_score")
+        
+        # Wing should NOT be "balanced" when both wing scores are 0 or null
+        if (wing == "balanced" and 
+            (wing_left_score == 0 or wing_left_score is None) and 
+            (wing_right_score == 0 or wing_right_score is None)):
+            validation_errors.append("❌ CRITICAL: Wing is 'balanced' but both wing_left_score and wing_right_score are 0/null")
+        
+        if validation_errors:
+            self.log_test("Results Structure", "FAIL", f"Validation errors: {validation_errors}", results)
             return False
         
         # Success
-        details = f"core_type: {core_type}, wing: {wing}, confidence: {confidence}, confidence_tier: {confidence_tier}"
+        details = f"core_type: {core_type}, wing: {wing}, confidence_tier: {confidence_tier}, assessment_depth: {assessment_depth}, wing_scores: L={wing_left_score}/R={wing_right_score}, result_id: {results.get('result_id')}"
         self.log_test("Results Structure", "PASS", details, results)
         return True
     
