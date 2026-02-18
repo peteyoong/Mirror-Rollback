@@ -401,7 +401,8 @@ class UserProfileCreate(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None  # Added email capture during onboarding
     birth_date: str  # YYYY-MM-DD
-    birth_time: Optional[str] = None  # HH:MM
+    birth_time: Optional[str] = None  # HH:MM (24-hour format)
+    birth_time_known: Optional[bool] = None  # True if user knows their birth time
     city: str
     country: str
     timezone: str  # IANA timezone string (e.g., "Asia/Kuala_Lumpur") or offset ("+07:30")
