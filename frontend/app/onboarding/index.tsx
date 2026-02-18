@@ -1026,9 +1026,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   dateSeparator: {
-    fontSize: 20,
+    fontSize: 18,
     color: Colors.textTertiary,
-    marginHorizontal: 6,
+    marginHorizontal: 4,
     marginTop: 10,
   },
   
