@@ -13161,12 +13161,18 @@ if ACTUAL_WEB_BUILD_PATH:
             return response
         
         # For all other routes, serve index.html (SPA routing) - NO CACHING
+        # Get build ID for ETag to force WKWebView cache invalidation
+        build_id_for_etag = os.environ.get("BUILD_ID", str(int(datetime.now(timezone.utc).timestamp())))
+        
         response = FileResponse(str(ACTUAL_WEB_BUILD_PATH / "index.html"))
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0, s-maxage=0, proxy-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "-1"
         response.headers["Surrogate-Control"] = "no-store"
         response.headers["Vary"] = "*"
+        # WKWebView-specific: ETag changes with each build to force revalidation
+        response.headers["ETag"] = f'"{build_id_for_etag}"'
+        response.headers["Last-Modified"] = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
         return response
 else:
     logger.warning(f"[Startup] Web build not found. Checked paths: {WEB_BUILD_PATH}, {FALLBACK_WEB_PATHS}")
