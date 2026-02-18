@@ -189,7 +189,8 @@ export default function Onboarding() {
           setBirthYear(progress.birthYear || '');
           setBirthHour(progress.birthHour || '');
           setBirthMinute(progress.birthMinute || '');
-          setBirthTimeKnown(progress.birthTimeKnown ?? true);  // Default to true (I know my time)
+          // Keep saved selection or null if not yet selected
+          setBirthTimeKnown(progress.birthTimeKnown !== undefined ? progress.birthTimeKnown : null);
           // Validate saved timezone
           const savedTz = progress.timezone || detectTimezone();
           setTimezone(isValidTimezone(savedTz) ? savedTz : detectTimezone());
