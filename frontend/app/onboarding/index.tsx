@@ -338,6 +338,12 @@ export default function Onboarding() {
   };
 
   const validateStep3 = (): boolean => {
+    // Validate year length first
+    if (birthYear.length !== 4) {
+      setFieldErrors(prev => ({ ...prev, birthDate: 'Enter full 4-digit year.' }));
+      return false;
+    }
+    
     // Validate birth date
     const dateValidation = isValidBirthDate(birthDay, birthMonth, birthYear);
     if (!dateValidation.valid) {
@@ -346,8 +352,14 @@ export default function Onboarding() {
     }
     setFieldErrors(prev => ({ ...prev, birthDate: '' }));
     
+    // Birth time selection is REQUIRED
+    if (birthTimeKnown === null) {
+      setFieldErrors(prev => ({ ...prev, birthTime: 'Please select whether you know your birth time.' }));
+      return false;
+    }
+    
     // Validate birth time if user says they know it
-    if (birthTimeKnown) {
+    if (birthTimeKnown === true) {
       const hour = parseInt(birthHour, 10);
       const minute = parseInt(birthMinute, 10);
       
