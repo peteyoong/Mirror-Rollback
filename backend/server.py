@@ -390,7 +390,8 @@ class UserProfile(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None
     birth_date: datetime
-    birth_time: Optional[str] = None  # HH:MM format
+    birth_time: Optional[str] = None  # HH:MM format (24-hour)
+    birth_time_known: Optional[bool] = None  # True if user knows their birth time
     birth_location: Location
     timezone: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
