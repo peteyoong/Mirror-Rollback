@@ -1818,14 +1818,30 @@ def compute_results(session: dict, include_debug: bool = False) -> dict:
     wing_scores = session["wing_scores"]
     left_wing, right_wing = WING_ADJACENTS.get(top_type, (top_type - 1, top_type + 1))
     
-    if wing_scores["left"] > wing_scores["right"] + WING_BALANCED_DELTA:
+    # CRITICAL FIX: "balanced" requires BOTH scores > 0 AND close together
+    # If either score is 0 or missing, wing is unknown/not yet clear
+    left_score = wing_scores.get("left", 0)
+    right_score = wing_scores.get("right", 0)
+    
+    if left_score > 0 and right_score > 0:
+        # Both scores exist - check for balanced vs dominant
+        if left_score > right_score + WING_BALANCED_DELTA:
+            wing = str(left_wing)
+        elif right_score > left_score + WING_BALANCED_DELTA:
+            wing = str(right_wing)
+        else:
+            # Scores are close AND both > 0 -> balanced
+            wing = "balanced"
+    elif left_score > 0:
+        # Only left has data -> lean toward left wing (not balanced)
         wing = str(left_wing)
-    elif wing_scores["right"] > wing_scores["left"] + WING_BALANCED_DELTA:
+    elif right_score > 0:
+        # Only right has data -> lean toward right wing (not balanced)
         wing = str(right_wing)
-    elif wing_scores["left"] > 0 and wing_scores["right"] > 0:
-        wing = "balanced"
     else:
-        wing = str(left_wing) if wing_scores["left"] >= wing_scores["right"] else str(right_wing)
+        # Neither score has data -> wing is unknown/null
+        # Default to left wing for display but mark as not clear
+        wing = None
     
     # Determine instincts
     instinct_scores = session["instinct_scores"]
