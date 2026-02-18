@@ -561,27 +561,26 @@ class BackendTester:
             return False
     
     def run_all_tests(self):
-        """Run all P0 fix tests"""
+        """Run all Birth Time handling tests"""
         print("="*80)
-        print("BACKEND P0 FIXES TESTING - STAGING ENVIRONMENT")
+        print("BACKEND BIRTH TIME HANDLING TESTING - STAGING ENVIRONMENT")
         print("="*80)
         print(f"Base URL: {self.base_url}")
         print(f"Test Start Time: {datetime.now().isoformat()}")
         
-        # Run tests in order
+        # Run Birth Time handling tests in order
         test_results = []
         
-        # TEST 1: User Creation Error Handling
-        test_results.append(self.test_user_creation_valid())
-        test_results.append(self.test_user_creation_duplicate_email())
-        test_results.append(self.test_user_creation_invalid_timezone())
-        
-        # TEST 2: Backend Health
+        # Birth Time Tests
+        test_results.append(self.test_birth_time_unknown())
+        test_results.append(self.test_birth_time_known())
+        test_results.append(self.test_user_retrieval_birth_time_known())
+        test_results.append(self.test_invalid_time_format())
         test_results.append(self.test_backend_health())
         
         # Summary
         print("\n" + "="*80)
-        print("TEST SUMMARY")
+        print("BIRTH TIME HANDLING TEST SUMMARY")
         print("="*80)
         
         passed = sum(test_results)
@@ -591,9 +590,9 @@ class BackendTester:
         print(f"Success Rate: {(passed/total)*100:.1f}%")
         
         if passed == total:
-            print("🎉 ALL P0 FIXES VERIFIED SUCCESSFULLY")
+            print("🎉 ALL BIRTH TIME HANDLING TESTS PASSED")
         else:
-            print("⚠️  SOME P0 FIXES NEED ATTENTION")
+            print("⚠️  SOME BIRTH TIME HANDLING TESTS FAILED")
             
         # Detailed results
         print("\nDetailed Results:")
