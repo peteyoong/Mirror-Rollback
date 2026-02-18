@@ -74,6 +74,7 @@ export const EnneagramAssessmentQuestion: React.FC<Props> = ({
   onContinue,
   isSubmitting,
 }) => {
+  const insets = useSafeAreaInsets();
   const isLikert = question.format === 'likert';
   const canContinue = selectedAnswer !== null && !isSubmitting;
   
