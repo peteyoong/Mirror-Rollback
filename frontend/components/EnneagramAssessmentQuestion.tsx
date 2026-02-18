@@ -437,7 +437,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accent,
     paddingVertical: 16,
     borderRadius: 12,
-    marginTop: 24,
   },
   continueButtonDisabled: {
     opacity: 0.4,
