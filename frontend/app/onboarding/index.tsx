@@ -227,7 +227,7 @@ export default function Onboarding() {
       }
     };
     saveProgress();
-  }, [step, name, email, birthDay, birthMonth, birthYear, birthHour, birthMinute, amPm, timezone, locationQuery, selectedLocation]);
+  }, [step, name, email, birthDay, birthMonth, birthYear, birthTimeKnown, birthHour, birthMinute, timezone, locationQuery, selectedLocation]);
 
   // Clear progress after successful submission
   const clearProgress = async () => {
