@@ -16,7 +16,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from frontend environment
-BASE_URL = "https://env-versioner.preview.emergentagent.com/api"
+BASE_URL = "https://cachebuster-2.preview.emergentagent.com/api"
 
 # Test user credentials (from previous test logs)
 TEST_EMAIL = "pete@pulsifi.me"
