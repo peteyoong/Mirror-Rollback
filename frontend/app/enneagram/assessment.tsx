@@ -377,21 +377,55 @@ export default function P2DeepAssessment() {
 
   // Submit answer and get next question
   const handleContinue = useCallback(async () => {
-    if (!user?.id || !sessionId || !currentQuestion || !selectedAnswer) return;
+    // Enhanced debugging for submission issues
+    const debugInfo = {
+      userId: user?.id,
+      sessionId,
+      questionId: currentQuestion?.id,
+      selectedAnswer,
+      progress: progress,
+    };
+    console.log('[P2Assessment] handleContinue called:', JSON.stringify(debugInfo, null, 2));
+    
+    if (!user?.id || !sessionId || !currentQuestion || !selectedAnswer) {
+      console.warn('[P2Assessment] handleContinue blocked - missing required data:', {
+        hasUserId: !!user?.id,
+        hasSessionId: !!sessionId,
+        hasCurrentQuestion: !!currentQuestion,
+        hasSelectedAnswer: !!selectedAnswer,
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
 
     try {
+      console.log('[P2Assessment] Submitting answer:', {
+        questionId: currentQuestion.id,
+        stage: progress?.stage,
+        answeredCount: progress?.questions_answered,
+        totalQuestions: progress?.estimated_total,
+      });
+      
       const response = await submitP2AssessmentAnswer(
         user.id,
         sessionId,
         currentQuestion.id,
         selectedAnswer
       );
+      
+      console.log('[P2Assessment] Server response:', {
+        hasResults: !!response.results,
+        hasQuestion: !!response.question,
+        hasProgress: !!response.progress,
+        newStage: response.progress?.stage,
+        newAnsweredCount: response.progress?.questions_answered,
+      });
 
       if (response.results) {
         // Assessment complete - clear session and show computing screen
+        console.log('[P2Assessment] Assessment COMPLETE - navigating to computing screen');
         await clearSession();
         setResults(response.results);
         setViewState('computing');
@@ -404,6 +438,7 @@ export default function P2DeepAssessment() {
         });
       } else if (response.question) {
         // Next question - update session timestamp (updated_at only)
+        console.log('[P2Assessment] Next question received:', response.question.id);
         setCurrentQuestion(response.question);
         setProgress(response.progress || null);
         setSelectedAnswer(null);
@@ -424,7 +459,8 @@ export default function P2DeepAssessment() {
           stage: response.progress?.stage,
         });
       } else {
-        // Unexpected state
+        // Unexpected state - log details for debugging
+        console.error('[P2Assessment] Unexpected response state:', JSON.stringify(response, null, 2));
         throw new Error('Unexpected response from server');
       }
       
