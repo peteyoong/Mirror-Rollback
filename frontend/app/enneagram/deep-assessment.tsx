@@ -1343,26 +1343,34 @@ const styles = StyleSheet.create({
     color: Colors.background,
   },
   
-  // Debug Panel
+  // Debug Panel - Collapsible, non-blocking
   debugPanel: {
-    marginTop: 24,
-    padding: 12,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: 'rgba(0,0,0,0.85)',
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#FF6B6B',
-    borderStyle: 'dashed',
+    padding: 10,
+    marginTop: 16,
+    marginBottom: 8,
+    marginHorizontal: 4,
+  },
+  debugPanelCollapsed: {
+    padding: 8,
+  },
+  debugHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  debugContent: {
+    marginTop: 8,
   },
   debugTitle: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '600',
     color: '#FF6B6B',
-    marginBottom: 8,
-    letterSpacing: 1,
   },
   debugText: {
-    fontSize: 11,
-    color: '#aaaacc',
+    fontSize: 10,
+    color: '#FF6B6B',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     lineHeight: 16,
   },
