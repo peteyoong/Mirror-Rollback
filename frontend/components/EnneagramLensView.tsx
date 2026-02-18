@@ -1447,7 +1447,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // ============================================
   // DEBUG STAMP DATA (shared between Summary and Deep Dive)
   // ============================================
-  const showDebugStamp = DEBUG_MIRROR_ENV || getUrlDebugParam();
+  // CRITICAL: Debug stamp requires DEBUG_MIRROR_ENV=true AND URL ?debug=1
+  // NEVER visible in production
+  const showDebugStamp = DEBUG_MIRROR_ENV && getUrlDebugParam();
   const debugStampData = {
     // CLIENT INFO
     build_id: BUILD_ID,
@@ -1490,7 +1492,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
     
     return (
       <>
-        {/* DEBUG STAMP - visible with ?debug=1 */}
+        {/* DEBUG STAMP - visible ONLY when DEBUG_MIRROR=true AND ?debug=1 */}
         {renderDebugStamp()}
         
         {/* Hero Card */}
