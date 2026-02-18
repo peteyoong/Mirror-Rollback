@@ -1,281 +1,326 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend Testing Script for "Today" Endpoints
-
-This script performs detailed testing of the three "Today" endpoints to verify:
-1. They return `"title": "Today"` (not "Today's Snapshot")
-2. Response structure is valid JSON
-3. All required fields are present
-4. Response times are reasonable
+Backend Testing for P0 Fixes - STAGING Environment
+Testing specific fixes for user creation error handling and backend health
 """
 
-import asyncio
-import aiohttp
+import requests
 import json
-import sys
+import time
 from datetime import datetime
+from typing import Dict, Any, Optional
 
-# Backend URL from frontend environment
+# Base URL for staging environment
 BASE_URL = "https://cachebuster-2.preview.emergentagent.com/api"
 
-# Test user credentials (from previous test logs)
-TEST_EMAIL = "pete@pulsifi.me"
-
-class ComprehensiveTodayTester:
+class BackendTester:
     def __init__(self):
-        self.session = None
-        self.test_user_id = None
+        self.base_url = BASE_URL
+        self.session = requests.Session()
+        self.session.headers.update({
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        })
+        self.test_results = []
         
-    async def __aenter__(self):
-        self.session = aiohttp.ClientSession()
-        return self
+    def log_test(self, test_name: str, success: bool, details: Dict[str, Any]):
+        """Log test results"""
+        result = {
+            'test_name': test_name,
+            'success': success,
+            'timestamp': datetime.now().isoformat(),
+            'details': details
+        }
+        self.test_results.append(result)
         
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self.session:
-            await self.session.close()
-    
-    async def get_test_user_id(self):
-        """Get a test user ID by logging in with known credentials"""
-        print(f"🔍 Getting test user ID via login...")
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"\n{status} {test_name}")
+        if details.get('error'):
+            print(f"   Error: {details['error']}")
+        if details.get('response_data'):
+            print(f"   Response: {json.dumps(details['response_data'], indent=2)}")
         
-        login_url = f"{BASE_URL}/users/login"
-        login_payload = {"email": TEST_EMAIL}
-        
-        try:
-            async with self.session.post(login_url, json=login_payload) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    user_id = data.get("user", {}).get("id")
-                    if user_id:
-                        print(f"✅ Successfully retrieved test user ID: {user_id}")
-                        return user_id
-                    else:
-                        print(f"❌ Login successful but no user ID found in response")
-                        return None
-                else:
-                    print(f"❌ Login failed with status {response.status}")
-                    error_text = await response.text()
-                    print(f"   Error: {error_text}")
-                    return None
-                    
-        except Exception as e:
-            print(f"❌ Login request failed: {e}")
-            return None
-    
-    def validate_response_structure(self, data, endpoint_name):
-        """Validate the response structure for today endpoints"""
-        issues = []
-        
-        # Check required fields
-        if "title" not in data:
-            issues.append("Missing 'title' field")
-        elif data["title"] != "Today":
-            issues.append(f"Title is '{data['title']}' instead of 'Today'")
-            
-        if "date" not in data:
-            issues.append("Missing 'date' field")
-        elif not isinstance(data["date"], str):
-            issues.append("Date field is not a string")
-            
-        if "sections" not in data:
-            issues.append("Missing 'sections' field")
-        elif not isinstance(data["sections"], list):
-            issues.append("Sections field is not a list")
-        elif len(data["sections"]) == 0:
-            issues.append("Sections array is empty")
-        else:
-            # Validate section structure
-            for i, section in enumerate(data["sections"]):
-                if not isinstance(section, dict):
-                    issues.append(f"Section {i} is not a dict")
-                    continue
-                if "label" not in section:
-                    issues.append(f"Section {i} missing 'label' field")
-                if "body" not in section:
-                    issues.append(f"Section {i} missing 'body' field")
-        
-        # Check optional fields
-        if "mirror_prompt" in data and not isinstance(data["mirror_prompt"], str):
-            issues.append("Mirror prompt is not a string")
-            
-        return issues
-    
-    async def test_endpoint_comprehensive(self, endpoint_name, url):
-        """Comprehensive test of a single today endpoint"""
-        print(f"\n🧪 Testing {endpoint_name} endpoint (comprehensive)...")
-        print(f"   URL: {url}")
+    def test_backend_health(self):
+        """TEST 2: Verify Backend Health"""
+        print("\n" + "="*60)
+        print("TEST 2: Backend Health Check")
+        print("="*60)
         
         try:
-            start_time = datetime.now()
-            async with self.session.get(url) as response:
-                end_time = datetime.now()
-                response_time = (end_time - start_time).total_seconds()
-                
-                print(f"   Status: {response.status}")
-                print(f"   Response time: {response_time:.2f}s")
-                
-                if response.status == 200:
-                    try:
-                        data = await response.json()
-                        
-                        # Basic title check
-                        actual_title = data.get("title")
-                        print(f"   Title: '{actual_title}'")
-                        
-                        # Comprehensive structure validation
-                        structure_issues = self.validate_response_structure(data, endpoint_name)
-                        
-                        if not structure_issues:
-                            print(f"   ✅ PASS: All validations successful")
-                            
-                            # Print additional details
-                            print(f"   📋 Response details:")
-                            print(f"      - Date: {data.get('date')}")
-                            print(f"      - Sections count: {len(data.get('sections', []))}")
-                            if data.get('mirror_prompt'):
-                                print(f"      - Mirror prompt: '{data['mirror_prompt'][:50]}...'")
-                            
-                            # Print section labels
-                            sections = data.get('sections', [])
-                            if sections:
-                                print(f"      - Section labels: {[s.get('label') for s in sections]}")
-                            
-                            return True, {
-                                "status": "PASS",
-                                "title": actual_title,
-                                "response_time": response_time,
-                                "status_code": response.status,
-                                "sections_count": len(sections),
-                                "date": data.get('date'),
-                                "has_mirror_prompt": bool(data.get('mirror_prompt'))
-                            }
-                        else:
-                            print(f"   ❌ FAIL: Structure validation issues")
-                            for issue in structure_issues:
-                                print(f"      • {issue}")
-                            return False, {
-                                "status": "FAIL",
-                                "error": f"Structure issues: {'; '.join(structure_issues)}",
-                                "response_time": response_time,
-                                "status_code": response.status,
-                                "title": actual_title
-                            }
-                            
-                    except json.JSONDecodeError as e:
-                        print(f"   ❌ FAIL: Invalid JSON response")
-                        response_text = await response.text()
-                        print(f"   Response text: {response_text[:200]}...")
-                        return False, {
-                            "status": "FAIL",
-                            "error": f"JSON decode error: {e}",
-                            "response_time": response_time,
-                            "status_code": response.status
-                        }
-                        
-                else:
-                    error_text = await response.text()
-                    print(f"   ❌ FAIL: HTTP {response.status}")
-                    print(f"   Error: {error_text[:200]}...")
-                    return False, {
-                        "status": "FAIL",
-                        "error": f"HTTP {response.status}: {error_text[:100]}",
-                        "response_time": response_time,
-                        "status_code": response.status
-                    }
-                    
-        except Exception as e:
-            print(f"   ❌ FAIL: Request exception")
-            print(f"   Exception: {e}")
-            return False, {
-                "status": "FAIL",
-                "error": f"Request exception: {e}"
-            }
-    
-    async def run_comprehensive_tests(self):
-        """Run comprehensive tests on all today endpoints"""
-        print("=" * 80)
-        print("🚀 COMPREHENSIVE TODAY ENDPOINTS TESTING")
-        print("=" * 80)
-        
-        # Get test user ID
-        self.test_user_id = await self.get_test_user_id()
-        if not self.test_user_id:
-            print("\n❌ CRITICAL: Cannot proceed without test user ID")
-            return False
-        
-        # Define test endpoints
-        test_cases = [
-            {
-                "name": "Astrology Today",
-                "url": f"{BASE_URL}/astrology/today/{self.test_user_id}"
-            },
-            {
-                "name": "Human Design Today", 
-                "url": f"{BASE_URL}/human-design/today/{self.test_user_id}"
-            },
-            {
-                "name": "Numerology Today",
-                "url": f"{BASE_URL}/numerology/today/{self.test_user_id}"
-            }
-        ]
-        
-        # Run tests
-        results = {}
-        all_passed = True
-        
-        for test_case in test_cases:
-            passed, result = await self.test_endpoint_comprehensive(
-                test_case["name"],
-                test_case["url"]
-            )
-            results[test_case["name"]] = result
-            if not passed:
-                all_passed = False
-        
-        # Print comprehensive summary
-        print("\n" + "=" * 80)
-        print("📊 COMPREHENSIVE TEST RESULTS")
-        print("=" * 80)
-        
-        for test_name, result in results.items():
-            status_icon = "✅" if result["status"] == "PASS" else "❌"
-            print(f"\n{status_icon} {test_name}: {result['status']}")
+            response = self.session.get(f"{self.base_url}/health", timeout=10)
             
-            if result["status"] == "PASS":
-                print(f"   ✓ Title: '{result['title']}'")
-                print(f"   ✓ Response time: {result['response_time']:.2f}s")
-                print(f"   ✓ Sections count: {result['sections_count']}")
-                print(f"   ✓ Date: {result['date']}")
-                print(f"   ✓ Has mirror prompt: {result['has_mirror_prompt']}")
+            details = {
+                'status_code': response.status_code,
+                'response_time': response.elapsed.total_seconds(),
+                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+            }
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_checks = {
+                    'env_is_staging': data.get('env') == 'staging',
+                    'db_type_present': 'db_type' in data and data['db_type'] is not None,
+                    'build_version_present': 'build_version' in data and data['build_version'] is not None
+                }
+                
+                details['validation_checks'] = required_checks
+                details['env_value'] = data.get('env')
+                details['db_type_value'] = data.get('db_type')
+                details['build_version_value'] = data.get('build_version')
+                
+                all_checks_pass = all(required_checks.values())
+                
+                self.log_test("Backend Health Check", all_checks_pass, details)
+                return all_checks_pass
             else:
-                print(f"   ✗ Error: {result.get('error', 'Unknown error')}")
-                if 'title' in result:
-                    print(f"   ✗ Got title: '{result['title']}'")
+                details['error'] = f"Unexpected status code: {response.status_code}"
+                self.log_test("Backend Health Check", False, details)
+                return False
+                
+        except Exception as e:
+            details = {'error': str(e)}
+            self.log_test("Backend Health Check", False, details)
+            return False
+    
+    def test_user_creation_valid(self):
+        """TEST 1a: Create user with valid data"""
+        print("\n" + "="*60)
+        print("TEST 1a: User Creation - Valid Data")
+        print("="*60)
         
-        print(f"\n🎯 FINAL RESULT: {'✅ ALL TESTS PASSED' if all_passed else '❌ SOME TESTS FAILED'}")
+        # Create unique email with timestamp
+        timestamp = int(time.time())
+        test_payload = {
+            "name": "Test User P0",
+            "email": f"unique-test-{timestamp}@example.com",
+            "birth_date": "1990-01-15",
+            "birth_time": "10:30",
+            "city": "Kuala Lumpur",
+            "country": "Malaysia",
+            "timezone": "Asia/Kuala_Lumpur",
+            "latitude": 3.139,
+            "longitude": 101.6869
+        }
         
-        if all_passed:
-            print("\n🎉 SUCCESS: All 'Today' endpoints return correct title 'Today'")
-            print("   ✓ Astrology Today endpoint: title = 'Today'")
-            print("   ✓ Human Design Today endpoint: title = 'Today'") 
-            print("   ✓ Numerology Today endpoint: title = 'Today'")
+        try:
+            response = self.session.post(f"{self.base_url}/users", 
+                                       json=test_payload, 
+                                       timeout=15)
+            
+            details = {
+                'status_code': response.status_code,
+                'response_time': response.elapsed.total_seconds(),
+                'payload': test_payload,
+                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+            }
+            
+            success = response.status_code == 200
+            if success:
+                data = response.json()
+                # Store email for duplicate test
+                self.test_email = test_payload['email']
+                details['user_created'] = True
+                details['user_id'] = data.get('user', {}).get('id') if isinstance(data.get('user'), dict) else None
+            else:
+                details['error'] = f"Expected 200, got {response.status_code}"
+                
+            self.log_test("User Creation - Valid Data", success, details)
+            return success
+            
+        except Exception as e:
+            details = {'error': str(e), 'payload': test_payload}
+            self.log_test("User Creation - Valid Data", False, details)
+            return False
+    
+    def test_user_creation_duplicate_email(self):
+        """TEST 1b: Create user with duplicate email"""
+        print("\n" + "="*60)
+        print("TEST 1b: User Creation - Duplicate Email")
+        print("="*60)
+        
+        if not hasattr(self, 'test_email'):
+            print("   Skipping: No test email from previous test")
+            return False
+            
+        # Use the same email from the previous test
+        test_payload = {
+            "name": "Duplicate Test User",
+            "email": self.test_email,  # Same email as before
+            "birth_date": "1985-05-20",
+            "birth_time": "14:15",
+            "city": "Singapore",
+            "country": "Singapore",
+            "timezone": "Asia/Singapore",
+            "latitude": 1.3521,
+            "longitude": 103.8198
+        }
+        
+        try:
+            response = self.session.post(f"{self.base_url}/users", 
+                                       json=test_payload, 
+                                       timeout=15)
+            
+            details = {
+                'status_code': response.status_code,
+                'response_time': response.elapsed.total_seconds(),
+                'payload': test_payload,
+                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+            }
+            
+            if response.status_code == 400:
+                data = response.json()
+                
+                # Check for required error structure
+                required_fields = {
+                    'error_present': 'error' in data,
+                    'message_present': 'message' in data,
+                    'field_present': 'field' in data,
+                    'error_is_validation': data.get('error') == 'VALIDATION_ERROR',
+                    'field_is_email': data.get('field') == 'email',
+                    'message_contains_registered': 'already registered' in data.get('message', '').lower()
+                }
+                
+                details['validation_checks'] = required_fields
+                details['error_value'] = data.get('error')
+                details['message_value'] = data.get('message')
+                details['field_value'] = data.get('field')
+                
+                success = all(required_fields.values())
+                
+                if not success:
+                    details['error'] = "Response structure doesn't match expected validation error format"
+                    
+            else:
+                success = False
+                details['error'] = f"Expected 400 status code, got {response.status_code}"
+                
+            self.log_test("User Creation - Duplicate Email", success, details)
+            return success
+            
+        except Exception as e:
+            details = {'error': str(e), 'payload': test_payload}
+            self.log_test("User Creation - Duplicate Email", False, details)
+            return False
+    
+    def test_user_creation_invalid_timezone(self):
+        """TEST 1c: Create user with invalid timezone"""
+        print("\n" + "="*60)
+        print("TEST 1c: User Creation - Invalid Timezone")
+        print("="*60)
+        
+        # Create unique email with timestamp
+        timestamp = int(time.time())
+        test_payload = {
+            "name": "Invalid Timezone User",
+            "email": f"invalid-tz-test-{timestamp}@example.com",
+            "birth_date": "1992-03-10",
+            "birth_time": "09:45",
+            "city": "London",
+            "country": "United Kingdom",
+            "timezone": "Invalid/Timezone",  # Invalid timezone
+            "latitude": 51.5074,
+            "longitude": -0.1278
+        }
+        
+        try:
+            response = self.session.post(f"{self.base_url}/users", 
+                                       json=test_payload, 
+                                       timeout=15)
+            
+            details = {
+                'status_code': response.status_code,
+                'response_time': response.elapsed.total_seconds(),
+                'payload': test_payload,
+                'response_data': response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+            }
+            
+            # Should return 400 with validation error
+            if response.status_code == 400:
+                data = response.json()
+                
+                # Check that it's a proper JSON validation error (not 520)
+                validation_checks = {
+                    'is_json_response': response.headers.get('content-type', '').startswith('application/json'),
+                    'has_error_field': 'error' in data,
+                    'not_520_error': response.status_code != 520
+                }
+                
+                details['validation_checks'] = validation_checks
+                success = all(validation_checks.values())
+                
+                if not success:
+                    details['error'] = "Response is not proper JSON validation error"
+                    
+            else:
+                success = False
+                details['error'] = f"Expected 400 status code for invalid timezone, got {response.status_code}"
+                
+            self.log_test("User Creation - Invalid Timezone", success, details)
+            return success
+            
+        except Exception as e:
+            details = {'error': str(e), 'payload': test_payload}
+            self.log_test("User Creation - Invalid Timezone", False, details)
+            return False
+    
+    def run_all_tests(self):
+        """Run all P0 fix tests"""
+        print("="*80)
+        print("BACKEND P0 FIXES TESTING - STAGING ENVIRONMENT")
+        print("="*80)
+        print(f"Base URL: {self.base_url}")
+        print(f"Test Start Time: {datetime.now().isoformat()}")
+        
+        # Run tests in order
+        test_results = []
+        
+        # TEST 1: User Creation Error Handling
+        test_results.append(self.test_user_creation_valid())
+        test_results.append(self.test_user_creation_duplicate_email())
+        test_results.append(self.test_user_creation_invalid_timezone())
+        
+        # TEST 2: Backend Health
+        test_results.append(self.test_backend_health())
+        
+        # Summary
+        print("\n" + "="*80)
+        print("TEST SUMMARY")
+        print("="*80)
+        
+        passed = sum(test_results)
+        total = len(test_results)
+        
+        print(f"Tests Passed: {passed}/{total}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%")
+        
+        if passed == total:
+            print("🎉 ALL P0 FIXES VERIFIED SUCCESSFULLY")
         else:
-            print("\n🔧 ISSUES FOUND:")
-            for test_name, result in results.items():
-                if result["status"] == "FAIL":
-                    print(f"   • {test_name}: {result.get('error', 'Failed')}")
+            print("⚠️  SOME P0 FIXES NEED ATTENTION")
+            
+        # Detailed results
+        print("\nDetailed Results:")
+        for result in self.test_results:
+            status = "✅" if result['success'] else "❌"
+            print(f"  {status} {result['test_name']}")
+            if not result['success'] and result['details'].get('error'):
+                print(f"     Error: {result['details']['error']}")
         
-        return all_passed
+        return passed == total
 
-
-async def main():
-    """Main test execution function"""
-    async with ComprehensiveTodayTester() as tester:
-        success = await tester.run_comprehensive_tests()
-        
-    # Exit with appropriate code
-    sys.exit(0 if success else 1)
-
+def main():
+    """Main test execution"""
+    tester = BackendTester()
+    success = tester.run_all_tests()
+    
+    if success:
+        print(f"\n✅ All P0 fixes verified successfully in STAGING environment")
+        exit(0)
+    else:
+        print(f"\n❌ Some P0 fixes failed verification")
+        exit(1)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
