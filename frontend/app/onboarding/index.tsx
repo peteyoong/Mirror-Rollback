@@ -765,7 +765,7 @@ export default function Onboarding() {
           <TouchableOpacity
             style={[
               styles.segmentButton,
-              !birthTimeKnown && styles.segmentButtonActive
+              birthTimeKnown === false && styles.segmentButtonActive
             ]}
             onPress={() => {
               setBirthTimeKnown(false);
@@ -776,26 +776,32 @@ export default function Onboarding() {
           >
             <Text style={[
               styles.segmentText,
-              !birthTimeKnown && styles.segmentTextActive
+              birthTimeKnown === false && styles.segmentTextActive
             ]}>I don't know</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
               styles.segmentButton,
-              birthTimeKnown && styles.segmentButtonActive
+              birthTimeKnown === true && styles.segmentButtonActive
             ]}
-            onPress={() => setBirthTimeKnown(true)}
+            onPress={() => {
+              setBirthTimeKnown(true);
+              setFieldErrors(prev => ({ ...prev, birthTime: '' }));
+            }}
           >
             <Text style={[
               styles.segmentText,
-              birthTimeKnown && styles.segmentTextActive
+              birthTimeKnown === true && styles.segmentTextActive
             ]}>I know my time</Text>
           </TouchableOpacity>
         </View>
+        {birthTimeKnown === null && (
+          <Text style={styles.microcopy}>Please select one option.</Text>
+        )}
       </View>
 
       {/* Birth Time Input (24-hour format) - Only shown when known */}
-      {birthTimeKnown && (
+      {birthTimeKnown === true && (
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Birth Time (24-hour format)</Text>
           <View style={styles.timeRow}>
