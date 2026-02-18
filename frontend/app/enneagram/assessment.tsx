@@ -55,9 +55,8 @@ import { EnneagramAssessmentIntro } from '../../components/EnneagramAssessmentIn
 import { EnneagramAssessmentQuestion } from '../../components/EnneagramAssessmentQuestion';
 import { EnneagramAssessmentProgress } from '../../components/EnneagramAssessmentProgress';
 import { EnneagramAssessmentComputing } from '../../components/EnneagramAssessmentComputing';
-
-// Debug flag
-const DEBUG_MIRROR = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
+import { DebugDrawer } from '../../components/DebugDrawer';
+import { DEBUG_MIRROR_ENV, DEBUG_TAP_THRESHOLD, getUrlDebugParam } from '../../utils/debugUtils';
 
 // Session storage key
 const SESSION_STORAGE_KEY = 'enneagram_deep_assessment_session';
@@ -110,8 +109,10 @@ export default function P2DeepAssessment() {
   const params = useLocalSearchParams();
   const { user } = useAppStore();
 
-  // Check for debug mode from URL param
-  const isDebugMode = DEBUG_MIRROR || params.debug === '1' || params.debug === 'true';
+  // Debug gesture activation state (for mobile)
+  const [debugGestureActivated, setDebugGestureActivated] = useState(false);
+  const [debugTapCount, setDebugTapCount] = useState(0);
+  const debugTapTimer = useRef<NodeJS.Timeout | null>(null);
 
   // State
   const [viewState, setViewState] = useState<ViewState>('loading');  // Start with loading to check session
