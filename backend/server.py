@@ -132,16 +132,32 @@ async def health_check():
     }
 
 # Build version endpoint for frontend cache-busting
+# CRITICAL: Must never be cached by browsers or proxies
 @app.get("/api/build-version")
 async def get_build_version():
-    """Returns current build version for frontend cache validation."""
+    """Returns current build version for frontend cache validation.
+    
+    Response headers ensure this is NEVER cached:
+    - Cache-Control: no-store prevents all caching
+    - Pragma: no-cache for HTTP/1.0 compatibility
+    """
+    from fastapi.responses import JSONResponse
+    
     build_id = os.environ.get("BUILD_ID", os.environ.get("EXPO_PUBLIC_BUILD_ID", "unknown"))
     build_version = os.environ.get("BUILD_LABEL", os.environ.get("EXPO_PUBLIC_BUILD_VERSION", "dev"))
-    return {
-        "build_id": build_id,
-        "build_version": build_version,
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
+    
+    return JSONResponse(
+        content={
+            "build_id": build_id,
+            "build_version": build_version,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        },
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
 
 # =====================================================
 # BUILD VERIFICATION ENDPOINT
