@@ -86,7 +86,7 @@ interface Props {
 
 type TabType = 'summary' | 'today' | 'deep_dive';
 
-const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }, ref) => {
+const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, user, onOpenChat }, ref) => {
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [data, setData] = useState<HumanDesignData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,6 +97,10 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat
   const [showSiderealInfo, setShowSiderealInfo] = useState(false);
   
   // Router for navigation
+  const router = useRouter();
+  
+  // Check if birth time is known
+  const hasBirthTime = hasKnownBirthTime(user);
   const router = useRouter();
   
   // Debug: track raw API response length
