@@ -72,8 +72,15 @@ interface HumanDesignData {
   };
 }
 
+interface UserInfo {
+  id: string;
+  birth_time?: string | null;
+  birth_time_known?: boolean | null;
+}
+
 interface Props {
   userId: string;
+  user?: UserInfo;  // Optional user object for birth time checks
   onOpenChat: () => void;
 }
 
