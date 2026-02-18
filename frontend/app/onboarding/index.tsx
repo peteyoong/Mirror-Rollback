@@ -733,57 +733,101 @@ export default function Onboarding() {
         <Text style={styles.microcopy}>Used to calculate your lenses. Stored privately.</Text>
       </View>
 
-      {/* Birth Time (Optional) */}
+      {/* Birth Time Known Toggle */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Birth Time (optional)</Text>
-        <View style={styles.timeRow}>
-          <View style={styles.timeInputContainer}>
-            <TextInput
-              ref={hourInputRef}
-              style={styles.timeInputLarge}
-              value={birthHour}
-              onChangeText={(text) => setBirthHour(text.replace(/[^0-9]/g, '').slice(0, 2))}
-              placeholder="HH"
-              placeholderTextColor={Colors.textTertiary}
-              keyboardType="number-pad"
-              maxLength={2}
-              returnKeyType="next"
-              onSubmitEditing={() => minuteInputRef.current?.focus()}
-            />
-            <Text style={styles.timeLabelBelow}>Hour</Text>
-          </View>
-          <Text style={styles.timeSeparator}>:</Text>
-          <View style={styles.timeInputContainer}>
-            <TextInput
-              ref={minuteInputRef}
-              style={styles.timeInputLarge}
-              value={birthMinute}
-              onChangeText={(text) => setBirthMinute(text.replace(/[^0-9]/g, '').slice(0, 2))}
-              placeholder="MM"
-              placeholderTextColor={Colors.textTertiary}
-              keyboardType="number-pad"
-              maxLength={2}
-              returnKeyType="done"
-            />
-            <Text style={styles.timeLabelBelow}>Min</Text>
-          </View>
-          <View style={styles.amPmContainer}>
-            <TouchableOpacity
-              style={[styles.amPmButton, amPm === 'AM' && styles.amPmButtonActive]}
-              onPress={() => setAmPm('AM')}
-            >
-              <Text style={[styles.amPmText, amPm === 'AM' && styles.amPmTextActive]}>AM</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.amPmButton, amPm === 'PM' && styles.amPmButtonActive]}
-              onPress={() => setAmPm('PM')}
-            >
-              <Text style={[styles.amPmText, amPm === 'PM' && styles.amPmTextActive]}>PM</Text>
-            </TouchableOpacity>
-          </View>
+        <Text style={styles.label}>Do you know your birth time? *</Text>
+        <View style={styles.segmentedControl}>
+          <TouchableOpacity
+            style={[
+              styles.segmentButton,
+              !birthTimeKnown && styles.segmentButtonActive
+            ]}
+            onPress={() => {
+              setBirthTimeKnown(false);
+              setBirthHour('');
+              setBirthMinute('');
+              setFieldErrors(prev => ({ ...prev, birthTime: '' }));
+            }}
+          >
+            <Text style={[
+              styles.segmentText,
+              !birthTimeKnown && styles.segmentTextActive
+            ]}>I don't know</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.segmentButton,
+              birthTimeKnown && styles.segmentButtonActive
+            ]}
+            onPress={() => setBirthTimeKnown(true)}
+          >
+            <Text style={[
+              styles.segmentText,
+              birthTimeKnown && styles.segmentTextActive
+            ]}>I know my time</Text>
+          </TouchableOpacity>
         </View>
-        <Text style={styles.hint}>If unknown, we'll use noon as a neutral time.</Text>
       </View>
+
+      {/* Birth Time Input (24-hour format) - Only shown when known */}
+      {birthTimeKnown && (
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Birth Time (24-hour format)</Text>
+          <View style={styles.timeRow}>
+            <View style={styles.timeInputContainer}>
+              <TextInput
+                ref={hourInputRef}
+                style={[styles.timeInputLarge, fieldErrors.birthTime ? styles.inputError : null]}
+                value={birthHour}
+                onChangeText={(text) => {
+                  const cleaned = text.replace(/[^0-9]/g, '').slice(0, 2);
+                  setBirthHour(cleaned);
+                  if (fieldErrors.birthTime) setFieldErrors(prev => ({ ...prev, birthTime: '' }));
+                }}
+                placeholder="HH"
+                placeholderTextColor={Colors.textTertiary}
+                keyboardType="number-pad"
+                maxLength={2}
+                returnKeyType="next"
+                onSubmitEditing={() => minuteInputRef.current?.focus()}
+              />
+              <Text style={styles.timeLabelBelow}>Hour (0-23)</Text>
+            </View>
+            <Text style={styles.timeSeparator}>:</Text>
+            <View style={styles.timeInputContainer}>
+              <TextInput
+                ref={minuteInputRef}
+                style={[styles.timeInputLarge, fieldErrors.birthTime ? styles.inputError : null]}
+                value={birthMinute}
+                onChangeText={(text) => {
+                  const cleaned = text.replace(/[^0-9]/g, '').slice(0, 2);
+                  setBirthMinute(cleaned);
+                  if (fieldErrors.birthTime) setFieldErrors(prev => ({ ...prev, birthTime: '' }));
+                }}
+                placeholder="MM"
+                placeholderTextColor={Colors.textTertiary}
+                keyboardType="number-pad"
+                maxLength={2}
+                returnKeyType="done"
+              />
+              <Text style={styles.timeLabelBelow}>Min (0-59)</Text>
+            </View>
+          </View>
+          {fieldErrors.birthTime ? (
+            <Text style={styles.fieldError}>{fieldErrors.birthTime}</Text>
+          ) : null}
+          <Text style={styles.hint}>e.g., 07:25 = 7:25 AM, 19:40 = 7:40 PM</Text>
+        </View>
+      )}
+
+      {/* Helper text for unknown time */}
+      {!birthTimeKnown && (
+        <View style={styles.unknownTimeInfo}>
+          <Text style={styles.unknownTimeText}>
+            You can add your birth time later to unlock Human Design and exact house placements.
+          </Text>
+        </View>
+      )}
 
       {/* Timezone - Read-only with Change button */}
       <View style={styles.inputGroup}>
