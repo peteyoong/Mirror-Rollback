@@ -42,9 +42,8 @@ import {
   DeepAssessmentResponse,
   DeepAssessmentResult,
 } from '../../services/api';
-
-// Debug mode flag
-const DEBUG_MIRROR = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
+import { DebugDrawer } from '../../components/DebugDrawer';
+import { DEBUG_MIRROR_ENV, DEBUG_TAP_THRESHOLD, getUrlDebugParam } from '../../utils/debugUtils';
 
 // AsyncStorage key for session persistence
 const DEEP_SESSION_KEY = 'DEEP_ENNEAGRAM_SESSION_ID';
