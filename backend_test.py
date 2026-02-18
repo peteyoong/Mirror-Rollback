@@ -138,30 +138,24 @@ class EnneagramDeepAssessmentTester:
         return session_id
     
     async def test_2_submit_answers_until_completion(self, session_id: str) -> Optional[Dict]:
-        """Test 2: Submit Multiple Answers Until Assessment Completion"""
+        """Test 2: Complete Full Assessment (Review Request Test 3)"""
         print("🧪 TEST 2: Submitting Answers Until Assessment Completion")
         
         answers_submitted = 0
         max_answers = 70  # Safety limit (should complete around 58)
         results = None
         
+        # Get first question by restarting session
+        payload = {"user_id": TEST_USER_ID}
+        status, response = await self.make_request("POST", "/enneagram/deep-assessment/start", payload)
+        if status != 200 or "question" not in response:
+            self.log_test("Get First Question", "FAIL", f"Could not get first question: {response}", response)
+            return None
+        
+        session_id = response["session_id"]  # Update session_id
+        current_question = response["question"]
+        
         while answers_submitted < max_answers:
-            # Get current question by submitting a dummy answer first to see what question we're on
-            # Actually, let's start by getting the first question from start response
-            if answers_submitted == 0:
-                # We need to get the first question - let's restart to get it
-                payload = {"user_id": TEST_USER_ID}
-                status, response = await self.make_request("POST", "/enneagram/deep-assessment/start", payload)
-                if status != 200 or "question" not in response:
-                    self.log_test("Get First Question", "FAIL", f"Could not get first question: {response}", response)
-                    return None
-                
-                session_id = response["session_id"]  # Update session_id
-                current_question = response["question"]
-            else:
-                # For subsequent questions, we'll get them from the previous answer response
-                pass
-            
             # Submit answer for current question
             question_id = current_question["id"]
             
@@ -188,6 +182,11 @@ class EnneagramDeepAssessmentTester:
             status, response = await self.make_request("POST", "/enneagram/deep-assessment/answer", answer_payload)
             answers_submitted += 1
             
+            # CRITICAL VERIFICATION: Check for 520/HTML errors (Review Request requirement)
+            if status == 520:
+                self.log_test("Submit Answers", "FAIL", f"❌ CRITICAL: 520 error detected (should always return JSON)", response)
+                return None
+            
             if status != 200:
                 # Check if this is the MongoDB error we're testing for
                 error_detail = response.get("detail", "")
@@ -197,6 +196,11 @@ class EnneagramDeepAssessmentTester:
                 else:
                     self.log_test("Submit Answers", "FAIL", f"HTTP {status} after {answers_submitted} answers: {error_detail}", response)
                     return None
+            
+            # Verify response is JSON, not HTML
+            if isinstance(response, dict) and "error" in response and "Invalid JSON response" in str(response.get("error", "")):
+                self.log_test("Submit Answers", "FAIL", f"❌ CRITICAL: Received HTML instead of JSON after {answers_submitted} answers", response)
+                return None
             
             # Check if assessment is complete
             if "results" in response:
