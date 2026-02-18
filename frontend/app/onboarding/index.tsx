@@ -10,6 +10,8 @@ import {
   Platform,
   ActivityIndicator,
   FlatList,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -24,6 +26,25 @@ const ONBOARDING_PROGRESS_KEY = 'mirror_onboarding_progress';
 
 // Default timezone fallback
 const DEFAULT_TIMEZONE = 'Asia/Kuala_Lumpur';
+
+// Curated timezone list for selector
+const COMMON_TIMEZONES = [
+  { label: 'Kuala Lumpur / Singapore', value: 'Asia/Kuala_Lumpur' },
+  { label: 'Singapore', value: 'Asia/Singapore' },
+  { label: 'Jakarta', value: 'Asia/Jakarta' },
+  { label: 'Bangkok', value: 'Asia/Bangkok' },
+  { label: 'Hong Kong', value: 'Asia/Hong_Kong' },
+  { label: 'Tokyo', value: 'Asia/Tokyo' },
+  { label: 'Shanghai', value: 'Asia/Shanghai' },
+  { label: 'Dubai', value: 'Asia/Dubai' },
+  { label: 'Mumbai', value: 'Asia/Kolkata' },
+  { label: 'London', value: 'Europe/London' },
+  { label: 'Paris / Berlin', value: 'Europe/Paris' },
+  { label: 'New York', value: 'America/New_York' },
+  { label: 'Los Angeles', value: 'America/Los_Angeles' },
+  { label: 'Sydney', value: 'Australia/Sydney' },
+  { label: 'UTC', value: 'UTC' },
+];
 
 interface Location {
   city: string;
@@ -52,13 +73,26 @@ interface OnboardingProgress {
 const detectTimezone = (): string => {
   try {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (tz && tz.length > 0) {
+    if (tz && tz.length > 0 && isValidTimezone(tz)) {
       return tz;
     }
   } catch (e) {
     console.log('[Onboarding] Timezone detection failed:', e);
   }
   return DEFAULT_TIMEZONE;
+};
+
+// Validate timezone format: Region/City pattern or UTC/GMT or offset
+const isValidTimezone = (tz: string): boolean => {
+  if (!tz || !tz.trim()) return false;
+  const trimmed = tz.trim();
+  // IANA format: Region/City
+  const ianaPattern = /^[A-Za-z_]+\/[A-Za-z0-9_\-]+$/;
+  // Offset format: +08:00 or -05:30
+  const offsetPattern = /^[+-]\d{2}:\d{2}$/;
+  // Special cases
+  if (trimmed === 'UTC' || trimmed === 'GMT') return true;
+  return ianaPattern.test(trimmed) || offsetPattern.test(trimmed);
 };
 
 // Validate email format
@@ -122,6 +156,7 @@ export default function Onboarding() {
   const [birthMinute, setBirthMinute] = useState('');
   const [amPm, setAmPm] = useState<'AM' | 'PM'>('AM');
   const [timezone, setTimezone] = useState(detectTimezone());
+  const [showTimezoneModal, setShowTimezoneModal] = useState(false);
   const [locationQuery, setLocationQuery] = useState('');
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -155,7 +190,9 @@ export default function Onboarding() {
           setBirthHour(progress.birthHour || '');
           setBirthMinute(progress.birthMinute || '');
           setAmPm(progress.amPm || 'AM');
-          setTimezone(progress.timezone || detectTimezone());
+          // Validate saved timezone
+          const savedTz = progress.timezone || detectTimezone();
+          setTimezone(isValidTimezone(savedTz) ? savedTz : detectTimezone());
           setLocationQuery(progress.locationQuery || '');
           setSelectedLocation(progress.selectedLocation || null);
         }
@@ -298,12 +335,21 @@ export default function Onboarding() {
   };
 
   const validateStep3 = (): boolean => {
-    const validation = isValidBirthDate(birthDay, birthMonth, birthYear);
-    if (!validation.valid) {
-      setFieldErrors(prev => ({ ...prev, birthDate: validation.error || 'Invalid date.' }));
+    // Validate birth date
+    const dateValidation = isValidBirthDate(birthDay, birthMonth, birthYear);
+    if (!dateValidation.valid) {
+      setFieldErrors(prev => ({ ...prev, birthDate: dateValidation.error || 'Invalid date.' }));
       return false;
     }
     setFieldErrors(prev => ({ ...prev, birthDate: '' }));
+    
+    // Validate timezone
+    if (!isValidTimezone(timezone)) {
+      setFieldErrors(prev => ({ ...prev, timezone: 'Please select a valid timezone.' }));
+      return false;
+    }
+    setFieldErrors(prev => ({ ...prev, timezone: '' }));
+    
     return true;
   };
 
@@ -324,7 +370,7 @@ export default function Onboarding() {
       case 2:
         return isValidEmail(email.trim());
       case 3:
-        return isValidBirthDate(birthDay, birthMonth, birthYear).valid;
+        return isValidBirthDate(birthDay, birthMonth, birthYear).valid && isValidTimezone(timezone);
       case 4:
         return selectedLocation !== null;
       default:
@@ -367,6 +413,8 @@ export default function Onboarding() {
 
   // Submit handler
   const handleSubmit = async () => {
+    if (isSubmitting) return; // Prevent double-submit
+    
     setStepErrors({});
     setIsSubmitting(true);
     
@@ -374,17 +422,21 @@ export default function Onboarding() {
       const birthDate = getFormattedDate();
       const birthTime = get24HourTime();
       
-      const userData = await createUser({
+      const payload = {
         name: name.trim(),
         email: email.trim().toLowerCase(),
         birth_date: birthDate,
         birth_time: birthTime || undefined,
         city: selectedLocation!.city,
         country: selectedLocation!.country,
-        timezone: timezone,
+        timezone: timezone.trim(),
         latitude: selectedLocation!.latitude,
         longitude: selectedLocation!.longitude,
-      });
+      };
+      
+      console.log('[Onboarding] Submitting payload:', JSON.stringify(payload, null, 2));
+      
+      const userData = await createUser(payload);
 
       await setUser(userData);
       const chartData = await calculateChart(userData.id);
@@ -394,13 +446,87 @@ export default function Onboarding() {
       
       router.replace('/questionnaire');
     } catch (err: any) {
-      console.error('Onboarding error:', err);
-      const errorMsg = err.response?.data?.detail || err.message || 'Something went wrong. Please try again.';
-      setStepErrors({ [step]: errorMsg });
+      console.error('[Onboarding] Submit error:', err);
+      
+      // Parse error response
+      let errorMsg = 'Something went wrong. Please try again.';
+      let errorField = null;
+      
+      if (err.response?.data) {
+        const data = err.response.data;
+        if (data.message) {
+          errorMsg = data.message;
+        } else if (data.detail) {
+          errorMsg = data.detail;
+        }
+        if (data.field) {
+          errorField = data.field;
+        }
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      
+      // Show field-specific error or general error
+      if (errorField) {
+        setFieldErrors(prev => ({ ...prev, [errorField]: errorMsg }));
+      } else {
+        setStepErrors({ [step]: errorMsg });
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Timezone selector modal
+  const renderTimezoneModal = () => (
+    <Modal
+      visible={showTimezoneModal}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={() => setShowTimezoneModal(false)}
+    >
+      <Pressable 
+        style={styles.modalOverlay} 
+        onPress={() => setShowTimezoneModal(false)}
+      >
+        <Pressable style={styles.modalContent} onPress={e => e.stopPropagation()}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Timezone</Text>
+            <TouchableOpacity onPress={() => setShowTimezoneModal(false)}>
+              <Text style={styles.modalClose}>Done</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.modalHint}>
+            Format: Region/City (e.g., Asia/Kuala_Lumpur)
+          </Text>
+          <ScrollView style={styles.timezoneList}>
+            {COMMON_TIMEZONES.map((tz) => (
+              <TouchableOpacity
+                key={tz.value}
+                style={[
+                  styles.timezoneItem,
+                  timezone === tz.value && styles.timezoneItemSelected
+                ]}
+                onPress={() => {
+                  setTimezone(tz.value);
+                  setFieldErrors(prev => ({ ...prev, timezone: '' }));
+                  setShowTimezoneModal(false);
+                }}
+              >
+                <Text style={[
+                  styles.timezoneLabel,
+                  timezone === tz.value && styles.timezoneLabelSelected
+                ]}>
+                  {tz.label}
+                </Text>
+                <Text style={styles.timezoneValue}>{tz.value}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
 
   // Progress bar component
   const renderProgressBar = () => (
@@ -590,18 +716,19 @@ export default function Onboarding() {
         <Text style={styles.hint}>If unknown, we'll use noon as a neutral time.</Text>
       </View>
 
-      {/* Timezone */}
+      {/* Timezone - Read-only with Change button */}
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Timezone</Text>
-        <TextInput
-          style={styles.input}
-          value={timezone}
-          onChangeText={setTimezone}
-          placeholder="e.g., Asia/Kuala_Lumpur"
-          placeholderTextColor={Colors.textTertiary}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
+        <TouchableOpacity 
+          style={[styles.timezoneDisplay, fieldErrors.timezone ? styles.inputError : null]}
+          onPress={() => setShowTimezoneModal(true)}
+        >
+          <Text style={styles.timezoneText}>{timezone}</Text>
+          <Text style={styles.timezoneChange}>Change</Text>
+        </TouchableOpacity>
+        {fieldErrors.timezone ? (
+          <Text style={styles.fieldError}>{fieldErrors.timezone}</Text>
+        ) : null}
         <Text style={styles.microcopy}>Timezone helps calculate timing accurately.</Text>
       </View>
     </View>
@@ -750,6 +877,9 @@ export default function Onboarding() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      
+      {/* Timezone Selector Modal */}
+      {renderTimezoneModal()}
     </SafeAreaView>
   );
 }
@@ -764,26 +894,29 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 24,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '700',
     color: Colors.text,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.textSecondary,
-    lineHeight: 22,
+    lineHeight: 20,
   },
   
-  // Progress Section
+  // Progress Section - Fixed for mobile Safari
   progressSection: {
-    marginBottom: 24,
+    marginBottom: 20,
+    width: '100%',
   },
   stepIndicator: {
     fontSize: 13,
@@ -796,6 +929,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 2,
     overflow: 'hidden',
+    width: '100%',
   },
   progressBarFill: {
     height: '100%',
@@ -805,24 +939,24 @@ const styles = StyleSheet.create({
   
   // Step Container
   stepContainer: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   stepTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   stepDescription: {
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.textSecondary,
-    marginBottom: 24,
-    lineHeight: 22,
+    marginBottom: 20,
+    lineHeight: 20,
   },
   
   // Input Groups
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 18,
   },
   label: {
     fontSize: 14,
@@ -833,7 +967,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: Colors.surface,
     borderRadius: 12,
-    padding: 16,
+    padding: 14,
     fontSize: 16,
     color: Colors.text,
     borderWidth: 1,
@@ -866,31 +1000,33 @@ const styles = StyleSheet.create({
   },
   dateInputContainer: {
     alignItems: 'center',
+    minWidth: 55,
   },
   yearInputContainer: {
-    flex: 1,
+    minWidth: 70,
   },
   dateInput: {
     backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 18,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    fontSize: 16,
     color: Colors.text,
     textAlign: 'center',
-    minWidth: 60,
+    minWidth: 50,
     borderWidth: 1,
     borderColor: 'transparent',
   },
   dateLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: Colors.textTertiary,
     marginTop: 4,
   },
   dateSeparator: {
-    fontSize: 24,
+    fontSize: 20,
     color: Colors.textTertiary,
-    marginHorizontal: 8,
-    marginTop: 12,
+    marginHorizontal: 6,
+    marginTop: 10,
   },
   
   // Time inputs
@@ -903,45 +1039,134 @@ const styles = StyleSheet.create({
   },
   timeInputLarge: {
     backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 18,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    fontSize: 16,
     color: Colors.text,
     textAlign: 'center',
-    minWidth: 60,
+    minWidth: 55,
   },
   timeLabelBelow: {
-    fontSize: 11,
+    fontSize: 10,
     color: Colors.textTertiary,
     marginTop: 4,
   },
   timeSeparator: {
-    fontSize: 24,
+    fontSize: 20,
     color: Colors.textTertiary,
-    marginHorizontal: 8,
-    marginTop: 12,
+    marginHorizontal: 6,
+    marginTop: 10,
   },
   amPmContainer: {
     flexDirection: 'row',
-    marginLeft: 12,
+    marginLeft: 10,
   },
   amPmButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     backgroundColor: Colors.surface,
-    borderRadius: 12,
+    borderRadius: 10,
     marginLeft: 4,
   },
   amPmButtonActive: {
     backgroundColor: Colors.accent,
   },
   amPmText: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textSecondary,
     fontWeight: '600',
   },
   amPmTextActive: {
     color: Colors.surface,
+  },
+  
+  // Timezone display
+  timezoneDisplay: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  timezoneText: {
+    fontSize: 15,
+    color: Colors.text,
+    flex: 1,
+  },
+  timezoneChange: {
+    fontSize: 14,
+    color: Colors.accent,
+    fontWeight: '600',
+  },
+  
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
+    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  modalClose: {
+    fontSize: 16,
+    color: Colors.accent,
+    fontWeight: '600',
+  },
+  modalHint: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    fontStyle: 'italic',
+  },
+  timezoneList: {
+    paddingHorizontal: 16,
+  },
+  timezoneItem: {
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  timezoneItemSelected: {
+    backgroundColor: 'rgba(138, 180, 248, 0.1)',
+    marginHorizontal: -16,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  timezoneLabel: {
+    fontSize: 15,
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  timezoneLabelSelected: {
+    color: Colors.accent,
+    fontWeight: '600',
+  },
+  timezoneValue: {
+    fontSize: 12,
+    color: Colors.textTertiary,
   },
   
   // Location search
@@ -960,30 +1185,30 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 12,
     marginTop: 8,
-    maxHeight: 200,
+    maxHeight: 180,
     overflow: 'hidden',
   },
   locationItem: {
-    padding: 16,
+    padding: 14,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
   locationText: {
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.text,
   },
   selectedLocation: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
-    padding: 12,
+    marginTop: 10,
+    padding: 10,
     backgroundColor: 'rgba(138, 180, 248, 0.1)',
     borderRadius: 8,
   },
   selectedLocationLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.textSecondary,
-    marginRight: 8,
+    marginRight: 6,
   },
   selectedLocationText: {
     fontSize: 14,
@@ -992,7 +1217,7 @@ const styles = StyleSheet.create({
   },
   noResultsContainer: {
     marginTop: 8,
-    padding: 12,
+    padding: 10,
   },
   noResultsText: {
     fontSize: 13,
@@ -1003,9 +1228,9 @@ const styles = StyleSheet.create({
   // Error
   errorContainer: {
     backgroundColor: 'rgba(255, 107, 107, 0.1)',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 14,
   },
   errorText: {
     color: '#FF6B6B',
@@ -1016,18 +1241,18 @@ const styles = StyleSheet.create({
   // Buttons
   buttonContainer: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
     marginTop: 'auto',
-    paddingTop: 24,
+    paddingTop: 20,
   },
   button: {
     flex: 1,
     backgroundColor: Colors.accent,
     borderRadius: 12,
-    padding: 16,
+    padding: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 52,
+    minHeight: 50,
   },
   buttonFlex: {
     flex: 2,
