@@ -3,7 +3,12 @@
  * ====================
  * 
  * Shows build info at the bottom of every screen in STAGING only.
- * Hidden in production (EXPO_PUBLIC_ENV !== 'staging').
+ * HIDDEN by default - only visible when:
+ *   1. URL contains ?debug=1
+ *   OR
+ *   2. EXPO_PUBLIC_DEBUG_MIRROR=true
+ * 
+ * Normal users never see this footer.
  */
 
 import React from 'react';
@@ -15,6 +20,7 @@ const APP_ENV = process.env.EXPO_PUBLIC_ENV || 'unknown';
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'dev';
 const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'not-set';
+const DEBUG_MIRROR = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
 
 // Only show in staging
 const IS_STAGING = APP_ENV === 'staging';
@@ -22,11 +28,28 @@ const IS_STAGING = APP_ENV === 'staging';
 // Inference version - hardcoded since this is the unified version
 const INFERENCE_VERSION = 'v2';
 
+/**
+ * Check if debug mode is enabled via URL param
+ */
+const getUrlDebugParam = (): boolean => {
+  if (Platform.OS !== 'web') return false;
+  if (typeof window === 'undefined') return false;
+  try {
+    return new URLSearchParams(window.location?.search || '').get('debug') === '1';
+  } catch {
+    return false;
+  }
+};
+
 export const StagingBuildFooter: React.FC = () => {
   const insets = useSafeAreaInsets();
   
-  // Only render in staging
-  if (!IS_STAGING) {
+  // Gate: Only render in staging AND only when debug is explicitly enabled
+  // Hidden by default - normal users never see this
+  const isDebugEnabled = DEBUG_MIRROR || getUrlDebugParam();
+  
+  if (!IS_STAGING || !isDebugEnabled) {
+    // Return null - no empty spacer, no layout shift
     return null;
   }
 
