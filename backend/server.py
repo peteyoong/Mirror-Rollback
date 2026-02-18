@@ -123,7 +123,13 @@ ACTUAL_WEB_BUILD_PATH = find_web_build()
 @app.get("/health")
 async def health_check():
     """Health check endpoint for deployment verification."""
-    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
+    build_id = os.environ.get("BUILD_ID", os.environ.get("EXPO_PUBLIC_BUILD_ID", "unknown"))
+    return {
+        "ok": True,
+        "status": "healthy",
+        "build": build_id,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
 
 # =====================================================
 # BUILD VERIFICATION ENDPOINT
