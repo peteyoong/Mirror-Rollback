@@ -111,6 +111,11 @@ export default function RootLayout() {
     console.log("[RootLayout] Setting hasTriedSessionRestore=true (NO restore call)");
     useAppStore.setState({ hasTriedSessionRestore: true, isRestoringSession: false });
   }, []);
+  
+  // WEB BUILD VERSION CHECK - Ensures users get latest assets after deployment
+  useEffect(() => {
+    checkBuildVersionAndRefresh();
+  }, []);
 
   // Hide splash screen when fonts are loaded
   useEffect(() => {
