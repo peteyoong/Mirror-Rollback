@@ -14,7 +14,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 });
 
 /**
- * WEB BUILD VERSION CHECK (Safari-Safe)
+ * WEB BUILD VERSION CHECK (Safari-Safe, Production-Hardened)
  * 
  * Checks the backend build version and forces a TRUE hard refresh if the
  * frontend's cached version doesn't match. Uses location.replace() with
@@ -23,11 +23,41 @@ SplashScreen.preventAutoHideAsync().catch(() => {
  * Features:
  * - Cache-busting via query param (r=timestamp)
  * - Loop guard via refreshed=1 param to prevent infinite reloads
+ * - Fetch timeout (3s) - fails open on timeout/error
+ * - Cooldown period (60s) - prevents repeated refreshes during rolling deploys
  * - Only runs on web platform
  */
 const BUILD_VERSION_KEY = 'mirror_build_id';
 const REFRESH_GUARD_PARAM = 'refreshed';
 const CACHE_BUST_PARAM = 'r';
+const LAST_REFRESH_TS_KEY = 'mirror_last_refresh_ts';
+const FETCH_TIMEOUT_MS = 3000; // 3 second timeout
+const REFRESH_COOLDOWN_MS = 60000; // 60 second cooldown
+
+/**
+ * Fetch with timeout - fails open (returns null) on timeout
+ */
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response | null> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      console.warn('[BuildCheck] Fetch timeout after', timeoutMs, 'ms - failing open');
+    } else {
+      console.warn('[BuildCheck] Fetch error - failing open:', error.message);
+    }
+    return null; // Fail open
+  }
+}
 
 async function checkBuildVersionAndRefresh(): Promise<void> {
   // Only run on web
@@ -46,20 +76,37 @@ async function checkBuildVersionAndRefresh(): Promise<void> {
     return;
   }
   
-  try {
-    const response = await fetch('/api/build-version', {
-      cache: 'no-store', // Bypass any HTTP caching
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-      },
-    });
-    
-    if (!response.ok) {
-      console.warn('[BuildCheck] Failed to fetch build version:', response.status);
+  // COOLDOWN GUARD: Don't refresh if we refreshed recently (rolling deploy protection)
+  const lastRefreshTs = localStorage.getItem(LAST_REFRESH_TS_KEY);
+  if (lastRefreshTs) {
+    const timeSinceLastRefresh = Date.now() - parseInt(lastRefreshTs, 10);
+    if (timeSinceLastRefresh < REFRESH_COOLDOWN_MS) {
+      console.log('[BuildCheck] Cooldown active, last refresh was', Math.round(timeSinceLastRefresh / 1000), 's ago - skipping');
       return;
     }
-    
+  }
+  
+  // Fetch with timeout - fail open on timeout/error
+  const response = await fetchWithTimeout('/api/build-version', {
+    cache: 'no-store',
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+    },
+  }, FETCH_TIMEOUT_MS);
+  
+  // Fail open: if fetch failed or timed out, continue app load
+  if (!response) {
+    console.log('[BuildCheck] No response - continuing app load');
+    return;
+  }
+  
+  if (!response.ok) {
+    console.warn('[BuildCheck] Failed to fetch build version:', response.status);
+    return;
+  }
+  
+  try {
     const data = await response.json();
     const serverBuildId = data.build_id;
     
@@ -76,6 +123,8 @@ async function checkBuildVersionAndRefresh(): Promise<void> {
       console.log('[BuildCheck] Build mismatch detected! Forcing TRUE hard refresh...');
       // Update stored version before refresh to prevent infinite loop
       localStorage.setItem(BUILD_VERSION_KEY, serverBuildId);
+      // Record refresh timestamp for cooldown
+      localStorage.setItem(LAST_REFRESH_TS_KEY, Date.now().toString());
       
       // TRUE HARD REFRESH: Use location.replace with cache-busting params
       // This forces Safari to request fresh index.html and all assets
@@ -95,8 +144,8 @@ async function checkBuildVersionAndRefresh(): Promise<void> {
       localStorage.setItem(BUILD_VERSION_KEY, serverBuildId);
     }
   } catch (error) {
-    console.warn('[BuildCheck] Error checking build version:', error);
-    // Don't block the app if this fails
+    console.warn('[BuildCheck] Error parsing build version:', error);
+    // Fail open - don't block the app
   }
 }
 
