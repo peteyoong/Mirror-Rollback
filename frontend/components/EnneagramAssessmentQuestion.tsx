@@ -227,34 +227,47 @@ export const EnneagramAssessmentQuestion: React.FC<Props> = ({
 
   return (
     <View style={styles.container}>
-      {/* Question Text */}
-      <View style={styles.questionContainer}>
-        <Text style={styles.questionText}>{question.prompt}</Text>
-        <Text style={styles.helperText}>{helperText}</Text>
-      </View>
-
-      {/* Answer Options */}
-      {isLikert ? renderLikertScale() : renderForcedChoice()}
-
-      {/* Continue Button */}
-      <TouchableOpacity
-        style={[
-          styles.continueButton,
-          !canContinue && styles.continueButtonDisabled,
-        ]}
-        onPress={onContinue}
-        disabled={!canContinue}
-        activeOpacity={0.8}
+      {/* Scrollable Content Area */}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {isSubmitting ? (
-          <ActivityIndicator color={Colors.surface} size="small" />
-        ) : (
-          <>
-            <Text style={styles.continueButtonText}>Continue</Text>
-            <Ionicons name="arrow-forward" size={18} color={Colors.surface} />
-          </>
-        )}
-      </TouchableOpacity>
+        {/* Question Text */}
+        <View style={styles.questionContainer}>
+          <Text style={styles.questionText}>{question.prompt}</Text>
+          <Text style={styles.helperText}>{helperText}</Text>
+        </View>
+
+        {/* Answer Options */}
+        {isLikert ? renderLikertScale() : renderForcedChoice()}
+        
+        {/* Extra padding at bottom for button clearance */}
+        <View style={{ height: 100 }} />
+      </ScrollView>
+
+      {/* Fixed Continue Button at Bottom with Safe Area */}
+      <View style={[styles.buttonContainer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <TouchableOpacity
+          style={[
+            styles.continueButton,
+            !canContinue && styles.continueButtonDisabled,
+          ]}
+          onPress={onContinue}
+          disabled={!canContinue}
+          activeOpacity={0.8}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color={Colors.surface} size="small" />
+          ) : (
+            <>
+              <Text style={styles.continueButtonText}>Continue</Text>
+              <Ionicons name="arrow-forward" size={18} color={Colors.surface} />
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
