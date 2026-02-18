@@ -61,7 +61,7 @@ interface OnboardingProgress {
   birthDay: string;
   birthMonth: string;
   birthYear: string;
-  birthTimeKnown: boolean;  // NEW: true = user knows their birth time
+  birthTimeKnown: boolean | null;  // null = not selected, true = knows time, false = doesn't know
   birthHour: string;        // 24-hour format (0-23)
   birthMinute: string;      // (0-59)
   timezone: string;
