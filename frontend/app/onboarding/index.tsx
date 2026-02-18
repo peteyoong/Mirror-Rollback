@@ -1131,11 +1131,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 10,
     paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     fontSize: 16,
     color: Colors.text,
     textAlign: 'center',
-    width: 70,
+    minWidth: 80,  // Ensure 4 digits fit comfortably
     borderWidth: 1,
     borderColor: 'transparent',
   },
