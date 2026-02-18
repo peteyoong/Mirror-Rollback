@@ -1225,6 +1225,46 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   
+  // Segmented control (birth time known toggle)
+  segmentedControl: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderRadius: 10,
+    padding: 4,
+  },
+  segmentButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  segmentButtonActive: {
+    backgroundColor: Colors.accent,
+  },
+  segmentText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  segmentTextActive: {
+    color: Colors.surface,
+    fontWeight: '600',
+  },
+  
+  // Unknown time helper
+  unknownTimeInfo: {
+    backgroundColor: 'rgba(147, 130, 255, 0.1)',
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 8,
+  },
+  unknownTimeText: {
+    fontSize: 13,
+    color: Colors.accent,
+    lineHeight: 18,
+  },
+  
   // Modal
   modalOverlay: {
     flex: 1,
