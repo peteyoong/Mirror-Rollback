@@ -152,7 +152,7 @@ export default function Onboarding() {
   const [birthDay, setBirthDay] = useState('');
   const [birthMonth, setBirthMonth] = useState('');
   const [birthYear, setBirthYear] = useState('');
-  const [birthTimeKnown, setBirthTimeKnown] = useState(true); // Default: "I know my time"
+  const [birthTimeKnown, setBirthTimeKnown] = useState<boolean | null>(null); // null = not selected yet
   const [birthHour, setBirthHour] = useState('');   // 24-hour format (0-23)
   const [birthMinute, setBirthMinute] = useState('');
   const [timezone, setTimezone] = useState(detectTimezone());
