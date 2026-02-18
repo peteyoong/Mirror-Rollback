@@ -1168,6 +1168,8 @@ const styles = StyleSheet.create({
     color: Colors.text,
     textAlign: 'center',
     minWidth: 55,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   timeLabelBelow: {
     fontSize: 10,
