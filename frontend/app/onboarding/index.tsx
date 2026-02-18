@@ -852,7 +852,7 @@ export default function Onboarding() {
       )}
 
       {/* Helper text for unknown time */}
-      {!birthTimeKnown && (
+      {birthTimeKnown === false && (
         <View style={styles.unknownTimeInfo}>
           <Text style={styles.unknownTimeText}>
             You can add your birth time later to unlock Human Design and exact house placements.
