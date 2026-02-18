@@ -997,18 +997,24 @@ const styles = StyleSheet.create({
   dateRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    flexWrap: 'wrap',
-    gap: 4,
+    justifyContent: 'flex-start',
   },
-  dateInputContainer: {
+  dateFieldWrapper: {
     alignItems: 'center',
-    minWidth: 50,
-    flex: 0,
-  },
-  yearInputContainer: {
-    minWidth: 65,
   },
   dateInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    color: Colors.text,
+    textAlign: 'center',
+    width: 52,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  dateInputYear: {
     backgroundColor: Colors.surface,
     borderRadius: 10,
     paddingVertical: 12,
@@ -1016,7 +1022,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
     textAlign: 'center',
-    minWidth: 48,
+    width: 70,
     borderWidth: 1,
     borderColor: 'transparent',
   },
