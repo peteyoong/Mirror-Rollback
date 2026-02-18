@@ -654,8 +654,12 @@ export default function P2DeepAssessment() {
         {viewState === 'error' && renderError()}
       </View>
 
-      {/* Debug Panel */}
-      {renderDebugPanel()}
+      {/* Debug Drawer - Hidden by default, activated via URL param or gesture */}
+      <DebugDrawer
+        gestureActivated={debugGestureActivated}
+        data={getDebugData()}
+        title="Assessment Debug"
+      />
     </SafeAreaView>
   );
 }
