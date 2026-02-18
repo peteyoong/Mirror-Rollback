@@ -300,7 +300,11 @@ export default function DeepAssessmentScreen() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<DeepAssessmentResult | null>(null);
-  const [debugCollapsed, setDebugCollapsed] = useState(true); // Collapsed by default
+  
+  // Debug gesture state (hidden by default, activated via gesture or URL param)
+  const [debugGestureActivated, setDebugGestureActivated] = useState(false);
+  const [debugTapCount, setDebugTapCount] = useState(0);
+  const debugTapTimer = useRef<NodeJS.Timeout | null>(null);
   
   // Refs
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
