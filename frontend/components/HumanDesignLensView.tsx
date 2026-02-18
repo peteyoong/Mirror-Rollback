@@ -101,7 +101,6 @@ const HumanDesignLensView = forwardRef<LensViewRef, Props>(({ userId, user, onOp
   
   // Check if birth time is known
   const hasBirthTime = hasKnownBirthTime(user);
-  const router = useRouter();
   
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
