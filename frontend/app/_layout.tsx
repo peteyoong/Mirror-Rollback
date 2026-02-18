@@ -14,15 +14,20 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 });
 
 /**
- * WEB BUILD VERSION CHECK
+ * WEB BUILD VERSION CHECK (Safari-Safe)
  * 
- * Checks the backend build version and forces a hard refresh if the
- * frontend's cached version doesn't match. This ensures users always
- * get the latest assets after a new deployment.
+ * Checks the backend build version and forces a TRUE hard refresh if the
+ * frontend's cached version doesn't match. Uses location.replace() with
+ * cache-busting query params to bypass Safari's aggressive caching.
  * 
- * Only runs on web platform where caching is a concern.
+ * Features:
+ * - Cache-busting via query param (r=timestamp)
+ * - Loop guard via refreshed=1 param to prevent infinite reloads
+ * - Only runs on web platform
  */
 const BUILD_VERSION_KEY = 'mirror_build_id';
+const REFRESH_GUARD_PARAM = 'refreshed';
+const CACHE_BUST_PARAM = 'r';
 
 async function checkBuildVersionAndRefresh(): Promise<void> {
   // Only run on web
@@ -31,11 +36,21 @@ async function checkBuildVersionAndRefresh(): Promise<void> {
   // Guard against SSR - ensure window is available
   if (typeof window === 'undefined') return;
   
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // LOOP GUARD: If we already refreshed once, don't refresh again
+  if (urlParams.get(REFRESH_GUARD_PARAM) === '1') {
+    console.log('[BuildCheck] Already refreshed once (guard active), skipping');
+    // Clean up the URL by removing refresh params (cosmetic)
+    cleanupRefreshParams();
+    return;
+  }
+  
   try {
     const response = await fetch('/api/build-version', {
       cache: 'no-store', // Bypass any HTTP caching
       headers: {
-        'Cache-Control': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
       },
     });
@@ -58,11 +73,19 @@ async function checkBuildVersionAndRefresh(): Promise<void> {
     console.log('[BuildCheck] Server build:', serverBuildId, '| Stored build:', storedBuildId);
     
     if (storedBuildId && storedBuildId !== serverBuildId) {
-      console.log('[BuildCheck] Build mismatch detected! Forcing refresh...');
+      console.log('[BuildCheck] Build mismatch detected! Forcing TRUE hard refresh...');
       // Update stored version before refresh to prevent infinite loop
       localStorage.setItem(BUILD_VERSION_KEY, serverBuildId);
-      // Force hard refresh to bypass cache
-      window.location.reload();
+      
+      // TRUE HARD REFRESH: Use location.replace with cache-busting params
+      // This forces Safari to request fresh index.html and all assets
+      const currentPath = window.location.pathname;
+      const currentSearch = window.location.search;
+      const separator = currentSearch ? '&' : '?';
+      const newUrl = `${currentPath}${currentSearch}${separator}${REFRESH_GUARD_PARAM}=1&${CACHE_BUST_PARAM}=${Date.now()}`;
+      
+      console.log('[BuildCheck] Redirecting to:', newUrl);
+      window.location.replace(newUrl);
       return;
     }
     
@@ -74,6 +97,31 @@ async function checkBuildVersionAndRefresh(): Promise<void> {
   } catch (error) {
     console.warn('[BuildCheck] Error checking build version:', error);
     // Don't block the app if this fails
+  }
+}
+
+/**
+ * Clean up refresh params from URL after successful load (cosmetic)
+ * Uses replaceState to avoid adding to browser history
+ */
+function cleanupRefreshParams(): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const url = new URL(window.location.href);
+    const hadParams = url.searchParams.has(REFRESH_GUARD_PARAM) || url.searchParams.has(CACHE_BUST_PARAM);
+    
+    if (hadParams) {
+      url.searchParams.delete(REFRESH_GUARD_PARAM);
+      url.searchParams.delete(CACHE_BUST_PARAM);
+      
+      // Clean URL without the refresh params
+      const cleanUrl = url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash;
+      window.history.replaceState({}, '', cleanUrl);
+      console.log('[BuildCheck] Cleaned up refresh params from URL');
+    }
+  } catch (e) {
+    // Ignore errors - this is just cosmetic
   }
 }
 
