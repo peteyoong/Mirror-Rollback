@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const APP_ENV = process.env.EXPO_PUBLIC_ENV || 'unknown';
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'dev';
 const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'not-set';
 
 // Only show in staging
 const IS_STAGING = APP_ENV === 'staging';
@@ -29,6 +30,15 @@ export const StagingBuildFooter: React.FC = () => {
     return null;
   }
 
+  // Extract just the hostname from API_BASE_URL for brevity
+  let apiHost = API_BASE_URL;
+  try {
+    const url = new URL(API_BASE_URL);
+    apiHost = url.hostname;
+  } catch {
+    // Keep full value if not a valid URL
+  }
+
   return (
     <View 
       style={[
@@ -38,7 +48,10 @@ export const StagingBuildFooter: React.FC = () => {
       pointerEvents="none"
     >
       <Text style={styles.text}>
-        BUILD: {BUILD_VERSION} | ID: {BUILD_ID.slice(-12)} | INFERENCE: {INFERENCE_VERSION}
+        BUILD: {BUILD_VERSION} | ID: {BUILD_ID.slice(-12)} | INF: {INFERENCE_VERSION}
+      </Text>
+      <Text style={styles.textSmall}>
+        API: {apiHost}
       </Text>
     </View>
   );
@@ -60,6 +73,13 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     textAlign: 'center',
+  },
+  textSmall: {
+    color: '#00ff00',
+    fontSize: 8,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    textAlign: 'center',
+    opacity: 0.8,
   },
 });
 
