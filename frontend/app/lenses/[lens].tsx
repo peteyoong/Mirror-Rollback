@@ -786,6 +786,7 @@ export default function LensDetail() {
             ref={humanDesignRef}
             key={`human_design-${forceRefreshKey}`}
             userId={user.id}
+            user={user}
             onOpenChat={() => setLensChatVisible(true)}
           />
           
