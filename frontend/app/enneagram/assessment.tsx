@@ -505,73 +505,63 @@ export default function P2DeepAssessment() {
     setViewState('intro');
   }, [clearSession]);
 
-  // Render debug floating button + modal (non-blocking)
-  const renderDebugPanel = () => {
-    if (!isDebugMode) return null;
+  // Handle debug gesture (7 taps to enable debug on mobile)
+  const handleDebugTap = useCallback(() => {
+    if (!DEBUG_MIRROR_ENV) return;
+    
+    // Clear previous timer
+    if (debugTapTimer.current) {
+      clearTimeout(debugTapTimer.current);
+    }
+    
+    const newCount = debugTapCount + 1;
+    setDebugTapCount(newCount);
+    
+    if (newCount >= DEBUG_TAP_THRESHOLD) {
+      setDebugGestureActivated(true);
+      setDebugTapCount(0);
+      console.log('[Debug] Debug mode activated via gesture');
+    } else {
+      // Reset after 3 seconds of no taps
+      debugTapTimer.current = setTimeout(() => {
+        setDebugTapCount(0);
+      }, 3000);
+    }
+  }, [debugTapCount]);
 
-    return (
-      <>
-        {/* Floating Debug Button - collapsed by default */}
-        <TouchableOpacity
-          style={styles.debugFloatingButton}
-          onPress={() => setDebugModalVisible(true)}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="bug-outline" size={16} color="#00ff00" />
-          <Text style={styles.debugFloatingText}>Debug</Text>
-        </TouchableOpacity>
-
-        {/* Debug Modal - dismissible */}
-        <Modal
-          visible={debugModalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setDebugModalVisible(false)}
-        >
-          <Pressable 
-            style={styles.debugModalOverlay} 
-            onPress={() => setDebugModalVisible(false)}
-          >
-            <Pressable style={styles.debugModalContent} onPress={e => e.stopPropagation()}>
-              <View style={styles.debugModalHeader}>
-                <Text style={styles.debugTitle}>Debug Info</Text>
-                <TouchableOpacity onPress={() => setDebugModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#00ff00" />
-                </TouchableOpacity>
-              </View>
-              <ScrollView style={styles.debugModalScroll}>
-                {progress && (
-                  <>
-                    <Text style={styles.debugText}>Session: {sessionId?.slice(0, 8)}...</Text>
-                    <Text style={styles.debugText}>Stage: {progress.stage}</Text>
-                    <Text style={styles.debugText}>Questions: {progress.questions_answered}/{progress.estimated_total}</Text>
-                    <Text style={styles.debugText}>Est. Remaining: {progress.estimated_remaining}</Text>
-                  </>
-                )}
-                {results && (
-                  <>
-                    <Text style={[styles.debugTitle, { marginTop: 12 }]}>Results</Text>
-                    <Text style={styles.debugText}>Type: {results.core_type}w{results.wing}</Text>
-                    <Text style={styles.debugText}>Confidence: {results.confidence} ({results.confidence_tier})</Text>
-                    <Text style={styles.debugText}>Instinct: {results.instinct_primary}/{results.instinct_secondary || '-'}</Text>
-                    {results._debug && (
-                      <>
-                        <Text style={styles.debugText}>Center: H{results._debug.center_scores?.head || 0} / Ht{results._debug.center_scores?.heart || 0} / G{results._debug.center_scores?.gut || 0}</Text>
-                        <Text style={styles.debugText}>Type Gap: {results._debug.type_gap}</Text>
-                        <Text style={styles.debugText}>Coherence: {results._debug.coherence_score}</Text>
-                      </>
-                    )}
-                  </>
-                )}
-                {!progress && !results && (
-                  <Text style={styles.debugText}>No session data yet</Text>
-                )}
-              </ScrollView>
-            </Pressable>
-          </Pressable>
-        </Modal>
-      </>
-    );
+  // Build debug data for the drawer
+  const getDebugData = () => {
+    const data: Record<string, any> = {};
+    
+    if (sessionId) {
+      data.session_id = sessionId.slice(0, 8) + '...';
+    }
+    
+    if (progress) {
+      data.progress = {
+        stage: progress.stage,
+        questions_answered: progress.questions_answered,
+        estimated_total: progress.estimated_total,
+        estimated_remaining: progress.estimated_remaining,
+      };
+    }
+    
+    if (results) {
+      data.results = {
+        type: `${results.core_type}w${results.wing}`,
+        confidence: `${results.confidence} (${results.confidence_tier})`,
+        instinct: `${results.instinct_primary}/${results.instinct_secondary || '-'}`,
+      };
+      if (results._debug) {
+        data.debug_scores = {
+          center: `H${results._debug.center_scores?.head || 0} / Ht${results._debug.center_scores?.heart || 0} / G${results._debug.center_scores?.gut || 0}`,
+          type_gap: results._debug.type_gap,
+          coherence: results._debug.coherence_score,
+        };
+      }
+    }
+    
+    return data;
   };
 
   // Render loading state
