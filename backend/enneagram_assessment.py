@@ -2118,6 +2118,10 @@ def format_profile_enneagram(results: dict, include_debug: bool = False) -> dict
     }
     
     if include_debug and "_debug" in results:
-        profile["_debug"] = results["_debug"]
+        # MongoDB requires string keys - convert integer keys to strings
+        debug_data = results["_debug"].copy()
+        if "type_scores" in debug_data:
+            debug_data["type_scores"] = {str(k): v for k, v in debug_data["type_scores"].items()}
+        profile["_debug"] = debug_data
     
     return profile
