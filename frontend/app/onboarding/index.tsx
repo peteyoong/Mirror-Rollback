@@ -387,8 +387,19 @@ export default function Onboarding() {
         return name.trim().length >= 2;
       case 2:
         return isValidEmail(email.trim());
-      case 3:
-        return isValidBirthDate(birthDay, birthMonth, birthYear).valid && isValidTimezone(timezone);
+      case 3: {
+        const dateValid = isValidBirthDate(birthDay, birthMonth, birthYear).valid;
+        const tzValid = isValidTimezone(timezone);
+        // If time is known, also validate hour/minute
+        if (birthTimeKnown) {
+          const hour = parseInt(birthHour, 10);
+          const minute = parseInt(birthMinute, 10);
+          const timeValid = !isNaN(hour) && hour >= 0 && hour <= 23 &&
+                            !isNaN(minute) && minute >= 0 && minute <= 59;
+          return dateValid && tzValid && timeValid;
+        }
+        return dateValid && tzValid;
+      }
       case 4:
         return selectedLocation !== null;
       default:
