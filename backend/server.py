@@ -3574,8 +3574,7 @@ async def create_user(profile: UserProfileCreate):
         birth_time_known = profile.birth_time_known if profile.birth_time_known is not None else (birth_time is not None)
         
         if birth_time:
-            # Validate 24-hour format
-            import re
+            # Validate 24-hour format (re is already imported at top)
             if not re.match(r'^([01]?[0-9]|2[0-3]):([0-5][0-9])$', birth_time):
                 return JSONResponse(
                     status_code=400,
