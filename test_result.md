@@ -1207,6 +1207,69 @@ backend:
           
           CONCLUSION: Emergent! AI Contract integration after refactoring is fully functional. All requested endpoints operational, new analytics fields present, red team tests passing, and contract compliance verified across all interactions.
 
+  - task: "P0 Fixes - User Creation Error Handling & Backend Health"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          P0 FIXES TESTING COMPLETE - ALL SCENARIOS PASSED ✅
+          
+          🎯 STAGING ENVIRONMENT VERIFICATION (4/4 TESTS PASSED):
+          
+          **TEST 1: Backend User Creation Error Handling**
+          
+          1. ✅ VALID USER CREATION (POST /api/users):
+             - Test Payload: Valid user data with unique email "unique-test-1771390730@example.com"
+             - Status: 200 OK
+             - Response: Complete user object with ID "6995470a63927657e0a4fed2"
+             - User created successfully with all required fields
+          
+          2. ✅ DUPLICATE EMAIL VALIDATION (POST /api/users):
+             - Test Payload: Same email from previous test
+             - Status: 400 Bad Request
+             - Response Structure: ✅ EXACT MATCH to requirements
+               * error: "VALIDATION_ERROR" ✅
+               * message: "This email is already registered. Try signing in instead." ✅
+               * field: "email" ✅
+             - Proper JSON validation error (not 520 error)
+          
+          3. ✅ INVALID TIMEZONE VALIDATION (POST /api/users):
+             - Test Payload: timezone: "Invalid/Timezone"
+             - Status: 400 Bad Request
+             - Response Structure: ✅ Proper JSON validation error
+               * error: "VALIDATION_ERROR"
+               * message: "Unknown IANA timezone: 'Invalid/Timezone'"
+               * field: "timezone"
+             - Graceful error handling without crashes
+          
+          **TEST 2: Backend Health Verification**
+          
+          4. ✅ HEALTH ENDPOINT (GET /api/health):
+             - Status: 200 OK
+             - Response Structure: ✅ ALL REQUIRED FIELDS PRESENT
+               * env: "staging" ✅ (matches staging environment)
+               * db_type: "local" ✅ (present and valid)
+               * build_version: "v30-environment-separation" ✅ (present and valid)
+               * Additional fields: build_label, git_sha, db_name, timestamp_utc
+          
+          🔧 BACKEND INTEGRATION VERIFIED:
+          - All endpoints accessible via public URL (https://cachebuster-2.preview.emergentagent.com/api)
+          - No HTTP errors, timeouts, or connection issues
+          - Response times acceptable (< 1 second for health, < 5 seconds for user creation)
+          - Backend logs confirm successful processing and proper error handling
+          - All 400 validation errors return proper JSON structure (not 520 errors)
+          - Error messages are user-friendly and include specific field information
+          
+          📊 TEST RESULTS: 4/4 TESTS PASSED (100% SUCCESS RATE)
+          
+          🎉 CONCLUSION: All P0 fixes are working correctly in STAGING environment. User creation error handling provides proper validation errors with required structure (error, message, field), and backend health endpoint returns all required environment information.
+
   - task: "Today Endpoints Title Verification"
     implemented: true
     working: true
