@@ -193,6 +193,44 @@ export const useAppStore = create<AppState>((set, get) => ({
     safeSet(set, 'restoreSession-noop', { hasTriedSessionRestore: true, isRestoringSession: false });
     return false;
   },
+  
+  // Dev reset - clears ALL local data (for staging dev mode)
+  resetLocalSession: async (reload = false) => {
+    console.log('[resetLocalSession] Clearing ALL local data...');
+    try {
+      // Clear AsyncStorage completely
+      const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+      await AsyncStorage.clear();
+      console.log('[resetLocalSession] AsyncStorage cleared');
+      
+      // Clear web localStorage if on web
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.clear();
+        console.log('[resetLocalSession] localStorage cleared');
+      }
+      
+      // Reset store state
+      safeSet(set, 'resetLocalSession', {
+        user: null,
+        chart: null,
+        hasCompletedOnboarding: false,
+        journalEntries: [],
+        chatMessages: {},
+        isRestoringSession: false,
+        hasTriedSessionRestore: false,
+        sessionRestoreError: null,
+      });
+      
+      console.log('[resetLocalSession] Store state reset');
+      
+      // Reload if requested
+      if (reload && typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+    } catch (err) {
+      console.error('[resetLocalSession] Error:', err);
+    }
+  },
 }));
 
 // Log store creation
