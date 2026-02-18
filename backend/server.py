@@ -9974,7 +9974,7 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
         response_result = {
             "id": str(result.get("_id", "")),
             "user_id": result["user_id"],
-            "method": result.get("method", "assessment_inference_v1"),
+            "method": result.get("method", "assessment_inference_v2"),  # Default to v2
             "version": result.get("version", "v1"),
             "inferred_core": inferred_core,
             "inferred_wing": inferred_wing,
