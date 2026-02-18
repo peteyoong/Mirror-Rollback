@@ -775,31 +775,7 @@ export default function DeepAssessmentScreen() {
             </View>
           )}
           
-          {/* DEBUG Panel - Collapsible, non-blocking */}
-          {DEBUG_MIRROR && (
-            <TouchableOpacity 
-              style={[styles.debugPanel, debugCollapsed && styles.debugPanelCollapsed]}
-              onPress={() => setDebugCollapsed(!debugCollapsed)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.debugHeader}>
-                <Text style={styles.debugTitle}>🐛 DEBUG</Text>
-                <Ionicons 
-                  name={debugCollapsed ? "chevron-down" : "chevron-up"} 
-                  size={14} 
-                  color="#FF6B6B" 
-                />
-              </View>
-              {!debugCollapsed && (
-                <View style={styles.debugContent}>
-                  <Text style={styles.debugText}>session: ...{session.session_id.slice(-8)}</Text>
-                  <Text style={styles.debugText}>index: {currentQuestionIndex + 1}/{session.questions.length}</Text>
-                  <Text style={styles.debugText}>answered: {session.responses.length}</Text>
-                  <Text style={styles.debugText}>save: {saveStatus}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          )}
+          {/* DEBUG Panel - REMOVED - Now using DebugDrawer component */}
         </ScrollView>
         
         {/* Navigation */}
