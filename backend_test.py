@@ -610,10 +610,10 @@ def main():
     success = tester.run_all_tests()
     
     if success:
-        print(f"\n✅ All P0 fixes verified successfully in STAGING environment")
+        print(f"\n✅ All Birth Time handling tests passed in STAGING environment")
         exit(0)
     else:
-        print(f"\n❌ Some P0 fixes failed verification")
+        print(f"\n❌ Some Birth Time handling tests failed")
         exit(1)
 
 if __name__ == "__main__":
