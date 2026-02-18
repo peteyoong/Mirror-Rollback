@@ -205,6 +205,9 @@ async def api_health(request: Request):
         # Debug flag - explicitly exposed for verification
         # MUST be false in production
         "debug_mirror": os.environ.get("DEBUG_MIRROR", "false").lower() == "true",
+        
+        # Inference version - unified to v2
+        "inference_version": "assessment_inference_v2",
     }
 
 
