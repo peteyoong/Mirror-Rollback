@@ -275,8 +275,25 @@ export const EnneagramAssessmentQuestion: React.FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.background,
+  },
+  // ScrollView for content
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: 24,
-    paddingVertical: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
+    flexGrow: 1,
+  },
+  // Fixed button container at bottom
+  buttonContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    backgroundColor: Colors.background,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
   },
   questionContainer: {
     marginBottom: 32,
