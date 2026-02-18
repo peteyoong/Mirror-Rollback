@@ -60,7 +60,7 @@ interface Props {
 
 type TabType = 'summary' | 'today' | 'deep_dive';
 
-const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }, ref) => {
+const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, user, onOpenChat }, ref) => {
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [data, setData] = useState<AstrologyData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,6 +72,9 @@ const AstrologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat }
   
   // Router for navigation
   const router = useRouter();
+  
+  // Check if birth time is known
+  const hasBirthTime = hasKnownBirthTime(user);
   
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
