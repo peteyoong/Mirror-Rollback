@@ -208,7 +208,7 @@ backend:
              - Summary endpoint correctly includes computed name-based numbers in narrative
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://cache-buster-21.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://expo-bundle-issue.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing and cache invalidation
@@ -486,7 +486,7 @@ backend:
              - Security: ✅ Does not expose internal system details to invalid requests
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://cache-buster-21.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://expo-bundle-issue.preview.emergentagent.com/api)
           - No HTTP timeouts or connection issues
           - Response times acceptable (1-6 seconds for AI generation)
           - Backend logs confirm successful processing for valid requests
@@ -610,7 +610,7 @@ backend:
                * incarnation_cross_gates: Consistent ✅ (null)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://cache-buster-21.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://expo-bundle-issue.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - JSON structure consistent between Summary and Deep Dive endpoints
@@ -671,7 +671,7 @@ backend:
              - Complete Payload: All nested objects preserved correctly
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://cache-buster-21.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://expo-bundle-issue.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 5 seconds)
           - Backend logs confirm successful processing
@@ -746,7 +746,7 @@ backend:
           - Consistent results: Type 5 with balanced wing, exploratory confidence
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://cache-buster-21.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://expo-bundle-issue.preview.emergentagent.com/api)
           - No HTTP timeouts or connection issues
           - Response times acceptable (< 2 seconds per answer submission)
           - Backend logs confirm successful processing and completion
@@ -820,7 +820,7 @@ backend:
              - Proper assessment termination
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Base URL: https://cache-buster-21.preview.emergentagent.com/api
+          - Base URL: https://expo-bundle-issue.preview.emergentagent.com/api
           - All endpoints accessible and responsive
           - No MongoDB "string keys" errors detected
           - Session management working correctly
@@ -1071,7 +1071,7 @@ frontend:
              - Backend Logs: "[Enneagram] Saved result for user 69819f1a1e4549392d7cb6d1: Type 7w8"
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://cache-buster-21.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://expo-bundle-issue.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Backend service stable with proper logging
           - Response times acceptable (< 5 seconds)
@@ -1408,7 +1408,7 @@ backend:
                * Additional fields: build_label, git_sha, db_name, timestamp_utc
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://cache-buster-21.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://expo-bundle-issue.preview.emergentagent.com/api)
           - No HTTP errors, timeouts, or connection issues
           - Response times acceptable (< 1 second for health, < 5 seconds for user creation)
           - Backend logs confirm successful processing and proper error handling
@@ -1466,7 +1466,7 @@ backend:
              - Section labels: ["Today", "Background tone", "2-minute experiment"]
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://cache-buster-21.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://expo-bundle-issue.preview.emergentagent.com/api)
           - Test user ID retrieved successfully via login endpoint: 697f0c6abf35c0528ff06954
           - No HTTP errors or timeouts
           - Response times acceptable (4-12 seconds for AI generation)
@@ -1522,7 +1522,7 @@ backend:
              - ✅ All required fields present and correctly formatted
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://cache-buster-21.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://expo-bundle-issue.preview.emergentagent.com/api)
           - Test user ID (697f0c6abf35c0528ff06954) retrieved successfully via login endpoint
           - No HTTP errors, timeouts, or connection issues
           - Response times acceptable (3-4 seconds for AI generation)
@@ -1605,7 +1605,7 @@ backend:
       - Invalid user: 520 Error, HTML error page (infrastructure-level error handling)
       
       🔧 BACKEND INTEGRATION VERIFIED:
-      - All endpoints accessible via https://cache-buster-21.preview.emergentagent.com/api
+      - All endpoints accessible via https://expo-bundle-issue.preview.emergentagent.com/api
       - LLM integration working (emergentintegrations library with gpt-5.2)
       - Response times: 1-6 seconds for AI generation
       - Backend logs confirm successful processing and error handling
@@ -1641,7 +1641,7 @@ backend:
       - CON_01-CON_04: Consistency (4 questions) ✓
       
       **Backend Integration Status:**
-      - All endpoints accessible via https://cache-buster-21.preview.emergentagent.com/api
+      - All endpoints accessible via https://expo-bundle-issue.preview.emergentagent.com/api
       - Response times acceptable (< 2s per answer)
       - User profile and enneagram_results properly updated
       - Session management working correctly
@@ -1677,7 +1677,7 @@ agent_communication:
       - ✅ Assessment completes successfully with proper results structure
       
       **Backend Integration Verified:**
-      - Base URL: https://cache-buster-21.preview.emergentagent.com/api
+      - Base URL: https://expo-bundle-issue.preview.emergentagent.com/api
       - User ID: 69954fa73125ba897cbea948 (from review request)
       - All endpoints accessible and responsive
       - Session management working correctly
@@ -1704,7 +1704,7 @@ agent_communication:
       ✅ POST /api/users - Invalid timezone validation (400 with proper error structure)
       ✅ GET /api/health - Environment verification (staging, db_type, build_version present)
       
-      **Base URL:** https://cache-buster-21.preview.emergentagent.com/api
+      **Base URL:** https://expo-bundle-issue.preview.emergentagent.com/api
       
       **Critical Validation Points Verified:**
       
@@ -1800,7 +1800,7 @@ agent_communication:
       - ✅ unlock_required: false when name is unlocked
       
       **Backend Integration Verified:**
-      - ✅ All endpoints accessible via https://cache-buster-21.preview.emergentagent.com/api
+      - ✅ All endpoints accessible via https://expo-bundle-issue.preview.emergentagent.com/api
       - ✅ Response times acceptable (< 2 seconds)
       - ✅ Backend logs confirm successful processing and cache invalidation
       - ✅ Data persistence working correctly across all scenarios
@@ -1954,7 +1954,7 @@ agent_communication:
       - Contract validation system working correctly
       
       🔧 BACKEND INTEGRATION VERIFIED:
-      - All endpoints accessible via public URL (https://cache-buster-21.preview.emergentagent.com/api)
+      - All endpoints accessible via public URL (https://expo-bundle-issue.preview.emergentagent.com/api)
       - No HTTP errors or timeouts
       - Response times acceptable (1-3 seconds)
       - Backend logs confirm emergent_generate usage
@@ -2186,7 +2186,7 @@ agent_communication:
       ✅ BACKEND LOGS: Confirm caching working with "[DailyFocus] Returning cached focus" messages
       
       🔧 INTEGRATION VERIFICATION:
-      ✅ Both endpoints accessible via public URL (https://cache-buster-21.preview.emergentagent.com/api)
+      ✅ Both endpoints accessible via public URL (https://expo-bundle-issue.preview.emergentagent.com/api)
       ✅ No HTTP errors or timeouts
       ✅ Backend service stable with no error logs
       ✅ Response times acceptable (< 2 seconds)
@@ -2403,7 +2403,7 @@ agent_communication:
       ❌ CRITICAL ISSUE IDENTIFIED - API ROUTING PROBLEM:
       - Summary tab shows "Unable to load this view right now" error
       - Frontend making requests to http://localhost:3000/api/* (404 errors)
-      - Backend running on port 8001, accessible via https://cache-buster-21.preview.emergentagent.com/api/*
+      - Backend running on port 8001, accessible via https://expo-bundle-issue.preview.emergentagent.com/api/*
       - API service configured for relative URLs on web platform, but proxy routing not working
       - Console logs show: "Failed to load resource: the server responded with a status of 404 (Not Found)"
       
@@ -2453,7 +2453,7 @@ agent_communication:
       - Same API routing problem identified in previous testing sessions
       - Frontend API service uses relative URLs expecting proxy routing (/api/*)
       - Ingress/proxy not routing requests to backend (port 8001)
-      - Backend accessible directly via https://cache-buster-21.preview.emergentagent.com/api/*
+      - Backend accessible directly via https://expo-bundle-issue.preview.emergentagent.com/api/*
       - Affects all lens views (Astrology, Human Design, Numerology)
       
       📊 SHIP GATE TEST RESULTS:
@@ -2509,7 +2509,7 @@ agent_communication:
       🚨 ROOT CAUSE: API ROUTING ISSUE
       - Frontend API service uses relative URLs expecting proxy routing
       - Ingress/proxy not routing /api/* requests to backend (port 8001)
-      - Backend accessible directly via https://cache-buster-21.preview.emergentagent.com/api/*
+      - Backend accessible directly via https://expo-bundle-issue.preview.emergentagent.com/api/*
       - Same issue affects all lens views (Astrology, Human Design, Numerology)
       
       CONCLUSION: The Numerology Full Name Gate UI is implemented correctly and shows proper locked state, but the unlock flow cannot be verified due to API connectivity issues. The frontend correctly displays lock icons for name-based numbers (Expression, Soul Urge) while showing computed numbers for birth date-based calculations (Life Path).
@@ -2635,7 +2635,7 @@ agent_communication:
       
       | Environment | API Base URL | Debug Mode |
       |-------------|--------------|------------|
-      | dev | https://cache-buster-21.preview.emergentagent.com | true |
+      | dev | https://expo-bundle-issue.preview.emergentagent.com | true |
       | staging | https://api-staging.mirror.emergentagent.com | true |
       | prod | https://api.mirror.emergentagent.com | false |
       
@@ -2705,7 +2705,7 @@ agent_communication:
              - Additional metadata: build_label, git_sha, db_name, db_type
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://cache-buster-21.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://expo-bundle-issue.preview.emergentagent.com/api)
           - No HTTP errors, timeouts, or connection issues
           - Response times acceptable (< 1 second for most operations)
           - Backend logs confirm successful processing for all scenarios
