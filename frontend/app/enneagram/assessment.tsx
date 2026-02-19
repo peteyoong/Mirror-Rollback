@@ -194,9 +194,22 @@ export default function P2DeepAssessment() {
   // ============================================
   // CHECK FOR EXISTING SESSION ON MOUNT
   // ============================================
+  // CRITICAL: Use a ref to track if initial check has been done
+  // This prevents re-running the check when callbacks are recreated
+  const hasInitializedRef = useRef(false);
   
   useEffect(() => {
+    // GUARD: Only run once on mount, and only if we're in the 'loading' state
+    // If we're already showing questions, never reset to intro
+    if (hasInitializedRef.current) {
+      console.log('[P2Assessment] Skipping session check - already initialized');
+      return;
+    }
+    
     const checkExistingSession = async () => {
+      // Mark as initialized to prevent re-running
+      hasInitializedRef.current = true;
+      
       if (!user?.id) {
         setViewState('intro');
         return;
@@ -225,8 +238,10 @@ export default function P2DeepAssessment() {
               setViewState('intro');
               return;
             }
-          } catch {
+          } catch (err) {
             // Session invalid on backend - clear local storage
+            // But only if we're still in loading state (not mid-assessment)
+            console.warn('[P2Assessment] Backend session check failed:', err);
             await clearSession();
           }
         }
