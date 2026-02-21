@@ -71,27 +71,9 @@ export const StagingBuildFooter: React.FC = () => {
       return;
     }
     
-    // Check if DEBUG_MIRROR env is true
-    if (DEBUG_MIRROR) {
-      setShowFooter(true);
-      return;
-    }
-    
-    // Check URL param (web only)
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      try {
-        const urlParams = new URLSearchParams(window.location?.search || '');
-        if (urlParams.get('debug') === '1') {
-          setShowFooter(true);
-          return;
-        }
-      } catch {
-        // Ignore errors
-      }
-    }
-    
-    // Default: hidden
-    setShowFooter(false);
+    // ALWAYS show footer in staging for verification
+    // This ensures testers can verify they're on the right environment
+    setShowFooter(true);
   }, []);
   
   // Fetch debug info when footer is visible
