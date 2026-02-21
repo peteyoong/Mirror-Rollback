@@ -199,16 +199,46 @@ export default function RootLayout() {
   const userId = useAppStore(s => s.user?.id);
   const isRestoringSession = useAppStore(s => s.isRestoringSession);
   const hasTriedSessionRestore = useAppStore(s => s.hasTriedSessionRestore);
-
-  // STEP 1: DISABLED restoreSession - DO NOT CALL
-  // useEffect(() => {
-  //   useAppStore.getState().restoreSession();
-  // }, []);
   
-  // TEMP: Mark session restore as "tried" immediately so UI doesn't block
+  // Track session validation state
+  const [isValidatingSession, setIsValidatingSession] = useState(true);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+
+  // SESSION VALIDATION - Check if stored userId exists in current database
+  // This prevents hang when user has cached session from different environment
   useEffect(() => {
-    console.log("[RootLayout] Setting hasTriedSessionRestore=true (NO restore call)");
-    useAppStore.setState({ hasTriedSessionRestore: true, isRestoringSession: false });
+    const validateSession = async () => {
+      console.log("[RootLayout] Starting session validation...");
+      setIsValidatingSession(true);
+      
+      try {
+        const result = await validateStoredSession();
+        
+        if (!result.isValid && result.error) {
+          console.log(`[AUTH] Session invalid: ${result.error}`);
+          setSessionError(result.error);
+          
+          // Clear the store's user state if session is invalid
+          useAppStore.setState({ 
+            user: null, 
+            chart: null,
+            hasTriedSessionRestore: true, 
+            isRestoringSession: false 
+          });
+        } else {
+          // Session is valid or no session exists
+          useAppStore.setState({ hasTriedSessionRestore: true, isRestoringSession: false });
+        }
+      } catch (error: any) {
+        console.error("[AUTH] Session validation error:", error);
+        // On error, still allow app to proceed (fail open)
+        useAppStore.setState({ hasTriedSessionRestore: true, isRestoringSession: false });
+      } finally {
+        setIsValidatingSession(false);
+      }
+    };
+    
+    validateSession();
   }, []);
   
   // WEB BUILD VERSION CHECK - Ensures users get latest assets after deployment
