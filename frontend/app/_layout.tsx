@@ -327,4 +327,11 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 12,
   },
+  sessionErrorText: {
+    fontSize: 14,
+    color: '#FF9500',
+    marginTop: 8,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
 });
