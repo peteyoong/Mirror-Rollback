@@ -124,7 +124,9 @@ export const StagingBuildFooter: React.FC = () => {
     
     const fetchEnneagram = async () => {
       try {
-        const response = await fetch(`/api/users/${userId}/enneagram/result`, {
+        // Use ABSOLUTE URL to work on both web and native
+        const enneagramUrl = `${API_BASE_URL}/api/users/${userId}/enneagram/result`;
+        const response = await fetch(enneagramUrl, {
           cache: 'no-store',
           headers: { 'Cache-Control': 'no-cache' }
         });
