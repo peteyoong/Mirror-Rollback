@@ -236,17 +236,17 @@ export const StagingBuildFooter: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 72, // Position ABOVE the tab bar (tab bar height = 72)
     left: 0,
     right: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    paddingVertical: 6,
+    paddingVertical: 4,
     paddingHorizontal: 8,
     zIndex: 9999,
   },
   textHighlight: {
     color: '#00ffff',
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     textAlign: 'center',
     fontWeight: 'bold',
