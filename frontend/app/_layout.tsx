@@ -272,14 +272,19 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  // Show loading while fonts load OR session restore
-  if (!fontsLoaded || !hasTriedSessionRestore || isRestoringSession) {
+  // Show loading while fonts load OR session validation
+  if (!fontsLoaded || isValidatingSession) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.textSecondary} />
         <Text style={styles.loadingText}>
-          {!fontsLoaded ? 'Loading fonts...' : 'Loading...'}
+          {!fontsLoaded ? 'Loading fonts...' : 'Validating session...'}
         </Text>
+        {sessionError && (
+          <Text style={styles.sessionErrorText}>
+            Session expired — please sign in again
+          </Text>
+        )}
       </View>
     );
   }
