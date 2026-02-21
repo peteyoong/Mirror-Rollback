@@ -238,6 +238,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     zIndex: 9999,
   },
+  textHighlight: {
+    color: '#00ffff',
+    fontSize: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
   text: {
     color: '#00ff00',
     fontSize: 9,
