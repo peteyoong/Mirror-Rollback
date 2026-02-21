@@ -193,9 +193,9 @@ export const StagingBuildFooter: React.FC = () => {
       ]}
       pointerEvents="none"
     >
-      {/* Row 1: ENV + API_BASE_URL (most important for verification) */}
+      {/* Row 1: ENV + FULL API_BASE_URL (most important for verification) */}
       <Text style={styles.textHighlight}>
-        ENV: {APP_ENV.toUpperCase()} | API: {apiHost}
+        ENV: {APP_ENV.toUpperCase()} | API: {API_BASE_URL}
       </Text>
       
       {/* Row 2: Build info */}
