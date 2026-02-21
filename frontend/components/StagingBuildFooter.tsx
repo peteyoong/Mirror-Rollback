@@ -193,17 +193,22 @@ export const StagingBuildFooter: React.FC = () => {
       ]}
       pointerEvents="none"
     >
-      {/* Row 1: Build info */}
+      {/* Row 1: ENV + API_BASE_URL (most important for verification) */}
+      <Text style={styles.textHighlight}>
+        ENV: {APP_ENV.toUpperCase()} | API: {apiHost}
+      </Text>
+      
+      {/* Row 2: Build info */}
       <Text style={styles.text}>
-        BUILD: {BUILD_VERSION} | ID: {BUILD_ID.slice(-12)} | INF: {INFERENCE_VERSION}
+        BUILD: {BUILD_VERSION} | ID: {BUILD_ID.slice(-12)}
       </Text>
       
-      {/* Row 2: HOST + ENV */}
+      {/* Row 3: HOST + DB */}
       <Text style={styles.textSmall}>
-        HOST: {windowHost} | ENV: {healthInfo?.env || '--'} | DB: {healthInfo?.db_name || '--'}
+        HOST: {windowHost} | DB: {healthInfo?.db_name || '--'} | INF: {INFERENCE_VERSION}
       </Text>
       
-      {/* Row 3: USER + ENNEAGRAM */}
+      {/* Row 4: USER + ENNEAGRAM */}
       <Text style={styles.textSmall}>
         USER: {userId.slice(-8)} | 
         E: {enneagramInfo?.core_type ?? '--'}
@@ -212,7 +217,7 @@ export const StagingBuildFooter: React.FC = () => {
         [{enneagramInfo?.depth?.slice(-6) || '--'}]
       </Text>
       
-      {/* Row 4: Enneagram result ID and timestamp */}
+      {/* Row 5: Enneagram result ID and timestamp */}
       <Text style={styles.textTiny}>
         E_ID: {enneagramInfo?.result_id?.slice(-8) || '--'} | 
         TS: {formatTimestamp(enneagramInfo?.updated_at || '')}
