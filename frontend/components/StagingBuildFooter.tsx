@@ -3,18 +3,18 @@
  * ====================
  * 
  * Shows build info at the bottom of every screen in STAGING only.
- * HIDDEN by default - only visible when:
- *   1. URL contains ?debug=1
- *   OR
- *   2. EXPO_PUBLIC_DEBUG_MIRROR=true
  * 
- * Normal users never see this footer.
+ * ALWAYS VISIBLE in staging environment to verify:
+ * - Testers are on the correct environment
+ * - API_BASE_URL matches the deployed URL
+ * - Build version and ID for debugging
  * 
- * DEBUG DIAGNOSTICS (when visible):
+ * DEBUG DIAGNOSTICS shown:
+ * - BUILD_VERSION | BUILD_ID | ENV
+ * - API_BASE_URL (hostname)
  * - HOST: window.location.host
- * - ENV + db_name: from /api/health
- * - USER_ID: from authenticated session
- * - ENNEAGRAM: result_id, depth, confidence from latest result
+ * - DB: database name from /api/health
+ * - USER + ENNEAGRAM info when logged in
  */
 
 import React, { useState, useEffect } from 'react';
