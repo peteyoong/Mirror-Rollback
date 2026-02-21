@@ -215,6 +215,13 @@ export default function RootLayout() {
     checkBuildVersionAndRefresh();
   }, []);
 
+  // STAGING KEEPALIVE - Prevents staging backend from sleeping
+  // Only runs in staging environment, pings /api/health every 4 minutes
+  useEffect(() => {
+    startStagingKeepAlive();
+    return () => stopStagingKeepAlive();
+  }, []);
+
   // Hide splash screen when fonts are loaded
   useEffect(() => {
     if (fontsLoaded || fontError) {
