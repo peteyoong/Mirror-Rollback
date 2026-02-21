@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { View, Text, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { useFonts } from 'expo-font';
@@ -8,6 +8,7 @@ import { Colors } from '../constants/colors';
 import WelcomeGate from '../components/WelcomeGate';
 import { StagingBuildFooter } from '../components/StagingBuildFooter';
 import { startStagingKeepAlive, stopStagingKeepAlive } from '../utils/stagingKeepAlive';
+import { validateStoredSession, clearStoredSession } from '../utils/sessionValidator';
 
 // Keep splash screen visible while fonts load
 SplashScreen.preventAutoHideAsync().catch(() => {
