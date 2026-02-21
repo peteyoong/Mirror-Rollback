@@ -88,9 +88,13 @@ export const StagingBuildFooter: React.FC = () => {
     }
     
     // Fetch /api/health for env and db_name
+    // Use ABSOLUTE URL to work on both web and native
     const fetchHealth = async () => {
       try {
-        const response = await fetch('/api/health', {
+        const healthUrl = `${API_BASE_URL}/api/health`;
+        console.log('[StagingFooter] Fetching health from:', healthUrl);
+        
+        const response = await fetch(healthUrl, {
           cache: 'no-store',
           headers: { 'Cache-Control': 'no-cache' }
         });
