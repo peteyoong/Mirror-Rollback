@@ -17,7 +17,6 @@ import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
 import { API_BASE_URL, joinUrl } from '../utils/apiBase';
 import { parseApiError, GATEWAY_ERROR_CODES } from '../utils/safeErrorParser';
-import { ProvenanceStamp } from './StagingConfigGuard';
 
 // Import the Onboarding component to render inline
 import Onboarding from '../app/onboarding/index';
@@ -26,11 +25,9 @@ import Onboarding from '../app/onboarding/index';
 const DEBUG_MIRROR_ENV = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
 
 // Build info for deployment verification
-const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
-const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
 const APP_ENV = process.env.EXPO_PUBLIC_ENV || 'unknown';
 
-// Show build banner in staging ALWAYS for deployment verification
+// Show staging watermark ONLY in staging environment
 const IS_STAGING = APP_ENV === 'staging';
 
 /**
