@@ -1137,7 +1137,13 @@ async def handle_phase1_completion_async(session: dict) -> dict:
             locked_triad = sorted_triads[0][0]
             confidence = (sorted_triads[0][1] - sorted_triads[1][1]) * 2
         
-        # Update session in MongoDB
+        # Update session for Phase 2
+        session["triad_locked"] = locked_triad
+        session["triad_confidence"] = confidence
+        session["phase"] = Phase.CORE.value
+        session["phase_number"] = 2
+        
+        # Update in MongoDB
         await update_v3_session_async(session["session_id"], {
             "triad_locked": locked_triad,
             "triad_confidence": confidence,
@@ -1148,19 +1154,48 @@ async def handle_phase1_completion_async(session: dict) -> dict:
             "asked_question_ids": session["asked_question_ids"],
         })
         
-        # Return Phase 1 complete result (Phase 2 not yet implemented)
-        return {
-            "status": "phase_complete",
-            "phase_completed": 1,
-            "phase_result": {
-                "triad_locked": locked_triad,
-                "triad_confidence": confidence,
-                "triad_percentages": calculate_triad_percentages(session),
-                "types_in_triad": TRIAD_TYPES[Triad(locked_triad)],
-            },
-            "next_phase": 2,
-            "message": f"Triad locked: {locked_triad.title()} ({confidence:.0f}% confidence). Phase 2 coming soon.",
-        }
+        # Get first Phase 2 question (if available for this triad)
+        first_phase2_question = get_next_phase2_question(session)
+        
+        if first_phase2_question:
+            # Transition to Phase 2 with first question
+            total_answered = len(session.get("asked_question_ids", []))
+            return {
+                "status": "continue",
+                "phase_transition": True,
+                "phase_completed": 1,
+                "phase_result": {
+                    "triad_locked": locked_triad,
+                    "triad_confidence": confidence,
+                    "triad_percentages": calculate_triad_percentages(session),
+                    "types_in_triad": TRIAD_TYPES[Triad(locked_triad)],
+                },
+                "session_id": session["session_id"],
+                "phase": Phase.CORE.value,
+                "phase_number": 2,
+                "phase_label": f"Narrowing down your type in the {locked_triad.title()} triad...",
+                "question": format_question_for_api(first_phase2_question),
+                "progress": {
+                    "current": total_answered + 1,
+                    "estimated_total": 45,
+                    "section": f"Testing types {', '.join(map(str, TRIAD_TYPES[Triad(locked_triad)]))}...",
+                    "confidence_hint": "Phase 2 begins - refining your type...",
+                },
+            }
+        else:
+            # No Phase 2 questions for this triad (Shame/Anger not implemented yet)
+            return {
+                "status": "phase_complete",
+                "phase_completed": 1,
+                "phase_result": {
+                    "triad_locked": locked_triad,
+                    "triad_confidence": confidence,
+                    "triad_percentages": calculate_triad_percentages(session),
+                    "types_in_triad": TRIAD_TYPES[Triad(locked_triad)],
+                },
+                "next_phase": 2,
+                "message": f"Triad locked: {locked_triad.title()} ({confidence:.0f}% confidence). Phase 2 not yet implemented for this triad.",
+            }
     
     # Get next question
     next_question = get_next_phase1_question(session)
@@ -1189,6 +1224,124 @@ async def handle_phase1_completion_async(session: dict) -> dict:
             "estimated_total": 45,
             "section": "Testing your core center...",
             "confidence_hint": get_confidence_hint(session),
+        },
+    }
+
+async def handle_phase2_completion_async(session: dict) -> dict:
+    """Handle Phase 2 (Core Type) completion logic."""
+    
+    triad_locked = session.get("triad_locked")
+    if not triad_locked:
+        return {"status": "error", "message": "Triad not locked - cannot process Phase 2"}
+    
+    # Get Phase 2 questions for this triad
+    if triad_locked == "fear":
+        phase2_questions = PHASE2_FEAR_QUESTIONS
+    elif triad_locked == "shame":
+        phase2_questions = PHASE2_SHAME_QUESTIONS
+    elif triad_locked == "anger":
+        phase2_questions = PHASE2_ANGER_QUESTIONS
+    else:
+        phase2_questions = []
+    
+    # Count Phase 2 questions answered
+    phase2_ids = {q["id"] for q in phase2_questions}
+    answered_ids = set(session.get("asked_question_ids", []))
+    answered_phase2 = answered_ids.intersection(phase2_ids)
+    
+    # Try to lock core type
+    is_locked, locked_type, confidence = check_core_type_lock(session)
+    
+    # Check if all Phase 2 questions answered
+    all_answered = len(answered_phase2) >= len(phase2_questions)
+    
+    if is_locked or all_answered:
+        if not is_locked:
+            # Force lock to top type
+            percentages = calculate_type_percentages(session, triad_locked)
+            sorted_types = sorted(percentages.items(), key=lambda x: x[1], reverse=True)
+            locked_type = int(sorted_types[0][0])
+            confidence = sorted_types[0][1] - sorted_types[1][1]
+        
+        # Determine if confidence is sufficient or needs warning
+        low_confidence = confidence < 50
+        
+        # Update session
+        session["core_type_locked"] = locked_type
+        session["core_type_confidence"] = confidence
+        session["phase"] = Phase.WING_SUBTYPE.value
+        session["phase_number"] = 3
+        
+        await update_v3_session_async(session["session_id"], {
+            "core_type_locked": locked_type,
+            "core_type_confidence": confidence,
+            "phase": Phase.WING_SUBTYPE.value,
+            "phase_number": 3,
+            "type_scores": session.get("type_scores", {}),
+            "answers": session["answers"],
+            "asked_question_ids": session["asked_question_ids"],
+        })
+        
+        # Return Phase 2 complete result
+        result = {
+            "status": "phase_complete",
+            "phase_completed": 2,
+            "phase_result": {
+                "core_type_locked": locked_type,
+                "core_type_confidence": round(confidence, 1),
+                "type_percentages": calculate_type_percentages(session, triad_locked),
+                "triad": triad_locked,
+            },
+            "next_phase": 3,
+            "message": f"Core type identified: Type {locked_type} ({confidence:.0f}% confidence). Phase 3 (Wing & Subtype) coming soon.",
+        }
+        
+        if low_confidence:
+            result["warning"] = "Low confidence - consider retaking with more reflective answers"
+        
+        return result
+    
+    # Get next Phase 2 question
+    next_question = get_next_phase2_question(session)
+    if not next_question:
+        # Should not happen, but handle gracefully
+        return {"status": "error", "message": "No more Phase 2 questions"}
+    
+    # Update session in MongoDB
+    await update_v3_session_async(session["session_id"], {
+        "type_scores": session.get("type_scores", {}),
+        "answers": session["answers"],
+        "asked_question_ids": session["asked_question_ids"],
+    })
+    
+    total_answered = len(session.get("asked_question_ids", []))
+    type_percentages = calculate_type_percentages(session, triad_locked)
+    
+    # Build confidence hint based on current type scores
+    sorted_types = sorted(type_percentages.items(), key=lambda x: x[1], reverse=True)
+    if len(sorted_types) >= 2:
+        gap = sorted_types[0][1] - sorted_types[1][1]
+        if gap > 20:
+            hint = f"Type {sorted_types[0][0]} is emerging as your likely type..."
+        elif gap > 10:
+            hint = "A pattern is forming..."
+        else:
+            hint = "Still gathering data to differentiate..."
+    else:
+        hint = "Analyzing your responses..."
+    
+    return {
+        "status": "continue",
+        "session_id": session["session_id"],
+        "phase": session["phase"],
+        "phase_number": session["phase_number"],
+        "phase_label": f"Narrowing down your type in the {triad_locked.title()} triad...",
+        "question": format_question_for_api(next_question),
+        "progress": {
+            "current": total_answered + 1,
+            "estimated_total": 45,
+            "section": f"Testing types {', '.join(map(str, TRIAD_TYPES[Triad(triad_locked)]))}...",
+            "confidence_hint": hint,
         },
     }
 
