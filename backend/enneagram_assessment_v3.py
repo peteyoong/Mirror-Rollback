@@ -418,16 +418,29 @@ PHASE1_QUESTIONS = [
 QUESTION_BY_ID = {q["id"]: q for q in PHASE1_QUESTIONS}
 
 # =============================================================================
-# SESSION MANAGEMENT
+# SESSION MANAGEMENT (MongoDB-backed for persistence across restarts)
 # =============================================================================
 
-# In-memory session store (would use Redis or MongoDB in production)
-_v3_sessions: Dict[str, dict] = {}
+# MongoDB collection name for V3 sessions
+V3_SESSIONS_COLLECTION = "enneagram_v3_sessions"
 
-def create_v3_session(user_id: str) -> dict:
-    """Create a new V3 assessment session."""
+# Global database reference (will be set by server.py)
+_db = None
+
+def set_v3_db(db):
+    """Set the MongoDB database reference. Called from server.py startup."""
+    global _db
+    _db = db
+    logger.info("[V3Assessment] Database reference set")
+
+async def create_v3_session_async(user_id: str) -> dict:
+    """Create a new V3 assessment session in MongoDB."""
+    global _db
+    if _db is None:
+        raise RuntimeError("Database not initialized. Call set_v3_db() first.")
+    
     session_id = str(uuid.uuid4())
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(timezone.utc)
     
     session = {
         "session_id": session_id,
@@ -451,7 +464,7 @@ def create_v3_session(user_id: str) -> dict:
         "triad_confidence": 0.0,
         
         # Type scores (Phase 2)
-        "type_scores": {i: 0 for i in range(1, 10)},
+        "type_scores": {str(i): 0 for i in range(1, 10)},  # Use string keys for MongoDB
         "core_type_locked": None,
         "core_type_confidence": 0.0,
         
@@ -471,36 +484,69 @@ def create_v3_session(user_id: str) -> dict:
         "final_result": None,  # Will be populated when done
         
         # Timestamps
-        "created_at_iso": now,
-        "updated_at_iso": now,
-        "expires_at": time.time() + SESSION_TTL_SECONDS,
+        "created_at": now,
+        "updated_at": now,
+        "expires_at": now.timestamp() + SESSION_TTL_SECONDS,
     }
     
-    _v3_sessions[session_id] = session
+    # Insert into MongoDB
+    await _db[V3_SESSIONS_COLLECTION].insert_one(session)
+    logger.info(f"[V3Assessment] Created session {session_id} in MongoDB")
+    
     return session
+
+async def get_v3_session_async(session_id: str) -> Optional[dict]:
+    """Get session by ID from MongoDB, checking expiration."""
+    global _db
+    if _db is None:
+        return None
+    
+    session = await _db[V3_SESSIONS_COLLECTION].find_one({"session_id": session_id})
+    if not session:
+        return None
+    
+    # Check expiration
+    if time.time() > session.get("expires_at", 0):
+        await _db[V3_SESSIONS_COLLECTION].delete_one({"session_id": session_id})
+        return None
+    
+    return session
+
+async def update_v3_session_async(session_id: str, updates: dict) -> Optional[dict]:
+    """Update session in MongoDB."""
+    global _db
+    if _db is None:
+        return None
+    
+    session = await get_v3_session_async(session_id)
+    if not session:
+        return None
+    
+    # Add updated timestamp
+    updates["updated_at"] = datetime.now(timezone.utc)
+    
+    # Update in MongoDB
+    await _db[V3_SESSIONS_COLLECTION].update_one(
+        {"session_id": session_id},
+        {"$set": updates}
+    )
+    
+    # Return updated session
+    session.update(updates)
+    return session
+
+# Synchronous wrappers for backward compatibility (used by scoring functions)
+def create_v3_session(user_id: str) -> dict:
+    """Sync wrapper - DO NOT USE. Use create_v3_session_async instead."""
+    raise NotImplementedError("Use create_v3_session_async instead")
 
 def get_v3_session(session_id: str) -> Optional[dict]:
-    """Get session by ID, checking expiration."""
-    session = _v3_sessions.get(session_id)
-    if not session:
-        return None
-    
-    if time.time() > session.get("expires_at", 0):
-        del _v3_sessions[session_id]
-        return None
-    
-    return session
+    """Sync wrapper - DO NOT USE. Use get_v3_session_async instead."""
+    raise NotImplementedError("Use get_v3_session_async instead")
 
 def update_v3_session(session_id: str, updates: dict) -> Optional[dict]:
-    """Update session with new data."""
-    session = get_v3_session(session_id)
-    if not session:
-        return None
-    
-    session.update(updates)
-    session["updated_at_iso"] = datetime.now(timezone.utc).isoformat()
-    _v3_sessions[session_id] = session
-    return session
+    """Sync wrapper - DO NOT USE. Use update_v3_session_async instead."""
+    raise NotImplementedError("Use update_v3_session_async instead")
 
 # =============================================================================
 # SCORING FUNCTIONS (Phase 1)
