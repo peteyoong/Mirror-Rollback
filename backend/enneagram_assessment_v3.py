@@ -645,17 +645,17 @@ def get_next_phase1_question(session: dict) -> Optional[dict]:
     return None
 
 # =============================================================================
-# MAIN API FUNCTIONS
+# MAIN API FUNCTIONS (Async for MongoDB)
 # =============================================================================
 
-def start_v3_assessment(user_id: str) -> dict:
+async def start_v3_assessment_async(user_id: str) -> dict:
     """
     Start a new V3 assessment session.
     
     Returns:
         Session data with first question
     """
-    session = create_v3_session(user_id)
+    session = await create_v3_session_async(user_id)
     
     # Get first question
     first_question = get_next_phase1_question(session)
@@ -673,7 +673,7 @@ def start_v3_assessment(user_id: str) -> dict:
         },
     }
 
-def submit_v3_answer(session_id: str, question_id: str, response_value: int) -> dict:
+async def submit_v3_answer_async(session_id: str, question_id: str, response_value: int) -> dict:
     """
     Submit an answer and get the next question or result.
     
@@ -685,16 +685,21 @@ def submit_v3_answer(session_id: str, question_id: str, response_value: int) -> 
     Returns:
         Next question or final result
     """
-    session = get_v3_session(session_id)
+    session = await get_v3_session_async(session_id)
     if not session:
         raise ValueError("Session not found or expired")
     
     # Check for duplicate answer
-    if question_id in session["answers"]:
+    if question_id in session.get("answers", {}):
         logger.warning(f"Duplicate answer for {question_id}, skipping")
     else:
         # Record the answer
+        if "answers" not in session:
+            session["answers"] = {}
         session["answers"][question_id] = response_value
+        
+        if "asked_question_ids" not in session:
+            session["asked_question_ids"] = []
         session["asked_question_ids"].append(question_id)
         
         # Score based on current phase
@@ -703,17 +708,17 @@ def submit_v3_answer(session_id: str, question_id: str, response_value: int) -> 
     
     # Check phase completion
     if session["phase"] == Phase.TRIAD.value:
-        return handle_phase1_completion(session)
+        return await handle_phase1_completion_async(session)
     
     # For now, return done if not in Phase 1
     return {"status": "done", "message": "Phase not yet implemented"}
 
-def handle_phase1_completion(session: dict) -> dict:
+async def handle_phase1_completion_async(session: dict) -> dict:
     """Handle Phase 1 (Triad Lock) completion logic."""
     
     # Check if all Phase 1 questions are answered
     phase1_ids = {q["id"] for q in PHASE1_QUESTIONS}
-    answered_ids = set(session["asked_question_ids"])
+    answered_ids = set(session.get("asked_question_ids", []))
     answered_phase1 = answered_ids.intersection(phase1_ids)
     
     # Try to lock triad
@@ -730,11 +735,16 @@ def handle_phase1_completion(session: dict) -> dict:
             locked_triad = sorted_triads[0][0]
             confidence = (sorted_triads[0][1] - sorted_triads[1][1]) * 2
         
-        session["triad_locked"] = locked_triad
-        session["triad_confidence"] = confidence
-        session["phase"] = Phase.CORE.value
-        session["phase_number"] = 2
-        update_v3_session(session["session_id"], session)
+        # Update session in MongoDB
+        await update_v3_session_async(session["session_id"], {
+            "triad_locked": locked_triad,
+            "triad_confidence": confidence,
+            "phase": Phase.CORE.value,
+            "phase_number": 2,
+            "triad_scores": session["triad_scores"],
+            "answers": session["answers"],
+            "asked_question_ids": session["asked_question_ids"],
+        })
         
         # Return Phase 1 complete result (Phase 2 not yet implemented)
         return {
@@ -756,7 +766,12 @@ def handle_phase1_completion(session: dict) -> dict:
         # Should not happen, but handle gracefully
         return {"status": "error", "message": "No more Phase 1 questions"}
     
-    update_v3_session(session["session_id"], session)
+    # Update session in MongoDB
+    await update_v3_session_async(session["session_id"], {
+        "triad_scores": session["triad_scores"],
+        "answers": session["answers"],
+        "asked_question_ids": session["asked_question_ids"],
+    })
     
     answered_count = len(answered_phase1)
     
@@ -775,11 +790,14 @@ def handle_phase1_completion(session: dict) -> dict:
         },
     }
 
-def get_v3_session_status(session_id: str) -> dict:
+async def get_v3_session_status_async(session_id: str) -> dict:
     """Get current status of a V3 assessment session."""
-    session = get_v3_session(session_id)
+    session = await get_v3_session_async(session_id)
     if not session:
         return {"found": False, "error": "Session not found or expired"}
+    
+    created_at = session.get("created_at")
+    updated_at = session.get("updated_at")
     
     return {
         "found": True,
@@ -787,17 +805,63 @@ def get_v3_session_status(session_id: str) -> dict:
         "user_id": session["user_id"],
         "phase": session["phase"],
         "phase_number": session["phase_number"],
-        "questions_answered": len(session["asked_question_ids"]),
-        "triad_locked": session["triad_locked"],
+        "questions_answered": len(session.get("asked_question_ids", [])),
+        "triad_locked": session.get("triad_locked"),
         "triad_percentages": calculate_triad_percentages(session),
-        "core_type_locked": session["core_type_locked"],
-        "created_at": session["created_at_iso"],
-        "updated_at": session["updated_at_iso"],
+        "core_type_locked": session.get("core_type_locked"),
+        "created_at": created_at.isoformat() if hasattr(created_at, 'isoformat') else str(created_at),
+        "updated_at": updated_at.isoformat() if hasattr(updated_at, 'isoformat') else str(updated_at),
     }
 
-def resume_v3_assessment(session_id: str) -> dict:
+async def resume_v3_assessment_async(session_id: str) -> dict:
     """Resume an existing V3 assessment session."""
-    session = get_v3_session(session_id)
+    session = await get_v3_session_async(session_id)
+    if not session:
+        return {"error": "Session not found or expired", "can_resume": False}
+    
+    # Get next question based on current phase
+    if session["phase"] == Phase.TRIAD.value:
+        next_question = get_next_phase1_question(session)
+        if not next_question:
+            # All Phase 1 questions answered, trigger completion check
+            return await handle_phase1_completion_async(session)
+        
+        answered_count = len(session.get("asked_question_ids", []))
+        
+        return {
+            "can_resume": True,
+            "session_id": session["session_id"],
+            "phase": session["phase"],
+            "phase_number": session["phase_number"],
+            "phase_label": "Discovering your triad...",
+            "question": format_question_for_api(next_question),
+            "progress": {
+                "current": answered_count + 1,
+                "estimated_total": 45,
+                "section": "Testing your core center...",
+                "confidence_hint": get_confidence_hint(session),
+            },
+        }
+    
+    return {"can_resume": False, "message": "Phase not yet implemented"}
+
+
+# Legacy sync function aliases (for backward compatibility in exports)
+def start_v3_assessment(user_id: str) -> dict:
+    """DEPRECATED: Use start_v3_assessment_async instead."""
+    raise NotImplementedError("Use start_v3_assessment_async - called from async endpoint")
+
+def submit_v3_answer(session_id: str, question_id: str, response_value: int) -> dict:
+    """DEPRECATED: Use submit_v3_answer_async instead."""
+    raise NotImplementedError("Use submit_v3_answer_async - called from async endpoint")
+
+def get_v3_session_status(session_id: str) -> dict:
+    """DEPRECATED: Use get_v3_session_status_async instead."""
+    raise NotImplementedError("Use get_v3_session_status_async - called from async endpoint")
+
+def resume_v3_assessment(session_id: str) -> dict:
+    """DEPRECATED: Use resume_v3_assessment_async instead."""
+    raise NotImplementedError("Use resume_v3_assessment_async - called from async endpoint")
     if not session:
         return {"error": "Session not found or expired", "can_resume": False}
     
