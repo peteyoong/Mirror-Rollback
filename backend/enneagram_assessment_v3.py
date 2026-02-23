@@ -31,6 +31,7 @@ SESSION_TTL_SECONDS = 2 * 60 * 60  # 2 hours
 # Triad lock thresholds
 TRIAD_LOCK_THRESHOLD = 45  # Lock if top triad >= 45%
 TRIAD_CONFIDENCE_MIN = 40  # If confidence < 40%, add clarifying questions
+TRIAD_MIN_QUESTIONS = 15  # Minimum questions before allowing early lock
 
 # Core type thresholds
 CORE_TYPE_LOCK_THRESHOLD = 50  # Lock if top type >= 50%
