@@ -305,26 +305,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  buildBanner: {
-    backgroundColor: 'rgba(0, 255, 0, 0.15)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 255, 0, 0.3)',
+  // Subtle staging watermark - top right corner
+  stagingWatermark: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 35,
+    right: 12,
+    zIndex: 100,
   },
-  buildBannerText: {
-    color: '#00ff00',
+  stagingWatermarkText: {
     fontSize: 11,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  buildBannerSubtext: {
-    color: '#00ffff',
-    fontSize: 9,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    textAlign: 'center',
-    marginTop: 2,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.5)',
+    letterSpacing: 1,
   },
   scrollContent: {
     flexGrow: 1,
