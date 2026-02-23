@@ -1078,7 +1078,7 @@ async def submit_v3_answer_async(session_id: str, question_id: str, response_val
     Args:
         session_id: The assessment session ID
         question_id: The question being answered
-        response_value: The selected option value (1-5)
+        response_value: The selected option value (1-5 for likert, type number for differential)
     
     Returns:
         Next question or final result
@@ -1103,12 +1103,16 @@ async def submit_v3_answer_async(session_id: str, question_id: str, response_val
         # Score based on current phase
         if session["phase"] == Phase.TRIAD.value:
             score_phase1_answer(session, question_id, response_value)
+        elif session["phase"] == Phase.CORE.value:
+            score_phase2_answer(session, question_id, response_value)
     
-    # Check phase completion
+    # Handle phase completion
     if session["phase"] == Phase.TRIAD.value:
         return await handle_phase1_completion_async(session)
+    elif session["phase"] == Phase.CORE.value:
+        return await handle_phase2_completion_async(session)
     
-    # For now, return done if not in Phase 1
+    # For phases 3+ not yet implemented
     return {"status": "done", "message": "Phase not yet implemented"}
 
 async def handle_phase1_completion_async(session: dict) -> dict:
