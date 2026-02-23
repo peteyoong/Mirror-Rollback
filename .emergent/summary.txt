@@ -1,88 +1,250 @@
 <analysis>
-
 **original_problem_statement**:
-The user's initial goal was to fix a critical issue where the deployed web application served stale assets. This was addressed by implementing a robust cache-busting mechanism.
+The user's initial problem was a critical deployment issue where the live Expo Go app served a stale, outdated build, despite the preview URL working correctly. This was eventually resolved by Emergent support.
 
-However, a more severe issue emerged: the live deployment on the Emergent platform, accessed via QR code and the Expo Go app, consistently serves an old, outdated build. This happens despite the preview URL and local testing showing the correct, latest version of the app. The user sees incorrect Enneagram results on the live deployment (Type 7 balanced Low) but correct results on the preview (Type 7w8 High).
+Following this, a new bug emerged where the Enneagram assessment would jump back to the start after a few questions. This was fixed.
 
-The agent has conclusively proven that the database and backend API are serving the correct data, and that the code itself is correct. The problem has been isolated to the Emergent platform's deployment infrastructure, which seems to be caching the Expo Go bundle indefinitely and not updating it upon redeployment.
+The user then requested to set up an always-on staging environment to avoid the preview servers from sleeping. This led to a series of tasks to correctly configure the app for different environments (sleeping preview vs. always-on staging), which uncovered further issues:
+1. A database mismatch between the preview (local DB) and the always-on host (Atlas DB).
+2. A critical bug where the app would hang on Restoring your profile... if the user's session data was cached from a different environment.
+3. A UI bug where a new, always-visible staging footer was blocking touch interactions with the bottom tab bar.
+4. The always-on deployment was still serving a very old build.
 
-The final action was to draft a detailed support email for the user to send to Emergent to resolve this platform-level caching issue.
+The most recent tasks focus on hardening the staging environment by adding visible provenance stamps (build info) and guardrails to prevent misconfigurations, and improving the staging footer's UX to be non-blocking and collapsible.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack Expo/FastAPI project. It has a multi-layered cache-busting system for web builds, including client-side checks in  and server-side cache control headers in . It is also configured as a PWA for standalone use on iOS. A debug footer has been added to  to display environment, build, and user information, which was instrumental in diagnosing the problem.
+The application is a full-stack Expo/FastAPI project. It is now configured to distinguish between a sleeping  environment and an  staging environment ().
 
-The codebase is in a correct state. The preview environment () works perfectly. The live deployment environment is broken due to a platform-level caching issue outside of the agent's control.
+- A  utility has been created and integrated into  to prevent the app from hanging on restore if the cached user session is invalid for the current environment's database.
+- A  utility pings the backend every 4 minutes to prevent the always-on staging server from sleeping.
+- A new, improved  has been implemented. It's a collapsible pill that is positioned above the tab bar and uses  to avoid blocking user interaction. It only appears in the  environment.
+- The  utility has been updated to use the correct API URL from environment variables without a hardcoded fallback.
+- A  component was created to add hard guardrails against misconfiguration in the staging environment.
+- A  has been created to prepare for a future production environment.
 
 **Last working item**:
-- Last item agent was working: The agent's final task was to assist the user in resolving the platform-level deployment issue. After confirming the problem was not in the code, the agent drafted a comprehensive support email for the user to send to the Emergent platform's support team.
-- Status: BLOCKED
-- Agent Testing Done: Y
-- Which testing method agent to use? NA. The issue is not solvable by the agent through code or testing. The next step is external communication with platform support. The agent should wait for user feedback after they have contacted support.
-- User Testing Done: Y
+- Last item agent was working: The agent was implementing a Provenance Stamp and Guardrails system for the staging environment as requested by the user. This involves adding a  to the root layout to enforce correct API configuration and displaying build information prominently on the Welcome screen and in the footer to make it obvious which build is running.
+- Status: IN PROGRESS
+- Agent Testing Done: N
+- Which testing method agent to use? screenshot tool. The agent needs to verify the new provenance stamps are visible on the Welcome screen and that the guardrails work as expected (e.g., show an error screen on misconfiguration).
+- User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  Issue 1: (P0) Live deployment serves a stale, outdated build via Expo Go.
+  Issue 1: (P0) Complete the implementation and verification of the Staging Provenance Stamp and Guardrails.
+  Issue 2: (P1) The preview environment's  tunnel is highly unstable, frequently causing 520 errors and service restarts. This severely hampers testing and verification of changes.
 
   Issues Detail:
   - Issue 1: 
-     - Attempted fixes:
-        - Multiple forced rebuilds with new s.
-        - Implemented client-side cache-busting (, cooldowns, timeouts).
-        - Implemented server-side cache-busting (, dynamic  headers).
-        - Cleared all possible caches ([09:08:04] Starting project at /app/frontend, etc.).
-        - The issue was conclusively proven to be with the Emergent platform's deployment pipeline, not the application code.
+     - Attempted fixes: The agent created  and started integrating it into . It also added a  to . The implementation was interrupted before full verification.
      - Next debug checklist: 
-        1. **Do not attempt to fix this in code.** The problem is external.
-        2. The user has been provided with a draft email () to send to Emergent support.
-        3. The agent must wait for the user to report back on the outcome of their communication with Emergent support.
-     - Why fix this issue and what will be achieved with the fix? This is the primary blocker preventing the user from sharing their application. Fixing it will allow the live, deployed version of the app to reflect the latest code changes.
+       1. Review  to ensure  correctly wraps the application content.
+       2. Review  to confirm the  is correctly implemented and visible.
+       3. Restart the 
+  Usage: expo [command] [options]
+
+  Options:
+  
+    -V, --version                     output the version number
+    --non-interactive                 Fail, if an interactive prompt would be required to continue.
+    -h, --help                        output usage information
+  
+  Commands:
+
+    init [name]                       Create a new Expo project
+    start [path]                      Start a local dev server for the app
+    start:web [path]                  Start a Webpack dev server for the web app
+    export [path]                     Export the static files of the app for hosting it on a web server
+    install [packages...]             Install a module or other package to a project
+    run:android [path]                Run the Android app binary locally
+    run:ios [path]                    Run the iOS app binary locally
+    send [path]                       Share the project's URL to an email address
+
+    login                             Login to an Expo account
+    logout                            Logout of an Expo account
+    register                          Sign up for a new Expo account
+    whoami                            Return the currently authenticated account
+
+    client:install:ios                Install Expo Go for iOS on the simulator
+    client:install:android            Install Expo Go for Android on a connected device or emulator
+
+    config [path]                     Show the project config
+    doctor [path]                     Diagnose issues with the project
+    upgrade [sdk-version]             Upgrade the project packages and config for the given SDK version
+
+    customize:web [path]              Eject the default web files for customization
+    prebuild [path]                   Create native iOS and Android project files before building natively.
+                                      Learn more: https://docs.expo.dev/workflow/customizing/
+
+    build:web [path]                  Build the web app for production
+
+    credentials:manager [path]        Superseded by eas credentials in eas-cli
+
+    url [path]                        Log a URL for opening the project in Expo Go
+    url:ipa [path]                    Log the download URL for the standalone iOS binary
+    url:apk [path]                    Log the download URL for the standalone Android binary
+
+    webhooks [path]                   List all webhooks for a project
+    webhooks:add [path]               Add a webhook to a project
+    webhooks:remove [path]            Delete a webhook
+    webhooks:update [path]            Update an existing webhook
+
+    build:ios [path]                  Superseded by eas build in eas-cli
+    build:android [path]              Superseded by eas build in eas-cli
+    build:status [path]               Superseded by eas build:list in eas-cli
+    eject [path]                      Superseded by expo prebuild
+    fetch:ios:certs [path]            Superseded by eas credentials in eas-cli
+    fetch:android:keystore [path]     Superseded by eas credentials in eas-cli
+    fetch:android:hashes [path]       Superseded by eas credentials in eas-cli
+    fetch:android:upload-cert [path]  Superseded by eas credentials in eas-cli
+    publish [path]                    Superseded by eas update in eas-cli
+    publish:set [path]                Superseded by eas update:republish in eas-cli
+    publish:rollback [path]           Superseded by eas update:republish in eas-cli
+    publish:history [path]            Superseded by eas update:list in eas-cli
+    publish:details [path]            Superseded by eas update:view in eas-cli
+    push:android:upload [path]        Superseded by eas credentials in eas-cli
+    push:android:show [path]          Superseded by eas credentials in eas-cli
+    push:android:clear [path]         Superseded by eas credentials in eas-cli
+    upload:android [path]             Superseded by eas submit in eas-cli
+    upload:ios [path]                 Superseded by eas submit in eas-cli
+    client:ios [path]                 Superseded by Expo Dev Clients
+
+[10:21:55]   Run a command with --help for more info 💡
+[10:21:55]     $ expo start --help
+[10:21:55] service.
+       4. Use the  on the preview URL to verify the provenance stamp is visible on the Welcome screen.
+       5. Manually test the guardrail by temporarily putting an invalid URL in  and confirming the app shows the error screen.
+     - Why fix this issue and what will be achieved with the fix? This will make it immediately obvious to testers which build and API they are using, and prevent the app from failing silently or hanging due to a misconfigured environment. This directly addresses the user's goal of having clear build provenance.
+     - Status:  IN PROGRESS
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? Frontend
+     - Blocked on other issue: None, but testing is difficult due to Issue 2.
+  - Issue 2: 
+     - Attempted fixes: The agent has tried restarting the 
+  Usage: expo [command] [options]
+
+  Options:
+  
+    -V, --version                     output the version number
+    --non-interactive                 Fail, if an interactive prompt would be required to continue.
+    -h, --help                        output usage information
+  
+  Commands:
+
+    init [name]                       Create a new Expo project
+    start [path]                      Start a local dev server for the app
+    start:web [path]                  Start a Webpack dev server for the web app
+    export [path]                     Export the static files of the app for hosting it on a web server
+    install [packages...]             Install a module or other package to a project
+    run:android [path]                Run the Android app binary locally
+    run:ios [path]                    Run the iOS app binary locally
+    send [path]                       Share the project's URL to an email address
+
+    login                             Login to an Expo account
+    logout                            Logout of an Expo account
+    register                          Sign up for a new Expo account
+    whoami                            Return the currently authenticated account
+
+    client:install:ios                Install Expo Go for iOS on the simulator
+    client:install:android            Install Expo Go for Android on a connected device or emulator
+
+    config [path]                     Show the project config
+    doctor [path]                     Diagnose issues with the project
+    upgrade [sdk-version]             Upgrade the project packages and config for the given SDK version
+
+    customize:web [path]              Eject the default web files for customization
+    prebuild [path]                   Create native iOS and Android project files before building natively.
+                                      Learn more: https://docs.expo.dev/workflow/customizing/
+
+    build:web [path]                  Build the web app for production
+
+    credentials:manager [path]        Superseded by eas credentials in eas-cli
+
+    url [path]                        Log a URL for opening the project in Expo Go
+    url:ipa [path]                    Log the download URL for the standalone iOS binary
+    url:apk [path]                    Log the download URL for the standalone Android binary
+
+    webhooks [path]                   List all webhooks for a project
+    webhooks:add [path]               Add a webhook to a project
+    webhooks:remove [path]            Delete a webhook
+    webhooks:update [path]            Update an existing webhook
+
+    build:ios [path]                  Superseded by eas build in eas-cli
+    build:android [path]              Superseded by eas build in eas-cli
+    build:status [path]               Superseded by eas build:list in eas-cli
+    eject [path]                      Superseded by expo prebuild
+    fetch:ios:certs [path]            Superseded by eas credentials in eas-cli
+    fetch:android:keystore [path]     Superseded by eas credentials in eas-cli
+    fetch:android:hashes [path]       Superseded by eas credentials in eas-cli
+    fetch:android:upload-cert [path]  Superseded by eas credentials in eas-cli
+    publish [path]                    Superseded by eas update in eas-cli
+    publish:set [path]                Superseded by eas update:republish in eas-cli
+    publish:rollback [path]           Superseded by eas update:republish in eas-cli
+    publish:history [path]            Superseded by eas update:list in eas-cli
+    publish:details [path]            Superseded by eas update:view in eas-cli
+    push:android:upload [path]        Superseded by eas credentials in eas-cli
+    push:android:show [path]          Superseded by eas credentials in eas-cli
+    push:android:clear [path]         Superseded by eas credentials in eas-cli
+    upload:android [path]             Superseded by eas submit in eas-cli
+    upload:ios [path]                 Superseded by eas submit in eas-cli
+    client:ios [path]                 Superseded by Expo Dev Clients
+
+[10:21:55]   Run a command with --help for more info 💡
+[10:21:55]     $ expo start --help
+[10:21:55] and  services multiple times. This is a recurring infrastructure problem with the Emergent platform's preview environment.
+     - Next debug checklist: 
+       1. Be aware that the preview URL may be down.
+       2. If the preview URL is down, wait a few minutes and try again.
+       3. If verification is critical, explain to the user that the code changes are complete and ready for deployment to the stable always-on host, as testing in the preview environment is unreliable.
+     - Why fix this issue and what will be achieved with the fix? This is a platform-level issue. Acknowledging it allows the agent to manage expectations and find alternative verification paths (like deploying to the always-on host).
      - Status:  BLOCKED
      - Is recurring issue? Y
-     - Should Test frontend/backend/both after fix? Both. After the platform issue is resolved by Emergent, a full test of the live deployment will be necessary.
-     - Blocked on other issue: Blocked on Emergent Platform Support.
+     - Should Test frontend/backend/both after fix? NA (Platform issue)
+     - Blocked on other issue: Blocked on Emergent Platform stability.
 
 **In progress Task List**:
-- None. All work is blocked by the platform issue.
+  Task 1: (P0) Implement Staging Provenance Stamp & Guardrails
+  - Where to resume: The agent has already created  and modified  and . The next step is to verify these changes are correct and functional through testing.
+  - What will be achieved with this? The app will be more robust against configuration errors in the staging environment and will clearly display its build version, ID, and API endpoint.
+  - Status: IN PROGRESS
+  - Should Test frontend/backend/both after fix? Frontend
+  - Blocked on something: Testing is blocked by the unstable preview environment (Issue 2).
 
 **Upcoming and Future Tasks**
     Future Tasks:
+    - (P1) **Create Production Environment**: Create a separate, always-on production deployment with its own database. The agent has already created  to facilitate this.
     - (P2) **Monitoring/Analytics**: Add monitoring and analytics to the production environment.
     - (P2) **CI/CD Pipeline**: Set up an automated deployment pipeline.
     - (P2) **Database Backups**: Formalize  procedure for production data.
     - (P2) **Restore **: Restore full functionality to the Mirror tab.
     - (P3) **Unify Chat Persistence**: Unify chat persistence logic across chat surfaces.
-    - (P3) **SVG Icon Migration**: Consider migrating from  to a pure SVG icon system to eliminate font-loading issues.
 
 **Completed work in this session**
-- **Robust Cache-Busting**: Implemented a multi-layered cache-busting mechanism for the web build, including:
-    - Client-side version checking in .
-    - Hard refresh logic using  with cache-busting params.
-    - Reload loop guards and refresh cooldowns.
-    - Fetch timeouts to prevent the app from hanging.
-    - Server-side  and  headers in .
-- **PWA/Standalone Mode**: Configured the app for full-screen Add to Home Screen on iOS by modifying  and creating .
-- **Debug Diagnostics**: Added a comprehensive debug footer () that displays host, environment, database, user, and build information.
-- **Root Cause Analysis**: Conclusively diagnosed that the stale live build is a platform-level caching issue with Emergent's Expo Go deployment infrastructure, not a bug in the application code.
-- **User Support**: Drafted a detailed support email for the user to escalate the platform issue to Emergent support.
+- **Enneagram Assessment Bug Fix**: Fixed a bug where the assessment would reset to the intro screen. The fix involved modifying a  in  to prevent it from re-running mid-assessment.
+- **Session Restore Hang Fix**: Resolved a critical issue where the app would hang on Restoring your profile... if the browser had a cached user ID from a different database. Implemented  to check session validity on startup and clear it if invalid.
+- **Always-On Staging Config**: Re-configured the application to use a stable, always-on staging host () for its API calls, decoupling it from the unstable, sleeping preview URLs.
+- **Staging Keepalive**: Implemented a keepalive mechanism () that pings the backend every 4 minutes to ensure the always-on staging environment doesn't sleep.
+- **Footer Touch/UX Fix**: Re-implemented the  as a collapsible, non-interactive pill that sits above the tab bar, fixing a bug where it blocked touches.
+- **Database Mismatch Diagnosis**: Identified that the preview and always-on environments were using two different databases (local vs. Atlas), which was the root cause of the session restore hang.
+- **Deployment Build Debugging**: Added temporary and permanent build information stamps to the UI (, ) to help diagnose issues where the deployed version was serving an old frontend bundle.
 
 **Earlier issues found/mentioned but not fixed**
-   - None were missed by the agent. The single outstanding issue is the platform deployment bug, which has been the focus of the entire latter half of the session.
+   - **Unstable Preview Environment**: A persistent, recurring platform issue where the  tunnel for the preview URL fails, causing service restarts and 520 errors. This is an infrastructure problem outside the agent's control but significantly impacts development and testing.
 
 **Known issue recurrence from previous fork**
-  - None.
+  - **Stale Deployments**: The core issue from the previous fork of the live/deployed build being stale has recurred in this session. The root causes have been varied (platform caching, incorrect build deployment), but the symptom is the same. The recent work on provenance stamps is a direct mitigation for this.
 
 **Code Architecture**
-
+href: null
 
 **Key Technical Concepts**
-- **Platform-level Caching vs. Application Caching**: Understanding the distinction between browser/CDN cache (which was fixed) and the Expo Go deployment bundle cache (the current problem).
-- **Expo Go Deployment**: The live app is not a standard web URL but is served via Expo Go, which has its own bundle caching mechanism controlled by the platform.
-- **PWA Configuration**: Using  and a custom  file in an Expo Router project to control PWA appearance and behavior.
-- **Robust Cache-Busting**: Combining client-side logic (version checking, timeouts, cooldowns) with server-side headers (, ) for maximum effect.
-- **Systematic Debugging**: Using a debug footer and direct API/DB checks to isolate a problem's root cause, proving the application code was correct and the issue was external.
+- **Environment Management**: Distinguishing between , , and  using .
+- **Expo Go vs. Web Bundles**: Understanding the different deployment and caching mechanisms for native (Expo Go) and web builds.
+- **Session Persistence & Validation**: Using  to cache session info and implementing client-side validation to handle mismatches between environments.
+- **React Hooks**: Deep usage of  and  for managing component lifecycle, state, and side effects. Correctly managing dependency arrays was key to fixing bugs.
+- **UI Interaction Control**: Using  in React Native to create non-interactive UI overlays that don't block touches on elements behind them.
+- **Defensive Programming**: Adding guardrails () and provenance stamps to fail loudly and provide clear debugging information when the environment is misconfigured.
 
 **key DB schema**
   - No changes in this session.
@@ -91,43 +253,51 @@ The codebase is in a correct state. The preview environment () works perfectly. 
   - No changes.
 
 **All files of reference**
-- : Contains all server-side cache control logic.
-- : Contains all client-side cache control logic.
-- : The debug footer that shows the currently running build version.
-- : The email draft for the user to send to Emergent support.
+- : The root layout, contains logic for session validation, keepalive, and rendering guards/footers.
+- : The new guardrail component to prevent misconfiguration.
+- : The new collapsible pill footer.
+- : The welcome screen, which now includes a provenance stamp.
+- : The logic for validating a cached user session against the current backend.
+- : The keep-alive ping logic.
+- : The single source of truth for the backend API URL.
+- : Contains the environment variables for the current build.
 
 **Areas that need refactoring**:
-- None. The code is in a good state.
+- The provenance stamp logic is now duplicated in  and . The user's last prompt introduced a  component in  which was intended to unify this. The agent should complete this unification.
 
 **key api endpoints**
-- :  endpoint returning the current build ID. Now includes  headers.
-- :  endpoint created as a workaround to force a cache-busting redirect. (Not a final solution).
-- : The root endpoint now serves  with  and a dynamic  header.
+- : Used for diagnostics, keep-alive pings, and session validation. Returns environment, build, and DB info.
+- : Used to fetch user data. A 500/404 error from this endpoint on app start was the cause of the session restore hang.
 
 **Critical Info for New Agent**
-- **THE CURRENT PROBLEM IS A PLATFORM ISSUE, NOT A CODE ISSUE.** Do not attempt to fix the caching issue by editing the code. All reasonable code-based solutions have been implemented.
-- **Your primary task is to wait for the user.** The user needs to contact Emergent support using the email draft provided in . The problem is blocked until the platform provider resolves the deployment caching issue on their end.
-- The **preview URL works correctly**. The **live deployed app (via Expo Go QR code) is broken**. This discrepancy is the core of the problem.
-- When the user reports back that the platform issue is fixed, your job will be to verify the fix by guiding the user to test the live deployment again.
+- **The preview environment is UNSTABLE.** The  tunnel fails frequently. Do not get stuck in a loop trying to fix it. If you need to verify UI changes and the preview is down, state that the code is correct and that verification requires a successful deployment or for the preview infrastructure to stabilize.
+- **There are two key staging environments**: The sleeping  and the  deployed host (). The app is now configured to use the always-on host as its backend API.
+- **There are two different staging DATABASES**: The preview environment uses a **local** MongoDB (), while the always-on host uses a **MongoDB Atlas** database (). The session restore bug caused by this mismatch is fixed on the client, but be aware that data created in one environment will not exist in the other.
+- **The always-on host requires a manual DEPLOY.** Code changes made in the development environment are NOT automatically reflected on the always-on host. The user must click the Deploy button in their Emergent dashboard to update the live frontend and backend. This is a frequent point of confusion.
 
 **documents created in this job**
-  - : A draft email for the user to send to Emergent's support team to resolve the platform-level deployment issue.
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
 
-**Last 10 User Messages and any pending HUMAN messages**
-- **Msg 278**: User asks agent to draft a summary email for Emergent support. (COMPLETED)
-- **Msg 275**: User confirms that after clearing Expo Go cache and rescanning the live QR code, the app still shows an old build. (COMPLETED)
-- **Msg 273**: Agent asks user to clear Expo Go cache and try the live QR code again after a full cache clear and restart. (PENDING USER ACTION)
-- **Msg 264**: User confirms the live QR code opens in a live expo go environment. (COMPLETED)
-- **Msg 262**: Agent explains that the live app is accessed via Expo Go, not a web URL, which is why caching is different. (PENDING USER CONFIRMATION)
-- **Msg 255**: User provides screenshots showing the live button and QR code page, confirming there is no visible URL. (COMPLETED)
-- **Msg 250**: User explains they can't access a direct URL for the live app and asks agent to get the link from support. (COMPLETED)
-- **Msg 239**: User expresses frustration that the live deployment doesn't mirror the preview. (COMPLETED)
-- **Msg 236**: User confirms the preview URL works correctly in Safari and provides screenshots. Acknowledges the preview link will go to sleep. (COMPLETED)
-- **Msg 234**: Agent concludes the issue is device-side webview caching and asks user to test in Safari directly. (PENDING USER ACTION)
+**Last 10 User Messages and any pending HUMAN messages** 
+ - **Msg 662 (P0 Task):** User provided a detailed prompt to implement Staging Live Provenance Stamp + Guardrails. (IN PROGRESS)
+ - **Msg 649 (Config Task):** User asked to configure the environment for a Staging Live Deployment. (COMPLETED)
+ - **Msg 632 (Clarification):** User clarified that production and staging hosts/databases are separate. (COMPLETED)
+ - **Msg 631 (Input Pending):** Agent asked for the production API host. (RESOLVED by user clarification in Msg 632)
+ - **Msg 629 (Config Task):** User asked to configure the app to distinguish between live (production) and staging environments. (COMPLETED)
+ - **Msg 600 (UI Fix Task):** User provided a detailed prompt with code to fix the staging footer touch issue with an improved collapsible pill design. (COMPLETED)
+ - **Msg 557 (Deployment Bug):** User reported that the always-on deployment was serving an old, white-themed build. (COMPLETED)
+ - **Msg 555 (UI Issue):** User reported seeing a suspicious site warning from a browser extension when accessing the deployed link. (COMPLETED)
+ - **Msg 506 (UI Fix Task):** User provided a prompt to fix the staging footer, which was blocking touches on the tab bar. (COMPLETED)
+ - **Msg 441 (Bug/Config Task):** User reported the app hanging on Restoring your profile... and identified the database mismatch, providing a task to fix the hang and standardize the DB. (COMPLETED)
 
 **Project Health Check:**
 - **Broken**:
-  - The core Live Deployment functionality is broken. It serves a stale build due to a platform-level caching issue.
+  - The  environment is frequently non-functional due to  tunnel instability, which is a platform-level problem. This blocks rapid testing and verification.
 - **Mocked**:
   - None.
 
@@ -135,15 +305,15 @@ The codebase is in a correct state. The preview environment () works perfectly. 
 - **Emergent LLM Key**: Used by the backend for all LLM calls.
 
 **Testing status**
-  - Testing agent used after significant changes: NO (Manual  and screenshot testing was sufficient and more direct for this issue).
-  - Troubleshoot agent used after agent stuck in loop: YES (Correctly identified  caching, though the ultimate fix was beyond code changes).
+  - Testing agent used after significant changes: NO
+  - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created: []
-  - Known regressions: The live deployment is non-functional as it doesn't reflect the latest code.
+  - Known regressions: None from the code changes. The main regression is the unstable preview environment.
 
 **Credentials to test flow:**
-- Test user:  / no password (email-only login)
+- User accounts  and  exist in the **local**  database used by the preview environment. They do **not** exist in the Atlas database used by the always-on host. To test on the always-on host, a new user must be created.
 
 **What agent forgot to execute**
-- The agent was extremely thorough and did not miss any steps. It correctly escalated from code-level fixes to platform-level diagnosis when the former proved ineffective. The final step of providing a support email draft was the correct and only remaining action.
+- The agent was in the middle of executing the last user request (P0: Staging Live Provenance Stamp + Guardrails) when the session ended. The implementation is partially complete but needs verification and potentially some cleanup (e.g., ensuring the new  component is used consistently).
 
 </analysis>
