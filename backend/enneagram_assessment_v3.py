@@ -416,8 +416,278 @@ PHASE1_QUESTIONS = [
     },
 ]
 
-# Build question lookup
+# =============================================================================
+# PHASE 2 QUESTION BANK (CORE TYPE - Fear Triad Only for MVP)
+# =============================================================================
+# After triad is locked, these questions differentiate between types within
+# the locked triad. Currently only Fear triad (5, 6, 7) is implemented.
+
+PHASE2_FEAR_QUESTIONS = [
+    # Type 5 - The Investigator (F5-1 to F5-4)
+    {
+        "id": "F5-1",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 5,
+        "type": "likert",
+        "question": "I need extensive time alone to recharge and process my thoughts.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—solitude is essential for me"},
+            {"value": 4, "text": "Agree—I need significant alone time"},
+            {"value": 3, "text": "Neutral—I'm flexible about it"},
+            {"value": 2, "text": "Disagree—I prefer being with others"},
+            {"value": 1, "text": "Strongly disagree—I rarely need alone time"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "F5-2",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 5,
+        "type": "likert",
+        "question": "I prefer observing before participating in group situations.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I always observe first"},
+            {"value": 4, "text": "Agree—I usually hang back initially"},
+            {"value": 3, "text": "Neutral—depends on the situation"},
+            {"value": 2, "text": "Disagree—I tend to jump in"},
+            {"value": 1, "text": "Strongly disagree—I dive right in"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "F5-3",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 5,
+        "type": "likert",
+        "question": "I feel drained when people demand too much of my energy or attention.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—demands exhaust me quickly"},
+            {"value": 4, "text": "Agree—I'm protective of my energy"},
+            {"value": 3, "text": "Neutral—I manage it okay"},
+            {"value": 2, "text": "Disagree—I have energy to spare"},
+            {"value": 1, "text": "Strongly disagree—I thrive on engagement"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "F5-4",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 5,
+        "type": "likert",
+        "question": "I collect knowledge and resources to feel prepared and self-sufficient.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I stockpile knowledge"},
+            {"value": 4, "text": "Agree—I like feeling prepared"},
+            {"value": 3, "text": "Neutral—I'm somewhat this way"},
+            {"value": 2, "text": "Disagree—I wing it more often"},
+            {"value": 1, "text": "Strongly disagree—I prefer to improvise"},
+        ],
+        "weight": 1.0,
+    },
+    
+    # Type 6 - The Loyalist (F6-1 to F6-4)
+    {
+        "id": "F6-1",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 6,
+        "type": "likert",
+        "question": "I naturally scan for what could go wrong in any situation.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I'm always scanning for risks"},
+            {"value": 4, "text": "Agree—I notice potential problems easily"},
+            {"value": 3, "text": "Neutral—sometimes I do"},
+            {"value": 2, "text": "Disagree—I'm usually optimistic"},
+            {"value": 1, "text": "Strongly disagree—I rarely think about risks"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "F6-2",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 6,
+        "type": "likert",
+        "question": "I value trusted authorities and clear guidelines to feel secure.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I need structure and guidance"},
+            {"value": 4, "text": "Agree—clear guidelines help me"},
+            {"value": 3, "text": "Neutral—I can go either way"},
+            {"value": 2, "text": "Disagree—I prefer making my own rules"},
+            {"value": 1, "text": "Strongly disagree—I resist authority"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "F6-3",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 6,
+        "type": "likert",
+        "question": "My loyalty runs deep once I've committed to someone or something.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I'm fiercely loyal"},
+            {"value": 4, "text": "Agree—I'm very committed once in"},
+            {"value": 3, "text": "Neutral—I'm moderately loyal"},
+            {"value": 2, "text": "Disagree—I keep my options open"},
+            {"value": 1, "text": "Strongly disagree—I stay flexible"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "F6-4",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 6,
+        "type": "likert",
+        "question": "I can swing between seeking support and pushing against authority.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I'm often torn between the two"},
+            {"value": 4, "text": "Agree—I experience this ambivalence"},
+            {"value": 3, "text": "Neutral—occasionally"},
+            {"value": 2, "text": "Disagree—I'm pretty consistent"},
+            {"value": 1, "text": "Strongly disagree—I don't relate to this"},
+        ],
+        "weight": 1.0,
+    },
+    
+    # Type 7 - The Enthusiast (F7-1 to F7-4)
+    {
+        "id": "F7-1",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 7,
+        "type": "likert",
+        "question": "I keep my options open to avoid feeling trapped or limited.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—commitment feels constraining"},
+            {"value": 4, "text": "Agree—I like having options"},
+            {"value": 3, "text": "Neutral—depends on the situation"},
+            {"value": 2, "text": "Disagree—I'm comfortable committing"},
+            {"value": 1, "text": "Strongly disagree—I prefer certainty"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "F7-2",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 7,
+        "type": "likert",
+        "question": "I naturally reframe negatives into positives or opportunities.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I'm a natural optimist"},
+            {"value": 4, "text": "Agree—I look for silver linings"},
+            {"value": 3, "text": "Neutral—sometimes I do"},
+            {"value": 2, "text": "Disagree—I tend to be realistic"},
+            {"value": 1, "text": "Strongly disagree—I focus on problems"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "F7-3",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 7,
+        "type": "likert",
+        "question": "I seek variety and novelty to stay engaged and excited.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I need constant stimulation"},
+            {"value": 4, "text": "Agree—variety keeps me interested"},
+            {"value": 3, "text": "Neutral—I'm okay with some routine"},
+            {"value": 2, "text": "Disagree—I like consistency"},
+            {"value": 1, "text": "Strongly disagree—I prefer routine"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "F7-4",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 7,
+        "type": "likert",
+        "question": "FOMO drives me to pack my schedule with experiences.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I hate missing out"},
+            {"value": 4, "text": "Agree—I try to fit in a lot"},
+            {"value": 3, "text": "Neutral—sometimes"},
+            {"value": 2, "text": "Disagree—I'm selective about activities"},
+            {"value": 1, "text": "Strongly disagree—I prefer a calm schedule"},
+        ],
+        "weight": 1.0,
+    },
+    
+    # Fear Triad Differentiation (FD-1 to FD-4)
+    # These are special differential questions - selecting an option strongly
+    # boosts that type and suppresses the others
+    {
+        "id": "FD-1",
+        "phase": 2,
+        "triad": "fear",
+        "type": "differential",
+        "question": "When stressed, I tend to:",
+        "options": [
+            {"value": 5, "type_boost": 5, "text": "Withdraw into my inner world to think and analyze"},
+            {"value": 6, "type_boost": 6, "text": "Seek reassurance from trusted people or systems"},
+            {"value": 7, "type_boost": 7, "text": "Pursue distractions and plan exciting escapes"},
+        ],
+        "weight": 2.0,  # Higher weight for differential questions
+    },
+    {
+        "id": "FD-2",
+        "phase": 2,
+        "triad": "fear",
+        "type": "differential",
+        "question": "My core fear is being:",
+        "options": [
+            {"value": 5, "type_boost": 5, "text": "Incompetent, useless, or incapable"},
+            {"value": 6, "type_boost": 6, "text": "Unsupported, without guidance, or abandoned"},
+            {"value": 7, "type_boost": 7, "text": "Deprived, trapped in pain, or limited"},
+        ],
+        "weight": 2.0,
+    },
+    {
+        "id": "FD-3",
+        "phase": 2,
+        "triad": "fear",
+        "type": "differential",
+        "question": "Under pressure, I become:",
+        "options": [
+            {"value": 5, "type_boost": 5, "text": "Hyper-analytical, detached, and withdrawn"},
+            {"value": 6, "type_boost": 6, "text": "Reactive, doubting, and seeking certainty"},
+            {"value": 7, "type_boost": 7, "text": "Impulsive, scattered, and escapist"},
+        ],
+        "weight": 2.0,
+    },
+    {
+        "id": "FD-4",
+        "phase": 2,
+        "triad": "fear",
+        "type": "differential",
+        "question": "I recharge by:",
+        "options": [
+            {"value": 5, "type_boost": 5, "text": "Being alone with my projects and interests"},
+            {"value": 6, "type_boost": 6, "text": "Being with trusted people who make me feel secure"},
+            {"value": 7, "type_boost": 7, "text": "Planning exciting future possibilities"},
+        ],
+        "weight": 2.0,
+    },
+]
+
+# Placeholder for Shame and Anger triad questions (to be implemented)
+PHASE2_SHAME_QUESTIONS = []  # Types 2, 3, 4
+PHASE2_ANGER_QUESTIONS = []  # Types 8, 9, 1
+
+# Combine all Phase 2 questions
+PHASE2_QUESTIONS = PHASE2_FEAR_QUESTIONS + PHASE2_SHAME_QUESTIONS + PHASE2_ANGER_QUESTIONS
+
+# Build question lookup for all phases
 QUESTION_BY_ID = {q["id"]: q for q in PHASE1_QUESTIONS}
+QUESTION_BY_ID.update({q["id"]: q for q in PHASE2_QUESTIONS})
 
 # =============================================================================
 # SESSION MANAGEMENT (MongoDB-backed for persistence across restarts)
