@@ -312,6 +312,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  buildBanner: {
+    backgroundColor: 'rgba(0, 255, 0, 0.15)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 255, 0, 0.3)',
+  },
+  buildBannerText: {
+    color: '#00ff00',
+    fontSize: 11,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  buildBannerSubtext: {
+    color: '#00ffff',
+    fontSize: 9,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    textAlign: 'center',
+    marginTop: 2,
+  },
   scrollContent: {
     flexGrow: 1,
   },
