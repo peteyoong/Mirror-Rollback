@@ -10564,6 +10564,193 @@ async def get_deep_assessment_status(session_id: str):
 
 
 # =============================================================================
+# ENNEAGRAM ASSESSMENT V3 - ADAPTIVE 4-PHASE ASSESSMENT
+# =============================================================================
+# V3 Assessment: 90 questions, 4 phases
+# Phase 1: Triad Lock (Fear/Shame/Anger) - 20 questions
+# Phase 2: Core Type - 12-15 questions
+# Phase 3: Wing & Subtype - 22 questions  
+# Phase 4: Validation - 0-15 questions (adaptive)
+# =============================================================================
+
+class V3AssessmentStartRequest(BaseModel):
+    user_id: str
+
+
+class V3AssessmentAnswerRequest(BaseModel):
+    user_id: str
+    session_id: str
+    question_id: str
+    response_value: int  # 1-5
+
+
+@api_router.post("/enneagram/v3/start")
+async def start_v3_assessment_endpoint(request: V3AssessmentStartRequest):
+    """
+    Start a new V3 Enneagram assessment session.
+    
+    V3 is an adaptive 4-phase assessment:
+    - Phase 1: Triad Lock (20 questions) -> Fear/Shame/Anger
+    - Phase 2: Core Type (12-15 questions) -> Specific type
+    - Phase 3: Wing & Subtype (22 questions) -> Wing and instinctual stack
+    - Phase 4: Validation (0-15 questions) -> Mistyping checks
+    
+    Returns:
+        session_id: Unique session identifier
+        question: First question to answer
+        progress: Progress information
+    """
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(request.user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Start the V3 assessment
+        result = start_v3_assessment(request.user_id)
+        
+        logger.info(f"[V3Assessment] Started session {result['session_id']} for user {request.user_id}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[V3Assessment] Start error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/enneagram/v3/respond")
+async def submit_v3_answer_endpoint(request: V3AssessmentAnswerRequest):
+    """
+    Submit an answer to the current V3 assessment question.
+    
+    Request body:
+        user_id: User identifier
+        session_id: Assessment session ID
+        question_id: Question being answered (e.g., "F1", "S2", "A3")
+        response_value: Selected option value (1-5)
+    
+    Returns either:
+        - status: "continue" with next question + progress
+        - status: "phase_complete" with phase results and next phase info
+        - status: "done" with final results
+    """
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(request.user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Submit the answer
+        try:
+            result = submit_v3_answer(
+                request.session_id,
+                request.question_id,
+                request.response_value
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        
+        # If we have final results, save to user profile
+        if result.get("status") == "done" and result.get("final_result"):
+            final = result["final_result"]
+            
+            # Format for profile storage
+            profile_enneagram = {
+                "core_type": final.get("core_type"),
+                "wing": final.get("wing"),
+                "subtype_stack": final.get("subtype_stack", []),
+                "full_type_string": final.get("full_type_string"),
+                "confidence_percentage": final.get("confidence_percentage"),
+                "assessment_version": "v3",
+                "assessed_at": datetime.now(timezone.utc).isoformat(),
+            }
+            
+            # Update user profile
+            await db.users.update_one(
+                {"_id": ObjectId(request.user_id)},
+                {
+                    "$set": {
+                        "enneagram": profile_enneagram,
+                        "updated_at": datetime.now(timezone.utc)
+                    }
+                }
+            )
+            
+            # Also save to enneagram_results collection
+            await db.enneagram_results.update_one(
+                {"user_id": request.user_id},
+                {
+                    "$set": {
+                        "user_id": request.user_id,
+                        "assessment_type": "v3",
+                        "results": profile_enneagram,
+                        "updated_at": datetime.now(timezone.utc)
+                    }
+                },
+                upsert=True
+            )
+            
+            logger.info(f"[V3Assessment] Completed for user {request.user_id}: {final.get('full_type_string')}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[V3Assessment] Answer error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/enneagram/v3/resume/{session_id}")
+async def resume_v3_assessment_endpoint(session_id: str):
+    """
+    Resume an interrupted V3 assessment session.
+    
+    Returns the next question and current progress.
+    """
+    try:
+        result = resume_v3_assessment(session_id)
+        
+        if result.get("error"):
+            raise HTTPException(status_code=404, detail=result["error"])
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[V3Assessment] Resume error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/enneagram/v3/status/{session_id}")
+async def get_v3_assessment_status_endpoint(session_id: str):
+    """
+    Get the current status of a V3 assessment session.
+    
+    Returns session phase, progress, scores, and timestamps.
+    """
+    try:
+        status = get_v3_session_status(session_id)
+        
+        if not status.get("found"):
+            raise HTTPException(
+                status_code=404,
+                detail="Session not found or expired. Sessions expire after 2 hours."
+            )
+        
+        return status
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[V3Assessment] Status error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
 # ENNEAGRAM Q&A ENDPOINT (Knowledge Base)
 # =============================================================================
 
