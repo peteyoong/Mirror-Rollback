@@ -1924,6 +1924,90 @@ async def handle_phase2_completion_async(session: dict) -> dict:
         },
     }
 
+async def handle_phase3_completion_async(session: dict) -> dict:
+    """Handle Phase 3 (Wing & Subtype) completion logic."""
+    
+    core_type = session.get("core_type_locked")
+    if not core_type:
+        return {"status": "error", "message": "Core type not locked - cannot process Phase 3"}
+    
+    # Get Phase 3 questions for this type
+    phase3_questions = get_phase3_questions_for_type(core_type)
+    
+    # Count Phase 3 questions answered
+    phase3_ids = {q["id"] for q in phase3_questions}
+    answered_ids = set(session.get("asked_question_ids", []))
+    answered_phase3 = answered_ids.intersection(phase3_ids)
+    
+    # Check if all Phase 3 questions answered
+    all_answered = len(answered_phase3) >= len(phase3_questions)
+    
+    if all_answered:
+        # Assessment complete! Build final result
+        final_result = build_final_result(session)
+        
+        # Update session to done
+        session["phase"] = Phase.DONE.value
+        session["phase_number"] = 4
+        session["final_result"] = final_result
+        
+        await update_v3_session_async(session["session_id"], {
+            "phase": Phase.DONE.value,
+            "phase_number": 4,
+            "wing_scores": session.get("wing_scores", {}),
+            "subtype_scores": session.get("subtype_scores", {}),
+            "final_result": final_result,
+            "answers": session["answers"],
+            "asked_question_ids": session["asked_question_ids"],
+        })
+        
+        return {
+            "status": "done",
+            "phase_completed": 3,
+            "final_result": final_result,
+            "message": f"Assessment complete! You are a {final_result['full_type_string']}",
+        }
+    
+    # Get next Phase 3 question
+    next_question = get_next_phase3_question(session)
+    if not next_question:
+        # Should not happen, but handle gracefully
+        return {"status": "error", "message": "No more Phase 3 questions"}
+    
+    # Update session in MongoDB
+    await update_v3_session_async(session["session_id"], {
+        "wing_scores": session.get("wing_scores", {}),
+        "subtype_scores": session.get("subtype_scores", {}),
+        "answers": session["answers"],
+        "asked_question_ids": session["asked_question_ids"],
+    })
+    
+    total_answered = len(session.get("asked_question_ids", []))
+    
+    # Determine hint based on progress
+    wing_scores = session.get("wing_scores", {"left": 0, "right": 0})
+    subtype_scores = session.get("subtype_scores", {"sp": 0, "so": 0, "sx": 0})
+    
+    if sum(wing_scores.values()) > 0 or sum(subtype_scores.values()) > 0:
+        hint = "Refining your wing and instincts..."
+    else:
+        hint = "Determining your wing preference..."
+    
+    return {
+        "status": "continue",
+        "session_id": session["session_id"],
+        "phase": session["phase"],
+        "phase_number": session["phase_number"],
+        "phase_label": "Determining your wing and instincts...",
+        "question": format_question_for_api(next_question),
+        "progress": {
+            "current": total_answered + 1,
+            "estimated_total": 45,
+            "section": f"Type {core_type} - Wings & Subtypes",
+            "confidence_hint": hint,
+        },
+    }
+
 async def get_v3_session_status_async(session_id: str) -> dict:
     """Get current status of a V3 assessment session."""
     session = await get_v3_session_async(session_id)
