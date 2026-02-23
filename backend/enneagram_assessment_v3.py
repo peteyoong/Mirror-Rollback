@@ -908,9 +908,135 @@ def check_triad_lock(session: dict) -> Tuple[bool, Optional[str], float]:
 
 def get_next_phase1_question(session: dict) -> Optional[dict]:
     """Get the next Phase 1 question to ask."""
-    asked = set(session["asked_question_ids"])
+    asked = set(session.get("asked_question_ids", []))
     
     for q in PHASE1_QUESTIONS:
+        if q["id"] not in asked:
+            return q
+    
+    return None
+
+# =============================================================================
+# PHASE 2 SCORING FUNCTIONS (Core Type - Fear Triad)
+# =============================================================================
+
+def score_phase2_answer(session: dict, question_id: str, response_value: int) -> dict:
+    """
+    Score a Phase 2 (Core Type) answer.
+    
+    Scoring logic:
+    - Likert questions (F5-x, F6-x, F7-x): Score adds to that type
+    - Differential questions (FD-x): Selected option strongly boosts that type
+    """
+    question = QUESTION_BY_ID.get(question_id)
+    if not question:
+        raise ValueError(f"Unknown question ID: {question_id}")
+    
+    # Ensure type_scores exists
+    if "type_scores" not in session:
+        session["type_scores"] = {str(i): 0 for i in range(1, 10)}
+    
+    weight = question.get("weight", 1.0)
+    q_type = question.get("type")
+    
+    if q_type == "differential":
+        # Differential question: response_value IS the type to boost
+        # The value is 5, 6, or 7 for Fear triad differential questions
+        type_to_boost = str(response_value)
+        
+        # Strong boost for selected type
+        session["type_scores"][type_to_boost] = session["type_scores"].get(type_to_boost, 0) + (5 * weight)
+        
+        # Slight suppression for non-selected types in the triad
+        triad_types = TRIAD_TYPES.get(Triad(session.get("triad_locked", "fear")), [5, 6, 7])
+        for t in triad_types:
+            if str(t) != type_to_boost:
+                session["type_scores"][str(t)] = session["type_scores"].get(str(t), 0) + 1
+    else:
+        # Likert question: Add weighted score to target type
+        target_type = str(question.get("target_type"))
+        if target_type:
+            weighted_score = response_value * weight
+            session["type_scores"][target_type] = session["type_scores"].get(target_type, 0) + weighted_score
+    
+    return session
+
+def calculate_type_percentages(session: dict, triad: str) -> dict:
+    """Calculate percentage for each type within a triad."""
+    triad_types = TRIAD_TYPES.get(Triad(triad), [])
+    type_scores = session.get("type_scores", {})
+    
+    # Get scores for types in this triad
+    scores = {str(t): type_scores.get(str(t), 0) for t in triad_types}
+    total = sum(scores.values())
+    
+    if total == 0:
+        # Equal distribution if no scores yet
+        return {str(t): round(100 / len(triad_types), 1) for t in triad_types}
+    
+    return {t: round((s / total) * 100, 1) for t, s in scores.items()}
+
+def check_core_type_lock(session: dict) -> Tuple[bool, Optional[int], float]:
+    """
+    Check if we can lock the core type.
+    
+    Requirements for early lock:
+    - At least CORE_TYPE_MIN_QUESTIONS Phase 2 questions answered (8)
+    - Confidence > CORE_TYPE_CONFIDENCE_THRESHOLD (70%)
+    
+    Returns:
+        (is_locked, locked_type, confidence)
+    """
+    triad_locked = session.get("triad_locked")
+    if not triad_locked:
+        return False, None, 0
+    
+    percentages = calculate_type_percentages(session, triad_locked)
+    
+    # Find the top type
+    sorted_types = sorted(percentages.items(), key=lambda x: x[1], reverse=True)
+    top_type, top_pct = sorted_types[0]
+    second_pct = sorted_types[1][1] if len(sorted_types) > 1 else 0
+    
+    # Calculate confidence based on lead over second type
+    confidence = top_pct - second_pct
+    if confidence > 30:
+        confidence = min(confidence * 2.5, 100)  # Strong lead = high confidence
+    else:
+        confidence = min(confidence * 2, 80)  # Moderate lead = moderate confidence
+    
+    # Count Phase 2 questions answered
+    asked = session.get("asked_question_ids", [])
+    phase2_answered = sum(1 for q_id in asked if q_id in [q["id"] for q in PHASE2_QUESTIONS])
+    
+    if phase2_answered < CORE_TYPE_MIN_QUESTIONS:
+        return False, None, confidence
+    
+    # Check if we have high enough confidence for early lock
+    if confidence >= CORE_TYPE_CONFIDENCE_THRESHOLD:
+        return True, int(top_type), confidence
+    
+    return False, None, confidence
+
+def get_next_phase2_question(session: dict) -> Optional[dict]:
+    """Get the next Phase 2 question based on locked triad."""
+    asked = set(session.get("asked_question_ids", []))
+    triad_locked = session.get("triad_locked")
+    
+    if not triad_locked:
+        return None
+    
+    # Get Phase 2 questions for this triad
+    if triad_locked == "fear":
+        questions = PHASE2_FEAR_QUESTIONS
+    elif triad_locked == "shame":
+        questions = PHASE2_SHAME_QUESTIONS
+    elif triad_locked == "anger":
+        questions = PHASE2_ANGER_QUESTIONS
+    else:
+        return None
+    
+    for q in questions:
         if q["id"] not in asked:
             return q
     
