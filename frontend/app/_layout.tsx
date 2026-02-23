@@ -276,33 +276,35 @@ export default function RootLayout() {
   // Show loading while fonts load OR session validation
   if (!fontsLoaded || isValidatingSession) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.textSecondary} />
-        <Text style={styles.loadingText}>
-          {!fontsLoaded ? 'Loading fonts...' : 'Validating session...'}
-        </Text>
-        {sessionError && (
-          <Text style={styles.sessionErrorText}>
-            Session expired — please sign in again
+      <StagingConfigGuard>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.textSecondary} />
+          <Text style={styles.loadingText}>
+            {!fontsLoaded ? 'Loading fonts...' : 'Validating session...'}
           </Text>
-        )}
-      </View>
+          {sessionError && (
+            <Text style={styles.sessionErrorText}>
+              Session expired — please sign in again
+            </Text>
+          )}
+        </View>
+      </StagingConfigGuard>
     );
   }
 
   // No user - show WelcomeGate
   if (!userId) {
     return (
-      <>
+      <StagingConfigGuard>
         <WelcomeGate />
         <StagingBuildFooter />
-      </>
+      </StagingConfigGuard>
     );
   }
 
   // User exists - render app
   return (
-    <>
+    <StagingConfigGuard>
       <Stack screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: Colors.background },
@@ -312,7 +314,7 @@ export default function RootLayout() {
         <Stack.Screen name="welcome" options={{ headerShown: false }} />
       </Stack>
       <StagingBuildFooter />
-    </>
+    </StagingConfigGuard>
   );
 }
 
