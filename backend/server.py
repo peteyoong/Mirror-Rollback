@@ -10715,7 +10715,7 @@ async def resume_v3_assessment_endpoint(session_id: str):
     Returns the next question and current progress.
     """
     try:
-        result = resume_v3_assessment(session_id)
+        result = await resume_v3_assessment_async(session_id)
         
         if result.get("error"):
             raise HTTPException(status_code=404, detail=result["error"])
@@ -10737,7 +10737,7 @@ async def get_v3_assessment_status_endpoint(session_id: str):
     Returns session phase, progress, scores, and timestamps.
     """
     try:
-        status = get_v3_session_status(session_id)
+        status = await get_v3_session_status_async(session_id)
         
         if not status.get("found"):
             raise HTTPException(
