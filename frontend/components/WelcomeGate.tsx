@@ -254,6 +254,18 @@ export default function WelcomeGate() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
+      {/* STAGING BUILD BANNER - Always visible in staging for deployment verification */}
+      {IS_STAGING && (
+        <View style={styles.buildBanner}>
+          <Text style={styles.buildBannerText}>
+            BUILD: {BUILD_VERSION} | ID: {BUILD_ID.slice(-12)}
+          </Text>
+          <Text style={styles.buildBannerSubtext}>
+            API: {API_BASE_URL}
+          </Text>
+        </View>
+      )}
+      
       <View style={styles.mainContent}>
         <View style={styles.header}>
           <Text style={styles.title}>Project Mirror</Text>
