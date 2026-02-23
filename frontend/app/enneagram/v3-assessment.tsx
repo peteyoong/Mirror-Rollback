@@ -670,6 +670,111 @@ export default function V3Assessment() {
     );
   };
 
+  // Final Results Screen (Done)
+  const renderDone = () => {
+    const instinctLabels: Record<string, string> = {
+      sp: 'Self-Preservation',
+      so: 'Social',
+      sx: 'Sexual/Intimate',
+    };
+    
+    const triadColors: Record<string, string> = {
+      fear: '#6B7BE3',
+      shame: '#E36B8A',
+      anger: '#E3A16B',
+    };
+    
+    if (!finalResult) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Results not available</Text>
+          <TouchableOpacity style={styles.errorButton} onPress={() => navigateToLenses(router)}>
+            <Text style={styles.errorButtonText}>Return to Lenses</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    
+    return (
+      <ScrollView style={styles.doneContainer} contentContainerStyle={styles.doneContent}>
+        {/* Big Type Badge */}
+        <View style={[styles.finalTypeBadge, { backgroundColor: triadColors[finalResult.triad] || Colors.accent }]}>
+          <Text style={styles.finalTypeString}>{finalResult.full_type_string}</Text>
+        </View>
+        
+        {/* Type Name */}
+        <Text style={styles.finalTypeName}>{finalResult.core_type_name}</Text>
+        
+        {/* Details Card */}
+        <View style={styles.detailsCard}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Core Type</Text>
+            <Text style={styles.detailValue}>Type {finalResult.core_type}</Text>
+          </View>
+          
+          <View style={styles.detailDivider} />
+          
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Wing</Text>
+            <Text style={styles.detailValue}>
+              {finalResult.wing === 'balanced' ? 'Balanced Wings' : `Wing ${finalResult.wing}`}
+            </Text>
+          </View>
+          
+          <View style={styles.detailDivider} />
+          
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Triad</Text>
+            <Text style={styles.detailValue}>
+              {finalResult.triad?.charAt(0).toUpperCase() + finalResult.triad?.slice(1)} Center
+            </Text>
+          </View>
+          
+          <View style={styles.detailDivider} />
+          
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Dominant Instinct</Text>
+            <Text style={styles.detailValue}>
+              {instinctLabels[finalResult.dominant_instinct] || finalResult.dominant_instinct}
+            </Text>
+          </View>
+          
+          <View style={styles.detailDivider} />
+          
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Instinct Stack</Text>
+            <Text style={styles.detailValue}>
+              {finalResult.instinct_stack?.map((i: string) => i.toUpperCase()).join(' > ')}
+            </Text>
+          </View>
+        </View>
+        
+        {/* Confidence Score */}
+        <View style={styles.confidenceCard}>
+          <Text style={styles.confidenceCardLabel}>Assessment Confidence</Text>
+          <Text style={styles.confidenceCardValue}>{Math.round(finalResult.confidence_percentage)}%</Text>
+        </View>
+        
+        {/* Action Buttons */}
+        <View style={styles.doneActions}>
+          <TouchableOpacity 
+            style={styles.primaryButton}
+            onPress={() => navigateToLenses(router)}
+          >
+            <Text style={styles.primaryButtonText}>View Your Profile</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.secondaryButton}
+            onPress={handleRestart}
+          >
+            <Text style={styles.secondaryButtonText}>Retake Assessment</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    );
+  };
+
   // Error Screen
   const renderError = () => (
     <View style={styles.errorContainer}>
