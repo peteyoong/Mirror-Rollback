@@ -71,7 +71,8 @@ export default function EnneagramScreen() {
   }
   
   const handleStartAssessment = () => {
-    router.push('/enneagram/assessment');
+    // V3 Assessment - new adaptive 4-phase assessment
+    router.push('/enneagram/v3-assessment');
   };
   
   const handleBack = () => {
