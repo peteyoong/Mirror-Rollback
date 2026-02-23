@@ -862,34 +862,6 @@ def get_v3_session_status(session_id: str) -> dict:
 def resume_v3_assessment(session_id: str) -> dict:
     """DEPRECATED: Use resume_v3_assessment_async instead."""
     raise NotImplementedError("Use resume_v3_assessment_async - called from async endpoint")
-    if not session:
-        return {"error": "Session not found or expired", "can_resume": False}
-    
-    # Get next question based on current phase
-    if session["phase"] == Phase.TRIAD.value:
-        next_question = get_next_phase1_question(session)
-        if not next_question:
-            # All Phase 1 questions answered, trigger completion check
-            return handle_phase1_completion(session)
-        
-        answered_count = len(session["asked_question_ids"])
-        
-        return {
-            "can_resume": True,
-            "session_id": session["session_id"],
-            "phase": session["phase"],
-            "phase_number": session["phase_number"],
-            "phase_label": "Discovering your triad...",
-            "question": format_question_for_api(next_question),
-            "progress": {
-                "current": answered_count + 1,
-                "estimated_total": 45,
-                "section": "Testing your core center...",
-                "confidence_hint": get_confidence_hint(session),
-            },
-        }
-    
-    return {"can_resume": False, "message": "Phase not yet implemented"}
 
 # =============================================================================
 # HELPER FUNCTIONS
