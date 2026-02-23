@@ -559,6 +559,10 @@ def check_triad_lock(session: dict) -> Tuple[bool, Optional[str], float]:
     """
     Check if we can lock the triad.
     
+    Requirements for early lock:
+    - At least TRIAD_MIN_QUESTIONS answered (15)
+    - Top triad >= TRIAD_LOCK_THRESHOLD (45%)
+    
     Returns:
         (is_locked, locked_triad, confidence)
     """
@@ -572,6 +576,11 @@ def check_triad_lock(session: dict) -> Tuple[bool, Optional[str], float]:
     # Calculate confidence as the gap between top and second
     confidence = (top_pct - second_pct) * 2  # Double the gap for confidence
     confidence = min(confidence, 100)  # Cap at 100
+    
+    # Check minimum questions answered before allowing early lock
+    questions_answered = len(session.get("asked_question_ids", []))
+    if questions_answered < TRIAD_MIN_QUESTIONS:
+        return False, None, confidence
     
     # Check if we can lock
     if top_pct >= TRIAD_LOCK_THRESHOLD:
