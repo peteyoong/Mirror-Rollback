@@ -678,9 +678,265 @@ PHASE2_FEAR_QUESTIONS = [
     },
 ]
 
-# Placeholder for Shame and Anger triad questions (to be implemented)
-PHASE2_SHAME_QUESTIONS = []  # Types 2, 3, 4
-PHASE2_ANGER_QUESTIONS = []  # Types 8, 9, 1
+# =============================================================================
+# PHASE 2: SHAME TRIAD (Types 2, 3, 4)
+# =============================================================================
+
+PHASE2_SHAME_QUESTIONS = [
+    # Type 2 - The Helper (S2-1 to S2-4)
+    {
+        "id": "S2-1",
+        "phase": 2,
+        "triad": "shame",
+        "target_type": 2,
+        "type": "likert",
+        "question": "I intuitively sense what others need and feel compelled to help.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I always know what people need"},
+            {"value": 4, "text": "Agree—I'm very attuned to others' needs"},
+            {"value": 3, "text": "Neutral—sometimes I pick up on needs"},
+            {"value": 2, "text": "Disagree—I focus more on my own needs"},
+            {"value": 1, "text": "Strongly disagree—I don't notice others' needs much"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "S2-2",
+        "phase": 2,
+        "triad": "shame",
+        "target_type": 2,
+        "type": "likert",
+        "question": "Being needed and appreciated makes me feel worthy.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—being needed is essential to my worth"},
+            {"value": 4, "text": "Agree—appreciation means a lot to me"},
+            {"value": 3, "text": "Neutral—it's nice but not essential"},
+            {"value": 2, "text": "Disagree—my worth comes from other sources"},
+            {"value": 1, "text": "Strongly disagree—I don't need to be needed"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "S2-3",
+        "phase": 2,
+        "triad": "shame",
+        "target_type": 2,
+        "type": "likert",
+        "question": "I often put others' needs ahead of my own without realizing.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I neglect myself for others constantly"},
+            {"value": 4, "text": "Agree—I frequently prioritize others"},
+            {"value": 3, "text": "Neutral—I try to balance both"},
+            {"value": 2, "text": "Disagree—I'm usually aware of my own needs"},
+            {"value": 1, "text": "Strongly disagree—I put myself first"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "S2-4",
+        "phase": 2,
+        "triad": "shame",
+        "target_type": 2,
+        "type": "likert",
+        "question": "Directly asking for what I need feels selfish or uncomfortable.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—asking for myself feels wrong"},
+            {"value": 4, "text": "Agree—I struggle to ask directly"},
+            {"value": 3, "text": "Neutral—sometimes it's hard"},
+            {"value": 2, "text": "Disagree—I can usually ask for what I need"},
+            {"value": 1, "text": "Strongly disagree—I have no problem asking"},
+        ],
+        "weight": 1.0,
+    },
+    
+    # Type 3 - The Achiever (S3-1 to S3-4)
+    {
+        "id": "S3-1",
+        "phase": 2,
+        "triad": "shame",
+        "target_type": 3,
+        "type": "likert",
+        "question": "I adapt my image to succeed in any environment I'm in.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I'm a chameleon for success"},
+            {"value": 4, "text": "Agree—I adjust my presentation strategically"},
+            {"value": 3, "text": "Neutral—I adapt somewhat"},
+            {"value": 2, "text": "Disagree—I stay fairly consistent"},
+            {"value": 1, "text": "Strongly disagree—I never change who I am"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "S3-2",
+        "phase": 2,
+        "triad": "shame",
+        "target_type": 3,
+        "type": "likert",
+        "question": "Efficiency and measurable results matter more than feelings.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—results are what count"},
+            {"value": 4, "text": "Agree—I prioritize outcomes over emotions"},
+            {"value": 3, "text": "Neutral—both matter to me"},
+            {"value": 2, "text": "Disagree—feelings are equally important"},
+            {"value": 1, "text": "Strongly disagree—feelings come first"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "S3-3",
+        "phase": 2,
+        "triad": "shame",
+        "target_type": 3,
+        "type": "likert",
+        "question": "I feel empty when I'm not working toward a goal.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I need goals to feel alive"},
+            {"value": 4, "text": "Agree—I'm restless without objectives"},
+            {"value": 3, "text": "Neutral—sometimes I need a break"},
+            {"value": 2, "text": "Disagree—I'm fine without active goals"},
+            {"value": 1, "text": "Strongly disagree—I prefer just being"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "S3-4",
+        "phase": 2,
+        "triad": "shame",
+        "target_type": 3,
+        "type": "likert",
+        "question": "Failure or looking incompetent is unbearable to me.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—failure is devastating"},
+            {"value": 4, "text": "Agree—I avoid failure at all costs"},
+            {"value": 3, "text": "Neutral—failure is uncomfortable but manageable"},
+            {"value": 2, "text": "Disagree—I can handle failure okay"},
+            {"value": 1, "text": "Strongly disagree—failure doesn't bother me much"},
+        ],
+        "weight": 1.0,
+    },
+    
+    # Type 4 - The Individualist (S4-1 to S4-4)
+    {
+        "id": "S4-1",
+        "phase": 2,
+        "triad": "shame",
+        "target_type": 4,
+        "type": "likert",
+        "question": "Something fundamental is missing that others seem to have.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I feel this deficiency deeply"},
+            {"value": 4, "text": "Agree—I often feel like something's missing"},
+            {"value": 3, "text": "Neutral—sometimes I feel this way"},
+            {"value": 2, "text": "Disagree—I feel fairly complete"},
+            {"value": 1, "text": "Strongly disagree—I don't feel lacking"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "S4-2",
+        "phase": 2,
+        "triad": "shame",
+        "target_type": 4,
+        "type": "likert",
+        "question": "My emotional highs and lows feel more intense than most people's.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—my emotions are exceptionally intense"},
+            {"value": 4, "text": "Agree—I feel things more deeply than others"},
+            {"value": 3, "text": "Neutral—my emotions seem average"},
+            {"value": 2, "text": "Disagree—I'm fairly emotionally stable"},
+            {"value": 1, "text": "Strongly disagree—I'm very even-keeled"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "S4-3",
+        "phase": 2,
+        "triad": "shame",
+        "target_type": 4,
+        "type": "likert",
+        "question": "I need to feel authentic even if it creates conflict.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—authenticity trumps harmony"},
+            {"value": 4, "text": "Agree—I prioritize being real over fitting in"},
+            {"value": 3, "text": "Neutral—I try to balance both"},
+            {"value": 2, "text": "Disagree—I'd rather keep the peace"},
+            {"value": 1, "text": "Strongly disagree—harmony is more important"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "S4-4",
+        "phase": 2,
+        "triad": "shame",
+        "target_type": 4,
+        "type": "likert",
+        "question": "Beauty, depth, and meaning are essential to my existence.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—life without these is unbearable"},
+            {"value": 4, "text": "Agree—these are very important to me"},
+            {"value": 3, "text": "Neutral—I appreciate them but don't need them"},
+            {"value": 2, "text": "Disagree—I'm more practical"},
+            {"value": 1, "text": "Strongly disagree—I focus on simpler things"},
+        ],
+        "weight": 1.0,
+    },
+    
+    # Shame Triad Differentiation (SD-1 to SD-4)
+    {
+        "id": "SD-1",
+        "phase": 2,
+        "triad": "shame",
+        "type": "differential",
+        "question": "When helping others, I most need:",
+        "options": [
+            {"value": 2, "type_boost": 2, "text": "Gratitude and appreciation for my care"},
+            {"value": 3, "type_boost": 3, "text": "Recognition for my competence and success"},
+            {"value": 4, "type_boost": 4, "text": "Authentic connection and being truly seen"},
+        ],
+        "weight": 2.0,
+    },
+    {
+        "id": "SD-2",
+        "phase": 2,
+        "triad": "shame",
+        "type": "differential",
+        "question": "My shame shows up most as:",
+        "options": [
+            {"value": 2, "type_boost": 2, "text": "Over-giving and losing myself in others' needs"},
+            {"value": 3, "type_boost": 3, "text": "Over-performing and fear of being exposed as a fraud"},
+            {"value": 4, "type_boost": 4, "text": "Over-identifying with emotions and feeling fundamentally flawed"},
+        ],
+        "weight": 2.0,
+    },
+    {
+        "id": "SD-3",
+        "phase": 2,
+        "triad": "shame",
+        "type": "differential",
+        "question": "Under stress, I become:",
+        "options": [
+            {"value": 2, "type_boost": 2, "text": "Possessive, demanding, and resentful of ingratitude"},
+            {"value": 3, "type_boost": 3, "text": "Deceptive, cutting corners, and obsessed with image"},
+            {"value": 4, "type_boost": 4, "text": "Melancholic, withdrawn, and envious of others"},
+        ],
+        "weight": 2.0,
+    },
+    {
+        "id": "SD-4",
+        "phase": 2,
+        "triad": "shame",
+        "type": "differential",
+        "question": "I seek love through:",
+        "options": [
+            {"value": 2, "type_boost": 2, "text": "Service and making myself indispensable"},
+            {"value": 3, "type_boost": 3, "text": "Success and proving my value through achievement"},
+            {"value": 4, "type_boost": 4, "text": "Uniqueness and sharing my authentic depth"},
+        ],
+        "weight": 2.0,
+    },
+]
+
+PHASE2_ANGER_QUESTIONS = []  # Types 8, 9, 1 - To be implemented
 
 # Combine all Phase 2 questions
 PHASE2_QUESTIONS = PHASE2_FEAR_QUESTIONS + PHASE2_SHAME_QUESTIONS + PHASE2_ANGER_QUESTIONS
