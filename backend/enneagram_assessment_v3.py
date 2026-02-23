@@ -1411,6 +1411,178 @@ def get_next_phase2_question(session: dict) -> Optional[dict]:
     return None
 
 # =============================================================================
+# PHASE 3 SCORING FUNCTIONS (Wings & Subtype)
+# =============================================================================
+
+def score_phase3_answer(session: dict, question_id: str, response_value: int) -> dict:
+    """
+    Score a Phase 3 (Wing & Subtype) answer.
+    
+    Scoring logic:
+    - Wing comparison questions: response_value IS the wing type selected
+    - Subtype questions: Likert scale (1-5) adds to that instinct
+    """
+    question = QUESTION_BY_ID.get(question_id)
+    if not question:
+        raise ValueError(f"Unknown question ID: {question_id}")
+    
+    q_type = question.get("type")
+    weight = question.get("weight", 1.0)
+    
+    if q_type == "wing_comparison":
+        # Wing comparison: response_value IS the wing type (e.g., 4 or 6 for Type 5)
+        core_type = session.get("core_type_locked")
+        if core_type and core_type in WING_ADJACENTS:
+            left_wing, right_wing = WING_ADJACENTS[core_type]
+            
+            # Ensure wing_scores exists
+            if "wing_scores" not in session:
+                session["wing_scores"] = {"left": 0, "right": 0}
+            
+            if response_value == left_wing:
+                session["wing_scores"]["left"] += (3 * weight)
+            elif response_value == right_wing:
+                session["wing_scores"]["right"] += (3 * weight)
+    
+    elif q_type == "subtype":
+        # Subtype question: Add score to the instinct
+        instinct = question.get("instinct")  # "sp", "so", or "sx"
+        if instinct:
+            if "subtype_scores" not in session:
+                session["subtype_scores"] = {"sp": 0, "so": 0, "sx": 0}
+            session["subtype_scores"][instinct] += (response_value * weight)
+    
+    return session
+
+def calculate_wing_result(session: dict) -> Tuple[Optional[int], float, str]:
+    """
+    Calculate the wing result based on wing scores.
+    
+    Returns:
+        (wing_number, confidence, status)
+        status is "locked", "balanced", or "inconclusive"
+    """
+    core_type = session.get("core_type_locked")
+    if not core_type or core_type not in WING_ADJACENTS:
+        return None, 0, "inconclusive"
+    
+    left_wing, right_wing = WING_ADJACENTS[core_type]
+    wing_scores = session.get("wing_scores", {"left": 0, "right": 0})
+    
+    left_score = wing_scores.get("left", 0)
+    right_score = wing_scores.get("right", 0)
+    total = left_score + right_score
+    
+    if total == 0:
+        return None, 0, "inconclusive"
+    
+    # Calculate percentages
+    left_pct = (left_score / total) * 100
+    right_pct = (right_score / total) * 100
+    
+    # Determine wing
+    gap = abs(left_pct - right_pct)
+    
+    if gap < 20:  # Very close - balanced wings
+        return None, gap, "balanced"
+    elif left_pct > right_pct:
+        confidence = min(gap * 2, 100)
+        return left_wing, confidence, "locked"
+    else:
+        confidence = min(gap * 2, 100)
+        return right_wing, confidence, "locked"
+
+def calculate_subtype_stack(session: dict) -> Tuple[list, dict]:
+    """
+    Calculate the instinctual stack based on subtype scores.
+    
+    Returns:
+        (stack_list, score_dict)
+        stack_list e.g., ["sx", "sp", "so"]
+        score_dict e.g., {"sp": 3.5, "so": 2.1, "sx": 4.2}
+    """
+    subtype_scores = session.get("subtype_scores", {"sp": 0, "so": 0, "sx": 0})
+    
+    # Normalize scores
+    total = sum(subtype_scores.values())
+    if total == 0:
+        return ["sp", "so", "sx"], {"sp": 0, "so": 0, "sx": 0}
+    
+    normalized = {k: round((v / total) * 5, 1) for k, v in subtype_scores.items()}
+    
+    # Sort by score (descending)
+    sorted_instincts = sorted(normalized.items(), key=lambda x: x[1], reverse=True)
+    stack = [item[0] for item in sorted_instincts]
+    
+    return stack, normalized
+
+def get_next_phase3_question(session: dict) -> Optional[dict]:
+    """Get the next Phase 3 question based on locked core type."""
+    asked = set(session.get("asked_question_ids", []))
+    core_type = session.get("core_type_locked")
+    
+    if not core_type:
+        return None
+    
+    # Get Phase 3 questions for this type
+    questions = get_phase3_questions_for_type(core_type)
+    
+    for q in questions:
+        if q["id"] not in asked:
+            return q
+    
+    return None
+
+def build_final_result(session: dict) -> dict:
+    """Build the final assessment result object."""
+    core_type = session.get("core_type_locked")
+    triad = session.get("triad_locked")
+    
+    # Get wing result
+    wing, wing_confidence, wing_status = calculate_wing_result(session)
+    
+    # Get subtype stack
+    subtype_stack, instinct_scores = calculate_subtype_stack(session)
+    
+    # Build full type string (e.g., "5w4 sx/sp")
+    if wing_status == "balanced":
+        wing_str = "w"  # Just "w" for balanced
+        full_type_string = f"{core_type}w (balanced)"
+    else:
+        wing_str = f"w{wing}" if wing else ""
+        full_type_string = f"{core_type}{wing_str}"
+    
+    # Add subtype to full string
+    if len(subtype_stack) >= 2:
+        full_type_string += f" {subtype_stack[0]}/{subtype_stack[1]}"
+    
+    # Calculate overall confidence
+    triad_conf = session.get("triad_confidence", 0)
+    type_conf = session.get("core_type_confidence", 0)
+    overall_confidence = (triad_conf * 0.3) + (type_conf * 0.4) + (wing_confidence * 0.15) + 15  # +15 for completed
+    overall_confidence = min(overall_confidence, 100)
+    
+    return {
+        "core_type": core_type,
+        "core_type_name": {
+            1: "The Reformer", 2: "The Helper", 3: "The Achiever",
+            4: "The Individualist", 5: "The Investigator", 6: "The Loyalist",
+            7: "The Enthusiast", 8: "The Challenger", 9: "The Peacemaker"
+        }.get(core_type, f"Type {core_type}"),
+        "wing": wing if wing_status == "locked" else "balanced",
+        "wing_status": wing_status,
+        "wing_confidence": round(wing_confidence, 1),
+        "triad": triad,
+        "dominant_instinct": subtype_stack[0] if subtype_stack else None,
+        "secondary_instinct": subtype_stack[1] if len(subtype_stack) > 1 else None,
+        "instinct_stack": subtype_stack,
+        "instinct_scores": instinct_scores,
+        "full_type_string": full_type_string,
+        "confidence_percentage": round(overall_confidence, 1),
+        "assessment_version": "v3",
+    }
+
+# =============================================================================
 # MAIN API FUNCTIONS (Async for MongoDB)
 # =============================================================================
 
