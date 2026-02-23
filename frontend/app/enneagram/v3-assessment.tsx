@@ -304,8 +304,9 @@ export default function V3Assessment() {
         setViewState('phase_complete');
         
       } else if (response.status === 'done') {
-        // Assessment complete
+        // Assessment complete - save final result and show done screen
         await clearSession();
+        setFinalResult(response.final_result || null);
         setViewState('done');
         
       } else {
