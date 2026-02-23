@@ -17,6 +17,7 @@ import { LensViewRef } from './HumanDesignLensView';
 import { buildJournalPrefill, goToJournalWithPrefill, LENS_CONTINUATIONS } from '../utils/journalPrefill';
 import TodayPanel from './TodayPanel';
 import { hasKnownBirthTime, BIRTH_TIME_REQUIRED_MESSAGE } from '../utils/birthTimeUtils';
+import { LensTabBar, LensTab } from './LensTabBar';
 
 interface AstrologySection {
   id: string;      // Stable identifier (e.g., "sun", "moon", "ascendant")
