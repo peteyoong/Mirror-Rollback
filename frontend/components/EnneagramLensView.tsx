@@ -1230,41 +1230,20 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // RENDER HELPERS
   // ============================================
 
+  // Define tabs for the LensTabBar
+  const enneagramTabs: LensTab[] = useMemo(() => [
+    { key: 'summary', label: 'Overview' },
+    { key: 'snapshot', label: 'At a Glance', shortLabel: 'Glance' },
+    { key: 'today', label: 'Today' },
+    { key: 'deep_dive', label: 'Deep Dive' },
+  ], []);
+
   const renderTabs = () => (
-    <View style={styles.tabContainer}>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
-        onPress={() => setActiveTab('summary')}
-      >
-        <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>
-          Overview
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'snapshot' && styles.activeTab]}
-        onPress={() => setActiveTab('snapshot')}
-      >
-        <Text style={[styles.tabText, activeTab === 'snapshot' && styles.activeTabText]}>
-          At a Glance
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'today' && styles.activeTab]}
-        onPress={() => setActiveTab('today')}
-      >
-        <Text style={[styles.tabText, activeTab === 'today' && styles.activeTabText]}>
-          Today
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
-        onPress={() => setActiveTab('deep_dive')}
-      >
-        <Text style={[styles.tabText, activeTab === 'deep_dive' && styles.activeTabText]}>
-          Deep Dive
-        </Text>
-      </TouchableOpacity>
-    </View>
+    <LensTabBar
+      tabs={enneagramTabs}
+      activeTab={activeTab}
+      onTabChange={(key) => setActiveTab(key as TabType)}
+    />
   );
 
   const renderConfidenceBadge = () => {
