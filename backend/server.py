@@ -73,12 +73,13 @@ from enneagram_assessment import (
     Stage as EAStage
 )
 
-# Import V3 Enneagram Assessment Engine
+# Import V3 Enneagram Assessment Engine (MongoDB-backed async functions)
 from enneagram_assessment_v3 import (
-    start_v3_assessment,
-    submit_v3_answer,
-    get_v3_session_status,
-    resume_v3_assessment,
+    start_v3_assessment_async,
+    submit_v3_answer_async,
+    get_v3_session_status_async,
+    resume_v3_assessment_async,
+    set_v3_db,
     Phase as V3Phase,
 )
 
