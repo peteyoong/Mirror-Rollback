@@ -33,8 +33,10 @@ TRIAD_LOCK_THRESHOLD = 45  # Lock if top triad >= 45%
 TRIAD_CONFIDENCE_MIN = 40  # If confidence < 40%, add clarifying questions
 TRIAD_MIN_QUESTIONS = 15  # Minimum questions before allowing early lock
 
-# Core type thresholds
+# Core type thresholds (Phase 2)
 CORE_TYPE_LOCK_THRESHOLD = 50  # Lock if top type >= 50%
+CORE_TYPE_CONFIDENCE_THRESHOLD = 70  # High confidence threshold for early lock
+CORE_TYPE_MIN_QUESTIONS = 8  # Minimum questions before allowing early type lock
 
 # =============================================================================
 # ENUMS
