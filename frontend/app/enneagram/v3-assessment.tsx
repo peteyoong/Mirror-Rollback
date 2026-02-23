@@ -531,6 +531,88 @@ export default function V3Assessment() {
       anger: 'The Anger triad (Gut center) includes Types 8, 9, and 1. These types are body-based and deal with anger or frustration as their core emotion.',
     };
     
+    const typeNames: Record<number, string> = {
+      1: 'The Reformer',
+      2: 'The Helper',
+      3: 'The Achiever',
+      4: 'The Individualist',
+      5: 'The Investigator',
+      6: 'The Loyalist',
+      7: 'The Enthusiast',
+      8: 'The Challenger',
+      9: 'The Peacemaker',
+    };
+    
+    // Check if this is Phase 2 completion (has core_type_locked)
+    const isPhase2 = phaseResult?.core_type_locked !== undefined;
+    
+    if (isPhase2) {
+      // Phase 2 Complete - Core Type Identified
+      const coreType = phaseResult?.core_type_locked || 0;
+      const confidence = phaseResult?.core_type_confidence || 0;
+      const triadName = phaseResult?.triad || 'unknown';
+      
+      return (
+        <View style={styles.phaseCompleteContainer}>
+          <View style={styles.phaseCompleteContent}>
+            <View style={[styles.triadBadge, { backgroundColor: triadColors[triadName] || Colors.accent }]}>
+              <Text style={styles.triadBadgeText}>Type {coreType}</Text>
+            </View>
+            
+            <Text style={styles.phaseCompleteTitle}>{typeNames[coreType] || `Type ${coreType}`}</Text>
+            
+            <Text style={styles.phaseCompleteDescription}>
+              You've been identified as a Type {coreType} in the {triadName.charAt(0).toUpperCase() + triadName.slice(1)} triad.
+            </Text>
+            
+            {phaseResult?.type_percentages && (
+              <View style={styles.typesInTriad}>
+                <Text style={styles.typesLabel}>Type Scores:</Text>
+                <View style={styles.typesRow}>
+                  {Object.entries(phaseResult.type_percentages).map(([type, pct]) => (
+                    <View 
+                      key={type} 
+                      style={[
+                        styles.typeBadge,
+                        parseInt(type) === coreType && { backgroundColor: Colors.accent }
+                      ]}
+                    >
+                      <Text style={[
+                        styles.typeBadgeText,
+                        parseInt(type) === coreType && { color: Colors.surface }
+                      ]}>
+                        {type}: {typeof pct === 'number' ? Math.round(pct) : pct}%
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+            
+            <View style={styles.confidenceScore}>
+              <Text style={styles.confidenceLabel}>Confidence</Text>
+              <Text style={styles.confidenceValue}>
+                {Math.round(confidence)}%
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.phaseCompleteFooter}>
+            <Text style={styles.comingSoonText}>
+              Phase 3 (Wing & Subtype) coming soon!
+            </Text>
+            <TouchableOpacity 
+              style={styles.returnButton}
+              onPress={() => navigateToLenses(router)}
+            >
+              <Text style={styles.returnButtonText}>Return to Lenses</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+    
+    // Phase 1 Complete - Triad Locked
     const triadName = phaseResult?.triad_locked || 'unknown';
     
     return (
