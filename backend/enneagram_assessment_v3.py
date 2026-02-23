@@ -1,0 +1,818 @@
+"""
+Enneagram Assessment V3 - Adaptive Assessment Engine
+=====================================================
+
+A 90-question adaptive Enneagram assessment with 4 phases:
+1. TRIAD LOCK (20 questions) -> Fear/Shame/Anger
+2. CORE TYPE (12-15 questions) -> Specific type within triad
+3. WING & SUBTYPE (22 questions) -> Wing and instinctual stacking
+4. VALIDATION (0-15 questions) -> Mistyping checks
+
+Target: 85%+ accuracy, 15-25 min completion time
+Result format: "4w5 sx/sp" (type + wing + subtype)
+"""
+
+import uuid
+import time
+from datetime import datetime, timezone
+from typing import Dict, List, Optional, Any, Tuple
+from dataclasses import dataclass, field
+from enum import Enum
+import logging
+
+logger = logging.getLogger(__name__)
+
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+
+SESSION_TTL_SECONDS = 2 * 60 * 60  # 2 hours
+
+# Triad lock thresholds
+TRIAD_LOCK_THRESHOLD = 45  # Lock if top triad >= 45%
+TRIAD_CONFIDENCE_MIN = 40  # If confidence < 40%, add clarifying questions
+
+# Core type thresholds
+CORE_TYPE_LOCK_THRESHOLD = 50  # Lock if top type >= 50%
+
+# =============================================================================
+# ENUMS
+# =============================================================================
+
+class Phase(str, Enum):
+    TRIAD = "triad"
+    CORE = "core"
+    WING_SUBTYPE = "wing_subtype"
+    VALIDATION = "validation"
+    DONE = "done"
+
+class Triad(str, Enum):
+    FEAR = "fear"     # Types 5, 6, 7
+    SHAME = "shame"   # Types 2, 3, 4
+    ANGER = "anger"   # Types 8, 9, 1
+
+class QuestionType(str, Enum):
+    LIKERT = "likert"
+    SINGLE = "single"
+    RANKING = "ranking"
+
+# Triad to types mapping
+TRIAD_TYPES = {
+    Triad.FEAR: [5, 6, 7],
+    Triad.SHAME: [2, 3, 4],
+    Triad.ANGER: [8, 9, 1],
+}
+
+# Type to triad mapping
+TYPE_TO_TRIAD = {
+    5: Triad.FEAR, 6: Triad.FEAR, 7: Triad.FEAR,
+    2: Triad.SHAME, 3: Triad.SHAME, 4: Triad.SHAME,
+    8: Triad.ANGER, 9: Triad.ANGER, 1: Triad.ANGER,
+}
+
+# Wing adjacencies
+WING_ADJACENTS = {
+    1: (9, 2), 2: (1, 3), 3: (2, 4), 4: (3, 5),
+    5: (4, 6), 6: (5, 7), 7: (6, 8), 8: (7, 9), 9: (8, 1),
+}
+
+# Common mistypings to validate
+MISTYPE_PAIRS = [
+    (5, 9), (6, 2), (7, 3), (4, 9), (1, 6), (8, 1)
+]
+
+# =============================================================================
+# PHASE 1 QUESTION BANK (TRIAD LOCK - 20 questions)
+# =============================================================================
+
+PHASE1_QUESTIONS = [
+    # Fear Triad (F1-F7)
+    {
+        "id": "F1",
+        "phase": 1,
+        "triad": "fear",
+        "type": "single",
+        "question": "At work, when facing a project with many unknowns, your first instinct is to:",
+        "options": [
+            {"value": 5, "text": "Research extensively before acting—you need to understand before proceeding"},
+            {"value": 4, "text": "Create a detailed plan with contingencies for various scenarios"},
+            {"value": 3, "text": "Dive in and figure it out as you go—you trust your ability to adapt"},
+            {"value": 2, "text": "Focus on what excites you about the project and build momentum"},
+            {"value": 1, "text": "Wait for clearer direction from leadership"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "F2",
+        "phase": 1,
+        "triad": "fear",
+        "type": "likert",
+        "question": "I often find myself anticipating what could go wrong before it happens.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—this is my default mode"},
+            {"value": 4, "text": "Agree—I do this frequently"},
+            {"value": 3, "text": "Neutral—depends on the situation"},
+            {"value": 2, "text": "Disagree—I tend to be optimistic"},
+            {"value": 1, "text": "Strongly disagree—I live in the present"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "F3",
+        "phase": 1,
+        "triad": "fear",
+        "type": "single",
+        "question": "When I'm stressed or anxious, I tend to:",
+        "options": [
+            {"value": 5, "text": "Withdraw and research/analyze to understand the problem"},
+            {"value": 4, "text": "Seek trusted opinions and gather multiple perspectives"},
+            {"value": 3, "text": "Look for distractions and positive reframes"},
+            {"value": 2, "text": "Focus on practical action steps"},
+            {"value": 1, "text": "Reach out for emotional support"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "F4",
+        "phase": 1,
+        "triad": "fear",
+        "type": "single",
+        "question": "My mind often feels:",
+        "options": [
+            {"value": 5, "text": "Like a constantly running analysis machine—I can't easily turn it off"},
+            {"value": 4, "text": "Like it's scanning for threats and possibilities simultaneously"},
+            {"value": 3, "text": "Like it jumps between exciting ideas and future possibilities"},
+            {"value": 2, "text": "Focused on relationships and how others perceive me"},
+            {"value": 1, "text": "Focused on what's happening in my body and immediate environment"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "F5",
+        "phase": 1,
+        "triad": "fear",
+        "type": "single",
+        "question": "When making significant decisions, I typically:",
+        "options": [
+            {"value": 5, "text": "Need extensive time to gather information and analyze"},
+            {"value": 4, "text": "Need to consult trusted sources and feel certain"},
+            {"value": 3, "text": "Make them quickly to keep options open and avoid missing out"},
+            {"value": 2, "text": "Consider how the decision affects my image/relationships"},
+            {"value": 1, "text": "Go with my gut instinct"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "F6",
+        "phase": 1,
+        "triad": "fear",
+        "type": "single",
+        "question": "Being seen as incompetent or uninformed is:",
+        "options": [
+            {"value": 5, "text": "One of my deepest fears—I must be competent"},
+            {"value": 4, "text": "A significant concern—I need to be prepared"},
+            {"value": 3, "text": "Uncomfortable but I'd rather be seen as incompetent than trapped"},
+            {"value": 2, "text": "Less important than being seen as unlovable or unsuccessful"},
+            {"value": 1, "text": "Not my primary concern"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "F7",
+        "phase": 1,
+        "triad": "fear",
+        "type": "likert",
+        "question": "I rarely experience anxiety about future events.",
+        "options": [
+            {"value": 5, "text": "Strongly disagree—I'm often anxious about the future"},
+            {"value": 4, "text": "Disagree—I worry more than I'd like"},
+            {"value": 3, "text": "Neutral—sometimes yes, sometimes no"},
+            {"value": 2, "text": "Agree—I tend to stay present"},
+            {"value": 1, "text": "Strongly agree—the future doesn't worry me"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": True,  # REVERSE SCORED
+    },
+    
+    # Shame Triad (S1-S7)
+    {
+        "id": "S1",
+        "phase": 1,
+        "triad": "shame",
+        "type": "single",
+        "question": "When I think about 'who I am,' I most often:",
+        "options": [
+            {"value": 5, "text": "Feel like I'm different from others—searching for my authentic self"},
+            {"value": 4, "text": "Think about my achievements and how I'm perceived"},
+            {"value": 3, "text": "Consider my relationships and who needs me"},
+            {"value": 2, "text": "Focus on my principles and values"},
+            {"value": 1, "text": "Don't think about it much—I just am"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "S2",
+        "phase": 1,
+        "triad": "shame",
+        "type": "single",
+        "question": "When I fail at something publicly, I feel:",
+        "options": [
+            {"value": 5, "text": "Deep shame—it affects my sense of worth significantly"},
+            {"value": 4, "text": "Exposed and misunderstood—like no one sees the real me"},
+            {"value": 3, "text": "Worried about disappointing others and losing connection"},
+            {"value": 2, "text": "Motivated to fix it and do better"},
+            {"value": 1, "text": "Annoyed but move on quickly"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "S3",
+        "phase": 1,
+        "triad": "shame",
+        "type": "likert",
+        "question": "I often adjust how I present myself based on who I'm with.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I adapt to be effective and successful"},
+            {"value": 4, "text": "Agree—I want to be helpful and needed in each situation"},
+            {"value": 3, "text": "Somewhat—I want to be seen as authentic but also understood"},
+            {"value": 2, "text": "Rarely—I present consistently"},
+            {"value": 1, "text": "Never—I am who I am"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "S4",
+        "phase": 1,
+        "triad": "shame",
+        "type": "single",
+        "question": "My emotional experience tends to be:",
+        "options": [
+            {"value": 5, "text": "Intense and complex—I feel things deeply"},
+            {"value": 4, "text": "Attuned to others—I feel what they're feeling"},
+            {"value": 3, "text": "Focused and efficient—I process emotions quickly"},
+            {"value": 2, "text": "Steady and contained"},
+            {"value": 1, "text": "Calm—I don't experience strong emotions often"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "S5",
+        "phase": 1,
+        "triad": "shame",
+        "type": "single",
+        "question": "The idea of living an ordinary, unremarkable life:",
+        "options": [
+            {"value": 5, "text": "Feels like a tragedy—I need to be uniquely myself"},
+            {"value": 4, "text": "Feels like failure—I need to achieve and be recognized"},
+            {"value": 3, "text": "Feels empty—I need to matter to others"},
+            {"value": 2, "text": "Is fine as long as I'm doing what's right"},
+            {"value": 1, "text": "Sounds peaceful and appealing"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "S6",
+        "phase": 1,
+        "triad": "shame",
+        "type": "likert",
+        "question": "I need attention and recognition from others.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I need to be seen as successful"},
+            {"value": 4, "text": "Agree—I need to be seen and understood for who I am"},
+            {"value": 3, "text": "Agree—I need to feel appreciated and valued"},
+            {"value": 2, "text": "Neutral—it's nice but not essential"},
+            {"value": 1, "text": "Disagree—I prefer to avoid attention"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "S7",
+        "phase": 1,
+        "triad": "shame",
+        "type": "single",
+        "question": "As a child, I was often described as:",
+        "options": [
+            {"value": 5, "text": "Sensitive, creative, different, or 'marching to my own drum'"},
+            {"value": 4, "text": "High-achieving, impressive, or 'a natural leader'"},
+            {"value": 3, "text": "Helpful, sweet, or 'such a good helper'"},
+            {"value": 2, "text": "Responsible, serious, or 'mature for my age'"},
+            {"value": 1, "text": "Easygoing, agreeable, or 'no trouble at all'"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    
+    # Anger Triad (A1-A6)
+    {
+        "id": "A1",
+        "phase": 1,
+        "triad": "anger",
+        "type": "single",
+        "question": "I am aware of feeling angry:",
+        "options": [
+            {"value": 5, "text": "Frequently—I express it directly"},
+            {"value": 4, "text": "Often—but I try to contain it as inappropriate"},
+            {"value": 3, "text": "Rarely—I tend to go numb or avoid conflict"},
+            {"value": 2, "text": "Only when boundaries are seriously violated"},
+            {"value": 1, "text": "Almost never—anger isn't my primary emotion"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "A2",
+        "phase": 1,
+        "triad": "anger",
+        "type": "single",
+        "question": "In group situations, I prefer to:",
+        "options": [
+            {"value": 5, "text": "Be in charge and direct the action"},
+            {"value": 4, "text": "Ensure things are done correctly and fairly"},
+            {"value": 3, "text": "Go with the flow and avoid rocking the boat"},
+            {"value": 2, "text": "Contribute my expertise"},
+            {"value": 1, "text": "Observe and participate as needed"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "A3",
+        "phase": 1,
+        "triad": "anger",
+        "type": "single",
+        "question": "When people don't follow agreed-upon rules:",
+        "options": [
+            {"value": 5, "text": "I feel angry and want to correct them"},
+            {"value": 4, "text": "I feel contempt and may confront them"},
+            {"value": 3, "text": "I feel annoyed but usually let it go"},
+            {"value": 2, "text": "I analyze why they're not following the rules"},
+            {"value": 1, "text": "I don't pay much attention to rules"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "A4",
+        "phase": 1,
+        "triad": "anger",
+        "type": "likert",
+        "question": "I have a strong inner critic that judges my actions.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I'm constantly evaluating myself"},
+            {"value": 4, "text": "Somewhat—but I mostly ignore it"},
+            {"value": 3, "text": "Not really—I tend to avoid self-judgment"},
+            {"value": 2, "text": "I critique my competence, not my morality"},
+            {"value": 1, "text": "I don't have a strong inner critic"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "A5",
+        "phase": 1,
+        "triad": "anger",
+        "type": "single",
+        "question": "When someone challenges me directly:",
+        "options": [
+            {"value": 5, "text": "I meet the challenge head-on"},
+            {"value": 4, "text": "I defend my position with logic and principles"},
+            {"value": 3, "text": "I try to find common ground or withdraw"},
+            {"value": 2, "text": "I analyze their motivations"},
+            {"value": 1, "text": "I worry about the relationship"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+    {
+        "id": "A6",
+        "phase": 1,
+        "triad": "anger",
+        "type": "likert",
+        "question": "I am generally aware of my physical sensations and gut feelings.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I live in my body"},
+            {"value": 4, "text": "Agree—I'm generally grounded"},
+            {"value": 3, "text": "Somewhat—but I'm often tense"},
+            {"value": 2, "text": "Not really—I'm more in my head"},
+            {"value": 1, "text": "Rarely—I ignore physical sensations"},
+        ],
+        "weight": 1.0,
+        "reverse_scored": False,
+    },
+]
+
+# Build question lookup
+QUESTION_BY_ID = {q["id"]: q for q in PHASE1_QUESTIONS}
+
+# =============================================================================
+# SESSION MANAGEMENT
+# =============================================================================
+
+# In-memory session store (would use Redis or MongoDB in production)
+_v3_sessions: Dict[str, dict] = {}
+
+def create_v3_session(user_id: str) -> dict:
+    """Create a new V3 assessment session."""
+    session_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    session = {
+        "session_id": session_id,
+        "user_id": user_id,
+        "version": "v3",
+        "phase": Phase.TRIAD.value,
+        "phase_number": 1,
+        
+        # Question tracking
+        "asked_question_ids": [],
+        "current_question_index": 0,
+        "answers": {},  # question_id -> response value
+        
+        # Triad scores (Phase 1)
+        "triad_scores": {
+            "fear": 0,
+            "shame": 0,
+            "anger": 0,
+        },
+        "triad_locked": None,  # Will be "fear", "shame", or "anger"
+        "triad_confidence": 0.0,
+        
+        # Type scores (Phase 2)
+        "type_scores": {i: 0 for i in range(1, 10)},
+        "core_type_locked": None,
+        "core_type_confidence": 0.0,
+        
+        # Wing scores (Phase 3)
+        "wing_scores": {"left": 0, "right": 0},
+        "wing_result": None,  # Will be a number or "balanced"
+        
+        # Subtype scores (Phase 3)
+        "subtype_scores": {"sp": 0, "sx": 0, "so": 0},
+        "subtype_stack": [],  # e.g., ["sx", "sp", "so"]
+        
+        # Validation (Phase 4)
+        "validation_flags": [],  # Potential mistypings to check
+        "validation_confidence": 0.0,
+        
+        # Final result
+        "final_result": None,  # Will be populated when done
+        
+        # Timestamps
+        "created_at_iso": now,
+        "updated_at_iso": now,
+        "expires_at": time.time() + SESSION_TTL_SECONDS,
+    }
+    
+    _v3_sessions[session_id] = session
+    return session
+
+def get_v3_session(session_id: str) -> Optional[dict]:
+    """Get session by ID, checking expiration."""
+    session = _v3_sessions.get(session_id)
+    if not session:
+        return None
+    
+    if time.time() > session.get("expires_at", 0):
+        del _v3_sessions[session_id]
+        return None
+    
+    return session
+
+def update_v3_session(session_id: str, updates: dict) -> Optional[dict]:
+    """Update session with new data."""
+    session = get_v3_session(session_id)
+    if not session:
+        return None
+    
+    session.update(updates)
+    session["updated_at_iso"] = datetime.now(timezone.utc).isoformat()
+    _v3_sessions[session_id] = session
+    return session
+
+# =============================================================================
+# SCORING FUNCTIONS (Phase 1)
+# =============================================================================
+
+def score_phase1_answer(session: dict, question_id: str, response_value: int) -> dict:
+    """
+    Score a Phase 1 (Triad Lock) answer.
+    
+    Scoring logic:
+    - Fear questions (F1-F7): High values (4-5) indicate Fear triad
+    - Shame questions (S1-S7): High values (4-5) indicate Shame triad
+    - Anger questions (A1-A6): High values (4-5) indicate Anger triad
+    - F7 is reverse-scored (high original value = low fear indication)
+    """
+    question = QUESTION_BY_ID.get(question_id)
+    if not question:
+        raise ValueError(f"Unknown question ID: {question_id}")
+    
+    # Get the triad this question measures
+    triad = question.get("triad")
+    if not triad:
+        return session
+    
+    # Handle reverse scoring
+    score = response_value
+    if question.get("reverse_scored"):
+        score = 6 - response_value  # Reverse: 5->1, 4->2, 3->3, 2->4, 1->5
+    
+    # Apply weight
+    weight = question.get("weight", 1.0)
+    weighted_score = score * weight
+    
+    # Add to triad score
+    session["triad_scores"][triad] += weighted_score
+    
+    return session
+
+def calculate_triad_percentages(session: dict) -> dict:
+    """Calculate percentage for each triad based on current scores."""
+    fear = session["triad_scores"]["fear"]
+    shame = session["triad_scores"]["shame"]
+    anger = session["triad_scores"]["anger"]
+    
+    total = fear + shame + anger
+    if total == 0:
+        return {"fear": 0, "shame": 0, "anger": 0}
+    
+    return {
+        "fear": round((fear / total) * 100, 1),
+        "shame": round((shame / total) * 100, 1),
+        "anger": round((anger / total) * 100, 1),
+    }
+
+def check_triad_lock(session: dict) -> Tuple[bool, Optional[str], float]:
+    """
+    Check if we can lock the triad.
+    
+    Returns:
+        (is_locked, locked_triad, confidence)
+    """
+    percentages = calculate_triad_percentages(session)
+    
+    # Find the top triad
+    sorted_triads = sorted(percentages.items(), key=lambda x: x[1], reverse=True)
+    top_triad, top_pct = sorted_triads[0]
+    second_triad, second_pct = sorted_triads[1]
+    
+    # Calculate confidence as the gap between top and second
+    confidence = (top_pct - second_pct) * 2  # Double the gap for confidence
+    confidence = min(confidence, 100)  # Cap at 100
+    
+    # Check if we can lock
+    if top_pct >= TRIAD_LOCK_THRESHOLD:
+        return True, top_triad, confidence
+    
+    return False, None, confidence
+
+def get_next_phase1_question(session: dict) -> Optional[dict]:
+    """Get the next Phase 1 question to ask."""
+    asked = set(session["asked_question_ids"])
+    
+    for q in PHASE1_QUESTIONS:
+        if q["id"] not in asked:
+            return q
+    
+    return None
+
+# =============================================================================
+# MAIN API FUNCTIONS
+# =============================================================================
+
+def start_v3_assessment(user_id: str) -> dict:
+    """
+    Start a new V3 assessment session.
+    
+    Returns:
+        Session data with first question
+    """
+    session = create_v3_session(user_id)
+    
+    # Get first question
+    first_question = get_next_phase1_question(session)
+    
+    return {
+        "session_id": session["session_id"],
+        "phase": session["phase"],
+        "phase_number": session["phase_number"],
+        "phase_label": "Discovering your triad...",
+        "question": format_question_for_api(first_question),
+        "progress": {
+            "current": 1,
+            "estimated_total": 45,  # Rough estimate
+            "section": "Testing your core center...",
+        },
+    }
+
+def submit_v3_answer(session_id: str, question_id: str, response_value: int) -> dict:
+    """
+    Submit an answer and get the next question or result.
+    
+    Args:
+        session_id: The assessment session ID
+        question_id: The question being answered
+        response_value: The selected option value (1-5)
+    
+    Returns:
+        Next question or final result
+    """
+    session = get_v3_session(session_id)
+    if not session:
+        raise ValueError("Session not found or expired")
+    
+    # Check for duplicate answer
+    if question_id in session["answers"]:
+        logger.warning(f"Duplicate answer for {question_id}, skipping")
+    else:
+        # Record the answer
+        session["answers"][question_id] = response_value
+        session["asked_question_ids"].append(question_id)
+        
+        # Score based on current phase
+        if session["phase"] == Phase.TRIAD.value:
+            score_phase1_answer(session, question_id, response_value)
+    
+    # Check phase completion
+    if session["phase"] == Phase.TRIAD.value:
+        return handle_phase1_completion(session)
+    
+    # For now, return done if not in Phase 1
+    return {"status": "done", "message": "Phase not yet implemented"}
+
+def handle_phase1_completion(session: dict) -> dict:
+    """Handle Phase 1 (Triad Lock) completion logic."""
+    
+    # Check if all Phase 1 questions are answered
+    phase1_ids = {q["id"] for q in PHASE1_QUESTIONS}
+    answered_ids = set(session["asked_question_ids"])
+    answered_phase1 = answered_ids.intersection(phase1_ids)
+    
+    # Try to lock triad
+    is_locked, locked_triad, confidence = check_triad_lock(session)
+    
+    # If all questions answered, force lock to top triad
+    all_answered = len(answered_phase1) >= len(PHASE1_QUESTIONS)
+    
+    if is_locked or all_answered:
+        if not is_locked:
+            # Force lock to top triad
+            percentages = calculate_triad_percentages(session)
+            sorted_triads = sorted(percentages.items(), key=lambda x: x[1], reverse=True)
+            locked_triad = sorted_triads[0][0]
+            confidence = (sorted_triads[0][1] - sorted_triads[1][1]) * 2
+        
+        session["triad_locked"] = locked_triad
+        session["triad_confidence"] = confidence
+        session["phase"] = Phase.CORE.value
+        session["phase_number"] = 2
+        update_v3_session(session["session_id"], session)
+        
+        # Return Phase 1 complete result (Phase 2 not yet implemented)
+        return {
+            "status": "phase_complete",
+            "phase_completed": 1,
+            "phase_result": {
+                "triad_locked": locked_triad,
+                "triad_confidence": confidence,
+                "triad_percentages": calculate_triad_percentages(session),
+                "types_in_triad": TRIAD_TYPES[Triad(locked_triad)],
+            },
+            "next_phase": 2,
+            "message": f"Triad locked: {locked_triad.title()} ({confidence:.0f}% confidence). Phase 2 coming soon.",
+        }
+    
+    # Get next question
+    next_question = get_next_phase1_question(session)
+    if not next_question:
+        # Should not happen, but handle gracefully
+        return {"status": "error", "message": "No more Phase 1 questions"}
+    
+    update_v3_session(session["session_id"], session)
+    
+    answered_count = len(answered_phase1)
+    
+    return {
+        "status": "continue",
+        "session_id": session["session_id"],
+        "phase": session["phase"],
+        "phase_number": session["phase_number"],
+        "phase_label": "Discovering your triad...",
+        "question": format_question_for_api(next_question),
+        "progress": {
+            "current": answered_count + 1,
+            "estimated_total": 45,
+            "section": "Testing your core center...",
+            "confidence_hint": get_confidence_hint(session),
+        },
+    }
+
+def get_v3_session_status(session_id: str) -> dict:
+    """Get current status of a V3 assessment session."""
+    session = get_v3_session(session_id)
+    if not session:
+        return {"found": False, "error": "Session not found or expired"}
+    
+    return {
+        "found": True,
+        "session_id": session["session_id"],
+        "user_id": session["user_id"],
+        "phase": session["phase"],
+        "phase_number": session["phase_number"],
+        "questions_answered": len(session["asked_question_ids"]),
+        "triad_locked": session["triad_locked"],
+        "triad_percentages": calculate_triad_percentages(session),
+        "core_type_locked": session["core_type_locked"],
+        "created_at": session["created_at_iso"],
+        "updated_at": session["updated_at_iso"],
+    }
+
+def resume_v3_assessment(session_id: str) -> dict:
+    """Resume an existing V3 assessment session."""
+    session = get_v3_session(session_id)
+    if not session:
+        return {"error": "Session not found or expired", "can_resume": False}
+    
+    # Get next question based on current phase
+    if session["phase"] == Phase.TRIAD.value:
+        next_question = get_next_phase1_question(session)
+        if not next_question:
+            # All Phase 1 questions answered, trigger completion check
+            return handle_phase1_completion(session)
+        
+        answered_count = len(session["asked_question_ids"])
+        
+        return {
+            "can_resume": True,
+            "session_id": session["session_id"],
+            "phase": session["phase"],
+            "phase_number": session["phase_number"],
+            "phase_label": "Discovering your triad...",
+            "question": format_question_for_api(next_question),
+            "progress": {
+                "current": answered_count + 1,
+                "estimated_total": 45,
+                "section": "Testing your core center...",
+                "confidence_hint": get_confidence_hint(session),
+            },
+        }
+    
+    return {"can_resume": False, "message": "Phase not yet implemented"}
+
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+
+def format_question_for_api(question: dict) -> dict:
+    """Format a question for API response."""
+    return {
+        "id": question["id"],
+        "phase": question["phase"],
+        "type": question["type"],
+        "question": question["question"],
+        "options": question["options"],
+    }
+
+def get_confidence_hint(session: dict) -> str:
+    """Get a hint about current confidence level."""
+    percentages = calculate_triad_percentages(session)
+    sorted_triads = sorted(percentages.items(), key=lambda x: x[1], reverse=True)
+    
+    if len(sorted_triads) < 2:
+        return "Just getting started..."
+    
+    top_pct, second_pct = sorted_triads[0][1], sorted_triads[1][1]
+    gap = top_pct - second_pct
+    
+    if gap > 20:
+        return "A clear pattern is emerging..."
+    elif gap > 10:
+        return "We're getting a clearer picture..."
+    else:
+        return "Still gathering your responses..."
+
+# =============================================================================
+# EXPORTS
+# =============================================================================
+
+__all__ = [
+    "start_v3_assessment",
+    "submit_v3_answer",
+    "get_v3_session_status",
+    "resume_v3_assessment",
+    "Phase",
+    "Triad",
+    "TRIAD_TYPES",
+]
