@@ -685,9 +685,377 @@ PHASE2_ANGER_QUESTIONS = []  # Types 8, 9, 1
 # Combine all Phase 2 questions
 PHASE2_QUESTIONS = PHASE2_FEAR_QUESTIONS + PHASE2_SHAME_QUESTIONS + PHASE2_ANGER_QUESTIONS
 
+# =============================================================================
+# PHASE 3 QUESTION BANK (WINGS & SUBTYPE)
+# =============================================================================
+# Wing questions: 2 per type (compare adjacent types)
+# Subtype questions: 3 per type (SP, SO, SX instincts)
+
+# Wing adjacencies for reference
+# 1: (9, 2), 2: (1, 3), 3: (2, 4), 4: (3, 5),
+# 5: (4, 6), 6: (5, 7), 7: (6, 8), 8: (7, 9), 9: (8, 1)
+
+PHASE3_WING_QUESTIONS = {
+    # Type 1 Wings (9w1 or 1w2)
+    1: [
+        {
+            "id": "W1-1",
+            "phase": 3,
+            "core_type": 1,
+            "type": "wing_comparison",
+            "question": "In my pursuit of improvement, I more often:",
+            "options": [
+                {"value": 9, "wing": 9, "text": "Maintain inner calm and see multiple perspectives before acting"},
+                {"value": 2, "wing": 2, "text": "Focus on helping others improve along with myself"},
+            ],
+            "weight": 1.5,
+        },
+        {
+            "id": "W1-2",
+            "phase": 3,
+            "core_type": 1,
+            "type": "wing_comparison",
+            "question": "When I notice something wrong, I tend to:",
+            "options": [
+                {"value": 9, "wing": 9, "text": "Consider if it's worth the conflict to address it"},
+                {"value": 2, "wing": 2, "text": "Feel compelled to help fix it for everyone's benefit"},
+            ],
+            "weight": 1.5,
+        },
+    ],
+    # Type 2 Wings (1w2 or 2w3)
+    2: [
+        {
+            "id": "W2-1",
+            "phase": 3,
+            "core_type": 2,
+            "type": "wing_comparison",
+            "question": "When helping others, I'm more motivated by:",
+            "options": [
+                {"value": 1, "wing": 1, "text": "Doing what's right and proper for them"},
+                {"value": 3, "wing": 3, "text": "Being seen as successful and valuable in their eyes"},
+            ],
+            "weight": 1.5,
+        },
+        {
+            "id": "W2-2",
+            "phase": 3,
+            "core_type": 2,
+            "type": "wing_comparison",
+            "question": "I express my caring nature by:",
+            "options": [
+                {"value": 1, "wing": 1, "text": "Offering principled advice and moral support"},
+                {"value": 3, "wing": 3, "text": "Adapting to be whatever they need me to be"},
+            ],
+            "weight": 1.5,
+        },
+    ],
+    # Type 3 Wings (2w3 or 3w4)
+    3: [
+        {
+            "id": "W3-1",
+            "phase": 3,
+            "core_type": 3,
+            "type": "wing_comparison",
+            "question": "My drive for success is more connected to:",
+            "options": [
+                {"value": 2, "wing": 2, "text": "Being loved and appreciated by others"},
+                {"value": 4, "wing": 4, "text": "Creating something unique and meaningful"},
+            ],
+            "weight": 1.5,
+        },
+        {
+            "id": "W3-2",
+            "phase": 3,
+            "core_type": 3,
+            "type": "wing_comparison",
+            "question": "When achieving goals, I prefer:",
+            "options": [
+                {"value": 2, "wing": 2, "text": "Collaborative success that helps everyone"},
+                {"value": 4, "wing": 4, "text": "Standing out as distinctively accomplished"},
+            ],
+            "weight": 1.5,
+        },
+    ],
+    # Type 4 Wings (3w4 or 4w5)
+    4: [
+        {
+            "id": "W4-1",
+            "phase": 3,
+            "core_type": 4,
+            "type": "wing_comparison",
+            "question": "I express my individuality more through:",
+            "options": [
+                {"value": 3, "wing": 3, "text": "Polished presentation and notable achievements"},
+                {"value": 5, "wing": 5, "text": "Deep knowledge and intellectual uniqueness"},
+            ],
+            "weight": 1.5,
+        },
+        {
+            "id": "W4-2",
+            "phase": 3,
+            "core_type": 4,
+            "type": "wing_comparison",
+            "question": "When feeling misunderstood, I tend to:",
+            "options": [
+                {"value": 3, "wing": 3, "text": "Work harder to show my value to others"},
+                {"value": 5, "wing": 5, "text": "Retreat into my own world of ideas and feelings"},
+            ],
+            "weight": 1.5,
+        },
+    ],
+    # Type 5 Wings (4w5 or 5w6)
+    5: [
+        {
+            "id": "W5-1",
+            "phase": 3,
+            "core_type": 5,
+            "type": "wing_comparison",
+            "question": "My intellectual pursuits are more driven by:",
+            "options": [
+                {"value": 4, "wing": 4, "text": "Finding unique, creative insights others miss"},
+                {"value": 6, "wing": 6, "text": "Building reliable systems and solving practical problems"},
+            ],
+            "weight": 1.5,
+        },
+        {
+            "id": "W5-2",
+            "phase": 3,
+            "core_type": 5,
+            "type": "wing_comparison",
+            "question": "I relate to being described as:",
+            "options": [
+                {"value": 4, "wing": 4, "text": "The withdrawn, creative iconoclast"},
+                {"value": 6, "wing": 6, "text": "The analytical troubleshooter"},
+            ],
+            "weight": 1.5,
+        },
+    ],
+    # Type 6 Wings (5w6 or 6w7)
+    6: [
+        {
+            "id": "W6-1",
+            "phase": 3,
+            "core_type": 6,
+            "type": "wing_comparison",
+            "question": "When facing uncertainty, I more often:",
+            "options": [
+                {"value": 5, "wing": 5, "text": "Withdraw to analyze and research thoroughly"},
+                {"value": 7, "wing": 7, "text": "Stay active and look for positive possibilities"},
+            ],
+            "weight": 1.5,
+        },
+        {
+            "id": "W6-2",
+            "phase": 3,
+            "core_type": 6,
+            "type": "wing_comparison",
+            "question": "My approach to building security involves:",
+            "options": [
+                {"value": 5, "wing": 5, "text": "Accumulating knowledge and becoming self-sufficient"},
+                {"value": 7, "wing": 7, "text": "Creating alliances and keeping spirits high"},
+            ],
+            "weight": 1.5,
+        },
+    ],
+    # Type 7 Wings (6w7 or 7w8)
+    7: [
+        {
+            "id": "W7-1",
+            "phase": 3,
+            "core_type": 7,
+            "type": "wing_comparison",
+            "question": "My enthusiasm is more characterized by:",
+            "options": [
+                {"value": 6, "wing": 6, "text": "Loyal commitment to people and shared adventures"},
+                {"value": 8, "wing": 8, "text": "Bold action and making things happen"},
+            ],
+            "weight": 1.5,
+        },
+        {
+            "id": "W7-2",
+            "phase": 3,
+            "core_type": 7,
+            "type": "wing_comparison",
+            "question": "When pursuing experiences, I'm more:",
+            "options": [
+                {"value": 6, "wing": 6, "text": "Thoughtful about risks and loyal to companions"},
+                {"value": 8, "wing": 8, "text": "Assertive and willing to push boundaries"},
+            ],
+            "weight": 1.5,
+        },
+    ],
+    # Type 8 Wings (7w8 or 8w9)
+    8: [
+        {
+            "id": "W8-1",
+            "phase": 3,
+            "core_type": 8,
+            "type": "wing_comparison",
+            "question": "My strength shows up more as:",
+            "options": [
+                {"value": 7, "wing": 7, "text": "Energetic leadership with enthusiasm"},
+                {"value": 9, "wing": 9, "text": "Grounded power with patience"},
+            ],
+            "weight": 1.5,
+        },
+        {
+            "id": "W8-2",
+            "phase": 3,
+            "core_type": 8,
+            "type": "wing_comparison",
+            "question": "When asserting myself, I tend to be:",
+            "options": [
+                {"value": 7, "wing": 7, "text": "Quick, direct, and adventurous"},
+                {"value": 9, "wing": 9, "text": "Steady, receptive, and diplomatic when needed"},
+            ],
+            "weight": 1.5,
+        },
+    ],
+    # Type 9 Wings (8w9 or 9w1)
+    9: [
+        {
+            "id": "W9-1",
+            "phase": 3,
+            "core_type": 9,
+            "type": "wing_comparison",
+            "question": "My peaceful nature is balanced by:",
+            "options": [
+                {"value": 8, "wing": 8, "text": "A hidden strength and occasional intensity"},
+                {"value": 1, "wing": 1, "text": "A sense of purpose and quiet principles"},
+            ],
+            "weight": 1.5,
+        },
+        {
+            "id": "W9-2",
+            "phase": 3,
+            "core_type": 9,
+            "type": "wing_comparison",
+            "question": "When I do take action, it's more likely to be:",
+            "options": [
+                {"value": 8, "wing": 8, "text": "Bold and protective of those I care about"},
+                {"value": 1, "wing": 1, "text": "Methodical and aligned with my values"},
+            ],
+            "weight": 1.5,
+        },
+    ],
+}
+
+# Subtype/Instinct questions (generic for all types)
+PHASE3_SUBTYPE_QUESTIONS = [
+    {
+        "id": "SP-1",
+        "phase": 3,
+        "type": "subtype",
+        "instinct": "sp",
+        "question": "My core concerns in life center around:",
+        "options": [
+            {"value": 5, "text": "Strongly agree—security, health, comfort, and practical resources"},
+            {"value": 4, "text": "Agree—these are very important to me"},
+            {"value": 3, "text": "Neutral—somewhat important"},
+            {"value": 2, "text": "Disagree—not my primary focus"},
+            {"value": 1, "text": "Strongly disagree—rarely think about these"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "SP-2",
+        "phase": 3,
+        "type": "subtype",
+        "instinct": "sp",
+        "question": "I spend significant mental energy on:",
+        "options": [
+            {"value": 5, "text": "Strongly agree—maintaining my physical wellbeing and material stability"},
+            {"value": 4, "text": "Agree—I'm quite attentive to these"},
+            {"value": 3, "text": "Neutral—a moderate amount"},
+            {"value": 2, "text": "Disagree—less than most people"},
+            {"value": 1, "text": "Strongly disagree—hardly any"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "SO-1",
+        "phase": 3,
+        "type": "subtype",
+        "instinct": "so",
+        "question": "I'm highly attuned to:",
+        "options": [
+            {"value": 5, "text": "Strongly agree—group dynamics, social status, and community belonging"},
+            {"value": 4, "text": "Agree—I pay close attention to social contexts"},
+            {"value": 3, "text": "Neutral—somewhat aware"},
+            {"value": 2, "text": "Disagree—not my focus"},
+            {"value": 1, "text": "Strongly disagree—I largely ignore social dynamics"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "SO-2",
+        "phase": 3,
+        "type": "subtype",
+        "instinct": "so",
+        "question": "My sense of identity is strongly shaped by:",
+        "options": [
+            {"value": 5, "text": "Strongly agree—my role in groups and contribution to community"},
+            {"value": 4, "text": "Agree—group membership matters a lot to me"},
+            {"value": 3, "text": "Neutral—somewhat"},
+            {"value": 2, "text": "Disagree—I'm more independent"},
+            {"value": 1, "text": "Strongly disagree—I define myself individually"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "SX-1",
+        "phase": 3,
+        "type": "subtype",
+        "instinct": "sx",
+        "question": "I'm drawn to and energized by:",
+        "options": [
+            {"value": 5, "text": "Strongly agree—intense one-on-one connections and passionate experiences"},
+            {"value": 4, "text": "Agree—I seek depth and intensity"},
+            {"value": 3, "text": "Neutral—sometimes"},
+            {"value": 2, "text": "Disagree—I prefer calmer connections"},
+            {"value": 1, "text": "Strongly disagree—intensity drains me"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "SX-2",
+        "phase": 3,
+        "type": "subtype",
+        "instinct": "sx",
+        "question": "In relationships, I prioritize:",
+        "options": [
+            {"value": 5, "text": "Strongly agree—chemistry, attraction, and deep merging"},
+            {"value": 4, "text": "Agree—intimate connection is essential"},
+            {"value": 3, "text": "Neutral—it's one factor among many"},
+            {"value": 2, "text": "Disagree—I value other qualities more"},
+            {"value": 1, "text": "Strongly disagree—I prefer distance and independence"},
+        ],
+        "weight": 1.0,
+    },
+]
+
+# Build combined question list for Phase 3
+def get_phase3_questions_for_type(core_type: int) -> list:
+    """Get all Phase 3 questions for a specific core type."""
+    questions = []
+    # Add wing questions for this type
+    if core_type in PHASE3_WING_QUESTIONS:
+        questions.extend(PHASE3_WING_QUESTIONS[core_type])
+    # Add subtype questions (same for all types)
+    questions.extend(PHASE3_SUBTYPE_QUESTIONS)
+    return questions
+
 # Build question lookup for all phases
 QUESTION_BY_ID = {q["id"]: q for q in PHASE1_QUESTIONS}
 QUESTION_BY_ID.update({q["id"]: q for q in PHASE2_QUESTIONS})
+# Add Phase 3 wing questions
+for type_questions in PHASE3_WING_QUESTIONS.values():
+    for q in type_questions:
+        QUESTION_BY_ID[q["id"]] = q
+# Add Phase 3 subtype questions
+for q in PHASE3_SUBTYPE_QUESTIONS:
+    QUESTION_BY_ID[q["id"]] = q
 
 # =============================================================================
 # SESSION MANAGEMENT (MongoDB-backed for persistence across restarts)
