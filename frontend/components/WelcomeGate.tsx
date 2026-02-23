@@ -24,6 +24,14 @@ import Onboarding from '../app/onboarding/index';
 // Debug mode check
 const DEBUG_MIRROR_ENV = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
 
+// Build info for deployment verification
+const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
+const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
+const APP_ENV = process.env.EXPO_PUBLIC_ENV || 'unknown';
+
+// Show build banner in staging ALWAYS for deployment verification
+const IS_STAGING = APP_ENV === 'staging';
+
 /**
  * WelcomeGate - Clean Authentication Component
  * With safe error handling and API base visibility
