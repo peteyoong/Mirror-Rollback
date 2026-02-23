@@ -35,7 +35,7 @@ interface ConfigCheckResult {
 /**
  * Check staging configuration
  */
-export function checkStagingConfig(): ConfigCheckResult {
+function checkStagingConfig(): ConfigCheckResult {
   // Only check in staging
   if (!IS_STAGING) {
     return { isValid: true, isFatal: false, error: null, warning: null };
@@ -111,44 +111,17 @@ export function StagingConfigGuard({ children }: StagingConfigGuardProps) {
     );
   }
 
-  // Warning - show banner above children
+  // Warning - log to console but don't block UI
   if (configCheck.warning) {
-    return (
-      <View style={styles.wrapper}>
-        <View style={styles.warningBanner}>
-          <Text style={styles.warningText}>{configCheck.warning}</Text>
-        </View>
-        {children}
-      </View>
-    );
+    // Log warning to console for debugging but don't show UI warning banner
+    // This keeps the UX clean for external testers
+    console.warn('[StagingConfigGuard]', configCheck.warning);
   }
 
   return <>{children}</>;
 }
 
-/**
- * Provenance stamp component - shows build info
- * For use in Welcome screen and other places
- */
-export function ProvenanceStamp() {
-  if (!IS_STAGING) {
-    return null;
-  }
-
-  return (
-    <View style={styles.provenanceStamp}>
-      <Text style={styles.provenanceLine}>ENV: {APP_ENV.toUpperCase()}</Text>
-      <Text style={styles.provenanceLine}>BUILD: {BUILD_VERSION}</Text>
-      <Text style={styles.provenanceLine}>ID: {BUILD_ID}</Text>
-      <Text style={styles.provenanceLine}>API: {API_BASE_URL}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
   errorContainer: {
     flex: 1,
     backgroundColor: '#1a0000',
@@ -197,33 +170,6 @@ const styles = StyleSheet.create({
     color: '#ff6666',
     textAlign: 'center',
     fontStyle: 'italic',
-  },
-  warningBanner: {
-    backgroundColor: 'rgba(255, 165, 0, 0.2)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 165, 0, 0.5)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  warningText: {
-    fontSize: 11,
-    color: '#ffaa00',
-    textAlign: 'center',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-  },
-  provenanceStamp: {
-    backgroundColor: 'rgba(0, 229, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 229, 255, 0.3)',
-    borderRadius: 8,
-    padding: 12,
-    marginVertical: 8,
-  },
-  provenanceLine: {
-    fontSize: 11,
-    color: '#00E5FF',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    marginBottom: 2,
   },
 });
 
