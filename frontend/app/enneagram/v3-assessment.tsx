@@ -83,6 +83,9 @@ export default function V3Assessment() {
   // Phase completion state
   const [phaseResult, setPhaseResult] = useState<V3TriadResult | null>(null);
   
+  // Final result state
+  const [finalResult, setFinalResult] = useState<any>(null);
+  
   // Track if user has answered any questions
   const hasStarted = useRef(false);
   const hasInitializedRef = useRef(false);
