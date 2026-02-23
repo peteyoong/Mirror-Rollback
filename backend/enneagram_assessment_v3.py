@@ -1826,24 +1826,59 @@ async def handle_phase2_completion_async(session: dict) -> dict:
             "asked_question_ids": session["asked_question_ids"],
         })
         
-        # Return Phase 2 complete result
-        result = {
-            "status": "phase_complete",
-            "phase_completed": 2,
-            "phase_result": {
-                "core_type_locked": locked_type,
-                "core_type_confidence": round(confidence, 1),
-                "type_percentages": calculate_type_percentages(session, triad_locked),
-                "triad": triad_locked,
-            },
-            "next_phase": 3,
-            "message": f"Core type identified: Type {locked_type} ({confidence:.0f}% confidence). Phase 3 (Wing & Subtype) coming soon.",
-        }
+        # Get first Phase 3 question (if available for this type)
+        first_phase3_question = get_next_phase3_question(session)
         
-        if low_confidence:
-            result["warning"] = "Low confidence - consider retaking with more reflective answers"
-        
-        return result
+        if first_phase3_question:
+            # Transition to Phase 3 with first question
+            total_answered = len(session.get("asked_question_ids", []))
+            
+            result = {
+                "status": "continue",
+                "phase_transition": True,
+                "phase_completed": 2,
+                "phase_result": {
+                    "core_type_locked": locked_type,
+                    "core_type_confidence": round(confidence, 1),
+                    "type_percentages": calculate_type_percentages(session, triad_locked),
+                    "triad": triad_locked,
+                },
+                "session_id": session["session_id"],
+                "phase": Phase.WING_SUBTYPE.value,
+                "phase_number": 3,
+                "phase_label": f"Determining your wing and instincts...",
+                "question": format_question_for_api(first_phase3_question),
+                "progress": {
+                    "current": total_answered + 1,
+                    "estimated_total": 45,
+                    "section": f"Type {locked_type} - Wings & Subtypes",
+                    "confidence_hint": "Almost there! Final phase...",
+                },
+            }
+            
+            if low_confidence:
+                result["warning"] = "Low type confidence - results may be less accurate"
+            
+            return result
+        else:
+            # No Phase 3 questions (shouldn't happen)
+            result = {
+                "status": "phase_complete",
+                "phase_completed": 2,
+                "phase_result": {
+                    "core_type_locked": locked_type,
+                    "core_type_confidence": round(confidence, 1),
+                    "type_percentages": calculate_type_percentages(session, triad_locked),
+                    "triad": triad_locked,
+                },
+                "next_phase": 3,
+                "message": f"Core type identified: Type {locked_type} ({confidence:.0f}% confidence). Phase 3 not available.",
+            }
+            
+            if low_confidence:
+                result["warning"] = "Low confidence - consider retaking with more reflective answers"
+            
+            return result
     
     # Get next Phase 2 question
     next_question = get_next_phase2_question(session)
