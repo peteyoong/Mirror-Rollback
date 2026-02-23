@@ -1,25 +1,24 @@
 /**
- * Staging Build Footer (Collapsible Pill)
- * ========================================
+ * Staging Build Footer (Minimal Pill)
+ * ====================================
  * 
- * A non-blocking debug overlay for staging builds.
+ * A minimal, non-intrusive indicator for staging builds.
+ * Designed for external testers - production-grade UX with clear staging identification.
  * 
  * Features:
- * - Collapsed by default (single line)
+ * - COLLAPSED by default (tiny pill)
  * - Tap to expand details
- * - Long-press to pin (prevents auto-collapse)
- * - Auto-collapses after 6 seconds if not pinned
- * - Uses pointerEvents="box-none" so it never blocks touches
+ * - NO auto-expand on any action
+ * - Uses pointerEvents="box-none" so it NEVER blocks touches
  * - Positioned ABOVE the tab bar
  * 
  * Only visible when EXPO_PUBLIC_ENV === 'staging'
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
 import { API_BASE_URL } from '../utils/apiBase';
 
-const COLLAPSE_AFTER_MS = 6000; // auto-collapse after 6s when expanded & not pinned
 const TAB_BAR_HEIGHT = 72;      // matches tab bar height
 
 // Environment check
@@ -60,9 +59,8 @@ export function StagingBuildFooter(props: StagingBuildFooterProps) {
   const db = props?.db || props?.dbName || '--';
   const inf = props?.inf || props?.inferenceVersion || 'v2';
 
+  // COLLAPSED by default - user must tap to expand
   const [expanded, setExpanded] = useState(false);
-  const [pinned, setPinned] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Get window host on web
   useEffect(() => {
@@ -71,48 +69,30 @@ export function StagingBuildFooter(props: StagingBuildFooterProps) {
     }
   }, []);
 
-  const clearTimer = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  };
-
-  // Auto-collapse behavior: only when expanded and not pinned
-  useEffect(() => {
-    clearTimer();
-    if (expanded && !pinned) {
-      timerRef.current = setTimeout(() => setExpanded(false), COLLAPSE_AFTER_MS);
-    }
-    return clearTimer;
-  }, [expanded, pinned]);
-
   const collapsedLine = useMemo(() => {
-    const shortId = typeof buildId === 'string' ? buildId.slice(-10) : String(buildId);
-    return `ENV: ${env}  |  BUILD: ${buildVersion} (${shortId})`;
-  }, [env, buildVersion, buildId]);
+    const shortId = typeof buildId === 'string' ? buildId.slice(-8) : String(buildId);
+    return `STAGING • ${buildVersion}`;
+  }, [buildVersion]);
 
   return (
     // IMPORTANT: box-none means this wrapper will NOT block touches behind it.
     <View pointerEvents="box-none" style={styles.wrap}>
-      {/* Only the pill is pressable */}
+      {/* Minimal pill - only expands on tap */}
       <Pressable
         onPress={() => setExpanded(v => !v)}
-        onLongPress={() => setPinned(v => !v)}
-        delayLongPress={350}
-        hitSlop={10}
-        style={[styles.pill, pinned && styles.pillPinned]}
+        hitSlop={8}
+        style={styles.pill}
       >
-        <Text style={styles.linePrimary}>{collapsedLine}</Text>
-
-        {expanded && (
-          <View style={styles.details}>
+        {expanded ? (
+          <View style={styles.expandedContent}>
+            <Text style={styles.linePrimary}>STAGING BUILD</Text>
+            <Text style={styles.line}>{buildVersion} ({buildId.slice(-10)})</Text>
             <Text style={styles.line}>API: {api}</Text>
-            <Text style={styles.line}>HOST: {host}  |  DB: {db}  |  INF: {inf}</Text>
-            <Text style={styles.hint}>
-              Tap to collapse • Long-press to {pinned ? 'unpin' : 'pin'}
-            </Text>
+            <Text style={styles.line}>HOST: {host}</Text>
+            <Text style={styles.hint}>Tap to collapse</Text>
           </View>
+        ) : (
+          <Text style={styles.collapsedText}>{collapsedLine}</Text>
         )}
       </Pressable>
     </View>
