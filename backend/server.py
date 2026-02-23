@@ -10610,8 +10610,8 @@ async def start_v3_assessment_endpoint(request: V3AssessmentStartRequest):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Start the V3 assessment
-        result = start_v3_assessment(request.user_id)
+        # Start the V3 assessment (async - MongoDB backed)
+        result = await start_v3_assessment_async(request.user_id)
         
         logger.info(f"[V3Assessment] Started session {result['session_id']} for user {request.user_id}")
         
@@ -10646,9 +10646,9 @@ async def submit_v3_answer_endpoint(request: V3AssessmentAnswerRequest):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Submit the answer
+        # Submit the answer (async - MongoDB backed)
         try:
-            result = submit_v3_answer(
+            result = await submit_v3_answer_async(
                 request.session_id,
                 request.question_id,
                 request.response_value
