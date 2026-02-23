@@ -1251,4 +1251,102 @@ const styles = StyleSheet.create({
   errorButtonTextSecondary: {
     color: Colors.text,
   },
+  
+  // Done / Final Results
+  doneContainer: {
+    flex: 1,
+  },
+  doneContent: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  finalTypeBadge: {
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 32,
+    marginBottom: 16,
+  },
+  finalTypeString: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: Colors.surface,
+  },
+  finalTypeName: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 24,
+  },
+  detailsCard: {
+    width: '100%',
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  detailValue: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  detailDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+  },
+  confidenceCard: {
+    width: '100%',
+    backgroundColor: Colors.surfaceLight,
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  confidenceCardLabel: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
+  confidenceCardValue: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: Colors.accent,
+  },
+  doneActions: {
+    width: '100%',
+    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: Colors.accent,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  primaryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.surface,
+  },
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  secondaryButtonText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
 });
