@@ -17,6 +17,7 @@ import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
 import { API_BASE_URL, joinUrl } from '../utils/apiBase';
 import { parseApiError, GATEWAY_ERROR_CODES } from '../utils/safeErrorParser';
+import { ProvenanceStamp } from './StagingConfigGuard';
 
 // Import the Onboarding component to render inline
 import Onboarding from '../app/onboarding/index';
