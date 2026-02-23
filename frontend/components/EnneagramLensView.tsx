@@ -21,6 +21,7 @@ import { buildJournalPrefill, goToJournalWithPrefill } from '../utils/journalPre
 import { API_BASE_URL } from '../utils/apiBase';
 import { Accordion } from './Accordion';
 import TodayPanel from './TodayPanel';
+import { LensTabBar, LensTab } from './LensTabBar';
 import { 
   sendEnneagramChat, 
   getEnneagramTraits,
