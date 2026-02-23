@@ -692,6 +692,117 @@ export const getP2AssessmentStatus = async (sessionId: string): Promise<P2Assess
   return response.data;
 };
 
+// =============================================================================
+// ENNEAGRAM ASSESSMENT V3 - ADAPTIVE 4-PHASE ASSESSMENT
+// =============================================================================
+
+export interface V3Question {
+  id: string;
+  phase: number;
+  type: 'likert' | 'single' | 'ranking';
+  question: string;
+  options: Array<{ value: number; text: string }>;
+}
+
+export interface V3Progress {
+  current: number;
+  estimated_total: number;
+  section: string;
+  confidence_hint?: string;
+}
+
+export interface V3StartResponse {
+  session_id: string;
+  phase: string;
+  phase_number: number;
+  phase_label: string;
+  question: V3Question;
+  progress: V3Progress;
+}
+
+export interface V3TriadResult {
+  triad_locked: 'fear' | 'shame' | 'anger';
+  triad_confidence: number;
+  triad_percentages: {
+    fear: number;
+    shame: number;
+    anger: number;
+  };
+  types_in_triad: number[];
+}
+
+export interface V3AnswerResponse {
+  status: 'continue' | 'phase_complete' | 'done' | 'error';
+  session_id?: string;
+  phase?: string;
+  phase_number?: number;
+  phase_label?: string;
+  question?: V3Question;
+  progress?: V3Progress;
+  phase_completed?: number;
+  phase_result?: V3TriadResult;
+  next_phase?: number;
+  message?: string;
+  final_result?: {
+    core_type: number;
+    wing: number | 'balanced';
+    subtype_stack: string[];
+    full_type_string: string;
+    confidence_percentage: number;
+  };
+}
+
+export interface V3SessionStatus {
+  found: boolean;
+  session_id?: string;
+  user_id?: string;
+  phase?: string;
+  phase_number?: number;
+  questions_answered?: number;
+  triad_locked?: string | null;
+  triad_percentages?: {
+    fear: number;
+    shame: number;
+    anger: number;
+  };
+  core_type_locked?: number | null;
+  created_at?: string;
+  updated_at?: string;
+  error?: string;
+}
+
+export const startV3Assessment = async (userId: string): Promise<V3StartResponse> => {
+  const response = await apiWithRetry.post('/enneagram/v3/start', {
+    user_id: userId
+  });
+  return response.data;
+};
+
+export const submitV3Answer = async (
+  userId: string,
+  sessionId: string,
+  questionId: string,
+  responseValue: number
+): Promise<V3AnswerResponse> => {
+  const response = await apiWithRetry.post('/enneagram/v3/respond', {
+    user_id: userId,
+    session_id: sessionId,
+    question_id: questionId,
+    response_value: responseValue
+  });
+  return response.data;
+};
+
+export const resumeV3Assessment = async (sessionId: string): Promise<V3AnswerResponse & { can_resume?: boolean }> => {
+  const response = await apiWithRetry.get(`/enneagram/v3/resume/${sessionId}`);
+  return response.data;
+};
+
+export const getV3AssessmentStatus = async (sessionId: string): Promise<V3SessionStatus> => {
+  const response = await apiWithRetry.get(`/enneagram/v3/status/${sessionId}`);
+  return response.data;
+};
+
 // Export both the raw api instance and the retry-wrapped version
 export { apiWithRetry };
 export default api;
