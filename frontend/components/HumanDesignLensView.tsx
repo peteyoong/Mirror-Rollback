@@ -15,6 +15,7 @@ import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 import { buildJournalPrefill, goToJournalWithPrefill, LENS_CONTINUATIONS } from '../utils/journalPrefill';
 import TodayPanel from './TodayPanel';
 import { hasKnownBirthTime, BIRTH_TIME_REQUIRED_MESSAGE } from '../utils/birthTimeUtils';
+import { LensTabBar, LensTab } from './LensTabBar';
 
 // Ref interface for imperative control
 export interface LensViewRef {
