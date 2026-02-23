@@ -7,6 +7,7 @@ import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
 import WelcomeGate from '../components/WelcomeGate';
 import { StagingBuildFooter } from '../components/StagingBuildFooter';
+import { StagingConfigGuard } from '../components/StagingConfigGuard';
 import { startStagingKeepAlive, stopStagingKeepAlive } from '../utils/stagingKeepAlive';
 import { validateStoredSession, clearStoredSession } from '../utils/sessionValidator';
 
