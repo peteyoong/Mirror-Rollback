@@ -837,6 +837,7 @@ export default function V3Assessment() {
         {viewState === 'intro' && renderIntro()}
         {viewState === 'questions' && renderQuestion()}
         {viewState === 'phase_complete' && renderPhaseComplete()}
+        {viewState === 'done' && renderDone()}
         {viewState === 'error' && renderError()}
       </View>
     </SafeAreaView>
