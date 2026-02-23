@@ -91,6 +91,9 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# Initialize V3 Assessment with database reference
+set_v3_db(db)
+
 # AI Configuration
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
