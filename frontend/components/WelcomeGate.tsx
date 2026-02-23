@@ -252,15 +252,10 @@ export default function WelcomeGate() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
-      {/* STAGING BUILD BANNER - Always visible in staging for deployment verification */}
+      {/* SUBTLE STAGING WATERMARK - Top right corner, non-interactive */}
       {IS_STAGING && (
-        <View style={styles.buildBanner}>
-          <Text style={styles.buildBannerText}>
-            BUILD: {BUILD_VERSION} | ID: {BUILD_ID.slice(-12)}
-          </Text>
-          <Text style={styles.buildBannerSubtext}>
-            API: {API_BASE_URL}
-          </Text>
+        <View pointerEvents="none" style={styles.stagingWatermark}>
+          <Text style={styles.stagingWatermarkText}>STAGING</Text>
         </View>
       )}
       
