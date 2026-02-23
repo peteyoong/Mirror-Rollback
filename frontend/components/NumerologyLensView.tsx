@@ -26,6 +26,7 @@ import {
 } from '../utils/stableUserId';
 import { buildJournalPrefill, goToJournalWithPrefill, LENS_CONTINUATIONS } from '../utils/journalPrefill';
 import TodayPanel from './TodayPanel';
+import { LensTabBar, LensTab } from './LensTabBar';
 
 interface NumerologySection {
   id: string;      // Stable identifier (e.g., "life_path", "expression", "soul_urge")
