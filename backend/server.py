@@ -73,6 +73,15 @@ from enneagram_assessment import (
     Stage as EAStage
 )
 
+# Import V3 Enneagram Assessment Engine
+from enneagram_assessment_v3 import (
+    start_v3_assessment,
+    submit_v3_answer,
+    get_v3_session_status,
+    resume_v3_assessment,
+    Phase as V3Phase,
+)
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
