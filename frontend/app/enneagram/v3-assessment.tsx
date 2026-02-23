@@ -281,16 +281,23 @@ export default function V3Assessment() {
       });
       
       if (response.status === 'continue') {
-        // Next question
+        // Next question (may include phase transition)
         setCurrentQuestion(response.question || null);
         setProgress(response.progress || null);
         setPhaseLabel(response.phase_label || phaseLabel);
         setPhaseNumber(response.phase_number || phaseNumber);
         setSelectedValue(null);
         
+        // If phase transition occurred, show a brief indicator
+        if (response.phase_transition && response.phase_result) {
+          // Could show a brief toast or animation here
+          console.log('[V3Assessment] Phase transition:', response.phase_result);
+        }
+        
       } else if (response.status === 'phase_complete') {
         // Phase complete - show results
         setPhaseResult(response.phase_result || null);
+        setPhaseNumber(response.phase_completed || phaseNumber);
         setViewState('phase_complete');
         
       } else if (response.status === 'done') {
