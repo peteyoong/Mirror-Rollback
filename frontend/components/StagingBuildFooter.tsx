@@ -1,275 +1,172 @@
 /**
- * Staging Build Footer
- * ====================
+ * Staging Build Footer (Collapsible Pill)
+ * ========================================
  * 
- * Shows build info at the bottom of every screen in STAGING only.
+ * A non-blocking debug overlay for staging builds.
  * 
- * ALWAYS VISIBLE in staging environment to verify:
- * - Testers are on the correct environment
- * - API_BASE_URL matches the deployed URL
- * - Build version and ID for debugging
+ * Features:
+ * - Collapsed by default (single line)
+ * - Tap to expand details
+ * - Long-press to pin (prevents auto-collapse)
+ * - Auto-collapses after 6 seconds if not pinned
+ * - Uses pointerEvents="box-none" so it never blocks touches
+ * - Positioned ABOVE the tab bar
  * 
- * DEBUG DIAGNOSTICS shown:
- * - BUILD_VERSION | BUILD_ID | ENV
- * - API_BASE_URL (hostname)
- * - HOST: window.location.host
- * - DB: database name from /api/health
- * - USER + ENNEAGRAM info when logged in
+ * Only visible when EXPO_PUBLIC_ENV === 'staging'
  */
 
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAppStore } from '../store';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
+import { API_BASE_URL } from '../utils/apiBase';
 
-// Environment variables
-const APP_ENV = process.env.EXPO_PUBLIC_ENV || 'unknown';
-const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'dev';
+const COLLAPSE_AFTER_MS = 6000; // auto-collapse after 6s when expanded & not pinned
+const TAB_BAR_HEIGHT = 72;      // matches tab bar height
+
+// Environment check
+const IS_STAGING = process.env.EXPO_PUBLIC_ENV === 'staging';
+
+// Build info
+const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
 const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'not-set';
-const DEBUG_MIRROR = process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true';
+const APP_ENV = process.env.EXPO_PUBLIC_ENV || 'unknown';
 
-// Only show in staging
-const IS_STAGING = APP_ENV === 'staging';
-
-// Inference version - hardcoded since this is the unified version
-const INFERENCE_VERSION = 'v2';
-
-interface HealthInfo {
-  env: string;
-  db_name: string;
-  build_version: string;
-  inference_version: string;
+interface StagingBuildFooterProps {
+  // Optional overrides for testing
+  env?: string;
+  api?: string;
+  buildVersion?: string;
+  buildId?: string;
+  host?: string;
+  db?: string;
+  dbName?: string;
+  inf?: string;
+  inferenceVersion?: string;
 }
 
-interface EnneagramDebugInfo {
-  result_id: string;
-  updated_at: string;
-  depth: string;
-  confidence_tier: string;
-  core_type: number | null;
-  wing: string | number | null;
-}
-
-export const StagingBuildFooter: React.FC = () => {
-  const insets = useSafeAreaInsets();
-  const [showFooter, setShowFooter] = useState(false);
-  const [windowHost, setWindowHost] = useState<string>('--');
-  const [healthInfo, setHealthInfo] = useState<HealthInfo | null>(null);
-  const [enneagramInfo, setEnneagramInfo] = useState<EnneagramDebugInfo | null>(null);
-  const [healthError, setHealthError] = useState<string | null>(null);
-  
-  // Get user from store
-  const user = useAppStore(s => s.user);
-  const userId = user?.id || '--';
-  
-  // Check URL param on mount (client-side only)
-  useEffect(() => {
-    // Must be staging environment
-    if (!IS_STAGING) {
-      setShowFooter(false);
-      return;
-    }
-    
-    // ALWAYS show footer in staging for verification
-    // This ensures testers can verify they're on the right environment
-    setShowFooter(true);
-  }, []);
-  
-  // Fetch debug info when footer is visible
-  useEffect(() => {
-    if (!showFooter) return;
-    
-    // Get window host (web only)
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      setWindowHost(window.location?.host || 'unknown');
-    } else {
-      setWindowHost('native');
-    }
-    
-    // Fetch /api/health for env and db_name
-    // Use ABSOLUTE URL to work on both web and native
-    const fetchHealth = async () => {
-      try {
-        const healthUrl = `${API_BASE_URL}/api/health`;
-        console.log('[StagingFooter] Fetching health from:', healthUrl);
-        
-        const response = await fetch(healthUrl, {
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setHealthInfo({
-            env: data.env || 'unknown',
-            db_name: data.db_name || 'unknown',
-            build_version: data.build_version || 'unknown',
-            inference_version: data.inference_version || 'unknown',
-          });
-          setHealthError(null);
-        } else {
-          setHealthError(`${response.status}`);
-        }
-      } catch (err: any) {
-        setHealthError(err.message || 'fetch-error');
-      }
-    };
-    
-    fetchHealth();
-  }, [showFooter]);
-  
-  // Fetch Enneagram result when user changes
-  useEffect(() => {
-    if (!showFooter || !userId || userId === '--') return;
-    
-    const fetchEnneagram = async () => {
-      try {
-        // Use ABSOLUTE URL to work on both web and native
-        const enneagramUrl = `${API_BASE_URL}/api/users/${userId}/enneagram/result`;
-        const response = await fetch(enneagramUrl, {
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setEnneagramInfo({
-            result_id: data.id || data._id || '--',
-            updated_at: data.created_at || data.updated_at || '--',
-            depth: data.method || data.assessment_depth || '--',
-            confidence_tier: data.confidence_tier || '--',
-            core_type: data.inferred_core || null,
-            wing: data.inferred_wing || null,
-          });
-        } else {
-          setEnneagramInfo({
-            result_id: '--',
-            updated_at: '--',
-            depth: `err:${response.status}`,
-            confidence_tier: '--',
-            core_type: null,
-            wing: null,
-          });
-        }
-      } catch (err: any) {
-        setEnneagramInfo({
-          result_id: '--',
-          updated_at: '--',
-          depth: 'fetch-err',
-          confidence_tier: '--',
-          core_type: null,
-          wing: null,
-        });
-      }
-    };
-    
-    fetchEnneagram();
-  }, [showFooter, userId]);
-  
-  // Don't render if not showing - no layout shift
-  if (!showFooter) {
+export function StagingBuildFooter(props: StagingBuildFooterProps) {
+  // Don't render in non-staging environments
+  if (!IS_STAGING) {
     return null;
   }
 
-  // Extract just the hostname from API_BASE_URL for brevity
-  let apiHost = API_BASE_URL;
-  try {
-    const url = new URL(API_BASE_URL);
-    apiHost = url.hostname;
-  } catch {
-    // Keep full value if not a valid URL
-  }
+  // Use props or fall back to env vars / defaults
+  const env = props?.env || APP_ENV.toUpperCase();
+  const api = props?.api || API_BASE_URL;
+  const buildVersion = props?.buildVersion || BUILD_VERSION;
+  const buildId = props?.buildId || BUILD_ID;
   
-  // Format timestamps for brevity
-  const formatTimestamp = (ts: string) => {
-    if (!ts || ts === '--') return '--';
-    try {
-      // Just show date and time portion
-      const date = new Date(ts);
-      return date.toISOString().slice(5, 16).replace('T', ' ');
-    } catch {
-      return ts.slice(-12);
+  // Get host - window.location.host on web, 'native' on mobile
+  const [host, setHost] = useState(props?.host || 'native');
+  const db = props?.db || props?.dbName || '--';
+  const inf = props?.inf || props?.inferenceVersion || 'v2';
+
+  const [expanded, setExpanded] = useState(false);
+  const [pinned, setPinned] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Get window host on web
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      setHost(window.location?.host || 'unknown');
+    }
+  }, []);
+
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
     }
   };
 
+  // Auto-collapse behavior: only when expanded and not pinned
+  useEffect(() => {
+    clearTimer();
+    if (expanded && !pinned) {
+      timerRef.current = setTimeout(() => setExpanded(false), COLLAPSE_AFTER_MS);
+    }
+    return clearTimer;
+  }, [expanded, pinned]);
+
+  const collapsedLine = useMemo(() => {
+    const shortId = typeof buildId === 'string' ? buildId.slice(-10) : String(buildId);
+    return `ENV: ${env}  |  BUILD: ${buildVersion} (${shortId})`;
+  }, [env, buildVersion, buildId]);
+
   return (
-    <View 
-      style={[
-        styles.container, 
-        { paddingBottom: Math.max(insets.bottom, 4) }
-      ]}
-      pointerEvents="none"
-    >
-      {/* Row 1: ENV + FULL API_BASE_URL (most important for verification) */}
-      <Text style={styles.textHighlight}>
-        ENV: {APP_ENV.toUpperCase()} | API: {API_BASE_URL}
-      </Text>
-      
-      {/* Row 2: Build info */}
-      <Text style={styles.text}>
-        BUILD: {BUILD_VERSION} | ID: {BUILD_ID.slice(-12)}
-      </Text>
-      
-      {/* Row 3: HOST + DB */}
-      <Text style={styles.textSmall}>
-        HOST: {windowHost} | DB: {healthInfo?.db_name || '--'} | INF: {INFERENCE_VERSION}
-      </Text>
-      
-      {/* Row 4: USER + ENNEAGRAM */}
-      <Text style={styles.textSmall}>
-        USER: {userId.slice(-8)} | 
-        E: {enneagramInfo?.core_type ?? '--'}
-        {enneagramInfo?.wing ? `w${enneagramInfo.wing}` : ''} 
-        ({enneagramInfo?.confidence_tier?.slice(0, 3) || '--'}) 
-        [{enneagramInfo?.depth?.slice(-6) || '--'}]
-      </Text>
-      
-      {/* Row 5: Enneagram result ID and timestamp */}
-      <Text style={styles.textTiny}>
-        E_ID: {enneagramInfo?.result_id?.slice(-8) || '--'} | 
-        TS: {formatTimestamp(enneagramInfo?.updated_at || '')}
-        {healthError ? ` | ERR: ${healthError}` : ''}
-      </Text>
+    // IMPORTANT: box-none means this wrapper will NOT block touches behind it.
+    <View pointerEvents="box-none" style={styles.wrap}>
+      {/* Only the pill is pressable */}
+      <Pressable
+        onPress={() => setExpanded(v => !v)}
+        onLongPress={() => setPinned(v => !v)}
+        delayLongPress={350}
+        hitSlop={10}
+        style={[styles.pill, pinned && styles.pillPinned]}
+      >
+        <Text style={styles.linePrimary}>{collapsedLine}</Text>
+
+        {expanded && (
+          <View style={styles.details}>
+            <Text style={styles.line}>API: {api}</Text>
+            <Text style={styles.line}>HOST: {host}  |  DB: {db}  |  INF: {inf}</Text>
+            <Text style={styles.hint}>
+              Tap to collapse • Long-press to {pinned ? 'unpin' : 'pin'}
+            </Text>
+          </View>
+        )}
+      </Pressable>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
+  wrap: {
     position: 'absolute',
-    bottom: 72, // Position ABOVE the tab bar (tab bar height = 72)
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+
+    // Put it ABOVE the bottom tab bar so it can't block tab taps:
+    bottom: TAB_BAR_HEIGHT + (Platform.OS === 'ios' ? 10 : 8),
+
+    alignItems: 'center',
     zIndex: 9999,
   },
-  textHighlight: {
-    color: '#00ffff',
-    fontSize: 9,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    textAlign: 'center',
-    fontWeight: 'bold',
+  pill: {
+    maxWidth: '96%',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,229,255,0.25)',
   },
-  text: {
-    color: '#00ff00',
-    fontSize: 9,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    textAlign: 'center',
+  pillPinned: {
+    borderColor: 'rgba(201,169,98,0.55)', // subtle gold when pinned
   },
-  textSmall: {
-    color: '#00ff00',
-    fontSize: 8,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  linePrimary: {
+    fontSize: 12,
+    lineHeight: 14,
+    color: '#00E5FF',
     textAlign: 'center',
-    opacity: 0.9,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
-  textTiny: {
-    color: '#ffff00',
-    fontSize: 7,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  details: {
+    marginTop: 6,
+  },
+  line: {
+    fontSize: 11,
+    lineHeight: 14,
+    color: '#00E5FF',
     textAlign: 'center',
-    opacity: 0.8,
+    opacity: 0.95,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  hint: {
+    marginTop: 6,
+    fontSize: 10,
+    lineHeight: 13,
+    color: 'rgba(255,255,255,0.75)',
+    textAlign: 'center',
   },
 });
 
