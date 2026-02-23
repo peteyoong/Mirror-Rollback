@@ -104,48 +104,46 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-
     // Put it ABOVE the bottom tab bar so it can't block tab taps:
     bottom: TAB_BAR_HEIGHT + (Platform.OS === 'ios' ? 10 : 8),
-
     alignItems: 'center',
     zIndex: 9999,
   },
   pill: {
-    maxWidth: '96%',
-    borderRadius: 12,
+    borderRadius: 10,
     paddingHorizontal: 10,
-    paddingVertical: 8,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    paddingVertical: 6,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     borderWidth: 1,
-    borderColor: 'rgba(0,229,255,0.25)',
+    borderColor: 'rgba(255,255,255,0.15)',
   },
-  pillPinned: {
-    borderColor: 'rgba(201,169,98,0.55)', // subtle gold when pinned
+  collapsedText: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.6)',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  expandedContent: {
+    alignItems: 'center',
+    paddingVertical: 4,
   },
   linePrimary: {
-    fontSize: 12,
-    lineHeight: 14,
+    fontSize: 11,
+    fontWeight: '600',
     color: '#00E5FF',
     textAlign: 'center',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-  },
-  details: {
-    marginTop: 6,
+    marginBottom: 4,
   },
   line: {
-    fontSize: 11,
-    lineHeight: 14,
-    color: '#00E5FF',
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.8)',
     textAlign: 'center',
-    opacity: 0.95,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginBottom: 2,
   },
   hint: {
     marginTop: 6,
-    fontSize: 10,
-    lineHeight: 13,
-    color: 'rgba(255,255,255,0.75)',
+    fontSize: 9,
+    color: 'rgba(255,255,255,0.5)',
     textAlign: 'center',
   },
 });
