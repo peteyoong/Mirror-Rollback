@@ -292,33 +292,19 @@ const NumerologyLensView = forwardRef<LensViewRef, Props>(({ userId, onOpenChat 
     }
   };
 
+  // Define tabs for the LensTabBar
+  const numerologyTabs: LensTab[] = useMemo(() => [
+    { key: 'summary', label: 'Overview' },
+    { key: 'today', label: 'Today' },
+    { key: 'deep_dive', label: 'Deep Dive' },
+  ], []);
+
   const renderTabs = () => (
-    <View style={styles.tabContainer}>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
-        onPress={() => setActiveTab('summary')}
-      >
-        <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>
-          Overview
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'today' && styles.activeTab]}
-        onPress={() => setActiveTab('today')}
-      >
-        <Text style={[styles.tabText, activeTab === 'today' && styles.activeTabText]}>
-          Today
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
-        onPress={() => setActiveTab('deep_dive')}
-      >
-        <Text style={[styles.tabText, activeTab === 'deep_dive' && styles.activeTabText]}>
-          Deep Dive
-        </Text>
-      </TouchableOpacity>
-    </View>
+    <LensTabBar
+      tabs={numerologyTabs}
+      activeTab={activeTab}
+      onTabChange={(key) => setActiveTab(key as TabType)}
+    />
   );
 
   // Core Numbers Card (for Deep Dive)
