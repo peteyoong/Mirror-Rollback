@@ -5,17 +5,17 @@
  * A production-grade tab bar designed for mobile screens.
  * 
  * Features:
- * - Single-line tabs with even distribution
- * - Text truncation with ellipsis for long labels
- * - Responsive label shortening for small screens
- * - Gold accent underline on active tab
- * - Works with 3-4 tabs without overflow
+ * - Horizontal scrolling for 4+ tabs on small screens
+ * - Pill-style active indicator (no underline)
+ * - Single-line text with ellipsis (never wraps)
+ * - Gold accent for active tab
+ * - Dark theme consistent with Mirror app
  * 
  * Usage:
  * <LensTabBar
  *   tabs={[
  *     { key: 'overview', label: 'Overview' },
- *     { key: 'glance', label: 'At a Glance', shortLabel: 'Glance' },
+ *     { key: 'glance', label: 'At a Glance' },
  *     { key: 'today', label: 'Today' },
  *     { key: 'deep_dive', label: 'Deep Dive' },
  *   ]}
@@ -24,20 +24,20 @@
  * />
  */
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  useWindowDimensions,
+  ScrollView,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 
 export interface LensTab {
   key: string;
   label: string;
-  shortLabel?: string; // Optional short label for small screens
+  shortLabel?: string; // Optional (not used in scroll mode)
 }
 
 interface LensTabBarProps {
@@ -46,56 +46,41 @@ interface LensTabBarProps {
   onTabChange: (key: string) => void;
 }
 
-// Threshold for using short labels (small phone screens)
-const SMALL_SCREEN_WIDTH = 380;
-
 export function LensTabBar({ tabs, activeTab, onTabChange }: LensTabBarProps) {
-  const { width } = useWindowDimensions();
-  const useShortLabels = width < SMALL_SCREEN_WIDTH;
-
-  // Memoize tab labels based on screen width
-  const displayTabs = useMemo(() => {
-    return tabs.map(tab => ({
-      ...tab,
-      displayLabel: useShortLabels && tab.shortLabel ? tab.shortLabel : tab.label,
-    }));
-  }, [tabs, useShortLabels]);
-
   return (
     <View style={styles.container}>
-      <View style={styles.tabRow}>
-        {displayTabs.map((tab) => {
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabsContent}
+        style={styles.tabsScroll}
+      >
+        {tabs.map((tab) => {
           const isActive = activeTab === tab.key;
           return (
             <TouchableOpacity
               key={tab.key}
-              style={styles.tabButton}
+              style={[
+                styles.tabButton,
+                isActive && styles.tabButtonActive,
+              ]}
               onPress={() => onTabChange(tab.key)}
               activeOpacity={0.7}
             >
-              <View style={styles.tabContent}>
-                <Text
-                  style={[
-                    styles.tabLabel,
-                    isActive && styles.tabLabelActive,
-                  ]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {tab.displayLabel}
-                </Text>
-              </View>
-              {/* Active indicator - gold underline */}
-              <View
+              <Text
                 style={[
-                  styles.indicator,
-                  isActive && styles.indicatorActive,
+                  styles.tabLabel,
+                  isActive && styles.tabLabelActive,
                 ]}
-              />
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {tab.label}
+              </Text>
             </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -106,44 +91,36 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
-  tabRow: {
-    flexDirection: 'row',
-    width: '100%',
+  tabsScroll: {
+    marginTop: 8,
+    marginBottom: 10,
+  },
+  tabsContent: {
+    paddingHorizontal: 14,
+    gap: 10,
+    alignItems: 'center',
   },
   tabButton: {
-    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    minHeight: 36,
+    minWidth: 80,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-    minWidth: 0, // Critical: allows flex shrink to work properly
   },
-  tabContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 0, // Allow text to truncate
-    width: '100%',
-    paddingHorizontal: 2,
+  tabButtonActive: {
+    backgroundColor: 'rgba(201, 169, 98, 0.16)', // Subtle gold pill
   },
   tabLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
   },
   tabLabelActive: {
-    color: Colors.text,
-  },
-  indicator: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    backgroundColor: 'transparent',
-  },
-  indicatorActive: {
-    backgroundColor: Colors.accent, // Gold accent
+    color: Colors.accent, // Gold (#C9A962)
   },
 });
 
