@@ -356,11 +356,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '50%',
     left: '50%',
-    transform: [
-      { translateX: -140 },  // Half of max eye size
-      { translateY: -180 },  // Positioned so eye is at title level
-    ],
-    zIndex: -1,
+    marginLeft: -100,  // Half of eye size (200/2)
+    marginTop: -140,   // Position eye slightly above center, at title level
+    width: 200,
+    height: 200,
+    zIndex: 1,         // Above background, below text
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 40,
     marginBottom: 20,
-    zIndex: 1,
+    zIndex: 2,  // Above eye
   },
   title: {
     fontSize: 32,
