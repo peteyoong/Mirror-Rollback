@@ -10754,6 +10754,64 @@ async def get_v3_assessment_status_endpoint(session_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class V3ValidateRequest(BaseModel):
+    session_id: str
+    user_selected_type: int  # 1-9
+    confidence_score: int    # 1-5
+
+
+@api_router.post("/enneagram/v3/validate")
+async def validate_v3_result_endpoint(request: V3ValidateRequest):
+    """
+    Validate and finalize a V3 assessment result.
+    
+    Allows user to select which type description resonates most
+    and rate their confidence in the calculated result.
+    
+    This endpoint:
+    1. Compares user's selection to calculated type
+    2. Adjusts confidence score based on match/mismatch
+    3. Returns final result with validation applied
+    
+    Args:
+        session_id: The assessment session ID
+        user_selected_type: Type (1-9) user feels most represents them
+        confidence_score: How confident they are in result (1-5)
+    
+    Returns:
+        Final result with validation adjustment applied
+    """
+    try:
+        from enneagram_assessment_v3 import validate_v3_result_async
+        
+        # Validate inputs
+        if not 1 <= request.user_selected_type <= 9:
+            raise HTTPException(
+                status_code=400,
+                detail="user_selected_type must be between 1 and 9"
+            )
+        
+        if not 1 <= request.confidence_score <= 5:
+            raise HTTPException(
+                status_code=400,
+                detail="confidence_score must be between 1 and 5"
+            )
+        
+        result = await validate_v3_result_async(
+            request.session_id,
+            request.user_selected_type,
+            request.confidence_score
+        )
+        
+        return result
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"[V3Assessment] Validate error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # =============================================================================
 # ENNEAGRAM Q&A ENDPOINT (Knowledge Base)
 # =============================================================================
