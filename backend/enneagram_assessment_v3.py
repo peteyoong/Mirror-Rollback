@@ -2027,7 +2027,7 @@ def check_triad_lock(session: dict) -> Tuple[bool, Optional[str], float]:
     
     Requirements for early lock:
     - At least TRIAD_MIN_QUESTIONS answered (15)
-    - Top triad >= TRIAD_LOCK_THRESHOLD (45%)
+    - Top triad >= TRIAD_LOCK_THRESHOLD (45%) OR TRIAD_LOCK_THRESHOLD_STRESSED (60%) if stress detected
     
     Returns:
         (is_locked, locked_triad, confidence)
@@ -2048,8 +2048,12 @@ def check_triad_lock(session: dict) -> Tuple[bool, Optional[str], float]:
     if questions_answered < TRIAD_MIN_QUESTIONS:
         return False, None, confidence
     
+    # Use raised threshold if stress detected
+    stress_detected = session.get("stress_detected", False)
+    threshold = TRIAD_LOCK_THRESHOLD_STRESSED if stress_detected else TRIAD_LOCK_THRESHOLD
+    
     # Check if we can lock
-    if top_pct >= TRIAD_LOCK_THRESHOLD:
+    if top_pct >= threshold:
         return True, top_triad, confidence
     
     return False, None, confidence
