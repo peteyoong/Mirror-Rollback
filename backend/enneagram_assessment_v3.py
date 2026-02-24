@@ -1717,12 +1717,18 @@ def get_phase3_questions_for_type(core_type: int) -> list:
 # Build question lookup for all phases
 QUESTION_BY_ID = {q["id"]: q for q in PHASE1_QUESTIONS}
 QUESTION_BY_ID.update({q["id"]: q for q in PHASE2_QUESTIONS})
+# Add stress detection questions
+for q in STRESS_DETECTION_QUESTIONS:
+    QUESTION_BY_ID[q["id"]] = q
 # Add Phase 3 wing questions
 for type_questions in PHASE3_WING_QUESTIONS.values():
     for q in type_questions:
         QUESTION_BY_ID[q["id"]] = q
 # Add Phase 3 subtype questions
 for q in PHASE3_SUBTYPE_QUESTIONS:
+    QUESTION_BY_ID[q["id"]] = q
+# Add Phase 4 validation questions
+for q in PHASE4_VALIDATION_QUESTIONS:
     QUESTION_BY_ID[q["id"]] = q
 
 # =============================================================================
