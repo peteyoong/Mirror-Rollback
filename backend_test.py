@@ -368,7 +368,7 @@ class EnneagramV3Tester:
             return False
         
         # Verify status structure
-        expected_fields = ["found", "session_id", "phase", "progress"]
+        expected_fields = ["found", "session_id", "phase"]
         missing_fields = [field for field in expected_fields if field not in status_data]
         
         if missing_fields:
@@ -380,7 +380,7 @@ class EnneagramV3Tester:
             return False
         
         self.log_test("Session Status", "PASS",
-                     f"Phase: {status_data.get('phase')}, Progress: {status_data.get('progress', {}).get('percentage', 0)}%")
+                     f"Phase: {status_data.get('phase')}, Questions answered: {status_data.get('questions_answered', 0)}")
         return True
     
     async def run_all_tests(self) -> dict:
