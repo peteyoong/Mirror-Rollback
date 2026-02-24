@@ -469,31 +469,48 @@ export default function V3Assessment() {
           
           {/* Options */}
           <View style={styles.optionsContainer}>
-            {currentQuestion.options.map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                style={[
-                  styles.optionButton,
-                  selectedValue === option.value && styles.optionButtonSelected
-                ]}
-                onPress={() => handleSelectAnswer(option.value)}
-              >
-                <View style={[
-                  styles.optionRadio,
-                  selectedValue === option.value && styles.optionRadioSelected
-                ]}>
-                  {selectedValue === option.value && (
-                    <Ionicons name="checkmark" size={14} color={Colors.surface} />
-                  )}
-                </View>
-                <Text style={[
-                  styles.optionText,
-                  selectedValue === option.value && styles.optionTextSelected
-                ]}>
-                  {option.text}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {currentQuestion.options.map((option) => {
+              // Handle validation_ranking type (has name and description)
+              const isValidationOption = option.name !== undefined;
+              
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.optionButton,
+                    isValidationOption && styles.validationOptionButton,
+                    selectedValue === option.value && styles.optionButtonSelected
+                  ]}
+                  onPress={() => handleSelectAnswer(option.value)}
+                >
+                  <View style={[
+                    styles.optionRadio,
+                    selectedValue === option.value && styles.optionRadioSelected
+                  ]}>
+                    {selectedValue === option.value && (
+                      <Ionicons name="checkmark" size={14} color={Colors.surface} />
+                    )}
+                  </View>
+                  <View style={styles.optionContent}>
+                    <Text style={[
+                      styles.optionText,
+                      isValidationOption && styles.validationOptionName,
+                      selectedValue === option.value && styles.optionTextSelected
+                    ]}>
+                      {option.name || option.text}
+                    </Text>
+                    {option.description && (
+                      <Text style={[
+                        styles.validationOptionDescription,
+                        selectedValue === option.value && styles.validationOptionDescSelected
+                      ]}>
+                        {option.description}
+                      </Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </ScrollView>
         
