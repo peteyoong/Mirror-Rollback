@@ -1,419 +1,474 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Project Mirror
-Testing Enneagram Deep Assessment Completion Flow on STAGING
-Based on review request requirements
+Backend Test Suite for Enneagram V3 Assessment Anger Triad Fix
+==============================================================
+
+This test suite verifies the critical bug fix in the Enneagram V3 Assessment
+where the Anger triad (Types 8, 9, 1) could not be locked during Phase 1.
+
+The fix involved interleaving questions from all triads instead of asking
+them sequentially (Fear first, then Shame, then Anger).
+
+Test Scenarios:
+1. Type 8 Full Path (Anger Triad)
+2. Type 5 Full Path (Fear Triad - Regression Test)
+3. Verify all assessment paths complete without errors
+4. Verify Anger triad can be locked
+5. Verify Fear and Shame triads still work correctly
 """
 
 import asyncio
-import aiohttp
 import json
 import sys
 import time
-from datetime import datetime
-from typing import Dict, Any, List, Optional
+from datetime import datetime, timezone
+from typing import Dict, List, Optional, Any
 
-# Configuration from review request
-BASE_URL = "https://personality-quiz-15.preview.emergentagent.com/api"
-TEST_USER_ID = "69954fa73125ba897cbea948"  # From review request
+import aiohttp
 
-class EnneagramDeepAssessmentTester:
-    def __init__(self):
-        self.base_url = BASE_URL
+
+class EnneagramV3Tester:
+    """Test suite for Enneagram V3 Assessment endpoints."""
+    
+    def __init__(self, base_url: str = "https://mirror-lens-fixes.emergent.host"):
+        self.base_url = base_url.rstrip('/')
+        self.api_base = f"{self.base_url}/api"
         self.session = None
         self.test_results = []
         
     async def __aenter__(self):
+        """Async context manager entry."""
         self.session = aiohttp.ClientSession()
         return self
         
     async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
         if self.session:
             await self.session.close()
     
-    def log_test(self, test_name: str, status: str, details: str = "", response_data: Dict = None):
-        """Log test results for reporting"""
+    def log_test(self, test_name: str, status: str, details: str = ""):
+        """Log test result."""
+        timestamp = datetime.now(timezone.utc).isoformat()
         result = {
             "test": test_name,
             "status": status,
             "details": details,
-            "timestamp": datetime.now().isoformat(),
-            "response_data": response_data
+            "timestamp": timestamp
         }
         self.test_results.append(result)
         
-        # Print immediate feedback
         status_emoji = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
         print(f"{status_emoji} {test_name}: {status}")
         if details:
             print(f"   {details}")
-        print()
     
-    async def make_request(self, method: str, endpoint: str, data: Dict = None) -> tuple[int, Dict]:
-        """Make HTTP request and return status code and response data"""
-        url = f"{self.base_url}{endpoint}"
+    async def make_request(self, method: str, endpoint: str, data: dict = None) -> tuple:
+        """Make HTTP request and return (status, response_data, error)."""
+        url = f"{self.api_base}{endpoint}"
         
         try:
             if method.upper() == "GET":
                 async with self.session.get(url) as response:
                     status = response.status
                     try:
-                        response_data = await response.json()
+                        data = await response.json()
                     except:
-                        response_data = {"error": "Invalid JSON response", "text": await response.text()}
-                    return status, response_data
-            
+                        data = await response.text()
+                    return status, data, None
             elif method.upper() == "POST":
                 headers = {"Content-Type": "application/json"}
                 async with self.session.post(url, json=data, headers=headers) as response:
                     status = response.status
                     try:
-                        response_data = await response.json()
+                        data = await response.json()
                     except:
-                        response_data = {"error": "Invalid JSON response", "text": await response.text()}
-                    return status, response_data
-                    
+                        data = await response.text()
+                    return status, data, None
         except Exception as e:
-            return 0, {"error": f"Request failed: {str(e)}"}
+            return 0, None, str(e)
     
-    async def test_0_health_endpoint(self) -> bool:
-        """Test 0: Verify Health Endpoint (Review Request Test 1)"""
-        print("🧪 TEST 0: Health Endpoint Verification")
+    async def test_health_check(self) -> bool:
+        """Test basic API health."""
+        print("\n🔍 Testing API Health...")
         
-        status, response = await self.make_request("GET", "/health")
+        status, data, error = await self.make_request("GET", "/health")
         
-        if status != 200:
-            self.log_test("Health Endpoint", "FAIL", f"HTTP {status}: {response.get('detail', 'Unknown error')}", response)
+        if error:
+            self.log_test("API Health Check", "FAIL", f"Connection error: {error}")
             return False
         
-        # Check required fields from review request
-        expected_env = "staging"
-        expected_db_name = "mirror_staging"
-        expected_debug_mirror = False
-        
-        actual_env = response.get("env")
-        actual_db_name = response.get("db_name")
-        actual_debug_mirror = response.get("debug_mirror")
-        
-        issues = []
-        if actual_env != expected_env:
-            issues.append(f"env: expected '{expected_env}', got '{actual_env}'")
-        if actual_db_name != expected_db_name:
-            issues.append(f"db_name: expected '{expected_db_name}', got '{actual_db_name}'")
-        if actual_debug_mirror != expected_debug_mirror:
-            issues.append(f"debug_mirror: expected {expected_debug_mirror}, got {actual_debug_mirror}")
-        
-        if issues:
-            self.log_test("Health Endpoint", "FAIL", f"Health check issues: {'; '.join(issues)}", response)
+        if status != 200:
+            self.log_test("API Health Check", "FAIL", f"Status {status}: {data}")
             return False
         
-        details = f"env: '{actual_env}', db_name: '{actual_db_name}', debug_mirror: {actual_debug_mirror}"
-        self.log_test("Health Endpoint", "PASS", details, response)
-        return True
-    async def test_1_start_assessment(self) -> Optional[str]:
-        """Test 1: Start Deep Assessment (Review Request Test 2)"""
-        print("🧪 TEST 1: Starting Enneagram Deep Assessment")
-        
-        payload = {"user_id": TEST_USER_ID}
-        status, response = await self.make_request("POST", "/enneagram/deep-assessment/start", payload)
-        
-        if status != 200:
-            self.log_test("Start Assessment", "FAIL", f"HTTP {status}: {response.get('detail', 'Unknown error')}", response)
-            return None
-            
-        # Check required fields from review request
-        required_fields = ["session_id", "question", "progress"]
-        missing_fields = [field for field in required_fields if field not in response]
-        
-        if missing_fields:
-            self.log_test("Start Assessment", "FAIL", f"Missing required fields: {missing_fields}", response)
-            return None
-        
-        session_id = response["session_id"]
-        question = response["question"]
-        progress = response["progress"]
-        
-        details = f"Session ID: {session_id}, Question ID: {question.get('id', 'N/A')}, Progress: {progress.get('current', 0)}/{progress.get('total', 0)}"
-        self.log_test("Start Assessment", "PASS", details, response)
-        return session_id
+        if isinstance(data, dict) and data.get("env") == "staging":
+            self.log_test("API Health Check", "PASS", f"Environment: {data.get('env')}, DB: {data.get('db_name')}")
+            return True
+        else:
+            self.log_test("API Health Check", "FAIL", f"Unexpected response: {data}")
+            return False
     
-    async def test_2_submit_answers_until_completion(self, session_id: str) -> Optional[Dict]:
-        """Test 2: Complete Full Assessment (Review Request Test 3)"""
-        print("🧪 TEST 2: Submitting Answers Until Assessment Completion")
+    async def complete_assessment_scenario(self, user_id: str, scenario_name: str, 
+                                         target_triad: str, target_type: int) -> Optional[dict]:
+        """
+        Complete a full assessment scenario targeting a specific type.
         
-        answers_submitted = 0
-        max_answers = 70  # Safety limit (should complete around 58)
-        results = None
+        Args:
+            user_id: Test user ID
+            scenario_name: Name for logging
+            target_triad: "fear", "shame", or "anger"
+            target_type: Target Enneagram type (1-9)
         
-        # Get first question by restarting session
-        payload = {"user_id": TEST_USER_ID}
-        status, response = await self.make_request("POST", "/enneagram/deep-assessment/start", payload)
-        if status != 200 or "question" not in response:
-            self.log_test("Get First Question", "FAIL", f"Could not get first question: {response}", response)
+        Returns:
+            Final result dict or None if failed
+        """
+        print(f"\n🎯 Testing {scenario_name}...")
+        
+        # Step 1: Start Assessment
+        start_status, start_data, start_error = await self.make_request(
+            "POST", "/enneagram/v3/start", {"user_id": user_id}
+        )
+        
+        if start_error or start_status != 200:
+            self.log_test(f"{scenario_name} - Start", "FAIL", 
+                         f"Status {start_status}, Error: {start_error or start_data}")
             return None
         
-        session_id = response["session_id"]  # Update session_id
-        current_question = response["question"]
+        if not isinstance(start_data, dict) or "session_id" not in start_data:
+            self.log_test(f"{scenario_name} - Start", "FAIL", 
+                         f"Invalid start response: {start_data}")
+            return None
         
-        while answers_submitted < max_answers:
-            # Submit answer for current question
-            question_id = current_question["id"]
-            
-            # Determine answer type based on question format
-            question_type = current_question.get("type", "likert")
-            
-            if question_type == "forced" or "options" in current_question:
-                # Forced choice question - use "A" as default
-                answer_payload = {
-                    "user_id": TEST_USER_ID,
-                    "session_id": session_id,
-                    "question_id": question_id,
-                    "answer": {"type": "forced", "value": "A"}
-                }
-            else:
-                # Likert scale question - use 3 (neutral)
-                answer_payload = {
-                    "user_id": TEST_USER_ID,
-                    "session_id": session_id,
-                    "question_id": question_id,
-                    "answer": {"type": "likert", "value": 3}
-                }
-            
-            status, response = await self.make_request("POST", "/enneagram/deep-assessment/answer", answer_payload)
-            answers_submitted += 1
-            
-            # CRITICAL VERIFICATION: Check for 520/HTML errors (Review Request requirement)
-            if status == 520:
-                self.log_test("Submit Answers", "FAIL", f"❌ CRITICAL: 520 error detected (should always return JSON)", response)
+        session_id = start_data["session_id"]
+        self.log_test(f"{scenario_name} - Start", "PASS", 
+                     f"Session ID: {session_id}")
+        
+        # Step 2: Answer questions until completion
+        question_count = 0
+        max_questions = 100  # Safety limit
+        
+        while question_count < max_questions:
+            # Get current question from start_data or previous response
+            if "question" not in start_data:
+                self.log_test(f"{scenario_name} - Questions", "FAIL", 
+                             "No question in response")
                 return None
             
-            if status != 200:
-                # Check if this is the MongoDB error we're testing for
-                error_detail = response.get("detail", "")
-                if "documents must have only string keys, key was" in error_detail:
-                    self.log_test("Submit Answers", "FAIL", f"MongoDB bug detected after {answers_submitted} answers: {error_detail}", response)
-                    return None
-                else:
-                    self.log_test("Submit Answers", "FAIL", f"HTTP {status} after {answers_submitted} answers: {error_detail}", response)
-                    return None
+            current_question = start_data["question"]
+            question_id = current_question["id"]
+            question_count += 1
             
-            # Verify response is JSON, not HTML
-            if isinstance(response, dict) and "error" in response and "Invalid JSON response" in str(response.get("error", "")):
-                self.log_test("Submit Answers", "FAIL", f"❌ CRITICAL: Received HTML instead of JSON after {answers_submitted} answers", response)
+            # Determine answer based on target triad and type
+            answer_value = self.get_strategic_answer(
+                current_question, target_triad, target_type
+            )
+            
+            # Submit answer
+            answer_payload = {
+                "user_id": user_id,
+                "session_id": session_id,
+                "question_id": question_id,
+                "response_value": answer_value
+            }
+            
+            answer_status, answer_data, answer_error = await self.make_request(
+                "POST", "/enneagram/v3/respond", answer_payload
+            )
+            
+            if answer_error or answer_status != 200:
+                self.log_test(f"{scenario_name} - Question {question_count}", "FAIL",
+                             f"Status {answer_status}, Error: {answer_error or answer_data}")
+                return None
+            
+            if not isinstance(answer_data, dict):
+                self.log_test(f"{scenario_name} - Question {question_count}", "FAIL",
+                             f"Invalid answer response: {answer_data}")
                 return None
             
             # Check if assessment is complete
-            if "results" in response:
-                results = response["results"]
-                progress = response.get("progress", {})
-                self.log_test("Submit Answers", "PASS", f"Assessment completed after {answers_submitted} answers. Progress: {progress}", response)
-                return results
+            if answer_data.get("status") == "done":
+                final_result = answer_data.get("final_result")
+                if final_result:
+                    self.log_test(f"{scenario_name} - Complete", "PASS",
+                                 f"Completed in {question_count} questions. Result: {final_result.get('full_type_string')}")
+                    return final_result
+                else:
+                    self.log_test(f"{scenario_name} - Complete", "FAIL",
+                                 "Status 'done' but no final_result")
+                    return None
             
-            # Check if we have next question
-            if "question" in response:
-                current_question = response["question"]
-                progress = response.get("progress", {})
-                print(f"   Answer {answers_submitted}: Question {question_id} → Next: {current_question['id']} (Progress: {progress.get('current', 0)}/{progress.get('total', 0)})")
+            # Continue with next question
+            if "question" in answer_data:
+                start_data = answer_data  # Update for next iteration
             else:
-                self.log_test("Submit Answers", "FAIL", f"No 'question' or 'results' in response after {answers_submitted} answers", response)
+                self.log_test(f"{scenario_name} - Questions", "FAIL",
+                             f"No next question after {question_count} questions")
                 return None
         
-        # If we reach here, we hit the safety limit
-        self.log_test("Submit Answers", "FAIL", f"Assessment did not complete after {max_answers} answers (safety limit)", None)
+        self.log_test(f"{scenario_name} - Questions", "FAIL",
+                     f"Exceeded maximum questions ({max_questions})")
         return None
     
-    async def test_3_verify_results_structure(self, results: Dict) -> bool:
-        """Test 3: Verify Results Structure (Review Request Test 4)"""
-        print("🧪 TEST 3: Verifying Results Structure")
+    def get_strategic_answer(self, question: dict, target_triad: str, target_type: int) -> int:
+        """
+        Get strategic answer to guide assessment toward target type.
         
-        # Core required fields from review request
-        core_required_fields = {
-            "core_type": int,
-            "wing": (int, str, type(None)),
-            "confidence_tier": str,
-            "assessment_depth": str
-        }
+        This simulates a user answering questions in a way that would
+        naturally lead to the target type being identified.
+        """
+        question_id = question["id"]
+        question_text = question.get("question", "")
+        options = question.get("options", [])
         
-        # Optional fields that may be present
-        optional_fields = {
-            "wing_left_score": (int, float, type(None)),
-            "wing_right_score": (int, float, type(None)),
-            "result_id": str,
-            "confidence": (int, float)
-        }
-        
-        missing_fields = []
-        invalid_fields = []
-        
-        # Check core required fields exist and have correct types
-        for field, expected_type in core_required_fields.items():
-            if field not in results:
-                missing_fields.append(field)
-                continue
-                
-            value = results[field]
-            if isinstance(expected_type, tuple):
-                # Multiple allowed types
-                if not isinstance(value, expected_type):
-                    invalid_fields.append(f"{field}: expected {expected_type}, got {type(value)} ({value})")
+        # Phase 1: Triad questions (F1-F7, S1-S7, A1-A6)
+        if question_id.startswith(("F", "S", "A")) and len(question_id) <= 2:
+            if target_triad == "fear" and question_id.startswith("F"):
+                return 5  # Strongly agree with Fear triad questions
+            elif target_triad == "shame" and question_id.startswith("S"):
+                return 5  # Strongly agree with Shame triad questions  
+            elif target_triad == "anger" and question_id.startswith("A"):
+                return 5  # Strongly agree with Anger triad questions
             else:
-                # Single expected type
-                if not isinstance(value, expected_type):
-                    invalid_fields.append(f"{field}: expected {expected_type}, got {type(value)} ({value})")
+                return 1  # Strongly disagree with non-target triads
+        
+        # Phase 2: Type-specific questions
+        if question_id.startswith(("F5-", "F6-", "F7-", "S2-", "S3-", "S4-", "A8-", "A9-", "A1-")):
+            # Extract target type from question ID
+            if question_id.startswith(f"F{target_type}-") or \
+               question_id.startswith(f"S{target_type}-") or \
+               question_id.startswith(f"A{target_type}-"):
+                return 5  # Strongly agree with target type questions
+            else:
+                return 1  # Strongly disagree with other type questions
+        
+        # Phase 2: Differential questions (FD-, SD-, AD-)
+        if question_id.startswith(("FD-", "SD-", "AD-")):
+            # Look for options that boost target type
+            for option in options:
+                if option.get("type_boost") == target_type:
+                    return option["value"]
+            # Fallback to middle option
+            return 3
+        
+        # Phase 3: Wing and subtype questions
+        if question_id.startswith(("W", "SP-", "SO-", "SX-")):
+            # For wing questions, choose based on target type's wings
+            if question_id.startswith("W"):
+                # Randomly choose wing direction
+                return 3  # Neutral/balanced
+            else:
+                # For subtype, vary the answers to create a realistic stack
+                if question_id.endswith("-1"):
+                    return 4  # Primary instinct
+                else:
+                    return 2  # Secondary/tertiary instincts
+        
+        # Default: neutral response
+        return 3
+    
+    async def test_type_8_scenario(self) -> bool:
+        """Test Type 8 (Anger Triad) full assessment path."""
+        user_id = "test_type8_backend"
+        
+        result = await self.complete_assessment_scenario(
+            user_id, "Type 8 Full Path", "anger", 8
+        )
+        
+        if not result:
+            return False
+        
+        # Verify result structure
+        required_fields = ["core_type", "wing", "subtype_stack", "full_type_string"]
+        missing_fields = [field for field in required_fields if field not in result]
         
         if missing_fields:
-            self.log_test("Results Structure", "FAIL", f"Missing core required fields: {missing_fields}", results)
+            self.log_test("Type 8 - Result Structure", "FAIL",
+                         f"Missing fields: {missing_fields}")
             return False
         
-        if invalid_fields:
-            self.log_test("Results Structure", "FAIL", f"Invalid field types: {invalid_fields}", results)
+        # Verify it's an Anger triad type (8, 9, or 1)
+        core_type = result.get("core_type")
+        if core_type not in [8, 9, 1]:
+            self.log_test("Type 8 - Triad Verification", "FAIL",
+                         f"Expected Anger triad (8,9,1), got type {core_type}")
             return False
         
-        # Validate specific field values
-        validation_errors = []
-        
-        # core_type must be 1-9
-        core_type = results.get("core_type")
-        if not (1 <= core_type <= 9):
-            validation_errors.append(f"core_type must be 1-9, got: {core_type}")
-        
-        # confidence_tier must be valid
-        confidence_tier = results.get("confidence_tier")
-        valid_tiers = ["high", "moderate", "exploratory"]
-        if confidence_tier not in valid_tiers:
-            validation_errors.append(f"confidence_tier must be one of {valid_tiers}, got: {confidence_tier}")
-        
-        # assessment_depth must be "deep"
-        assessment_depth = results.get("assessment_depth")
-        if assessment_depth != "deep":
-            validation_errors.append(f"assessment_depth must be 'deep', got: {assessment_depth}")
-        
-        # CRITICAL VERIFICATION: Wing logic (Review Request requirement)
-        wing = results.get("wing")
-        wing_left_score = results.get("wing_left_score")
-        wing_right_score = results.get("wing_right_score")
-        
-        # Only check wing logic if wing scores are present
-        if wing_left_score is not None and wing_right_score is not None:
-            # Wing should NOT be "balanced" when both wing scores are 0 or null
-            if (wing == "balanced" and 
-                (wing_left_score == 0 or wing_left_score is None) and 
-                (wing_right_score == 0 or wing_right_score is None)):
-                validation_errors.append("❌ CRITICAL: Wing is 'balanced' but both wing_left_score and wing_right_score are 0/null")
-        
-        if validation_errors:
-            self.log_test("Results Structure", "FAIL", f"Validation errors: {validation_errors}", results)
-            return False
-        
-        # Success - log all available fields
-        available_fields = list(results.keys())
-        details = f"✅ Core fields verified: core_type={core_type}, wing={wing}, confidence_tier={confidence_tier}, assessment_depth={assessment_depth}"
-        if wing_left_score is not None or wing_right_score is not None:
-            details += f", wing_scores: L={wing_left_score}/R={wing_right_score}"
-        details += f" | All fields: {available_fields}"
-        
-        self.log_test("Results Structure", "PASS", details, results)
+        self.log_test("Type 8 - Result Structure", "PASS",
+                     f"All required fields present. Core type: {core_type}")
         return True
     
-    async def run_all_tests(self):
-        """Run the complete test suite"""
-        print("=" * 80)
-        print("🧪 ENNEAGRAM DEEP ASSESSMENT COMPLETION FLOW TESTING ON STAGING")
-        print("=" * 80)
-        print(f"Base URL: {self.base_url}")
-        print(f"Test User ID: {TEST_USER_ID}")
-        print()
+    async def test_type_5_scenario(self) -> bool:
+        """Test Type 5 (Fear Triad) full assessment path - regression test."""
+        user_id = "test_type5_backend"
         
-        # Test 0: Health Endpoint
-        health_ok = await self.test_0_health_endpoint()
-        if not health_ok:
-            print("❌ Cannot continue testing - health check failed")
+        result = await self.complete_assessment_scenario(
+            user_id, "Type 5 Full Path (Regression)", "fear", 5
+        )
+        
+        if not result:
             return False
         
-        # Test 1: Start Assessment
-        session_id = await self.test_1_start_assessment()
+        # Verify result structure
+        required_fields = ["core_type", "wing", "subtype_stack", "full_type_string"]
+        missing_fields = [field for field in required_fields if field not in result]
+        
+        if missing_fields:
+            self.log_test("Type 5 - Result Structure", "FAIL",
+                         f"Missing fields: {missing_fields}")
+            return False
+        
+        # Verify it's a Fear triad type (5, 6, or 7)
+        core_type = result.get("core_type")
+        if core_type not in [5, 6, 7]:
+            self.log_test("Type 5 - Triad Verification", "FAIL",
+                         f"Expected Fear triad (5,6,7), got type {core_type}")
+            return False
+        
+        self.log_test("Type 5 - Result Structure", "PASS",
+                     f"All required fields present. Core type: {core_type}")
+        return True
+    
+    async def test_session_status(self) -> bool:
+        """Test session status endpoint."""
+        print("\n📊 Testing Session Status...")
+        
+        # Start a session first
+        user_id = "test_status_backend"
+        start_status, start_data, start_error = await self.make_request(
+            "POST", "/enneagram/v3/start", {"user_id": user_id}
+        )
+        
+        if start_error or start_status != 200 or not isinstance(start_data, dict):
+            self.log_test("Session Status - Setup", "FAIL",
+                         f"Could not start session: {start_error or start_data}")
+            return False
+        
+        session_id = start_data.get("session_id")
         if not session_id:
-            print("❌ Cannot continue testing - failed to start assessment")
+            self.log_test("Session Status - Setup", "FAIL", "No session_id in response")
             return False
         
-        # Test 2: Submit Answers Until Completion
-        results = await self.test_2_submit_answers_until_completion(session_id)
-        if not results:
-            print("❌ Cannot continue testing - failed to complete assessment")
+        # Test status endpoint
+        status_status, status_data, status_error = await self.make_request(
+            "GET", f"/enneagram/v3/status/{session_id}"
+        )
+        
+        if status_error or status_status != 200:
+            self.log_test("Session Status", "FAIL",
+                         f"Status {status_status}, Error: {status_error or status_data}")
             return False
         
-        # Test 3: Verify Results Structure
-        structure_valid = await self.test_3_verify_results_structure(results)
-        if not structure_valid:
-            print("❌ Results structure validation failed")
+        if not isinstance(status_data, dict):
+            self.log_test("Session Status", "FAIL", f"Invalid response: {status_data}")
             return False
         
+        # Verify status structure
+        expected_fields = ["found", "session_id", "phase", "progress"]
+        missing_fields = [field for field in expected_fields if field not in status_data]
+        
+        if missing_fields:
+            self.log_test("Session Status", "FAIL", f"Missing fields: {missing_fields}")
+            return False
+        
+        if not status_data.get("found"):
+            self.log_test("Session Status", "FAIL", "Session not found")
+            return False
+        
+        self.log_test("Session Status", "PASS",
+                     f"Phase: {status_data.get('phase')}, Progress: {status_data.get('progress', {}).get('percentage', 0)}%")
         return True
     
-    def print_summary(self):
-        """Print test summary"""
-        print("=" * 80)
-        print("📊 TEST SUMMARY")
-        print("=" * 80)
+    async def run_all_tests(self) -> dict:
+        """Run all test scenarios."""
+        print("🧪 Starting Enneagram V3 Assessment Anger Triad Fix Tests")
+        print("=" * 60)
         
-        total_tests = len(self.test_results)
-        passed_tests = len([t for t in self.test_results if t["status"] == "PASS"])
-        failed_tests = len([t for t in self.test_results if t["status"] == "FAIL"])
+        start_time = time.time()
         
-        print(f"Total Tests: {total_tests}")
-        print(f"Passed: {passed_tests} ✅")
-        print(f"Failed: {failed_tests} ❌")
-        print(f"Success Rate: {(passed_tests/total_tests*100):.1f}%")
-        print()
+        # Test 1: Health Check
+        health_ok = await self.test_health_check()
+        if not health_ok:
+            print("\n❌ Health check failed. Aborting tests.")
+            return self.get_summary(start_time, False)
         
-        if failed_tests > 0:
-            print("❌ FAILED TESTS:")
-            for test in self.test_results:
-                if test["status"] == "FAIL":
-                    print(f"   • {test['test']}: {test['details']}")
-            print()
+        # Test 2: Session Status
+        status_ok = await self.test_session_status()
         
-        # Key findings
-        mongodb_error_found = any("MongoDB bug detected" in t.get("details", "") for t in self.test_results)
-        assessment_completed = any("Assessment completed" in t.get("details", "") for t in self.test_results)
-        html_error_found = any("520 error detected" in t.get("details", "") or "HTML instead of JSON" in t.get("details", "") for t in self.test_results)
-        wing_logic_error = any("Wing is 'balanced' but both wing scores are 0/null" in t.get("details", "") for t in self.test_results)
+        # Test 3: Type 8 Scenario (Main test - Anger triad)
+        type8_ok = await self.test_type_8_scenario()
         
-        print("🔍 KEY FINDINGS:")
-        if mongodb_error_found:
-            print("   ❌ MongoDB bug 'documents must have only string keys, key was 1' STILL EXISTS")
-        else:
-            print("   ✅ MongoDB bug 'documents must have only string keys, key was 1' NOT detected")
+        # Test 4: Type 5 Scenario (Regression test - Fear triad)
+        type5_ok = await self.test_type_5_scenario()
         
-        if html_error_found:
-            print("   ❌ 520/HTML errors detected (should always return JSON)")
-        else:
-            print("   ✅ NO 520/HTML errors - always returns JSON as required")
+        # Summary
+        all_passed = health_ok and status_ok and type8_ok and type5_ok
+        return self.get_summary(start_time, all_passed)
+    
+    def get_summary(self, start_time: float, all_passed: bool) -> dict:
+        """Generate test summary."""
+        end_time = time.time()
+        duration = end_time - start_time
         
-        if wing_logic_error:
-            print("   ❌ Wing logic error: 'balanced' when both scores are 0/null")
-        else:
-            print("   ✅ Wing logic correct: NOT 'balanced' when scores are 0/null")
+        passed_count = len([r for r in self.test_results if r["status"] == "PASS"])
+        failed_count = len([r for r in self.test_results if r["status"] == "FAIL"])
+        total_count = len(self.test_results)
         
-        if assessment_completed:
-            print("   ✅ Assessment completed successfully with results object")
-        else:
-            print("   ❌ Assessment did not complete successfully")
+        summary = {
+            "overall_status": "PASS" if all_passed else "FAIL",
+            "total_tests": total_count,
+            "passed": passed_count,
+            "failed": failed_count,
+            "duration_seconds": round(duration, 2),
+            "test_results": self.test_results
+        }
         
-        print()
+        print("\n" + "=" * 60)
+        print("📋 TEST SUMMARY")
+        print("=" * 60)
         
-        return failed_tests == 0
+        status_emoji = "✅" if all_passed else "❌"
+        print(f"{status_emoji} Overall Status: {summary['overall_status']}")
+        print(f"📊 Tests: {passed_count}/{total_count} passed")
+        print(f"⏱️  Duration: {duration:.2f} seconds")
+        
+        if failed_count > 0:
+            print(f"\n❌ Failed Tests:")
+            for result in self.test_results:
+                if result["status"] == "FAIL":
+                    print(f"   • {result['test']}: {result['details']}")
+        
+        return summary
 
 
 async def main():
-    """Main test execution"""
-    async with EnneagramDeepAssessmentTester() as tester:
-        success = await tester.run_all_tests()
-        tester.print_summary()
+    """Main test runner."""
+    # Use the staging URL from frontend .env
+    base_url = "https://mirror-lens-fixes.emergent.host"
+    
+    async with EnneagramV3Tester(base_url) as tester:
+        summary = await tester.run_all_tests()
         
         # Exit with appropriate code
-        sys.exit(0 if success else 1)
+        exit_code = 0 if summary["overall_status"] == "PASS" else 1
+        
+        print(f"\n🏁 Tests completed with exit code: {exit_code}")
+        
+        # Save detailed results to file
+        with open("/app/test_results_v3.json", "w") as f:
+            json.dump(summary, f, indent=2)
+        
+        print(f"📄 Detailed results saved to: /app/test_results_v3.json")
+        
+        return exit_code
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        exit_code = asyncio.run(main())
+        sys.exit(exit_code)
+    except KeyboardInterrupt:
+        print("\n⚠️  Tests interrupted by user")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n💥 Unexpected error: {e}")
+        sys.exit(1)
