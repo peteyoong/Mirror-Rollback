@@ -333,7 +333,7 @@ class EnneagramV3Tester:
         print("\n📊 Testing Session Status...")
         
         # Start a session first
-        user_id = "test_status_backend"
+        user_id = "699dc2e6f8e69a10ec38cd33"  # Valid ObjectId for test user
         start_status, start_data, start_error = await self.make_request(
             "POST", "/enneagram/v3/start", {"user_id": user_id}
         )
