@@ -229,7 +229,9 @@ class EnneagramV3Tester:
             elif target_triad == "anger" and question_id.startswith("A"):
                 return 5  # Strongly agree with Anger triad questions
             else:
-                return 1  # Strongly disagree with non-target triads
+                # For non-target triads, answer in a way that doesn't boost them
+                # But not too extremely to avoid reverse scoring issues
+                return 2  # Mild disagreement instead of strong disagreement
         
         # Phase 2: Type-specific questions
         if question_id.startswith(("F5-", "F6-", "F7-", "S2-", "S3-", "S4-", "A8-", "A9-", "A1-")):
@@ -239,7 +241,7 @@ class EnneagramV3Tester:
                question_id.startswith(f"A{target_type}-"):
                 return 5  # Strongly agree with target type questions
             else:
-                return 1  # Strongly disagree with other type questions
+                return 2  # Mild disagreement with other type questions
         
         # Phase 2: Differential questions (FD-, SD-, AD-)
         if question_id.startswith(("FD-", "SD-", "AD-")):
