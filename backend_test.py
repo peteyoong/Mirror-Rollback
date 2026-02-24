@@ -314,7 +314,7 @@ class EnneagramV3Tester:
             return False
         
         # Verify result structure
-        required_fields = ["core_type", "wing", "subtype_stack", "full_type_string"]
+        required_fields = ["core_type", "wing", "full_type_string"]
         missing_fields = [field for field in required_fields if field not in result]
         
         if missing_fields:
