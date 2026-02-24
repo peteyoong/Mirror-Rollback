@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 # Configuration from review request
-BASE_URL = "https://staging-hardening.preview.emergentagent.com/api"
+BASE_URL = "https://personality-quiz-15.preview.emergentagent.com/api"
 TEST_USER_ID = "69954fa73125ba897cbea948"  # From review request
 
 class EnneagramDeepAssessmentTester:
