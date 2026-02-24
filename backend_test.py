@@ -299,7 +299,7 @@ class EnneagramV3Tester:
     
     async def test_type_5_scenario(self) -> bool:
         """Test Type 5 (Fear Triad) full assessment path - regression test."""
-        user_id = "test_type5_backend"
+        user_id = "699dc2e6f8e69a10ec38cd32"  # Valid ObjectId for test user
         
         result = await self.complete_assessment_scenario(
             user_id, "Type 5 Full Path (Regression)", "fear", 5
