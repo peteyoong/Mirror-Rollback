@@ -265,9 +265,9 @@ export default function WelcomeGate() {
       )}
       
       <View style={styles.mainContent}>
-        {/* Witness Eye - positioned behind title */}
-        <View style={styles.witnessEyeContainer}>
-          <WitnessEye size={eyeSize} isHovered={isNewUserHovered} />
+        {/* Vesica Piscis - centered above title */}
+        <View style={styles.vesicaContainer}>
+          <VesicaPiscis size={80} />
         </View>
         
         <View style={styles.header}>
@@ -289,10 +289,6 @@ export default function WelcomeGate() {
               pressed && styles.buttonPressed,
             ]}
             onPress={handleBeginReflection}
-            onPressIn={() => setIsNewUserHovered(true)}
-            onPressOut={() => setIsNewUserHovered(false)}
-            onHoverIn={() => setIsNewUserHovered(true)}
-            onHoverOut={() => setIsNewUserHovered(false)}
           >
             <Text style={styles.primaryButtonText}>New User</Text>
             <Text style={styles.buttonSubtext}>Begin your reflection journey</Text>
