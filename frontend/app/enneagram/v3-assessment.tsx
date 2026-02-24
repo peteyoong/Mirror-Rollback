@@ -702,6 +702,22 @@ export default function V3Assessment() {
           <Text style={styles.finalTypeString}>{finalResult.full_type_string}</Text>
         </View>
         
+        {/* Stress Warning Banner */}
+        {finalResult.stress_warning && (
+          <View style={styles.stressWarningBanner}>
+            <Ionicons name="warning-outline" size={20} color="#F59E0B" />
+            <Text style={styles.stressWarningText}>{finalResult.stress_warning}</Text>
+          </View>
+        )}
+        
+        {/* Retest Suggestion Banner */}
+        {finalResult.retest_suggestion && (
+          <View style={styles.retestBanner}>
+            <Ionicons name="refresh-outline" size={20} color="#6366F1" />
+            <Text style={styles.retestText}>{finalResult.retest_suggestion}</Text>
+          </View>
+        )}
+        
         {/* Type Name */}
         <Text style={styles.finalTypeName}>{finalResult.core_type_name}</Text>
         
@@ -753,6 +769,14 @@ export default function V3Assessment() {
         <View style={styles.confidenceCard}>
           <Text style={styles.confidenceCardLabel}>Assessment Confidence</Text>
           <Text style={styles.confidenceCardValue}>{Math.round(finalResult.confidence_percentage)}%</Text>
+          {finalResult.validation_adjustment !== undefined && finalResult.validation_adjustment !== 0 && (
+            <Text style={[
+              styles.validationAdjustment,
+              { color: finalResult.validation_adjustment > 0 ? '#10B981' : '#EF4444' }
+            ]}>
+              {finalResult.validation_adjustment > 0 ? '+' : ''}{finalResult.validation_adjustment}% from validation
+            </Text>
+          )}
         </View>
         
         {/* Action Buttons */}
