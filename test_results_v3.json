@@ -1,33 +1,57 @@
 {
   "overall_status": "FAIL",
-  "total_tests": 4,
-  "passed": 1,
+  "total_tests": 8,
+  "passed": 5,
   "failed": 3,
-  "duration_seconds": 0.64,
+  "duration_seconds": 7.34,
   "test_results": [
     {
       "test": "API Health Check",
       "status": "PASS",
       "details": "Environment: staging, DB: expo-bundle-issue-mirror_staging",
-      "timestamp": "2026-02-24T15:24:41.409362+00:00"
+      "timestamp": "2026-02-24T15:25:54.722801+00:00"
     },
     {
-      "test": "Session Status - Setup",
+      "test": "Session Status",
       "status": "FAIL",
-      "details": "Could not start session: {'detail': \"'test_status_backend' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string\"}",
-      "timestamp": "2026-02-24T15:24:41.525377+00:00"
+      "details": "Missing fields: ['progress']",
+      "timestamp": "2026-02-24T15:25:54.925774+00:00"
     },
     {
       "test": "Type 8 Full Path - Start",
+      "status": "PASS",
+      "details": "Session ID: a5d6fe53-caa5-4776-9b1b-0cfc1ca12eaf",
+      "timestamp": "2026-02-24T15:25:55.064634+00:00"
+    },
+    {
+      "test": "Type 8 Full Path - Complete",
+      "status": "PASS",
+      "details": "Completed in 39 questions. Result: 5 sp/sx",
+      "timestamp": "2026-02-24T15:25:58.940878+00:00"
+    },
+    {
+      "test": "Type 8 - Result Structure",
       "status": "FAIL",
-      "details": "Status 500, Error: {'detail': \"'test_type8_backend' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string\"}",
-      "timestamp": "2026-02-24T15:24:41.592469+00:00"
+      "details": "Missing fields: ['subtype_stack']",
+      "timestamp": "2026-02-24T15:25:58.940922+00:00"
     },
     {
       "test": "Type 5 Full Path (Regression) - Start",
+      "status": "PASS",
+      "details": "Session ID: 65ebc19c-740c-4708-a627-9f3faa465cf0",
+      "timestamp": "2026-02-24T15:25:59.039876+00:00"
+    },
+    {
+      "test": "Type 5 Full Path (Regression) - Complete",
+      "status": "PASS",
+      "details": "Completed in 31 questions. Result: 5 sp/sx",
+      "timestamp": "2026-02-24T15:26:01.877176+00:00"
+    },
+    {
+      "test": "Type 5 - Result Structure",
       "status": "FAIL",
-      "details": "Status 500, Error: {'detail': \"'test_type5_backend' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string\"}",
-      "timestamp": "2026-02-24T15:24:41.691670+00:00"
+      "details": "Missing fields: ['subtype_stack']",
+      "timestamp": "2026-02-24T15:26:01.877225+00:00"
     }
   ]
 }
