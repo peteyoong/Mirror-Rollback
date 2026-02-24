@@ -1788,6 +1788,22 @@ async def create_v3_session_async(user_id: str) -> dict:
         "validation_flags": [],  # Potential mistypings to check
         "validation_confidence": 0.0,
         
+        # Stress detection (Phase 4)
+        "stress_scores": {
+            "survival": 0,           # General survival/crisis mode score
+            "type_7_indicator": 0,   # Seeking distractions (7 stress)
+            "type_5_indicator": 0,   # Withdrawing/analyzing (5 stress)
+            "type_1_indicator": 0,   # Controlling/ordering (1 stress)
+        },
+        "stress_detected": False,    # True if survival >= 4 AND conflict detected
+        "stress_warning": None,      # Warning message if stress affects results
+        "stress_conflict_triad": None,  # Triad that conflicts with stress pattern
+        
+        # User validation (after Phase 3)
+        "user_validation_type": None,  # Type user selected as most resonant
+        "user_validation_score": None,  # 1-5 confidence in calculated result
+        "validation_adjustment": 0,     # Confidence adjustment from validation
+        
         # Final result
         "final_result": None,  # Will be populated when done
         
