@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   vesicaContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 10,  // Reduced from 16 (30% less gap)
   },
   header: {
     alignItems: 'center',
