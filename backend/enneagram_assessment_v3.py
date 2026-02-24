@@ -2582,9 +2582,13 @@ async def handle_phase1_completion_async(session: dict) -> dict:
         # Should not happen, but handle gracefully
         return {"status": "error", "message": "No more Phase 1 questions"}
     
-    # Update session in MongoDB
+    # Update session in MongoDB (include stress scores)
     await update_v3_session_async(session["session_id"], {
         "triad_scores": session["triad_scores"],
+        "stress_scores": session.get("stress_scores", {}),
+        "stress_detected": session.get("stress_detected", False),
+        "stress_warning": session.get("stress_warning"),
+        "stress_conflict_triad": session.get("stress_conflict_triad"),
         "answers": session["answers"],
         "asked_question_ids": session["asked_question_ids"],
     })
