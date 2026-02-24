@@ -344,23 +344,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  witnessEyeContainer: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginLeft: -100,  // Half of eye size (200/2)
-    marginTop: -140,   // Position eye slightly above center, at title level
-    width: 200,
-    height: 200,
-    zIndex: 1,         // Above background, below text
+  vesicaContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 16,
   },
   header: {
     alignItems: 'center',
-    marginTop: 40,
     marginBottom: 20,
-    zIndex: 2,  // Above eye
   },
   title: {
     fontSize: 32,
