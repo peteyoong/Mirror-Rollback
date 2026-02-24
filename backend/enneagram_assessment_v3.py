@@ -2980,6 +2980,210 @@ def resume_v3_assessment(session_id: str) -> dict:
     raise NotImplementedError("Use resume_v3_assessment_async - called from async endpoint")
 
 # =============================================================================
+# PHASE 4 SCORING AND COMPLETION
+# =============================================================================
+
+def score_phase4_answer(session: dict, question_id: str, response_value: int) -> dict:
+    """
+    Score a Phase 4 (Validation) answer.
+    
+    VAL-1: User's selection of which type description resonates most
+    VAL-2: User's confidence in the calculated result (1-5)
+    """
+    question = QUESTION_BY_ID.get(question_id)
+    if not question:
+        return session
+    
+    if question_id == "VAL-1":
+        # User selected a type as most resonant
+        session["user_validation_type"] = response_value
+    elif question_id == "VAL-2":
+        # User rated confidence in result
+        session["user_validation_score"] = response_value
+    
+    return session
+
+async def handle_phase4_completion_async(session: dict) -> dict:
+    """Handle Phase 4 (Validation) completion logic."""
+    
+    val_1_answered = "VAL-1" in session.get("answers", {})
+    val_2_answered = "VAL-2" in session.get("answers", {})
+    
+    # Check if VAL-1 answered but not VAL-2
+    if val_1_answered and not val_2_answered:
+        # Ask the confirmation question
+        return {
+            "status": "continue",
+            "session_id": session["session_id"],
+            "phase": Phase.VALIDATION.value,
+            "phase_number": 4,
+            "phase_label": "Final validation...",
+            "question": {
+                "id": "VAL-2",
+                "phase": 4,
+                "type": "validation_confirm",
+                "question": "Looking at your calculated result, does this feel accurate to your core self?",
+                "options": [
+                    {"value": 5, "text": "Yes, this is definitely me"},
+                    {"value": 4, "text": "Mostly yes, with some reservations"},
+                    {"value": 3, "text": "Unsure—could be me or not"},
+                    {"value": 2, "text": "Mostly no—something feels off"},
+                    {"value": 1, "text": "No, this doesn't feel like me at all"},
+                ],
+            },
+            "progress": {
+                "current": len(session.get("asked_question_ids", [])) + 1,
+                "estimated_total": len(session.get("asked_question_ids", [])) + 1,
+                "section": "Validating your type...",
+                "confidence_hint": "Your input helps ensure accuracy.",
+            },
+        }
+    
+    # Both questions answered - calculate final result with adjustments
+    if val_1_answered and val_2_answered:
+        user_type = session.get("user_validation_type")
+        user_score = session.get("user_validation_score", 3)
+        core_type = session.get("core_type_locked")
+        
+        # Calculate confidence adjustment
+        confidence_adjustment = 0
+        retest_suggestion = None
+        
+        if user_type == core_type:
+            # User validated the calculated type
+            if user_score >= 4:
+                confidence_adjustment = VALIDATION_CONFIDENCE_BOOST
+            elif user_score <= 2:
+                # User says it doesn't feel right despite matching
+                confidence_adjustment = VALIDATION_CONFIDENCE_PENALTY // 2
+                retest_suggestion = "Consider retaking when not under stress for more clarity."
+        else:
+            # User selected a different type as more resonant
+            confidence_adjustment = VALIDATION_CONFIDENCE_PENALTY
+            retest_suggestion = "Your validation suggests a different type. Consider retaking when not under stress."
+        
+        session["validation_adjustment"] = confidence_adjustment
+        
+        # Build final result with adjustments
+        final_result = build_final_result(session)
+        
+        # Apply validation adjustment to confidence
+        original_confidence = final_result.get("confidence_percentage", 50)
+        adjusted_confidence = max(10, min(100, original_confidence + confidence_adjustment))
+        final_result["confidence_percentage"] = adjusted_confidence
+        final_result["validation_adjustment"] = confidence_adjustment
+        
+        if retest_suggestion:
+            final_result["retest_suggestion"] = retest_suggestion
+        
+        if session.get("stress_warning"):
+            final_result["stress_warning"] = session["stress_warning"]
+        
+        # Update session to done
+        session["phase"] = Phase.DONE.value
+        session["final_result"] = final_result
+        
+        await update_v3_session_async(session["session_id"], {
+            "phase": Phase.DONE.value,
+            "user_validation_type": user_type,
+            "user_validation_score": user_score,
+            "validation_adjustment": confidence_adjustment,
+            "final_result": final_result,
+            "answers": session["answers"],
+            "asked_question_ids": session["asked_question_ids"],
+        })
+        
+        return {
+            "status": "done",
+            "phase_completed": 4,
+            "final_result": final_result,
+            "validation_applied": True,
+            "message": f"Assessment complete! You are a {final_result['full_type_string']}",
+        }
+    
+    # Should not reach here, but handle gracefully
+    return {"status": "error", "message": "Validation phase incomplete"}
+
+async def validate_v3_result_async(session_id: str, user_selected_type: int, confidence_score: int) -> dict:
+    """
+    API endpoint handler for POST /api/enneagram/v3/validate
+    
+    Allows user to validate their result directly without going through the question flow.
+    
+    Args:
+        session_id: The assessment session ID
+        user_selected_type: The type the user feels most represents them (1-9)
+        confidence_score: How confident they are in the calculated result (1-5)
+    
+    Returns:
+        Adjusted final result with validation applied
+    """
+    session = await get_v3_session_async(session_id)
+    if not session:
+        raise ValueError("Session not found or expired")
+    
+    if session["phase"] not in [Phase.VALIDATION.value, Phase.DONE.value]:
+        raise ValueError("Session not ready for validation - complete Phase 3 first")
+    
+    # Apply validation
+    session["user_validation_type"] = user_selected_type
+    session["user_validation_score"] = confidence_score
+    session["answers"]["VAL-1"] = user_selected_type
+    session["answers"]["VAL-2"] = confidence_score
+    
+    core_type = session.get("core_type_locked")
+    
+    # Calculate confidence adjustment
+    confidence_adjustment = 0
+    retest_suggestion = None
+    
+    if user_selected_type == core_type:
+        if confidence_score >= 4:
+            confidence_adjustment = VALIDATION_CONFIDENCE_BOOST
+        elif confidence_score <= 2:
+            confidence_adjustment = VALIDATION_CONFIDENCE_PENALTY // 2
+            retest_suggestion = "Consider retaking when not under stress for more clarity."
+    else:
+        confidence_adjustment = VALIDATION_CONFIDENCE_PENALTY
+        retest_suggestion = "Your validation suggests a different type. Consider retaking when not under stress."
+    
+    session["validation_adjustment"] = confidence_adjustment
+    
+    # Build final result with adjustments
+    final_result = build_final_result(session)
+    
+    original_confidence = final_result.get("confidence_percentage", 50)
+    adjusted_confidence = max(10, min(100, original_confidence + confidence_adjustment))
+    final_result["confidence_percentage"] = adjusted_confidence
+    final_result["validation_adjustment"] = confidence_adjustment
+    
+    if retest_suggestion:
+        final_result["retest_suggestion"] = retest_suggestion
+    
+    if session.get("stress_warning"):
+        final_result["stress_warning"] = session["stress_warning"]
+    
+    # Update session
+    session["phase"] = Phase.DONE.value
+    session["final_result"] = final_result
+    
+    await update_v3_session_async(session_id, {
+        "phase": Phase.DONE.value,
+        "user_validation_type": user_selected_type,
+        "user_validation_score": confidence_score,
+        "validation_adjustment": confidence_adjustment,
+        "final_result": final_result,
+        "answers": session["answers"],
+    })
+    
+    return {
+        "status": "done",
+        "validation_applied": True,
+        "final_result": final_result,
+        "message": f"Validation applied. You are a {final_result['full_type_string']}",
+    }
+
+# =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
 
@@ -3020,7 +3224,9 @@ __all__ = [
     "submit_v3_answer",
     "get_v3_session_status",
     "resume_v3_assessment",
+    "validate_v3_result_async",
     "Phase",
     "Triad",
     "TRIAD_TYPES",
+    "TYPE_DESCRIPTIONS",
 ]
