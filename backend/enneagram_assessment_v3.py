@@ -2677,7 +2677,7 @@ async def handle_phase2_completion_async(session: dict) -> dict:
                 "session_id": session["session_id"],
                 "phase": Phase.WING_SUBTYPE.value,
                 "phase_number": 3,
-                "phase_label": f"Determining your wing and instincts...",
+                "phase_label": "Determining your wing and instincts...",
                 "question": format_question_for_api(first_phase3_question),
                 "progress": {
                     "current": total_answered + 1,
