@@ -18,7 +18,7 @@ import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
 import { API_BASE_URL, joinUrl } from '../utils/apiBase';
 import { parseApiError, GATEWAY_ERROR_CODES } from '../utils/safeErrorParser';
-import WitnessEye from './WitnessEye';
+import VesicaPiscis from './VesicaPiscis';
 
 // Import the Onboarding component to render inline
 import Onboarding from '../app/onboarding/index';
@@ -37,7 +37,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 /**
  * WelcomeGate - Clean Authentication Component
- * With Witness Eye visual and safe error handling
+ * With Vesica Piscis sacred geometry symbol
  */
 export default function WelcomeGate() {
   const { setUser, setChart } = useAppStore();
@@ -49,13 +49,9 @@ export default function WelcomeGate() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isRetryable, setIsRetryable] = useState(false);
-  const [isNewUserHovered, setIsNewUserHovered] = useState(false);
   
   // Debug mode
   const isDebugMode = DEBUG_MIRROR_ENV || searchParams.debug === '1';
-  
-  // Calculate eye size based on screen
-  const eyeSize = 200;  // Fixed size for consistent appearance
   
   // Log API base URL once on mount
   useEffect(() => {
