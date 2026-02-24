@@ -108,6 +108,8 @@ const styles = StyleSheet.create({
     bottom: TAB_BAR_HEIGHT + (Platform.OS === 'ios' ? 10 : 8),
     alignItems: 'center',
     zIndex: 9999,
+    // CRITICAL: Allow touches to pass through to content below
+    pointerEvents: 'box-none',
   },
   pill: {
     borderRadius: 10,
@@ -116,6 +118,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',
+  },
+  pillExpanded: {
+    // When expanded, reduce opacity to make content behind more visible
+    backgroundColor: 'rgba(0,0,0,0.75)',
   },
   collapsedText: {
     fontSize: 10,
