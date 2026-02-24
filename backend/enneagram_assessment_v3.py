@@ -2087,11 +2087,7 @@ def get_next_phase1_question(session: dict) -> Optional[dict]:
     
     # Interleave: pick from the triad with the most unanswered questions relative to total
     # This ensures balanced coverage
-    triads = [
-        ("fear", fear_questions, 7),   # 7 fear questions total
-        ("shame", shame_questions, 7), # 7 shame questions total
-        ("anger", anger_questions, 6), # 6 anger questions total
-    ]
+    # Note: triads variable is informational - actual logic uses proportions below
     
     # Calculate how many questions have been asked from each triad
     asked_fear = 7 - len(fear_questions)
