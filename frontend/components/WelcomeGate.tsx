@@ -362,7 +362,6 @@ const styles = StyleSheet.create({
   messageContainer: {
     alignItems: 'center',
     marginVertical: 30,
-    zIndex: 2,  // Above eye
   },
   tagline: {
     fontSize: 20,
