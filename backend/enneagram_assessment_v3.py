@@ -2774,7 +2774,70 @@ async def handle_phase3_completion_async(session: dict) -> dict:
     all_answered = len(answered_phase3) >= len(phase3_questions)
     
     if all_answered:
-        # Assessment complete! Build final result
+        # Check if we need Phase 4 validation
+        stress_detected = session.get("stress_detected", False)
+        
+        if stress_detected:
+            # Transition to Phase 4 validation
+            session["phase"] = Phase.VALIDATION.value
+            session["phase_number"] = 4
+            
+            await update_v3_session_async(session["session_id"], {
+                "phase": Phase.VALIDATION.value,
+                "phase_number": 4,
+                "wing_scores": session.get("wing_scores", {}),
+                "subtype_scores": session.get("subtype_scores", {}),
+                "answers": session["answers"],
+                "asked_question_ids": session["asked_question_ids"],
+            })
+            
+            # Build preliminary result for validation
+            prelim_result = build_final_result(session)
+            
+            # Get top 3 candidate types for validation
+            type_scores = session.get("type_scores", {})
+            sorted_types = sorted(type_scores.items(), key=lambda x: float(x[1]), reverse=True)
+            top_3_types = [int(t[0]) for t in sorted_types[:3] if float(t[1]) > 0]
+            if core_type not in top_3_types:
+                top_3_types.insert(0, core_type)
+            top_3_types = top_3_types[:3]
+            
+            # Build validation question with type descriptions
+            validation_options = []
+            for t in top_3_types:
+                desc = TYPE_DESCRIPTIONS.get(t, {})
+                validation_options.append({
+                    "value": t,
+                    "name": desc.get("name", f"Type {t}"),
+                    "description": desc.get("description", ""),
+                })
+            
+            return {
+                "status": "continue",
+                "phase_transition": True,
+                "phase_completed": 3,
+                "session_id": session["session_id"],
+                "phase": Phase.VALIDATION.value,
+                "phase_number": 4,
+                "phase_label": "Validating your result...",
+                "stress_warning": session.get("stress_warning"),
+                "preliminary_result": prelim_result,
+                "question": {
+                    "id": "VAL-1",
+                    "phase": 4,
+                    "type": "validation_ranking",
+                    "question": "Which description feels most like your CORE self—not how you act under stress, but who you've been since childhood?",
+                    "options": validation_options,
+                },
+                "progress": {
+                    "current": len(session.get("asked_question_ids", [])) + 1,
+                    "estimated_total": len(session.get("asked_question_ids", [])) + 2,
+                    "section": "Validating your type...",
+                    "confidence_hint": "Please review these descriptions carefully.",
+                },
+            }
+        
+        # No stress detected - complete assessment normally
         final_result = build_final_result(session)
         
         # Update session to done
