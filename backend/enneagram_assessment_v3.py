@@ -3015,6 +3015,13 @@ async def handle_phase4_completion_async(session: dict) -> dict:
     
     # Check if VAL-1 answered but not VAL-2
     if val_1_answered and not val_2_answered:
+        # Save session state before returning
+        await update_v3_session_async(session["session_id"], {
+            "user_validation_type": session.get("user_validation_type"),
+            "answers": session["answers"],
+            "asked_question_ids": session["asked_question_ids"],
+        })
+        
         # Ask the confirmation question
         return {
             "status": "continue",
