@@ -3013,6 +3013,47 @@ async def handle_phase4_completion_async(session: dict) -> dict:
     val_1_answered = "VAL-1" in session.get("answers", {})
     val_2_answered = "VAL-2" in session.get("answers", {})
     
+    # If neither question answered, present VAL-1 first
+    if not val_1_answered:
+        core_type = session.get("core_type_locked")
+        type_scores = session.get("type_scores", {})
+        sorted_types = sorted(type_scores.items(), key=lambda x: float(x[1]), reverse=True)
+        top_3_types = [int(t[0]) for t in sorted_types[:3] if float(t[1]) > 0]
+        if core_type and core_type not in top_3_types:
+            top_3_types.insert(0, core_type)
+        top_3_types = top_3_types[:3]
+        
+        validation_options = []
+        for t in top_3_types:
+            desc = TYPE_DESCRIPTIONS.get(t, {})
+            validation_options.append({
+                "value": t,
+                "name": desc.get("name", f"Type {t}"),
+                "description": desc.get("description", ""),
+            })
+        
+        return {
+            "status": "continue",
+            "session_id": session["session_id"],
+            "phase": Phase.VALIDATION.value,
+            "phase_number": 4,
+            "phase_label": "Validating your result...",
+            "stress_warning": session.get("stress_warning"),
+            "question": {
+                "id": "VAL-1",
+                "phase": 4,
+                "type": "validation_ranking",
+                "question": "Which description feels most like your CORE self—not how you act under stress, but who you've been since childhood?",
+                "options": validation_options,
+            },
+            "progress": {
+                "current": len(session.get("asked_question_ids", [])) + 1,
+                "estimated_total": len(session.get("asked_question_ids", [])) + 2,
+                "section": "Validating your type...",
+                "confidence_hint": "Please review these descriptions carefully.",
+            },
+        }
+    
     # Check if VAL-1 answered but not VAL-2
     if val_1_answered and not val_2_answered:
         # Save session state before returning
