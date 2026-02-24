@@ -1131,6 +1131,26 @@ const styles = StyleSheet.create({
   optionTextSelected: {
     fontWeight: '500',
   },
+  optionContent: {
+    flex: 1,
+  },
+  validationOptionButton: {
+    paddingVertical: 16,
+    alignItems: 'flex-start',
+  },
+  validationOptionName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  validationOptionDescription: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
+  validationOptionDescSelected: {
+    color: Colors.text,
+  },
   buttonContainer: {
     paddingHorizontal: 24,
     paddingTop: 12,
