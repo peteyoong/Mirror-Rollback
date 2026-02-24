@@ -1891,10 +1891,15 @@ def score_phase1_answer(session: dict, question_id: str, response_value: int) ->
     - Shame questions (S1-S7): High values (4-5) indicate Shame triad
     - Anger questions (A1-A6): High values (4-5) indicate Anger triad
     - F7 is reverse-scored (high original value = low fear indication)
+    - STRESS-* questions: Track stress state for validation
     """
     question = QUESTION_BY_ID.get(question_id)
     if not question:
         raise ValueError(f"Unknown question ID: {question_id}")
+    
+    # Handle stress detection questions
+    if question.get("type") == "stress_detection":
+        return score_stress_question(session, question, response_value)
     
     # Get the triad this question measures
     triad = question.get("triad")
@@ -1914,6 +1919,91 @@ def score_phase1_answer(session: dict, question_id: str, response_value: int) ->
     session["triad_scores"][triad] += weighted_score
     
     return session
+
+def score_stress_question(session: dict, question: dict, response_value: int) -> dict:
+    """
+    Score a stress detection question.
+    
+    Updates stress_scores dict and checks for stress/triad conflicts.
+    """
+    stress_type = question.get("stress_type")
+    if not stress_type:
+        return session
+    
+    # Initialize stress_scores if not present
+    if "stress_scores" not in session:
+        session["stress_scores"] = {
+            "survival": 0,
+            "type_7_indicator": 0,
+            "type_5_indicator": 0,
+            "type_1_indicator": 0,
+        }
+    
+    # Store the stress score
+    session["stress_scores"][stress_type] = response_value
+    
+    # Check for stress state after all stress questions answered
+    detect_stress_state(session)
+    
+    return session
+
+def detect_stress_state(session: dict) -> None:
+    """
+    Analyze stress scores to detect if user is in stress state.
+    
+    If survival mode >= 4 AND a stress indicator conflicts with emerging triad:
+    - Set stress_detected = True
+    - Raise triad lock threshold
+    - Add warning message
+    """
+    stress_scores = session.get("stress_scores", {})
+    survival_score = stress_scores.get("survival", 0)
+    
+    # Only trigger if in survival mode
+    if survival_score < STRESS_SURVIVAL_THRESHOLD:
+        session["stress_detected"] = False
+        session["stress_warning"] = None
+        return
+    
+    # Check for conflicting stress indicators
+    # If user shows Fear triad stress indicators but emerging triad is different
+    percentages = calculate_triad_percentages(session)
+    top_triad = max(percentages, key=percentages.get)
+    
+    # Detect specific stress patterns
+    type_7_indicator = stress_scores.get("type_7_indicator", 0)
+    type_5_indicator = stress_scores.get("type_5_indicator", 0)
+    type_1_indicator = stress_scores.get("type_1_indicator", 0)
+    
+    conflict_detected = False
+    conflict_triad = None
+    
+    # Type 7 stress (seeking distractions) -> Fear triad behavior
+    if type_7_indicator >= STRESS_INDICATOR_THRESHOLD and top_triad != "fear":
+        conflict_detected = True
+        conflict_triad = "fear"
+    
+    # Type 5 stress (withdrawing) -> Fear triad behavior
+    if type_5_indicator >= STRESS_INDICATOR_THRESHOLD and top_triad != "fear":
+        conflict_detected = True
+        conflict_triad = "fear"
+    
+    # Type 1 stress (controlling) -> Anger triad behavior
+    if type_1_indicator >= STRESS_INDICATOR_THRESHOLD and top_triad != "anger":
+        conflict_detected = True
+        conflict_triad = "anger"
+    
+    session["stress_detected"] = conflict_detected
+    session["stress_conflict_triad"] = conflict_triad
+    
+    if conflict_detected:
+        session["stress_warning"] = (
+            "You appear to be in a stress state. Your results may reflect current coping "
+            "patterns rather than your core type. Consider retaking when not under stress."
+        )
+        logger.info(f"[V3Assessment] Stress detected: survival={survival_score}, conflict_triad={conflict_triad}")
+    else:
+        session["stress_warning"] = None
 
 def calculate_triad_percentages(session: dict) -> dict:
     """Calculate percentage for each triad based on current scores."""
