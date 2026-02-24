@@ -400,6 +400,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     gap: 16,
     marginTop: 20,
+    zIndex: 2,  // Above eye
   },
   primaryButton: {
     backgroundColor: Colors.accent,
