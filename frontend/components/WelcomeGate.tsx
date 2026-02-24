@@ -350,11 +350,25 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  witnessEyeContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [
+      { translateX: -140 },  // Half of max eye size
+      { translateY: -180 },  // Positioned so eye is at title level
+    ],
+    zIndex: -1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   header: {
     alignItems: 'center',
     marginTop: 40,
     marginBottom: 20,
+    zIndex: 1,
   },
   title: {
     fontSize: 32,
