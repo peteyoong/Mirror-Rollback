@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -17,6 +18,7 @@ import { useAppStore } from '../store';
 import { Colors } from '../constants/colors';
 import { API_BASE_URL, joinUrl } from '../utils/apiBase';
 import { parseApiError, GATEWAY_ERROR_CODES } from '../utils/safeErrorParser';
+import WitnessEye from './WitnessEye';
 
 // Import the Onboarding component to render inline
 import Onboarding from '../app/onboarding/index';
@@ -30,9 +32,12 @@ const APP_ENV = process.env.EXPO_PUBLIC_ENV || 'unknown';
 // Show staging watermark ONLY in staging environment
 const IS_STAGING = APP_ENV === 'staging';
 
+// Get screen dimensions for responsive sizing
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 /**
  * WelcomeGate - Clean Authentication Component
- * With safe error handling and API base visibility
+ * With Witness Eye visual and safe error handling
  */
 export default function WelcomeGate() {
   const { setUser, setChart } = useAppStore();
@@ -44,9 +49,13 @@ export default function WelcomeGate() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isRetryable, setIsRetryable] = useState(false);
+  const [isNewUserHovered, setIsNewUserHovered] = useState(false);
   
   // Debug mode
   const isDebugMode = DEBUG_MIRROR_ENV || searchParams.debug === '1';
+  
+  // Calculate eye size based on screen
+  const eyeSize = Math.min(SCREEN_WIDTH * 0.7, 280);
   
   // Log API base URL once on mount
   useEffect(() => {
