@@ -1,13 +1,11 @@
 /**
  * WitnessEye - Visual Symbol for Project Mirror
  * 
- * A soft, companion-like eye within vesica piscis geometry.
- * Represents gentle witnessing presence - "I'm here with you"
+ * Design Philosophy: "Whale eye in deep water - present, ancient, gentle. 
+ * Not watching. Being with."
  * 
- * Design Philosophy:
- * - Defocused, not piercing or all-knowing
- * - Gold accent matching brand colors
- * - Breath-rhythm animations (slow blink, gentle pulse)
+ * A soft, companion-like eye - feels like a presence just entered the room.
+ * Organic, slightly imperfect, contemplative gaze (down and right).
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -19,367 +17,519 @@ import Svg, {
   Path, 
   G, 
   RadialGradient, 
+  LinearGradient,
   Stop,
-  ClipPath,
-  Mask,
+  Filter,
+  FeGaussianBlur,
 } from 'react-native-svg';
 
-// Animation constants - breath rhythm
-const BLINK_DURATION = 4500;    // 4.5 second cycle
-const PULSE_DURATION = 7000;    // 7 second cycle for vesica piscis
-const BLINK_CLOSE_DURATION = 300; // Quick close
+// Animation timing
+const BLINK_INTERVAL = 5000;      // Time between blinks
+const BLINK_CLOSE_MS = 300;       // Lid closes
+const BLINK_OPEN_MS = 400;        // Lid opens
+const MICRO_MOVEMENT_MS = 3000;   // Pupil micro-movement cycle
+const RING_PULSE_MS = 8000;       // Outer rings pulse
+const HOVER_TRANSITION_MS = 400;
 
-// Gold color matching #D4AF37 at various opacities
-const GOLD_PRIMARY = '#D4AF37';
-const GOLD_OPACITY_15 = 'rgba(212, 175, 55, 0.15)';
-const GOLD_OPACITY_20 = 'rgba(212, 175, 55, 0.20)';
-const GOLD_OPACITY_25 = 'rgba(212, 175, 55, 0.25)';
-const GOLD_OPACITY_08 = 'rgba(212, 175, 55, 0.08)';
-const GOLD_OPACITY_12 = 'rgba(212, 175, 55, 0.12)';
+// Colors - whale eye aesthetic
+const GOLD_DARK = '#B8860B';      // Darker gold for pupil center
+const GOLD_MID = '#D4AF37';       // Primary gold
+const GOLD_LIGHT = '#E6C65A';     // Lighter gold for edge
+const SCLERA = '#F5F5DC';         // Warm off-white
+const CATCHLIGHT = '#FFFFFF';     // Pure white for reflection
 
-// Animated SVG components
+// Animated components
 const AnimatedG = Animated.createAnimatedComponent(G);
-const AnimatedEllipse = Animated.createAnimatedComponent(Ellipse);
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 interface WitnessEyeProps {
   size?: number;
-  isHovered?: boolean;  // For hover effect on New User button
+  isHovered?: boolean;
 }
 
-export default function WitnessEye({ size = 280, isHovered = false }: WitnessEyeProps) {
-  // Animation values
-  const blinkAnim = useRef(new Animated.Value(1)).current;
-  const pulseAnim = useRef(new Animated.Value(0)).current;
-  const hoverAnim = useRef(new Animated.Value(0)).current;
+export default function WitnessEye({ size = 200, isHovered = false }: WitnessEyeProps) {
+  // Animation refs
+  const lidAnim = useRef(new Animated.Value(0)).current;  // 0 = open, 1 = closed
+  const pupilX = useRef(new Animated.Value(0)).current;
+  const pupilY = useRef(new Animated.Value(0)).current;
+  const ringPulse = useRef(new Animated.Value(0)).current;
+  const hoverGlow = useRef(new Animated.Value(0)).current;
   
-  // Blink animation - breath rhythm
+  // Blink animation - lid descends, not opacity fade
   useEffect(() => {
-    const runBlinkCycle = () => {
+    const blink = () => {
       Animated.sequence([
-        // Eye open (hold)
-        Animated.delay(BLINK_DURATION - BLINK_CLOSE_DURATION * 2),
-        // Close eyelid
-        Animated.timing(blinkAnim, {
-          toValue: 0.1,
-          duration: BLINK_CLOSE_DURATION,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        // Open eyelid
-        Animated.timing(blinkAnim, {
+        // Wait before blink
+        Animated.delay(BLINK_INTERVAL),
+        // Close lid
+        Animated.timing(lidAnim, {
           toValue: 1,
-          duration: BLINK_CLOSE_DURATION,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
+          duration: BLINK_CLOSE_MS,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: false,
         }),
-      ]).start(() => runBlinkCycle());
-    };
-    
-    runBlinkCycle();
-  }, [blinkAnim]);
-  
-  // Pulse animation for vesica piscis intersection
-  useEffect(() => {
-    const runPulseCycle = () => {
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: PULSE_DURATION / 2,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
+        // Open lid
+        Animated.timing(lidAnim, {
           toValue: 0,
-          duration: PULSE_DURATION / 2,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
+          duration: BLINK_OPEN_MS,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: false,
         }),
-      ]).start(() => runPulseCycle());
+      ]).start(() => blink());
     };
-    
-    runPulseCycle();
-  }, [pulseAnim]);
+    blink();
+  }, [lidAnim]);
   
-  // Hover animation
+  // Micro-movement - subtle pupil shift (breathing/aliveness)
   useEffect(() => {
-    Animated.timing(hoverAnim, {
+    const microMove = () => {
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(pupilX, {
+            toValue: 1,
+            duration: MICRO_MOVEMENT_MS,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: false,
+          }),
+          Animated.timing(pupilX, {
+            toValue: 0,
+            duration: MICRO_MOVEMENT_MS,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: false,
+          }),
+        ]),
+        Animated.sequence([
+          Animated.timing(pupilY, {
+            toValue: 1,
+            duration: MICRO_MOVEMENT_MS * 1.3,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: false,
+          }),
+          Animated.timing(pupilY, {
+            toValue: 0,
+            duration: MICRO_MOVEMENT_MS * 1.3,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: false,
+          }),
+        ]),
+      ]).start(() => microMove());
+    };
+    microMove();
+  }, [pupilX, pupilY]);
+  
+  // Ring pulse animation
+  useEffect(() => {
+    const pulse = () => {
+      Animated.sequence([
+        Animated.timing(ringPulse, {
+          toValue: 1,
+          duration: RING_PULSE_MS / 2,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: false,
+        }),
+        Animated.timing(ringPulse, {
+          toValue: 0,
+          duration: RING_PULSE_MS / 2,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: false,
+        }),
+      ]).start(() => pulse());
+    };
+    pulse();
+  }, [ringPulse]);
+  
+  // Hover effect - glow expands
+  useEffect(() => {
+    Animated.timing(hoverGlow, {
       toValue: isHovered ? 1 : 0,
-      duration: 400,
+      duration: HOVER_TRANSITION_MS,
       easing: Easing.inOut(Easing.ease),
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
-  }, [isHovered, hoverAnim]);
+  }, [isHovered, hoverGlow]);
   
-  // Calculate eye scale from blink
-  const eyeScaleY = blinkAnim.interpolate({
-    inputRange: [0.1, 1],
-    outputRange: [0.1, 1],
-  });
+  // Calculate dimensions
+  const cx = size / 2;
+  const cy = size / 2;
   
-  // Pulse opacity
-  const pulseOpacity = pulseAnim.interpolate({
+  // Eye shape dimensions - almond shape
+  const eyeWidth = size * 0.38;
+  const eyeHeight = size * 0.16;
+  
+  // Gaze offset - down and to the right 20 degrees
+  const gazeOffsetX = size * 0.015;
+  const gazeOffsetY = size * 0.012;
+  
+  // Iris and pupil
+  const irisRadius = size * 0.055;
+  const pupilRadius = size * 0.028;
+  
+  // Interpolated values
+  const lidClose = lidAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.08, 0.18],
+    outputRange: [0, eyeHeight * 0.95],
   });
   
-  // Hover opacity boost
-  const hoverOpacity = hoverAnim.interpolate({
+  const pupilShiftX = pupilX.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, 1.3],
+    outputRange: [0, 1.5],
   });
   
-  const viewBox = `0 0 ${size} ${size}`;
-  const center = size / 2;
-  const circleRadius = size * 0.35;
-  const circleOffset = size * 0.18; // How far circles are from center
+  const pupilShiftY = pupilY.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
   
-  // Eye dimensions
-  const eyeWidth = size * 0.22;
-  const eyeHeight = size * 0.10;
-  const irisRadius = size * 0.045;
-  const pupilRadius = size * 0.022;
+  const ringScale = ringPulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.03],
+  });
   
-  // For web platform, we need to handle animations differently
+  const ringOpacity = ringPulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.025, 0.04],
+  });
+  
+  const glowScale = hoverGlow.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.1],
+  });
+
+  // Create almond eye path (soft curves, slightly irregular)
+  const createAlmondPath = (w: number, h: number, offsetY: number = 0) => {
+    const x = cx;
+    const y = cy + offsetY;
+    // Slightly irregular curves for organic feel
+    const ctrlOffset = w * 0.02; // Subtle asymmetry
+    return `
+      M ${x - w} ${y}
+      Q ${x - w * 0.5 + ctrlOffset} ${y - h * 1.1}, ${x} ${y - h}
+      Q ${x + w * 0.5 - ctrlOffset} ${y - h * 1.05}, ${x + w} ${y}
+      Q ${x + w * 0.5 + ctrlOffset} ${y + h * 0.9}, ${x} ${y + h * 0.95}
+      Q ${x - w * 0.5 - ctrlOffset} ${y + h * 0.85}, ${x - w} ${y}
+      Z
+    `;
+  };
+  
+  // Upper eyelid path - heavier curve
+  const createUpperLid = (closeAmount: number) => {
+    const x = cx;
+    const y = cy;
+    const w = eyeWidth * 1.05;
+    const h = eyeHeight;
+    const lidDrop = closeAmount;
+    
+    return `
+      M ${x - w} ${y}
+      Q ${x - w * 0.5} ${y - h * 1.15 + lidDrop}, ${x} ${y - h + lidDrop}
+      Q ${x + w * 0.5} ${y - h * 1.1 + lidDrop}, ${x + w} ${y}
+      L ${x + w} ${y - h * 2}
+      L ${x - w} ${y - h * 2}
+      Z
+    `;
+  };
+  
+  // Lower eyelid path - lighter curve
+  const createLowerLid = () => {
+    const x = cx;
+    const y = cy;
+    const w = eyeWidth * 1.05;
+    const h = eyeHeight;
+    
+    return `
+      M ${x - w} ${y}
+      Q ${x - w * 0.5} ${y + h * 0.85}, ${x} ${y + h * 0.9}
+      Q ${x + w * 0.5} ${y + h * 0.8}, ${x + w} ${y}
+      L ${x + w} ${y + h * 2}
+      L ${x - w} ${y + h * 2}
+      Z
+    `;
+  };
+
   const isWeb = Platform.OS === 'web';
   
+  // Pupil center with gaze offset
+  const pupilCx = cx + gazeOffsetX;
+  const pupilCy = cy + gazeOffsetY;
+
   return (
     <View style={[styles.container, { width: size, height: size }]}>
-      <Animated.View style={[styles.svgWrapper, { opacity: hoverOpacity }]}>
-        <Svg
-          width={size}
-          height={size}
-          viewBox={viewBox}
-          style={styles.svg}
-        >
+      <Animated.View 
+        style={[
+          styles.svgWrapper,
+          { transform: [{ scale: glowScale as any }] }
+        ]}
+      >
+        <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
           <Defs>
-            {/* Radial gradient for center glow */}
-            <RadialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-              <Stop offset="0%" stopColor={GOLD_PRIMARY} stopOpacity="0.15" />
-              <Stop offset="50%" stopColor={GOLD_PRIMARY} stopOpacity="0.08" />
-              <Stop offset="100%" stopColor={GOLD_PRIMARY} stopOpacity="0" />
+            {/* Sclera gradient - warm off-white */}
+            <RadialGradient id="scleraGrad" cx="50%" cy="50%" r="60%">
+              <Stop offset="0%" stopColor={SCLERA} stopOpacity="0.1" />
+              <Stop offset="70%" stopColor={SCLERA} stopOpacity="0.05" />
+              <Stop offset="100%" stopColor={SCLERA} stopOpacity="0" />
             </RadialGradient>
             
-            {/* Gradient for eye depth */}
-            <RadialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
-              <Stop offset="0%" stopColor={GOLD_PRIMARY} stopOpacity="0.25" />
-              <Stop offset="70%" stopColor={GOLD_PRIMARY} stopOpacity="0.12" />
-              <Stop offset="100%" stopColor={GOLD_PRIMARY} stopOpacity="0.05" />
+            {/* Iris gradient - soft gold depth */}
+            <RadialGradient id="irisGrad" cx="40%" cy="40%" r="70%">
+              <Stop offset="0%" stopColor={GOLD_LIGHT} stopOpacity="0.18" />
+              <Stop offset="50%" stopColor={GOLD_MID} stopOpacity="0.14" />
+              <Stop offset="100%" stopColor={GOLD_DARK} stopOpacity="0.1" />
             </RadialGradient>
             
-            {/* Iris gradient */}
-            <RadialGradient id="irisGradient" cx="40%" cy="40%" r="60%">
-              <Stop offset="0%" stopColor={GOLD_PRIMARY} stopOpacity="0.35" />
-              <Stop offset="100%" stopColor={GOLD_PRIMARY} stopOpacity="0.18" />
+            {/* Pupil gradient - darker center to lighter edge */}
+            <RadialGradient id="pupilGrad" cx="35%" cy="35%" r="65%">
+              <Stop offset="0%" stopColor={GOLD_DARK} stopOpacity="0.25" />
+              <Stop offset="60%" stopColor={GOLD_MID} stopOpacity="0.18" />
+              <Stop offset="100%" stopColor={GOLD_LIGHT} stopOpacity="0.12" />
             </RadialGradient>
             
-            {/* Vignette gradient */}
+            {/* Soft outer glow */}
+            <RadialGradient id="outerGlow" cx="50%" cy="50%" r="50%">
+              <Stop offset="0%" stopColor={GOLD_MID} stopOpacity="0.08" />
+              <Stop offset="50%" stopColor={GOLD_MID} stopOpacity="0.04" />
+              <Stop offset="100%" stopColor={GOLD_MID} stopOpacity="0" />
+            </RadialGradient>
+            
+            {/* Vignette shadow */}
             <RadialGradient id="vignette" cx="50%" cy="50%" r="50%">
               <Stop offset="0%" stopColor="#000" stopOpacity="0" />
-              <Stop offset="70%" stopColor="#000" stopOpacity="0" />
-              <Stop offset="100%" stopColor="#000" stopOpacity="0.4" />
+              <Stop offset="60%" stopColor="#000" stopOpacity="0" />
+              <Stop offset="85%" stopColor="#000" stopOpacity="0.15" />
+              <Stop offset="100%" stopColor="#000" stopOpacity="0.35" />
+            </RadialGradient>
+            
+            {/* Eye socket shadow */}
+            <RadialGradient id="socketShadow" cx="50%" cy="45%" r="60%">
+              <Stop offset="0%" stopColor="#000" stopOpacity="0" />
+              <Stop offset="70%" stopColor="#000" stopOpacity="0.02" />
+              <Stop offset="100%" stopColor="#000" stopOpacity="0.06" />
             </RadialGradient>
           </Defs>
           
-          {/* Vignette overlay */}
+          {/* Outer vignette - grounds the eye */}
           <Circle
-            cx={center}
-            cy={center}
+            cx={cx}
+            cy={cy}
             r={size * 0.48}
             fill="url(#vignette)"
           />
           
-          {/* Vesica Piscis - Two overlapping circles */}
-          <G opacity={0.15}>
-            {/* Left circle */}
-            <Circle
-              cx={center - circleOffset}
-              cy={center}
-              r={circleRadius}
-              fill="none"
-              stroke={GOLD_PRIMARY}
-              strokeWidth={1}
-            />
-            
-            {/* Right circle */}
-            <Circle
-              cx={center + circleOffset}
-              cy={center}
-              r={circleRadius}
-              fill="none"
-              stroke={GOLD_PRIMARY}
-              strokeWidth={1}
-            />
-          </G>
-          
-          {/* Center intersection glow - pulsing */}
+          {/* Outer attention rings - ripples */}
           {isWeb ? (
-            <Ellipse
-              cx={center}
-              cy={center}
-              rx={size * 0.12}
-              ry={size * 0.22}
-              fill="url(#centerGlow)"
-              opacity={0.12}
+            <G opacity={0.03} style={{ 
+              // @ts-ignore
+              transformOrigin: `${cx}px ${cy}px`,
+              animation: `ringPulse ${RING_PULSE_MS}ms ease-in-out infinite`,
+            }}>
+              <Circle cx={cx} cy={cy} r={size * 0.42} fill="none" stroke={GOLD_MID} strokeWidth={0.5} />
+              <Circle cx={cx} cy={cy} r={size * 0.38} fill="none" stroke={GOLD_MID} strokeWidth={0.5} />
+              <Circle cx={cx} cy={cy} r={size * 0.34} fill="none" stroke={GOLD_MID} strokeWidth={0.5} />
+            </G>
+          ) : (
+            <AnimatedG 
+              opacity={ringOpacity as any}
+              style={{ transform: [{ scale: ringScale as any }] }}
+            >
+              <Circle cx={cx} cy={cy} r={size * 0.42} fill="none" stroke={GOLD_MID} strokeWidth={0.5} />
+              <Circle cx={cx} cy={cy} r={size * 0.38} fill="none" stroke={GOLD_MID} strokeWidth={0.5} />
+              <Circle cx={cx} cy={cy} r={size * 0.34} fill="none" stroke={GOLD_MID} strokeWidth={0.5} />
+            </AnimatedG>
+          )}
+          
+          {/* Soft diffuse outer glow */}
+          <Ellipse
+            cx={cx}
+            cy={cy}
+            rx={eyeWidth * 1.8}
+            ry={eyeHeight * 3}
+            fill="url(#outerGlow)"
+            opacity={0.5}
+          />
+          
+          {/* Eye socket shadow */}
+          <Ellipse
+            cx={cx}
+            cy={cy}
+            rx={eyeWidth * 1.3}
+            ry={eyeHeight * 1.8}
+            fill="url(#socketShadow)"
+          />
+          
+          {/* Sclera - very faint warm off-white */}
+          <Path
+            d={createAlmondPath(eyeWidth, eyeHeight)}
+            fill="url(#scleraGrad)"
+            opacity={0.8}
+          />
+          
+          {/* Iris */}
+          {isWeb ? (
+            <G style={{
+              // @ts-ignore
+              transformOrigin: `${pupilCx}px ${pupilCy}px`,
+              animation: `microMove ${MICRO_MOVEMENT_MS * 2}ms ease-in-out infinite`,
+            }}>
+              <Circle
+                cx={pupilCx}
+                cy={pupilCy}
+                r={irisRadius}
+                fill="url(#irisGrad)"
+              />
+              {/* Iris ring */}
+              <Circle
+                cx={pupilCx}
+                cy={pupilCy}
+                r={irisRadius}
+                fill="none"
+                stroke={GOLD_MID}
+                strokeWidth={0.5}
+                strokeOpacity={0.08}
+              />
+            </G>
+          ) : (
+            <AnimatedG style={{
+              transform: [
+                { translateX: pupilShiftX as any },
+                { translateY: pupilShiftY as any },
+              ],
+            }}>
+              <Circle
+                cx={pupilCx}
+                cy={pupilCy}
+                r={irisRadius}
+                fill="url(#irisGrad)"
+              />
+              <Circle
+                cx={pupilCx}
+                cy={pupilCy}
+                r={irisRadius}
+                fill="none"
+                stroke={GOLD_MID}
+                strokeWidth={0.5}
+                strokeOpacity={0.08}
+              />
+            </AnimatedG>
+          )}
+          
+          {/* Pupil - gradient from dark center to lighter edge */}
+          {isWeb ? (
+            <G style={{
+              // @ts-ignore
+              transformOrigin: `${pupilCx}px ${pupilCy}px`,
+              animation: `microMove ${MICRO_MOVEMENT_MS * 2}ms ease-in-out infinite`,
+            }}>
+              <Circle
+                cx={pupilCx}
+                cy={pupilCy}
+                r={pupilRadius}
+                fill="url(#pupilGrad)"
+              />
+            </G>
+          ) : (
+            <AnimatedG style={{
+              transform: [
+                { translateX: pupilShiftX as any },
+                { translateY: pupilShiftY as any },
+              ],
+            }}>
+              <Circle
+                cx={pupilCx}
+                cy={pupilCy}
+                r={pupilRadius}
+                fill="url(#pupilGrad)"
+              />
+            </AnimatedG>
+          )}
+          
+          {/* Catchlight - tiny white dot for life/wetness */}
+          <Circle
+            cx={pupilCx - irisRadius * 0.35}
+            cy={pupilCy - irisRadius * 0.35}
+            r={size * 0.008}
+            fill={CATCHLIGHT}
+            opacity={0.25}
+          />
+          {/* Secondary smaller catchlight */}
+          <Circle
+            cx={pupilCx + irisRadius * 0.2}
+            cy={pupilCy - irisRadius * 0.25}
+            r={size * 0.004}
+            fill={CATCHLIGHT}
+            opacity={0.15}
+          />
+          
+          {/* Upper eyelid - heavier curve, animates down on blink */}
+          {isWeb ? (
+            <Path
+              d={createUpperLid(0)}
+              fill="#111214"
               style={{
-                // @ts-ignore - web-specific animation
-                animation: `pulse ${PULSE_DURATION}ms ease-in-out infinite`,
+                // @ts-ignore
+                transformOrigin: `${cx}px ${cy - eyeHeight}px`,
+                animation: `blink ${BLINK_INTERVAL + BLINK_CLOSE_MS + BLINK_OPEN_MS}ms ease-in-out infinite`,
               }}
             />
           ) : (
-            <AnimatedEllipse
-              cx={center}
-              cy={center}
-              rx={size * 0.12}
-              ry={size * 0.22}
-              fill="url(#centerGlow)"
-              opacity={pulseOpacity as any}
+            <AnimatedPath
+              d={lidAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [createUpperLid(0), createUpperLid(eyeHeight * 0.95)],
+              }) as any}
+              fill="#111214"
             />
           )}
           
-          {/* The Eye */}
-          <G>
-            {/* Eye socket glow */}
-            <Ellipse
-              cx={center}
-              cy={center}
-              rx={eyeWidth * 1.2}
-              ry={eyeHeight * 1.5}
-              fill="url(#eyeGlow)"
-              opacity={0.3}
-            />
-            
-            {/* Eye shape - soft almond */}
-            {isWeb ? (
-              <G
-                style={{
-                  // @ts-ignore - web-specific animation
-                  transformOrigin: `${center}px ${center}px`,
-                  animation: `blink ${BLINK_DURATION}ms ease-in-out infinite`,
-                }}
-              >
-                <Ellipse
-                  cx={center}
-                  cy={center}
-                  rx={eyeWidth}
-                  ry={eyeHeight}
-                  fill={GOLD_OPACITY_08}
-                  stroke={GOLD_PRIMARY}
-                  strokeWidth={1}
-                  strokeOpacity={0.2}
-                />
-                
-                {/* Iris */}
-                <Circle
-                  cx={center}
-                  cy={center}
-                  r={irisRadius}
-                  fill="url(#irisGradient)"
-                  stroke={GOLD_PRIMARY}
-                  strokeWidth={0.5}
-                  strokeOpacity={0.3}
-                />
-                
-                {/* Pupil - soft, not harsh */}
-                <Circle
-                  cx={center}
-                  cy={center}
-                  r={pupilRadius}
-                  fill={GOLD_OPACITY_25}
-                />
-                
-                {/* Subtle light reflection */}
-                <Circle
-                  cx={center - irisRadius * 0.3}
-                  cy={center - irisRadius * 0.3}
-                  r={pupilRadius * 0.4}
-                  fill={GOLD_PRIMARY}
-                  opacity={0.15}
-                />
-              </G>
-            ) : (
-              <AnimatedG
-                style={{
-                  transform: [{ scaleY: eyeScaleY as any }],
-                }}
-              >
-                <Ellipse
-                  cx={center}
-                  cy={center}
-                  rx={eyeWidth}
-                  ry={eyeHeight}
-                  fill={GOLD_OPACITY_08}
-                  stroke={GOLD_PRIMARY}
-                  strokeWidth={1}
-                  strokeOpacity={0.2}
-                />
-                
-                {/* Iris */}
-                <Circle
-                  cx={center}
-                  cy={center}
-                  r={irisRadius}
-                  fill="url(#irisGradient)"
-                  stroke={GOLD_PRIMARY}
-                  strokeWidth={0.5}
-                  strokeOpacity={0.3}
-                />
-                
-                {/* Pupil */}
-                <Circle
-                  cx={center}
-                  cy={center}
-                  r={pupilRadius}
-                  fill={GOLD_OPACITY_25}
-                />
-                
-                {/* Light reflection */}
-                <Circle
-                  cx={center - irisRadius * 0.3}
-                  cy={center - irisRadius * 0.3}
-                  r={pupilRadius * 0.4}
-                  fill={GOLD_PRIMARY}
-                  opacity={0.15}
-                />
-              </AnimatedG>
-            )}
-          </G>
+          {/* Lower eyelid - lighter curve, static */}
+          <Path
+            d={createLowerLid()}
+            fill="#111214"
+          />
           
-          {/* Subtle inner vesica piscis lines for depth */}
-          <G opacity={0.08}>
-            {/* Inner left arc */}
-            <Path
-              d={`M ${center} ${center - circleRadius * 0.8}
-                  A ${circleRadius * 0.6} ${circleRadius * 0.6} 0 0 1 ${center} ${center + circleRadius * 0.8}`}
-              fill="none"
-              stroke={GOLD_PRIMARY}
-              strokeWidth={0.5}
-            />
-            {/* Inner right arc */}
-            <Path
-              d={`M ${center} ${center - circleRadius * 0.8}
-                  A ${circleRadius * 0.6} ${circleRadius * 0.6} 0 0 0 ${center} ${center + circleRadius * 0.8}`}
-              fill="none"
-              stroke={GOLD_PRIMARY}
-              strokeWidth={0.5}
-            />
-          </G>
+          {/* Soft eyelid edge shadows */}
+          <Path
+            d={`
+              M ${cx - eyeWidth * 1.05} ${cy}
+              Q ${cx - eyeWidth * 0.5} ${cy - eyeHeight * 0.9}, ${cx} ${cy - eyeHeight * 0.85}
+              Q ${cx + eyeWidth * 0.5} ${cy - eyeHeight * 0.9}, ${cx + eyeWidth * 1.05} ${cy}
+            `}
+            fill="none"
+            stroke={GOLD_MID}
+            strokeWidth={0.8}
+            strokeOpacity={0.06}
+          />
+          <Path
+            d={`
+              M ${cx - eyeWidth * 1.05} ${cy}
+              Q ${cx - eyeWidth * 0.5} ${cy + eyeHeight * 0.75}, ${cx} ${cy + eyeHeight * 0.8}
+              Q ${cx + eyeWidth * 0.5} ${cy + eyeHeight * 0.7}, ${cx + eyeWidth * 1.05} ${cy}
+            `}
+            fill="none"
+            stroke={GOLD_MID}
+            strokeWidth={0.5}
+            strokeOpacity={0.04}
+          />
         </Svg>
       </Animated.View>
       
-      {/* CSS animations for web */}
+      {/* CSS keyframes for web */}
       {isWeb && (
         <style>
           {`
             @keyframes blink {
-              0%, 92% { transform: scaleY(1); }
-              95% { transform: scaleY(0.1); }
-              98% { transform: scaleY(1); }
-              100% { transform: scaleY(1); }
+              0%, 88% { transform: translateY(0); }
+              92% { transform: translateY(${eyeHeight * 0.8}px); }
+              96% { transform: translateY(0); }
+              100% { transform: translateY(0); }
             }
-            @keyframes pulse {
-              0%, 100% { opacity: 0.08; }
-              50% { opacity: 0.18; }
+            @keyframes microMove {
+              0%, 100% { transform: translate(0, 0); }
+              25% { transform: translate(1.5px, 0.5px); }
+              50% { transform: translate(0.5px, 1px); }
+              75% { transform: translate(-0.5px, 0.5px); }
+            }
+            @keyframes ringPulse {
+              0%, 100% { opacity: 0.025; transform: scale(1); }
+              50% { opacity: 0.04; transform: scale(1.03); }
             }
           `}
         </style>
@@ -390,16 +540,11 @@ export default function WitnessEye({ size = 280, isHovered = false }: WitnessEye
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: -1,
   },
   svgWrapper: {
     width: '100%',
     height: '100%',
-  },
-  svg: {
-    // Ensure SVG renders properly
   },
 });
