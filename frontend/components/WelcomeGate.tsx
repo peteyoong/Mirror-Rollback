@@ -55,7 +55,7 @@ export default function WelcomeGate() {
   const isDebugMode = DEBUG_MIRROR_ENV || searchParams.debug === '1';
   
   // Calculate eye size based on screen
-  const eyeSize = Math.min(SCREEN_WIDTH * 0.7, 280);
+  const eyeSize = 200;  // Fixed size for consistent appearance
   
   // Log API base URL once on mount
   useEffect(() => {
