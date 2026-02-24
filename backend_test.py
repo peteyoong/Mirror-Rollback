@@ -268,7 +268,7 @@ class EnneagramV3Tester:
     
     async def test_type_8_scenario(self) -> bool:
         """Test Type 8 (Anger Triad) full assessment path."""
-        user_id = "test_type8_backend"
+        user_id = "699dc2e5f8e69a10ec38cd31"  # Valid ObjectId for test user
         
         result = await self.complete_assessment_scenario(
             user_id, "Type 8 Full Path", "anger", 8
