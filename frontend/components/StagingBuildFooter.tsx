@@ -9,8 +9,7 @@
  * - COLLAPSED by default (tiny pill)
  * - Tap to expand details
  * - NO auto-expand on any action
- * - Uses pointerEvents="box-none" so it NEVER blocks touches
- * - Positioned ABOVE the tab bar
+ * - Positioned in TOP-RIGHT corner to avoid blocking content
  * 
  * Only visible when EXPO_PUBLIC_ENV === 'staging'
  */
@@ -18,8 +17,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
 import { API_BASE_URL } from '../utils/apiBase';
-
-const TAB_BAR_HEIGHT = 72;      // matches tab bar height
 
 // Environment check
 const IS_STAGING = process.env.EXPO_PUBLIC_ENV === 'staging';
@@ -70,26 +67,22 @@ export function StagingBuildFooter(props: StagingBuildFooterProps) {
   }, []);
 
   const collapsedLine = useMemo(() => {
-    const shortId = typeof buildId === 'string' ? buildId.slice(-8) : String(buildId);
-    return `STAGING • ${buildVersion}`;
-  }, [buildVersion]);
+    return `STAGING`;
+  }, []);
 
   return (
-    // IMPORTANT: box-none means this wrapper will NOT block touches behind it.
+    // Position in TOP-RIGHT corner to avoid blocking content
     <View pointerEvents="box-none" style={styles.wrap}>
-      {/* Minimal pill - only expands on tap */}
       <Pressable
         onPress={() => setExpanded(v => !v)}
         hitSlop={8}
         style={[styles.pill, expanded && styles.pillExpanded]}
       >
         {expanded ? (
-          <View pointerEvents="box-none" style={styles.expandedContent}>
-            <Text style={styles.linePrimary}>STAGING BUILD</Text>
-            <Text style={styles.line}>{buildVersion} ({buildId.slice(-10)})</Text>
-            <Text style={styles.line}>API: {api}</Text>
-            <Text style={styles.line}>HOST: {host}</Text>
-            <Text style={styles.hint}>Tap here to collapse</Text>
+          <View style={styles.expandedContent}>
+            <Text style={styles.linePrimary}>STAGING</Text>
+            <Text style={styles.line}>{buildVersion}</Text>
+            <Text style={styles.hint}>tap to hide</Text>
           </View>
         ) : (
           <Text style={styles.collapsedText}>{collapsedLine}</Text>
@@ -102,54 +95,50 @@ export function StagingBuildFooter(props: StagingBuildFooterProps) {
 const styles = StyleSheet.create({
   wrap: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    // Put it ABOVE the bottom tab bar so it can't block tab taps:
-    bottom: TAB_BAR_HEIGHT + (Platform.OS === 'ios' ? 10 : 8),
-    alignItems: 'center',
+    // TOP-RIGHT corner - doesn't block any content
+    top: Platform.OS === 'ios' ? 50 : 35,
+    right: 12,
     zIndex: 9999,
-    // CRITICAL: Allow touches to pass through to content below
-    pointerEvents: 'box-none',
   },
   pill: {
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(0,0,0,0.6)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: 'rgba(0,229,255,0.3)',
   },
   pillExpanded: {
-    // When expanded, reduce opacity to make content behind more visible
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
   },
   collapsedText: {
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.6)',
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#00E5FF',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   expandedContent: {
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
   linePrimary: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: '#00E5FF',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   line: {
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.8)',
+    fontSize: 9,
+    color: 'rgba(255,255,255,0.7)',
     textAlign: 'center',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     marginBottom: 2,
   },
   hint: {
-    marginTop: 6,
-    fontSize: 9,
-    color: 'rgba(255,255,255,0.5)',
+    marginTop: 4,
+    fontSize: 8,
+    color: 'rgba(255,255,255,0.4)',
     textAlign: 'center',
   },
 });
