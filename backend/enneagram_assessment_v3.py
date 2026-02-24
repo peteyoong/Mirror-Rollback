@@ -938,6 +938,264 @@ PHASE2_SHAME_QUESTIONS = [
 
 PHASE2_ANGER_QUESTIONS = []  # Types 8, 9, 1 - To be implemented
 
+# =============================================================================
+# PHASE 2: ANGER TRIAD (Types 8, 9, 1)
+# =============================================================================
+
+PHASE2_ANGER_QUESTIONS = [
+    # Type 8 - The Challenger (A8-1 to A8-4)
+    {
+        "id": "A8-1",
+        "phase": 2,
+        "triad": "anger",
+        "target_type": 8,
+        "type": "likert",
+        "question": "I naturally take charge when others hesitate or avoid conflict.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I step up to lead immediately"},
+            {"value": 4, "text": "Agree—I often take charge in uncertain situations"},
+            {"value": 3, "text": "Neutral—sometimes I do, sometimes I don't"},
+            {"value": 2, "text": "Disagree—I prefer to let others lead"},
+            {"value": 1, "text": "Strongly disagree—I avoid taking charge"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "A8-2",
+        "phase": 2,
+        "triad": "anger",
+        "target_type": 8,
+        "type": "likert",
+        "question": "Being controlled or vulnerable feels like a threat to my existence.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I cannot tolerate being controlled"},
+            {"value": 4, "text": "Agree—vulnerability and control feel dangerous"},
+            {"value": 3, "text": "Neutral—it depends on the situation"},
+            {"value": 2, "text": "Disagree—I'm okay with some vulnerability"},
+            {"value": 1, "text": "Strongly disagree—vulnerability doesn't threaten me"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "A8-3",
+        "phase": 2,
+        "triad": "anger",
+        "target_type": 8,
+        "type": "likert",
+        "question": "I respect people who stand their ground, even against me.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I deeply respect strength and pushback"},
+            {"value": 4, "text": "Agree—I admire people who hold firm"},
+            {"value": 3, "text": "Neutral—it depends on the context"},
+            {"value": 2, "text": "Disagree—I prefer people who compromise"},
+            {"value": 1, "text": "Strongly disagree—standing ground against me is wrong"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "A8-4",
+        "phase": 2,
+        "triad": "anger",
+        "target_type": 8,
+        "type": "likert",
+        "question": "My anger is immediate and direct - I express it, then move on.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I express anger directly, then it's done"},
+            {"value": 4, "text": "Agree—I tend to be upfront with my anger"},
+            {"value": 3, "text": "Neutral—sometimes direct, sometimes not"},
+            {"value": 2, "text": "Disagree—I hold back or suppress anger"},
+            {"value": 1, "text": "Strongly disagree—I rarely express anger directly"},
+        ],
+        "weight": 1.0,
+    },
+    
+    # Type 9 - The Peacemaker (A9-1 to A9-4)
+    {
+        "id": "A9-1",
+        "phase": 2,
+        "triad": "anger",
+        "target_type": 9,
+        "type": "likert",
+        "question": "I merge with others' agendas to avoid tension or separation.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I lose myself in others' priorities"},
+            {"value": 4, "text": "Agree—I often go along to keep peace"},
+            {"value": 3, "text": "Neutral—sometimes I merge, sometimes I don't"},
+            {"value": 2, "text": "Disagree—I maintain my own agenda"},
+            {"value": 1, "text": "Strongly disagree—I never merge with others"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "A9-2",
+        "phase": 2,
+        "triad": "anger",
+        "target_type": 9,
+        "type": "likert",
+        "question": "My anger is so slow-burning I often don't realize I'm angry until later.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—anger creeps up on me gradually"},
+            {"value": 4, "text": "Agree—I often realize my anger after the fact"},
+            {"value": 3, "text": "Neutral—sometimes I notice it, sometimes I don't"},
+            {"value": 2, "text": "Disagree—I'm usually aware of my anger"},
+            {"value": 1, "text": "Strongly disagree—I always know when I'm angry"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "A9-3",
+        "phase": 2,
+        "triad": "anger",
+        "target_type": 9,
+        "type": "likert",
+        "question": "Having someone else decide is often easier than knowing my own preference.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I struggle to know what I want"},
+            {"value": 4, "text": "Agree—I often defer to others' choices"},
+            {"value": 3, "text": "Neutral—depends on the decision"},
+            {"value": 2, "text": "Disagree—I usually know what I want"},
+            {"value": 1, "text": "Strongly disagree—I always know my preferences"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "A9-4",
+        "phase": 2,
+        "triad": "anger",
+        "target_type": 9,
+        "type": "likert",
+        "question": "Inner peace and harmony matter more than being right.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—peace is more important than winning"},
+            {"value": 4, "text": "Agree—I prioritize harmony over being correct"},
+            {"value": 3, "text": "Neutral—both matter to me"},
+            {"value": 2, "text": "Disagree—being right is important"},
+            {"value": 1, "text": "Strongly disagree—being right matters most"},
+        ],
+        "weight": 1.0,
+    },
+    
+    # Type 1 - The Reformer (A1-1 to A1-4)
+    {
+        "id": "A1-1",
+        "phase": 2,
+        "triad": "anger",
+        "target_type": 1,
+        "type": "likert",
+        "question": "There's a right way to do things, and I feel compelled to correct errors.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I must correct things that are wrong"},
+            {"value": 4, "text": "Agree—I notice and want to fix errors"},
+            {"value": 3, "text": "Neutral—sometimes I notice, sometimes I let it go"},
+            {"value": 2, "text": "Disagree—I'm not focused on correctness"},
+            {"value": 1, "text": "Strongly disagree—there's no single right way"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "A1-2",
+        "phase": 2,
+        "triad": "anger",
+        "target_type": 1,
+        "type": "likert",
+        "question": "My inner critic is relentless - I hold myself to impossibly high standards.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I'm my own harshest judge"},
+            {"value": 4, "text": "Agree—I have very high standards for myself"},
+            {"value": 3, "text": "Neutral—I'm moderately self-critical"},
+            {"value": 2, "text": "Disagree—I'm fairly easy on myself"},
+            {"value": 1, "text": "Strongly disagree—I don't have an inner critic"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "A1-3",
+        "phase": 2,
+        "triad": "anger",
+        "target_type": 1,
+        "type": "likert",
+        "question": "Righteous anger about injustice or incompetence drives me to action.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—injustice triggers strong action in me"},
+            {"value": 4, "text": "Agree—I feel compelled to address unfairness"},
+            {"value": 3, "text": "Neutral—sometimes it motivates me"},
+            {"value": 2, "text": "Disagree—I don't get that worked up"},
+            {"value": 1, "text": "Strongly disagree—injustice doesn't affect me much"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "A1-4",
+        "phase": 2,
+        "triad": "anger",
+        "target_type": 1,
+        "type": "likert",
+        "question": "I restrain my impulses because they might be wrong or imperfect.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I tightly control my impulses"},
+            {"value": 4, "text": "Agree—I often hold back from acting on impulse"},
+            {"value": 3, "text": "Neutral—sometimes I restrain, sometimes not"},
+            {"value": 2, "text": "Disagree—I'm fairly impulsive"},
+            {"value": 1, "text": "Strongly disagree—I act on my impulses freely"},
+        ],
+        "weight": 1.0,
+    },
+    
+    # Anger Triad Differentiation (AD-1 to AD-4)
+    {
+        "id": "AD-1",
+        "phase": 2,
+        "triad": "anger",
+        "type": "differential",
+        "question": "My anger is:",
+        "options": [
+            {"value": 8, "type_boost": 8, "text": "Explosive and direct - I confront immediately"},
+            {"value": 9, "type_boost": 9, "text": "Suppressed and slow - it builds until it erupts"},
+            {"value": 1, "type_boost": 1, "text": "Channeled and controlled - I redirect it into improvement"},
+        ],
+        "weight": 2.0,
+    },
+    {
+        "id": "AD-2",
+        "phase": 2,
+        "triad": "anger",
+        "type": "differential",
+        "question": "I maintain control by:",
+        "options": [
+            {"value": 8, "type_boost": 8, "text": "Dominating - I take charge to protect myself and others"},
+            {"value": 9, "type_boost": 9, "text": "Avoiding - I sidestep conflict to maintain peace"},
+            {"value": 1, "type_boost": 1, "text": "Perfecting - I follow rules and standards meticulously"},
+        ],
+        "weight": 2.0,
+    },
+    {
+        "id": "AD-3",
+        "phase": 2,
+        "triad": "anger",
+        "type": "differential",
+        "question": "Under stress, I become:",
+        "options": [
+            {"value": 8, "type_boost": 8, "text": "Confrontational - I push harder and fight back"},
+            {"value": 9, "type_boost": 9, "text": "Dissociated - I numb out and withdraw"},
+            {"value": 1, "type_boost": 1, "text": "Rigid and critical - I become more judgmental"},
+        ],
+        "weight": 2.0,
+    },
+    {
+        "id": "AD-4",
+        "phase": 2,
+        "triad": "anger",
+        "type": "differential",
+        "question": "I seek autonomy through:",
+        "options": [
+            {"value": 8, "type_boost": 8, "text": "Strength - I become powerful to protect my freedom"},
+            {"value": 9, "type_boost": 9, "text": "Harmony - I create peace to avoid being disturbed"},
+            {"value": 1, "type_boost": 1, "text": "Integrity - I become correct to justify my position"},
+        ],
+        "weight": 2.0,
+    },
+]
+
 # Combine all Phase 2 questions
 PHASE2_QUESTIONS = PHASE2_FEAR_QUESTIONS + PHASE2_SHAME_QUESTIONS + PHASE2_ANGER_QUESTIONS
 
