@@ -1789,12 +1789,49 @@ def check_triad_lock(session: dict) -> Tuple[bool, Optional[str], float]:
     return False, None, confidence
 
 def get_next_phase1_question(session: dict) -> Optional[dict]:
-    """Get the next Phase 1 question to ask."""
+    """
+    Get the next Phase 1 question to ask.
+    
+    IMPORTANT: Questions are interleaved across triads to ensure fair representation
+    before any early triad lock decision. This prevents bias towards triads whose
+    questions appear first in the question bank.
+    
+    Interleaving pattern: Fear -> Shame -> Anger -> Fear -> Shame -> Anger -> ...
+    """
     asked = set(session.get("asked_question_ids", []))
     
-    for q in PHASE1_QUESTIONS:
-        if q["id"] not in asked:
-            return q
+    # Group questions by triad
+    fear_questions = [q for q in PHASE1_QUESTIONS if q["triad"] == "fear" and q["id"] not in asked]
+    shame_questions = [q for q in PHASE1_QUESTIONS if q["triad"] == "shame" and q["id"] not in asked]
+    anger_questions = [q for q in PHASE1_QUESTIONS if q["triad"] == "anger" and q["id"] not in asked]
+    
+    # Interleave: pick from the triad with the most unanswered questions relative to total
+    # This ensures balanced coverage
+    triads = [
+        ("fear", fear_questions, 7),   # 7 fear questions total
+        ("shame", shame_questions, 7), # 7 shame questions total
+        ("anger", anger_questions, 6), # 6 anger questions total
+    ]
+    
+    # Calculate how many questions have been asked from each triad
+    asked_fear = 7 - len(fear_questions)
+    asked_shame = 7 - len(shame_questions)
+    asked_anger = 6 - len(anger_questions)
+    
+    # Pick from the triad that has been asked the least (proportionally)
+    # to ensure fair coverage
+    proportions = [
+        ("fear", asked_fear / 7, fear_questions),
+        ("shame", asked_shame / 7, shame_questions),
+        ("anger", asked_anger / 6, anger_questions),
+    ]
+    
+    # Sort by proportion asked (ascending) - pick from least asked triad
+    proportions.sort(key=lambda x: x[1])
+    
+    for triad_name, proportion, questions in proportions:
+        if questions:
+            return questions[0]
     
     return None
 
