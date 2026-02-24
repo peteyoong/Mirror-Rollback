@@ -81,15 +81,15 @@ export function StagingBuildFooter(props: StagingBuildFooterProps) {
       <Pressable
         onPress={() => setExpanded(v => !v)}
         hitSlop={8}
-        style={styles.pill}
+        style={[styles.pill, expanded && styles.pillExpanded]}
       >
         {expanded ? (
-          <View style={styles.expandedContent}>
+          <View pointerEvents="box-none" style={styles.expandedContent}>
             <Text style={styles.linePrimary}>STAGING BUILD</Text>
             <Text style={styles.line}>{buildVersion} ({buildId.slice(-10)})</Text>
             <Text style={styles.line}>API: {api}</Text>
             <Text style={styles.line}>HOST: {host}</Text>
-            <Text style={styles.hint}>Tap to collapse</Text>
+            <Text style={styles.hint}>Tap here to collapse</Text>
           </View>
         ) : (
           <Text style={styles.collapsedText}>{collapsedLine}</Text>
