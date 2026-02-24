@@ -2478,6 +2478,8 @@ async def submit_v3_answer_async(session_id: str, question_id: str, response_val
             score_phase2_answer(session, question_id, response_value)
         elif session["phase"] == Phase.WING_SUBTYPE.value:
             score_phase3_answer(session, question_id, response_value)
+        elif session["phase"] == Phase.VALIDATION.value:
+            score_phase4_answer(session, question_id, response_value)
     
     # Handle phase completion
     if session["phase"] == Phase.TRIAD.value:
@@ -2486,6 +2488,8 @@ async def submit_v3_answer_async(session_id: str, question_id: str, response_val
         return await handle_phase2_completion_async(session)
     elif session["phase"] == Phase.WING_SUBTYPE.value:
         return await handle_phase3_completion_async(session)
+    elif session["phase"] == Phase.VALIDATION.value:
+        return await handle_phase4_completion_async(session)
     
     # For phases not yet implemented
     return {"status": "done", "message": "Phase not yet implemented"}
