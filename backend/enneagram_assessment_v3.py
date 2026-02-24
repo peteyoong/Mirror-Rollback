@@ -2067,8 +2067,18 @@ def get_next_phase1_question(session: dict) -> Optional[dict]:
     questions appear first in the question bank.
     
     Interleaving pattern: Fear -> Shame -> Anger -> Fear -> Shame -> Anger -> ...
+    
+    Stress detection questions are inserted after question 5.
     """
     asked = set(session.get("asked_question_ids", []))
+    questions_answered = len(asked)
+    
+    # Insert stress detection questions after the 5th question
+    # This gives us some triad data before asking about stress state
+    if questions_answered >= 5:
+        stress_remaining = [q for q in STRESS_DETECTION_QUESTIONS if q["id"] not in asked]
+        if stress_remaining:
+            return stress_remaining[0]
     
     # Group questions by triad
     fear_questions = [q for q in PHASE1_QUESTIONS if q["triad"] == "fear" and q["id"] not in asked]
