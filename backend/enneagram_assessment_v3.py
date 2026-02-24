@@ -424,6 +424,153 @@ PHASE1_QUESTIONS = [
 ]
 
 # =============================================================================
+# STRESS/STATE DETECTION QUESTIONS (inserted in Phase 1)
+# =============================================================================
+# These questions detect if user is in stress/survival mode, which may distort results.
+# Inserted after question 5 in the interleaved order to catch early distortion.
+
+STRESS_DETECTION_QUESTIONS = [
+    {
+        "id": "STRESS-1",
+        "phase": 1,
+        "type": "stress_detection",
+        "stress_type": "survival",
+        "question": "I feel like I'm operating in survival or crisis mode right now.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I'm in crisis/survival mode"},
+            {"value": 4, "text": "Agree—I'm definitely stressed"},
+            {"value": 3, "text": "Somewhat—a bit more stressed than usual"},
+            {"value": 2, "text": "Disagree—I'm managing okay"},
+            {"value": 1, "text": "Strongly disagree—I feel centered"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "STRESS-7",
+        "phase": 1,
+        "type": "stress_detection",
+        "stress_type": "type_7_indicator",
+        "target_triad": "fear",
+        "question": "I'm seeking distractions and exciting possibilities to avoid pain or discomfort.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I'm avoiding through distraction"},
+            {"value": 4, "text": "Agree—I notice this pattern"},
+            {"value": 3, "text": "Somewhat—occasionally"},
+            {"value": 2, "text": "Disagree—I face things directly"},
+            {"value": 1, "text": "Strongly disagree—not at all"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "STRESS-5",
+        "phase": 1,
+        "type": "stress_detection",
+        "stress_type": "type_5_indicator",
+        "target_triad": "fear",
+        "question": "I'm withdrawing to analyze and conserve my energy.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I'm retreating to think"},
+            {"value": 4, "text": "Agree—I'm pulling back"},
+            {"value": 3, "text": "Somewhat—more than usual"},
+            {"value": 2, "text": "Disagree—I'm staying engaged"},
+            {"value": 1, "text": "Strongly disagree—I'm very active"},
+        ],
+        "weight": 1.0,
+    },
+    {
+        "id": "STRESS-1T",
+        "phase": 1,
+        "type": "stress_detection",
+        "stress_type": "type_1_indicator",
+        "target_triad": "anger",
+        "question": "I'm pushing myself hard to maintain control and order.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—I'm rigidly controlling everything"},
+            {"value": 4, "text": "Agree—I'm more controlling than usual"},
+            {"value": 3, "text": "Somewhat—a bit more structured"},
+            {"value": 2, "text": "Disagree—I'm fairly relaxed"},
+            {"value": 1, "text": "Strongly disagree—I'm going with the flow"},
+        ],
+        "weight": 1.0,
+    },
+]
+
+# Stress type to triad mapping (for conflict detection)
+STRESS_TYPE_TRIAD_MAP = {
+    "type_7_indicator": "fear",
+    "type_5_indicator": "fear",
+    "type_1_indicator": "anger",
+}
+
+# =============================================================================
+# PHASE 4: VALIDATION QUESTIONS
+# =============================================================================
+# Presented after Phase 3, before final results. User ranks type descriptions
+# to validate or adjust the calculated result.
+
+TYPE_DESCRIPTIONS = {
+    1: {
+        "name": "The Reformer",
+        "description": "Principled, purposeful, self-controlled. You have a strong sense of right and wrong, often feeling a responsibility to improve things. Your inner critic is persistent, driving you toward integrity and excellence.",
+    },
+    2: {
+        "name": "The Helper",
+        "description": "Caring, interpersonal, generous. You feel most alive when connecting with and helping others. You intuitively sense what people need and often put others' needs before your own.",
+    },
+    3: {
+        "name": "The Achiever",
+        "description": "Adaptive, driven, image-conscious. You're motivated by success and recognition, naturally adapting to achieve goals. You measure your worth through accomplishments and how others perceive you.",
+    },
+    4: {
+        "name": "The Individualist",
+        "description": "Expressive, dramatic, self-absorbed. You experience emotions intensely and seek authentic self-expression. You often feel fundamentally different from others and search for your true identity.",
+    },
+    5: {
+        "name": "The Investigator",
+        "description": "Perceptive, innovative, isolated. You approach life through observation and analysis, valuing knowledge and competence. You conserve energy and maintain privacy to protect your inner resources.",
+    },
+    6: {
+        "name": "The Loyalist",
+        "description": "Committed, security-oriented, anxious. You seek guidance and certainty in an uncertain world. Your loyalty runs deep once committed, though you may doubt and test those you trust.",
+    },
+    7: {
+        "name": "The Enthusiast",
+        "description": "Spontaneous, versatile, scattered. You pursue pleasure and possibilities to avoid pain and limitation. Your mind races ahead to exciting futures, and you resist being pinned down.",
+    },
+    8: {
+        "name": "The Challenger",
+        "description": "Self-confident, decisive, confrontational. You assert control over your environment and protect yourself from vulnerability. You respect strength and directness in yourself and others.",
+    },
+    9: {
+        "name": "The Peacemaker",
+        "description": "Receptive, reassuring, complacent. You seek inner and outer peace, often merging with others' agendas to avoid conflict. You may struggle to know your own priorities and assert your presence.",
+    },
+}
+
+PHASE4_VALIDATION_QUESTIONS = [
+    {
+        "id": "VAL-1",
+        "phase": 4,
+        "type": "validation_ranking",
+        "question": "Which description feels most like your CORE self—not how you act under stress, but who you've been since childhood?",
+        "instruction": "Review these descriptions and select the one that resonates most deeply with your fundamental nature.",
+    },
+    {
+        "id": "VAL-2",
+        "phase": 4,
+        "type": "validation_confirm",
+        "question": "Looking at your result, does this feel accurate to your core self?",
+        "options": [
+            {"value": 5, "text": "Yes, this is definitely me"},
+            {"value": 4, "text": "Mostly yes, with some reservations"},
+            {"value": 3, "text": "Unsure—could be me or not"},
+            {"value": 2, "text": "Mostly no—something feels off"},
+            {"value": 1, "text": "No, this doesn't feel like me at all"},
+        ],
+    },
+]
+
+# =============================================================================
 # PHASE 2 QUESTION BANK (CORE TYPE - Fear Triad Only for MVP)
 # =============================================================================
 # After triad is locked, these questions differentiate between types within
