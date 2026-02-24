@@ -1289,6 +1289,80 @@ backend:
           🎯 REVIEW REQUEST REQUIREMENTS MET:
           - ✅ User ID 697f0c6abf35c0528ff06954 tested successfully
           - ✅ Human Design lens knows "Right Angle Cross of Migration"
+
+  - task: "Phase 4: Validation & Stress/Security Detection Implementation"
+    implemented: true
+    working: true
+    files:
+      - "/app/backend/enneagram_assessment_v3.py"
+      - "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          PHASE 4: VALIDATION & STRESS DETECTION - COMPLETE ✅
+          
+          === STRESS DETECTION IMPLEMENTATION ===
+          
+          1. 📋 Stress Detection Questions (inserted after Q5 in Phase 1):
+             - STRESS-1: "I feel like I'm operating in survival or crisis mode" (survival mode)
+             - STRESS-7: "I'm seeking distractions and possibilities to avoid pain" (Type 7 stress)
+             - STRESS-5: "I'm withdrawing to analyze and conserve energy" (Type 5 stress)
+             - STRESS-1T: "I'm pushing myself hard to maintain control and order" (Type 1 stress)
+          
+          2. 🔧 Scoring Logic:
+             - If survival mode >= 4 AND stress indicators conflict with emerging triad:
+               * Raised triad lock threshold from 45% → 60%
+               * Added warning: "You may be in stress state - results reflect current coping, not core type"
+             - If no conflict (e.g., Type 1 stress + Anger triad), proceed normally
+          
+          3. ✅ Conflict Detection:
+             - Type 7 stress (seeking distractions) → Fear triad behavior
+             - Type 5 stress (withdrawing) → Fear triad behavior
+             - Type 1 stress (controlling) → Anger triad behavior
+             - Conflict detected when emerging triad doesn't match stress behavior triad
+          
+          === PHASE 4 VALIDATION IMPLEMENTATION ===
+          
+          1. 📋 Validation Questions (after Phase 3, before final results):
+             - VAL-1: Presents top 3 type descriptions, user selects most resonant
+             - VAL-2: User rates confidence in calculated result (1-5 scale)
+          
+          2. 🔧 Confidence Adjustment:
+             - User validates calculated type + high confidence: +10% confidence
+             - User rejects calculated type: -15% confidence + retest suggestion
+             - Mismatch flagged for potential retest
+          
+          3. 📡 New API Endpoint:
+             POST /api/enneagram/v3/validate
+             - Accepts: session_id, user_selected_type (1-9), confidence_score (1-5)
+             - Returns: Adjusted final result with validation applied
+          
+          === TEST RESULTS ===
+          
+          ✅ Normal Path (no stress): 9/9 types pass
+          ✅ Stress Path (Phase 4 triggered): 9/9 types pass
+          
+          Stress Detection Behavior:
+          - Fear triad (5,6,7) + Type 1 stress: ✅ Stress detected, Phase 4 triggered
+          - Shame triad (2,3,4) + Type 1 stress: ✅ Stress detected, Phase 4 triggered
+          - Anger triad (8,9,1) + Type 1 stress: ✅ No conflict, normal flow
+          
+          === SESSION SCHEMA UPDATES ===
+          
+          New fields added to v3_sessions collection:
+          - stress_scores: {survival, type_7_indicator, type_5_indicator, type_1_indicator}
+          - stress_detected: boolean
+          - stress_warning: string
+          - stress_conflict_triad: string
+          - user_validation_type: int (1-9)
+          - user_validation_score: int (1-5)
+          - validation_adjustment: int (+10 or -15)
+
+
           - ✅ Incarnation Cross Gates 37/40 included in system context
           - ✅ Defined Centers and Channels properly included
           - ✅ Enneagram context working (handles incomplete data gracefully)
