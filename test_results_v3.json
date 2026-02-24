@@ -1,0 +1,33 @@
+{
+  "overall_status": "FAIL",
+  "total_tests": 4,
+  "passed": 1,
+  "failed": 3,
+  "duration_seconds": 0.64,
+  "test_results": [
+    {
+      "test": "API Health Check",
+      "status": "PASS",
+      "details": "Environment: staging, DB: expo-bundle-issue-mirror_staging",
+      "timestamp": "2026-02-24T15:24:41.409362+00:00"
+    },
+    {
+      "test": "Session Status - Setup",
+      "status": "FAIL",
+      "details": "Could not start session: {'detail': \"'test_status_backend' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string\"}",
+      "timestamp": "2026-02-24T15:24:41.525377+00:00"
+    },
+    {
+      "test": "Type 8 Full Path - Start",
+      "status": "FAIL",
+      "details": "Status 500, Error: {'detail': \"'test_type8_backend' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string\"}",
+      "timestamp": "2026-02-24T15:24:41.592469+00:00"
+    },
+    {
+      "test": "Type 5 Full Path (Regression) - Start",
+      "status": "FAIL",
+      "details": "Status 500, Error: {'detail': \"'test_type5_backend' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string\"}",
+      "timestamp": "2026-02-24T15:24:41.691670+00:00"
+    }
+  ]
+}
