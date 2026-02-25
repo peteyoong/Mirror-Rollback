@@ -443,12 +443,15 @@ export default function V3Assessment() {
     
     return (
       <View style={styles.questionContainer}>
-        {/* Progress Header */}
+        {/* Progress Header - More prominent */}
         <View style={styles.progressHeader}>
           <Text style={styles.progressPhase}>{phaseLabel}</Text>
-          <Text style={styles.progressCount}>
-            Question {progress?.current || 1} of ~{progress?.estimated_total || 45}
-          </Text>
+          <View style={styles.progressCountContainer}>
+            <Ionicons name="list-outline" size={14} color={Colors.textSecondary} />
+            <Text style={styles.progressCount}>
+              Question {progress?.current || 1} of ~{progress?.estimated_total || 50}
+            </Text>
+          </View>
         </View>
         
         {/* Confidence Hint */}
