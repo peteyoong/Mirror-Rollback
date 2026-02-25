@@ -14,7 +14,7 @@ Last Updated: 2026-02-16
 ```
 
 ### What the PREVIEW URL shows (CORRECT):
-- URL: https://personality-quiz-15.preview.emergentagent.com
+- URL: https://type-assessment.preview.emergentagent.com
 - Displays: **Type 7w8 High** ✅
 
 ### What the EXPO GO LIVE app shows (WRONG):
