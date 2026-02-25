@@ -2184,7 +2184,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Retake Assessment?</Text>
           <Text style={styles.modalText}>
-            This will replace your current results. The assessment takes about 10-12 minutes.
+            This will replace your current results. The assessment takes about 5-7 minutes.
           </Text>
           <View style={styles.modalActions}>
             <TouchableOpacity
