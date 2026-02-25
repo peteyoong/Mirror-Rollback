@@ -3187,6 +3187,105 @@ async def handle_phase4_completion_async(session: dict) -> dict:
         user_score = session.get("user_validation_score", 3)
         core_type = session.get("core_type_locked")
         
+        # CRITICAL FIX: If user rejects the result (score <= 2), don't show calculated type
+        # Instead, offer alternatives
+        if user_score <= 2:
+            # User says "Mostly no" or "No, this doesn't feel like me"
+            type_scores = session.get("type_scores", {})
+            sorted_types = sorted(type_scores.items(), key=lambda x: float(x[1]), reverse=True)
+            top_3_types = [int(t[0]) for t in sorted_types[:3] if float(t[1]) > 0]
+            
+            # Build top 3 type descriptions
+            top_3_descriptions = []
+            for t in top_3_types:
+                desc = TYPE_DESCRIPTIONS.get(t, {})
+                top_3_descriptions.append({
+                    "type": t,
+                    "name": desc.get("name", f"Type {t}"),
+                    "description": desc.get("description", ""),
+                    "score_percentage": round(float(type_scores.get(str(t), 0)), 1),
+                })
+            
+            # Store rejection state
+            session["validation_rejected"] = True
+            session["phase"] = Phase.DONE.value
+            
+            await update_v3_session_async(session["session_id"], {
+                "phase": Phase.DONE.value,
+                "validation_rejected": True,
+                "user_validation_type": user_type,
+                "user_validation_score": user_score,
+                "answers": session["answers"],
+                "asked_question_ids": session["asked_question_ids"],
+            })
+            
+            return {
+                "status": "validation_rejected",
+                "session_id": session["session_id"],
+                "message": "Let's explore further. The calculated result doesn't feel quite right to you.",
+                "calculated_type": core_type,
+                "top_3_types": top_3_descriptions,
+                "options": [
+                    {"id": "retest", "label": "Retake Assessment", "description": "Start fresh with a clear mind"},
+                    {"id": "explore_top_3", "label": "See Top 3 Types", "description": "Explore the types that scored highest"},
+                    {"id": "stress_patterns", "label": "Learn About Stress Patterns", "description": "Understand how stress affects typing"},
+                ],
+                "stress_warning": session.get("stress_warning"),
+                "suggestion": "Your answers may have been influenced by current stress or life circumstances. Consider retaking when you're feeling more centered, or explore your top 3 types to see which resonates most.",
+            }
+        
+        # User score is 3 (Unsure) - provide result but with lower confidence
+        if user_score == 3:
+            # Build final result but add uncertainty flag
+            final_result = build_final_result(session)
+            
+            # Reduce confidence for "Unsure" response
+            original_confidence = final_result.get("confidence_percentage", 50)
+            adjusted_confidence = max(10, original_confidence - 10)  # Reduce by 10%
+            final_result["confidence_percentage"] = adjusted_confidence
+            final_result["validation_adjustment"] = -10
+            final_result["validation_uncertain"] = True
+            final_result["retest_suggestion"] = "You indicated some uncertainty. Consider retaking when you have more clarity about your patterns."
+            
+            if session.get("stress_warning"):
+                final_result["stress_warning"] = session["stress_warning"]
+            
+            # Get top 3 for reference
+            type_scores = session.get("type_scores", {})
+            sorted_types = sorted(type_scores.items(), key=lambda x: float(x[1]), reverse=True)
+            top_3_types = [int(t[0]) for t in sorted_types[:3] if float(t[1]) > 0]
+            top_3_descriptions = []
+            for t in top_3_types:
+                desc = TYPE_DESCRIPTIONS.get(t, {})
+                top_3_descriptions.append({
+                    "type": t,
+                    "name": desc.get("name", f"Type {t}"),
+                })
+            final_result["alternative_types"] = top_3_descriptions
+            
+            session["phase"] = Phase.DONE.value
+            session["final_result"] = final_result
+            
+            await update_v3_session_async(session["session_id"], {
+                "phase": Phase.DONE.value,
+                "user_validation_type": user_type,
+                "user_validation_score": user_score,
+                "validation_adjustment": -10,
+                "final_result": final_result,
+                "answers": session["answers"],
+                "asked_question_ids": session["asked_question_ids"],
+            })
+            
+            return {
+                "status": "done",
+                "phase_completed": 4,
+                "final_result": final_result,
+                "validation_applied": True,
+                "validation_uncertain": True,
+                "message": f"Assessment complete! Your likely type is {final_result['full_type_string']}, though you expressed some uncertainty.",
+            }
+        
+        # User score >= 4 - standard validation flow
         # Calculate confidence adjustment
         confidence_adjustment = 0
         retest_suggestion = None
@@ -3195,10 +3294,6 @@ async def handle_phase4_completion_async(session: dict) -> dict:
             # User validated the calculated type
             if user_score >= 4:
                 confidence_adjustment = VALIDATION_CONFIDENCE_BOOST
-            elif user_score <= 2:
-                # User says it doesn't feel right despite matching
-                confidence_adjustment = VALIDATION_CONFIDENCE_PENALTY // 2
-                retest_suggestion = "Consider retaking when not under stress for more clarity."
         else:
             # User selected a different type as more resonant
             confidence_adjustment = VALIDATION_CONFIDENCE_PENALTY
