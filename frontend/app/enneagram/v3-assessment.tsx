@@ -528,6 +528,7 @@ export default function V3Assessment() {
           <TouchableOpacity
             style={[
               styles.continueButton,
+              selectedValue !== null && styles.continueButtonActive,
               selectedValue === null && styles.continueButtonDisabled
             ]}
             onPress={handleContinue}
@@ -537,8 +538,11 @@ export default function V3Assessment() {
               <ActivityIndicator color={Colors.surface} />
             ) : (
               <>
-                <Text style={styles.continueButtonText}>Continue</Text>
-                <Ionicons name="arrow-forward" size={18} color={Colors.surface} />
+                <Text style={[
+                  styles.continueButtonText,
+                  selectedValue !== null && styles.continueButtonTextActive
+                ]}>Continue</Text>
+                <Ionicons name="arrow-forward" size={18} color={selectedValue !== null ? Colors.surface : Colors.textTertiary} />
               </>
             )}
           </TouchableOpacity>
