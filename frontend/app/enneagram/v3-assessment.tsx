@@ -506,7 +506,7 @@ export default function V3Assessment() {
                       isValidationOption && styles.validationOptionName,
                       selectedValue === option.value && styles.optionTextSelected
                     ]}>
-                      {option.name || option.text}
+                      {option.name || formatOptionText(option.text || '')}
                     </Text>
                     {option.description && (
                       <Text style={[
