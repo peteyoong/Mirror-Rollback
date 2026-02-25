@@ -774,6 +774,71 @@ PHASE2_FEAR_QUESTIONS = [
         ],
         "weight": 1.0,
     },
+    # NEW Type 7 questions for better accuracy (F7-5 to F7-8)
+    {
+        "id": "F7-5",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 7,
+        "type": "likert",
+        "question": "I naturally reframe setbacks as opportunities or learning experiences.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—every setback is a chance to grow"},
+            {"value": 4, "text": "Agree—I usually find the silver lining"},
+            {"value": 3, "text": "Neutral—sometimes I can, sometimes I dwell"},
+            {"value": 2, "text": "Disagree—setbacks are just setbacks"},
+            {"value": 1, "text": "Strongly disagree—I focus on what went wrong"},
+        ],
+        "weight": 1.2,  # Slightly higher weight for key differentiator
+    },
+    {
+        "id": "F7-6",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 7,
+        "type": "likert",
+        "question": "I keep my options open to avoid feeling trapped or bored.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—feeling trapped is unbearable"},
+            {"value": 4, "text": "Agree—I need freedom to feel alive"},
+            {"value": 3, "text": "Neutral—some structure is okay"},
+            {"value": 2, "text": "Disagree—I'm comfortable with commitment"},
+            {"value": 1, "text": "Strongly disagree—I prefer certainty over options"},
+        ],
+        "weight": 1.2,
+    },
+    {
+        "id": "F7-7",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 7,
+        "type": "likert",
+        "question": "I seek variety and novelty to maintain my enthusiasm for life.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—novelty is essential to my happiness"},
+            {"value": 4, "text": "Agree—new experiences energize me"},
+            {"value": 3, "text": "Neutral—I appreciate both new and familiar"},
+            {"value": 2, "text": "Disagree—I prefer depth over breadth"},
+            {"value": 1, "text": "Strongly disagree—routine suits me better"},
+        ],
+        "weight": 1.2,
+    },
+    {
+        "id": "F7-8",
+        "phase": 2,
+        "triad": "fear",
+        "target_type": 7,
+        "type": "likert",
+        "question": "My mind jumps between exciting possibilities when planning.",
+        "options": [
+            {"value": 5, "text": "Strongly agree—my mind races with ideas and plans"},
+            {"value": 4, "text": "Agree—I often brainstorm multiple paths"},
+            {"value": 3, "text": "Neutral—I can focus when needed"},
+            {"value": 2, "text": "Disagree—I prefer methodical planning"},
+            {"value": 1, "text": "Strongly disagree—I focus deeply on one thing"},
+        ],
+        "weight": 1.2,
+    },
     
     # Fear Triad Differentiation (FD-1 to FD-4)
     # These are special differential questions - selecting an option strongly
