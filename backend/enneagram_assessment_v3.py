@@ -1617,6 +1617,31 @@ PHASE3_WING_QUESTIONS = {
             ],
             "weight": 1.5,
         },
+        # NEW: Additional Type 7 wing differentiation questions
+        {
+            "id": "W7-3",
+            "phase": 3,
+            "core_type": 7,
+            "type": "wing_comparison",
+            "question": "I relate more to being:",
+            "options": [
+                {"value": 6, "wing": 6, "text": "The cautious optimist who considers what could go wrong"},
+                {"value": 8, "wing": 8, "text": "The bold realist who pushes forward despite obstacles"},
+            ],
+            "weight": 1.5,
+        },
+        {
+            "id": "W7-4",
+            "phase": 3,
+            "core_type": 7,
+            "type": "wing_comparison",
+            "question": "When I feel frustrated, my energy shows up as:",
+            "options": [
+                {"value": 6, "wing": 6, "text": "Anxious overthinking and seeking reassurance from others"},
+                {"value": 8, "wing": 8, "text": "Direct assertion and taking immediate action"},
+            ],
+            "weight": 1.5,
+        },
     ],
     # Type 8 Wings (7w8 or 8w9)
     8: [
