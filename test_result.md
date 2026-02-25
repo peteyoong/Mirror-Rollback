@@ -3060,3 +3060,40 @@ agent_communication:
           - Added F7-5, F7-6, F7-7, F7-8 questions to PHASE2_FEAR_QUESTIONS
           - Added W7-3, W7-4 questions to PHASE3_WING_QUESTIONS[7]
           - Updated handle_phase4_completion_async() with validation rejection logic
+
+  - task: "UI/UX Improvements for Assessment"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/enneagram/v3-assessment.tsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          UI/UX IMPROVEMENTS IMPLEMENTED ✅
+          
+          **Changes Made:**
+          
+          1. ✅ Progress indicator enhanced:
+             - Now shows "Question X of ~50" more prominently
+             - Added list icon and styled pill badge
+             - Better visibility with background color
+          
+          2. ✅ Answer option formatting:
+             - Added formatOptionText() helper function
+             - Replaces em-dash (—) with colon (:) for clarity
+             - Example: "Strongly agree: Security, health, comfort..."
+          
+          3. ✅ Continue button states:
+             - Inactive state: Gray/muted with outline (when no selection)
+             - Active state: Gold/accent background when option selected
+             - Clear visual feedback for user interaction
+          
+          **Files Changed:**
+          - /app/frontend/app/enneagram/v3-assessment.tsx
+            - Added formatOptionText() helper
+            - Updated progressCountContainer styles
+            - Updated continueButton/Active styles
+            - Updated button text color based on state
