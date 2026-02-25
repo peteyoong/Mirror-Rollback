@@ -1063,8 +1063,18 @@ const styles = StyleSheet.create({
     color: Colors.accent,
   },
   progressCount: {
-    fontSize: 13,
-    color: Colors.textTertiary,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  progressCountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.surfaceLight,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   confidenceHint: {
     flexDirection: 'row',
