@@ -61,6 +61,12 @@ interface StoredSession {
 // View states
 type ViewState = 'loading' | 'intro' | 'questions' | 'phase_complete' | 'computing' | 'done' | 'error';
 
+// Helper: Format option text (replace em-dash with colon for clarity)
+const formatOptionText = (text: string): string => {
+  // Replace em-dash (—) with colon for cleaner formatting
+  return text.replace(/—/g, ': ').replace(/\s+/g, ' ').trim();
+};
+
 export default function V3Assessment() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
