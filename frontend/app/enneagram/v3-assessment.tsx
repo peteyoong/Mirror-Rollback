@@ -1186,16 +1186,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: Colors.accent,
+    backgroundColor: Colors.surfaceLight,
     paddingVertical: 16,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  continueButtonActive: {
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
   },
   continueButtonDisabled: {
-    opacity: 0.4,
+    opacity: 0.5,
   },
   continueButtonText: {
     fontSize: 16,
     fontWeight: '600',
+    color: Colors.textTertiary,
+  },
+  continueButtonTextActive: {
     color: Colors.surface,
   },
   
