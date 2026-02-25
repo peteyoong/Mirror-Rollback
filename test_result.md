@@ -2998,3 +2998,65 @@ agent_communication:
           📊 TEST RESULTS: 5/5 TESTS PASSED (100% SUCCESS RATE)
           
           CONCLUSION: Birth Time handling feature is fully functional and meets all specified requirements. The backend correctly handles unknown birth times (null values), known birth times (24h format), validates time format, and includes the birth_time_known field in all user operations. All test scenarios from the review request completed successfully.
+
+  - task: "Enneagram V3 Assessment Accuracy Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/enneagram_assessment_v3.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          ENNEAGRAM V3 ACCURACY FIX COMPLETE ✅
+          
+          🎯 CRITICAL BUG FIXED: Assessment was mistyping Type 7 users as Type 5
+          
+          **FIXES IMPLEMENTED:**
+          
+          1. ✅ Added 4 NEW Type 7 Questions (Phase 2):
+             - F7-5: "I naturally reframe setbacks as opportunities or learning experiences"
+             - F7-6: "I keep my options open to avoid feeling trapped or bored"
+             - F7-7: "I seek variety and novelty to maintain my enthusiasm for life"
+             - F7-8: "My mind jumps between exciting possibilities when planning"
+             - Higher weight (1.2) for better differentiation
+          
+          2. ✅ Added 2 NEW Wing Questions for Type 7:
+             - W7-3: "I relate more to being: cautious optimist (7w6) vs bold realist (7w8)"
+             - W7-4: "When frustrated, my energy shows up as: anxious overthinking (7w6) vs direct assertion (7w8)"
+          
+          3. ✅ Fixed Validation Rejection Logic:
+             - When user selects "Mostly no" (score <= 2), assessment now returns validation_rejected status
+             - Shows top 3 type alternatives with descriptions
+             - Offers options: Retest, See Top 3 Types, Learn About Stress Patterns
+             - When user selects "Unsure" (score == 3), shows result with lower confidence and uncertainty flag
+          
+          **TEST RESULTS (3/3 PASSED):**
+          
+          1. ✅ Type 7w8 Simulation Test:
+             - Core Type: 7 (CORRECT - was previously mistyped as 5)
+             - Wing: 8 (CORRECT)
+             - Full Result: 7w8 sp/sx
+             - Confidence: 69.4%
+          
+          2. ✅ Stress Detection + Validation Flow:
+             - Stress warning shown when STRESS-1 score >= 4
+             - Validation phase triggered correctly
+             - VAL-1 and VAL-2 questions presented
+          
+          3. ✅ Validation Rejection Flow:
+             - When VAL-2 = 2 ("Mostly no"), returns validation_rejected status
+             - Shows: calculated_type, top_3_types with descriptions, options, suggestion
+             - Stress warning preserved in rejection response
+          
+          **BACKEND ENDPOINTS VERIFIED:**
+          - POST /api/enneagram/v3/start ✅
+          - POST /api/enneagram/v3/respond ✅
+          - Validation flow ✅
+          
+          **CODE CHANGES:**
+          - Added F7-5, F7-6, F7-7, F7-8 questions to PHASE2_FEAR_QUESTIONS
+          - Added W7-3, W7-4 questions to PHASE3_WING_QUESTIONS[7]
+          - Updated handle_phase4_completion_async() with validation rejection logic
