@@ -83,6 +83,14 @@ from enneagram_assessment_v3 import (
     Phase as V3Phase,
 )
 
+# V4 Assessment imports
+from enneagram_assessment_v4 import (
+    EnneagramAssessmentV4,
+    get_all_questions as get_v4_questions,
+    get_question_batch as get_v4_question_batch,
+    get_type_description as get_v4_type_description,
+)
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
