@@ -4,7 +4,7 @@ Enneagram Assessment V4 - Ground-up Rebuild
 108-question assessment (12 per type) with weighted scoring,
 consistency checks, and gaming detection.
 
-Version: 4.0.0
+Version: 4.1.0
 Author: Project Mirror Team
 """
 
@@ -16,6 +16,9 @@ from typing import Dict, List, Optional, Any, Tuple
 from enum import Enum
 from dataclasses import dataclass, asdict
 from motor.motor_asyncio import AsyncIOMotorDatabase
+
+# Import expanded question bank
+from enneagram_v4_questions import QUESTION_BANK
 
 logger = logging.getLogger(__name__)
 
