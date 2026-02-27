@@ -811,6 +811,7 @@ class EnneagramAssessmentV4:
                 for s in result.all_scores
             ],
             "confidence_level": result.confidence_level,
+            "confidence_score": result.confidence_score,
             "is_unclear": result.is_unclear,
             "flags": result.gaming_indicators.flags if result.gaming_indicators.is_suspicious else []
         }
