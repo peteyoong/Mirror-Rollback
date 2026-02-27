@@ -717,12 +717,38 @@ class EnneagramAssessmentV4:
         gaming_indicators = self.gaming_detector.analyze(responses)
         consistency_checks = self.gaming_detector.get_consistency_details(responses)
         
-        # Determine confidence
-        confidence = "high"
-        if is_unclear or gaming_indicators.is_suspicious:
-            confidence = "low"
-        elif gaming_indicators.consistency_failures > 0:
+        # Calculate confidence score (0-100)
+        confidence_score = 100
+        
+        # Reduce for unclear result (top 2 within 10%)
+        if is_unclear:
+            confidence_score -= 25
+        
+        # Reduce for gaming indicators
+        if gaming_indicators.is_suspicious:
+            confidence_score -= 30
+        if gaming_indicators.consistency_failures > 0:
+            confidence_score -= (gaming_indicators.consistency_failures * 5)
+        if gaming_indicators.fast_responses_count > len(responses) * 0.2:
+            confidence_score -= 10
+        if gaming_indicators.all_same_value:
+            confidence_score -= 40
+        
+        # Boost for good response patterns
+        avg_time = gaming_indicators.avg_response_time_ms
+        if 3000 < avg_time < 30000:  # 3-30 seconds is ideal
+            confidence_score += 5
+        
+        # Ensure score stays in range
+        confidence_score = max(0, min(100, confidence_score))
+        
+        # Determine confidence level
+        if confidence_score >= 75:
+            confidence = "high"
+        elif confidence_score >= 50:
             confidence = "medium"
+        else:
+            confidence = "low"
         
         # Build type scores list
         all_scores = [
@@ -744,6 +770,7 @@ class EnneagramAssessmentV4:
             suggested_wing=suggested_wing,
             all_scores=all_scores,
             confidence_level=confidence,
+            confidence_score=confidence_score,
             is_unclear=is_unclear,
             gaming_indicators=gaming_indicators,
             consistency_checks=consistency_checks
