@@ -23,10 +23,10 @@ logger = logging.getLogger(__name__)
 # CONSTANTS & CONFIGURATION
 # =============================================================================
 
-# Scoring weights
+# Scoring weights - REFINED based on testing
 SCORING_WEIGHTS = {
     "primary": 1.0,       # 100% for primary type match
-    "wing": 0.20,         # 20% for adjacent wing types
+    "wing": 0.25,         # 25% for adjacent wing types (bumped from 20%)
     "stress_growth": 0.10, # 10% for stress/growth lines
     "same_triad": 0.05,   # 5% for same triad types
 }
