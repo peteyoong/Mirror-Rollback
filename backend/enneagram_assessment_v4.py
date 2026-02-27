@@ -190,6 +190,7 @@ class AssessmentResult:
     suggested_wing: int
     all_scores: List[TypeScore]
     confidence_level: str  # "high", "medium", "low"
+    confidence_score: int  # 0-100 numeric confidence
     is_unclear: bool  # True if top 2 within 10%
     gaming_indicators: GamingIndicators
     consistency_checks: List[ConsistencyCheck]
