@@ -173,10 +173,12 @@ export default function V4Assessment() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [currentQuestions, setCurrentQuestions] = useState<V4Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [totalQuestions, setTotalQuestions] = useState(42);
+  const [totalQuestions, setTotalQuestions] = useState(132); // Updated for full assessment
   const [currentSection, setCurrentSection] = useState<'body' | 'heart' | 'head'>('body');
   const [selectedValue, setSelectedValue] = useState<number | null>(null);
   const [hasExistingSession, setHasExistingSession] = useState(false);
+  const [showSpeedWarning, setShowSpeedWarning] = useState(false);
+  const [answerHistory, setAnswerHistory] = useState<Map<string, number>>(new Map());
 
   // Result state
   const [result, setResult] = useState<V4Result | null>(null);
