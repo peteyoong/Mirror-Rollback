@@ -832,6 +832,66 @@ backend:
           🎉 CONCLUSION: Enneagram Deep Assessment completion flow is fully functional on STAGING. All review request requirements verified successfully. The system reliably completes assessments, returns proper JSON responses, and provides valid results structure. Ready for production use.
 
 frontend:
+  - task: "Enneagram V4 Assessment Testing"
+    implemented: true
+    working: false
+    file: "/app/frontend/app/enneagram/v4-assessment.tsx"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: |
+          ENNEAGRAM V4 ASSESSMENT TESTING - SERVICE UNAVAILABLE ❌
+          
+          🚫 CRITICAL ISSUE: Unable to complete testing due to service unavailability
+          
+          **Service Status:**
+          - Frontend URL: https://mirror-lens-fixes.preview.emergentagent.com
+          - Status: "Ready to start your preview" - Service is dormant and needs wake-up
+          - Wake-up attempts: Multiple attempts made but service remains inactive
+          - Shows "Wake up servers" button indicating service is sleeping
+          
+          **Test Scenarios Attempted:**
+          1. ❌ FRESH START FLOW: Could not access /enneagram/v4-assessment
+          2. ❌ QUESTION INTERACTION: Service not accessible
+          3. ❌ TYPE 3 SIMULATION: Service not accessible  
+          4. ❌ MOBILE RESPONSIVENESS: Service not accessible
+          
+          **Code Analysis Completed:**
+          ✅ Reviewed v4-assessment.tsx implementation (1,609 lines)
+          ✅ Confirmed comprehensive V4 assessment implementation:
+             - Welcome screen with "Discover Your Type" title ✅
+             - "Begin Assessment" button ✅
+             - Section intro screens (Body, Heart, Head centers) ✅
+             - 42-question assessment flow ✅
+             - 5-point Likert scale responses ✅
+             - Progress tracking and persistence ✅
+             - Results screen with primary/secondary types ✅
+             - Mobile-first responsive design ✅
+          
+          **Expected Behavior (Based on Code Review):**
+          1. ✅ Welcome screen shows "Discover Your Type" title
+          2. ✅ "Begin Assessment" button starts assessment
+          3. ✅ Section Intro appears (Body Center - "The Gut Triad")
+          4. ✅ Continue button leads to questions
+          5. ✅ Radio buttons for 5-point scale (Strongly Disagree to Strongly Agree)
+          6. ✅ Continue button activates when option selected (gold color)
+          7. ✅ Progress bar updates (X/42 format)
+          8. ✅ Results screen shows primary type with percentage match
+          
+          **Backend API Integration:**
+          ✅ V4 endpoints implemented in backend:
+             - POST /api/enneagram/v4/start
+             - POST /api/enneagram/v4/answer  
+             - POST /api/enneagram/v4/resume
+             - GET /api/enneagram/v4/results/{session_id}
+          
+          **CRITICAL BLOCKER:** 
+          Service must be woken up and made accessible before UI testing can proceed.
+          All code implementation appears correct and comprehensive based on static analysis.
+
   - task: "Enneagram Deep Dive Accordion Single-Expand Behavior"
     implemented: true
     working: "NA"
