@@ -10821,6 +10821,168 @@ async def validate_v3_result_endpoint(request: V3ValidateRequest):
 
 
 # =============================================================================
+# ENNEAGRAM V4 ASSESSMENT ENDPOINTS
+# =============================================================================
+
+# Initialize V4 Assessment instance (lazy)
+_v4_assessment = None
+
+def get_v4_assessment():
+    """Get or create V4 assessment instance."""
+    global _v4_assessment
+    if _v4_assessment is None:
+        _v4_assessment = EnneagramAssessmentV4(db)
+    return _v4_assessment
+
+
+class V4StartRequest(BaseModel):
+    user_id: str
+
+
+class V4AnswerRequest(BaseModel):
+    session_id: str
+    question_id: str
+    answer_value: int
+    response_time_ms: int
+
+
+class V4ResumeRequest(BaseModel):
+    user_id: str
+
+
+@api_router.get("/enneagram/v4/questions")
+async def get_v4_questions_endpoint(start_index: int = 0):
+    """
+    Get a batch of V4 assessment questions.
+    Returns 12 questions at a time starting from start_index.
+    """
+    try:
+        questions = get_v4_question_batch(start_index)
+        total = len(get_v4_questions())
+        
+        return {
+            "questions": questions,
+            "start_index": start_index,
+            "count": len(questions),
+            "total_questions": total,
+            "has_more": start_index + len(questions) < total
+        }
+    except Exception as e:
+        logger.error(f"[V4Assessment] Get questions error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/enneagram/v4/start")
+async def start_v4_assessment(request: V4StartRequest):
+    """
+    Start a new V4 assessment or resume existing one.
+    Returns session_id and first batch of questions.
+    """
+    try:
+        # Verify user exists
+        user = await db.users.find_one({"_id": ObjectId(request.user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        assessment = get_v4_assessment()
+        result = await assessment.start_assessment(request.user_id)
+        
+        logger.info(f"[V4Assessment] Started/resumed session for user {request.user_id}")
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[V4Assessment] Start error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/enneagram/v4/answer")
+async def submit_v4_answer(request: V4AnswerRequest):
+    """
+    Submit an answer for V4 assessment.
+    Returns progress and next batch if needed.
+    """
+    try:
+        assessment = get_v4_assessment()
+        result = await assessment.submit_answer(
+            session_id=request.session_id,
+            question_id=request.question_id,
+            answer_value=request.answer_value,
+            response_time_ms=request.response_time_ms
+        )
+        
+        return result
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"[V4Assessment] Answer error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/enneagram/v4/results/{session_id}")
+async def get_v4_results(session_id: str):
+    """
+    Get results for a completed V4 assessment.
+    """
+    try:
+        assessment = get_v4_assessment()
+        result = await assessment.get_results(session_id)
+        
+        if not result:
+            raise HTTPException(status_code=404, detail="Results not found or session not completed")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[V4Assessment] Get results error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/enneagram/v4/resume")
+async def resume_v4_assessment(request: V4ResumeRequest):
+    """
+    Resume an existing V4 assessment session.
+    """
+    try:
+        assessment = get_v4_assessment()
+        result = await assessment.resume_session(request.user_id)
+        
+        if not result:
+            raise HTTPException(status_code=404, detail="No active session found for user")
+        
+        logger.info(f"[V4Assessment] Resumed session for user {request.user_id}")
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[V4Assessment] Resume error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/enneagram/v4/type/{type_number}")
+async def get_v4_type_info(type_number: int):
+    """
+    Get description for a specific Enneagram type.
+    """
+    if not 1 <= type_number <= 9:
+        raise HTTPException(status_code=400, detail="Type number must be between 1 and 9")
+    
+    description = get_v4_type_description(type_number)
+    if not description:
+        raise HTTPException(status_code=404, detail="Type description not found")
+    
+    return {
+        "type_number": type_number,
+        **description
+    }
+
+
+# =============================================================================
 # ENNEAGRAM Q&A ENDPOINT (Knowledge Base)
 # =============================================================================
 
