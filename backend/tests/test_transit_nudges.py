@@ -224,7 +224,7 @@ def test_notification_data_structure():
     """Test that notification has correct data structure"""
     print()
     print("=" * 70)
-    print("TEST 5: Notification data structure"
+    print("TEST 5: Notification data structure")
     print("=" * 70)
     
     user_id = "6971c81f2b40fd5ef501d375"  # Pete
