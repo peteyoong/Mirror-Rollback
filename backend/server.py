@@ -503,12 +503,33 @@ async def debug_backfill_houses(user_id: str):
     
     # Resolve birth datetime to UTC
     try:
-        birth_utc = resolve_birth_utc(
-            birth_date=birth_date,
-            birth_time=birth_time,
-            tz_str=timezone_str,
-            lat=birth_location.get("latitude"),
-            lon=birth_location.get("longitude")
+        # Format birth_date as string YYYY-MM-DD
+        if isinstance(birth_date, datetime):
+            birth_date_str = birth_date.strftime("%Y-%m-%d")
+        else:
+            birth_date_str = str(birth_date).split()[0]  # Take just the date part
+        
+        # Determine timezone - use stored or infer from location
+        tz_str = timezone_str
+        if not tz_str:
+            # Try to infer timezone from location (simplified)
+            # For Tokyo, Japan -> Asia/Tokyo
+            city = birth_location.get("city", "").lower()
+            if "tokyo" in city:
+                tz_str = "Asia/Tokyo"
+            else:
+                # Default to UTC+9 for Japan-ish location
+                lat = birth_location.get("latitude", 0)
+                lon = birth_location.get("longitude", 0)
+                if 130 < lon < 145 and 30 < lat < 45:  # Japan region
+                    tz_str = "Asia/Tokyo"
+                else:
+                    raise ValueError(f"Cannot determine timezone for location: {birth_location}")
+        
+        birth_utc, _, _, _ = resolve_birth_utc(
+            birth_date_str=birth_date_str,
+            birth_time_str=birth_time,
+            timezone_str=tz_str
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Cannot resolve birth UTC: {str(e)}")
