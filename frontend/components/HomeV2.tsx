@@ -984,6 +984,24 @@ export default function HomeV2({
     fetchTransit();
   }, [userId]);
   
+  // Phase 10: Fetch raw transit aspects for Resonance Engine
+  useEffect(() => {
+    const fetchRawAspects = async () => {
+      if (!userId) return;
+      
+      try {
+        const compute = await getTransitCompute(userId);
+        if (compute?.aspects_to_natal_now) {
+          setRawTransitAspects(compute.aspects_to_natal_now);
+        }
+      } catch (err) {
+        console.debug('[HomeV2] Raw aspects fetch skipped:', err);
+      }
+    };
+    
+    fetchRawAspects();
+  }, [userId]);
+  
   // Fetch daily focus for context
   useEffect(() => {
     const fetchFocus = async () => {
