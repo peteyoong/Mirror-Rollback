@@ -620,7 +620,7 @@ export default function MirrorScreen() {
             )}
 
             {/* G. Today's Transits Card */}
-            <TodaysTransitsCard userId={user.id} />
+            <TodaysTransitsCard />
 
             {/* Continue with Mirror button */}
             <TouchableOpacity
