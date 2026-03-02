@@ -4288,6 +4288,94 @@ async def compute_transits_window_endpoint(request: TransitWindowRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =============================================================================
+# TRANSIT INTERPRETATION LAYER - Phase 3
+# =============================================================================
+
+class TransitInterpretRequest(BaseModel):
+    """Request body for transit interpretation endpoint"""
+    user_id: str
+    mode: str  # 'now' or 'window'
+    transit_payload: Dict[str, Any]  # Exact JSON from compute endpoint
+    consciousness_level: Optional[int] = None  # Optional calibration
+    style: str = 'grounded'  # Interpretation style
+
+
+@api_router.post("/interpret/transits")
+async def interpret_transits_endpoint(request: TransitInterpretRequest):
+    """
+    POST /api/interpret/transits
+    
+    Transit Interpretation Layer - Phase 3
+    
+    Converts deterministic transit JSON from /api/compute/transits/now or /window
+    into grounded, non-fatalistic reflective language for Mirror.
+    
+    GUARDRAILS:
+    - NO fatalistic language ("will happen", "destined", "guaranteed")
+    - Uses softer language ("you may notice", "there's a pull toward")
+    - ALL content derived from transit_payload (no extra computation)
+    - Respects user sovereignty
+    
+    Request Body:
+    {
+        "user_id": "uuid",
+        "mode": "now" | "window",
+        "transit_payload": { ... },  // exact JSON from compute endpoint
+        "consciousness_level": 350,  // optional
+        "style": "grounded"          // optional
+    }
+    
+    Response:
+    {
+        "meta": { "mode": "now|window", "timestamp_utc": "...", "tone_profile": "grounded" },
+        "headline": "1 sentence max, grounded and non-fatalistic",
+        "key_points": ["3-6 bullets max"],
+        "reflect": ["2-4 reflection questions"],
+        "two_minute_practice": { "title": "...", "steps": ["..."] },
+        "attention_windows": [{ "from_utc": "...", "to_utc": "...", "label": "...", "based_on": [...] }],
+        "guardrails": { "no_fatalism": true, "no_predictions": true, "user_sovereignty": true }
+    }
+    """
+    try:
+        # Validate mode
+        if request.mode not in ['now', 'window']:
+            raise HTTPException(
+                status_code=400,
+                detail="mode must be 'now' or 'window'"
+            )
+        
+        # Validate transit_payload has required structure
+        if not request.transit_payload:
+            raise HTTPException(
+                status_code=400,
+                detail="transit_payload is required"
+            )
+        
+        # Generate interpretation
+        result = interpret_transits(
+            transit_payload=request.transit_payload,
+            mode=request.mode,
+            consciousness_level=request.consciousness_level,
+            style=request.style
+        )
+        
+        logger.info(f"[TransitInterpret] Generated interpretation for user={request.user_id}, "
+                   f"mode={request.mode}, key_points={len(result['key_points'])}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except ValueError as e:
+        # Catch fatalism validation errors
+        logger.error(f"[TransitInterpret] Validation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.error(f"[TransitInterpret] Error generating interpretation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/journal", response_model=JournalEntryResponse)
 async def create_journal_entry(entry: JournalEntryCreate):
     """Create journal entry with optional source annotation"""
