@@ -6388,6 +6388,22 @@ The user's birth data and chart have ALREADY been computed. You have their astro
         # Add context
         system_prompt += "\n\n--- USER CONTEXT ---\n" + "\n".join(context_parts)
         
+        # ===== PHASE 8: INJECT TIMELINE CONTEXT =====
+        # Add transit-aware sky weather context (fails gracefully)
+        timeline_context = None
+        if ENABLE_TIMELINE_CONTEXT:
+            try:
+                timeline_context = await get_timeline_context(
+                    user_id=request.user_id,
+                    now_utc=datetime.now(timezone.utc)
+                )
+                timeline_prompt = format_timeline_context_for_prompt(timeline_context)
+                if timeline_prompt:
+                    system_prompt += timeline_prompt
+                    logger.info(f"[MIRROR_CHAT] Injected timeline context for user {request.user_id}")
+            except Exception as tc_err:
+                logger.warning(f"[MIRROR_CHAT] Timeline context failed (non-blocking): {tc_err}")
+        
         # Get or create chat history for session
         if session_id not in chat_sessions:
             chat_sessions[session_id] = []
