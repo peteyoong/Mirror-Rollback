@@ -26,11 +26,8 @@ import swisseph as swe
 
 load_dotenv()
 
-# Import from existing astrology module
-from calculations.astrology import (
-    tropical_to_sidereal,
-    DEFAULT_SVP_DEGREES,
-)
+# Import from existing astrology module - use transits module for constants
+from calculations.transits import DEFAULT_SVP_DEGREES
 
 # Set ephemeris path
 swe.set_ephe_path(None)
