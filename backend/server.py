@@ -832,6 +832,59 @@ class JournalEntryResponse(BaseModel):
     transit_signature: Optional[JournalTransitSignature] = None
 
 
+# =============================================================================
+# PHASE 9: NOTIFICATION MODELS
+# =============================================================================
+class QuietHours(BaseModel):
+    """Quiet hours for notification delivery"""
+    start: str = "22:00"  # HH:MM format
+    end: str = "07:00"
+
+
+class NotificationPrefs(BaseModel):
+    """User notification preferences - must be opt-in"""
+    enabled: bool = False  # Default: must opt-in
+    timezone: Optional[str] = None  # IANA timezone for delivery scheduling
+    quiet_hours: QuietHours = Field(default_factory=QuietHours)
+    max_per_week: int = 3
+
+
+class NotificationPrefsUpdate(BaseModel):
+    """Request to update notification preferences"""
+    enabled: Optional[bool] = None
+    timezone: Optional[str] = None
+    quiet_hours: Optional[QuietHours] = None
+    max_per_week: Optional[int] = None
+
+
+class NotificationData(BaseModel):
+    """Data payload for transit nudge notifications"""
+    from_utc: str
+    to_utc: str
+    based_on: List[str]  # Canonical event strings
+    top_houses: Optional[List[int]] = None
+
+
+class NotificationResponse(BaseModel):
+    """Response model for notifications"""
+    id: str
+    user_id: str
+    created_at: str
+    type: str
+    title: str
+    body: str
+    data: Optional[NotificationData] = None
+    read_at: Optional[str] = None
+    deliver_after_local: Optional[str] = None
+
+
+class NotificationListResponse(BaseModel):
+    """Response for notification list"""
+    notifications: List[NotificationResponse]
+    total: int
+    unread_count: int
+
+
 class DailyReflection(BaseModel):
     user_id: str
     date: str
