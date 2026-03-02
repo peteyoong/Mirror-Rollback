@@ -1450,6 +1450,15 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
     lineHeight: 20,
   },
+  // Phase 10: Micro validation line
+  microValidation: {
+    fontSize: 12,
+    fontWeight: '400',
+    fontStyle: 'italic',
+    color: Colors.textTertiary,
+    opacity: 0.5,
+    marginBottom: Spacing.sm,
+  },
   microAnchor: {
     marginBottom: Spacing.xl,
     gap: 6,
