@@ -1704,6 +1704,53 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   
+  // Phase 11: Lens Discovery Row
+  lensDiscoveryContainer: {
+    marginTop: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.04)',
+  },
+  lensDiscoveryLabel: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    opacity: 0.5,
+    letterSpacing: 0.3,
+    marginBottom: Spacing.sm,
+  },
+  lensLinksRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  lensLinkTouch: {
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+  },
+  lensLinkText: {
+    fontSize: 13,
+    color: Colors.accent,
+    fontWeight: '400',
+    opacity: 0.85,
+  },
+  lensLinkSeparator: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    opacity: 0.3,
+    marginHorizontal: 6,
+  },
+  exploreLensesLink: {
+    paddingVertical: 4,
+    marginTop: Spacing.xs,
+  },
+  exploreLensesText: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    opacity: 0.5,
+    fontWeight: '400',
+  },
+  
   // ============================================
   // YOUR CURRENT CHAPTER - Secondary, calmer, dimmer
   // ============================================
