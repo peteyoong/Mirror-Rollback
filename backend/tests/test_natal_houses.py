@@ -236,6 +236,62 @@ def test_fixture_chart_without_houses():
     return True
 
 
+def test_backfilled_user_jane():
+    """Test that Jane (backfilled user) now has houses enabled"""
+    print()
+    print("=" * 60)
+    print("TEST: Backfilled user (Jane) has houses enabled")
+    print("=" * 60)
+    
+    # Jane's user_id - was backfilled with house data
+    chart = asyncio.run(get_chart('6971c8f681beab3a8955b255'))
+    
+    if chart is None:
+        print("  Jane's chart not found - SKIPPING (user may not exist)")
+        print()
+        print("⚠️ TEST SKIPPED")
+        return True
+    
+    # Check natal data
+    natal_planets = extract_natal_planets(chart)
+    natal_asc = extract_natal_ascendant(chart)
+    
+    # Verify planets have houses
+    planets_with_houses = 0
+    for name, data in natal_planets.items():
+        if data.get('house') is not None:
+            planets_with_houses += 1
+    
+    print(f"  Planets with house data: {planets_with_houses}")
+    print(f"  Ascendant longitude: {natal_asc}")
+    
+    # After backfill, Jane should have houses
+    assert planets_with_houses > 0, "Expected Jane to have planets with house data after backfill"
+    
+    # Compute transits
+    test_from = datetime(2026, 3, 2, 0, 0, 0, tzinfo=timezone.utc)
+    result = compute_transits_window(
+        chart_data=chart,
+        from_utc=test_from,
+        window_days=30,
+        orb_deg=2.0,
+        include_houses=True
+    )
+    
+    ha = result['house_activation']
+    
+    assert ha['enabled'] == True, f"Expected enabled=True after backfill, got {ha['enabled']}"
+    assert 'reason' not in ha, "Should not have 'reason' when enabled"
+    assert len(ha['top_houses']) > 0, "Expected top_houses to be populated"
+    
+    print(f"  house_activation.enabled: {ha['enabled']} ✓")
+    print(f"  top_houses: {ha['top_houses']}")
+    
+    print()
+    print("✅ TEST PASSED")
+    return True
+
+
 if __name__ == '__main__':
     all_passed = True
     
