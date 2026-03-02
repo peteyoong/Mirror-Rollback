@@ -684,6 +684,23 @@ export default function HomeV2({
     fetchEnneagram();
   }, [userId]);
   
+  // Fetch journal entries for memory anchor
+  useEffect(() => {
+    const fetchJournal = async () => {
+      if (!userId) return;
+      
+      try {
+        const entries = await getJournalEntries(userId);
+        setLocalJournalEntries(entries || []);
+      } catch (err) {
+        console.debug('[HomeV2] Journal fetch skipped:', err);
+        setLocalJournalEntries([]);
+      }
+    };
+    
+    fetchJournal();
+  }, [userId]);
+  
   // Handle Reflect Now button
   const handleReflectNow = useCallback(() => {
     const navParams = new URLSearchParams();
