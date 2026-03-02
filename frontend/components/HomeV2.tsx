@@ -649,11 +649,13 @@ export default function HomeV2({
       if (!userId) return;
       
       try {
-        const result = await getEnneagramResult(userId);
-        if (result) {
+        const data = await getEnneagramResult(userId);
+        // API returns { has_result, result: { inferred_core, inferred_wing, confidence, ... } }
+        if (data?.has_result && data?.result) {
+          const result = data.result;
           setEnneagramResult({
-            core_type: result.core_type,
-            wing: result.wing,
+            core_type: result.inferred_core,
+            wing: result.inferred_wing,
             confidence: result.confidence,
           });
         }
