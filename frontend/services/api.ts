@@ -895,3 +895,30 @@ export const updateNotificationPrefs = async (
 // Export both the raw api instance and the retry-wrapped version
 export { apiWithRetry };
 export default api;
+
+// ============================================
+// PHASE 13: Chapter API
+// ============================================
+
+export interface ChapterResponse {
+  headline: string;
+  body: string[];
+  focus_domains?: string[] | null;
+  timeframe_hint: string;
+  based_on: string[];
+  cached_until?: string | null;
+}
+
+/**
+ * Get current chapter interpretation (slow-moving transits)
+ */
+export const getChapter = async (userId: string, windowDays: number = 180): Promise<ChapterResponse> => {
+  const response = await apiWithRetry.post('/interpret/chapter', {
+    user_id: userId,
+    from_utc: 'now',
+    window_days: windowDays,
+    orb_deg: 2,
+    include_houses: true,
+  });
+  return response.data;
+};
