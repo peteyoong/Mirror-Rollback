@@ -687,6 +687,15 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     letterSpacing: 0.2,
   },
+  personalResonance: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: Colors.textSecondary,
+    opacity: 0.75,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.md,
+    lineHeight: 20,
+  },
   microAnchor: {
     marginBottom: Spacing.xl,
     gap: 6,
