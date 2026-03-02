@@ -165,6 +165,81 @@ export default function TodaysTransitsCard({}: TodaysTransitsCardProps) {
     fetchInsight();
   }, [fetchInsight]);
 
+  // Build journal content from transit insight
+  const buildJournalContent = useCallback((): string => {
+    if (!insight) return '';
+    
+    const lines: string[] = [];
+    
+    // Title
+    lines.push("📍 Today's Transits");
+    lines.push(`As of: ${formatTimestamp(insight.meta.timestamp_utc)}`);
+    lines.push('');
+    
+    // Headline
+    lines.push(insight.headline);
+    lines.push('');
+    
+    // Key Points
+    lines.push("What's Active:");
+    insight.key_points.forEach(point => {
+      lines.push(`• ${point}`);
+    });
+    lines.push('');
+    
+    // Reflect questions
+    lines.push('Reflect:');
+    insight.reflect.forEach(question => {
+      lines.push(`• ${question}`);
+    });
+    lines.push('');
+    
+    // Two-minute practice
+    lines.push(`⏱ ${insight.two_minute_practice.title}`);
+    insight.two_minute_practice.steps.forEach((step, index) => {
+      lines.push(`${index + 1}. ${step}`);
+    });
+    
+    return lines.join('\n');
+  }, [insight]);
+
+  // Save transit insight to journal
+  const handleSaveToJournal = useCallback(async () => {
+    if (!canonicalUserId || !insight) return;
+    
+    setSavingToJournal(true);
+    setJournalSaveError(null);
+    setJournalSaveSuccess(false);
+    
+    try {
+      const content = buildJournalContent();
+      
+      const response = await createJournalEntry({
+        user_id: canonicalUserId,
+        content,
+        source: 'transits_card',
+        source_label: "Today's Transits",
+      });
+      
+      console.log('[TodaysTransitsCard] Journal entry saved:', response.id);
+      console.log('[TodaysTransitsCard] Transit signature:', response.transit_signature);
+      
+      setSavedEntryId(response.id);
+      setJournalSaveSuccess(true);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setJournalSaveSuccess(false);
+      }, 3000);
+      
+    } catch (err: any) {
+      console.error('[TodaysTransitsCard] Failed to save to journal:', err);
+      setJournalSaveError('Failed to save. Tap to retry.');
+    } finally {
+      setSavingToJournal(false);
+    }
+  }, [canonicalUserId, insight, buildJournalContent]);
+
   // Don't render if no user logged in
   if (!canonicalUserId) {
     return null;
