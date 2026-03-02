@@ -887,8 +887,10 @@ export default function HomeV2({
       : ['presence'];
   
   // Reflection question: cleaned, no preface
+  // Phase 6: Use guided arc question for first 7 days
   const rawQuestion = transitInsight?.reflect?.[0] || keystone?.reflect_question || '';
-  const reflectionQuestion = cleanReflectionQuestion(rawQuestion);
+  const baseReflectionQuestion = cleanReflectionQuestion(rawQuestion);
+  const reflectionQuestion = guidedQuestion || baseReflectionQuestion;
   
   // Chapter headline: max 110 chars, one sentence
   const rawChapterHeadline = transitInsight?.key_points?.[0] || '';
