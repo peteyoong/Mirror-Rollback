@@ -1511,6 +1511,34 @@ export default function HomeV2({
         >
           <Text style={styles.reflectButtonText}>Reflect Now</Text>
         </TouchableOpacity>
+        
+        {/* Phase 11: Lens Discovery Row */}
+        <View style={styles.lensDiscoveryContainer}>
+          <Text style={styles.lensDiscoveryLabel}>See this through:</Text>
+          <View style={styles.lensLinksRow}>
+            {LENS_ITEMS.map((lens, index) => (
+              <React.Fragment key={lens.key}>
+                <TouchableOpacity
+                  onPress={() => handleLensTap(lens.route)}
+                  activeOpacity={0.6}
+                  style={styles.lensLinkTouch}
+                >
+                  <Text style={styles.lensLinkText}>{lens.label}</Text>
+                </TouchableOpacity>
+                {index < LENS_ITEMS.length - 1 && (
+                  <Text style={styles.lensLinkSeparator}>·</Text>
+                )}
+              </React.Fragment>
+            ))}
+          </View>
+          <TouchableOpacity
+            onPress={handleExploreLenses}
+            activeOpacity={0.6}
+            style={styles.exploreLensesLink}
+          >
+            <Text style={styles.exploreLensesText}>Explore all lenses →</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       
       {/* ============================================ */}
