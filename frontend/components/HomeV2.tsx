@@ -1195,6 +1195,24 @@ export default function HomeV2({
     router.push('/(tabs)/lenses?tab=astrology');
   }, [router]);
   
+  // Phase 11: Lens discovery configuration
+  const LENS_ITEMS = [
+    { key: 'astrology', label: 'Astrology', route: '/(tabs)/lenses?tab=astrology&mode=today' },
+    { key: 'human_design', label: 'Human Design', route: '/(tabs)/lenses?tab=human_design&mode=today' },
+    { key: 'numerology', label: 'Numerology', route: '/(tabs)/lenses?tab=numerology&mode=today' },
+    { key: 'enneagram', label: 'Enneagram', route: '/(tabs)/lenses?tab=enneagram&mode=today' },
+  ];
+  
+  // Phase 11: Handle lens tap - navigate to lens with "today" context
+  const handleLensTap = useCallback((route: string) => {
+    router.push(route as any);
+  }, [router]);
+  
+  // Phase 11: Handle "Explore all lenses" tap
+  const handleExploreLenses = useCallback(() => {
+    router.push('/(tabs)/lenses');
+  }, [router]);
+  
   // Phase 5: Handle "Continue reading" tap
   const handleContinueReading = useCallback(() => {
     setShowMoreContent(true);
