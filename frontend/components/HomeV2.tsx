@@ -902,7 +902,7 @@ export default function HomeV2({
   // Phase 6: Calculate days since signup
   // DEBUG_DAY_OVERRIDE: Set to a number (0-7) to test different days of the arc
   // Set to null for production behavior
-  const DEBUG_DAY_OVERRIDE: number | null = 3;  // Testing Day 3 (Pattern Day)
+  const DEBUG_DAY_OVERRIDE: number | null = null;  // Production mode
   
   const daysSinceSignup = React.useMemo(() => {
     // In staging/debug mode with override set, use the override value
