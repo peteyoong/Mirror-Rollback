@@ -64,6 +64,42 @@ def test_schema_keys_present():
     return True
 
 
+def test_timestamp_consistency():
+    """Test that meta.timestamp_utc matches transit_payload.timestamp_utc for mode=now"""
+    print()
+    print("=" * 70)
+    print("TEST: Timestamp Consistency")
+    print("=" * 70)
+    
+    # Test mode=now with timestamp_utc in payload
+    payload_now = get_test_transit_payload_now()
+    payload_timestamp = payload_now.get('timestamp_utc')
+    assert payload_timestamp is not None, "Test payload should have timestamp_utc"
+    
+    result_now = interpret_transits(payload_now, mode='now')
+    
+    assert result_now['meta']['timestamp_utc'] == payload_timestamp, \
+        f"meta.timestamp_utc should match transit_payload.timestamp_utc. " \
+        f"Got {result_now['meta']['timestamp_utc']}, expected {payload_timestamp}"
+    
+    print(f"✅ Mode 'now': meta.timestamp_utc = {result_now['meta']['timestamp_utc']} (matches payload)")
+    
+    # Test mode=window with window.from_utc in payload
+    payload_window = get_test_transit_payload_window()
+    window_from = payload_window.get('window', {}).get('from_utc')
+    assert window_from is not None, "Test payload should have window.from_utc"
+    
+    result_window = interpret_transits(payload_window, mode='window')
+    
+    assert result_window['meta']['timestamp_utc'] == window_from, \
+        f"meta.timestamp_utc should match transit_payload.window.from_utc. " \
+        f"Got {result_window['meta']['timestamp_utc']}, expected {window_from}"
+    
+    print(f"✅ Mode 'window': meta.timestamp_utc = {result_window['meta']['timestamp_utc']} (matches window.from_utc)")
+    
+    return True
+
+
 def test_no_fatalistic_language():
     """Test that NO disallowed fatalistic words are present"""
     print()
