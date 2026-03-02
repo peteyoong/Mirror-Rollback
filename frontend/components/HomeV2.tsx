@@ -1452,13 +1452,28 @@ export default function HomeV2({
   
   const reflectionQuestion = contextAwareQuestion || guidedQuestion || baseReflectionQuestion;
   
-  // Chapter headline: max 110 chars, one sentence
-  const rawChapterHeadline = transitInsight?.key_points?.[0] || '';
-  const chapterHeadline = cleanChapterHeadline(rawChapterHeadline);
+  // Chapter headline: Use fetched chapter data or fallback to transit
+  // Phase 13: Use real chapter data when available
+  const chapterHeadline = React.useMemo(() => {
+    if (chapterData?.headline) {
+      return cleanChapterHeadline(chapterData.headline);
+    }
+    // Fallback to transit key points if no chapter data
+    const rawChapterHeadline = transitInsight?.key_points?.[0] || '';
+    return cleanChapterHeadline(rawChapterHeadline);
+  }, [chapterData, transitInsight]);
   
-  // Chapter body: max 3 lines, grounded
-  const rawChapterBody = transitInsight?.key_points?.[1] || '';
-  const chapterBody = cleanChapterBody(rawChapterBody);
+  // Chapter body: Use fetched chapter data or fallback
+  const chapterBody = React.useMemo(() => {
+    if (chapterData?.body && chapterData.body.length > 0) {
+      // Join body array into a readable string, max 180 chars
+      const joinedBody = chapterData.body.join(' ');
+      return cleanChapterBody(joinedBody);
+    }
+    // Fallback to transit key points if no chapter data
+    const rawChapterBody = transitInsight?.key_points?.[1] || '';
+    return cleanChapterBody(rawChapterBody);
+  }, [chapterData, transitInsight]);
   
   // Personal resonance: derived from enneagram or human design
   // Phase 4: Uses userId and themes for deterministic variant selection + domain hints
