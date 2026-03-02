@@ -808,6 +808,12 @@ export default function HomeV2({
   };
   const personalResonance = generatePersonalResonance(userProfile, userId, themes);
   
+  // Phase 5: Additional content for progressive disclosure
+  // Uses the third key point or micro_affirmation as extra interpretive nuance
+  const additionalContent = transitInsight?.key_points?.[2] 
+    || keystone?.micro_affirmation 
+    || 'Sometimes the quietest moments carry the most meaning.';
+  
   // Combined loading state
   const showLoading = isLoading || transitLoading;
   
