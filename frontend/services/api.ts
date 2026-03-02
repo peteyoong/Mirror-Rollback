@@ -861,7 +861,8 @@ export interface NotificationPrefs {
  */
 export const getNotifications = async (userId: string): Promise<Notification[]> => {
   const response = await apiWithRetry.get(`/notifications?user_id=${userId}`);
-  return response.data;
+  // API returns { notifications: [...], total, unread_count }
+  return response.data.notifications || [];
 };
 
 /**
