@@ -738,7 +738,7 @@ def compute_transits_window(
 ) -> Dict[str, Any]:
     """Compute transit window with exact hits, ingresses, stations, and house activation
     
-    Phase 2 Transit Engine - Deterministic Window Scanner
+    Phase 2 Transit Engine - Deterministic Window Scanner (Hardened)
     
     Args:
         chart_data: Full chart document from database
@@ -762,10 +762,12 @@ def compute_transits_window(
     # Extract natal data
     natal_planets = extract_natal_planets(chart_data)
     
-    # Build natal body -> house mapping
+    # Check if natal houses are available
+    natal_houses_available = False
     natal_body_houses = {}
     for name, data in natal_planets.items():
-        if data.get('house'):
+        if data.get('house') is not None:
+            natal_houses_available = True
             natal_body_houses[name.lower()] = data['house']
     
     # Get house cusps
@@ -778,7 +780,7 @@ def compute_transits_window(
     exact_hits = []
     ingresses = []
     stations = []
-    daily_summaries = []
+    daily_events_map = {}  # date -> list of canonical event strings
     house_scores_total = defaultdict(float)
     house_scores_daily = []
     
@@ -797,7 +799,7 @@ def compute_transits_window(
         next_day_jd = day_jd + 1.0
         
         day_str = current_date.strftime('%Y-%m-%d')
-        day_events = []
+        daily_events_map[day_str] = []
         day_house_scores = defaultdict(float)
         
         # Compute all planet positions for this day
@@ -815,9 +817,10 @@ def compute_transits_window(
             if house_cusps:
                 transit_house = get_house_for_longitude(transit_long, house_cusps)
                 
-                # Add planet-in-house presence to house score
-                planet_weight = PLANET_WEIGHTS.get(planet_name, 1.0)
-                day_house_scores[transit_house] += planet_weight * 0.5  # Presence weight
+                # Add planet-in-house presence to house score (only if natal houses available)
+                if natal_houses_available:
+                    planet_weight = PLANET_WEIGHTS.get(planet_name, 1.0)
+                    day_house_scores[transit_house] += planet_weight * 0.5  # Presence weight
             
             # Check aspects to natal bodies
             for natal_name, natal_data in natal_planets.items():
@@ -848,19 +851,27 @@ def compute_transits_window(
                         
                         if refined and refined['orb'] <= orb_deg:
                             hit_dt = jd_to_datetime(refined['jd'])
+                            hit_timestamp = hit_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+                            hit_date = hit_dt.strftime('%Y-%m-%d')
+                            
                             exact_hits.append({
-                                'timestamp_utc': hit_dt.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                                'timestamp_utc': hit_timestamp,
                                 'transit_planet': planet_name,
                                 'aspect': aspect_name,
                                 'natal_body': natal_name.lower(),
                                 'orb': refined['orb'],
-                                'exact_angle_delta': refined['orb']
+                                'orb_raw': refined['orb_raw'],
+                                'exact_angle_delta': refined['orb_raw']
                             })
                             
-                            day_events.append(f"{planet_name}_{aspect_name[:4]}_{natal_name.lower()}")
+                            # Canonical event string: {transit_planet}_{aspect}_{natal_body}
+                            event_str = f"{planet_name}_{aspect_name}_{natal_name.lower()}"
+                            if hit_date not in daily_events_map:
+                                daily_events_map[hit_date] = []
+                            daily_events_map[hit_date].append(event_str)
                             
-                            # House activation scoring
-                            if natal_house:
+                            # House activation scoring (only if natal houses available)
+                            if natal_houses_available and natal_house:
                                 planet_weight = PLANET_WEIGHTS.get(planet_name, 1.0)
                                 aspect_weight = ASPECT_WEIGHTS.get(aspect_name, 1.0)
                                 orb_weight = max(0, 1 - (refined['orb'] / orb_deg))
@@ -880,12 +891,14 @@ def compute_transits_window(
                     )
                     if ingress_data:
                         ingress_dt = jd_to_datetime(ingress_data['jd'])
+                        ingress_timestamp = ingress_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+                        ingress_date = ingress_dt.strftime('%Y-%m-%d')
                         ingress_house = None
                         if house_cusps:
                             ingress_house = get_house_for_longitude(ingress_data['longitude'], house_cusps)
                         
                         ingresses.append({
-                            'timestamp_utc': ingress_dt.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                            'timestamp_utc': ingress_timestamp,
                             'planet': planet_name,
                             'from_sign': ingress_data['from_sign'],
                             'to_sign': ingress_data['to_sign'],
@@ -893,7 +906,11 @@ def compute_transits_window(
                             'house': ingress_house
                         })
                         
-                        day_events.append(f"{planet_name}_ingress_{ingress_data['to_sign'][:3].lower()}")
+                        # Canonical event string: {planet}_ingress_{to_sign}
+                        event_str = f"{planet_name}_ingress_{ingress_data['to_sign']}"
+                        if ingress_date not in daily_events_map:
+                            daily_events_map[ingress_date] = []
+                        daily_events_map[ingress_date].append(event_str)
             
             # Check for station (speed sign change from previous day)
             if prev_day_planets.get(planet_name):
@@ -906,12 +923,14 @@ def compute_transits_window(
                     )
                     if station_data:
                         station_dt = jd_to_datetime(station_data['jd'])
+                        station_timestamp = station_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+                        station_date = station_dt.strftime('%Y-%m-%d')
                         station_house = None
                         if house_cusps:
                             station_house = get_house_for_longitude(station_data['longitude'], house_cusps)
                         
                         stations.append({
-                            'timestamp_utc': station_dt.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                            'timestamp_utc': station_timestamp,
                             'planet': planet_name,
                             'type': station_data['type'],
                             'longitude': station_data['longitude'],
@@ -919,13 +938,17 @@ def compute_transits_window(
                             'house': station_house
                         })
                         
-                        day_events.append(f"{planet_name}_{station_data['type']}")
+                        # Canonical event string: {planet}_{station_type}
+                        event_str = f"{planet_name}_{station_data['type']}"
+                        if station_date not in daily_events_map:
+                            daily_events_map[station_date] = []
+                        daily_events_map[station_date].append(event_str)
         
         # Store previous day's data
         prev_day_planets = day_planets.copy()
         
-        # Daily house scores
-        if day_house_scores:
+        # Daily house scores (only if natal houses available)
+        if natal_houses_available and day_house_scores:
             sorted_houses = sorted(day_house_scores.keys(), key=lambda h: day_house_scores[h], reverse=True)
             top_day_houses = sorted_houses[:3]
             
@@ -935,37 +958,61 @@ def compute_transits_window(
                 'scores': {str(h): round(day_house_scores[h], 1) for h in sorted_houses[:5]}
             })
         
-        # Daily summary
-        if day_events or day_house_scores:
-            sorted_houses = sorted(day_house_scores.keys(), key=lambda h: day_house_scores[h], reverse=True)[:2]
-            daily_summaries.append({
-                'date': day_str,
-                'peak_events': day_events[:5],  # Limit to 5 events per day
-                'top_houses': sorted_houses
-            })
-        
         current_date += timedelta(days=1)
         day_index += 1
     
-    # Sort exact_hits by timestamp then planet name for deterministic ordering
-    exact_hits.sort(key=lambda x: (x['timestamp_utc'], x['transit_planet']))
+    # Sort exact_hits by timestamp, then planet, then aspect, then natal_body for deterministic ordering
+    exact_hits.sort(key=lambda x: (x['timestamp_utc'], x['transit_planet'], x['aspect'], x['natal_body']))
     
-    # Sort ingresses by timestamp then planet
+    # Sort ingresses by timestamp, then planet
     ingresses.sort(key=lambda x: (x['timestamp_utc'], x['planet']))
     
-    # Sort stations by timestamp then planet
+    # Sort stations by timestamp, then planet
     stations.sort(key=lambda x: (x['timestamp_utc'], x['planet']))
     
-    # Compute top houses for entire window
-    sorted_total_houses = sorted(house_scores_total.keys(), key=lambda h: house_scores_total[h], reverse=True)
-    top_houses = sorted_total_houses[:3]
+    # Build daily_summary from events map (sorted by date)
+    daily_summaries = []
+    sorted_dates = sorted(daily_events_map.keys())
+    for date_str in sorted_dates:
+        events = daily_events_map[date_str]
+        # Deduplicate and sort events deterministically
+        unique_events = sorted(set(events))
+        
+        # Get top houses for this day (only if natal houses available)
+        day_top_houses = []
+        if natal_houses_available:
+            # Find matching daily house score entry
+            for daily_score in house_scores_daily:
+                if daily_score['date'] == date_str:
+                    day_top_houses = daily_score['top_houses'][:2]
+                    break
+        
+        if unique_events or day_top_houses:
+            daily_summaries.append({
+                'date': date_str,
+                'peak_events': unique_events[:5],
+                'top_houses': day_top_houses
+            })
     
     # Build house activation response
-    house_activation = {
-        'top_houses': top_houses,
-        'scores': {str(h): round(house_scores_total[h], 1) for h in sorted_total_houses if house_scores_total[h] > 0},
-        'daily': house_scores_daily
-    }
+    if natal_houses_available:
+        sorted_total_houses = sorted(house_scores_total.keys(), key=lambda h: house_scores_total[h], reverse=True)
+        top_houses = sorted_total_houses[:3]
+        
+        house_activation = {
+            'enabled': True,
+            'top_houses': top_houses,
+            'scores': {str(h): round(house_scores_total[h], 1) for h in sorted_total_houses if house_scores_total[h] > 0},
+            'daily': house_scores_daily
+        }
+    else:
+        house_activation = {
+            'enabled': False,
+            'reason': 'natal_houses_missing',
+            'top_houses': [],
+            'scores': {},
+            'daily': []
+        }
     
     return {
         'meta': {
