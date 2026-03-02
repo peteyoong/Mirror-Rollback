@@ -561,6 +561,9 @@ export default function HomeV2({
   // Enneagram state (for personal resonance)
   const [enneagramResult, setEnneagramResult] = useState<EnneagramResult | null>(null);
   
+  // Journal entries state (for memory anchor)
+  const [localJournalEntries, setLocalJournalEntries] = useState<any[]>([]);
+  
   // Phase 5: Progressive disclosure state
   const [showMoreContent, setShowMoreContent] = useState(false);
   
