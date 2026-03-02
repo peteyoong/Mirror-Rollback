@@ -28,6 +28,7 @@ import SectionLabel from '../../components/SectionLabel';
 import ApiOfflineBanner, { InlineRetry } from '../../components/ApiOfflineBanner';
 import { BUILD_ID as CANONICAL_BUILD_ID, BUILD_VERSION, BUILD_ENV, DEBUG_MIRROR } from '../../utils/buildInfo';
 import { SafeIcon } from '../../components/SafeIcon';
+import TodaysTransitsCard from '../../components/TodaysTransitsCard';
 
 // =========================================
 // BUILD ID - Use canonical source
