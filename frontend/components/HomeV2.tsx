@@ -937,6 +937,9 @@ export default function HomeV2({
   // Journal entries state (for memory anchor)
   const [localJournalEntries, setLocalJournalEntries] = useState<any[]>([]);
   
+  // Phase 10: Raw transit aspects for Resonance Engine
+  const [rawTransitAspects, setRawTransitAspects] = useState<TransitAspect[]>([]);
+  
   // Phase 5: Progressive disclosure state
   const [showMoreContent, setShowMoreContent] = useState(false);
   
