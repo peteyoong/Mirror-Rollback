@@ -4076,6 +4076,97 @@ async def get_chart(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =============================================================================
+# TRANSIT ENGINE - Phase 1 (Deterministic Core)
+# =============================================================================
+# Real-time transit calculations using Swiss Ephemeris
+# True Sidereal settings: Fixed SVP 31.2836, Equal houses, no interpretation
+# =============================================================================
+
+class TransitRequest(BaseModel):
+    """Request body for transit calculation endpoint"""
+    user_id: str
+    timestamp_utc: Optional[str] = None  # ISO format: 2026-03-02T09:00:00Z
+    orb_deg: float = 2.0  # Default orb for aspects
+    include_houses: bool = True  # Include house placements
+
+
+@api_router.post("/compute/transits/now")
+async def compute_transits_now_endpoint(request: TransitRequest):
+    """
+    POST /api/compute/transits/now
+    
+    Real-Time Transit Engine - Phase 1 (Deterministic Core)
+    
+    Calculates transiting planet positions and aspects to natal bodies.
+    
+    Uses True Sidereal settings:
+    - Ayanamsa: Fixed Sidereal Vernal Point 31.2836
+    - Yearly Increment: 0.00
+    - Reference Year: 2000
+    - House System: Equal
+    
+    Returns pure astronomical + geometric data. ZERO interpretation logic.
+    
+    Request Body:
+    {
+        "user_id": "uuid",
+        "timestamp_utc": "2026-03-02T09:00:00Z",  // Optional, defaults to now
+        "orb_deg": 2,  // Optional, default 2 degrees
+        "include_houses": true  // Optional, default true
+    }
+    
+    Response:
+    {
+        "meta": { "ayanamsa": "fixed_sv_31.2836", "house_system": "equal", "orb_deg": 2 },
+        "timestamp_utc": "2026-03-02T09:00:00Z",
+        "transiting_planets": { ... },
+        "aspects_to_natal_now": [ ... ]
+    }
+    """
+    try:
+        # Get user's natal chart from database
+        chart = await db.charts.find_one({"user_id": request.user_id})
+        if not chart:
+            raise HTTPException(
+                status_code=404, 
+                detail="Natal chart not found. Please calculate chart first."
+            )
+        
+        # Parse timestamp if provided
+        timestamp_utc = None
+        if request.timestamp_utc:
+            try:
+                # Parse ISO format timestamp
+                timestamp_utc = datetime.fromisoformat(request.timestamp_utc.replace('Z', '+00:00'))
+                # Ensure UTC
+                if timestamp_utc.tzinfo is None:
+                    timestamp_utc = timestamp_utc.replace(tzinfo=timezone.utc)
+            except ValueError as e:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid timestamp format. Use ISO format (e.g., 2026-03-02T09:00:00Z): {str(e)}"
+                )
+        
+        # Compute transits
+        result = compute_transits_now(
+            chart_data=chart,
+            timestamp_utc=timestamp_utc,
+            orb_deg=request.orb_deg,
+            include_houses=request.include_houses
+        )
+        
+        logger.info(f"[Transit] Computed transits for user={request.user_id}, timestamp={result['timestamp_utc']}, aspects_count={len(result['aspects_to_natal_now'])}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Transit] Error computing transits: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/journal", response_model=JournalEntryResponse)
 async def create_journal_entry(entry: JournalEntryCreate):
     """Create journal entry with optional source annotation"""
