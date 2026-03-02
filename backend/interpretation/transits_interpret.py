@@ -473,7 +473,8 @@ def interpret_transits(
     transit_payload: Dict[str, Any],
     mode: str = 'now',
     consciousness_level: Optional[int] = None,
-    style: str = 'grounded'
+    style: str = 'grounded',
+    request_timestamp_utc: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Main interpretation function - converts deterministic transit data
@@ -484,10 +485,27 @@ def interpret_transits(
         mode: 'now' or 'window'
         consciousness_level: Optional consciousness calibration (not used in v1)
         style: Interpretation style (only 'grounded' supported in v1)
+        request_timestamp_utc: Optional timestamp from request
     
     Returns:
         Interpretation response with headline, key_points, reflect, practice, etc.
     """
+    # Determine timestamp deterministically:
+    # 1) If transit_payload.timestamp_utc exists, use that
+    # 2) Else if transit_payload.window.from_utc exists, use that
+    # 3) Else if request includes timestamp_utc, use that
+    # 4) Else use current UTC
+    interpretation_timestamp = None
+    
+    if transit_payload.get('timestamp_utc'):
+        interpretation_timestamp = transit_payload['timestamp_utc']
+    elif transit_payload.get('window', {}).get('from_utc'):
+        interpretation_timestamp = transit_payload['window']['from_utc']
+    elif request_timestamp_utc:
+        interpretation_timestamp = request_timestamp_utc
+    else:
+        interpretation_timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    
     # Check if houses should be included
     house_activation = transit_payload.get('house_activation', {})
     include_houses = house_activation.get('enabled', False)
@@ -508,7 +526,7 @@ def interpret_transits(
     return {
         'meta': {
             'mode': mode,
-            'timestamp_utc': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'timestamp_utc': interpretation_timestamp,
             'tone_profile': style
         },
         'headline': headline,
