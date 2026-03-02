@@ -1612,15 +1612,32 @@ export default function HomeV2({
       <View style={styles.chapterSection}>
         <SectionLabel marginBottom={Spacing.md}>YOUR CURRENT CHAPTER</SectionLabel>
         
-        {/* Chapter Headline - max 110 chars */}
-        <Text style={styles.chapterHeadline}>
-          {chapterHeadline}
-        </Text>
-        
-        {/* Short paragraph - max 3 lines */}
-        <Text style={styles.chapterBody} numberOfLines={3}>
-          {chapterBody}
-        </Text>
+        {/* Loading state for chapter */}
+        {chapterLoading ? (
+          <View style={styles.chapterLoadingContainer}>
+            <ActivityIndicator size="small" color={Colors.textTertiary} />
+            <Text style={styles.chapterLoadingText}>Reading your chapter...</Text>
+          </View>
+        ) : (
+          <>
+            {/* Chapter Headline - max 110 chars */}
+            <Text style={styles.chapterHeadline}>
+              {chapterHeadline}
+            </Text>
+            
+            {/* Short paragraph - max 3 lines */}
+            <Text style={styles.chapterBody} numberOfLines={3}>
+              {chapterBody}
+            </Text>
+            
+            {/* Phase 13: Timeframe hint from chapter data */}
+            {chapterData?.timeframe_hint && (
+              <Text style={styles.chapterTimeframe}>
+                {chapterData.timeframe_hint}
+              </Text>
+            )}
+          </>
+        )}
         
         {/* See timeline link */}
         <TouchableOpacity 
