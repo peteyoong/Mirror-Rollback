@@ -14,7 +14,7 @@ Last Updated: 2026-02-16
 ```
 
 ### What the PREVIEW URL shows (CORRECT):
-- URL: https://mirror-transits.preview.emergentagent.com
+- URL: https://astro-journal-2.preview.emergentagent.com
 - Displays: **Type 7w8 High** ✅
 
 ### What the EXPO GO LIVE app shows (WRONG):
