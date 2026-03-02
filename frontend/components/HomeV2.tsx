@@ -3,9 +3,10 @@
  * 
  * Phase 1: Structural Reset
  * Phase 2: Resonance Calibration - Copy tightening, visual hierarchy
+ * Phase 3: Deterministic Personal Resonance Layer
  * 
  * Two unified sections:
- * 1. TODAY - Primary headline, timestamp, themes, single reflection question, Reflect Now button
+ * 1. TODAY - Primary headline, personal resonance, timestamp, themes, reflection question, Reflect Now button
  * 2. YOUR CURRENT CHAPTER - Slowest transit / key point, See timeline link
  * 
  * No changes to backend logic or APIs.
@@ -23,8 +24,9 @@ import {
 import { useRouter } from 'expo-router';
 import { Colors } from '../constants/colors';
 import { Spacing } from '../constants/spacing';
+import { useAppStore } from '../store';
 import { DailyFocusState } from './DailyFocusCard';
-import { getDailyFocus, DailyFocusResponse } from '../services/api';
+import { getDailyFocus, DailyFocusResponse, getEnneagramResults } from '../services/api';
 import { 
   getTransitInsightNow, 
   TransitInterpretation,
@@ -45,6 +47,72 @@ interface HomeV2Props {
   isLoading: boolean;
   onFocusStateChange?: (state: DailyFocusState) => void;
 }
+
+// ============================================
+// PERSONAL RESONANCE - Deterministic mappings
+// ============================================
+
+// Enneagram core type mappings (1-9)
+const ENNEAGRAM_RESONANCE: Record<number, string> = {
+  1: "This may highlight your internal standards.",
+  2: "This may pull on your instinct to support others.",
+  3: "This may touch your drive to achieve or perform.",
+  4: "This may stir deeper emotional undercurrents.",
+  5: "This may draw you inward to process privately.",
+  6: "This may activate your need for reassurance or clarity.",
+  7: "This may stir your urge to move on quickly.",
+  8: "This may test how you hold control.",
+  9: "This may soften or blur your boundaries.",
+};
+
+// Human Design type mappings
+const HD_RESONANCE: Record<string, string> = {
+  'Manifestor': "This may affect how you initiate.",
+  'Generator': "This may shift what you feel energy for.",
+  'Manifesting Generator': "This may redirect your momentum.",
+  'Projector': "This may affect how you guide or focus.",
+  'Reflector': "This may feel amplified by your environment.",
+};
+
+interface UserProfile {
+  enneagram?: {
+    core_type?: number;
+  };
+  human_design?: {
+    type?: string;
+  };
+}
+
+/**
+ * Generate a subtle personal resonance line based on user profile.
+ * Priority: Enneagram > Human Design > null
+ * Returns null if no profile data available.
+ */
+const generatePersonalResonance = (userProfile: UserProfile | null): string | null => {
+  if (!userProfile) return null;
+  
+  // Priority 1: Enneagram core type
+  if (userProfile.enneagram?.core_type) {
+    const coreType = userProfile.enneagram.core_type;
+    const resonance = ENNEAGRAM_RESONANCE[coreType];
+    if (resonance) {
+      // Ensure max 120 chars (all mappings are under this)
+      return resonance.substring(0, 120);
+    }
+  }
+  
+  // Priority 2: Human Design type
+  if (userProfile.human_design?.type) {
+    const hdType = userProfile.human_design.type;
+    const resonance = HD_RESONANCE[hdType];
+    if (resonance) {
+      return resonance.substring(0, 120);
+    }
+  }
+  
+  // No profile data available
+  return null;
+};
 
 // ============================================
 // TEXT PROCESSING UTILITIES
