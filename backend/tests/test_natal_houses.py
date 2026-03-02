@@ -300,6 +300,7 @@ if __name__ == '__main__':
         test_houses_disabled_when_data_missing()
         test_fixture_chart_with_houses()
         test_fixture_chart_without_houses()
+        test_backfilled_user_jane()
         
         print()
         print("=" * 60)
