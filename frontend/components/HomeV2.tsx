@@ -6,6 +6,7 @@
  * Phase 3: Deterministic Personal Resonance Layer
  * Phase 4: Resonance Precision - Multiple variants, deterministic selection
  * Phase 5: Interaction Psychology Layer - Progressive disclosure, micro motion, memory anchor
+ * Phase 6: First 7-Day Guided Arc - Subtle progression for new users
  * 
  * Two unified sections:
  * 1. TODAY - Primary headline, personal resonance, timestamp, themes, reflection question, Reflect Now button
