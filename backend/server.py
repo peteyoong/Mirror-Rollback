@@ -5236,6 +5236,348 @@ async def interpret_transits_endpoint(request: TransitInterpretRequest):
 
 
 # =============================================================================
+# PHASE 13: CURRENT CHAPTER ENGINE
+# =============================================================================
+
+class ChapterRequest(BaseModel):
+    """Request for current chapter interpretation"""
+    user_id: str
+    from_utc: str = "now"  # ISO timestamp or "now"
+    window_days: int = 180  # Default 6 months
+    orb_deg: float = 2.0
+    include_houses: bool = True
+
+class ChapterResponse(BaseModel):
+    """Current chapter interpretation response"""
+    headline: str
+    body: List[str]
+    focus_domains: Optional[List[str]] = None
+    timeframe_hint: str = "weeks to months"
+    based_on: List[str] = []
+    cached_until: Optional[str] = None
+
+# Slow planets for chapter generation
+SLOW_PLANETS = {'saturn', 'uranus', 'neptune', 'pluto'}
+
+# Domain mapping for chapter focus (no astrology jargon)
+CHAPTER_DOMAIN_MAP = {
+    1: 'your sense of self',
+    2: 'security and resources',
+    3: 'communication',
+    4: 'home and foundations',
+    5: 'creativity and joy',
+    6: 'health and routine',
+    7: 'relationships',
+    8: 'intimacy and shared resources',
+    9: 'meaning and growth',
+    10: 'direction and purpose',
+    11: 'community and future vision',
+    12: 'inner life and rest',
+}
+
+# Chapter headline templates by tension type (no astrology jargon)
+CHAPTER_TEMPLATES = {
+    'restructure': [
+        "A season of reshaping how you approach {domain}.",
+        "A time for reconsidering your foundations around {domain}.",
+        "A chapter of rebuilding what matters in {domain}.",
+    ],
+    'expansion': [
+        "A period of opening up new possibilities in {domain}.",
+        "A time where {domain} may feel more spacious.",
+        "A chapter of exploring what else is possible in {domain}.",
+    ],
+    'deepening': [
+        "A season of going deeper in {domain}.",
+        "A time of transformation around {domain}.",
+        "A chapter where {domain} asks for more honesty.",
+    ],
+    'awakening': [
+        "A period of unexpected clarity in {domain}.",
+        "A time where old patterns in {domain} may shift.",
+        "A chapter of liberation around {domain}.",
+    ],
+    'dissolution': [
+        "A season of letting go in {domain}.",
+        "A time where {domain} asks for surrender.",
+        "A chapter of allowing {domain} to soften.",
+    ],
+    'default': [
+        "A season of gradual shifts in {domain}.",
+        "A time for patient attention to {domain}.",
+        "A chapter of quiet evolution in {domain}.",
+    ],
+}
+
+# Body templates for chapter (no predictions, no astrology)
+CHAPTER_BODY_TEMPLATES = {
+    'restructure': [
+        "What you've built may need examination.",
+        "Old structures might feel less supportive.",
+        "Patience with the process helps.",
+    ],
+    'expansion': [
+        "There may be room to explore more broadly.",
+        "What felt limited might open up.",
+        "Trust the wider perspective.",
+    ],
+    'deepening': [
+        "Surface-level approaches may not satisfy.",
+        "Something wants to be seen more fully.",
+        "Honesty with yourself matters here.",
+    ],
+    'awakening': [
+        "Expect the unexpected, but gently.",
+        "What felt fixed might show flexibility.",
+        "Freedom comes through releasing control.",
+    ],
+    'dissolution': [
+        "Not everything needs to be held.",
+        "Some things are meant to fade.",
+        "Rest and receptivity serve you here.",
+    ],
+    'default': [
+        "Small shifts accumulate over time.",
+        "Consistency matters more than speed.",
+        "Notice what naturally evolves.",
+    ],
+}
+
+# Safety validation for chapter text
+def validate_chapter_text(text: str) -> bool:
+    """Ensure chapter text has no forbidden words"""
+    forbidden = ['will', 'destined', 'guaranteed', 'fated', 'meant to', 
+                 'the universe', 'planet', 'transit', 'natal', 'house']
+    lower_text = text.lower()
+    return not any(word in lower_text for word in forbidden)
+
+
+def generate_chapter_from_events(
+    events: List[Dict],
+    user_id: str,
+    top_houses: Optional[List[int]] = None
+) -> ChapterResponse:
+    """
+    Generate a chapter interpretation from slow-planet events.
+    
+    Args:
+        events: List of transit events (stations, ingresses, aspects)
+        user_id: User ID for deterministic selection
+        top_houses: Optional list of most activated houses
+    
+    Returns:
+        ChapterResponse with headline, body, domains
+    """
+    import hashlib
+    
+    # Determine primary tension type from events
+    tension_type = 'default'
+    canonical_events = []
+    
+    for event in events:
+        event_type = event.get('event_type', '')
+        planet = event.get('transit_planet', '').lower()
+        
+        # Build canonical event string
+        if event_type == 'station':
+            canonical = f"{planet}_station_{event.get('station_type', 'rx')}"
+        elif event_type == 'ingress':
+            canonical = f"{planet}_ingress_{event.get('to_sign', 'unknown')}"
+        elif event_type == 'exact_hit':
+            canonical = f"{planet}_{event.get('aspect', 'conjunction')}_{event.get('natal_body', 'unknown')}"
+        else:
+            canonical = f"{planet}_{event_type}"
+        
+        canonical_events.append(canonical)
+        
+        # Determine tension type based on planet
+        if planet == 'saturn':
+            tension_type = 'restructure'
+        elif planet == 'jupiter':
+            tension_type = 'expansion'
+        elif planet == 'pluto':
+            tension_type = 'deepening'
+        elif planet == 'uranus':
+            tension_type = 'awakening'
+        elif planet == 'neptune':
+            tension_type = 'dissolution'
+    
+    # Determine focus domain from top houses
+    domain = 'your inner and outer life'
+    domains = []
+    
+    if top_houses and len(top_houses) > 0:
+        primary_house = top_houses[0]
+        domain = CHAPTER_DOMAIN_MAP.get(primary_house, 'your inner and outer life')
+        domains = [CHAPTER_DOMAIN_MAP.get(h, '') for h in top_houses[:3] if h in CHAPTER_DOMAIN_MAP]
+        domains = [d for d in domains if d]  # Remove empty
+    
+    # Select headline template deterministically
+    templates = CHAPTER_TEMPLATES.get(tension_type, CHAPTER_TEMPLATES['default'])
+    hash_key = f"{user_id}|chapter|headline|{tension_type}"
+    hash_val = int(hashlib.md5(hash_key.encode()).hexdigest(), 16)
+    headline_template = templates[hash_val % len(templates)]
+    headline = headline_template.format(domain=domain)
+    
+    # Select body lines
+    body_templates = CHAPTER_BODY_TEMPLATES.get(tension_type, CHAPTER_BODY_TEMPLATES['default'])
+    body = body_templates[:3]  # Take first 3
+    
+    # Validate safety
+    if not validate_chapter_text(headline):
+        headline = f"A season of quiet evolution in {domain}."
+    
+    body = [line for line in body if validate_chapter_text(line)]
+    
+    return ChapterResponse(
+        headline=headline,
+        body=body,
+        focus_domains=domains if domains else None,
+        timeframe_hint="weeks to months",
+        based_on=canonical_events[:6],  # Max 6 events
+    )
+
+
+@api_router.post("/interpret/chapter")
+async def interpret_chapter_endpoint(request: ChapterRequest):
+    """
+    POST /api/interpret/chapter
+    
+    Phase 13: Current Chapter Engine
+    
+    Generates a "chapter" interpretation based on slow-moving transits
+    (Saturn, Uranus, Neptune, Pluto) over a 180-day window.
+    
+    The chapter is designed to:
+    - Update slowly (weekly/biweekly cadence)
+    - Focus on long-term themes, not daily fluctuations
+    - Use grounded, non-fatalistic language
+    - Avoid astrology jargon
+    
+    Request Body:
+    {
+        "user_id": "uuid",
+        "from_utc": "now" | "ISO timestamp",
+        "window_days": 180,
+        "orb_deg": 2,
+        "include_houses": true
+    }
+    
+    Response:
+    {
+        "headline": "1 sentence chapter theme",
+        "body": ["2-4 short lines"],
+        "focus_domains": ["direction", "relationships"],
+        "timeframe_hint": "weeks to months",
+        "based_on": ["saturn_station_rx", ...]
+    }
+    """
+    try:
+        # Get user's natal chart
+        chart = await db.charts.find_one({"user_id": request.user_id})
+        if not chart:
+            raise HTTPException(status_code=404, detail="Natal chart not found")
+        
+        # Determine from_utc
+        if request.from_utc == "now":
+            from_dt = datetime.now(timezone.utc)
+        else:
+            from_dt = datetime.fromisoformat(request.from_utc.replace('Z', '+00:00'))
+        
+        # Compute transits window for slow planets
+        try:
+            transit_window = compute_transits_window(
+                natal_chart=chart,
+                from_utc=from_dt,
+                days=request.window_days,
+                orb_deg=request.orb_deg,
+                include_houses=request.include_houses
+            )
+        except Exception as e:
+            logger.error(f"[Chapter] Transit computation error: {e}")
+            raise HTTPException(status_code=500, detail="Transit computation failed")
+        
+        # Filter to slow-planet events only
+        slow_events = []
+        
+        # Process stations (slow planet stations are significant)
+        for station in transit_window.get('stations', []):
+            planet = station.get('planet', '').lower()
+            if planet in SLOW_PLANETS:
+                slow_events.append({
+                    'event_type': 'station',
+                    'transit_planet': planet,
+                    'station_type': station.get('type', 'rx'),
+                    'timestamp_utc': station.get('timestamp_utc'),
+                })
+        
+        # Process ingresses (slow planet sign changes)
+        for ingress in transit_window.get('ingresses', []):
+            planet = ingress.get('planet', '').lower()
+            if planet in SLOW_PLANETS:
+                slow_events.append({
+                    'event_type': 'ingress',
+                    'transit_planet': planet,
+                    'to_sign': ingress.get('to_sign'),
+                    'timestamp_utc': ingress.get('timestamp_utc'),
+                })
+        
+        # Process exact hits involving slow planets to natal luminaries/angles
+        important_natal = {'sun', 'moon', 'asc', 'mc', 'ascendant', 'midheaven'}
+        for hit in transit_window.get('exact_hits', []):
+            transit_planet = hit.get('transit_planet', '').lower()
+            natal_body = hit.get('natal_body', '').lower()
+            
+            if transit_planet in SLOW_PLANETS and natal_body in important_natal:
+                slow_events.append({
+                    'event_type': 'exact_hit',
+                    'transit_planet': transit_planet,
+                    'natal_body': natal_body,
+                    'aspect': hit.get('aspect', 'conjunction'),
+                    'timestamp_utc': hit.get('timestamp_utc'),
+                })
+        
+        # Get house activation if available
+        top_houses = transit_window.get('house_activation_summary', {}).get('top_houses', [])
+        
+        # Generate chapter if we have events
+        if slow_events:
+            chapter = generate_chapter_from_events(
+                events=slow_events,
+                user_id=request.user_id,
+                top_houses=top_houses
+            )
+        else:
+            # Fallback chapter when no slow events
+            chapter = ChapterResponse(
+                headline="A season of steady, quiet evolution.",
+                body=[
+                    "No major shifts are calling for attention.",
+                    "Small, consistent actions matter most now.",
+                    "Trust the gradual unfolding.",
+                ],
+                focus_domains=None,
+                timeframe_hint="weeks to months",
+                based_on=[],
+            )
+        
+        # Add cache hint (24 hours from now)
+        cache_until = (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
+        chapter.cached_until = cache_until
+        
+        logger.info(f"[Chapter] Generated chapter for user={request.user_id}, "
+                   f"events={len(slow_events)}, headline='{chapter.headline[:50]}...'")
+        
+        return chapter.model_dump()
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Chapter] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
 # JOURNAL TRANSIT SIGNATURE HELPER
 # =============================================================================
 # Build ID for transit signature stamping
