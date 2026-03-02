@@ -1,7 +1,8 @@
 /**
  * HomeV2 - Restructured Home Tab Layout
  * 
- * Phase 1: Structural Reset Only
+ * Phase 1: Structural Reset
+ * Phase 2: Resonance Calibration - Copy tightening, visual hierarchy
  * 
  * Two unified sections:
  * 1. TODAY - Primary headline, timestamp, themes, single reflection question, Reflect Now button
@@ -21,9 +22,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '../constants/colors';
-import { Typography } from '../constants/typography';
 import { Spacing } from '../constants/spacing';
-import { useAppStore } from '../store';
 import { DailyFocusState } from './DailyFocusCard';
 import { getDailyFocus, DailyFocusResponse } from '../services/api';
 import { 
@@ -47,59 +46,206 @@ interface HomeV2Props {
   onFocusStateChange?: (state: DailyFocusState) => void;
 }
 
-// Format timestamp for display
-const formatTimestamp = (isoString: string): string => {
+// ============================================
+// TEXT PROCESSING UTILITIES
+// ============================================
+
+// Format timestamp - simpler, just time
+const formatTime = (isoString: string): string => {
   try {
     const date = new Date(isoString);
     return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
-    });
+    }).toLowerCase();
   } catch {
-    return isoString;
+    return 'now';
   }
 };
 
-// Extract themes from transit key points
+// Clean headline: Remove astrological jargon, keep first sentence only, max 140 chars
+const cleanHeadline = (raw: string): string => {
+  if (!raw) return 'A moment of quiet presence.';
+  
+  // Phrases to remove (astrological/technical language)
+  const jargonPatterns = [
+    /transiting\s+\w+/gi,
+    /pronounced\s+polarity/gi,
+    /opportunity\s+between/gi,
+    /natal\s+\w+/gi,
+    /\(.*?\)/g,  // Remove parenthetical explanations
+    /mercury|venus|mars|jupiter|saturn|uranus|neptune|pluto|sun|moon/gi,
+  ];
+  
+  let cleaned = raw;
+  jargonPatterns.forEach(pattern => {
+    cleaned = cleaned.replace(pattern, '');
+  });
+  
+  // Clean up extra spaces
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  
+  // Take first sentence only
+  const firstSentence = cleaned.split(/[.!?]/)[0].trim();
+  
+  // Ensure it ends properly
+  let result = firstSentence;
+  if (result && !result.match(/[.!?]$/)) {
+    result += '.';
+  }
+  
+  // Truncate to 140 chars if needed
+  if (result.length > 140) {
+    result = result.substring(0, 137).trim() + '...';
+  }
+  
+  // Fallback if too short or empty after cleaning
+  if (result.length < 10) {
+    return 'A quiet moment for inner reflection.';
+  }
+  
+  return result;
+};
+
+// Extract simple themes - lowercase, max 3
 const extractThemes = (keyPoints: string[]): string[] => {
-  // Take first 2-3 key points and extract key themes
+  const themeMap: Record<string, string> = {
+    'communication': 'communication',
+    'express': 'expression',
+    'relationship': 'relationships',
+    'connection': 'connection',
+    'work': 'work',
+    'career': 'purpose',
+    'professional': 'work',
+    'emotion': 'feelings',
+    'feeling': 'feelings',
+    'inner': 'inner life',
+    'change': 'change',
+    'transform': 'transformation',
+    'rest': 'rest',
+    'peace': 'stillness',
+    'calm': 'calm',
+    'growth': 'growth',
+    'expand': 'expansion',
+    'learn': 'learning',
+    'health': 'body',
+    'body': 'body',
+    'energy': 'energy',
+    'reflect': 'reflection',
+    'notice': 'awareness',
+    'attention': 'attention',
+    'depth': 'depth',
+    'identity': 'identity',
+    'structure': 'structure',
+  };
+  
   const themes: string[] = [];
   
   if (keyPoints && keyPoints.length > 0) {
-    // Extract key thematic words from first 2 key points
-    keyPoints.slice(0, 2).forEach(point => {
-      // Look for common astrological themes
+    keyPoints.slice(0, 3).forEach(point => {
       const lowerPoint = point.toLowerCase();
-      if (lowerPoint.includes('communication') || lowerPoint.includes('express')) {
-        themes.push('Communication');
-      } else if (lowerPoint.includes('relationship') || lowerPoint.includes('connection')) {
-        themes.push('Relationships');
-      } else if (lowerPoint.includes('work') || lowerPoint.includes('career') || lowerPoint.includes('professional')) {
-        themes.push('Work & Purpose');
-      } else if (lowerPoint.includes('emotion') || lowerPoint.includes('feeling') || lowerPoint.includes('inner')) {
-        themes.push('Inner State');
-      } else if (lowerPoint.includes('change') || lowerPoint.includes('transform')) {
-        themes.push('Transformation');
-      } else if (lowerPoint.includes('rest') || lowerPoint.includes('peace') || lowerPoint.includes('calm')) {
-        themes.push('Rest & Restoration');
-      } else if (lowerPoint.includes('growth') || lowerPoint.includes('expand') || lowerPoint.includes('learn')) {
-        themes.push('Growth');
-      } else if (lowerPoint.includes('health') || lowerPoint.includes('body') || lowerPoint.includes('energy')) {
-        themes.push('Health & Body');
+      for (const [keyword, theme] of Object.entries(themeMap)) {
+        if (lowerPoint.includes(keyword) && !themes.includes(theme)) {
+          themes.push(theme);
+          break;
+        }
       }
     });
   }
   
-  // If no themes extracted, use fallback
+  // Fallback themes
   if (themes.length === 0) {
-    return ['Presence', 'Awareness'];
+    return ['presence', 'reflection'];
   }
   
-  // Dedupe and limit to 3
-  return [...new Set(themes)].slice(0, 3);
+  return themes.slice(0, 3);
+};
+
+// Clean chapter headline: max 110 chars, one sentence, grounded
+const cleanChapterHeadline = (raw: string): string => {
+  if (!raw) return 'A season of noticing what wants attention.';
+  
+  // Remove astrological references
+  let cleaned = raw
+    .replace(/transiting\s+\w+/gi, '')
+    .replace(/natal\s+\w+/gi, '')
+    .replace(/\(.*?\)/g, '')
+    .replace(/mercury|venus|mars|jupiter|saturn|uranus|neptune|pluto/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  // Take first sentence
+  const firstSentence = cleaned.split(/[.!?]/)[0].trim();
+  let result = firstSentence;
+  
+  if (result && !result.match(/[.!?]$/)) {
+    result += '.';
+  }
+  
+  // Truncate to 110 chars
+  if (result.length > 110) {
+    result = result.substring(0, 107).trim() + '...';
+  }
+  
+  if (result.length < 10) {
+    return 'A season of noticing what wants attention.';
+  }
+  
+  return result;
+};
+
+// Clean chapter body: remove filler, grounded tone, max ~180 chars
+const cleanChapterBody = (raw: string): string => {
+  if (!raw) return 'Take your time with what\'s emerging.';
+  
+  // Remove mystical/filler phrases
+  const fillerPatterns = [
+    /this isn't about.*?—/gi,
+    /it's about recalibration/gi,
+    /the cosmos.*?/gi,
+    /transiting\s+\w+/gi,
+    /natal\s+\w+/gi,
+    /\(.*?\)/g,
+    /mercury|venus|mars|jupiter|saturn|uranus|neptune|pluto/gi,
+  ];
+  
+  let cleaned = raw;
+  fillerPatterns.forEach(pattern => {
+    cleaned = cleaned.replace(pattern, '');
+  });
+  
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  
+  // Truncate for 3 lines (~180 chars)
+  if (cleaned.length > 180) {
+    cleaned = cleaned.substring(0, 177).trim() + '...';
+  }
+  
+  if (cleaned.length < 10) {
+    return 'Take your time with what\'s emerging.';
+  }
+  
+  return cleaned;
+};
+
+// Clean reflection question: remove preface, just the question
+const cleanReflectionQuestion = (raw: string): string => {
+  if (!raw) return 'What feels present right now?';
+  
+  // Remove common prefixes
+  let cleaned = raw
+    .replace(/^reflect:\s*/i, '')
+    .replace(/^question:\s*/i, '')
+    .replace(/^consider:\s*/i, '')
+    .trim();
+  
+  // Ensure it ends with ?
+  if (cleaned && !cleaned.endsWith('?')) {
+    cleaned += '?';
+  }
+  
+  return cleaned || 'What feels present right now?';
 };
 
 const DISMISS_KEY_PREFIX = 'daily_focus_dismissed_';
@@ -222,37 +368,40 @@ export default function HomeV2({
   
   // Handle See Timeline link
   const handleSeeTimeline = useCallback(() => {
-    router.push('/(tabs)/lens?tab=astrology');
+    router.push('/(tabs)/lenses?tab=astrology');
   }, [router]);
   
-  // Derive headline: Use transit headline or keystone
-  const primaryHeadline = transitInsight?.headline 
-    || keystone?.keystone 
-    || 'Something in you brought you here today.';
+  // ============================================
+  // DERIVED CONTENT (with cleaning)
+  // ============================================
   
-  // Derive timestamp from transit or current time
+  // Headline: cleaned, max 140 chars, single sentence
+  const rawHeadline = transitInsight?.headline || keystone?.keystone || '';
+  const primaryHeadline = cleanHeadline(rawHeadline);
+  
+  // Timestamp: just time
   const timestamp = transitInsight?.meta?.timestamp_utc 
-    ? formatTimestamp(transitInsight.meta.timestamp_utc)
-    : formatTimestamp(new Date().toISOString());
+    ? formatTime(transitInsight.meta.timestamp_utc)
+    : formatTime(new Date().toISOString());
   
-  // Derive themes from transit key points or focus context
+  // Themes: max 3, lowercase
   const themes = transitInsight?.key_points 
     ? extractThemes(transitInsight.key_points)
     : dailyFocus?.context 
-      ? [dailyFocus.context]
-      : ['Presence'];
+      ? [dailyFocus.context.toLowerCase()]
+      : ['presence'];
   
-  // Get single reflection question
-  const reflectionQuestion = transitInsight?.reflect?.[0] 
-    || keystone?.reflect_question 
-    || 'What feels most present right now?';
+  // Reflection question: cleaned, no preface
+  const rawQuestion = transitInsight?.reflect?.[0] || keystone?.reflect_question || '';
+  const reflectionQuestion = cleanReflectionQuestion(rawQuestion);
   
-  // Derive current chapter from slowest transit or first key point
-  const currentChapterHeadline = transitInsight?.key_points?.[0]
-    || 'A season of noticing what wants your attention.';
+  // Chapter headline: max 110 chars, one sentence
+  const rawChapterHeadline = transitInsight?.key_points?.[0] || '';
+  const chapterHeadline = cleanChapterHeadline(rawChapterHeadline);
   
-  const currentChapterBody = transitInsight?.key_points?.[1]
-    || 'The slower currents are inviting you to look at what usually moves too fast to see.';
+  // Chapter body: max 3 lines, grounded
+  const rawChapterBody = transitInsight?.key_points?.[1] || '';
+  const chapterBody = cleanChapterBody(rawChapterBody);
   
   // Combined loading state
   const showLoading = isLoading || transitLoading;
@@ -272,22 +421,22 @@ export default function HomeV2({
       {/* SECTION 1: TODAY */}
       {/* ============================================ */}
       <View style={styles.todaySection}>
-        <SectionLabel marginBottom={Spacing.md}>TODAY</SectionLabel>
+        <SectionLabel marginBottom={Spacing.sm}>TODAY</SectionLabel>
         
-        {/* Primary Headline - large text, single sentence */}
+        {/* Primary Headline - larger, more breathing room */}
         <Text style={styles.primaryHeadline}>
           {primaryHeadline}
         </Text>
         
-        {/* Micro anchor */}
+        {/* Micro anchor - simplified two lines */}
         <View style={styles.microAnchor}>
-          <Text style={styles.anchorTimestamp}>As of: {timestamp}</Text>
+          <Text style={styles.anchorTime}>As of {timestamp}</Text>
           <Text style={styles.anchorThemes}>
-            Active themes: {themes.join(', ')}
+            Active: {themes.join(' • ')}
           </Text>
         </View>
         
-        {/* Single reflection question */}
+        {/* Single reflection question - more space above */}
         <Text style={styles.reflectionQuestion}>
           {reflectionQuestion}
         </Text>
@@ -306,16 +455,16 @@ export default function HomeV2({
       {/* SECTION 2: YOUR CURRENT CHAPTER */}
       {/* ============================================ */}
       <View style={styles.chapterSection}>
-        <SectionLabel marginBottom={Spacing.sm}>YOUR CURRENT CHAPTER</SectionLabel>
+        <SectionLabel marginBottom={Spacing.md}>YOUR CURRENT CHAPTER</SectionLabel>
         
-        {/* Chapter Headline - 1 sentence */}
+        {/* Chapter Headline - max 110 chars */}
         <Text style={styles.chapterHeadline}>
-          {currentChapterHeadline}
+          {chapterHeadline}
         </Text>
         
         {/* Short paragraph - max 3 lines */}
         <Text style={styles.chapterBody} numberOfLines={3}>
-          {currentChapterBody}
+          {chapterBody}
         </Text>
         
         {/* See timeline link */}
@@ -341,55 +490,60 @@ export default function HomeV2({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: Spacing.sm,
   },
   loadingContainer: {
-    paddingVertical: Spacing.xxl,
+    paddingVertical: Spacing.xxxl,
     alignItems: 'center',
     gap: Spacing.sm,
   },
   loadingText: {
     fontSize: 13,
     color: Colors.textTertiary,
-    opacity: 0.6,
+    opacity: 0.5,
   },
   
   // ============================================
-  // TODAY SECTION
+  // TODAY SECTION - Visual dominance
   // ============================================
   todaySection: {
-    paddingBottom: Spacing.xl,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.xxl,
     marginBottom: Spacing.xl,
   },
   primaryHeadline: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '300',
     color: Colors.text,
-    lineHeight: 32,
-    marginBottom: Spacing.md,
+    lineHeight: 36,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.lg,
+    letterSpacing: 0.2,
   },
   microAnchor: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
+    gap: 6,
   },
-  anchorTimestamp: {
+  anchorTime: {
     fontSize: 11,
     color: Colors.textTertiary,
-    opacity: 0.5,
-    marginBottom: 4,
+    opacity: 0.45,
+    letterSpacing: 0.3,
   },
   anchorThemes: {
     fontSize: 11,
     color: Colors.textTertiary,
-    opacity: 0.5,
+    opacity: 0.35,
+    letterSpacing: 0.3,
   },
   reflectionQuestion: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '400',
     fontStyle: 'italic',
     color: Colors.textSecondary,
-    lineHeight: 24,
-    marginBottom: Spacing.lg,
+    lineHeight: 26,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.xl,
   },
   reflectButton: {
     backgroundColor: Colors.accent,
@@ -407,16 +561,19 @@ const styles = StyleSheet.create({
   },
   
   // ============================================
-  // YOUR CURRENT CHAPTER SECTION
+  // YOUR CURRENT CHAPTER - Secondary, important
   // ============================================
   chapterSection: {
-    paddingBottom: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xl,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.04)',
   },
   chapterHeadline: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '400',
     color: Colors.text,
-    lineHeight: 24,
+    lineHeight: 23,
     marginBottom: Spacing.sm,
   },
   chapterBody: {
@@ -425,23 +582,26 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 22,
     marginBottom: Spacing.md,
+    opacity: 0.8,
   },
   timelineLink: {
     paddingVertical: Spacing.xs,
+    marginTop: Spacing.xs,
   },
   timelineLinkText: {
     fontSize: 13,
     color: Colors.accent,
     fontWeight: '400',
+    letterSpacing: 0.2,
   },
   
   // Debug
   debugStamp: {
     fontSize: 9,
     color: Colors.textTertiary,
-    opacity: 0.3,
+    opacity: 0.2,
     textAlign: 'center',
-    marginTop: Spacing.lg,
+    marginTop: Spacing.xl,
     fontFamily: 'monospace',
   },
 });
