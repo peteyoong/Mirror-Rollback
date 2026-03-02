@@ -490,7 +490,7 @@ export default function HomeV2({
       if (!userId) return;
       
       try {
-        const result = await getEnneagramResults(userId);
+        const result = await getEnneagramResult(userId);
         if (result) {
           setEnneagramResult({
             core_type: result.core_type,
