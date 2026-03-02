@@ -99,6 +99,15 @@ set_v3_db(db)
 # AI Configuration
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
+# Timeline Context Feature Flag (Phase 8)
+# Enable transit-aware chat context in staging/preview only
+ENABLE_TIMELINE_CONTEXT = os.environ.get('ENABLE_TIMELINE_CONTEXT', 'true').lower() == 'true'
+
+# Timeline Context Limits
+MAX_NOW_EVENTS = 6
+MAX_RECENT_JOURNAL_ENTRIES = 5
+MAX_EVENTS_PER_JOURNAL = 2
+
 # Create the main app without a prefix
 app = FastAPI()
 
