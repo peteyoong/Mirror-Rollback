@@ -619,6 +619,9 @@ export default function MirrorScreen() {
               <ReflectionEntry onPress={handleReflect} />
             )}
 
+            {/* G. Today's Transits Card */}
+            <TodaysTransitsCard userId={user.id} />
+
             {/* Continue with Mirror button */}
             <TouchableOpacity
               style={styles.continueButton}
