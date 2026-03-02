@@ -1270,10 +1270,44 @@ export default function HomeV2({
   // Phase 10A: Domain hints + Journal echo texture
   // ============================================
   
-  // Phase 10: Extract top_houses from transit interpretation
+  // Phase 10A: Extract top_houses from raw transit aspects
+  // We derive dominant houses from which natal bodies are being aspected
   const topHouses = React.useMemo(() => {
-    return transitInsight?.meta?.top_houses || [];
-  }, [transitInsight]);
+    if (rawTransitAspects.length === 0) return [];
+    
+    // Map natal bodies to their natural house rulership for domain hints
+    // This is a simplified mapping (not astrological - just for domain derivation)
+    const bodyToHouse: Record<string, number> = {
+      'sun': 5,        // creativity, identity
+      'moon': 4,       // home, foundations  
+      'mercury': 3,    // communication
+      'venus': 7,      // relationships
+      'mars': 1,       // identity, action
+      'jupiter': 9,    // meaning, learning
+      'saturn': 10,    // career, direction
+      'uranus': 11,    // community
+      'neptune': 12,   // inner life
+      'pluto': 8,      // shared resources
+      'asc': 1,        // identity
+      'mc': 10,        // direction
+    };
+    
+    // Count house hits from aspects
+    const houseCounts: Record<number, number> = {};
+    
+    for (const aspect of rawTransitAspects) {
+      const house = bodyToHouse[aspect.natal_body.toLowerCase()];
+      if (house) {
+        houseCounts[house] = (houseCounts[house] || 0) + 1;
+      }
+    }
+    
+    // Sort by count and return top houses
+    return Object.entries(houseCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([house]) => parseInt(house));
+  }, [rawTransitAspects]);
   
   // Phase 10: Micro validation check (needed before headline for echo)
   const { microValidation, hasJournalOverlap } = React.useMemo(() => {
