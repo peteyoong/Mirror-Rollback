@@ -367,6 +367,13 @@ const cleanReflectionQuestion = (raw: string): string => {
 
 const DISMISS_KEY_PREFIX = 'daily_focus_dismissed_';
 
+// Interface for enneagram results from API
+interface EnneagramResult {
+  core_type?: number;
+  wing?: number;
+  confidence?: number;
+}
+
 export default function HomeV2({ 
   userId, 
   keystone, 
@@ -376,6 +383,9 @@ export default function HomeV2({
   const router = useRouter();
   const isStaging = BUILD_ENV === 'staging' || BUILD_ENV === 'preview';
   
+  // Get chart from store (contains human_design)
+  const chart = useAppStore((state) => state.chart);
+  
   // Transit insight state
   const [transitInsight, setTransitInsight] = useState<TransitInterpretation | null>(null);
   const [transitLoading, setTransitLoading] = useState(true);
@@ -384,6 +394,9 @@ export default function HomeV2({
   // Daily focus state (for context)
   const [dailyFocus, setDailyFocus] = useState<DailyFocusResponse | null>(null);
   const [focusDismissed, setFocusDismissed] = useState(false);
+  
+  // Enneagram state (for personal resonance)
+  const [enneagramResult, setEnneagramResult] = useState<EnneagramResult | null>(null);
   
   // Get today's date string for dismiss key
   const getTodayKey = useCallback(() => {
