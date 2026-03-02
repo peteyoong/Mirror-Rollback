@@ -2058,6 +2058,42 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
     marginBottom: Spacing.sm,
   },
+  // Phase 14: "Why this chapter?" link
+  whyChapterLink: {
+    paddingVertical: Spacing.xs,
+    marginTop: Spacing.sm,
+  },
+  whyChapterLinkText: {
+    fontSize: 12,
+    color: Colors.accent,
+    fontWeight: '400',
+    opacity: 0.7,
+  },
+  // Phase 14: Chapter explanation container
+  chapterExplanation: {
+    marginTop: Spacing.md,
+    paddingLeft: Spacing.sm,
+  },
+  chapterInfluenceText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    opacity: 0.75,
+    marginBottom: Spacing.sm,
+  },
+  chapterTimeframeExplanation: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    opacity: 0.6,
+    fontStyle: 'italic',
+    marginTop: Spacing.xs,
+  },
+  chapterDomainText: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    opacity: 0.6,
+    marginTop: Spacing.xs,
+  },
   timelineLink: {
     paddingVertical: Spacing.xs,
     marginTop: Spacing.xs,
