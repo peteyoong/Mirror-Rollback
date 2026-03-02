@@ -484,6 +484,29 @@ export default function HomeV2({
     fetchFocus();
   }, [userId, getTodayKey, onFocusStateChange]);
   
+  // Fetch enneagram results for personal resonance
+  useEffect(() => {
+    const fetchEnneagram = async () => {
+      if (!userId) return;
+      
+      try {
+        const result = await getEnneagramResults(userId);
+        if (result) {
+          setEnneagramResult({
+            core_type: result.core_type,
+            wing: result.wing,
+            confidence: result.confidence,
+          });
+        }
+      } catch (err) {
+        // Silent fail - resonance is optional
+        console.debug('[HomeV2] Enneagram fetch skipped:', err);
+      }
+    };
+    
+    fetchEnneagram();
+  }, [userId]);
+  
   // Handle Reflect Now button
   const handleReflectNow = useCallback(() => {
     const navParams = new URLSearchParams();
