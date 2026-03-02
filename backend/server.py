@@ -4636,12 +4636,146 @@ async def interpret_transits_endpoint(request: TransitInterpretRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =============================================================================
+# JOURNAL TRANSIT SIGNATURE HELPER
+# =============================================================================
+# Build ID for transit signature stamping
+TRANSIT_BUILD_ID = "transits_phase6_20260302"
+MAX_TRANSIT_EVENTS = 8  # Max canonical events to store
+
+
+async def compute_journal_transit_signature(
+    user_id: str,
+    timestamp_utc: datetime
+) -> Optional[Dict[str, Any]]:
+    """
+    Compute transit signature for a journal entry.
+    
+    This is a deterministic "sky weather" stamp that can be used for:
+    - Search/filter journal by astrological patterns
+    - Power timeline relevance in chat
+    - Build resonance analytics
+    
+    Args:
+        user_id: User's ID
+        timestamp_utc: Timestamp for the journal entry (UTC)
+    
+    Returns:
+        Transit signature dict or None if transit engine fails
+    """
+    try:
+        # Get user's natal chart
+        chart = await db.charts.find_one({"user_id": user_id})
+        if not chart:
+            logger.warning(f"[JournalTransit] No chart for user={user_id}, skipping signature")
+            return {
+                "timestamp_utc": timestamp_utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                "source": "compute/transits/now",
+                "events": [],
+                "top_houses": None,
+                "build_id": TRANSIT_BUILD_ID,
+                "error": "no_natal_chart"
+            }
+        
+        # Compute transits/now for the timestamp
+        transit_now = compute_transits_now(
+            chart_data=chart,
+            timestamp_utc=timestamp_utc,
+            orb_deg=2.0,
+            include_houses=True
+        )
+        
+        # Build canonical event strings from aspects
+        events = []
+        for aspect in transit_now.get("aspects_to_natal_now", []):
+            # Format: {transit_planet}_{aspect}_{natal_body}
+            event_str = f"{aspect['transit_planet']}_{aspect['aspect']}_{aspect['natal_body']}"
+            events.append(event_str)
+        
+        # Optionally get window data for same-day events (ingresses, stations)
+        source = "compute/transits/now"
+        try:
+            # Compute 3-day window centered on the entry timestamp
+            window_start = timestamp_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+            transit_window = compute_transits_window(
+                chart_data=chart,
+                from_utc=window_start,
+                window_days=3,
+                orb_deg=2.0,
+                include_houses=True
+            )
+            
+            # Add same-day ingresses
+            entry_date = timestamp_utc.strftime('%Y-%m-%d')
+            for ingress in transit_window.get("ingresses", []):
+                ingress_date = ingress["timestamp_utc"][:10]
+                if ingress_date == entry_date:
+                    event_str = f"{ingress['planet']}_ingress_{ingress['to_sign']}"
+                    if event_str not in events:
+                        events.append(event_str)
+            
+            # Add same-day stations
+            for station in transit_window.get("stations", []):
+                station_date = station["timestamp_utc"][:10]
+                if station_date == entry_date:
+                    event_str = f"{station['planet']}_{station['type']}"
+                    if event_str not in events:
+                        events.append(event_str)
+            
+            source = "compute/transits/now+window"
+            
+            # Get house activation if available
+            house_activation = transit_window.get("house_activation", {})
+            top_houses = None
+            if house_activation.get("enabled"):
+                top_houses = house_activation.get("top_houses", [])[:3]
+        
+        except Exception as window_err:
+            logger.warning(f"[JournalTransit] Window calc failed, using now-only: {window_err}")
+            top_houses = None
+        
+        # Limit to MAX_TRANSIT_EVENTS
+        events = events[:MAX_TRANSIT_EVENTS]
+        
+        signature = {
+            "timestamp_utc": timestamp_utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            "source": source,
+            "events": events,
+            "top_houses": top_houses,
+            "build_id": TRANSIT_BUILD_ID
+        }
+        
+        logger.info(f"[JournalTransit] Computed signature for user={user_id}: {len(events)} events")
+        return signature
+        
+    except Exception as e:
+        logger.error(f"[JournalTransit] Failed to compute signature: {e}")
+        # Return error signature - journaling still succeeds
+        return {
+            "timestamp_utc": timestamp_utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            "source": "compute/transits/now",
+            "events": [],
+            "top_houses": None,
+            "build_id": TRANSIT_BUILD_ID,
+            "error": str(e)
+        }
+
+
 @api_router.post("/journal", response_model=JournalEntryResponse)
 async def create_journal_entry(entry: JournalEntryCreate):
-    """Create journal entry with optional source annotation"""
+    """Create journal entry with optional source annotation and transit signature"""
     try:
+        # Determine entry timestamp (current UTC)
+        entry_timestamp = datetime.now(timezone.utc)
+        
         # Analyze consciousness indicators
         analysis = analyze_consciousness_indicators(entry.content)
+        
+        # Compute transit signature (async, fails gracefully)
+        transit_signature = await compute_journal_transit_signature(
+            user_id=entry.user_id,
+            timestamp_utc=entry_timestamp
+        )
         
         entry_data = {
             "user_id": entry.user_id,
@@ -4649,10 +4783,23 @@ async def create_journal_entry(entry: JournalEntryCreate):
             "themes": [analysis.get("estimated_level", "")],
             "source": entry.source,  # e.g., "life", "astrology", "human_design"
             "source_label": entry.source_label,  # e.g., "Today's Reflection"
-            "created_at": datetime.now(timezone.utc)
+            "created_at": entry_timestamp,
+            "transit_signature": transit_signature  # New field
         }
         
         result = await db.journal.insert_one(entry_data)
+        
+        # Build response with transit_signature
+        response_signature = None
+        if transit_signature:
+            response_signature = JournalTransitSignature(
+                timestamp_utc=transit_signature["timestamp_utc"],
+                source=transit_signature["source"],
+                events=transit_signature["events"],
+                top_houses=transit_signature.get("top_houses"),
+                build_id=transit_signature["build_id"],
+                error=transit_signature.get("error")
+            )
         
         return JournalEntryResponse(
             id=str(result.inserted_id),
@@ -4660,7 +4807,8 @@ async def create_journal_entry(entry: JournalEntryCreate):
             themes=entry_data["themes"],
             source=entry.source,
             source_label=entry.source_label,
-            created_at=entry_data["created_at"].isoformat()
+            created_at=entry_data["created_at"].isoformat(),
+            transit_signature=response_signature
         )
     except Exception as e:
         logger.error(f"Create journal error: {e}")
