@@ -556,6 +556,13 @@ export default function HomeV2({
   const rawChapterBody = transitInsight?.key_points?.[1] || '';
   const chapterBody = cleanChapterBody(rawChapterBody);
   
+  // Personal resonance: derived from enneagram or human design
+  const userProfile: UserProfile = {
+    enneagram: enneagramResult ? { core_type: enneagramResult.core_type } : undefined,
+    human_design: chart?.human_design ? { type: chart.human_design.type } : undefined,
+  };
+  const personalResonance = generatePersonalResonance(userProfile);
+  
   // Combined loading state
   const showLoading = isLoading || transitLoading;
   
