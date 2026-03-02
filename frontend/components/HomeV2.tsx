@@ -1185,6 +1185,49 @@ export default function HomeV2({
     fetchJournal();
   }, [userId]);
   
+  // Phase 13: Fetch chapter data with 24-hour client-side caching
+  useEffect(() => {
+    const fetchChapter = async () => {
+      if (!userId) return;
+      
+      try {
+        // Check cache first
+        const cachedData = await AsyncStorage.getItem(CHAPTER_CACHE_KEY);
+        if (cachedData) {
+          const { data, userId: cachedUserId, timestamp } = JSON.parse(cachedData);
+          const now = Date.now();
+          const hoursSinceCache = (now - timestamp) / (1000 * 60 * 60);
+          
+          // Use cache if < 24 hours old and same user
+          if (hoursSinceCache < 24 && cachedUserId === userId) {
+            console.debug('[HomeV2] Using cached chapter data');
+            setChapterData(data);
+            return;
+          }
+        }
+        
+        // Fetch fresh data
+        setChapterLoading(true);
+        const data = await getChapter(userId, 180);
+        setChapterData(data);
+        
+        // Cache the result
+        await AsyncStorage.setItem(CHAPTER_CACHE_KEY, JSON.stringify({
+          data,
+          userId,
+          timestamp: Date.now(),
+        }));
+        console.debug('[HomeV2] Chapter data fetched and cached');
+      } catch (err) {
+        console.debug('[HomeV2] Chapter fetch skipped:', err);
+      } finally {
+        setChapterLoading(false);
+      }
+    };
+    
+    fetchChapter();
+  }, [userId]);
+  
   // Handle Reflect Now button
   const handleReflectNow = useCallback(() => {
     const navParams = new URLSearchParams();
