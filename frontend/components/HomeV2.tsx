@@ -1061,6 +1061,14 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xxl,
     marginBottom: Spacing.xl,
   },
+  // Phase 6: Progress indicator for first 7 days
+  progressIndicator: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    opacity: 0.3,
+    letterSpacing: 0.3,
+    marginBottom: Spacing.xs,
+  },
   primaryHeadline: {
     fontSize: 24,
     fontWeight: '300',
