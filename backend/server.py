@@ -3920,6 +3920,212 @@ async def invalidate_deep_dive_cache(user_id: str, lens: str = None):
 # API ROUTES
 # ===========================
 
+# =============================================================================
+# NOTIFICATION API ENDPOINTS (Phase 9)
+# =============================================================================
+@api_router.get("/notifications", response_model=NotificationListResponse)
+async def get_notifications(user_id: str, limit: int = 20, include_read: bool = True):
+    """Get user's notifications (newest first)."""
+    query = {"user_id": user_id}
+    if not include_read:
+        query["read_at"] = None
+    
+    notifications = await db.notifications.find(query).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    # Count unread
+    unread_count = await db.notifications.count_documents({"user_id": user_id, "read_at": None})
+    
+    # Format response
+    formatted = []
+    for notif in notifications:
+        data = notif.get("data")
+        formatted_data = None
+        if data:
+            formatted_data = NotificationData(
+                from_utc=data.get("from_utc", ""),
+                to_utc=data.get("to_utc", ""),
+                based_on=data.get("based_on", []),
+                top_houses=data.get("top_houses"),
+            )
+        
+        formatted.append(NotificationResponse(
+            id=str(notif["_id"]),
+            user_id=notif["user_id"],
+            created_at=notif["created_at"].isoformat() if notif.get("created_at") else "",
+            type=notif.get("type", "transit_heads_up"),
+            title=notif.get("title", ""),
+            body=notif.get("body", ""),
+            data=formatted_data,
+            read_at=notif["read_at"].isoformat() if notif.get("read_at") else None,
+            deliver_after_local=notif.get("deliver_after_local"),
+        ))
+    
+    return NotificationListResponse(
+        notifications=formatted,
+        total=len(formatted),
+        unread_count=unread_count,
+    )
+
+
+@api_router.post("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str):
+    """Mark a notification as read."""
+    try:
+        result = await db.notifications.update_one(
+            {"_id": ObjectId(notification_id)},
+            {"$set": {"read_at": datetime.now(timezone.utc)}}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Notification not found")
+        
+        return {"status": "success", "notification_id": notification_id}
+    except Exception as e:
+        logger.error(f"Error marking notification read: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/profile/notification-prefs")
+async def update_notification_prefs(user_id: str, prefs: NotificationPrefsUpdate):
+    """Update user's notification preferences."""
+    # Build update document
+    update_fields = {}
+    
+    if prefs.enabled is not None:
+        update_fields["notification_prefs.enabled"] = prefs.enabled
+    if prefs.timezone is not None:
+        update_fields["notification_prefs.timezone"] = prefs.timezone
+    if prefs.quiet_hours is not None:
+        update_fields["notification_prefs.quiet_hours"] = {
+            "start": prefs.quiet_hours.start,
+            "end": prefs.quiet_hours.end,
+        }
+    if prefs.max_per_week is not None:
+        update_fields["notification_prefs.max_per_week"] = max(1, min(7, prefs.max_per_week))
+    
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="No preferences to update")
+    
+    # Update user
+    result = await db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": update_fields}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Fetch updated prefs
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    current_prefs = user.get("notification_prefs", {})
+    
+    return {
+        "status": "success",
+        "notification_prefs": current_prefs,
+    }
+
+
+@api_router.get("/profile/notification-prefs")
+async def get_notification_prefs(user_id: str):
+    """Get user's notification preferences."""
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    prefs = user.get("notification_prefs", {
+        "enabled": False,
+        "timezone": user.get("timezone"),
+        "quiet_hours": {"start": "22:00", "end": "07:00"},
+        "max_per_week": 3,
+    })
+    
+    return {
+        "user_id": user_id,
+        "notification_prefs": prefs,
+    }
+
+
+# =============================================================================
+# ADMIN ENDPOINT: Generate Transit Nudges
+# =============================================================================
+@app.post("/api/admin/generate-transit-nudges")
+async def admin_generate_transit_nudges(days: int = 7, user_id: Optional[str] = None):
+    """
+    Admin endpoint to manually trigger transit nudge generation.
+    
+    Args:
+        days: How many days ahead to look for events (default: 7)
+        user_id: Optional - generate only for this user (for testing)
+    
+    Returns:
+        Summary of generated notifications
+    """
+    results = {
+        "generated": [],
+        "skipped": [],
+        "errors": [],
+        "total_users_checked": 0,
+        "total_notifications_created": 0,
+    }
+    
+    if user_id:
+        # Single user mode (for testing)
+        results["total_users_checked"] = 1
+        try:
+            notification = await generate_transit_nudge_for_user(user_id, days)
+            if notification:
+                results["generated"].append({
+                    "user_id": user_id,
+                    "notification_id": str(notification["_id"]),
+                    "title": notification["title"],
+                })
+                results["total_notifications_created"] = 1
+            else:
+                results["skipped"].append({
+                    "user_id": user_id,
+                    "reason": "no_notification_generated",
+                })
+        except Exception as e:
+            results["errors"].append({
+                "user_id": user_id,
+                "error": str(e),
+            })
+    else:
+        # Batch mode - process all opted-in users
+        opted_in_users = await db.users.find({
+            "notification_prefs.enabled": True
+        }).to_list(100)  # Limit to 100 users per run
+        
+        results["total_users_checked"] = len(opted_in_users)
+        
+        for user in opted_in_users:
+            uid = str(user["_id"])
+            try:
+                notification = await generate_transit_nudge_for_user(uid, days)
+                if notification:
+                    results["generated"].append({
+                        "user_id": uid,
+                        "notification_id": str(notification["_id"]),
+                        "title": notification["title"],
+                    })
+                    results["total_notifications_created"] += 1
+                else:
+                    results["skipped"].append({
+                        "user_id": uid,
+                        "reason": "no_notification_generated",
+                    })
+            except Exception as e:
+                results["errors"].append({
+                    "user_id": uid,
+                    "error": str(e),
+                })
+    
+    logger.info(f"[AdminNudge] Generated {results['total_notifications_created']} notifications for {results['total_users_checked']} users")
+    
+    return results
+
+
 @api_router.get("/")
 async def root():
     return {"message": "Project Mirror API", "version": "1.0"}
