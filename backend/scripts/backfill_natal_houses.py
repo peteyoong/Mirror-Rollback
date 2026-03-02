@@ -29,9 +29,6 @@ load_dotenv()
 # Import from existing astrology module
 from calculations.astrology import (
     tropical_to_sidereal,
-    get_sign,
-    format_degree,
-    PLANETS,
     DEFAULT_SVP_DEGREES,
 )
 
