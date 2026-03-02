@@ -244,12 +244,15 @@ interface JournalSignature {
 
 /**
  * Part A: Generate a resonant headline based on transit data
+ * Phase 10A: Now includes domain hints and journal-echo texture
  * Returns a grounded, non-mystical headline that reflects current tensions
  */
 const generateResonantHeadline = (
   aspects: TransitAspect[],
   userId: string,
-  journalSignatures?: JournalSignature[]
+  journalSignatures?: JournalSignature[],
+  topHouses?: number[],
+  hasJournalOverlap?: boolean
 ): string | null => {
   if (!aspects || aspects.length === 0) return null;
   
@@ -279,7 +282,33 @@ const generateResonantHeadline = (
     headline = templates.find(t => validateResonanceText(t)) || 'A moment for quiet attention.';
   }
   
-  return headline;
+  // Phase 10A: Remove trailing period for appending
+  let baseHeadline = headline.replace(/\.$/, '');
+  
+  // Phase 10A: Add domain hint if top_houses available
+  const domainHint = getDomainHint(topHouses);
+  if (domainHint) {
+    const withDomain = `${baseHeadline}, especially around ${domainHint}.`;
+    // Only add if stays under 28 words and passes validation
+    const wordCount = withDomain.split(' ').length;
+    if (wordCount <= 28 && validateResonanceText(withDomain)) {
+      baseHeadline = withDomain.replace(/\.$/, '');
+    }
+  }
+  
+  // Phase 10A: Add echo phrase if journal overlap detected
+  if (hasJournalOverlap) {
+    const echoPhrase = selectEchoPhrase(userId);
+    const withEcho = `${baseHeadline}${echoPhrase}.`;
+    // Only add if stays under 28 words and passes validation
+    const wordCount = withEcho.split(' ').length;
+    if (wordCount <= 28 && validateResonanceText(withEcho)) {
+      return withEcho;
+    }
+  }
+  
+  // Ensure ends with period
+  return baseHeadline.endsWith('.') ? baseHeadline : `${baseHeadline}.`;
 };
 
 /**
