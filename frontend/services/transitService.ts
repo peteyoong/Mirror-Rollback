@@ -146,6 +146,36 @@ export async function getTransitInsightNow(
 }
 
 /**
+ * Get raw transit compute data (aspects, planets)
+ * Useful for Resonance Engine that needs direct access to aspect data
+ * 
+ * @param userId - User ID for natal chart lookup
+ * @param timestamp_utc - Optional timestamp (ISO format), defaults to now
+ * @returns TransitComputeResponse or throws error
+ */
+export async function getTransitCompute(
+  userId: string,
+  timestamp_utc?: string
+): Promise<TransitComputeResponse> {
+  const computePayload: any = {
+    user_id: userId,
+    orb_deg: 2,
+    include_houses: true,
+  };
+  
+  if (timestamp_utc) {
+    computePayload.timestamp_utc = timestamp_utc;
+  }
+  
+  const computeResponse = await api.post<TransitComputeResponse>(
+    '/compute/transits/now',
+    computePayload
+  );
+  
+  return computeResponse.data;
+}
+
+/**
  * Check if transit endpoints are available
  * Uses cached health info
  */
