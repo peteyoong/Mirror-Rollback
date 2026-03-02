@@ -262,6 +262,11 @@ async def api_health(request: Request):
         "build_label": BUILD_LABEL,
         "git_sha": git_sha,
         
+        # Transit Engine build stamp
+        "build_id": "transits_phase2_20260302_1145",
+        "has_transits_now": True,
+        "has_transits_window": True,
+        
         # Database
         "db_name": db_name,
         "db_type": db_type,
