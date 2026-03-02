@@ -753,12 +753,12 @@ export default function HomeV2({
   
   // Phase 5: Calculate "Last reflected" for memory anchor
   const lastReflectedText = React.useMemo(() => {
-    if (!journalEntries || journalEntries.length === 0) {
+    if (!localJournalEntries || localJournalEntries.length === 0) {
       return 'Start your first reflection.';
     }
     
     // Find most recent journal entry
-    const sortedEntries = [...journalEntries].sort((a, b) => {
+    const sortedEntries = [...localJournalEntries].sort((a, b) => {
       const dateA = new Date(a.created_at || a.date || 0).getTime();
       const dateB = new Date(b.created_at || b.date || 0).getTime();
       return dateB - dateA;
@@ -786,7 +786,7 @@ export default function HomeV2({
     } else {
       return 'Last reflected: a while ago';
     }
-  }, [journalEntries]);
+  }, [localJournalEntries]);
   
   // ============================================
   // DERIVED CONTENT (with cleaning)
