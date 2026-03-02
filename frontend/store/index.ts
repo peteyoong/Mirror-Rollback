@@ -73,6 +73,7 @@ interface User {
   };
   timezone?: string;
   has_chart?: boolean;
+  created_at?: string;                 // ISO date string of account creation
 }
 
 interface ChatMessage {
