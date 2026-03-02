@@ -570,75 +570,13 @@ export default function MirrorScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* A. Section Label */}
-        <SectionLabel marginBottom={Spacing.lg}>THE MIRROR</SectionLabel>
-
-        {/* B. Main Body - Primary Mirror Text (Serif, Large) - ALWAYS RENDER */}
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={Colors.textTertiary} />
-          </View>
-        ) : (
-          <>
-            <Text style={styles.mainBody}>
-              {displayKeystone.keystone}
-            </Text>
-
-            {/* C. Subtext - Supportive Line (Italic, Softer) */}
-            <Text style={styles.subtext}>
-              {displayKeystone.micro_affirmation}
-            </Text>
-
-            {/* D. Divider - Subtle */}
-            <View style={styles.divider} />
-
-            {/* E. TODAY Section with conditional intelligence */}
-            <View style={styles.todaySection}>
-              <SectionLabel marginBottom={4}>TODAY</SectionLabel>
-              <Text style={styles.intelligenceSignal}>{intelligenceText}</Text>
-            </View>
-            
-            {/* Today's Focus Card - Embedded feel */}
-            <DailyFocusCard 
-              userId={user.id} 
-              onStateChange={handleFocusStateChange}
-            />
-
-            {/* F. Reflect Prompt */}
-            <View style={styles.reflectSection}>
-              <SectionLabel marginBottom={14}>REFLECT</SectionLabel>
-              <Text style={styles.reflectQuestion}>
-                {displayKeystone.reflect_question}
-              </Text>
-            </View>
-            
-            {/* Reflection Entry */}
-            {!focusState.isLoading && (
-              <ReflectionEntry onPress={handleReflect} />
-            )}
-
-            {/* G. Today's Transits Card */}
-            <TodaysTransitsCard />
-
-            {/* Continue with Mirror button */}
-            <TouchableOpacity
-              style={styles.continueButton}
-              onPress={handleContinueWithMirror}
-              activeOpacity={0.7}
-              disabled={API_URL_MISSING}
-            >
-              <Text style={styles.continueButtonText}>Continue with Mirror</Text>
-              <Text style={styles.continueButtonSubtext}>Stay with this for a moment.</Text>
-            </TouchableOpacity>
-          </>
-        )}
-
-        {/* Gentle footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Your reflection for today
-          </Text>
-        </View>
+        {/* HomeV2 - Unified two-section layout */}
+        <HomeV2 
+          userId={user.id}
+          keystone={displayKeystone}
+          isLoading={isLoading}
+          onFocusStateChange={handleFocusStateChange}
+        />
 
         {/* Debug: Compute Inputs Panel - only visible when DEBUG_MIRROR=true */}
         {user?.id && <DebugComputeInputs userId={user.id} />}
