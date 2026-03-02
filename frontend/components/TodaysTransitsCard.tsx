@@ -21,6 +21,8 @@ import {
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { BUILD_ENV } from '../utils/buildInfo';
+import { useAppStore } from '../store';
+import { storage } from '../store';
 import { 
   getTransitInsightNow, 
   getTransitBuildId,
@@ -29,9 +31,8 @@ import {
 } from '../services/transitService';
 import { SafeIcon } from './SafeIcon';
 
-interface TodaysTransitsCardProps {
-  userId: string;
-}
+// No props needed - we get userId from canonical store
+interface TodaysTransitsCardProps {}
 
 // Format timestamp for display
 const formatTimestamp = (isoString: string): string => {
@@ -71,7 +72,11 @@ const formatWindowRange = (from: string, to: string): string => {
   }
 };
 
-export default function TodaysTransitsCard({ userId }: TodaysTransitsCardProps) {
+export default function TodaysTransitsCard({}: TodaysTransitsCardProps) {
+  // Get canonical user from Zustand store (source of truth)
+  const user = useAppStore(s => s.user);
+  const canonicalUserId = user?.id || null;
+  
   const [insight, setInsight] = useState<TransitInterpretation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,8 +86,40 @@ export default function TodaysTransitsCard({ userId }: TodaysTransitsCardProps) 
 
   const isStaging = BUILD_ENV === 'staging' || BUILD_ENV === 'preview';
 
+  // Diagnostic: Check for user_id mismatch (staging only)
+  useEffect(() => {
+    if (!isStaging) return;
+    
+    const checkUserIdMismatch = async () => {
+      try {
+        // Check localStorage for any stale user IDs
+        const localStorageUserId = await storage.getItem('MIRROR_USER_ID');
+        const legacyUserId = await storage.getItem('mirror_last_user_id');
+        
+        console.log('[TodaysTransitsCard] User ID Diagnostic:');
+        console.log(`  Canonical (store): ${canonicalUserId || '(none)'}`);
+        console.log(`  localStorage MIRROR_USER_ID: ${localStorageUserId || '(none)'}`);
+        console.log(`  localStorage legacy: ${legacyUserId || '(none)'}`);
+        
+        // If canonical differs from localStorage, overwrite localStorage (staging only)
+        if (canonicalUserId && localStorageUserId && canonicalUserId !== localStorageUserId) {
+          console.warn('[TodaysTransitsCard] ⚠️ User ID mismatch detected! Overwriting localStorage with canonical.');
+          await storage.setItem('MIRROR_USER_ID', canonicalUserId);
+          await storage.setItem('mirror_last_user_id', canonicalUserId);
+          console.log('[TodaysTransitsCard] ✓ localStorage updated with canonical user_id');
+        }
+      } catch (e) {
+        console.error('[TodaysTransitsCard] Diagnostic error:', e);
+      }
+    };
+    
+    checkUserIdMismatch();
+  }, [canonicalUserId, isStaging]);
+
   const fetchInsight = useCallback(async () => {
-    if (!userId) {
+    // Use canonical user_id from store only
+    if (!canonicalUserId) {
+      console.log('[TodaysTransitsCard] No canonical userId available, skipping fetch');
       setLoading(false);
       return;
     }
@@ -91,7 +128,8 @@ export default function TodaysTransitsCard({ userId }: TodaysTransitsCardProps) 
     setError(null);
 
     try {
-      const data = await getTransitInsightNow(userId);
+      console.log(`[TodaysTransitsCard] Fetching with canonical userId: ${canonicalUserId}`);
+      const data = await getTransitInsightNow(canonicalUserId);
       setInsight(data);
       
       // Fetch build ID for debug (staging only)
@@ -113,11 +151,16 @@ export default function TodaysTransitsCard({ userId }: TodaysTransitsCardProps) 
     } finally {
       setLoading(false);
     }
-  }, [userId, isStaging]);
+  }, [canonicalUserId, isStaging]);
 
   useEffect(() => {
     fetchInsight();
   }, [fetchInsight]);
+
+  // Don't render if no user logged in
+  if (!canonicalUserId) {
+    return null;
+  }
 
   // Loading state - skeleton
   if (loading) {
@@ -151,6 +194,12 @@ export default function TodaysTransitsCard({ userId }: TodaysTransitsCardProps) 
               <Text style={styles.retryText}>Retry</Text>
             </TouchableOpacity>
           </View>
+          {/* Debug info in staging */}
+          {isStaging && (
+            <Text style={styles.debugLine}>
+              DEBUG: userId={canonicalUserId?.slice(0,8)}...
+            </Text>
+          )}
         </View>
       </View>
     );
