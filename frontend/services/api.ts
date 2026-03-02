@@ -826,6 +826,74 @@ export const getV3AssessmentStatus = async (sessionId: string): Promise<V3Sessio
   return response.data;
 };
 
+// ============================================
+// PHASE 12: Notifications / Inbox APIs
+// ============================================
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  created_at: string;
+  type: string;
+  title: string;
+  body: string;
+  data?: {
+    from_utc?: string;
+    to_utc?: string;
+    based_on?: string[];
+    top_houses?: number[];
+  };
+  read_at?: string | null;
+}
+
+export interface NotificationPrefs {
+  enabled: boolean;
+  timezone?: string;
+  quiet_hours?: {
+    start: string;  // "22:00"
+    end: string;    // "07:00"
+  };
+  max_per_week?: number;
+}
+
+/**
+ * Get all notifications for a user
+ */
+export const getNotifications = async (userId: string): Promise<Notification[]> => {
+  const response = await apiWithRetry.get(`/notifications?user_id=${userId}`);
+  return response.data;
+};
+
+/**
+ * Mark a notification as read
+ */
+export const markNotificationRead = async (notificationId: string): Promise<{ success: boolean }> => {
+  const response = await apiWithRetry.post(`/notifications/${notificationId}/read`);
+  return response.data;
+};
+
+/**
+ * Get user's notification preferences
+ */
+export const getNotificationPrefs = async (userId: string): Promise<NotificationPrefs> => {
+  const response = await apiWithRetry.get(`/profile/notification-prefs?user_id=${userId}`);
+  return response.data;
+};
+
+/**
+ * Update user's notification preferences
+ */
+export const updateNotificationPrefs = async (
+  userId: string, 
+  prefs: Partial<NotificationPrefs>
+): Promise<NotificationPrefs> => {
+  const response = await apiWithRetry.post('/profile/notification-prefs', {
+    user_id: userId,
+    ...prefs,
+  });
+  return response.data;
+};
+
 // Export both the raw api instance and the retry-wrapped version
 export { apiWithRetry };
 export default api;
