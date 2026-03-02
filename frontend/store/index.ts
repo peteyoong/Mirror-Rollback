@@ -84,11 +84,25 @@ interface ChatMessage {
 
 interface JournalEntry {
   id: string;
-  date: string;
-  title?: string;
   content: string;
+  themes: string[];
+  source?: string | null;
+  source_label?: string | null;
+  created_at: string;
+  // Legacy fields for backward compatibility
+  date?: string;
+  title?: string;
   mood?: string;
   tags?: string[];
+  // Transit signature from Phase 6
+  transit_signature?: {
+    timestamp_utc: string;
+    source: string;
+    events: string[];
+    top_houses: number[] | null;
+    build_id: string;
+    error?: string | null;
+  } | null;
 }
 
 interface AppState {
