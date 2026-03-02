@@ -614,7 +614,15 @@ export default function HomeV2({
   const user = useAppStore((state) => state.user);
   
   // Phase 6: Calculate days since signup
+  // For testing: check if DEBUG_MIRROR is enabled and use mock day
   const daysSinceSignup = React.useMemo(() => {
+    // In staging/debug mode, allow override via store or constant
+    const DEBUG_DAY_OVERRIDE = BUILD_ENV === 'staging' || BUILD_ENV === 'preview' ? 3 : null;
+    
+    if (DEBUG_DAY_OVERRIDE !== null && typeof DEBUG_DAY_OVERRIDE === 'number') {
+      return DEBUG_DAY_OVERRIDE;
+    }
+    
     return getDaysSinceSignup(user?.created_at);
   }, [user?.created_at]);
   
