@@ -775,6 +775,16 @@ class JournalEntryCreate(BaseModel):
     source_label: Optional[str] = None  # Human-readable label for the source
 
 
+class JournalTransitSignature(BaseModel):
+    """Transit signature for journal entries - deterministic sky weather"""
+    timestamp_utc: str
+    source: str  # "compute/transits/now" or "compute/transits/now+window"
+    events: List[str]  # Canonical event strings
+    top_houses: Optional[List[int]] = None  # Only if house_activation.enabled
+    build_id: str
+    error: Optional[str] = None  # Only if transit engine failed
+
+
 class JournalEntryResponse(BaseModel):
     id: str
     content: str
@@ -782,6 +792,7 @@ class JournalEntryResponse(BaseModel):
     source: Optional[str] = None
     source_label: Optional[str] = None
     created_at: str
+    transit_signature: Optional[JournalTransitSignature] = None
 
 
 class DailyReflection(BaseModel):
