@@ -85,6 +85,12 @@ export default function TodaysTransitsCard({}: TodaysTransitsCardProps) {
   const [buildId, setBuildId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [practiceExpanded, setPracticeExpanded] = useState(false);
+  
+  // Journal save state
+  const [savingToJournal, setSavingToJournal] = useState(false);
+  const [journalSaveSuccess, setJournalSaveSuccess] = useState(false);
+  const [journalSaveError, setJournalSaveError] = useState<string | null>(null);
+  const [savedEntryId, setSavedEntryId] = useState<string | null>(null);
 
   const isStaging = BUILD_ENV === 'staging' || BUILD_ENV === 'preview';
 
