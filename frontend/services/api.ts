@@ -887,10 +887,7 @@ export const updateNotificationPrefs = async (
   userId: string, 
   prefs: Partial<NotificationPrefs>
 ): Promise<NotificationPrefs> => {
-  const response = await apiWithRetry.post('/profile/notification-prefs', {
-    user_id: userId,
-    ...prefs,
-  });
+  const response = await apiWithRetry.post(`/profile/notification-prefs?user_id=${userId}`, prefs);
   return response.data;
 };
 
