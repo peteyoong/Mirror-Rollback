@@ -335,6 +335,116 @@ async def debug_ping():
     """
     return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
 
+
+@app.get("/api/debug/profile/birthdata")
+async def debug_profile_birthdata(user_id: str):
+    """
+    Debug endpoint to inspect birth data and natal house status for a user.
+    Staging/preview only - helps diagnose house_activation issues.
+    
+    Returns:
+        - birth_date, birth_time, birth_time_unknown
+        - birth_location
+        - natal_houses_present, natal_houses_enabled, natal_houses_reason
+    """
+    # Fetch user record
+    user = await db.users.find_one({"user_id": user_id})
+    if not user:
+        # Try with _id (ObjectId)
+        try:
+            user = await db.users.find_one({"_id": ObjectId(user_id)})
+        except Exception:
+            pass
+    
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User not found: {user_id}")
+    
+    # Fetch chart
+    chart = await db.charts.find_one({"user_id": user_id})
+    
+    # Extract birth data from user record
+    birth_date = user.get("birth_date")
+    birth_time = user.get("birth_time")
+    birth_time_unknown = user.get("birth_time_unknown", birth_time is None or birth_time == "")
+    birth_location = user.get("birth_location", {})
+    timezone_str = user.get("timezone")
+    
+    # Check natal houses from chart
+    natal_houses_present = False
+    natal_houses_enabled = False
+    natal_houses_reason = None
+    natal_planets_with_houses = 0
+    natal_planets_total = 0
+    ascendant_longitude = None
+    house_cusps = []
+    
+    if chart:
+        astrology = chart.get("astrology", chart.get("chart_data", {}).get("astrology", {}))
+        
+        # Check houses structure
+        houses = astrology.get("houses", {})
+        if houses:
+            house_cusps = houses.get("cusps", [])
+            if house_cusps:
+                natal_houses_present = True
+        
+        # Check angles for ascendant
+        angles = astrology.get("angles", {})
+        if angles:
+            asc = angles.get("asc", {})
+            ascendant_longitude = asc.get("longitude")
+        
+        # Check planets for house placements
+        planets = astrology.get("planets", {})
+        natal_planets_total = len(planets)
+        for planet_name, planet_data in planets.items():
+            if planet_data.get("house") is not None:
+                natal_planets_with_houses += 1
+        
+        # Determine enabled status
+        if natal_planets_with_houses > 0:
+            natal_houses_enabled = True
+        elif not natal_houses_present:
+            natal_houses_reason = "natal_houses_missing"
+        elif birth_time_unknown:
+            natal_houses_reason = "birth_time_unknown"
+        else:
+            natal_houses_reason = "unknown"
+    else:
+        natal_houses_reason = "no_chart_found"
+    
+    return {
+        "user_id": user_id,
+        "email": user.get("email"),
+        "name": user.get("name"),
+        
+        # Birth data
+        "birth_date": str(birth_date) if birth_date else None,
+        "birth_time": birth_time,
+        "birth_time_unknown": birth_time_unknown,
+        "birth_location": {
+            "name": birth_location.get("city", "") + ", " + birth_location.get("country", "") if birth_location else None,
+            "lat": birth_location.get("latitude"),
+            "lon": birth_location.get("longitude"),
+        } if birth_location else None,
+        "timezone": timezone_str,
+        
+        # Natal house status
+        "natal_houses_present": natal_houses_present,
+        "natal_houses_enabled": natal_houses_enabled,
+        "natal_houses_reason": natal_houses_reason,
+        
+        # Diagnostic details
+        "diagnostics": {
+            "has_chart": chart is not None,
+            "planets_total": natal_planets_total,
+            "planets_with_houses": natal_planets_with_houses,
+            "ascendant_longitude": ascendant_longitude,
+            "house_cusps_count": len(house_cusps),
+        }
+    }
+
+
 # Note: Static file serving will be added at the END of the file, AFTER the api_router is included
 # This ensures API routes take precedence over the catch-all static file handler
 
