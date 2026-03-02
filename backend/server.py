@@ -4817,23 +4817,38 @@ async def create_journal_entry(entry: JournalEntryCreate):
 
 @api_router.get("/journal/{user_id}", response_model=List[JournalEntryResponse])
 async def get_journal_entries(user_id: str, limit: int = 20):
-    """Get user's journal entries with source annotations"""
+    """Get user's journal entries with source annotations and transit signatures"""
     try:
         entries = await db.journal.find(
             {"user_id": user_id}
         ).sort("created_at", -1).limit(limit).to_list(limit)
         
-        return [
-            JournalEntryResponse(
+        result = []
+        for entry in entries:
+            # Build transit_signature from stored data
+            transit_sig = entry.get("transit_signature")
+            response_signature = None
+            if transit_sig:
+                response_signature = JournalTransitSignature(
+                    timestamp_utc=transit_sig.get("timestamp_utc", ""),
+                    source=transit_sig.get("source", "compute/transits/now"),
+                    events=transit_sig.get("events", []),
+                    top_houses=transit_sig.get("top_houses"),
+                    build_id=transit_sig.get("build_id", "unknown"),
+                    error=transit_sig.get("error")
+                )
+            
+            result.append(JournalEntryResponse(
                 id=str(entry["_id"]),
                 content=entry["content"],
                 themes=entry.get("themes", []),
                 source=entry.get("source"),
                 source_label=entry.get("source_label"),
-                created_at=entry["created_at"].isoformat()
-            )
-            for entry in entries
-        ]
+                created_at=entry["created_at"].isoformat(),
+                transit_signature=response_signature
+            ))
+        
+        return result
     except Exception as e:
         logger.error(f"Get journal error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
