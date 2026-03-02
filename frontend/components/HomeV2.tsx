@@ -588,6 +588,13 @@ export default function HomeV2({
           {primaryHeadline}
         </Text>
         
+        {/* Personal Resonance - subtle, secondary, shown only if available */}
+        {personalResonance && (
+          <Text style={styles.personalResonance} numberOfLines={1}>
+            {personalResonance}
+          </Text>
+        )}
+        
         {/* Micro anchor - simplified two lines */}
         <View style={styles.microAnchor}>
           <Text style={styles.anchorTime}>As of {timestamp}</Text>
