@@ -609,8 +609,23 @@ export default function HomeV2({
   const router = useRouter();
   const isStaging = BUILD_ENV === 'staging' || BUILD_ENV === 'preview';
   
-  // Get chart from store (contains human_design)
+  // Get chart and user from store
   const chart = useAppStore((state) => state.chart);
+  const user = useAppStore((state) => state.user);
+  
+  // Phase 6: Calculate days since signup
+  const daysSinceSignup = React.useMemo(() => {
+    return getDaysSinceSignup(user?.created_at);
+  }, [user?.created_at]);
+  
+  // Phase 6: Get guided arc values
+  const progressIndicator = React.useMemo(() => {
+    return getProgressIndicator(daysSinceSignup);
+  }, [daysSinceSignup]);
+  
+  const guidedQuestion = React.useMemo(() => {
+    return getGuidedArcQuestion(daysSinceSignup);
+  }, [daysSinceSignup]);
   
   // Transit insight state
   const [transitInsight, setTransitInsight] = useState<TransitInterpretation | null>(null);
