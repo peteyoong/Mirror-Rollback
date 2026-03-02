@@ -1309,6 +1309,13 @@ export default function HomeV2({
           </Text>
         )}
         
+        {/* Phase 10: Micro Validation - shown if journal events overlap */}
+        {microValidation && (
+          <Text style={styles.microValidation}>
+            {microValidation}
+          </Text>
+        )}
+        
         {/* Micro anchor - simplified two lines */}
         <View style={styles.microAnchor}>
           <Text style={styles.anchorTime}>As of {timestamp}</Text>
