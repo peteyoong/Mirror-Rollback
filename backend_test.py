@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
 Backend Testing Suite for Project Mirror
-Testing the new Transit Engine endpoint: POST /api/compute/transits/now
+Testing Transit Engine endpoints:
+- POST /api/compute/transits/now (Phase 1)
+- POST /api/compute/transits/window (Phase 2 - Window Scanner)
 """
 
 import requests
@@ -10,7 +12,7 @@ import time
 from datetime import datetime, timezone
 
 # Configuration
-BASE_URL = "http://localhost:8001/api"  # Using localhost since external URL has routing issues
+BASE_URL = "https://mirror-lens-fixes.emergent.host/api"  # Using public URL for testing
 TEST_USER_ID = "6971c8f681beab3a8955b255"
 
 def log_test(test_name, status, details=""):
