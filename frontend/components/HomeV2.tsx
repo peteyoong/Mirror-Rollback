@@ -1184,11 +1184,44 @@ export default function HomeV2({
   
   // ============================================
   // DERIVED CONTENT (with cleaning)
+  // Phase 10: Resonance Engine integration
   // ============================================
   
-  // Headline: cleaned, max 140 chars, single sentence
+  // Phase 10: Generate resonant headline from raw transit aspects
+  const resonantHeadline = React.useMemo(() => {
+    if (rawTransitAspects.length === 0) return null;
+    
+    // Extract journal signatures for micro validation
+    const journalSigs: JournalSignature[] = localJournalEntries
+      .slice(0, 3)
+      .map(entry => ({
+        events: entry.transit_signature?.events || [],
+        top_houses: entry.transit_signature?.top_houses || [],
+      }))
+      .filter(sig => sig.events && sig.events.length > 0);
+    
+    return generateResonantHeadline(rawTransitAspects, userId, journalSigs);
+  }, [rawTransitAspects, userId, localJournalEntries]);
+  
+  // Headline: Use resonant headline if available, otherwise fall back to cleaned transit headline
   const rawHeadline = transitInsight?.headline || keystone?.keystone || '';
-  const primaryHeadline = cleanHeadline(rawHeadline);
+  const cleanedHeadline = cleanHeadline(rawHeadline);
+  const primaryHeadline = resonantHeadline || cleanedHeadline;
+  
+  // Phase 10: Micro validation check
+  const microValidation = React.useMemo(() => {
+    if (rawTransitAspects.length === 0) return null;
+    
+    const currentEvents = aspectsToEvents(rawTransitAspects);
+    const journalSigs: JournalSignature[] = localJournalEntries
+      .slice(0, 3)
+      .map(entry => ({
+        events: entry.transit_signature?.events || [],
+        top_houses: entry.transit_signature?.top_houses || [],
+      }));
+    
+    return checkMicroValidation(currentEvents, journalSigs);
+  }, [rawTransitAspects, localJournalEntries]);
   
   // Timestamp: just time
   const timestamp = transitInsight?.meta?.timestamp_utc 
@@ -1203,10 +1236,17 @@ export default function HomeV2({
       : ['presence'];
   
   // Reflection question: cleaned, no preface
-  // Phase 6: Use guided arc question for first 7 days
+  // Phase 6 + 10: Use context-aware question for first 7 days
   const rawQuestion = transitInsight?.reflect?.[0] || keystone?.reflect_question || '';
   const baseReflectionQuestion = cleanReflectionQuestion(rawQuestion);
-  const reflectionQuestion = guidedQuestion || baseReflectionQuestion;
+  
+  // Phase 10: Try context-aware question first, then fall back to static guided question
+  const contextAwareQuestion = React.useMemo(() => {
+    if (daysSinceSignup < 0 || daysSinceSignup > 7) return null;
+    return generateContextAwareQuestion(daysSinceSignup, rawTransitAspects, userId);
+  }, [daysSinceSignup, rawTransitAspects, userId]);
+  
+  const reflectionQuestion = contextAwareQuestion || guidedQuestion || baseReflectionQuestion;
   
   // Chapter headline: max 110 chars, one sentence
   const rawChapterHeadline = transitInsight?.key_points?.[0] || '';
