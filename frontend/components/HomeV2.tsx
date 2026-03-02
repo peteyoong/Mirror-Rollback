@@ -80,7 +80,7 @@ const validateResonanceText = (text: string): boolean => {
 
 // Phase 10A: House to plain domain mapping (no astrology words)
 const HOUSE_DOMAIN_MAP: Record<number, string> = {
-  1: 'identity',
+  1: 'your sense of self',  // Phase 10B: Softened from "identity"
   2: 'security',
   3: 'communication',
   4: 'home',
