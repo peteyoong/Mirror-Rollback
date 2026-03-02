@@ -1004,6 +1004,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     alignSelf: 'flex-start',
+    marginTop: Spacing.md,
   },
   reflectButtonText: {
     fontSize: 15,
@@ -1012,14 +1013,38 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   
+  // Phase 5: Progressive Disclosure
+  continueReadingLink: {
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  continueReadingText: {
+    fontSize: 13,
+    color: Colors.accent,
+    fontWeight: '400',
+    opacity: 0.8,
+  },
+  additionalContentContainer: {
+    marginBottom: Spacing.md,
+  },
+  additionalContent: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: Colors.textSecondary,
+    lineHeight: 22,
+    opacity: 0.7,
+  },
+  
   // ============================================
-  // YOUR CURRENT CHAPTER - Secondary, important
+  // YOUR CURRENT CHAPTER - Secondary, calmer, dimmer
   // ============================================
   chapterSection: {
-    paddingTop: Spacing.lg,
+    paddingTop: Spacing.xxl,
     paddingBottom: Spacing.xl,
+    marginTop: Spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.04)',
+    borderTopColor: 'rgba(255,255,255,0.03)',
+    opacity: 0.9,
   },
   chapterHeadline: {
     fontSize: 15,
@@ -1027,6 +1052,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     lineHeight: 23,
     marginBottom: Spacing.sm,
+    opacity: 0.85,
   },
   chapterBody: {
     fontSize: 14,
@@ -1034,7 +1060,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 22,
     marginBottom: Spacing.md,
-    opacity: 0.8,
+    opacity: 0.7,
   },
   timelineLink: {
     paddingVertical: Spacing.xs,
@@ -1044,6 +1070,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.accent,
     fontWeight: '400',
+    letterSpacing: 0.2,
+    opacity: 0.85,
+  },
+  
+  // Phase 5: Memory Anchor
+  memoryAnchor: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    opacity: 0.4,
+    marginTop: Spacing.lg,
     letterSpacing: 0.2,
   },
   
