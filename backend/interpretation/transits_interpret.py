@@ -270,8 +270,13 @@ def generate_key_points(transit_payload: Dict[str, Any], include_houses: bool = 
     points = []
     
     exact_hits = transit_payload.get('exact_hits', [])
+    aspects_now = transit_payload.get('aspects_to_natal_now', [])  # For 'now' mode
     ingresses = transit_payload.get('ingresses', [])
     stations = transit_payload.get('stations', [])
+    
+    # Use aspects_to_natal_now if exact_hits is empty (now mode)
+    if not exact_hits and aspects_now:
+        exact_hits = aspects_now
     
     # Prioritize tightest aspects
     sorted_hits = sorted(exact_hits, key=lambda x: x.get('orb', 999))[:3]
@@ -286,13 +291,20 @@ def generate_key_points(transit_payload: Dict[str, Any], include_houses: bool = 
     for sta in stations[:1]:
         points.append(interpret_station(sta, include_houses))
     
-    # Ensure we have at least 3 points
-    if len(points) < 3:
-        if exact_hits:
-            points.append("Multiple planetary conversations are active, each offering its own invitation.")
-        if not include_houses:
+    # Ensure we have at least 3 points with meaningful filler
+    default_points = [
+        "Cosmic currents are present, inviting you to notice what draws your attention.",
+        "Multiple subtle influences are available; no single energy dominates.",
+        "Take time to notice what resonates with your current experience.",
+        "This moment offers space for reflection and presence.",
+        "Trust your inner knowing about what themes feel most alive."
+    ]
+    
+    while len(points) < 3:
+        if not include_houses and len(points) < 3:
             points.append("Without house data, focus on the planetary themes themselves.")
-        points.append("Take time to notice what resonates with your current experience.")
+        if default_points:
+            points.append(default_points.pop(0))
     
     return points[:max_points]
 
