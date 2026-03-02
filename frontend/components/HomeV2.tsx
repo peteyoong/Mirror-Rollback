@@ -7,6 +7,7 @@
  * Phase 4: Resonance Precision - Multiple variants, deterministic selection
  * Phase 5: Interaction Psychology Layer - Progressive disclosure, micro motion, memory anchor
  * Phase 6: First 7-Day Guided Arc - Subtle progression for new users
+ * Phase 10: Resonance Engine v1 - Transit-aware headlines and questions
  * 
  * Two unified sections:
  * 1. TODAY - Primary headline, personal resonance, timestamp, themes, reflection question, Reflect Now button
@@ -34,10 +35,295 @@ import { getDailyFocus, DailyFocusResponse, getEnneagramResult, getJournalEntrie
 import { 
   getTransitInsightNow, 
   TransitInterpretation,
+  getTransitCompute,
 } from '../services/transitService';
 import { BUILD_ENV } from '../utils/buildInfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SectionLabel from './SectionLabel';
+
+// ============================================
+// PHASE 10: Resonance Engine v1
+// ============================================
+
+// Part D: Safety Layer - Forbidden words that imply fate/prediction
+const FORBIDDEN_WORDS = [
+  'will',
+  'destined',
+  'guaranteed',
+  'fated',
+  'meant to',
+  'the universe',
+  'cosmic forces',
+  'stars say',
+  'planets say',
+  'horoscope',
+];
+
+/**
+ * Validate resonance text - reject if contains forbidden words
+ */
+const validateResonanceText = (text: string): boolean => {
+  const lowerText = text.toLowerCase();
+  for (const forbidden of FORBIDDEN_WORDS) {
+    if (lowerText.includes(forbidden)) {
+      console.debug(`[ResonanceEngine] Rejected text containing: "${forbidden}"`);
+      return false;
+    }
+  }
+  return true;
+};
+
+// Aspect type to archetypal tension mapping
+interface TensionArchetype {
+  type: 'friction' | 'polarity' | 'intensity' | 'shift' | 'emphasis';
+  description: string;
+  headlineTemplates: string[];
+  questionModifiers: Record<string, string[]>;
+}
+
+const ASPECT_ARCHETYPES: Record<string, TensionArchetype> = {
+  square: {
+    type: 'friction',
+    description: 'friction between two needs',
+    headlineTemplates: [
+      'There may be tension between holding structure and wanting change.',
+      'A subtle pressure between what you want and what feels practical could be present.',
+      'You might feel friction between moving forward and staying grounded.',
+      'There could be an inner negotiation between security and growth.',
+    ],
+    questionModifiers: {
+      pattern: ['Where is this pressure starting to repeat itself?', 'What friction keeps showing up?'],
+      choice: ['Which side of this tension are you leaning toward?', 'What would ease this friction?'],
+      tension: ['Where does this pressure feel strongest?', 'What needs your attention most?'],
+    },
+  },
+  opposition: {
+    type: 'polarity',
+    description: 'polarity pulling in two directions',
+    headlineTemplates: [
+      'You might feel pulled between expansion and responsibility.',
+      'There could be a sense of being stretched between different priorities.',
+      'A polarity between giving and receiving may be present.',
+      'You might notice a pull between what you want and what others need.',
+    ],
+    questionModifiers: {
+      pattern: ['What kind of either-or keeps resurfacing?', 'Where do you feel most divided?'],
+      choice: ['Which side of this pull are you leaning toward?', 'What would bring more balance?'],
+      tension: ['Where do you feel most stretched?', 'What needs to be held together?'],
+    },
+  },
+  conjunction: {
+    type: 'intensity',
+    description: 'intensified focus',
+    headlineTemplates: [
+      'A particular area of life may feel more concentrated right now.',
+      'There could be an intensified focus on something that matters.',
+      'You might notice a heightened sense of clarity about a direction.',
+      'Something may be asking for your full attention.',
+    ],
+    questionModifiers: {
+      pattern: ['What keeps demanding your focus?', 'Where is your attention being pulled?'],
+      choice: ['What deserves your full attention today?', 'Where could focus make a difference?'],
+      awareness: ['What feels most alive right now?', 'What has your attention?'],
+    },
+  },
+  trine: {
+    type: 'shift',
+    description: 'natural flow or ease',
+    headlineTemplates: [
+      'There may be a sense of things aligning more easily.',
+      'A gentle momentum could be available if you lean into it.',
+      'You might notice that certain things feel less effortful.',
+      'There could be an opening where things flow with less resistance.',
+    ],
+    questionModifiers: {
+      pattern: ['What feels easier than expected?', 'Where is there unexpected flow?'],
+      choice: ['What could you lean into right now?', 'Where might less effort serve you?'],
+      awareness: ['What feels naturally supported?', 'Where do you feel momentum?'],
+    },
+  },
+  sextile: {
+    type: 'shift',
+    description: 'subtle opportunity or opening',
+    headlineTemplates: [
+      'A subtle opening for something new may be present.',
+      'There could be a quiet opportunity to try a different approach.',
+      'You might notice a small window for something you\'ve been considering.',
+      'A gentle invitation to explore something could be available.',
+    ],
+    questionModifiers: {
+      pattern: ['What small openings are you noticing?', 'Where might there be room to try?'],
+      choice: ['What small step could you take?', 'What invitation feels worth exploring?'],
+      awareness: ['What possibility feels alive?', 'What would you try if it were easy?'],
+    },
+  },
+};
+
+// Default fallback for unknown aspects
+const DEFAULT_ARCHETYPE: TensionArchetype = {
+  type: 'shift',
+  description: 'subtle shift in tone',
+  headlineTemplates: [
+    'There may be a subtle shift in how things feel today.',
+    'You might notice something different about your inner state.',
+    'A quiet change in tone could be present.',
+  ],
+  questionModifiers: {
+    pattern: ['What feels different lately?'],
+    choice: ['What small adjustment might help?'],
+    awareness: ['What are you noticing?'],
+  },
+};
+
+// Transit aspect data structure
+interface TransitAspect {
+  transit_planet: string;
+  aspect: string;
+  natal_body: string;
+  orb: number;
+}
+
+// Journal signature structure (simplified)
+interface JournalSignature {
+  events?: string[];
+  top_houses?: number[];
+}
+
+/**
+ * Part A: Generate a resonant headline based on transit data
+ * Returns a grounded, non-mystical headline that reflects current tensions
+ */
+const generateResonantHeadline = (
+  aspects: TransitAspect[],
+  userId: string,
+  journalSignatures?: JournalSignature[]
+): string | null => {
+  if (!aspects || aspects.length === 0) return null;
+  
+  // Find the strongest aspect (lowest orb = tightest aspect)
+  const sortedAspects = [...aspects].sort((a, b) => a.orb - b.orb);
+  const primaryAspect = sortedAspects[0];
+  
+  if (!primaryAspect) return null;
+  
+  // Get archetype for this aspect type
+  const archetype = ASPECT_ARCHETYPES[primaryAspect.aspect] || DEFAULT_ARCHETYPE;
+  const templates = archetype.headlineTemplates;
+  
+  if (!templates || templates.length === 0) return null;
+  
+  // Select template deterministically using hash
+  const dateKey = getLocalDateKey();
+  const hashKey = `${userId}|${dateKey}|headline|${primaryAspect.aspect}`;
+  const hash = stableHash(hashKey);
+  const index = hash % templates.length;
+  
+  let headline = templates[index];
+  
+  // Validate safety
+  if (!validateResonanceText(headline)) {
+    // Fall back to first safe template
+    headline = templates.find(t => validateResonanceText(t)) || 'A moment for quiet attention.';
+  }
+  
+  return headline;
+};
+
+/**
+ * Detect primary tension type from aspects
+ */
+const detectPrimaryTension = (aspects: TransitAspect[]): TensionArchetype | null => {
+  if (!aspects || aspects.length === 0) return null;
+  
+  // Find tightest aspect (lowest orb)
+  const sortedAspects = [...aspects].sort((a, b) => a.orb - b.orb);
+  const primaryAspect = sortedAspects[0];
+  
+  if (!primaryAspect) return null;
+  
+  return ASPECT_ARCHETYPES[primaryAspect.aspect] || DEFAULT_ARCHETYPE;
+};
+
+/**
+ * Part B: Generate context-aware 7-day arc question
+ * Blends day theme with active tension
+ */
+const generateContextAwareQuestion = (
+  daysSinceSignup: number,
+  aspects: TransitAspect[],
+  userId: string
+): string | null => {
+  // Only for first 7 days
+  if (daysSinceSignup < 0 || daysSinceSignup > 7) return null;
+  
+  const dayFocus = SEVEN_DAY_ARC[daysSinceSignup];
+  if (!dayFocus) return null;
+  
+  // Get the day's theme key (lowercase)
+  const themeKey = dayFocus.theme.toLowerCase();
+  
+  // Get primary tension archetype
+  const tension = detectPrimaryTension(aspects);
+  
+  // If we have tension data, try to get a tension-aware question
+  if (tension && tension.questionModifiers) {
+    const modifiers = tension.questionModifiers[themeKey];
+    
+    if (modifiers && modifiers.length > 0) {
+      // Select deterministically
+      const dateKey = getLocalDateKey();
+      const hashKey = `${userId}|${dateKey}|question|${themeKey}|${tension.type}`;
+      const hash = stableHash(hashKey);
+      const index = hash % modifiers.length;
+      
+      const question = modifiers[index];
+      
+      // Validate safety and length (under 16 words)
+      if (validateResonanceText(question) && question.split(' ').length <= 16) {
+        return question;
+      }
+    }
+  }
+  
+  // Fall back to static day question
+  return dayFocus.questionModifier || null;
+};
+
+/**
+ * Part C: Check for micro validation (journal signature overlap)
+ * Returns "This may feel familiar." if overlap detected
+ */
+const checkMicroValidation = (
+  currentEvents: string[],
+  journalSignatures?: JournalSignature[]
+): string | null => {
+  if (!currentEvents || currentEvents.length === 0) return null;
+  if (!journalSignatures || journalSignatures.length === 0) return null;
+  
+  // Get recent signatures (last 3)
+  const recentSignatures = journalSignatures.slice(0, 3);
+  
+  // Check for overlap
+  for (const sig of recentSignatures) {
+    if (sig.events && sig.events.length > 0) {
+      // Check if any current event matches a recent journal event
+      for (const currentEvent of currentEvents) {
+        if (sig.events.includes(currentEvent)) {
+          return 'This may feel familiar.';
+        }
+      }
+    }
+  }
+  
+  return null;
+};
+
+/**
+ * Convert aspects to canonical event strings for comparison
+ */
+const aspectsToEvents = (aspects: TransitAspect[]): string[] => {
+  return aspects.map(a => `${a.transit_planet}_${a.aspect}_${a.natal_body}`);
+};
 
 interface HomeV2Props {
   userId: string;
