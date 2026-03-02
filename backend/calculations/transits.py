@@ -606,9 +606,15 @@ def refine_exact_aspect_time(
         high_jd = min(end_jd, high_jd)
     
     if best_orb < 0.5:  # Found a good hit
+        # Round orb, but preserve raw value for numeric integrity
+        orb_rounded = round(best_orb, 2)
+        # Don't display 0.00 unless truly within 1e-6
+        if orb_rounded == 0.0 and best_orb > 1e-6:
+            orb_rounded = 0.01  # Minimum displayable non-zero
         return {
             'jd': best_jd,
-            'orb': round(best_orb, 2)
+            'orb': orb_rounded,
+            'orb_raw': best_orb  # Full precision
         }
     
     return None
