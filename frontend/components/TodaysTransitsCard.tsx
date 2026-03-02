@@ -386,6 +386,41 @@ export default function TodaysTransitsCard({}: TodaysTransitsCardProps) {
               </View>
             )}
 
+            {/* Add to Journal Button */}
+            <View style={styles.journalSection}>
+              {journalSaveSuccess ? (
+                <View style={styles.successBanner}>
+                  <SafeIcon name="checkmark-circle" size={16} color="#4CAF50" />
+                  <Text style={styles.successText}>Saved to Journal</Text>
+                </View>
+              ) : journalSaveError ? (
+                <TouchableOpacity 
+                  style={styles.errorBanner}
+                  onPress={handleSaveToJournal}
+                  activeOpacity={0.7}
+                >
+                  <SafeIcon name="alert-circle" size={16} color="#FF6B6B" />
+                  <Text style={styles.errorBannerText}>{journalSaveError}</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity 
+                  style={styles.addToJournalButton}
+                  onPress={handleSaveToJournal}
+                  disabled={savingToJournal}
+                  activeOpacity={0.7}
+                >
+                  {savingToJournal ? (
+                    <ActivityIndicator size="small" color={Colors.accent} />
+                  ) : (
+                    <>
+                      <SafeIcon name="bookmark-outline" size={16} color={Colors.accent} />
+                      <Text style={styles.addToJournalText}>Add to Journal</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+
             {/* Debug info - staging only */}
             {isStaging && buildId && (
               <Text style={styles.debugLine}>
