@@ -286,6 +286,7 @@ if __name__ == '__main__':
     
     try:
         test_schema_keys_present()
+        test_timestamp_consistency()
         test_no_fatalistic_language()
         test_validate_no_fatalism_function()
         test_house_references_when_disabled()
