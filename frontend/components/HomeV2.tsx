@@ -1277,6 +1277,16 @@ export default function HomeV2({
     }).start();
   }, [moreContentOpacity]);
   
+  // Phase 14: Handle "Why this chapter?" tap
+  const handleWhyThisChapter = useCallback(() => {
+    setShowChapterExplanation(true);
+    Animated.timing(chapterExplanationOpacity, {
+      toValue: 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [chapterExplanationOpacity]);
+  
   // Phase 5: Trigger entrance animations when content loads
   useEffect(() => {
     if (!isLoading && !transitLoading && !hasAnimated.current) {
