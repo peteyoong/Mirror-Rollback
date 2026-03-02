@@ -91,8 +91,10 @@ def test_window_deterministic_snapshot():
                 # Should be {planet}_ingress_{to_sign} (not truncated)
                 parts = event.split('_ingress_')
                 assert len(parts) == 2, f"Invalid ingress format: {event}"
-                # Sign should be full name (Aries, not Ari)
-                assert len(parts[1]) > 3, f"Sign should be full name, got: {parts[1]}"
+                # Sign should be a valid zodiac sign (Leo, Aries, etc.)
+                valid_signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 
+                              'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
+                assert parts[1] in valid_signs, f"Invalid sign name: {parts[1]}"
     print("✅ PATCH 3: daily_summary uses canonical event strings (full names)")
     
     # =========================================================================
