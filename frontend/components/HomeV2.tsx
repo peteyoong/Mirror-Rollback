@@ -834,10 +834,10 @@ export default function HomeV2({
       <View style={styles.todaySection}>
         <SectionLabel marginBottom={Spacing.sm}>TODAY</SectionLabel>
         
-        {/* Primary Headline - larger, more breathing room */}
-        <Text style={styles.primaryHeadline}>
+        {/* Primary Headline - with fade-in animation */}
+        <Animated.Text style={[styles.primaryHeadline, { opacity: headlineOpacity }]}>
           {primaryHeadline}
-        </Text>
+        </Animated.Text>
         
         {/* Personal Resonance - subtle, secondary, shown only if available */}
         {personalResonance && (
@@ -854,10 +854,30 @@ export default function HomeV2({
           </Text>
         </View>
         
-        {/* Single reflection question - more space above */}
-        <Text style={styles.reflectionQuestion}>
+        {/* Single reflection question - with delayed fade-in */}
+        <Animated.Text style={[styles.reflectionQuestion, { opacity: questionOpacity }]}>
           {reflectionQuestion}
-        </Text>
+        </Animated.Text>
+        
+        {/* Progressive Disclosure: Continue reading link */}
+        {!showMoreContent && additionalContent && (
+          <TouchableOpacity 
+            style={styles.continueReadingLink}
+            onPress={handleContinueReading}
+            activeOpacity={0.6}
+          >
+            <Text style={styles.continueReadingText}>Continue reading →</Text>
+          </TouchableOpacity>
+        )}
+        
+        {/* Progressive Disclosure: Additional content (revealed on tap) */}
+        {showMoreContent && (
+          <Animated.View style={[styles.additionalContentContainer, { opacity: moreContentOpacity }]}>
+            <Text style={styles.additionalContent} numberOfLines={2}>
+              {additionalContent}
+            </Text>
+          </Animated.View>
+        )}
         
         {/* Primary Button: Reflect Now */}
         <TouchableOpacity 
@@ -893,6 +913,11 @@ export default function HomeV2({
         >
           <Text style={styles.timelineLinkText}>See timeline →</Text>
         </TouchableOpacity>
+        
+        {/* Memory Anchor: Last reflected */}
+        <Text style={styles.memoryAnchor}>
+          {lastReflectedText}
+        </Text>
       </View>
       
       {/* Debug: Build stamp (staging only) */}
