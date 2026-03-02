@@ -43,6 +43,7 @@ import SectionLabel from './SectionLabel';
 
 // ============================================
 // PHASE 10: Resonance Engine v1
+// PHASE 10A: Polish - Domain hints + Journal echo texture
 // ============================================
 
 // Part D: Safety Layer - Forbidden words that imply fate/prediction
@@ -57,6 +58,10 @@ const FORBIDDEN_WORDS = [
   'stars say',
   'planets say',
   'horoscope',
+  'house',      // No astrology terms
+  'transit',    // No astrology terms
+  'natal',      // No astrology terms
+  'planet',     // No astrology terms
 ];
 
 /**
@@ -71,6 +76,54 @@ const validateResonanceText = (text: string): boolean => {
     }
   }
   return true;
+};
+
+// Phase 10A: House to plain domain mapping (no astrology words)
+const HOUSE_DOMAIN_MAP: Record<number, string> = {
+  1: 'identity',
+  2: 'security',
+  3: 'communication',
+  4: 'home',
+  5: 'creativity',
+  6: 'routine',
+  7: 'relationships',
+  8: 'shared resources',
+  9: 'meaning',
+  10: 'direction',
+  11: 'community',
+  12: 'inner life',
+};
+
+// Phase 10A: Journal echo phrases (for when overlap detected)
+const ECHO_PHRASES = [
+  '— and it may echo something familiar',
+  '— and it may resemble a recent pattern',
+  '— something you may have noticed before',
+];
+
+/**
+ * Phase 10A: Get domain hint from top houses
+ * Returns a plain language domain string (no astrology)
+ */
+const getDomainHint = (topHouses: number[] | undefined): string | null => {
+  if (!topHouses || topHouses.length === 0) return null;
+  
+  // Use the first (strongest) house
+  const primaryHouse = topHouses[0];
+  const domain = HOUSE_DOMAIN_MAP[primaryHouse];
+  
+  return domain || null;
+};
+
+/**
+ * Phase 10A: Select echo phrase deterministically
+ */
+const selectEchoPhrase = (userId: string): string => {
+  const dateKey = getLocalDateKey();
+  const hashKey = `${userId}|${dateKey}|echo`;
+  const hash = stableHash(hashKey);
+  const index = hash % ECHO_PHRASES.length;
+  return ECHO_PHRASES[index];
 };
 
 // Aspect type to archetypal tension mapping
