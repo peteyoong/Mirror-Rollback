@@ -25,7 +25,7 @@ from calculations.human_design import get_human_design_chart
 from calculations.numerology import get_full_numerology, get_numerology_cycles
 from calculations.consciousness import get_consciousness_framework, analyze_consciousness_indicators
 from calculations.timezone_utils import resolve_birth_utc, parse_timezone
-from calculations.transits import compute_transits_now
+from calculations.transits import compute_transits_now, compute_transits_window
 
 # Import Enneagram Knowledge Base
 from enneagram_kb import (
