@@ -171,15 +171,38 @@ export const getChart = async (userId: string) => {
 };
 
 // Journal APIs
-export const createJournalEntry = async (userId: string, content: string) => {
-  const response = await apiWithRetry.post('/journal', {
-    user_id: userId,
-    content,
-  });
+export interface JournalEntryCreateParams {
+  user_id: string;
+  content: string;
+  source?: string;        // e.g., "transits_card", "life", "astrology"
+  source_label?: string;  // Human-readable label
+}
+
+export interface JournalTransitSignature {
+  timestamp_utc: string;
+  source: string;
+  events: string[];
+  top_houses: number[] | null;
+  build_id: string;
+  error?: string | null;
+}
+
+export interface JournalEntryResponse {
+  id: string;
+  content: string;
+  themes: string[];
+  source?: string | null;
+  source_label?: string | null;
+  created_at: string;
+  transit_signature?: JournalTransitSignature | null;
+}
+
+export const createJournalEntry = async (params: JournalEntryCreateParams): Promise<JournalEntryResponse> => {
+  const response = await apiWithRetry.post('/journal', params);
   return response.data;
 };
 
-export const getJournalEntries = async (userId: string) => {
+export const getJournalEntries = async (userId: string): Promise<JournalEntryResponse[]> => {
   const response = await apiWithRetry.get(`/journal/${userId}`);
   return response.data;
 };
