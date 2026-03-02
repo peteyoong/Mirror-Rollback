@@ -21,14 +21,12 @@ import { Spacing } from '../../constants/spacing';
 import { useAppStore } from '../../store';
 import api, { API_BASE_URL, API_URL_MISSING } from '../../services/api';
 import { storage } from '../../store';
-import DailyFocusCard, { DailyFocusState } from '../../components/DailyFocusCard';
-import ReflectionEntry from '../../components/ReflectionEntry';
+import { DailyFocusState } from '../../components/DailyFocusCard';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
-import SectionLabel from '../../components/SectionLabel';
-import ApiOfflineBanner, { InlineRetry } from '../../components/ApiOfflineBanner';
+import ApiOfflineBanner from '../../components/ApiOfflineBanner';
 import { BUILD_ID as CANONICAL_BUILD_ID, BUILD_VERSION, BUILD_ENV, DEBUG_MIRROR } from '../../utils/buildInfo';
 import { SafeIcon } from '../../components/SafeIcon';
-import TodaysTransitsCard from '../../components/TodaysTransitsCard';
+import HomeV2 from '../../components/HomeV2';
 
 // =========================================
 // BUILD ID - Use canonical source
