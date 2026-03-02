@@ -26,7 +26,7 @@ import { Colors } from '../constants/colors';
 import { Spacing } from '../constants/spacing';
 import { useAppStore } from '../store';
 import { DailyFocusState } from './DailyFocusCard';
-import { getDailyFocus, DailyFocusResponse, getEnneagramResults } from '../services/api';
+import { getDailyFocus, DailyFocusResponse, getEnneagramResult } from '../services/api';
 import { 
   getTransitInsightNow, 
   TransitInterpretation,
