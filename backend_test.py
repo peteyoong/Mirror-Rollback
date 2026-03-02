@@ -72,7 +72,7 @@ def test_transit_basic_current_time():
         
         # Verify transiting planets (should have 10 planets)
         transiting_planets = data["transiting_planets"]
-        expected_planets = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+        expected_planets = ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto"]
         
         for planet in expected_planets:
             if planet not in transiting_planets:
