@@ -592,6 +592,34 @@ async def debug_backfill_houses(user_id: str):
     }
 
 
+@app.get("/api/debug/timeline-context")
+async def debug_timeline_context(user_id: str):
+    """
+    Debug endpoint to inspect timeline context for a user.
+    Shows what context would be injected into chat.
+    Staging/preview only.
+    """
+    now_utc = datetime.now(timezone.utc)
+    
+    # Get raw context
+    context = await get_timeline_context(user_id, now_utc)
+    
+    # Get formatted prompt
+    formatted_prompt = format_timeline_context_for_prompt(context)
+    
+    return {
+        "user_id": user_id,
+        "feature_enabled": ENABLE_TIMELINE_CONTEXT,
+        "raw_context": context,
+        "formatted_prompt": formatted_prompt,
+        "config": {
+            "MAX_NOW_EVENTS": MAX_NOW_EVENTS,
+            "MAX_RECENT_JOURNAL_ENTRIES": MAX_RECENT_JOURNAL_ENTRIES,
+            "MAX_EVENTS_PER_JOURNAL": MAX_EVENTS_PER_JOURNAL,
+        }
+    }
+
+
 # Note: Static file serving will be added at the END of the file, AFTER the api_router is included
 # This ensures API routes take precedence over the catch-all static file handler
 
