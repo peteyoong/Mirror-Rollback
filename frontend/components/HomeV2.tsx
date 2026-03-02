@@ -963,6 +963,140 @@ const cleanReflectionQuestion = (raw: string): string => {
   return cleaned || 'What feels present right now?';
 };
 
+// ============================================
+// PHASE 14: Chapter Transparency Layer
+// Format based_on data into human-readable influences
+// ============================================
+
+/**
+ * Mapping from raw transit description patterns to grounded language.
+ * We transform astrological terms into life experience descriptions.
+ */
+const INFLUENCE_TRANSLATIONS: Record<string, string> = {
+  // Saturn patterns (structure, responsibility, foundations)
+  'saturn.*conjunction': 'A long-term structural influence is asking you to examine what you\'ve built.',
+  'saturn.*square': 'A period of tension around responsibilities and commitments.',
+  'saturn.*opposition': 'A push-pull between structure and freedom in your life.',
+  'saturn.*trine': 'A supportive time for building lasting foundations.',
+  'saturn.*sextile': 'Subtle opportunities for creating more stability.',
+  
+  // Pluto patterns (transformation, depth, power)
+  'pluto.*conjunction': 'A deep transformative process is reshaping part of your life.',
+  'pluto.*square': 'An underlying change process may feel intense or challenging.',
+  'pluto.*opposition': 'A time of confronting what needs to transform.',
+  'pluto.*trine': 'Deep changes are flowing more naturally now.',
+  'pluto.*sextile': 'Opportunities for meaningful inner transformation.',
+  
+  // Neptune patterns (spirituality, dreams, dissolution)
+  'neptune.*conjunction': 'A dissolving influence is softening old boundaries.',
+  'neptune.*square': 'Some confusion or idealism may be present.',
+  'neptune.*opposition': 'A tension between reality and what you wish for.',
+  'neptune.*trine': 'Increased sensitivity and intuition are available.',
+  'neptune.*sextile': 'Subtle openings for creative or spiritual exploration.',
+  
+  // Uranus patterns (change, freedom, awakening)
+  'uranus.*conjunction': 'An awakening influence is prompting unexpected shifts.',
+  'uranus.*square': 'Sudden changes or restlessness may be present.',
+  'uranus.*opposition': 'A time of balancing stability with the need for change.',
+  'uranus.*trine': 'Positive breakthroughs and fresh perspectives are possible.',
+  'uranus.*sextile': 'Opportunities for innovation and new approaches.',
+  
+  // Jupiter patterns (expansion, growth, opportunity)
+  'jupiter.*conjunction': 'An expansive influence is opening possibilities.',
+  'jupiter.*square': 'Growth may feel excessive or scattered.',
+  'jupiter.*opposition': 'Finding balance between too much and too little.',
+  'jupiter.*trine': 'Natural opportunities for growth and abundance.',
+  'jupiter.*sextile': 'Helpful openings for learning and expansion.',
+};
+
+/**
+ * Domain mapping for focus_domains to human language
+ */
+const DOMAIN_TRANSLATIONS: Record<string, string> = {
+  'identity': 'your sense of self',
+  'security': 'security and stability',
+  'communication': 'how you communicate',
+  'home': 'home and foundations',
+  'creativity': 'creative expression',
+  'routine': 'daily routines and health',
+  'relationships': 'partnerships and relationships',
+  'shared resources': 'shared resources and intimacy',
+  'meaning': 'beliefs and meaning',
+  'direction': 'career and direction',
+  'community': 'friendships and community',
+  'inner life': 'your inner world and solitude',
+};
+
+/**
+ * Format based_on array into human-readable influence descriptions.
+ * Returns array of 1-2 influence sentences.
+ */
+const formatChapterInfluences = (basedOn: string[]): string[] => {
+  if (!basedOn || basedOn.length === 0) return [];
+  
+  const influences: string[] = [];
+  const seen = new Set<string>();
+  
+  for (const rawInfluence of basedOn.slice(0, 2)) {
+    const lowerRaw = rawInfluence.toLowerCase();
+    
+    // Try to match against known patterns
+    let matched = false;
+    for (const [pattern, translation] of Object.entries(INFLUENCE_TRANSLATIONS)) {
+      const regex = new RegExp(pattern, 'i');
+      if (regex.test(lowerRaw) && !seen.has(translation)) {
+        influences.push(translation);
+        seen.add(translation);
+        matched = true;
+        break;
+      }
+    }
+    
+    // Generic fallback if no pattern matched
+    if (!matched && influences.length < 2) {
+      // Create a generic influence description
+      if (lowerRaw.includes('saturn')) {
+        influences.push('A long-term influence is emphasizing structure and responsibility.');
+      } else if (lowerRaw.includes('pluto')) {
+        influences.push('An underlying change process is at work beneath the surface.');
+      } else if (lowerRaw.includes('neptune')) {
+        influences.push('A subtle dissolving of old patterns may be present.');
+      } else if (lowerRaw.includes('uranus')) {
+        influences.push('An influence toward change and liberation is active.');
+      } else if (lowerRaw.includes('jupiter')) {
+        influences.push('An expansive influence is creating room for growth.');
+      } else {
+        // Very generic fallback
+        influences.push('A slow-moving influence is shaping this period.');
+      }
+    }
+    
+    if (influences.length >= 2) break;
+  }
+  
+  return influences;
+};
+
+/**
+ * Format focus_domains into human-readable area description.
+ */
+const formatChapterDomains = (focusDomains: string[] | null | undefined): string | null => {
+  if (!focusDomains || focusDomains.length === 0) return null;
+  
+  const translatedDomains = focusDomains
+    .slice(0, 2)
+    .map(domain => DOMAIN_TRANSLATIONS[domain.toLowerCase()] || domain.toLowerCase())
+    .filter(Boolean);
+  
+  if (translatedDomains.length === 0) return null;
+  
+  if (translatedDomains.length === 1) {
+    return `Area emphasized: ${translatedDomains[0]}.`;
+  }
+  
+  return `Areas emphasized: ${translatedDomains[0]} and ${translatedDomains[1]}.`;
+};
+
 const DISMISS_KEY_PREFIX = 'daily_focus_dismissed_';
 
 // Interface for enneagram results from API
