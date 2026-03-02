@@ -166,12 +166,37 @@ const extractThemes = (keyPoints: string[]): string[] => {
 const cleanChapterHeadline = (raw: string): string => {
   if (!raw) return 'A season of noticing what wants attention.';
   
-  // Remove astrological references
+  // If the raw text has astrological jargon that will leave fragments, use fallback
+  const hasHeavyJargon = /transiting\s+(mercury|venus|mars|jupiter|saturn|sun|moon)/i.test(raw) ||
+    /natal\s+(mercury|venus|mars|jupiter|saturn|pluto)/i.test(raw) ||
+    /polarity\s+between/i.test(raw);
+  
+  if (hasHeavyJargon) {
+    // Extract the meaningful part after common patterns
+    const meaningfulPatterns = [
+      /you may notice\s+(.+)/i,
+      /this invites\s+(.+)/i,
+      /there's an?\s+(.+)/i,
+      /notice\s+(.+)/i,
+    ];
+    
+    for (const pattern of meaningfulPatterns) {
+      const match = raw.match(pattern);
+      if (match && match[1] && match[1].length > 15) {
+        const extracted = match[1].trim();
+        const firstSentence = extracted.split(/[.!?]/)[0].trim();
+        if (firstSentence.length > 15) {
+          return (firstSentence.charAt(0).toUpperCase() + firstSentence.slice(1) + '.').substring(0, 110);
+        }
+      }
+    }
+    
+    return 'A season of noticing what wants attention.';
+  }
+  
+  // Clean up without heavy stripping
   let cleaned = raw
-    .replace(/transiting\s+\w+/gi, '')
-    .replace(/natal\s+\w+/gi, '')
     .replace(/\(.*?\)/g, '')
-    .replace(/mercury|venus|mars|jupiter|saturn|uranus|neptune|pluto/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
   
@@ -188,7 +213,7 @@ const cleanChapterHeadline = (raw: string): string => {
     result = result.substring(0, 107).trim() + '...';
   }
   
-  if (result.length < 10) {
+  if (result.length < 15) {
     return 'A season of noticing what wants attention.';
   }
   
