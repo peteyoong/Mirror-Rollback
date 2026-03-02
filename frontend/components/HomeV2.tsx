@@ -1026,6 +1026,10 @@ export default function HomeV2({
   // Phase 10: Raw transit aspects for Resonance Engine
   const [rawTransitAspects, setRawTransitAspects] = useState<TransitAspect[]>([]);
   
+  // Phase 13: Chapter data state
+  const [chapterData, setChapterData] = useState<ChapterResponse | null>(null);
+  const [chapterLoading, setChapterLoading] = useState(false);
+  
   // Phase 5: Progressive disclosure state
   const [showMoreContent, setShowMoreContent] = useState(false);
   
