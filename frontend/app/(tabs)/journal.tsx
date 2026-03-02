@@ -234,7 +234,12 @@ export default function JournalScreen() {
 
     try {
       console.log('[Journal] Creating entry for user:', user.id);
-      const entry = await createJournalEntry(user.id, newEntry.trim());
+      const entry = await createJournalEntry({
+        user_id: user.id,
+        content: newEntry.trim(),
+        source: 'journal_tab',
+        source_label: 'Journal Entry',
+      });
       console.log('[Journal] Entry created successfully:', entry.id);
       addJournalEntry(entry);
       setNewEntry('');
