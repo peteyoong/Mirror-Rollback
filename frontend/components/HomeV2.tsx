@@ -4,6 +4,8 @@
  * Phase 1: Structural Reset
  * Phase 2: Resonance Calibration - Copy tightening, visual hierarchy
  * Phase 3: Deterministic Personal Resonance Layer
+ * Phase 4: Resonance Precision - Multiple variants, deterministic selection
+ * Phase 5: Interaction Psychology Layer - Progressive disclosure, micro motion, memory anchor
  * 
  * Two unified sections:
  * 1. TODAY - Primary headline, personal resonance, timestamp, themes, reflection question, Reflect Now button
@@ -13,13 +15,14 @@
  * Preserves all existing data calls.
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '../constants/colors';
