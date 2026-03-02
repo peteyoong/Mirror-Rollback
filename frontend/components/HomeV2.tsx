@@ -545,8 +545,9 @@ export default function HomeV2({
   const router = useRouter();
   const isStaging = BUILD_ENV === 'staging' || BUILD_ENV === 'preview';
   
-  // Get chart from store (contains human_design)
+  // Get chart and journal entries from store
   const chart = useAppStore((state) => state.chart);
+  const journalEntries = useAppStore((state) => state.journalEntries);
   
   // Transit insight state
   const [transitInsight, setTransitInsight] = useState<TransitInterpretation | null>(null);
@@ -559,6 +560,15 @@ export default function HomeV2({
   
   // Enneagram state (for personal resonance)
   const [enneagramResult, setEnneagramResult] = useState<EnneagramResult | null>(null);
+  
+  // Phase 5: Progressive disclosure state
+  const [showMoreContent, setShowMoreContent] = useState(false);
+  
+  // Phase 5: Animation values
+  const headlineOpacity = useRef(new Animated.Value(0)).current;
+  const questionOpacity = useRef(new Animated.Value(0)).current;
+  const moreContentOpacity = useRef(new Animated.Value(0)).current;
+  const hasAnimated = useRef(false);
   
   // Get today's date string for dismiss key
   const getTodayKey = useCallback(() => {
