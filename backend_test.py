@@ -12,7 +12,7 @@ import time
 from datetime import datetime, timezone
 
 # Configuration
-BASE_URL = "https://mirror-lens-fixes.emergent.host/api"  # Using public URL for testing
+BASE_URL = "http://localhost:8001/api"  # Using localhost for testing
 TEST_USER_ID = "6971c8f681beab3a8955b255"
 
 def log_test(test_name, status, details=""):
