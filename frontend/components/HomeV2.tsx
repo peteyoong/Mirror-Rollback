@@ -1267,32 +1267,19 @@ export default function HomeV2({
   // ============================================
   // DERIVED CONTENT (with cleaning)
   // Phase 10: Resonance Engine integration
+  // Phase 10A: Domain hints + Journal echo texture
   // ============================================
   
-  // Phase 10: Generate resonant headline from raw transit aspects
-  const resonantHeadline = React.useMemo(() => {
-    if (rawTransitAspects.length === 0) return null;
-    
-    // Extract journal signatures for micro validation
-    const journalSigs: JournalSignature[] = localJournalEntries
-      .slice(0, 3)
-      .map(entry => ({
-        events: entry.transit_signature?.events || [],
-        top_houses: entry.transit_signature?.top_houses || [],
-      }))
-      .filter(sig => sig.events && sig.events.length > 0);
-    
-    return generateResonantHeadline(rawTransitAspects, userId, journalSigs);
-  }, [rawTransitAspects, userId, localJournalEntries]);
+  // Phase 10: Extract top_houses from transit interpretation
+  const topHouses = React.useMemo(() => {
+    return transitInsight?.meta?.top_houses || [];
+  }, [transitInsight]);
   
-  // Headline: Use resonant headline if available, otherwise fall back to cleaned transit headline
-  const rawHeadline = transitInsight?.headline || keystone?.keystone || '';
-  const cleanedHeadline = cleanHeadline(rawHeadline);
-  const primaryHeadline = resonantHeadline || cleanedHeadline;
-  
-  // Phase 10: Micro validation check
-  const microValidation = React.useMemo(() => {
-    if (rawTransitAspects.length === 0) return null;
+  // Phase 10: Micro validation check (needed before headline for echo)
+  const { microValidation, hasJournalOverlap } = React.useMemo(() => {
+    if (rawTransitAspects.length === 0) {
+      return { microValidation: null, hasJournalOverlap: false };
+    }
     
     const currentEvents = aspectsToEvents(rawTransitAspects);
     const journalSigs: JournalSignature[] = localJournalEntries
@@ -1302,8 +1289,40 @@ export default function HomeV2({
         top_houses: entry.transit_signature?.top_houses || [],
       }));
     
-    return checkMicroValidation(currentEvents, journalSigs);
+    const validation = checkMicroValidation(currentEvents, journalSigs);
+    return { 
+      microValidation: validation, 
+      hasJournalOverlap: validation !== null 
+    };
   }, [rawTransitAspects, localJournalEntries]);
+  
+  // Phase 10 + 10A: Generate resonant headline from raw transit aspects
+  // Now includes domain hints and echo phrases
+  const resonantHeadline = React.useMemo(() => {
+    if (rawTransitAspects.length === 0) return null;
+    
+    // Extract journal signatures
+    const journalSigs: JournalSignature[] = localJournalEntries
+      .slice(0, 3)
+      .map(entry => ({
+        events: entry.transit_signature?.events || [],
+        top_houses: entry.transit_signature?.top_houses || [],
+      }))
+      .filter(sig => sig.events && sig.events.length > 0);
+    
+    return generateResonantHeadline(
+      rawTransitAspects, 
+      userId, 
+      journalSigs,
+      topHouses,          // Phase 10A: domain hints
+      hasJournalOverlap   // Phase 10A: echo texture
+    );
+  }, [rawTransitAspects, userId, localJournalEntries, topHouses, hasJournalOverlap]);
+  
+  // Headline: Use resonant headline if available, otherwise fall back to cleaned transit headline
+  const rawHeadline = transitInsight?.headline || keystone?.keystone || '';
+  const cleanedHeadline = cleanHeadline(rawHeadline);
+  const primaryHeadline = resonantHeadline || cleanedHeadline;
   
   // Timestamp: just time
   const timestamp = transitInsight?.meta?.timestamp_utc 
