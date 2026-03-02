@@ -1030,6 +1030,10 @@ export default function HomeV2({
   const [chapterData, setChapterData] = useState<ChapterResponse | null>(null);
   const [chapterLoading, setChapterLoading] = useState(false);
   
+  // Phase 14: Chapter transparency layer state
+  const [showChapterExplanation, setShowChapterExplanation] = useState(false);
+  const chapterExplanationOpacity = useRef(new Animated.Value(0)).current;
+  
   // Phase 5: Progressive disclosure state
   const [showMoreContent, setShowMoreContent] = useState(false);
   
