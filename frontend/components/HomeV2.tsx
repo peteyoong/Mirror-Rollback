@@ -49,29 +49,135 @@ interface HomeV2Props {
 }
 
 // ============================================
-// PERSONAL RESONANCE - Deterministic mappings
+// PERSONAL RESONANCE - Phase 4: Precision
 // ============================================
 
-// Enneagram core type mappings (1-9)
-const ENNEAGRAM_RESONANCE: Record<number, string> = {
-  1: "This may highlight your internal standards.",
-  2: "This may pull on your instinct to support others.",
-  3: "This may touch your drive to achieve or perform.",
-  4: "This may stir deeper emotional undercurrents.",
-  5: "This may draw you inward to process privately.",
-  6: "This may activate your need for reassurance or clarity.",
-  7: "This may stir your urge to move on quickly.",
-  8: "This may test how you hold control.",
-  9: "This may soften or blur your boundaries.",
+// Stable hash function for deterministic variant selection
+// Simple djb2 hash - no external dependencies
+const stableHash = (str: string): number => {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash) + str.charCodeAt(i);
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash);
 };
 
-// Human Design type mappings
-const HD_RESONANCE: Record<string, string> = {
-  'Manifestor': "This may affect how you initiate.",
-  'Generator': "This may shift what you feel energy for.",
-  'Manifesting Generator': "This may redirect your momentum.",
-  'Projector': "This may affect how you guide or focus.",
-  'Reflector': "This may feel amplified by your environment.",
+// Get local date as YYYY-MM-DD
+const getLocalDateKey = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Enneagram core type mappings (1-9) - 2-3 variants each
+const ENNEAGRAM_RESONANCE: Record<number, string[]> = {
+  1: [
+    "This may highlight your internal standards.",
+    "This may surface the gap between how things are and how they should be.",
+    "This may sharpen your sense of what needs correcting.",
+  ],
+  2: [
+    "This may pull on your instinct to support others.",
+    "This may highlight where giving feels easier than receiving.",
+    "This may stir awareness of what you need versus what you offer.",
+  ],
+  3: [
+    "This may touch your drive to achieve or perform.",
+    "This may test whether you're moving for you or for recognition.",
+    "This may highlight the difference between doing and being.",
+  ],
+  4: [
+    "This may stir deeper emotional undercurrents.",
+    "This may amplify your sense of what's missing.",
+    "This may highlight the tension between ordinary and meaningful.",
+  ],
+  5: [
+    "This may draw you inward to process privately.",
+    "This may test when to stay quiet versus when to share.",
+    "This may highlight your need for space before engagement.",
+  ],
+  6: [
+    "This may activate your need for reassurance or clarity.",
+    "This may surface doubt that wants to be worked through.",
+    "This may test your trust in the unknown.",
+  ],
+  7: [
+    "This may stir your urge to move on quickly.",
+    "This may test your patience with slower emotions.",
+    "This may highlight the pull to keep things light.",
+  ],
+  8: [
+    "This may test how you hold control.",
+    "This may surface intensity around boundaries.",
+    "This may challenge you to soften without giving up power.",
+  ],
+  9: [
+    "This may soften or blur your boundaries.",
+    "This may highlight where you're merging with others' needs.",
+    "This may test your ability to stay present with tension.",
+  ],
+};
+
+// Human Design type mappings - 2-3 variants each
+const HD_RESONANCE: Record<string, string[]> = {
+  'Manifestor': [
+    "This may affect how you initiate — especially if you feel resistance.",
+    "This may shift how you start things when you're not fully sure yet.",
+    "This may bring up friction around taking the first step.",
+  ],
+  'Generator': [
+    "This may shift what you feel energy for — and what you don't.",
+    "This may clarify what's worth saying yes to today.",
+    "This may highlight where your energy is naturally pulled.",
+  ],
+  'Manifesting Generator': [
+    "This may redirect your momentum — fast.",
+    "This may shift your pace or priorities mid-stream.",
+    "This may push you to adjust quickly without overthinking.",
+  ],
+  'Projector': [
+    "This may affect how you guide — or when you hold back.",
+    "This may highlight where your focus is best spent.",
+    "This may nudge you to wait for the right moment to step in.",
+  ],
+  'Reflector': [
+    "This may feel amplified by your environment today.",
+    "This may make outside signals feel louder than usual.",
+    "This may heighten sensitivity to people and spaces.",
+  ],
+};
+
+// Domain hints - maps themes to contextual suffixes
+const DOMAIN_HINTS: Record<string, string> = {
+  'communication': 'in conversations',
+  'expression': 'in how you express',
+  'relationships': 'in relationships',
+  'connection': 'in connection',
+  'work': 'at work',
+  'purpose': 'around purpose',
+  'feelings': 'around feelings',
+  'inner life': 'in your inner life',
+  'change': 'around change',
+  'transformation': 'in what\'s shifting',
+  'rest': 'around rest',
+  'stillness': 'in stillness',
+  'calm': 'in finding calm',
+  'growth': 'around growth',
+  'expansion': 'in expansion',
+  'learning': 'in learning',
+  'body': 'in your body',
+  'energy': 'around energy',
+  'reflection': 'in reflection',
+  'awareness': 'in awareness',
+  'attention': 'around attention',
+  'depth': 'in what\'s deeper',
+  'identity': 'in how you show up',
+  'structure': 'around structure',
+  'presence': 'in presence',
+  'home': 'at home',
 };
 
 interface UserProfile {
@@ -84,34 +190,87 @@ interface UserProfile {
 }
 
 /**
+ * Select a variant deterministically based on userId and date.
+ * Same user + same day = same variant. Different days = rotation.
+ */
+const selectVariant = (variants: string[], userId: string, lensKey: string): string => {
+  const dateKey = getLocalDateKey();
+  const hashKey = `${userId}|${dateKey}|${lensKey}|resonance`;
+  const hash = stableHash(hashKey);
+  const index = hash % variants.length;
+  return variants[index];
+};
+
+/**
+ * Append a domain hint if available and if result stays ≤120 chars.
+ */
+const appendDomainHint = (base: string, themes: string[]): string => {
+  if (!themes || themes.length === 0) return base;
+  
+  // Find first matching theme
+  for (const theme of themes) {
+    const lowerTheme = theme.toLowerCase();
+    const hint = DOMAIN_HINTS[lowerTheme];
+    if (hint) {
+      // Check if base already ends with period
+      const baseWithoutPeriod = base.replace(/\.$/, '');
+      const withHint = `${baseWithoutPeriod} — ${hint}.`;
+      
+      // Only append if within 120 chars
+      if (withHint.length <= 120) {
+        return withHint;
+      }
+    }
+  }
+  
+  return base;
+};
+
+/**
  * Generate a subtle personal resonance line based on user profile.
+ * Phase 4: Multiple variants, deterministic selection, optional domain hints.
  * Priority: Enneagram > Human Design > null
  * Returns null if no profile data available.
  */
-const generatePersonalResonance = (userProfile: UserProfile | null): string | null => {
+const generatePersonalResonance = (
+  userProfile: UserProfile | null, 
+  userId: string,
+  themes: string[]
+): string | null => {
   if (!userProfile) return null;
+  
+  let resonance: string | null = null;
   
   // Priority 1: Enneagram core type
   if (userProfile.enneagram?.core_type) {
     const coreType = userProfile.enneagram.core_type;
-    const resonance = ENNEAGRAM_RESONANCE[coreType];
-    if (resonance) {
-      // Ensure max 120 chars (all mappings are under this)
-      return resonance.substring(0, 120);
+    const variants = ENNEAGRAM_RESONANCE[coreType];
+    if (variants && variants.length > 0) {
+      resonance = selectVariant(variants, userId, `enneagram_${coreType}`);
     }
   }
   
-  // Priority 2: Human Design type
-  if (userProfile.human_design?.type) {
+  // Priority 2: Human Design type (only if enneagram not found)
+  if (!resonance && userProfile.human_design?.type) {
     const hdType = userProfile.human_design.type;
-    const resonance = HD_RESONANCE[hdType];
-    if (resonance) {
-      return resonance.substring(0, 120);
+    const variants = HD_RESONANCE[hdType];
+    if (variants && variants.length > 0) {
+      resonance = selectVariant(variants, userId, `hd_${hdType}`);
     }
   }
   
   // No profile data available
-  return null;
+  if (!resonance) return null;
+  
+  // Try to append domain hint if themes available
+  resonance = appendDomainHint(resonance, themes);
+  
+  // Final guardrail: ensure ≤120 chars and single sentence
+  if (resonance.length > 120) {
+    resonance = resonance.substring(0, 117).trim() + '...';
+  }
+  
+  return resonance;
 };
 
 // ============================================
