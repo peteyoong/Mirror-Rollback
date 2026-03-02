@@ -4167,6 +4167,121 @@ async def compute_transits_now_endpoint(request: TransitRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =============================================================================
+# TRANSIT ENGINE PHASE 2 - Window Scanner
+# =============================================================================
+
+class TransitWindowRequest(BaseModel):
+    """Request body for transit window scanner endpoint"""
+    user_id: str
+    from_utc: Optional[str] = None  # ISO format: 2026-03-02T00:00:00Z
+    window_days: int = 30  # 30 or 90 days
+    orb_deg: float = 2.0  # Default orb for aspects
+    include_houses: bool = True  # Include house placements
+    granularity: str = "daily"  # Only "daily" supported for now
+
+
+@api_router.post("/compute/transits/window")
+async def compute_transits_window_endpoint(request: TransitWindowRequest):
+    """
+    POST /api/compute/transits/window
+    
+    Transit Engine Phase 2 - Window Scanner (Deterministic)
+    
+    Scans a time window (30 or 90 days) for:
+    - Exact aspect hits to natal bodies (timestamp refined)
+    - Ingress events (sidereal sign changes)
+    - Retrograde station events (station retrograde / station direct)
+    - House activation scoring (deterministic weighting)
+    
+    Uses True Sidereal settings:
+    - Ayanamsa: Fixed Sidereal Vernal Point 31.2836
+    - Yearly Increment: 0.00
+    - Reference Year: 2000
+    - House System: Equal
+    
+    Returns pure astronomical + geometric data. ZERO interpretation logic.
+    
+    Request Body:
+    {
+        "user_id": "uuid",
+        "from_utc": "2026-03-02T00:00:00Z",  // Optional, defaults to now
+        "window_days": 30,  // 30 or 90
+        "orb_deg": 2,  // Optional, default 2 degrees
+        "include_houses": true,  // Optional, default true
+        "granularity": "daily"  // Only "daily" supported
+    }
+    
+    Response contains:
+    - meta: ayanamsa, house_system, orb_deg, window_days, granularity
+    - window: from_utc, to_utc
+    - exact_hits: [{timestamp_utc, transit_planet, aspect, natal_body, orb, exact_angle_delta}]
+    - ingresses: [{timestamp_utc, planet, from_sign, to_sign, longitude, house}]
+    - stations: [{timestamp_utc, planet, type, longitude, sign, house}]
+    - house_activation: {top_houses, scores, daily}
+    - daily_summary: [{date, peak_events, top_houses}]
+    """
+    try:
+        # Validate window_days
+        if request.window_days not in [30, 90]:
+            raise HTTPException(
+                status_code=400,
+                detail="window_days must be 30 or 90"
+            )
+        
+        # Validate granularity
+        if request.granularity != "daily":
+            raise HTTPException(
+                status_code=400,
+                detail="Only 'daily' granularity is supported"
+            )
+        
+        # Get user's natal chart from database
+        chart = await db.charts.find_one({"user_id": request.user_id})
+        if not chart:
+            raise HTTPException(
+                status_code=404, 
+                detail="Natal chart not found. Please calculate chart first."
+            )
+        
+        # Parse from_utc if provided
+        from_utc = None
+        if request.from_utc:
+            try:
+                from_utc = datetime.fromisoformat(request.from_utc.replace('Z', '+00:00'))
+                if from_utc.tzinfo is None:
+                    from_utc = from_utc.replace(tzinfo=timezone.utc)
+            except ValueError as e:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid from_utc format. Use ISO format (e.g., 2026-03-02T00:00:00Z): {str(e)}"
+                )
+        
+        # Compute transit window
+        result = compute_transits_window(
+            chart_data=chart,
+            from_utc=from_utc,
+            window_days=request.window_days,
+            orb_deg=request.orb_deg,
+            include_houses=request.include_houses,
+            granularity=request.granularity
+        )
+        
+        logger.info(f"[TransitWindow] Computed window for user={request.user_id}, "
+                   f"days={request.window_days}, "
+                   f"exact_hits={len(result['exact_hits'])}, "
+                   f"ingresses={len(result['ingresses'])}, "
+                   f"stations={len(result['stations'])}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[TransitWindow] Error computing window: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/journal", response_model=JournalEntryResponse)
 async def create_journal_entry(entry: JournalEntryCreate):
     """Create journal entry with optional source annotation"""
