@@ -620,6 +620,515 @@ async def debug_timeline_context(user_id: str):
     }
 
 
+# =============================================================================
+# PHASE 9: TRANSIT NUDGE NOTIFICATION SYSTEM
+# =============================================================================
+# Notification titles - non-fatalistic, neutral
+NUDGE_TITLES = [
+    "Heads up: a shift in focus",
+    "Something to notice",
+    "Attention window ahead",
+    "A subtle shift",
+    "Worth your awareness",
+]
+
+# Guardrails for nudge text
+NUDGE_FORBIDDEN_WORDS = ["will", "destined", "guaranteed", "must", "should", "fate", "fated"]
+
+
+def get_nudge_title(events: List[str]) -> str:
+    """Get a neutral, non-fatalistic title for a nudge."""
+    import hashlib
+    # Use hash of events to pick a consistent title
+    events_str = ",".join(sorted(events))
+    hash_int = int(hashlib.md5(events_str.encode()).hexdigest()[:8], 16)
+    return NUDGE_TITLES[hash_int % len(NUDGE_TITLES)]
+
+
+def generate_nudge_body(events: List[str], from_utc: str, to_utc: str) -> str:
+    """
+    Generate a grounded, non-fatalistic nudge body.
+    Uses deterministic language based on event types.
+    """
+    # Analyze event types
+    has_station = any("station" in e or "retrograde" in e or "direct" in e for e in events)
+    has_ingress = any("ingress" in e for e in events)
+    has_aspect = any(asp in "_".join(events) for asp in ["conjunction", "opposition", "square", "trine", "sextile"])
+    
+    # Parse dates for display
+    try:
+        from_dt = datetime.fromisoformat(from_utc.replace('Z', '+00:00'))
+        from_display = from_dt.strftime("%b %d")
+    except:
+        from_display = "soon"
+    
+    # Build body based on event type priority
+    if has_station:
+        planet = None
+        for e in events:
+            if "station" in e or "retrograde" in e or "direct" in e:
+                planet = e.split("_")[0].capitalize()
+                break
+        if planet:
+            return f"Around {from_display}, you may notice a shift in {planet}'s energy. This can be a time for reflection and recalibration."
+        return f"Around {from_display}, a planetary station suggests a time to pause and reflect on your direction."
+    
+    elif has_ingress:
+        planet = None
+        sign = None
+        for e in events:
+            if "ingress" in e:
+                parts = e.split("_")
+                planet = parts[0].capitalize()
+                sign = parts[-1] if len(parts) > 2 else None
+                break
+        if planet and sign:
+            return f"Around {from_display}, {planet} moves into {sign}. You might notice a subtle change in how you approach things."
+        return f"Around {from_display}, a planetary shift may bring new themes into focus."
+    
+    elif has_aspect:
+        return f"Around {from_display}, celestial alignments may highlight certain areas of life. Available attention could help you notice patterns."
+    
+    else:
+        return f"Around {from_display}, the sky suggests an opportunity to tune into your inner landscape."
+
+
+def validate_nudge_text(text: str) -> str:
+    """Ensure nudge text doesn't contain fatalistic language."""
+    text_lower = text.lower()
+    for word in NUDGE_FORBIDDEN_WORDS:
+        if word in text_lower:
+            # Replace with softer alternatives
+            text = text.replace(word, "may")
+            text = text.replace(word.capitalize(), "May")
+    return text
+
+
+def score_transit_event(event: dict, event_type: str) -> float:
+    """
+    Score a transit event for notification priority.
+    Higher scores = higher priority.
+    
+    Priority: stations > ingresses > exact_hits
+    """
+    base_scores = {
+        "station": 100,
+        "ingress": 75,
+        "exact_hit": 50,
+    }
+    
+    score = base_scores.get(event_type, 25)
+    
+    # Boost for outer planets (more significant)
+    outer_planets = ["saturn", "jupiter", "uranus", "neptune", "pluto"]
+    planet = event.get("planet", event.get("transit_planet", "")).lower()
+    if planet in outer_planets:
+        score += 20
+    
+    return score
+
+
+async def get_user_notifications_this_week(user_id: str) -> int:
+    """Count notifications generated for user in the current week."""
+    # Get start of current week (Monday)
+    now = datetime.now(timezone.utc)
+    start_of_week = now - timedelta(days=now.weekday())
+    start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    count = await db.notifications.count_documents({
+        "user_id": user_id,
+        "created_at": {"$gte": start_of_week}
+    })
+    
+    return count
+
+
+async def generate_transit_nudge_for_user(user_id: str, days: int = 7) -> Optional[Dict[str, Any]]:
+    """
+    Generate a transit nudge notification for a user.
+    
+    Args:
+        user_id: User's ID (the _id field from users collection)
+        days: How many days ahead to look
+    
+    Returns:
+        Notification document or None if no notification generated
+    """
+    # Get user
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    if not user:
+        logger.warning(f"[Nudge] User not found: {user_id}")
+        return None
+    
+    # Check notification preferences
+    prefs = user.get("notification_prefs", {})
+    if not prefs.get("enabled", False):
+        logger.debug(f"[Nudge] User {user_id} has notifications disabled")
+        return None
+    
+    max_per_week = prefs.get("max_per_week", 3)
+    
+    # Check weekly cap
+    notifications_this_week = await get_user_notifications_this_week(user_id)
+    if notifications_this_week >= max_per_week:
+        logger.info(f"[Nudge] User {user_id} at weekly cap ({notifications_this_week}/{max_per_week})")
+        return None
+    
+    # Get user's chart
+    chart = await db.charts.find_one({"user_id": user_id})
+    if not chart:
+        logger.warning(f"[Nudge] No chart for user: {user_id}")
+        return None
+    
+    # Compute transit window
+    now_utc = datetime.now(timezone.utc)
+    try:
+        window_result = compute_transits_window(
+            chart_data=chart,
+            from_utc=now_utc,
+            window_days=days,
+            orb_deg=2.0,
+            include_houses=True
+        )
+    except Exception as e:
+        logger.error(f"[Nudge] Transit window failed for user {user_id}: {e}")
+        return None
+    
+    # Collect and score events
+    scored_events = []
+    
+    # Stations (highest priority)
+    for station in window_result.get("stations", []):
+        scored_events.append({
+            "event": station,
+            "type": "station",
+            "score": score_transit_event(station, "station"),
+            "timestamp": station.get("timestamp_utc"),
+        })
+    
+    # Ingresses
+    for ingress in window_result.get("ingresses", []):
+        scored_events.append({
+            "event": ingress,
+            "type": "ingress",
+            "score": score_transit_event(ingress, "ingress"),
+            "timestamp": ingress.get("timestamp_utc"),
+        })
+    
+    # Exact hits (only first few)
+    for hit in window_result.get("exact_hits", [])[:5]:
+        scored_events.append({
+            "event": hit,
+            "type": "exact_hit",
+            "score": score_transit_event(hit, "exact_hit"),
+            "timestamp": hit.get("timestamp_utc"),
+        })
+    
+    if not scored_events:
+        logger.debug(f"[Nudge] No significant events for user {user_id}")
+        return None
+    
+    # Sort by score (descending) and pick the best
+    scored_events.sort(key=lambda x: x["score"], reverse=True)
+    best = scored_events[0]
+    
+    # Build canonical event strings
+    based_on = []
+    event = best["event"]
+    if best["type"] == "station":
+        based_on.append(f"{event['planet']}_{event['type']}")
+    elif best["type"] == "ingress":
+        based_on.append(f"{event['planet']}_ingress_{event['to_sign']}")
+    elif best["type"] == "exact_hit":
+        based_on.append(f"{event['transit_planet']}_{event['aspect']}_{event['natal_body']}_exact")
+    
+    # Add a couple more events for context
+    for se in scored_events[1:3]:
+        ev = se["event"]
+        if se["type"] == "station":
+            based_on.append(f"{ev['planet']}_{ev['type']}")
+        elif se["type"] == "ingress":
+            based_on.append(f"{ev['planet']}_ingress_{ev['to_sign']}")
+        elif se["type"] == "exact_hit":
+            based_on.append(f"{ev['transit_planet']}_{ev['aspect']}_{ev['natal_body']}_exact")
+    
+    # Determine window times
+    from_utc_str = best["timestamp"]
+    # Window ends 24 hours after the peak event
+    try:
+        from_dt = datetime.fromisoformat(from_utc_str.replace('Z', '+00:00'))
+        to_dt = from_dt + timedelta(hours=24)
+        to_utc_str = to_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+    except:
+        to_utc_str = from_utc_str
+    
+    # Generate title and body
+    title = get_nudge_title(based_on)
+    body = generate_nudge_body(based_on, from_utc_str, to_utc_str)
+    
+    # Validate text
+    title = validate_nudge_text(title)
+    body = validate_nudge_text(body)
+    
+    # Get top houses if available
+    house_activation = window_result.get("house_activation", {})
+    top_houses = None
+    if house_activation.get("enabled"):
+        top_houses = house_activation.get("top_houses", [])[:3]
+    
+    # Calculate deliver_after_local based on quiet hours
+    deliver_after_local = None
+    user_tz = prefs.get("timezone") or user.get("timezone")
+    quiet_hours = prefs.get("quiet_hours", {})
+    if user_tz and quiet_hours:
+        try:
+            import pytz
+            tz = pytz.timezone(user_tz)
+            local_now = datetime.now(tz)
+            quiet_start_hour, quiet_start_min = map(int, quiet_hours.get("start", "22:00").split(":"))
+            quiet_end_hour, quiet_end_min = map(int, quiet_hours.get("end", "07:00").split(":"))
+            
+            # If currently in quiet hours, schedule for after
+            if local_now.hour >= quiet_start_hour or local_now.hour < quiet_end_hour:
+                deliver_time = local_now.replace(hour=quiet_end_hour, minute=quiet_end_min, second=0, microsecond=0)
+                if deliver_time <= local_now:
+                    deliver_time += timedelta(days=1)
+                deliver_after_local = deliver_time.strftime('%Y-%m-%dT%H:%M:%S')
+        except Exception as tz_err:
+            logger.warning(f"[Nudge] Timezone handling failed: {tz_err}")
+    
+    # Create notification document
+    notification = {
+        "user_id": user_id,
+        "created_at": now_utc,
+        "type": "transit_heads_up",
+        "title": title,
+        "body": body,
+        "data": {
+            "from_utc": from_utc_str,
+            "to_utc": to_utc_str,
+            "based_on": based_on,
+            "top_houses": top_houses,
+        },
+        "read_at": None,
+        "deliver_after_local": deliver_after_local,
+    }
+    
+    # Insert into database
+    result = await db.notifications.insert_one(notification)
+    notification["_id"] = result.inserted_id
+    
+    logger.info(f"[Nudge] Generated notification for user {user_id}: {title}")
+    
+    return notification
+
+
+# =============================================================================
+# NOTIFICATION API ENDPOINTS
+# =============================================================================
+@api_router.get("/notifications", response_model=NotificationListResponse)
+async def get_notifications(user_id: str, limit: int = 20, include_read: bool = True):
+    """Get user's notifications (newest first)."""
+    query = {"user_id": user_id}
+    if not include_read:
+        query["read_at"] = None
+    
+    notifications = await db.notifications.find(query).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    # Count unread
+    unread_count = await db.notifications.count_documents({"user_id": user_id, "read_at": None})
+    
+    # Format response
+    formatted = []
+    for notif in notifications:
+        data = notif.get("data")
+        formatted_data = None
+        if data:
+            formatted_data = NotificationData(
+                from_utc=data.get("from_utc", ""),
+                to_utc=data.get("to_utc", ""),
+                based_on=data.get("based_on", []),
+                top_houses=data.get("top_houses"),
+            )
+        
+        formatted.append(NotificationResponse(
+            id=str(notif["_id"]),
+            user_id=notif["user_id"],
+            created_at=notif["created_at"].isoformat() if notif.get("created_at") else "",
+            type=notif.get("type", "transit_heads_up"),
+            title=notif.get("title", ""),
+            body=notif.get("body", ""),
+            data=formatted_data,
+            read_at=notif["read_at"].isoformat() if notif.get("read_at") else None,
+            deliver_after_local=notif.get("deliver_after_local"),
+        ))
+    
+    return NotificationListResponse(
+        notifications=formatted,
+        total=len(formatted),
+        unread_count=unread_count,
+    )
+
+
+@api_router.post("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str):
+    """Mark a notification as read."""
+    try:
+        result = await db.notifications.update_one(
+            {"_id": ObjectId(notification_id)},
+            {"$set": {"read_at": datetime.now(timezone.utc)}}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Notification not found")
+        
+        return {"status": "success", "notification_id": notification_id}
+    except Exception as e:
+        logger.error(f"Error marking notification read: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/profile/notification-prefs")
+async def update_notification_prefs(user_id: str, prefs: NotificationPrefsUpdate):
+    """Update user's notification preferences."""
+    # Build update document
+    update_fields = {}
+    
+    if prefs.enabled is not None:
+        update_fields["notification_prefs.enabled"] = prefs.enabled
+    if prefs.timezone is not None:
+        update_fields["notification_prefs.timezone"] = prefs.timezone
+    if prefs.quiet_hours is not None:
+        update_fields["notification_prefs.quiet_hours"] = {
+            "start": prefs.quiet_hours.start,
+            "end": prefs.quiet_hours.end,
+        }
+    if prefs.max_per_week is not None:
+        update_fields["notification_prefs.max_per_week"] = max(1, min(7, prefs.max_per_week))
+    
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="No preferences to update")
+    
+    # Update user
+    result = await db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": update_fields}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Fetch updated prefs
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    current_prefs = user.get("notification_prefs", {})
+    
+    return {
+        "status": "success",
+        "notification_prefs": current_prefs,
+    }
+
+
+@api_router.get("/profile/notification-prefs")
+async def get_notification_prefs(user_id: str):
+    """Get user's notification preferences."""
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    prefs = user.get("notification_prefs", {
+        "enabled": False,
+        "timezone": user.get("timezone"),
+        "quiet_hours": {"start": "22:00", "end": "07:00"},
+        "max_per_week": 3,
+    })
+    
+    return {
+        "user_id": user_id,
+        "notification_prefs": prefs,
+    }
+
+
+# =============================================================================
+# ADMIN ENDPOINT: Generate Transit Nudges
+# =============================================================================
+@app.post("/api/admin/generate-transit-nudges")
+async def admin_generate_transit_nudges(days: int = 7, user_id: Optional[str] = None):
+    """
+    Admin endpoint to manually trigger transit nudge generation.
+    
+    Args:
+        days: How many days ahead to look for events (default: 7)
+        user_id: Optional - generate only for this user (for testing)
+    
+    Returns:
+        Summary of generated notifications
+    """
+    results = {
+        "generated": [],
+        "skipped": [],
+        "errors": [],
+        "total_users_checked": 0,
+        "total_notifications_created": 0,
+    }
+    
+    if user_id:
+        # Single user mode (for testing)
+        results["total_users_checked"] = 1
+        try:
+            notification = await generate_transit_nudge_for_user(user_id, days)
+            if notification:
+                results["generated"].append({
+                    "user_id": user_id,
+                    "notification_id": str(notification["_id"]),
+                    "title": notification["title"],
+                })
+                results["total_notifications_created"] = 1
+            else:
+                results["skipped"].append({
+                    "user_id": user_id,
+                    "reason": "no_notification_generated",
+                })
+        except Exception as e:
+            results["errors"].append({
+                "user_id": user_id,
+                "error": str(e),
+            })
+    else:
+        # Batch mode - process all opted-in users
+        opted_in_users = await db.users.find({
+            "notification_prefs.enabled": True
+        }).to_list(100)  # Limit to 100 users per run
+        
+        results["total_users_checked"] = len(opted_in_users)
+        
+        for user in opted_in_users:
+            uid = str(user["_id"])
+            try:
+                notification = await generate_transit_nudge_for_user(uid, days)
+                if notification:
+                    results["generated"].append({
+                        "user_id": uid,
+                        "notification_id": str(notification["_id"]),
+                        "title": notification["title"],
+                    })
+                    results["total_notifications_created"] += 1
+                else:
+                    results["skipped"].append({
+                        "user_id": uid,
+                        "reason": "no_notification_generated",
+                    })
+            except Exception as e:
+                results["errors"].append({
+                    "user_id": uid,
+                    "error": str(e),
+                })
+    
+    logger.info(f"[AdminNudge] Generated {results['total_notifications_created']} notifications for {results['total_users_checked']} users")
+    
+    return results
+
+
 # Note: Static file serving will be added at the END of the file, AFTER the api_router is included
 # This ensures API routes take precedence over the catch-all static file handler
 
