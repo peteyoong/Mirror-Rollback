@@ -84,19 +84,31 @@ def test_houses_enabled_when_data_exists():
 
 
 def test_houses_disabled_when_data_missing():
-    """Test that house_activation.enabled=false when natal houses missing"""
+    """Test that house_activation.enabled=false when natal houses missing
+    
+    NOTE: Uses a mock fixture since all DB users may have houses now after backfill.
+    """
     print()
     print("=" * 60)
     print("TEST: house_activation.enabled=false when houses missing")
     print("=" * 60)
     
-    # User without houses: 6971c8f681beab3a8955b255
-    chart = asyncio.run(get_chart('6971c8f681beab3a8955b255'))
-    
-    assert chart is not None, "Chart not found"
+    # Use a mock chart WITHOUT house data (instead of DB user)
+    mock_chart = {
+        'astrology': {
+            'planets': {
+                'Sun': {'longitude': 80.5, 'sign': 'Gemini'},  # No house
+                'Moon': {'longitude': 356.2, 'sign': 'Pisces'},
+                'Mercury': {'longitude': 98.7, 'sign': 'Cancer'},
+            },
+            'angles': {
+                'asc': {'longitude': 110.5}
+            }
+        }
+    }
     
     # Check natal data
-    natal_planets = extract_natal_planets(chart)
+    natal_planets = extract_natal_planets(mock_chart)
     
     # Verify planets don't have houses
     planets_with_houses = 0
@@ -109,7 +121,7 @@ def test_houses_disabled_when_data_missing():
     # Compute transits
     test_from = datetime(2026, 3, 2, 0, 0, 0, tzinfo=timezone.utc)
     result = compute_transits_window(
-        chart_data=chart,
+        chart_data=mock_chart,
         from_utc=test_from,
         window_days=30,
         orb_deg=2.0,
