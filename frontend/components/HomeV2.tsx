@@ -1860,6 +1860,26 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
     opacity: 0.7,
   },
+  // Phase 13: Chapter loading state
+  chapterLoadingContainer: {
+    paddingVertical: Spacing.lg,
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+  },
+  chapterLoadingText: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    opacity: 0.5,
+  },
+  // Phase 13: Timeframe hint
+  chapterTimeframe: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    opacity: 0.5,
+    fontStyle: 'italic',
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
   timelineLink: {
     paddingVertical: Spacing.xs,
     marginTop: Spacing.xs,
