@@ -95,10 +95,11 @@ const HOUSE_DOMAIN_MAP: Record<number, string> = {
 };
 
 // Phase 10A: Journal echo phrases (for when overlap detected)
+// Phase 10B: Fixed punctuation - use " — " (space em dash space) for clean reading
 const ECHO_PHRASES = [
-  '— and it may echo something familiar',
-  '— and it may resemble a recent pattern',
-  '— something you may have noticed before',
+  ', and it may echo something familiar',
+  ', and it may resemble a recent pattern',
+  ', something you may have noticed before',
 ];
 
 /**
