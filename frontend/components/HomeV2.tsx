@@ -278,6 +278,69 @@ const generatePersonalResonance = (
 };
 
 // ============================================
+// PHASE 6: First 7-Day Guided Arc
+// ============================================
+
+// Day-based focus themes for first week (quiet guidance)
+interface DayFocus {
+  theme: string;
+  focus: string;
+  questionModifier?: string;
+}
+
+const SEVEN_DAY_ARC: Record<number, DayFocus> = {
+  0: { theme: 'Orientation', focus: 'noticing', questionModifier: 'What do you notice about how you feel right now?' },
+  1: { theme: 'Orientation', focus: 'noticing', questionModifier: 'What catches your attention today?' },
+  2: { theme: 'Awareness', focus: 'emotional patterns', questionModifier: 'What emotions have been present lately?' },
+  3: { theme: 'Pattern', focus: 'recurring themes', questionModifier: 'What patterns are you starting to see?' },
+  4: { theme: 'Choice', focus: 'agency', questionModifier: 'What feels like it\'s in your control today?' },
+  5: { theme: 'Tension', focus: 'friction points', questionModifier: 'Where do you feel friction or resistance?' },
+  6: { theme: 'Integration', focus: 'alignment', questionModifier: 'What feels aligned? What doesn\'t?' },
+  7: { theme: 'Review', focus: 'looking back', questionModifier: 'What have you started to notice about yourself this week?' },
+};
+
+/**
+ * Calculate days since user signup
+ */
+const getDaysSinceSignup = (createdAt: string | undefined): number => {
+  if (!createdAt) return -1;
+  
+  try {
+    const signupDate = new Date(createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - signupDate.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    return diffDays;
+  } catch {
+    return -1;
+  }
+};
+
+/**
+ * Get the day-appropriate reflection question for first 7 days.
+ * Returns null if user is past day 7 or if no modification needed.
+ */
+const getGuidedArcQuestion = (daysSinceSignup: number): string | null => {
+  // Only apply for days 0-7
+  if (daysSinceSignup < 0 || daysSinceSignup > 7) return null;
+  
+  const dayFocus = SEVEN_DAY_ARC[daysSinceSignup];
+  return dayFocus?.questionModifier || null;
+};
+
+/**
+ * Get the progress indicator text for first week.
+ * Returns null if past day 7.
+ */
+const getProgressIndicator = (daysSinceSignup: number): string | null => {
+  if (daysSinceSignup < 0 || daysSinceSignup > 7) return null;
+  
+  // Day 0 counts as Day 1 for user display
+  const displayDay = daysSinceSignup + 1;
+  return `Day ${displayDay} of your first week`;
+};
+
+// ============================================
 // TEXT PROCESSING UTILITIES
 // ============================================
 
