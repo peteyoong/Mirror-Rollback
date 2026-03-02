@@ -9,6 +9,7 @@
  * - Graceful error handling with inline message
  * - Respects Mirror guardrails
  * - Debug info in staging/preview
+ * - Add to Journal functionality
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
@@ -29,6 +30,7 @@ import {
   TransitInterpretation,
   AttentionWindow,
 } from '../services/transitService';
+import { createJournalEntry, JournalEntryResponse } from '../services/api';
 import { SafeIcon } from './SafeIcon';
 
 // No props needed - we get userId from canonical store
