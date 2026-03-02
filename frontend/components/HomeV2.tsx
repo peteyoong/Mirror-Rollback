@@ -545,9 +545,8 @@ export default function HomeV2({
   const router = useRouter();
   const isStaging = BUILD_ENV === 'staging' || BUILD_ENV === 'preview';
   
-  // Get chart and journal entries from store
+  // Get chart from store (contains human_design)
   const chart = useAppStore((state) => state.chart);
-  const journalEntries = useAppStore((state) => state.journalEntries);
   
   // Transit insight state
   const [transitInsight, setTransitInsight] = useState<TransitInterpretation | null>(null);
