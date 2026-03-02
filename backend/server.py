@@ -5487,9 +5487,9 @@ async def interpret_chapter_endpoint(request: ChapterRequest):
         # Compute transits window for slow planets
         try:
             transit_window = compute_transits_window(
-                natal_chart=chart,
+                chart_data=chart,
                 from_utc=from_dt,
-                days=request.window_days,
+                window_days=request.window_days,
                 orb_deg=request.orb_deg,
                 include_houses=request.include_houses
             )
