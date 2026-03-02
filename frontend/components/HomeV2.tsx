@@ -698,6 +698,76 @@ export default function HomeV2({
     router.push('/(tabs)/lenses?tab=astrology');
   }, [router]);
   
+  // Phase 5: Handle "Continue reading" tap
+  const handleContinueReading = useCallback(() => {
+    setShowMoreContent(true);
+    Animated.timing(moreContentOpacity, {
+      toValue: 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [moreContentOpacity]);
+  
+  // Phase 5: Trigger entrance animations when content loads
+  useEffect(() => {
+    if (!isLoading && !transitLoading && !hasAnimated.current) {
+      hasAnimated.current = true;
+      
+      // Headline fades in first (250ms)
+      Animated.timing(headlineOpacity, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+      
+      // Reflection question appears 150ms after headline starts
+      setTimeout(() => {
+        Animated.timing(questionOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }).start();
+      }, 150);
+    }
+  }, [isLoading, transitLoading, headlineOpacity, questionOpacity]);
+  
+  // Phase 5: Calculate "Last reflected" for memory anchor
+  const lastReflectedText = React.useMemo(() => {
+    if (!journalEntries || journalEntries.length === 0) {
+      return 'Start your first reflection.';
+    }
+    
+    // Find most recent journal entry
+    const sortedEntries = [...journalEntries].sort((a, b) => {
+      const dateA = new Date(a.created_at || a.date || 0).getTime();
+      const dateB = new Date(b.created_at || b.date || 0).getTime();
+      return dateB - dateA;
+    });
+    
+    const lastEntry = sortedEntries[0];
+    if (!lastEntry) {
+      return 'Start your first reflection.';
+    }
+    
+    const lastDate = new Date(lastEntry.created_at || lastEntry.date || 0);
+    const now = new Date();
+    const diffMs = now.getTime() - lastDate.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      return 'Last reflected: today';
+    } else if (diffDays === 1) {
+      return 'Last reflected: yesterday';
+    } else if (diffDays < 7) {
+      return `Last reflected: ${diffDays} days ago`;
+    } else if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return `Last reflected: ${weeks} week${weeks > 1 ? 's' : ''} ago`;
+    } else {
+      return 'Last reflected: a while ago';
+    }
+  }, [journalEntries]);
+  
   // ============================================
   // DERIVED CONTENT (with cleaning)
   // ============================================
