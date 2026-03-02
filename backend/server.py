@@ -4770,6 +4770,193 @@ async def compute_journal_transit_signature(
         }
 
 
+# =============================================================================
+# TIMELINE CONTEXT HELPER (Phase 8)
+# =============================================================================
+async def get_timeline_context(user_id: str, now_utc: datetime) -> Dict[str, Any]:
+    """
+    Build timeline context for chat injection.
+    
+    Returns a compact, deterministic context containing:
+    - Current sky weather (transit events)
+    - Near-term events from 3-day window
+    - Recent journal transit signatures (no raw text)
+    
+    This context enables timeline-aware responses without revealing private data.
+    
+    Args:
+        user_id: User's ID
+        now_utc: Current timestamp in UTC
+    
+    Returns:
+        Timeline context dict with bounded event counts
+    """
+    context = {
+        "now_utc": now_utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
+        "now_events": [],
+        "next_3d_events": [],
+        "recent_journal_signatures": [],
+        "enabled": ENABLE_TIMELINE_CONTEXT,
+    }
+    
+    if not ENABLE_TIMELINE_CONTEXT:
+        return context
+    
+    try:
+        # Get user's natal chart
+        chart = await db.charts.find_one({"user_id": user_id})
+        if not chart:
+            logger.debug(f"[TimelineContext] No chart for user={user_id}")
+            context["error"] = "no_natal_chart"
+            return context
+        
+        # A) Current sky weather - compute transits/now
+        try:
+            transit_now = compute_transits_now(
+                chart_data=chart,
+                timestamp_utc=now_utc,
+                orb_deg=2.0,
+                include_houses=True
+            )
+            
+            # Extract canonical event strings from aspects
+            now_events = []
+            for aspect in transit_now.get("aspects_to_natal_now", []):
+                event_str = f"{aspect['transit_planet']}_{aspect['aspect']}_{aspect['natal_body']}"
+                now_events.append(event_str)
+            
+            context["now_events"] = now_events[:MAX_NOW_EVENTS]
+            
+        except Exception as now_err:
+            logger.warning(f"[TimelineContext] transits/now failed: {now_err}")
+        
+        # B) Near-term events from 3-day window
+        try:
+            window_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+            transit_window = compute_transits_window(
+                chart_data=chart,
+                from_utc=window_start,
+                window_days=3,
+                orb_deg=2.0,
+                include_houses=True
+            )
+            
+            next_3d_events = []
+            
+            # Add ingresses
+            for ingress in transit_window.get("ingresses", []):
+                event_str = f"{ingress['planet']}_ingress_{ingress['to_sign']}"
+                if event_str not in next_3d_events:
+                    next_3d_events.append(event_str)
+            
+            # Add stations
+            for station in transit_window.get("stations", []):
+                event_str = f"{station['planet']}_{station['type']}"
+                if event_str not in next_3d_events:
+                    next_3d_events.append(event_str)
+            
+            # Add exact hits (only significant ones)
+            for hit in transit_window.get("exact_hits", [])[:3]:
+                event_str = f"{hit['transit_planet']}_{hit['aspect']}_{hit['natal_body']}_exact"
+                if event_str not in next_3d_events:
+                    next_3d_events.append(event_str)
+            
+            context["next_3d_events"] = next_3d_events[:MAX_NOW_EVENTS]
+            
+            # Include top houses if available
+            house_activation = transit_window.get("house_activation", {})
+            if house_activation.get("enabled"):
+                context["top_houses"] = house_activation.get("top_houses", [])[:3]
+                
+        except Exception as window_err:
+            logger.warning(f"[TimelineContext] transits/window failed: {window_err}")
+        
+        # C) Recent journal signatures (no raw content!)
+        try:
+            recent_entries = await db.journal.find(
+                {"user_id": user_id, "transit_signature": {"$ne": None}}
+            ).sort("created_at", -1).limit(MAX_RECENT_JOURNAL_ENTRIES).to_list(MAX_RECENT_JOURNAL_ENTRIES)
+            
+            journal_signatures = []
+            for entry in recent_entries:
+                sig = entry.get("transit_signature", {})
+                if sig and sig.get("events"):
+                    # Only include date and limited events - NO raw text
+                    created_at = entry.get("created_at")
+                    date_str = created_at.strftime('%Y-%m-%d') if created_at else "unknown"
+                    
+                    journal_signatures.append({
+                        "date": date_str,
+                        "events": sig.get("events", [])[:MAX_EVENTS_PER_JOURNAL],
+                    })
+            
+            context["recent_journal_signatures"] = journal_signatures
+            
+        except Exception as journal_err:
+            logger.warning(f"[TimelineContext] journal fetch failed: {journal_err}")
+        
+        logger.info(f"[TimelineContext] Built context for user={user_id}: "
+                   f"now_events={len(context['now_events'])}, "
+                   f"next_3d={len(context['next_3d_events'])}, "
+                   f"journal_sigs={len(context['recent_journal_signatures'])}")
+        
+        return context
+        
+    except Exception as e:
+        logger.error(f"[TimelineContext] Failed to build context: {e}")
+        context["error"] = str(e)
+        return context
+
+
+def format_timeline_context_for_prompt(context: Dict[str, Any]) -> str:
+    """
+    Format timeline context for injection into system prompt.
+    
+    Provides clear, concise context without revealing private data.
+    """
+    if not context.get("enabled"):
+        return ""
+    
+    if context.get("error"):
+        return ""
+    
+    lines = ["\n--- TIMELINE CONTEXT (sky weather) ---"]
+    lines.append(f"Current time: {context.get('now_utc', 'unknown')}")
+    
+    # Current aspects
+    now_events = context.get("now_events", [])
+    if now_events:
+        # Make events more readable
+        readable_events = [e.replace("_", " ") for e in now_events[:MAX_NOW_EVENTS]]
+        lines.append(f"Active aspects: {', '.join(readable_events)}")
+    
+    # Near-term events
+    next_3d = context.get("next_3d_events", [])
+    if next_3d:
+        readable_next = [e.replace("_", " ") for e in next_3d[:4]]
+        lines.append(f"Coming up (3 days): {', '.join(readable_next)}")
+    
+    # Top houses
+    top_houses = context.get("top_houses", [])
+    if top_houses:
+        lines.append(f"Active houses: {', '.join(str(h) for h in top_houses)}")
+    
+    # Recent journal patterns (no content, just sky stamps)
+    journal_sigs = context.get("recent_journal_signatures", [])
+    if journal_sigs:
+        lines.append("Recent journal sky patterns:")
+        for sig in journal_sigs[:3]:
+            sig_events = [e.replace("_", " ") for e in sig.get("events", [])[:2]]
+            if sig_events:
+                lines.append(f"  [{sig.get('date')}] {', '.join(sig_events)}")
+    
+    lines.append("")
+    lines.append("Note: Use this context to inform your responses. "
+                "Do not make predictions or claim certainty about outcomes.")
+    
+    return "\n".join(lines)
+
+
 @api_router.post("/journal", response_model=JournalEntryResponse)
 async def create_journal_entry(entry: JournalEntryCreate):
     """Create journal entry with optional source annotation and transit signature"""
