@@ -31,7 +31,7 @@ import { Colors } from '../constants/colors';
 import { Spacing } from '../constants/spacing';
 import { useAppStore } from '../store';
 import { DailyFocusState } from './DailyFocusCard';
-import { getDailyFocus, DailyFocusResponse, getEnneagramResult, getJournalEntries } from '../services/api';
+import { getDailyFocus, DailyFocusResponse, getEnneagramResult, getJournalEntries, getChapter, ChapterResponse } from '../services/api';
 import { 
   getTransitInsightNow, 
   TransitInterpretation,
@@ -40,6 +40,9 @@ import {
 import { BUILD_ENV } from '../utils/buildInfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SectionLabel from './SectionLabel';
+
+// Chapter cache key
+const CHAPTER_CACHE_KEY = 'chapter_cache';
 
 // ============================================
 // PHASE 10: Resonance Engine v1
