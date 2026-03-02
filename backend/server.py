@@ -445,6 +445,123 @@ async def debug_profile_birthdata(user_id: str):
     }
 
 
+@app.post("/api/debug/profile/backfill-houses")
+async def debug_backfill_houses(user_id: str):
+    """
+    Backfill natal houses for a user whose chart is missing house data.
+    
+    Requirements:
+    - User must have birth_time (not unknown)
+    - User must have birth_location with lat/lon
+    - Chart must exist but lack house placements
+    
+    This will recompute the natal chart with full house data.
+    """
+    # Fetch user record
+    user = await db.users.find_one({"user_id": user_id})
+    if not user:
+        try:
+            user = await db.users.find_one({"_id": ObjectId(user_id)})
+        except Exception:
+            pass
+    
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User not found: {user_id}")
+    
+    # Validate birth data
+    birth_date = user.get("birth_date")
+    birth_time = user.get("birth_time")
+    birth_time_unknown = user.get("birth_time_unknown", birth_time is None or birth_time == "")
+    birth_location = user.get("birth_location", {})
+    timezone_str = user.get("timezone")
+    
+    if not birth_date:
+        raise HTTPException(status_code=400, detail="Cannot backfill: birth_date missing")
+    
+    if birth_time_unknown or not birth_time:
+        raise HTTPException(status_code=400, detail="Cannot backfill: birth_time missing or unknown")
+    
+    if not birth_location or not birth_location.get("latitude") or not birth_location.get("longitude"):
+        raise HTTPException(status_code=400, detail="Cannot backfill: birth_location missing")
+    
+    # Get existing chart
+    chart = await db.charts.find_one({"user_id": user_id})
+    if not chart:
+        raise HTTPException(status_code=404, detail="Cannot backfill: no existing chart")
+    
+    # Check if already has house data
+    astrology = chart.get("astrology", {})
+    planets = astrology.get("planets", {})
+    planets_with_houses = sum(1 for p in planets.values() if p.get("house") is not None)
+    
+    if planets_with_houses > 0:
+        return {
+            "status": "skipped",
+            "reason": "houses_already_present",
+            "planets_with_houses": planets_with_houses,
+        }
+    
+    # Resolve birth datetime to UTC
+    try:
+        birth_utc = resolve_birth_utc(
+            birth_date=birth_date,
+            birth_time=birth_time,
+            tz_str=timezone_str,
+            lat=birth_location.get("latitude"),
+            lon=birth_location.get("longitude")
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Cannot resolve birth UTC: {str(e)}")
+    
+    # Compute new natal chart with full house data
+    try:
+        new_astrology = get_full_natal_chart(
+            birth_datetime=birth_utc,
+            lat=birth_location.get("latitude"),
+            lon=birth_location.get("longitude"),
+            sidereal_settings={
+                "mode": "true_sidereal_user_defined",
+                "svp_degrees": 31.2836,
+                "reference_year": 2000,
+                "yearly_increment": 0.0
+            },
+            house_system="Equal",
+            node_mode="true_node"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Chart computation failed: {str(e)}")
+    
+    # Update the chart document with new astrology data
+    result = await db.charts.update_one(
+        {"_id": chart["_id"]},
+        {"$set": {"astrology": new_astrology}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to update chart document")
+    
+    # Verify the update
+    updated_chart = await db.charts.find_one({"_id": chart["_id"]})
+    updated_astrology = updated_chart.get("astrology", {})
+    updated_planets = updated_astrology.get("planets", {})
+    new_planets_with_houses = sum(1 for p in updated_planets.values() if p.get("house") is not None)
+    
+    houses = updated_astrology.get("houses", {})
+    angles = updated_astrology.get("angles", {})
+    
+    return {
+        "status": "success",
+        "user_id": user_id,
+        "backfilled": {
+            "planets_with_houses": new_planets_with_houses,
+            "house_cusps_count": len(houses.get("cusps", [])),
+            "has_angles": angles is not None and "asc" in angles,
+            "ascendant_longitude": angles.get("asc", {}).get("longitude") if angles else None,
+        },
+        "birth_utc_used": birth_utc.isoformat() if birth_utc else None,
+    }
+
+
 # Note: Static file serving will be added at the END of the file, AFTER the api_router is included
 # This ensures API routes take precedence over the catch-all static file handler
 
