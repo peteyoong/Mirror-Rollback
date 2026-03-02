@@ -224,30 +224,54 @@ const cleanChapterHeadline = (raw: string): string => {
 const cleanChapterBody = (raw: string): string => {
   if (!raw) return 'Take your time with what\'s emerging.';
   
-  // Remove mystical/filler phrases
-  const fillerPatterns = [
-    /this isn't about.*?—/gi,
-    /it's about recalibration/gi,
-    /the cosmos.*?/gi,
-    /transiting\s+\w+/gi,
-    /natal\s+\w+/gi,
-    /\(.*?\)/g,
-    /mercury|venus|mars|jupiter|saturn|uranus|neptune|pluto/gi,
-  ];
+  // If the raw text has heavy astrological jargon, use a more meaningful extraction
+  const hasHeavyJargon = /transiting\s+(mercury|venus|mars|jupiter|saturn|sun|moon)/i.test(raw) ||
+    /natal\s+(mercury|venus|mars|jupiter|saturn|pluto)/i.test(raw) ||
+    /polarity\s+between/i.test(raw) ||
+    /opportunity\s+between/i.test(raw);
   
-  let cleaned = raw;
-  fillerPatterns.forEach(pattern => {
-    cleaned = cleaned.replace(pattern, '');
-  });
+  if (hasHeavyJargon) {
+    // Try to extract the meaningful observation
+    const meaningfulPatterns = [
+      /you may notice\s+(.+)/i,
+      /this invites\s+(.+)/i,
+      /notice\s+(.+)/i,
+      /there's\s+(.+)/i,
+    ];
+    
+    for (const pattern of meaningfulPatterns) {
+      const match = raw.match(pattern);
+      if (match && match[1] && match[1].length > 20) {
+        let extracted = match[1]
+          .replace(/\(.*?\)/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        
+        if (extracted.length > 180) {
+          extracted = extracted.substring(0, 177).trim() + '...';
+        }
+        
+        if (extracted.length > 20) {
+          return extracted.charAt(0).toUpperCase() + extracted.slice(1);
+        }
+      }
+    }
+    
+    return 'Take your time with what\'s emerging.';
+  }
   
-  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  // Clean without heavy stripping
+  let cleaned = raw
+    .replace(/\(.*?\)/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   
   // Truncate for 3 lines (~180 chars)
   if (cleaned.length > 180) {
     cleaned = cleaned.substring(0, 177).trim() + '...';
   }
   
-  if (cleaned.length < 10) {
+  if (cleaned.length < 15) {
     return 'Take your time with what\'s emerging.';
   }
   
