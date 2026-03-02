@@ -1778,11 +1778,41 @@ export default function HomeV2({
               {chapterBody}
             </Text>
             
-            {/* Phase 13: Timeframe hint from chapter data */}
-            {chapterData?.timeframe_hint && (
-              <Text style={styles.chapterTimeframe}>
-                {chapterData.timeframe_hint}
-              </Text>
+            {/* Phase 14: "Why this chapter?" expandable link */}
+            {chapterData && !showChapterExplanation && (
+              <TouchableOpacity 
+                style={styles.whyChapterLink}
+                onPress={handleWhyThisChapter}
+                activeOpacity={0.6}
+              >
+                <Text style={styles.whyChapterLinkText}>Why this chapter?</Text>
+              </TouchableOpacity>
+            )}
+            
+            {/* Phase 14: Chapter explanation (expanded) */}
+            {showChapterExplanation && chapterData && (
+              <Animated.View style={[styles.chapterExplanation, { opacity: chapterExplanationOpacity }]}>
+                {/* Influence descriptions */}
+                {formatChapterInfluences(chapterData.based_on).map((influence, index) => (
+                  <Text key={index} style={styles.chapterInfluenceText}>
+                    {influence}
+                  </Text>
+                ))}
+                
+                {/* Timeframe hint */}
+                {chapterData.timeframe_hint && (
+                  <Text style={styles.chapterTimeframeExplanation}>
+                    Theme active: {chapterData.timeframe_hint}.
+                  </Text>
+                )}
+                
+                {/* Domain/area emphasis if available */}
+                {formatChapterDomains(chapterData.focus_domains) && (
+                  <Text style={styles.chapterDomainText}>
+                    {formatChapterDomains(chapterData.focus_domains)}
+                  </Text>
+                )}
+              </Animated.View>
             )}
           </>
         )}
