@@ -1,128 +1,165 @@
 <analysis>
-**original_problem_statement**:
-The user wants to implement a new, adaptive 90-question Enneagram assessment (V3) to replace the existing one. The assessment is designed to have four phases:
-1.  **Phase 1: Triad Lock**: Determine the user's core triad (Fear, Shame, or Anger).
-2.  **Phase 2: Core Type**: Determine the user's specific type within the locked triad (e.g., Type 5, 6, or 7 for the Fear triad).
-3.  **Phase 3: Wing & Subtype**: Determine the user's wing and instinctual subtype (sp/sx/so).
-4.  **Phase 4: Validation**: Add clarifying questions for potential mistypings.
 
-The implementation was to be done in stages, starting with Phase 1 and progressively adding the subsequent phases and types.
+**original_problem_statement**:
+The user wants to completely overhaul the Home screen of the Project Mirror application, creating a more guided, personalized, and refined experience dubbed Home V2. This is a multi-phase frontend-heavy project, but also includes new backend endpoints. The user has provided detailed, phased requirements.
+
+PRODUCT REQUIREMENTS from this session:
+- **Phase 1-2: Structural Reset & Refinement:** Rearchitect the Home screen from a simple feed of cards into a clean, two-section layout (TODAY and YOUR CURRENT CHAPTER) with improved spacing and copy.
+- **Phase 3: Personal Resonance Layer:** Add a subtle, personalized sentence under the TODAY headline based on the user's Enneagram or Human Design type.
+- **Phase 4: Resonance Precision:** Enhance the resonance line by creating multiple, deterministic variants for each type and adding an optional domain hint based on active transit themes.
+- **Phase 5: Interaction Psychology:** Introduce subtle UI/UX improvements like progressive disclosure (Continue reading...), calm fade-in animations, and a Last reflected memory anchor.
+- **Phase 6: First 7-Day Guided Arc:** Implement a gentle onboarding experience for new users, modifying the daily reflection question and showing a Day X of 7 progress indicator for their first week.
+- **Phase 10, 10A, 10B: Resonance Engine:** Replace the static TODAY headline with a dynamically generated, highly specific one derived from raw transit data. This includes adding domain hints (from astrological houses) and echo textures (if current transits overlap with recent journal entries). This required both frontend and backend changes.
+- **Phase 11: Contextual Lens Discovery:** Add a subtle row of links on the Home screen to allow users to navigate to different lens pages (Astrology, Human Design, etc.) without cluttering the UI.
+- **Phase 12: Notifications Inbox UI:** Build the complete frontend for the in-app notification system. This includes an Inbox screen, a list of notifications, a detail view, a mechanism to mark items as read, and a settings UI for user preferences.
+- **Phase 13: Current Chapter Engine:** Replace the placeholder YOUR CURRENT CHAPTER text with a real, long-term chapter generated from slow-moving transits. This involves creating a new backend endpoint and integrating it into the frontend with caching.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The backend and frontend for the V3 assessment are largely complete.
--   **Backend ()**:
-    -   All assessment sessions are persisted in a MongoDB  collection, fixing a critical in-memory storage bug.
-    -   The full question bank for Phase 1, Phase 2 (all 9 types), and Phase 3 is implemented.
-    -   The adaptive logic and scoring for Phase 1, Phase 2 (Fear & Shame triads), and Phase 3 are implemented and have been tested successfully.
--   **Frontend ()**:
-    -   A new screen handles the entire assessment flow, including question display, progress indicators, phase transitions, and a final results screen.
--   **Integration**: The old assessment entry points in  and  now correctly point to the new V3 assessment.
+- A completely redesigned Home screen, implemented in the  component. It successfully integrates all features from Phases 1 through 11.
+- A fully functional Inbox tab and screen () that fetches, displays, and manages notifications from the backend, fulfilling Phase 12 requirements.
+- A new backend endpoint  that analyzes long-term transits and generates a chapter theme, as required by Phase 13. The endpoint has been created and successfully tested via .
+- The corresponding frontend API service function  has been added to .
 
 **Last working item**:
--   Last item agent was working: Implementing the final branch of Phase 2 for the **Anger Triad (Types 8, 9, 1)**. A critical bug was discovered during end-to-end testing of this path.
--   Status: IN PROGRESS
--   Agent Testing Done: N (Testing failed, revealing the bug)
--   Which testing method agent to use? backend testing agent. The agent has been using a custom test script executed via  to run through the assessment flow. This should be used again after a fix is applied.
--   User Testing Done: N
+- Last item agent was working: The agent just completed the backend work for **Phase 13: Current Chapter Engine**. It created and tested the  endpoint. On the frontend, it added the  function to  and was just about to integrate this into the  component to fetch and display the real chapter data, replacing the current placeholder.
+- Status: IN PROGRESS
+- Agent Testing Done: Y (for the backend endpoint via )
+- Which testing method agent to use? screenshot tool (After implementing the frontend part to visually verify the new Current Chapter content on the Home screen.)
+- User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  Issue 1: (P0) Phase 1 scoring is bugged for the Anger triad, blocking the assessment for types 8, 9, and 1.
+  Issue 1: (P0) Finish Frontend Integration for Current Chapter (Phase 13).
+  Issue 2: (P1) Deployed staging backend is stale, blocking true E2E testing.
+  Issue 3: (P2) Frontend ESLint configuration has a recurring parsing error for TypeScript.
 
   Issues Detail:
   - Issue 1: 
-     - **Description**: When a user answers all Phase 1 questions, the final score for the 'anger' triad is only reflecting the value of the last answered anger question, instead of the sum of all six anger-related questions. For example, if all 6 anger questions are answered with '5', the score is incorrectly calculated as  instead of the expected . This prevents the Anger triad from ever reaching the lock threshold (), making it impossible for users to be typed as 8, 9, or 1.
-     - Attempted fixes: The agent has verified the scoring logic () appears correct in isolation and has ruled out question ID conflicts. The last working theory is that there is an issue with how the  dictionary within the MongoDB session document is being updated across multiple requests. The update operation might be overwriting the score instead of incrementing it.
-     - Next debug checklist: 
-        1. Review  in .
-        2. Focus on the sequence: fetch session from MongoDB, call scoring function, and save session back to MongoDB.
-        3. Investigate the  function. The current implementation likely replaces the entire document. A more robust solution would be to use an atomic update operator like MongoDB's  to increment the score for the specific triad, avoiding race conditions or overwrites. For example: 
-     - Why fix this issue and what will be achieved with the fix? This is a hard blocker for one-third of the assessment paths. Fixing it will make the assessment fully functional for all 9 Enneagram types.
-     - Status:  IN PROGRESS
-     - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? backend
-     - Blocked on other issue: None
+     - **Description**: The frontend  component still displays placeholder text for the YOUR CURRENT CHAPTER section. It needs to be updated to call the new  endpoint and render the dynamic content.
+     - **Attempted fixes**: None yet. The backend was just completed.
+     - **Next debug checklist**: 
+        1. In , add state to hold the Chapter data.
+        2. Add a  to call the  API function. Implement client-side caching (e.g., using AsyncStorage or Zustand with a timestamp) to only fetch this data once per day, as requested.
+        3. Update the JSX in the YOUR CURRENT CHAPTER section to render the  and  from the fetched chapter data.
+        4. Ensure the See timeline → link is correctly handled.
+     - **Why fix this issue and what will be achieved with the fix?**: This will complete the final major feature of the Home V2 redesign, replacing the last piece of placeholder content with meaningful, long-term guidance for the user.
+     - **Status**:  NOT STARTED
+     - **Is recurring issue?**: N
+     - **Should Test frontend/backend/both after fix?**: frontend
+     - **Blocked on other issue**: None
+
+  - Issue 2:
+     - **Description**: The main deployed staging URL points to an old backend container, causing API calls to new endpoints to fail. A workaround is in place using a preview URL.
+     - **Attempted fixes**: The workaround of setting  to the preview URL is active and necessary for development.
+     - **Next debug checklist**: The user needs to address this with infrastructure support. The next agent must continue using the preview URL.
+     - **Why fix this issue and what will be achieved with the fix?** Critical for proper testing and eventual production deployment.
+     - **Status**:  BLOCKED (on external support)
+     - **Is recurring issue?**: Y
+     - **Should Test frontend/backend/both after fix?**: both
+     - **Blocked on other issue**: None
+
+  - Issue 3:
+     - **Description**: ESLint throws a  for TypeScript files. This is a known linter configuration issue.
+     - **Attempted fixes**: Acknowledged but correctly deferred as it doesn't block development or TypeScript compilation.
+     - **Next debug checklist**: Inspect  to fix the parser configuration.
+     - **Why fix this issue and what will be achieved with the fix?** Low-priority code quality improvement.
+     - **Status**:  NOT STARTED
+     - **Is recurring issue?**: Y
+     - **Should Test frontend/backend/both after fix?**: NA
+     - **Blocked on other issue**: None
 
 **In progress Task List**:
-  Task 1: (P0) Complete implementation and testing of Phase 2 for the Anger Triad.
-     - Where to resume: This task is currently blocked by the scoring bug (Issue 1). Once the bug is fixed, the end-to-end test for the Anger triad path (which previously failed) must be re-run to confirm it works as expected.
-     - What will be achieved with this? The assessment will be fully functional through Phase 2 for all 9 Enneagram types.
-     - Status:  BLOCKED
-     - Blocked on something: Issue 1: Phase 1 scoring is bugged for the Anger triad.
+  Task 1:  (P0) Integrate Chapter Engine into HomeV2 Frontend
+
+ Task Detail:
+  - Task 1: 
+     - **Where to resume**: Inside . The agent has already added the  function to . The next step is to call it from .
+     - **What will be achieved with this?**: The YOUR CURRENT CHAPTER section on the home screen will display dynamic, long-term transit analysis instead of static placeholder text, completing the core vision for Home V2.
+     - **Status**:  IN PROGRESS
+     - **Should Test frontend/backend/both after fix?**: frontend
+     - **Blocked on something**: None
 
 **Upcoming and Future Tasks**
-    Upcoming Tasks:
-    - (P0) **Implement Phase 4: Validation**: Per the original PRD, add logic to  to ask adaptive questions that check for common mistypings (e.g., 5 vs 9, 6 vs 2) when final confidence scores are close.
-    - (P1) **Implement Final Confidence Scoring**: Implement the final weighted confidence score calculation as specified in the PRD: .
-    - (P1) **UI for Low Confidence**: Implement the frontend logic in  to handle low-confidence results, such as showing the top 2 potential types or suggesting a retest.
-    Future Tasks:
-    - (P1) Create a Production Environment.
-    - (P2) Add Monitoring/Analytics.
-    - (P2) Set up an automated CI/CD Pipeline.
-    - (P2) Restore  functionality.
+  Upcoming Tasks:
+  - None defined in this session.
+  
+  Future Tasks:
+  - Mobile Push Notifications: Integrate a service like Expo Push Notifications to deliver the nudges generated by the Phase 9/12 backend.
+  - Production Deployment: Blocked by the staging deployment issue.
 
 **Completed work in this session**
-- **Enneagram V3 Assessment Framework**: Built the core backend () and frontend () for the new assessment, and integrated it into the app.
-- **MongoDB Session Persistence**: Successfully refactored the backend to use MongoDB for storing in-progress assessment sessions, fixing a critical data loss bug.
-- **Phase 1 (Triad Lock) Implementation**: Implemented the logic for determining the user's core triad.
-- **Phase 2 (Core Type) Implementation**: Implemented the adaptive questions for both the **Fear Triad** (Types 5, 6, 7) and **Shame Triad** (Types 2, 3, 4).
-- **Phase 3 (Wing & Subtype) Implementation**: Implemented questions and scoring to determine a user's wing and instinctual subtype.
-- **Frontend Results Display**: Implemented the UI to show the final, detailed Enneagram type string (e.g., 5w4 sx/sp).
+- **Home V2 (Phases 1-6, 10-11)**: A complete, multi-layered home screen () was built from the ground up, featuring:
+    - A dynamic, transit-aware headline and context-aware reflection questions (Resonance Engine).
+    - A subtle, personalized resonance line based on user's Enneagram/Human Design type.
+    - A 7-day guided experience for new users.
+    - Progressive disclosure and subtle animations for improved UX.
+    - Contextual navigation links to other lens pages.
+- **Notifications Inbox (Phase 12)**: A new Inbox tab () was created with a full UI to list notifications, view details in a modal, mark items as read, and manage user preferences.
+- **Chapter Engine Backend (Phase 13)**: A new endpoint  was created in  to generate long-term transit analysis.
+
+**Earlier issues found/mentioned but not fixed**
+   - Issue 1: Frontend ESLint configuration throws parsing errors. (Same as Pending Issue 3).
+
+**Known issue recurrence from previous fork**
+  - The staging backend deployment issue is a recurring problem from the previous fork.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Adaptive Testing**: The assessment flow dynamically changes based on user answers (Triad -> Core Type -> Wing/Subtype).
--   **State Machine**: The backend uses a  field in the session document to control the assessment flow (triad -> core -> wings -> subtype -> done).
--   **MongoDB for Session State**: All in-progress assessment data is stored in a  collection in MongoDB to ensure persistence between requests and across server restarts.
--   **Async/Await in FastAPI**: The backend was refactored to use  functions to interact with Motor (the async MongoDB driver).
+- **API-Driven UI**: The Home screen is now almost entirely driven by dynamic data from multiple backend endpoints (, , ).
+- **Deterministic Logic**: Used simple string-based hashing to ensure that randomized-seeming content (like resonance line variants) is stable and repeatable for a given user on a given day.
+- **Progressive Disclosure**: Implemented the Continue reading → feature to reduce initial cognitive load, revealing more details on user interaction.
+- **Client-Side Data Fetching & State Management**: The  component became a complex orchestrator, fetching data from multiple sources using  hooks and managing loading/error states.
+- **Backend Development**: Created a new, complex interpretation endpoint () in FastAPI, involving data filtering and generation logic.
+- **Full-Feature Slice Implementation**: Successfully built a full vertical slice for the Notifications feature (backend in previous fork, frontend UI from API to render in this fork).
 
 **key DB schema**
-  - **v3_sessions**: 
+- No new database schema changes were made in this session. The work consumed existing schemas (, , ).
 
 **All files of reference**
--   : The main file containing all logic for the new assessment. **This is where the current bug is located.**
--   : The FastAPI server, modified to include the v3 routes.
--   : The primary frontend component for the assessment experience.
+- : The primary file for this entire session. It contains the complete implementation for the new Home screen (Phases 1-6, 10-11) and is pending the final part of Phase 13.
+- : The new screen for the Notifications Inbox (Phase 12).
+- : Modified to add the  endpoint.
+- : Modified to add client-side functions for , , , and .
 
 **Critical Info for New Agent**
--   **THE IMMEDIATE PRIORITY IS THE BUG**: You must fix the Anger triad scoring bug in . The assessment is unusable for types 8, 9, and 1 until this is resolved. The issue is that the  value in the session document is being overwritten instead of incremented. Consider using a MongoDB atomic operator like  for the fix.
--   **USE THE EXISTING TEST SCRIPTS**: The previous agent created several -based test scripts (executed via ) to run end-to-end tests for different assessment paths. These are invaluable for verification and can be found in the message history (e.g., messages ). Use them to test your fix for the Anger triad path.
--   **FOLLOW THE DEPLOYMENT WORKFLOW**: After the bug is fixed and tested, remember the deployment workflow: build the frontend with - Making sure project is set up correctly...
-- Making sure project is set up correctly...
-- Making sure project is set up correctly...
-- Making sure project is set up correctly...
-- Making sure project is set up correctly...
-- Making sure project is set up correctly...
-- Making sure project is set up correctly..., copy the  contents to , commit the changes in , and then ask the user to click the Deploy button in their dashboard.
+- **Your immediate task is to finish Phase 13.** This involves modifying  to call the  function and display its data. Remember to implement the requested 24-hour client-side caching for this data.
+- **The staging deployment is broken.** Continue to rely on the preview URL for all API calls. The frontend  is correctly configured for this.
+- The  component is large and complex. It manages its own state and data fetching for multiple features. Read the code carefully before making changes.
+- To test the notification inbox, you may need to re-run the  commands used in this session to enable preferences for  and generate a new nudge via the admin endpoint.
 
-**Last 10 User Messages and any pending HUMAN messages** 
-- **Msg 411 (Task):** Verify Shame triad tests pass, then implement the **final Anger Triad (Types 8, 9, 1)** for Phase 2. (IN PROGRESS, BLOCKED BY BUG)
-- **Msg 410 (Agent Summary):** Agent reports Fear + Shame triads are complete and provides a summary.
-- **Msg 388 (Task):** Verify Phase 3 tests pass, then implement Phase 2 for the **Shame Triad (Types 2, 3, 4)**. (COMPLETED)
-- **Msg 387 (Agent Summary):** Agent reports Phase 3 is implemented and ready for verification.
-- **Msg 317 (Task):** Verify Phase 2 Fear triad paths, then implement **Phase 3 (Wings & Subtype)**. (COMPLETED)
-- **Msg 316 (Agent Summary):** Agent reports Phase 2 (Fear) is implemented and ready for verification.
-- **Msg 272 (Task):** Implement **Phase 2 (Core Type)** for the **Fear Triad only**. (COMPLETED)
-- **Msg 271 (Agent Summary):** Agent reports all E2E tests for Phase 1 have passed.
-- **Msg 241 (Task):** Deploy the session fix and run comprehensive E2E tests on Phase 1. (COMPLETED)
-- **Msg 240 (Agent Summary):** Agent reports the session persistence bug is fixed.
+**documents created in this job**
+- None.
+
+**Last 10 User Messages and any pending HUMAN messages**
+- **Msg 303 (Phase 10 Start):** User requested the Resonance Engine v1 to make the headline and questions more specific using transit data. (Completed).
+- **Msg 382 (Phase 10A Start):** User requested a polish to add domain hints and echo textures to the headline. (Completed).
+- **Msg 425 (Phase 10B Start):** User requested a copy polish to fix punctuation and soften a domain hint. (Completed).
+- **Msg 438 (Phase 11 Start):** User requested adding contextual lens discovery links on the Home screen. (Completed).
+- **Msg 469 (Phase 12 Start):** User requested building the frontend UI for the Notifications Inbox. (Completed).
+- **Msg 524 (Phase 13 Start):** User requested the Current Chapter Engine to replace placeholder text with long-term analysis. (In Progress).
 
 **Project Health Check:**
-- **Broken**: The Enneagram V3 assessment is currently broken for the Anger triad (types 8, 9, 1) due to a critical scoring bug in the backend.
+- **Broken**: The main staging deployment pipeline remains broken. This is a critical infrastructure issue.
+- **Mocked**: No mocks are in use.
 
 **3rd Party Integrations**
-- **Emergent LLM Key**: Used by the backend for other features, but not directly by the Enneagram assessment logic.
+- **pyswisseph**: Used by the backend for astrological calculations.
+- **Emergent LLM Key**: Used by the backend for chat and interpretation generation.
+- **react-native-reanimated**: Used on the frontend for animations in .
 
 **Testing status**
-  - Testing agent used after significant changes: YES (The agent has been using custom scripts via  to perform E2E tests on the backend API).
-  - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: None (tests are ad-hoc scripts in message history).
+  - Testing agent used after significant changes: NO (Agent used  for backend and  for frontend).
+  - Troubleshoot agent used after agent stuck in loop: NO.
+  - Test files created: None.
   - Known regressions: None.
 
+**Credentials to test flow:**
+- User: 
+
 **What agent forgot to execute**
-- The agent has not yet implemented Phase 4 (Validation) of the Enneagram assessment, as per the original user request. This is correctly listed as an upcoming task.
+- The agent successfully implemented all requested features in sequence. The low-priority ESLint issue was correctly deferred. No tasks were forgotten.
 
 </analysis>
