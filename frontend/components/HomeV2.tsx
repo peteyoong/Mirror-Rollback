@@ -934,6 +934,13 @@ export default function HomeV2({
       <View style={styles.todaySection}>
         <SectionLabel marginBottom={Spacing.sm}>TODAY</SectionLabel>
         
+        {/* Phase 6: Progress indicator for first 7 days */}
+        {progressIndicator && (
+          <Text style={styles.progressIndicator}>
+            {progressIndicator}
+          </Text>
+        )}
+        
         {/* Primary Headline - with fade-in animation */}
         <Animated.Text style={[styles.primaryHeadline, { opacity: headlineOpacity }]}>
           {primaryHeadline}
