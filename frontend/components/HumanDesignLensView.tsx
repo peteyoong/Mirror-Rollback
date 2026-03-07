@@ -888,7 +888,7 @@ const styles = StyleSheet.create({
   gkDivider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
     gap: 12,
   },
   gkDividerLine: {
@@ -901,6 +901,39 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textTertiary,
     letterSpacing: 2,
+  },
+  gkHelperText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 18,
+    fontStyle: 'italic',
+  },
+  viewModeToggle: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: 16,
+  },
+  viewModeButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  viewModeButtonActive: {
+    backgroundColor: Colors.accent,
+  },
+  viewModeText: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    fontWeight: '500',
+  },
+  viewModeTextActive: {
+    color: Colors.surface,
   },
   gkSectionHeader: {
     flexDirection: 'row',
@@ -949,6 +982,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    flex: 1,
   },
   gkArcHeaderRight: {
     flexDirection: 'row',
@@ -964,6 +998,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.textTertiary,
     marginTop: 1,
+    maxWidth: 180,
   },
   gkArcCount: {
     fontSize: 11,
@@ -972,8 +1007,16 @@ const styles = StyleSheet.create({
   gkArcContent: {
     paddingHorizontal: 14,
     paddingBottom: 12,
-    gap: 4,
+    gap: 8,
   },
+  gkArcHelper: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+    marginBottom: 8,
+    lineHeight: 16,
+  },
+  // Technical view sphere item (compact)
   gkSphereItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1009,6 +1052,50 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: Colors.textTertiary,
     marginTop: 2,
+  },
+  // Everyday language sphere item (expanded)
+  gkSphereItemExpanded: {
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  gkSphereHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  gkSphereTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  gkSphereTechnical: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    fontFamily: 'monospace',
+  },
+  gkSphereTheme: {
+    fontSize: 12,
+    color: Colors.accent,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  gkSphereDescription: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  gkSpherePrompt: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+    lineHeight: 16,
   },
   gkVersion: {
     fontSize: 10,
