@@ -11,6 +11,12 @@ import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
+import { 
+  formatSequenceExplanation, 
+  getArcDescription, 
+  getGateTheme,
+  SEQUENCE_ROLES 
+} from '../utils/humanDesignContext';
 
 interface HumanDesignSection {
   label: string;
