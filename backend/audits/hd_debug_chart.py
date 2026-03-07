@@ -1,6 +1,8 @@
 """
 Debug output generator for Human Design chart calibration.
 Run with: python -m backend.audits.hd_debug_chart
+
+UPDATED: 2026-03-07 - Now uses Swiss Ephemeris native sidereal mode
 """
 
 from datetime import datetime, timezone, timedelta
@@ -8,12 +10,16 @@ import json
 import sys
 sys.path.insert(0, '/app/backend')
 
-from calculations.astrology import get_full_natal_chart, tropical_to_sidereal, normalize_degrees
+from calculations.astrology import (
+    get_full_natal_chart, 
+    normalize_degrees,
+    SVP_DEGREES,
+    J2000_EPOCH,
+    CALC_FLAGS_SIDEREAL
+)
 from calculations.human_design import (
     get_human_design_chart, 
     longitude_to_gate,
-    calculate_design_date,
-    _get_sun_sidereal
 )
 import swisseph as swe
 
