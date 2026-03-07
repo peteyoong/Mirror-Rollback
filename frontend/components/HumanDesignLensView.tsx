@@ -694,6 +694,20 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: Colors.surface,
   },
+  tabDescriptionContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+  },
+  tabDescription: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+    fontStyle: 'italic',
+  },
   content: {
     flex: 1,
   },
