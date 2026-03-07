@@ -1031,15 +1031,13 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
 
-  // Input Bar
+  // Input Bar - Use relative positioning for proper touch handling on iOS
   inputBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: Colors.background,
     paddingHorizontal: 16,
     paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
   },
   inputContainer: {
     flexDirection: 'row',
