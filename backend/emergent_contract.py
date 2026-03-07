@@ -26,6 +26,7 @@ Usage:
 import re
 import logging
 import traceback
+import json
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
@@ -34,6 +35,49 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage
 import os
 
 logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# TYPE NORMALIZATION HELPER
+# ============================================================================
+def normalize_to_text(value: Any) -> str:
+    """
+    Normalize any value to a string for safe text operations.
+    
+    Handles: str, dict, list, None, and other types.
+    This is critical for preventing "expected string or bytes-like object" errors.
+    
+    Args:
+        value: Any value that needs to be converted to text
+        
+    Returns:
+        str: Safe string representation
+    """
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        # Try to extract text from common response formats
+        if 'text' in value:
+            return normalize_to_text(value['text'])
+        if 'content' in value:
+            return normalize_to_text(value['content'])
+        if 'message' in value:
+            return normalize_to_text(value['message'])
+        if 'response' in value:
+            return normalize_to_text(value['response'])
+        # Fall back to JSON serialization
+        try:
+            return json.dumps(value, ensure_ascii=False)
+        except (TypeError, ValueError):
+            return str(value)
+    if isinstance(value, list):
+        try:
+            return json.dumps(value, ensure_ascii=False)
+        except (TypeError, ValueError):
+            return str(value)
+    return str(value)
 
 # ============================================================================
 # EMERGENT! FINAL INSTRUCTION PROMPT - THE NORTH STAR
