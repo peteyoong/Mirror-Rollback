@@ -291,14 +291,40 @@ export default function MirrorChat({
     setIsLoading(true);
     Keyboard.dismiss();
 
+    // ============================================
+    // DEBUG LOGGING - MIRROR CHAT REQUEST
+    // ============================================
+    const requestPayload = {
+      user_id: userId,
+      message: userMessage.content,
+      lens: lens,
+      session_id: sessionId,
+      include_journal: true,
+      include_history: true,
+    };
+    
+    console.log('[MIRROR_CHAT_REQUEST]', {
+      endpoint: '/api/mirror/chat',
+      user_id: userId,
+      payload: requestPayload,
+      build: process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown',
+    });
+    
+    // Log API base URL for debugging
+    console.log('[MIRROR_CHAT_DEBUG] API_BASE_URL:', api.defaults.baseURL);
+
     try {
-      const response = await api.post('/mirror/chat', {
-        user_id: userId,
-        message: userMessage.content,
-        lens: lens,
-        session_id: sessionId,
-        include_journal: true,
-        include_history: true,
+      const response = await api.post('/mirror/chat', requestPayload);
+
+      // ============================================
+      // DEBUG LOGGING - MIRROR CHAT RESPONSE
+      // ============================================
+      console.log('[MIRROR_CHAT_RESPONSE]', {
+        status: response.status,
+        has_response: !!response.data?.response,
+        session_id: response.data?.session_id,
+        has_memory_update: !!response.data?.memory_update,
+        has_thread: !!response.data?.thread,
       });
 
       const assistantMessage: Message = {
@@ -323,11 +349,37 @@ export default function MirrorChat({
         setThreadState(null);
       }
     } catch (error: any) {
-      console.error('Mirror chat error:', error);
+      // ============================================
+      // DEBUG LOGGING - MIRROR CHAT ERROR
+      // ============================================
+      console.error('[MIRROR_CHAT_ERROR]', {
+        message: error?.message,
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        data: error?.response?.data,
+        code: error?.code,
+      });
+      
+      // Determine error message based on status
+      let errorContent = "Mirror couldn't reach its reflection service. Please try again.";
+      
+      if (error?.response?.status === 429) {
+        errorContent = "Mirror needs a pause. Try again in a little while.";
+      } else if (error?.response?.status === 404) {
+        errorContent = "Your profile wasn't found. Please try logging in again.";
+      } else if (error?.response?.status === 500) {
+        const detail = error?.response?.data?.detail;
+        errorContent = detail || "Mirror encountered an issue. Please try again.";
+      } else if (error?.code === 'ECONNABORTED') {
+        errorContent = "The reflection took too long. Please try a shorter message.";
+      } else if (!error?.response) {
+        errorContent = "Unable to connect to Mirror. Please check your connection.";
+      }
+      
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
         role: 'assistant',
-        content: "I'm having trouble connecting right now. Please try again in a moment.",
+        content: errorContent,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
