@@ -23,6 +23,9 @@ interface GeneKeyPosition {
   line: number;
   source_planet: string;
   source_chart: 'personality' | 'design';
+  // Optional UI-layer fields (not from compute)
+  theme_label?: string;
+  reflection_prompt?: string;
 }
 
 // Gene Keys data structure
