@@ -4779,12 +4779,19 @@ async def mirror_chat(request: MirrorChatRequest):
             import json
             import re
             
+            # Handle case where memory_response is a dict (API response) or string
+            if isinstance(memory_response, dict):
+                # Extract text from response dict
+                memory_response_text = memory_response.get('text', memory_response.get('content', str(memory_response)))
+            else:
+                memory_response_text = str(memory_response)
+            
             # Extract JSON from response (handle markdown code blocks)
-            json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', memory_response)
+            json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', memory_response_text)
             if json_match:
                 json_str = json_match.group(1)
             else:
-                json_str = memory_response.strip()
+                json_str = memory_response_text.strip()
             
             memory_data = json.loads(json_str)
             
