@@ -6896,23 +6896,27 @@ def get_incarnation_cross_label(cross_string):
         "Left Angle Cross of 23/43" -> "Left Angle Cross of Assimilation"
         {"name": "Right Angle Cross", "gates": [37, 40, 5, 35]} -> "Right Angle Cross of the Family"
     """
-    from calculations.human_design import INCARNATION_CROSS_NAMES
-    
     # Handle dict type (from incarnation_cross object)
     if isinstance(cross_string, dict):
-        # Try to get the name or format from the dict
-        cross_name = cross_string.get('name', '')
-        gates = cross_string.get('gates', [])
-        
-        if cross_name and gates and len(gates) > 0:
-            # Get the first gate to look up the cross name
-            first_gate = gates[0] if isinstance(gates[0], int) else int(gates[0])
-            named_cross = INCARNATION_CROSS_NAMES.get(first_gate, f"Gate {first_gate}")
-            return f"{cross_name} of {named_cross}"
-        elif cross_name:
-            return cross_name
-        else:
-            return 'Unknown'
+        try:
+            from calculations.human_design import INCARNATION_CROSS_NAMES
+            
+            # Try to get the name or format from the dict
+            cross_name = cross_string.get('name', '')
+            gates = cross_string.get('gates', [])
+            
+            if cross_name and gates and len(gates) > 0:
+                # Get the first gate to look up the cross name
+                first_gate = gates[0] if isinstance(gates[0], int) else int(gates[0])
+                named_cross = INCARNATION_CROSS_NAMES.get(first_gate, f"Gate {first_gate}")
+                return f"{cross_name} of {named_cross}"
+            elif cross_name:
+                return cross_name
+            else:
+                return 'Unknown'
+        except Exception as e:
+            # If there's any error processing the dict, return a safe fallback
+            return cross_string.get('name', 'Unknown') if isinstance(cross_string, dict) else 'Unknown'
     
     # Handle None or non-string types
     if not cross_string or not isinstance(cross_string, str):
@@ -6921,28 +6925,33 @@ def get_incarnation_cross_label(cross_string):
     if cross_string == 'Unknown':
         return 'Unknown'
     
-    import re
-    
-    # Check if it's a numbered cross (e.g., "Right Angle Cross of 37/40")
-    numbered_pattern = r'^(.*?Cross)\s*of\s*(\d+)\s*/\s*\d+.*$'
-    match = re.match(numbered_pattern, cross_string)
-    if match:
-        cross_type = match.group(1).strip()  # "Right Angle Cross"
-        first_gate = int(match.group(2))  # 37
+    try:
+        from calculations.human_design import INCARNATION_CROSS_NAMES
+        import re
         
-        # Look up the cross name from the gate number
-        cross_name = INCARNATION_CROSS_NAMES.get(first_gate, f"Gate {first_gate}")
-        return f"{cross_type} of {cross_name}"
-    
-    # Check if it's already a named cross (e.g., "Left Angle Cross of Dedication")
-    named_pattern = r'^(.*?Cross)\s*of\s*(\w+.*)$'
-    match = re.match(named_pattern, cross_string)
-    if match:
-        # Already named, return as-is
+        # Check if it's a numbered cross (e.g., "Right Angle Cross of 37/40")
+        numbered_pattern = r'^(.*?Cross)\s*of\s*(\d+)\s*/\s*\d+.*$'
+        match = re.match(numbered_pattern, cross_string)
+        if match:
+            cross_type = match.group(1).strip()  # "Right Angle Cross"
+            first_gate = int(match.group(2))  # 37
+            
+            # Look up the cross name from the gate number
+            cross_name = INCARNATION_CROSS_NAMES.get(first_gate, f"Gate {first_gate}")
+            return f"{cross_type} of {cross_name}"
+        
+        # Check if it's already a named cross (e.g., "Left Angle Cross of Dedication")
+        named_pattern = r'^(.*?Cross)\s*of\s*(\w+.*)$'
+        match = re.match(named_pattern, cross_string)
+        if match:
+            # Already named, return as-is
+            return cross_string
+        
+        # Fallback: return as-is
         return cross_string
-    
-    # Fallback: return as-is
-    return cross_string
+    except Exception as e:
+        # If there's any error, return the input as-is or 'Unknown'
+        return cross_string if isinstance(cross_string, str) else 'Unknown'
 
 
 @api_router.get("/human-design/summary/{user_id}")
