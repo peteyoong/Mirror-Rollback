@@ -1209,6 +1209,11 @@ async def emergent_generate(
         message = UserMessage(text=user_message)
         response = await chat.send_message(message)
         
+        # CRITICAL: Normalize response to string immediately
+        # LlmChat.send_message() may return dict, string, or other types
+        response = normalize_to_text(response)
+        logger.debug(f"[TYPECHECK] emergent_generate response after normalize: type={type(response).__name__}, len={len(response)}")
+        
         # Apply LoC throttling to response
         response = apply_loc_throttle(response, loc)
         
