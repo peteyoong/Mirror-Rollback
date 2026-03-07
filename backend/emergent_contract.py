@@ -639,7 +639,7 @@ class ValidationResult:
 # VALIDATOR FUNCTION
 # ============================================================================
 
-def validate_emergent_output(text: str) -> ValidationResult:
+def validate_emergent_output(text: Any) -> ValidationResult:
     """
     Validate AI output against Emergent! contract.
     
@@ -653,6 +653,11 @@ def validate_emergent_output(text: str) -> ValidationResult:
     Returns:
         ValidationResult with violations and optional rewritten text
     """
+    # CRITICAL: Normalize input to string before any text operations
+    text = normalize_to_text(text)
+    
+    logger.debug(f"[TYPECHECK] validate_emergent_output input type after normalize: {type(text).__name__}")
+    
     violations = []
     rewritten_text = text
     max_severity = None
