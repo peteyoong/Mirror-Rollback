@@ -45,7 +45,7 @@ BENCHMARK_CHARTS = {
         "expected": {
             "type": "Reflector",
             "profile": "3/5",
-            "definition": "None",
+            "definition": "No Definition",
             "authority": "Lunar",
             "channels": [],
             "defined_centers": [],
@@ -167,10 +167,10 @@ def run_single_benchmark(chart_id: str, chart_data: dict) -> dict:
     # Definition comparison
     computed_def = hd_chart.get('definition', '')
     expected_def = expected.get('definition', '')
-    # Normalize "None" vs "No Definition"
+    # Normalize "No Definition" vs "None"
     def_match = (computed_def == expected_def) or \
-                (expected_def == "None" and computed_def == "No Definition") or \
-                (expected_def == "No Definition" and computed_def == "None")
+                (expected_def == "No Definition" and computed_def == "None") or \
+                (expected_def == "None" and computed_def == "No Definition")
     comparisons.append({
         "field": "definition",
         "expected": expected_def,
