@@ -95,6 +95,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   
+  // Gene Keys expansion state
+  const [geneKeysExpanded, setGeneKeysExpanded] = useState(false);
+  const [expandedArc, setExpandedArc] = useState<string | null>(null);
+  
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
 
