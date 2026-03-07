@@ -119,7 +119,11 @@ def normalize_degrees(degrees: float) -> float:
 
 
 def tropical_to_sidereal(tropical_longitude: float, svp_degrees: float) -> float:
-    """Convert tropical longitude to sidereal using fixed SVP
+    """DEPRECATED: Manual sidereal conversion - use SE native sidereal mode instead
+    
+    This function is kept for backward compatibility only.
+    New code should use calculate_planet_position_sidereal() which uses
+    Swiss Ephemeris native sidereal mode via SEFLG_SIDEREAL flag.
     
     For True Sidereal with fixed SVP (yearly_increment=0):
     sidereal = tropical - SVP
@@ -130,7 +134,15 @@ def tropical_to_sidereal(tropical_longitude: float, svp_degrees: float) -> float
     
     Returns:
         Sidereal longitude (0-360)
+    
+    DEPRECATED: Use calculate_planet_position_sidereal() instead
     """
+    import warnings
+    warnings.warn(
+        "tropical_to_sidereal() is deprecated. Use calculate_planet_position_sidereal() instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
     sidereal = tropical_longitude - svp_degrees
     return normalize_degrees(sidereal)
 
