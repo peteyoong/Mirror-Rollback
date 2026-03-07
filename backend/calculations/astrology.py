@@ -157,7 +157,7 @@ def longitude_to_sign_degree(longitude: float) -> Dict:
 
 
 def calculate_planet_position_tropical(planet_id: int, jd: float) -> Dict:
-    """Calculate tropical position of a planet
+    """Calculate tropical position of a planet using Swiss Ephemeris
     
     Args:
         planet_id: Swiss Ephemeris planet constant
@@ -166,8 +166,8 @@ def calculate_planet_position_tropical(planet_id: int, jd: float) -> Dict:
     Returns:
         Dict with tropical longitude, latitude, distance, speed
     """
-    # Calculate without sidereal flag - pure tropical
-    result = swe.calc_ut(jd, planet_id, 0)
+    # Calculate with SEFLG_SWIEPH for tropical positions
+    result = swe.calc_ut(jd, planet_id, CALC_FLAGS_TROPICAL)
     
     return {
         'longitude': result[0][0],
@@ -177,34 +177,40 @@ def calculate_planet_position_tropical(planet_id: int, jd: float) -> Dict:
     }
 
 
-def calculate_planet_position_sidereal(planet_id: int, jd: float, svp_degrees: float) -> Dict:
-    """Calculate sidereal position of a planet using fixed SVP
+def calculate_planet_position_sidereal(planet_id: int, jd: float, svp_degrees: float = None) -> Dict:
+    """Calculate sidereal position of a planet using Swiss Ephemeris native sidereal mode
+    
+    Note: svp_degrees parameter is kept for API compatibility but ignored.
+    Sidereal mode is set globally via swe.set_sid_mode() at module init.
     
     Args:
         planet_id: Swiss Ephemeris planet constant
         jd: Julian day
-        svp_degrees: Fixed SVP offset
+        svp_degrees: DEPRECATED - kept for compatibility, ignored
     
     Returns:
-        Dict with sidereal longitude, latitude, sign, degree, formatted
+        Dict with sidereal and tropical longitudes, latitude, sign, degree, formatted
     """
-    # Get tropical position first
+    # Get tropical position (for reference/debugging)
     tropical = calculate_planet_position_tropical(planet_id, jd)
     
-    # Convert to sidereal using fixed SVP
-    sidereal_longitude = tropical_to_sidereal(tropical['longitude'], svp_degrees)
+    # Get sidereal position directly from Swiss Ephemeris
+    # This uses the SIDM_USER mode set at module initialization
+    result = swe.calc_ut(jd, planet_id, CALC_FLAGS_SIDEREAL)
+    sidereal_longitude = normalize_degrees(result[0][0])
     
-    # Get sign info
+    # Get sign info from sidereal longitude
     sign_info = longitude_to_sign_degree(sidereal_longitude)
     
     return {
         'longitude': sidereal_longitude,
         'tropical_longitude': tropical['longitude'],
-        'latitude': tropical['latitude'],
+        'latitude': result[0][1],
         'sign': sign_info['sign'],
         'degree': sign_info['degree'],
         'formatted': sign_info['formatted'],
-        'speed': tropical['speed']
+        'speed': result[0][3],
+        'retrograde': result[0][3] < 0
     }
 
 
