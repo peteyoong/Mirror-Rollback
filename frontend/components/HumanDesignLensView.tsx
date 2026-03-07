@@ -352,6 +352,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               A lens for understanding energy patterns, not a definition of who you are.
             </Text>
             
+            {/* Version Debug Panel - only shows when DEBUG_MIRROR is enabled */}
+            {renderVersionDebug()}
+            
             {/* Debug Footer - only shows when DEBUG_MIRROR is enabled */}
             {activeTab === 'deep_dive' && data.sections && (
               <DebugFooter 
