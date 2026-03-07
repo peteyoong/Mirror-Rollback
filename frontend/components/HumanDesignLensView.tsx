@@ -285,25 +285,43 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Render a single Gene Key sphere position with optional theme/reflection
+  // Render a single Gene Key sphere position with context
   const renderGeneKeySphere = (name: string, position: GeneKeyPosition) => {
     const chartLabel = position.source_chart === 'personality' ? 'Conscious' : 'Unconscious';
+    const explanation = formatSequenceExplanation(name, position.gate, position.line);
+    const gateTheme = getGateTheme(position.gate);
+    
+    // Technical view: show raw values prominently
+    if (sequenceViewMode === 'technical') {
+      return (
+        <View key={name} style={styles.gkSphereItem}>
+          <View style={styles.gkSphereLeft}>
+            <Text style={styles.gkSphereName}>{explanation.title}</Text>
+          </View>
+          <View style={styles.gkSphereRight}>
+            <Text style={styles.gkGateLine}>
+              {position.gate}.{position.line}
+            </Text>
+            <Text style={styles.gkSource}>
+              {position.source_planet} • {chartLabel}
+            </Text>
+          </View>
+        </View>
+      );
+    }
+    
+    // Everyday language view: show themes and descriptions
     return (
-      <View key={name} style={styles.gkSphereItem}>
-        <View style={styles.gkSphereLeft}>
-          <Text style={styles.gkSphereName}>{formatSphereName(name)}</Text>
-          {position.theme_label && (
-            <Text style={styles.gkThemeLabel}>{position.theme_label}</Text>
-          )}
+      <View key={name} style={styles.gkSphereItemExpanded}>
+        <View style={styles.gkSphereHeader}>
+          <Text style={styles.gkSphereTitle}>{explanation.title}</Text>
+          <Text style={styles.gkSphereTechnical}>{explanation.technicalValue}</Text>
         </View>
-        <View style={styles.gkSphereRight}>
-          <Text style={styles.gkGateLine}>
-            {position.gate}.{position.line}
-          </Text>
-          <Text style={styles.gkSource}>
-            {position.source_planet} • {chartLabel}
-          </Text>
-        </View>
+        <Text style={styles.gkSphereTheme}>{explanation.themeLabel}</Text>
+        <Text style={styles.gkSphereDescription}>{explanation.description}</Text>
+        {explanation.reflectionPrompt && (
+          <Text style={styles.gkSpherePrompt}>↳ {explanation.reflectionPrompt}</Text>
+        )}
       </View>
     );
   };
@@ -326,6 +344,40 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       .join(' ');
   };
 
+  // Render view mode toggle
+  const renderViewModeToggle = () => {
+    return (
+      <View style={styles.viewModeToggle}>
+        <TouchableOpacity
+          style={[
+            styles.viewModeButton,
+            sequenceViewMode === 'everyday' && styles.viewModeButtonActive
+          ]}
+          onPress={() => setSequenceViewMode('everyday')}
+          activeOpacity={0.7}
+        >
+          <Text style={[
+            styles.viewModeText,
+            sequenceViewMode === 'everyday' && styles.viewModeTextActive
+          ]}>Everyday language</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.viewModeButton,
+            sequenceViewMode === 'technical' && styles.viewModeButtonActive
+          ]}
+          onPress={() => setSequenceViewMode('technical')}
+          activeOpacity={0.7}
+        >
+          <Text style={[
+            styles.viewModeText,
+            sequenceViewMode === 'technical' && styles.viewModeTextActive
+          ]}>Technical view</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   // Render Gene Keys Arc card with collapse/expand
   const renderGeneKeysArc = (
     arcName: string, 
@@ -338,6 +390,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     const isExpanded = expandedArc === arcKey;
     const sphereCount = Object.keys(arcData).length;
+    const arcDescription = getArcDescription(arcKey);
     
     return (
       <View style={styles.gkArcCard}>
@@ -349,8 +402,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <View style={styles.gkArcHeaderLeft}>
             <Ionicons name={icon} size={18} color={Colors.accent} />
             <View>
-              <Text style={styles.gkArcTitle}>{arcName}</Text>
-              <Text style={styles.gkArcSubtitle}>{subtitle}</Text>
+              <Text style={styles.gkArcTitle}>{arcDescription.title || arcName}</Text>
+              <Text style={styles.gkArcSubtitle}>
+                {sequenceViewMode === 'everyday' ? arcDescription.description : subtitle}
+              </Text>
             </View>
           </View>
           <View style={styles.gkArcHeaderRight}>
@@ -364,6 +419,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         </TouchableOpacity>
         {isExpanded && (
           <View style={styles.gkArcContent}>
+            {sequenceViewMode === 'everyday' && arcDescription.helperText && (
+              <Text style={styles.gkArcHelper}>{arcDescription.helperText}</Text>
+            )}
             {Object.entries(arcData).map(([name, position]) => 
               renderGeneKeySphere(name, position)
             )}
