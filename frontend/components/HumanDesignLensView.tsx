@@ -146,6 +146,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     }
   };
 
+  // Tab descriptions for user clarity
+  const TAB_DESCRIPTIONS: Record<TabType, string> = {
+    summary: "A quick orientation to your Human Design.",
+    today: "How today's transits interact with your design.",
+    deep_dive: "Explore the deeper layers of your chart."
+  };
+
   const renderTabs = () => (
     <View style={styles.tabContainer}>
       <TouchableOpacity
@@ -153,7 +160,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         onPress={() => setActiveTab('summary')}
       >
         <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>
-          Summary
+          Overview
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -161,7 +168,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         onPress={() => setActiveTab('today')}
       >
         <Text style={[styles.tabText, activeTab === 'today' && styles.activeTabText]}>
-          Today's Snapshot
+          Today
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -172,6 +179,15 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           Deep Dive
         </Text>
       </TouchableOpacity>
+    </View>
+  );
+
+  // Render tab description at top of content
+  const renderTabDescription = () => (
+    <View style={styles.tabDescriptionContainer}>
+      <Text style={styles.tabDescription}>
+        {TAB_DESCRIPTIONS[activeTab]}
+      </Text>
     </View>
   );
 
