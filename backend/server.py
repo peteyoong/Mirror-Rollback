@@ -3664,19 +3664,53 @@ async def calculate_chart(request: ChartCalculationRequest):
 
 @api_router.get("/charts/{user_id}")
 async def get_chart(user_id: str):
-    """Get user's calculated chart"""
+    """Get user's calculated chart
+    
+    Returns structured error responses for session restore:
+    - 400 with code="invalid_user_id" for malformed IDs
+    - 404 with code="chart_not_found" for missing charts
+    """
     try:
+        # Validate user_id format - must be valid MongoDB ObjectId
+        if not ObjectId.is_valid(user_id):
+            logger.warning(f"[GetChart] Invalid user ID format: {user_id[:20]}...")
+            raise HTTPException(
+                status_code=400, 
+                detail={
+                    "code": "invalid_user_id",
+                    "message": "Invalid user ID format",
+                    "recovery_action": "clear_session"
+                }
+            )
+        
         chart = await db.charts.find_one({"user_id": user_id})
         if not chart:
-            raise HTTPException(status_code=404, detail="Chart not found. Please calculate first.")
+            logger.info(f"[GetChart] Chart not found for user: {user_id}")
+            raise HTTPException(
+                status_code=404, 
+                detail={
+                    "code": "chart_not_found",
+                    "message": "Chart not found. Please complete onboarding.",
+                    "recovery_action": "start_onboarding"
+                }
+            )
         
         # Convert ObjectId to string
         chart["_id"] = str(chart["_id"])
         chart["computation_version"] = "mirror-deterministic-v1"
         return chart
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Get chart error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500, 
+            detail={
+                "code": "server_error",
+                "message": "Unable to retrieve chart",
+                "recovery_action": "retry"
+            }
+        )
 
 
 @api_router.post("/journal", response_model=JournalEntryResponse)
