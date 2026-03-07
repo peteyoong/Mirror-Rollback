@@ -398,7 +398,7 @@ def get_loc_instruction(band: LoCBand) -> str:
     return rules["instruction"] + "\n" + LOC_UNIVERSAL_SAFETY_RULES
 
 
-def apply_loc_throttle(response_text: str, band: LoCBand) -> str:
+def apply_loc_throttle(response_text: Any, band: LoCBand) -> str:
     """
     Apply LoC-based throttling to response text.
     
@@ -407,12 +407,17 @@ def apply_loc_throttle(response_text: str, band: LoCBand) -> str:
     - Removes metaphor-heavy language for lower bands
     
     Args:
-        response_text: The generated response
+        response_text: The generated response (may be str, dict, or other)
         band: The LoC band to apply
     
     Returns:
         Throttled response text
     """
+    # CRITICAL: Normalize input to string before any text operations
+    response_text = normalize_to_text(response_text)
+    
+    logger.debug(f"[TYPECHECK] apply_loc_throttle input type: {type(response_text).__name__}")
+    
     rules = LOC_GOVERNOR_RULES.get(band, LOC_GOVERNOR_RULES[LoCBand.MANAGING])
     max_sentences = rules["max_sentences"]
     
