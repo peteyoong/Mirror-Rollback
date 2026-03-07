@@ -294,7 +294,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     // Technical view: show raw values prominently
     if (sequenceViewMode === 'technical') {
       return (
-        <View key={name} style={styles.gkSphereItem}>
+        <View key={name} style={styles.gkSphereItemTechnical}>
           <View style={styles.gkSphereLeft}>
             <Text style={styles.gkSphereName}>{explanation.title}</Text>
           </View>
@@ -310,18 +310,28 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       );
     }
     
-    // Everyday language view: show themes and descriptions
+    // Everyday language view: editorial, spacious layout
     return (
       <View key={name} style={styles.gkSphereItemExpanded}>
-        <View style={styles.gkSphereHeader}>
-          <Text style={styles.gkSphereTitle}>{explanation.title}</Text>
-          <Text style={styles.gkSphereTechnical}>{explanation.technicalValue}</Text>
-        </View>
+        {/* Sphere Title - emphasized */}
+        <Text style={styles.gkSphereTitle}>{explanation.title}</Text>
+        
+        {/* Theme Label */}
         <Text style={styles.gkSphereTheme}>{explanation.themeLabel}</Text>
+        
+        {/* Description */}
         <Text style={styles.gkSphereDescription}>{explanation.description}</Text>
+        
+        {/* Reflection Prompt - visually separated */}
         {explanation.reflectionPrompt && (
-          <Text style={styles.gkSpherePrompt}>↳ {explanation.reflectionPrompt}</Text>
+          <View style={styles.gkReflectionContainer}>
+            <View style={styles.gkReflectionDivider} />
+            <Text style={styles.gkSpherePrompt}>{explanation.reflectionPrompt}</Text>
+          </View>
         )}
+        
+        {/* Technical value - secondary, subtle */}
+        <Text style={styles.gkSphereTechnical}>{explanation.technicalValue}</Text>
       </View>
     );
   };
