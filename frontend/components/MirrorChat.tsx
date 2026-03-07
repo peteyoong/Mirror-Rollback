@@ -660,7 +660,7 @@ export default function MirrorChat({
         }
       />
 
-      {/* Input Bar */}
+      {/* Input Bar - NOT absolute positioned for proper touch handling */}
       <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         {/* Transparency line (only in generalist Mirror Chat, not lens modals) */}
         {!lens && (
@@ -670,14 +670,25 @@ export default function MirrorChat({
         )}
         <View style={styles.inputContainer}>
           <TextInput
+            ref={inputRef}
             style={styles.input}
             value={inputText}
-            onChangeText={setInputText}
+            onChangeText={(text) => {
+              console.log('[MIRROR_INPUT_CHANGE]', text.length);
+              setInputText(text);
+            }}
+            onFocus={() => console.log('[MIRROR_INPUT_FOCUS]')}
+            onBlur={() => console.log('[MIRROR_INPUT_BLUR]')}
+            onPressIn={() => console.log('[MIRROR_INPUT_PRESS_IN]')}
             placeholder={placeholder}
             placeholderTextColor={Colors.textTertiary}
             multiline
             maxLength={2000}
             editable={!isLoading}
+            autoCorrect={true}
+            blurOnSubmit={false}
+            textAlignVertical="top"
+            returnKeyType="default"
           />
           <TouchableOpacity
             style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
