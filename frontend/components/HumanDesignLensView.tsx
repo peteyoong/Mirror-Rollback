@@ -133,6 +133,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       strategy: 'Unknown',
       authority: 'Unknown',
       profile: 'Unknown',
+      definition: 'Unknown',
       incarnation_cross: 'Unknown',
       incarnation_cross_gates: null
     };
