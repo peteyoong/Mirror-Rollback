@@ -6884,21 +6884,41 @@ HD_AUTHORITY_DESCRIPTIONS = {
 }
 
 
-def get_incarnation_cross_label(cross_string: str) -> str:
+def get_incarnation_cross_label(cross_string):
     """
-    Extract a clean, human-friendly label from the incarnation cross string.
+    Convert incarnation cross format to human-readable label.
     
-    Input formats:
-    - "Right Angle Cross of 37/40" -> "Right Angle Cross of Migration"
-    - "Left Angle Cross of Dedication" -> "Left Angle Cross of Dedication"
-    - "Juxtaposition Cross of Crisis" -> "Juxtaposition Cross of Crisis"
-    
-    Output:
-    - Full named cross like "Right Angle Cross of Migration"
+    Args:
+        cross_string: Can be str, dict, or None
+        
+    Examples:
+        "Right Angle Cross of 37/40" -> "Right Angle Cross of the Family"
+        "Left Angle Cross of 23/43" -> "Left Angle Cross of Assimilation"
+        {"name": "Right Angle Cross", "gates": [37, 40, 5, 35]} -> "Right Angle Cross of the Family"
     """
     from calculations.human_design import INCARNATION_CROSS_NAMES
     
-    if not cross_string or cross_string == 'Unknown':
+    # Handle dict type (from incarnation_cross object)
+    if isinstance(cross_string, dict):
+        # Try to get the name or format from the dict
+        cross_name = cross_string.get('name', '')
+        gates = cross_string.get('gates', [])
+        
+        if cross_name and gates and len(gates) > 0:
+            # Get the first gate to look up the cross name
+            first_gate = gates[0] if isinstance(gates[0], int) else int(gates[0])
+            named_cross = INCARNATION_CROSS_NAMES.get(first_gate, f"Gate {first_gate}")
+            return f"{cross_name} of {named_cross}"
+        elif cross_name:
+            return cross_name
+        else:
+            return 'Unknown'
+    
+    # Handle None or non-string types
+    if not cross_string or not isinstance(cross_string, str):
+        return 'Unknown'
+    
+    if cross_string == 'Unknown':
         return 'Unknown'
     
     import re
