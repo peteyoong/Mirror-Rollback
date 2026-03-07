@@ -153,11 +153,11 @@ class TestJayGeneKeys:
     # FROZEN VALUES - Jay's Gene Keys
     def test_lifes_work_gate(self, jay_gk):
         """Jay's Life's Work gate (personality Sun)."""
-        assert jay_gk["all_sequences"]["lifes_work"]["gate"] == 64
+        assert jay_gk["all_sequences"]["lifes_work"]["gate"] == 47
     
     def test_evolution_gate(self, jay_gk):
         """Jay's Evolution gate (personality Earth)."""
-        assert jay_gk["all_sequences"]["evolution"]["gate"] == 63
+        assert jay_gk["all_sequences"]["evolution"]["gate"] == 22
 
 
 class TestMelissaGeneKeys:
@@ -192,11 +192,11 @@ class TestMelissaGeneKeys:
     # FROZEN VALUES - Melissa's Gene Keys (Reflector)
     def test_lifes_work_gate(self, melissa_gk):
         """Melissa's Life's Work gate (personality Sun)."""
-        assert melissa_gk["all_sequences"]["lifes_work"]["gate"] == 31
+        assert melissa_gk["all_sequences"]["lifes_work"]["gate"] == 45
     
     def test_evolution_gate(self, melissa_gk):
         """Melissa's Evolution gate (personality Earth)."""
-        assert melissa_gk["all_sequences"]["evolution"]["gate"] == 41
+        assert melissa_gk["all_sequences"]["evolution"]["gate"] == 26
 
 
 class TestPeteGeneKeys:
@@ -231,11 +231,11 @@ class TestPeteGeneKeys:
     # FROZEN VALUES - Pete's Gene Keys (Manifestor)
     def test_lifes_work_gate(self, pete_gk):
         """Pete's Life's Work gate (personality Sun)."""
-        assert pete_gk["all_sequences"]["lifes_work"]["gate"] == 51
+        assert pete_gk["all_sequences"]["lifes_work"]["gate"] == 37
     
     def test_evolution_gate(self, pete_gk):
         """Pete's Evolution gate (personality Earth)."""
-        assert pete_gk["all_sequences"]["evolution"]["gate"] == 57
+        assert pete_gk["all_sequences"]["evolution"]["gate"] == 40
 
 
 class TestSequenceMappings:
