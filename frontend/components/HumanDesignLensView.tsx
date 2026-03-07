@@ -183,7 +183,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         </View>
         
-        {/* Row 2: Profile + Incarnation Cross */}
+        {/* Row 2: Profile + Definition */}
         <View style={[styles.mechanicsGrid, { marginTop: 16 }]}>
           <View style={styles.mechanicItem}>
             <Ionicons name="person-outline" size={16} color={Colors.accent} />
@@ -192,6 +192,15 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
           <View style={styles.mechanicDivider} />
           <View style={styles.mechanicItem}>
+            <Ionicons name="layers-outline" size={16} color={Colors.accent} />
+            <Text style={styles.mechanicLabel}>Definition</Text>
+            <Text style={styles.mechanicValue}>{formatMechanic(mechanics.definition)}</Text>
+          </View>
+        </View>
+        
+        {/* Row 3: Incarnation Cross */}
+        <View style={[styles.mechanicsGrid, { marginTop: 16 }]}>
+          <View style={[styles.mechanicItem, { flex: 1 }]}>
             <Ionicons name="git-branch-outline" size={16} color={Colors.accent} />
             <Text style={styles.mechanicLabel}>Incarnation Cross</Text>
             <Text style={[styles.mechanicValue, styles.mechanicValueSmall]}>{formatCross()}</Text>
