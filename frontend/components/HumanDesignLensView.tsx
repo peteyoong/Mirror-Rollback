@@ -723,4 +723,72 @@ const styles = StyleSheet.create({
     color: '#aaaacc',
     fontFamily: 'monospace',
   },
+  // Gene Keys styles
+  gkContainer: {
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  gkSectionTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 1.5,
+    marginBottom: 16,
+  },
+  gkArcCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  gkArcHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+  },
+  gkArcTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  gkArcContent: {
+    gap: 8,
+  },
+  gkSphereItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  gkSphereName: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  gkSphereDetails: {
+    alignItems: 'flex-end',
+  },
+  gkGateLine: {
+    fontSize: 14,
+    color: Colors.text,
+    fontWeight: '600',
+  },
+  gkSource: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    marginTop: 2,
+  },
+  gkVersion: {
+    fontSize: 10,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    marginTop: 8,
+    fontFamily: 'monospace',
+  },
 });
