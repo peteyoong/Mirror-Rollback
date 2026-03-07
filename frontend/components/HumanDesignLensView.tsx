@@ -276,18 +276,23 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Render a single Gene Key sphere position
+  // Render a single Gene Key sphere position with optional theme/reflection
   const renderGeneKeySphere = (name: string, position: GeneKeyPosition) => {
     const chartLabel = position.source_chart === 'personality' ? 'Conscious' : 'Unconscious';
     return (
       <View key={name} style={styles.gkSphereItem}>
-        <Text style={styles.gkSphereName}>{formatSphereName(name)}</Text>
-        <View style={styles.gkSphereDetails}>
+        <View style={styles.gkSphereLeft}>
+          <Text style={styles.gkSphereName}>{formatSphereName(name)}</Text>
+          {position.theme_label && (
+            <Text style={styles.gkThemeLabel}>{position.theme_label}</Text>
+          )}
+        </View>
+        <View style={styles.gkSphereRight}>
           <Text style={styles.gkGateLine}>
-            Gate {position.gate}.{position.line}
+            {position.gate}.{position.line}
           </Text>
           <Text style={styles.gkSource}>
-            {position.source_planet} ({chartLabel})
+            {position.source_planet} • {chartLabel}
           </Text>
         </View>
       </View>
@@ -296,36 +301,70 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   // Format sphere name from snake_case to Title Case
   const formatSphereName = (name: string): string => {
+    // Special cases for better readability
+    const specialNames: Record<string, string> = {
+      'lifes_work': "Life's Work",
+      'iq': 'IQ',
+      'eq': 'EQ', 
+      'sq': 'SQ',
+      'core_wound': 'Core Wound',
+    };
+    if (specialNames[name]) return specialNames[name];
+    
     return name
       .split('_')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
 
-  // Render Gene Keys Arc card
+  // Render Gene Keys Arc card with collapse/expand
   const renderGeneKeysArc = (
     arcName: string, 
+    arcKey: string,
     arcData: Record<string, GeneKeyPosition> | undefined,
-    icon: keyof typeof Ionicons.glyphMap
+    icon: keyof typeof Ionicons.glyphMap,
+    subtitle: string
   ) => {
     if (!arcData) return null;
     
+    const isExpanded = expandedArc === arcKey;
+    const sphereCount = Object.keys(arcData).length;
+    
     return (
       <View style={styles.gkArcCard}>
-        <View style={styles.gkArcHeader}>
-          <Ionicons name={icon} size={18} color={Colors.accent} />
-          <Text style={styles.gkArcTitle}>{arcName}</Text>
-        </View>
-        <View style={styles.gkArcContent}>
-          {Object.entries(arcData).map(([name, position]) => 
-            renderGeneKeySphere(name, position)
-          )}
-        </View>
+        <TouchableOpacity
+          style={styles.gkArcHeader}
+          onPress={() => setExpandedArc(isExpanded ? null : arcKey)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.gkArcHeaderLeft}>
+            <Ionicons name={icon} size={18} color={Colors.accent} />
+            <View>
+              <Text style={styles.gkArcTitle}>{arcName}</Text>
+              <Text style={styles.gkArcSubtitle}>{subtitle}</Text>
+            </View>
+          </View>
+          <View style={styles.gkArcHeaderRight}>
+            <Text style={styles.gkArcCount}>{sphereCount} spheres</Text>
+            <Ionicons
+              name={isExpanded ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color={Colors.textTertiary}
+            />
+          </View>
+        </TouchableOpacity>
+        {isExpanded && (
+          <View style={styles.gkArcContent}>
+            {Object.entries(arcData).map(([name, position]) => 
+              renderGeneKeySphere(name, position)
+            )}
+          </View>
+        )}
       </View>
     );
   };
 
-  // Render all Gene Keys sequences
+  // Render all Gene Keys sequences with section header
   const renderGeneKeys = () => {
     if (!data?.gene_keys) return null;
     
@@ -333,12 +372,46 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     return (
       <View style={styles.gkContainer}>
-        <Text style={styles.gkSectionTitle}>GENE KEYS SEQUENCES</Text>
-        {renderGeneKeysArc('Purpose Arc', gk.purpose_arc, 'compass-outline')}
-        {renderGeneKeysArc('Love Arc', gk.love_arc, 'heart-outline')}
-        {renderGeneKeysArc('Prosperity Arc', gk.prosperity_arc, 'diamond-outline')}
-        {isDebugEnabled() && (
-          <Text style={styles.gkVersion}>v: {gk.gene_keys_version}</Text>
+        {/* Section Divider */}
+        <View style={styles.gkDivider}>
+          <View style={styles.gkDividerLine} />
+          <Text style={styles.gkDividerText}>GENE KEYS</Text>
+          <View style={styles.gkDividerLine} />
+        </View>
+        
+        {/* Section Header */}
+        <TouchableOpacity
+          style={styles.gkSectionHeader}
+          onPress={() => setGeneKeysExpanded(!geneKeysExpanded)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.gkSectionHeaderLeft}>
+            <Ionicons name="key-outline" size={20} color={Colors.accent} />
+            <View>
+              <Text style={styles.gkSectionTitle}>Your Sequences</Text>
+              <Text style={styles.gkSectionSubtitle}>
+                Derived from your Human Design chart
+              </Text>
+            </View>
+          </View>
+          <Ionicons
+            name={geneKeysExpanded ? 'chevron-up' : 'chevron-down'}
+            size={20}
+            color={Colors.textTertiary}
+          />
+        </TouchableOpacity>
+        
+        {/* Arc Cards */}
+        {geneKeysExpanded && (
+          <View style={styles.gkArcsContainer}>
+            {renderGeneKeysArc('Purpose', 'purpose', gk.purpose_arc, 'compass-outline', 'Your life direction')}
+            {renderGeneKeysArc('Love', 'love', gk.love_arc, 'heart-outline', 'Relationships & relating')}
+            {renderGeneKeysArc('Prosperity', 'prosperity', gk.prosperity_arc, 'diamond-outline', 'Abundance & vocation')}
+            
+            {isDebugEnabled() && (
+              <Text style={styles.gkVersion}>v: {gk.gene_keys_version}</Text>
+            )}
+          </View>
         )}
       </View>
     );
