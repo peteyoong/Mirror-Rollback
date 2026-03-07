@@ -26,10 +26,15 @@ interface HumanDesignData {
     strategy: string;
     authority: string;
     profile?: string;
+    definition?: string;
     incarnation_cross?: string;
     incarnation_cross_gates?: string;
   };
   date?: string;
+  // Version fields from backend (frozen compute)
+  computation_version?: string;
+  astronomy_version?: string;
+  human_design_version?: string;
   // Debug fields from API
   debug_stamp?: {
     fallback_used?: boolean;
