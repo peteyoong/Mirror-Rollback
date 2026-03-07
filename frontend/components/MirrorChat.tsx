@@ -134,6 +134,7 @@ export default function MirrorChat({
   const [showThreadModal, setShowThreadModal] = useState(false);
   
   const flatListRef = useRef<FlatList>(null);
+  const inputRef = useRef<TextInput>(null);
   const insets = useSafeAreaInsets();
 
   // Load or create persistent session ID
