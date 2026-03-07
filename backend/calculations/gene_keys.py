@@ -72,7 +72,7 @@ def get_gene_keys_sequences(hd_chart: Dict[str, Any]) -> Dict[str, Any]:
     
     Args:
         hd_chart: Human Design chart from get_human_design_chart()
-                  Must contain 'personality_data' and 'design_data' keys
+                  Must contain 'personality' and 'design' keys
     
     Returns:
         Dict with:
@@ -89,11 +89,12 @@ def get_gene_keys_sequences(hd_chart: Dict[str, Any]) -> Dict[str, Any]:
         - source_chart: str ("personality" or "design")
     """
     # Extract personality and design data from HD chart
-    personality_data = hd_chart.get('personality_data', {})
-    design_data = hd_chart.get('design_data', {})
+    # HD chart uses 'personality' and 'design' keys
+    personality_data = hd_chart.get('personality', {})
+    design_data = hd_chart.get('design', {})
     
     if not personality_data or not design_data:
-        raise ValueError("HD chart must contain personality_data and design_data")
+        raise ValueError("HD chart must contain personality and design data")
     
     # Build all sequences
     all_sequences = {}
