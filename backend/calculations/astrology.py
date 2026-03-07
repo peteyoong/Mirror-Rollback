@@ -30,6 +30,7 @@ import swisseph as swe
 from datetime import datetime
 from typing import Dict, List, Optional
 import math
+import os
 
 # Import from shared symbolic compute contract
 from .symbolic_compute_contract import (
@@ -39,8 +40,39 @@ from .symbolic_compute_contract import (
     ASTROLOGY_REQUIRED_KEYS
 )
 
-# Set ephemeris path (Swiss Ephemeris will use built-in data)
-swe.set_ephe_path(None)
+# =============================================================================
+# SWISS EPHEMERIS INITIALIZATION - CALIBRATED FOR GENETIC MATRIX COMPATIBILITY
+# =============================================================================
+# Reference: User-defined sidereal mode with fixed SVP
+# Epoch: J2000 (JD 2451545.0)
+# SVP: 31.2836° (Sidereal Vernal Point at reference year 2000)
+# Yearly Increment: 0.0 (fixed, no precession)
+# =============================================================================
+
+# Ephemeris path - use Swiss Ephemeris files for precision
+EPHE_PATH = os.path.join(os.path.dirname(__file__), '..', 'ephe')
+if os.path.exists(EPHE_PATH):
+    swe.set_ephe_path(EPHE_PATH)
+else:
+    # Fallback to Moshier if files not available (less precise)
+    swe.set_ephe_path(None)
+    import logging
+    logging.warning(f"[Astrology] Swiss Ephemeris files not found at {EPHE_PATH}, using Moshier fallback")
+
+# Sidereal mode configuration - MUST be set before any calculations
+# SE_SIDM_USER = user-defined sidereal mode
+# t0 = J2000 epoch (Julian Day 2451545.0)  
+# ayan_t0 = ayanamsa at t0 = 31.2836°
+SVP_DEGREES = 31.2836
+J2000_EPOCH = 2451545.0  # Julian Day of J2000 (Jan 1, 2000, 12:00 TT)
+
+swe.set_sid_mode(swe.SIDM_USER, J2000_EPOCH, SVP_DEGREES)
+
+# Calculation flags for Swiss Ephemeris
+# SEFLG_SWIEPH = use Swiss Ephemeris files (not Moshier)
+# SEFLG_SIDEREAL = return sidereal positions (using sid_mode setting)
+CALC_FLAGS_SIDEREAL = swe.FLG_SWIEPH | swe.FLG_SIDEREAL
+CALC_FLAGS_TROPICAL = swe.FLG_SWIEPH  # For tropical-only calculations
 
 # Planet constants
 PLANETS = {
