@@ -44,6 +44,64 @@ const api = axios.create({
 });
 
 // ============================================
+// SESSION RESTORE ERROR TYPES
+// ============================================
+export interface SessionRestoreError {
+  code: 'invalid_user_id' | 'user_not_found' | 'chart_not_found' | 'server_error' | 'network_error';
+  message: string;
+  recovery_action: 'clear_session' | 'start_onboarding' | 'retry';
+}
+
+/**
+ * Parse API error response into structured SessionRestoreError
+ */
+export function parseSessionRestoreError(error: AxiosError): SessionRestoreError {
+  const response = error.response;
+  
+  // Network error - no response
+  if (!response) {
+    return {
+      code: 'network_error',
+      message: 'Unable to connect. Please check your connection.',
+      recovery_action: 'retry'
+    };
+  }
+  
+  // Try to parse structured error from backend
+  const detail = response.data?.detail;
+  if (detail && typeof detail === 'object' && detail.code) {
+    return {
+      code: detail.code,
+      message: detail.message || 'An error occurred',
+      recovery_action: detail.recovery_action || 'retry'
+    };
+  }
+  
+  // Fallback based on status code
+  if (response.status === 400) {
+    return {
+      code: 'invalid_user_id',
+      message: 'Invalid session. Please start fresh.',
+      recovery_action: 'clear_session'
+    };
+  }
+  
+  if (response.status === 404) {
+    return {
+      code: 'user_not_found',
+      message: 'Profile not found. Please complete setup.',
+      recovery_action: 'start_onboarding'
+    };
+  }
+  
+  return {
+    code: 'server_error',
+    message: response.data?.detail || 'An unexpected error occurred',
+    recovery_action: 'retry'
+  };
+}
+
+// ============================================
 // RETRY LOGIC FOR NETWORK RESILIENCE
 // ============================================
 // Handles transient failures: DNS issues, connection drops, tunnel restarts
