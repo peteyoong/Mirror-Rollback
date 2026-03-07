@@ -829,7 +829,14 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
         )
     
     # Extract key planets for Human Design
-    hd_planets = ['Sun', 'Earth', 'North Node', 'South Node', 'Moon']
+    # Human Design uses 13 celestial bodies for gate activation
+    hd_planets = [
+        'Sun', 'Earth', 'Moon',
+        'Mercury', 'Venus', 'Mars',
+        'Jupiter', 'Saturn',
+        'Uranus', 'Neptune', 'Pluto',
+        'North Node', 'South Node'
+    ]
     
     personality_data = {}
     design_data = {}
