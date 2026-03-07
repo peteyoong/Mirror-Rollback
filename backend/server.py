@@ -3320,11 +3320,36 @@ async def create_user(profile: UserProfileCreate):
 
 @api_router.get("/users/{user_id}", response_model=UserProfileResponse)
 async def get_user(user_id: str):
-    """Get user profile"""
+    """Get user profile
+    
+    Returns structured error responses for session restore:
+    - 400 with code="invalid_user_id" for malformed IDs
+    - 404 with code="user_not_found" for non-existent users
+    """
     try:
+        # Validate user_id format - must be valid MongoDB ObjectId
+        if not ObjectId.is_valid(user_id):
+            logger.warning(f"[GetUser] Invalid user ID format: {user_id[:20]}...")
+            raise HTTPException(
+                status_code=400, 
+                detail={
+                    "code": "invalid_user_id",
+                    "message": "Invalid user ID format. Please start fresh.",
+                    "recovery_action": "clear_session"
+                }
+            )
+        
         user = await db.users.find_one({"_id": ObjectId(user_id)})
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            logger.info(f"[GetUser] User not found: {user_id}")
+            raise HTTPException(
+                status_code=404, 
+                detail={
+                    "code": "user_not_found",
+                    "message": "User profile not found. Please complete onboarding.",
+                    "recovery_action": "start_onboarding"
+                }
+            )
         
         # Check if chart exists
         chart = await db.charts.find_one({"user_id": user_id})
@@ -3338,9 +3363,18 @@ async def get_user(user_id: str):
             birth_location=Location(**user["birth_location"]),
             has_chart=chart is not None
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Get user error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500, 
+            detail={
+                "code": "server_error",
+                "message": "Unable to retrieve user profile",
+                "recovery_action": "retry"
+            }
+        )
 
 
 @api_router.put("/users/{user_id}/email")
