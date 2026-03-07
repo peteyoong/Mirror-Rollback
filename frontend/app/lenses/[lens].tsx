@@ -222,23 +222,16 @@ const HD_ENERGY_TEMPLATES: { [type: string]: string } = {
 };
 
 // Authority templates keyed by Authority - "Decision-making to notice"
+// CANONICAL LABELS (from backend): Lunar | Emotional | Sacral | Splenic | Ego | Self | None
 const HD_AUTHORITY_TEMPLATES: { [authority: string]: string } = {
+  // Canonical labels from backend (frozen)
   'Sacral': "You might notice decisions feel clearer when there's a gut-level response — a pull toward or away from something. It could be worth noticing what generates energy versus what drains it.",
   'Emotional': "You might notice decisions feel clearer after riding an emotional wave rather than acting in the heat of the moment. It could be worth allowing time before committing.",
   'Splenic': "You might notice decisions feel clearer as quick, in-the-moment intuitions — a subtle knowing that doesn't repeat. It could be worth trusting first instincts.",
   'Ego': "You might notice decisions feel clearer when there's willpower and personal investment behind them. It could be worth asking what you genuinely want to commit to.",
-  'Self-Projected': "You might notice decisions feel clearer when you hear yourself talk them through with others. It could be worth speaking your process aloud.",
-  'Mental': "You might notice decisions feel clearer when discussed in different environments with trusted others. It could be worth changing context before deciding.",
-  'Environment': "You might notice decisions feel clearer when discussed in different environments with trusted others. It could be worth changing context before deciding.",
+  'Self': "You might notice decisions feel clearer when you hear yourself talk them through with others. It could be worth speaking your process aloud.",
   'Lunar': "You might notice decisions feel clearer after a full cycle of reflection, allowing different perspectives to arise. It could be worth giving major choices time.",
-  'None': "You might notice decisions feel clearer when you allow time and space rather than rushing. It could be worth pausing before committing.",
-  'Sacral Authority': "You might notice decisions feel clearer when there's a gut-level response — a pull toward or away from something. It could be worth noticing what generates energy versus what drains it.",
-  'Emotional Authority': "You might notice decisions feel clearer after riding an emotional wave rather than acting in the heat of the moment. It could be worth allowing time before committing.",
-  'Splenic Authority': "You might notice decisions feel clearer as quick, in-the-moment intuitions — a subtle knowing that doesn't repeat. It could be worth trusting first instincts.",
-  'Ego Authority': "You might notice decisions feel clearer when there's willpower and personal investment behind them. It could be worth asking what you genuinely want to commit to.",
-  'Self-Projected Authority': "You might notice decisions feel clearer when you hear yourself talk them through with others. It could be worth speaking your process aloud.",
-  'To Respond': "You might notice decisions feel clearer when there's a gut-level response — a pull toward or away from something. It could be worth noticing what generates energy versus what drains it.",
-  'To Respond and Inform': "You might notice decisions feel clearer when there's a gut-level response — a pull toward or away from something. It could be worth noticing what generates energy versus what drains it.",
+  'None': "You might notice decisions feel clearer when discussed in different environments with trusted others. It could be worth changing context before deciding.",
 };
 
 // Profile questions keyed by Profile - "A gentle question"

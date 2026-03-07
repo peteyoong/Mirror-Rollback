@@ -58,20 +58,14 @@ const SUN_REFRAMES: { [sign: string]: string } = {
 };
 
 const AUTHORITY_REFRAMES: { [authority: string]: string } = {
+  // Canonical labels from backend (frozen): Lunar | Emotional | Sacral | Splenic | Ego | Self | None
   'Sacral': "If energy isn't arising for something, that might be information worth honoring rather than overriding.",
   'Emotional': "What feels urgent right now might look different after the emotional wave passes. Time can be a clarifier.",
   'Splenic': "That quiet knowing — even when it can't be explained — might deserve more trust than the mind's analysis.",
   'Ego': "Commitment works best when it comes from genuine desire rather than obligation. What do you actually want here?",
-  'Self-Projected': "Speaking this out loud to someone trusted might reveal what you already know but haven't yet heard yourself say.",
-  'Mental': "Different environments bring different clarity. Perhaps the setting matters as much as the situation.",
-  'Environment': "Different environments bring different clarity. Perhaps the setting matters as much as the situation.",
+  'Self': "Speaking this out loud to someone trusted might reveal what you already know but haven't yet heard yourself say.",
   'Lunar': "Major decisions might benefit from the full cycle of time. What's the rush?",
   'None': "Allowing the process to unfold without forcing a conclusion might reveal what's actually needed.",
-  'Sacral Authority': "If energy isn't arising for something, that might be information worth honoring rather than overriding.",
-  'Emotional Authority': "What feels urgent right now might look different after the emotional wave passes. Time can be a clarifier.",
-  'Splenic Authority': "That quiet knowing — even when it can't be explained — might deserve more trust than the mind's analysis.",
-  'To Respond': "If energy isn't arising for something, that might be information worth honoring rather than overriding.",
-  'To Respond and Inform': "If energy isn't arising for something, that might be information worth honoring rather than overriding.",
 };
 
 // ============================================
