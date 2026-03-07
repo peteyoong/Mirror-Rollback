@@ -803,64 +803,133 @@ const styles = StyleSheet.create({
     color: '#aaaacc',
     fontFamily: 'monospace',
   },
-  // Gene Keys styles
+  // Gene Keys styles - Improved UX
   gkContainer: {
-    marginTop: 24,
+    marginTop: 32,
     marginBottom: 16,
   },
-  gkSectionTitle: {
-    fontSize: 12,
+  gkDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 12,
+  },
+  gkDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  gkDividerText: {
+    fontSize: 11,
     fontWeight: '600',
     color: Colors.textTertiary,
-    letterSpacing: 1.5,
-    marginBottom: 16,
+    letterSpacing: 2,
   },
-  gkArcCard: {
+  gkSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  gkSectionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  gkSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  gkSectionSubtitle: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    marginTop: 2,
+  },
+  gkArcsContainer: {
+    gap: 10,
+  },
+  gkArcCard: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
   },
   gkArcHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 14,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  gkArcHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  gkArcHeaderRight: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
   },
   gkArcTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: Colors.text,
   },
+  gkArcSubtitle: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    marginTop: 1,
+  },
+  gkArcCount: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+  },
   gkArcContent: {
-    gap: 8,
+    paddingHorizontal: 14,
+    paddingBottom: 12,
+    gap: 4,
   },
   gkSphereItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.04)',
+  },
+  gkSphereLeft: {
+    flex: 1,
+  },
+  gkSphereRight: {
+    alignItems: 'flex-end',
   },
   gkSphereName: {
     fontSize: 13,
     color: Colors.textSecondary,
     fontWeight: '500',
   },
-  gkSphereDetails: {
-    alignItems: 'flex-end',
+  gkThemeLabel: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    marginTop: 2,
+    fontStyle: 'italic',
   },
   gkGateLine: {
-    fontSize: 14,
+    fontSize: 15,
     color: Colors.text,
-    fontWeight: '600',
+    fontWeight: '700',
+    fontFamily: 'monospace',
   },
   gkSource: {
-    fontSize: 11,
+    fontSize: 10,
     color: Colors.textTertiary,
     marginTop: 2,
   },
@@ -868,7 +937,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: Colors.textTertiary,
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 12,
     fontFamily: 'monospace',
   },
 });
