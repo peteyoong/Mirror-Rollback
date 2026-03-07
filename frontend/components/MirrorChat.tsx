@@ -1056,7 +1056,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.text,
     maxHeight: 100,
+    minHeight: 40,
     paddingVertical: 8,
+    paddingTop: 10,
     lineHeight: 20,
   },
   sendButton: {
