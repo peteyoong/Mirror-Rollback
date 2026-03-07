@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from bson import ObjectId
 import os
 import logging
+import traceback
 from pathlib import Path
 from geopy.geocoders import Nominatim
 from emergentintegrations.llm.chat import LlmChat, UserMessage
