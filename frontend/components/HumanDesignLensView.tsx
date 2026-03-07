@@ -586,4 +586,35 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     opacity: 0.7,
   },
+  // Version Debug Panel styles (non-production)
+  versionDebugCard: {
+    backgroundColor: '#1a1a2e',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#2a2a4e',
+  },
+  versionDebugTitle: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#6a6a8a',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  versionDebugRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 2,
+  },
+  versionDebugLabel: {
+    fontSize: 11,
+    color: '#8a8aaa',
+    fontFamily: 'monospace',
+  },
+  versionDebugValue: {
+    fontSize: 11,
+    color: '#aaaacc',
+    fontFamily: 'monospace',
+  },
 });
