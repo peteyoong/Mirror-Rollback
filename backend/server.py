@@ -4891,9 +4891,24 @@ async def mirror_chat(request: MirrorChatRequest):
             thread=thread_metadata
         )
         
+    except HTTPException:
+        # Re-raise HTTP exceptions (like rate limiting)
+        raise
     except Exception as e:
-        logger.error(f"Mirror chat error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        error_type = type(e).__name__
+        error_msg = str(e)
+        logger.error(f"[MIRROR_BACKEND_ERROR] type={error_type}, message={error_msg}")
+        logger.error(f"[MIRROR_BACKEND_ERROR] traceback: {traceback.format_exc()}")
+        
+        # Return structured error instead of exposing raw exception
+        raise HTTPException(
+            status_code=500, 
+            detail={
+                "success": False,
+                "error_code": "mirror_interpret_failed",
+                "message": "Mirror hit an internal formatting issue while preparing the reflection."
+            }
+        )
 
 
 @api_router.delete("/mirror/chat/{session_id}")
