@@ -300,25 +300,82 @@ export const useAppStore = create<AppState>((set, get) => ({
       const userId = await getStableUserId();
       
       console.log('[SessionRestore] Using stable userId:', maskUserId(userId));
+      console.log('[SessionRestore] Attempting API restore...');
       
       // Run assertion check in debug mode
       await assertUserIdStable();
       
       // Fetch user data
       let userData: User | null = null;
+      let userError: SessionRestoreError | null = null;
+      
       try {
         userData = await getUser(userId);
         console.log('[SessionRestore] Fetched user:', userData?.name);
-      } catch (error) {
-        console.warn('[SessionRestore] Could not fetch user data:', error);
-        // Continue anyway - we can still get chart data
+      } catch (error: any) {
+        userError = parseSessionRestoreError(error);
+        console.log('[SessionRestore] User fetch error:', userError.code, userError.message);
+        
+        // Handle recovery actions for user errors
+        if (userError.recovery_action === 'clear_session') {
+          console.log('[SessionRestore] Clearing invalid session data...');
+          await clearStableUserId();
+          await storage.removeItem('user');
+          await storage.removeItem('chart');
+          await storage.removeItem('hasCompletedOnboarding');
+          set({ 
+            sessionRestoreError: userError.message,
+            hasCompletedOnboarding: false
+          });
+          return false;
+        }
+        
+        if (userError.recovery_action === 'start_onboarding') {
+          console.log('[SessionRestore] User not found, routing to onboarding...');
+          set({ 
+            sessionRestoreError: null,
+            hasCompletedOnboarding: false
+          });
+          return false;
+        }
       }
       
       // Fetch chart data
-      const chartData = await getChart(userId);
-      console.log('[SessionRestore] Fetched chart, computation_version:', chartData?.computation_version);
+      let chartData = null;
+      let chartError: SessionRestoreError | null = null;
       
-      // Create minimal user object if we couldn't fetch user data
+      try {
+        chartData = await getChart(userId);
+        console.log('[SessionRestore] Fetched chart, computation_version:', chartData?.computation_version);
+      } catch (error: any) {
+        chartError = parseSessionRestoreError(error);
+        console.log('[SessionRestore] Chart fetch error:', chartError.code, chartError.message);
+        
+        // Handle recovery actions for chart errors
+        if (chartError.recovery_action === 'clear_session') {
+          console.log('[SessionRestore] Clearing invalid session data...');
+          await clearStableUserId();
+          await storage.removeItem('user');
+          await storage.removeItem('chart');
+          await storage.removeItem('hasCompletedOnboarding');
+          set({ 
+            sessionRestoreError: chartError.message,
+            hasCompletedOnboarding: false
+          });
+          return false;
+        }
+        
+        if (chartError.recovery_action === 'start_onboarding') {
+          console.log('[SessionRestore] Chart not found, routing to onboarding...');
+          set({ 
+            sessionRestoreError: null,
+            hasCompletedOnboarding: false
+          });
+          return false;
+        }
+      }
+      
+      // Create minimal user object if we couldn't fetch user data but have chart
       if (!userData && chartData) {
         userData = {
           id: userId,
@@ -340,13 +397,22 @@ export const useAppStore = create<AppState>((set, get) => ({
         await storage.setItem('hasCompletedOnboarding', 'true');
       }
       
+      // If we have neither user nor chart, route to onboarding
+      if (!userData && !chartData) {
+        console.log('[SessionRestore] No user or chart found, routing to onboarding');
+        set({ hasCompletedOnboarding: false });
+        return false;
+      }
+      
       console.log('[SessionRestore] Session restored successfully');
       return !!(userData && chartData);
       
     } catch (error: any) {
-      console.error('[SessionRestore] Failed to restore session:', error);
+      console.error('[SessionRestore] Unexpected error:', error);
+      // For unexpected errors, clear session and route to onboarding
       set({ 
-        sessionRestoreError: error?.message || 'Failed to restore session' 
+        sessionRestoreError: 'Unable to restore session. Please start fresh.',
+        hasCompletedOnboarding: false
       });
       return false;
     } finally {
