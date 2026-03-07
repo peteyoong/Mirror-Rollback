@@ -204,10 +204,11 @@ def print_hd_debug(output: dict):
     print("SIDEREAL SETTINGS:")
     ss = output['sidereal_settings']
     print(f"  SVP:            {ss['svp_degrees']}°")
+    print(f"  J2000 Epoch:    {ss.get('j2000_epoch', 'N/A')}")
     print(f"  Reference Year: {ss['reference_year']}")
     print(f"  Yearly Inc:     {ss['yearly_increment']}")
-    print(f"  Method:         {ss['method']}")
-    print(f"  ⚠️  {ss['note']}")
+    print(f"  Mode:           {ss.get('mode', 'SE_SIDM_USER')}")
+    print(f"  Flags:          {ss.get('flags', 'SEFLG_SWIEPH | SEFLG_SIDEREAL')}")
     print()
     
     # Planets table
