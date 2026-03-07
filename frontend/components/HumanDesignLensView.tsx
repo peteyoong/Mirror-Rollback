@@ -211,6 +211,29 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
+  // Render version debug panel (only in dev mode)
+  const renderVersionDebug = () => {
+    if (!isDebugEnabled() || !data) return null;
+    
+    return (
+      <View style={styles.versionDebugCard}>
+        <Text style={styles.versionDebugTitle}>COMPUTE VERSIONS (DEV)</Text>
+        <View style={styles.versionDebugRow}>
+          <Text style={styles.versionDebugLabel}>computation:</Text>
+          <Text style={styles.versionDebugValue}>{data.computation_version || '—'}</Text>
+        </View>
+        <View style={styles.versionDebugRow}>
+          <Text style={styles.versionDebugLabel}>astronomy:</Text>
+          <Text style={styles.versionDebugValue}>{data.astronomy_version || '—'}</Text>
+        </View>
+        <View style={styles.versionDebugRow}>
+          <Text style={styles.versionDebugLabel}>human_design:</Text>
+          <Text style={styles.versionDebugValue}>{data.human_design_version || '—'}</Text>
+        </View>
+      </View>
+    );
+  };
+
   const renderSection = (section: HumanDesignSection, index: number) => {
     const isExpanded = expandedSection === section.label || activeTab !== 'deep_dive';
 
