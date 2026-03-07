@@ -17,6 +17,38 @@ interface HumanDesignSection {
   body: string;
 }
 
+// Gene Keys sequence position
+interface GeneKeyPosition {
+  gate: number;
+  line: number;
+  source_planet: string;
+  source_chart: 'personality' | 'design';
+}
+
+// Gene Keys data structure
+interface GeneKeysData {
+  gene_keys_version: string;
+  purpose_arc: {
+    lifes_work: GeneKeyPosition;
+    evolution: GeneKeyPosition;
+    radiance: GeneKeyPosition;
+    purpose: GeneKeyPosition;
+  };
+  love_arc: {
+    attraction: GeneKeyPosition;
+    iq: GeneKeyPosition;
+    eq: GeneKeyPosition;
+    sq: GeneKeyPosition;
+    core_wound: GeneKeyPosition;
+  };
+  prosperity_arc: {
+    brand: GeneKeyPosition;
+    culture: GeneKeyPosition;
+    vocation: GeneKeyPosition;
+    pearl: GeneKeyPosition;
+  };
+}
+
 interface HumanDesignData {
   title: string;
   sections: HumanDesignSection[];
@@ -30,6 +62,8 @@ interface HumanDesignData {
     incarnation_cross?: string;
     incarnation_cross_gates?: string;
   };
+  // Gene Keys sequences (deterministic compute)
+  gene_keys?: GeneKeysData | null;
   date?: string;
   // Version fields from backend (frozen compute)
   computation_version?: string;
