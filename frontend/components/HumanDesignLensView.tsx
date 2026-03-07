@@ -433,6 +433,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             {/* Sections */}
             {data.sections.map((section, index) => renderSection(section, index))}
 
+            {/* Gene Keys Sequences (Deep Dive only) */}
+            {activeTab === 'deep_dive' && renderGeneKeys()}
+
             {/* Mirror Prompt */}
             {data.mirror_prompt && (
               <View style={styles.mirrorPromptCard}>
