@@ -132,11 +132,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       incarnation_cross_gates: null
     };
 
-    // Helper to format unknown gracefully
+    // Helper to format unknown gracefully - DO NOT TRANSFORM canonical labels
     const formatMechanic = (value: string | undefined | null) => {
       if (!value || value === 'Unknown') return '—';
-      // For authority, take first part if it contains slash
-      return value.split('/')[0];
+      // Display canonical label exactly as received from backend
+      return value;
     };
 
     // Format incarnation cross - show the full name
