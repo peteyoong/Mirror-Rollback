@@ -269,6 +269,74 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
+  // Render a single Gene Key sphere position
+  const renderGeneKeySphere = (name: string, position: GeneKeyPosition) => {
+    const chartLabel = position.source_chart === 'personality' ? 'Conscious' : 'Unconscious';
+    return (
+      <View key={name} style={styles.gkSphereItem}>
+        <Text style={styles.gkSphereName}>{formatSphereName(name)}</Text>
+        <View style={styles.gkSphereDetails}>
+          <Text style={styles.gkGateLine}>
+            Gate {position.gate}.{position.line}
+          </Text>
+          <Text style={styles.gkSource}>
+            {position.source_planet} ({chartLabel})
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  // Format sphere name from snake_case to Title Case
+  const formatSphereName = (name: string): string => {
+    return name
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  // Render Gene Keys Arc card
+  const renderGeneKeysArc = (
+    arcName: string, 
+    arcData: Record<string, GeneKeyPosition> | undefined,
+    icon: keyof typeof Ionicons.glyphMap
+  ) => {
+    if (!arcData) return null;
+    
+    return (
+      <View style={styles.gkArcCard}>
+        <View style={styles.gkArcHeader}>
+          <Ionicons name={icon} size={18} color={Colors.accent} />
+          <Text style={styles.gkArcTitle}>{arcName}</Text>
+        </View>
+        <View style={styles.gkArcContent}>
+          {Object.entries(arcData).map(([name, position]) => 
+            renderGeneKeySphere(name, position)
+          )}
+        </View>
+      </View>
+    );
+  };
+
+  // Render all Gene Keys sequences
+  const renderGeneKeys = () => {
+    if (!data?.gene_keys) return null;
+    
+    const gk = data.gene_keys;
+    
+    return (
+      <View style={styles.gkContainer}>
+        <Text style={styles.gkSectionTitle}>GENE KEYS SEQUENCES</Text>
+        {renderGeneKeysArc('Purpose Arc', gk.purpose_arc, 'compass-outline')}
+        {renderGeneKeysArc('Love Arc', gk.love_arc, 'heart-outline')}
+        {renderGeneKeysArc('Prosperity Arc', gk.prosperity_arc, 'diamond-outline')}
+        {isDebugEnabled() && (
+          <Text style={styles.gkVersion}>v: {gk.gene_keys_version}</Text>
+        )}
+      </View>
+    );
+  };
+
   const renderSection = (section: HumanDesignSection, index: number) => {
     const isExpanded = expandedSection === section.label || activeTab !== 'deep_dive';
 
