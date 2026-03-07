@@ -72,6 +72,8 @@ def generate_hd_debug_output(
 ) -> dict:
     """Generate comprehensive debug output for HD chart calibration.
     
+    UPDATED: Now uses Swiss Ephemeris native sidereal mode (SEFLG_SIDEREAL)
+    
     Args:
         birth_local: Local birth datetime (naive)
         utc_offset_hours: UTC offset in hours (e.g., +7.5 for +07:30)
@@ -86,16 +88,19 @@ def generate_hd_debug_output(
     offset = timedelta(hours=utc_offset_hours)
     birth_utc = (birth_local - offset).replace(tzinfo=timezone.utc)
     
-    # Get full charts
+    # Sidereal settings are now handled globally in astrology.py
+    # These are just for reference/display
     sidereal_settings = {
-        "mode": "true_sidereal_user_defined",
-        "svp_degrees": 31.2836,
+        "mode": "SE_SIDM_USER (native)",
+        "svp_degrees": SVP_DEGREES,
+        "j2000_epoch": J2000_EPOCH,
         "reference_year": 2000,
-        "yearly_increment": 0.0
+        "yearly_increment": 0.0,
+        "flags": "SEFLG_SWIEPH | SEFLG_SIDEREAL"
     }
     
-    astro_chart = get_full_natal_chart(birth_utc, lat, lon, sidereal_settings)
-    hd_chart = get_human_design_chart(birth_utc, lat, lon, sidereal_settings)
+    astro_chart = get_full_natal_chart(birth_utc, lat, lon)
+    hd_chart = get_human_design_chart(birth_utc, lat, lon)
     
     # Extract design date
     design_utc_str = hd_chart.get('design_datetime_utc_iso', '')
@@ -143,13 +148,7 @@ def generate_hd_debug_output(
             'design_utc': design_utc_str,
             'design_solver': design_debug,
         },
-        'sidereal_settings': {
-            'svp_degrees': 31.2836,
-            'reference_year': 2000,
-            'yearly_increment': 0.0,
-            'method': 'manual (tropical - SVP)',
-            'note': 'NOT using SE_SIDM_USER or SEFLG_SIDEREAL',
-        },
+        'sidereal_settings': sidereal_settings,
         'planets': planets_debug,
         'human_design': {
             'profile': hd_chart.get('profile'),
