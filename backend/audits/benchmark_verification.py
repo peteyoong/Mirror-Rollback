@@ -58,10 +58,12 @@ BENCHMARK_CHARTS = {
         "lat": 3.1073,      # Petaling Jaya
         "lon": 101.6070,
         "expected": {
-            # Pete's expected values (from previous audit)
+            # Pete's expected values (corrected after channel analysis)
+            # Channels: 63-4 (Head-Ajna), 35-36 (Throat-SP), 37-40 (SP-Ego)
+            # = Two groups: Head-Ajna | Throat-SP-Ego = Split definition
             "type": "Manifestor",
             "profile": "5/1",
-            "definition": "Single",
+            "definition": "Split",
             "authority": "Emotional",
         }
     },

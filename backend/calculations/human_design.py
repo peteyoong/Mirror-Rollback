@@ -718,7 +718,7 @@ def determine_authority(hd_type: str, defined_centers: List[str]) -> str:
     """
     # Reflector special case
     if hd_type == 'Reflector':
-        return 'None (Lunar)'
+        return 'Lunar'
     
     centers_set = set(defined_centers)
     
