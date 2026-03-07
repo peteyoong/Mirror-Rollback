@@ -7578,6 +7578,21 @@ You're essentially here for one thing. The specific gates of your cross describe
             "deeper_data_available": True
         }
         
+        # =====================================================================
+        # ADD GENE KEYS SEQUENCES (DETERMINISTIC - NO INTERPRETATION)
+        # =====================================================================
+        try:
+            gk_sequences = get_gene_keys_sequences(canonical_hd)
+            result["gene_keys"] = {
+                "gene_keys_version": gk_sequences.get("gene_keys_version"),
+                "purpose_arc": gk_sequences.get("purpose_arc"),
+                "love_arc": gk_sequences.get("love_arc"),
+                "prosperity_arc": gk_sequences.get("prosperity_arc"),
+            }
+        except Exception as gk_error:
+            logger.warning(f"[HD_DEEP_DIVE] Gene Keys computation failed: {gk_error}")
+            result["gene_keys"] = None
+        
         # Calculate totals
         total_chars = sum(len(s.get("body", "")) for s in result["sections"])
         total_words = sum(len(s.get("body", "").split()) for s in result["sections"])
