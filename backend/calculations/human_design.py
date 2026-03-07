@@ -7,7 +7,12 @@ This file is part of Project Mirror's deterministic computation core.
 Outputs must remain stable across versions.
 Do NOT modify without updating regression tests and bumping computation_version.
 
-Current version: mirror-deterministic-v1
+Current version: hd_sidereal_v1
+Astronomy version: true_sidereal_m_swe_v1
+Computation version: mirror_compute_v1
+
+FROZEN: 2025-03-07 - All benchmarks passed (Jay, Melissa, Pete)
+===============================================================================
 
 SYMBOLIC COMPUTE CONTRACT:
 This module implements the SymbolicComputeContract interface for Human Design.
@@ -660,13 +665,13 @@ def determine_definition(defined_channels: List[Tuple], defined_centers: List[st
         defined_centers: List of defined center names
     
     Returns:
-        Definition type: "None", "Single", "Split", "Triple Split", "Quadruple Split"
+        Definition type: "No Definition", "Single", "Split", "Triple Split", "Quadruple Split"
     """
     if len(defined_centers) == 0:
-        return "None"
+        return "No Definition"
     
     if len(defined_channels) == 0:
-        return "None"
+        return "No Definition"
     
     # Build adjacency graph
     graph = {center: set() for center in defined_centers}
@@ -705,16 +710,21 @@ def determine_definition(defined_channels: List[Tuple], defined_centers: List[st
 def determine_authority(hd_type: str, defined_centers: List[str]) -> str:
     """Determine Inner Authority based on type and defined centers
     
-    Reflector → "None (Lunar)"
-    Otherwise follow hierarchy:
-    Emotional > Sacral > Splenic > Ego > G > Self-Projected > Mental/None
+    CANONICAL LABELS (frozen):
+    - Lunar (Reflector only)
+    - Emotional
+    - Sacral
+    - Splenic
+    - Ego
+    - Self
+    - None (Mental/Environment Projector)
     
     Args:
         hd_type: Human Design type
         defined_centers: List of defined center names
     
     Returns:
-        Authority string
+        Authority string (canonical label)
     """
     # Reflector special case
     if hd_type == 'Reflector':
@@ -722,7 +732,7 @@ def determine_authority(hd_type: str, defined_centers: List[str]) -> str:
     
     centers_set = set(defined_centers)
     
-    # Standard HD authority hierarchy
+    # Standard HD authority hierarchy with canonical labels
     if 'Solar Plexus' in centers_set:
         return 'Emotional'
     if 'Sacral' in centers_set:
@@ -730,12 +740,12 @@ def determine_authority(hd_type: str, defined_centers: List[str]) -> str:
     if 'Spleen' in centers_set:
         return 'Splenic'
     if 'Ego' in centers_set:
-        return 'Ego Manifested' if 'Throat' in centers_set else 'Ego Projected'
+        return 'Ego'
     if 'G Center' in centers_set:
-        return 'Self-Projected'
+        return 'Self'
     
     # Mental/Environment authority (Projector with only Head/Ajna defined)
-    return 'Mental/Environment'
+    return 'None'
 
 
 def calculate_profile(personality_sun_line: int, design_sun_line: int) -> str:
@@ -938,7 +948,7 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
             compute_errors.append(f"Profile: invalid format '{profile}'")
     
     # 5. Assert definition is valid
-    valid_definitions = ['None', 'Single', 'Split', 'Triple Split', 'Quadruple Split']
+    valid_definitions = ['No Definition', 'Single', 'Split', 'Triple Split', 'Quadruple Split']
     if definition not in valid_definitions:
         compute_errors.append(f"Definition: invalid value '{definition}'")
     
@@ -1024,7 +1034,9 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
         
         # Metadata
         'chart_type': 'True Sidereal Human Design',
-        'computation_version': 'mirror-deterministic-v1',
+        'computation_version': 'mirror_compute_v1',
+        'astronomy_version': 'true_sidereal_m_swe_v1',
+        'human_design_version': 'hd_sidereal_v1',
         'design_datetime_utc_iso': design_datetime.isoformat() if hasattr(design_datetime, 'isoformat') else str(design_datetime),
         'design_offset_degrees': design_offset_degrees,
         'design_solver_debug': design_debug,
