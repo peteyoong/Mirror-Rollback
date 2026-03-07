@@ -6923,9 +6923,15 @@ Incarnation Cross: {incarnation_cross}
                 "strategy": strategy_desc,
                 "authority": hd_data['authority'],
                 "profile": hd_data.get('profile', 'Unknown'),
+                "definition": hd_data.get('definition', 'Unknown'),
                 "incarnation_cross": hd_data.get('incarnation_cross_label', incarnation_cross),  # Use friendly label
                 "incarnation_cross_gates": cross_gates_str
             }
+            
+            # Include version fields from frozen compute
+            result["computation_version"] = hd_data.get('computation_version', 'mirror_compute_v1')
+            result["astronomy_version"] = hd_data.get('astronomy_version', 'true_sidereal_m_swe_v1')
+            result["human_design_version"] = hd_data.get('human_design_version', 'hd_sidereal_v1')
             
             return result
             
@@ -6938,9 +6944,13 @@ Incarnation Cross: {incarnation_cross}
                     "strategy": strategy_desc,
                     "authority": hd_data['authority'],
                     "profile": hd_data.get('profile', 'Unknown'),
+                    "definition": hd_data.get('definition', 'Unknown'),
                     "incarnation_cross": hd_data.get('incarnation_cross_label', incarnation_cross),  # Use friendly label
                     "incarnation_cross_gates": cross_gates_str
                 },
+                "computation_version": hd_data.get('computation_version', 'mirror_compute_v1'),
+                "astronomy_version": hd_data.get('astronomy_version', 'true_sidereal_m_swe_v1'),
+                "human_design_version": hd_data.get('human_design_version', 'hd_sidereal_v1'),
                 "sections": [
                     {"label": "Your Energy Pattern", "body": f"As a {hd_data['type']}, your energy tends to operate in a particular rhythm that may feel natural once you recognise it."},
                     {"label": "Engaging with Life", "body": f"Your design suggests a pattern of {strategy_desc.lower()}."},
