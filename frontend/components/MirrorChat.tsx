@@ -360,15 +360,23 @@ export default function MirrorChat({
         code: error?.code,
       });
       
-      // Determine error message based on status
+      // Check for structured error response
+      const errorData = error?.response?.data?.detail;
+      const errorCode = typeof errorData === 'object' ? errorData?.error_code : null;
+      
+      // Determine error message based on status and error_code
       let errorContent = "Mirror couldn't reach its reflection service. Please try again.";
       
-      if (error?.response?.status === 429) {
+      // Handle structured error codes
+      if (errorCode === 'mirror_interpret_failed') {
+        errorContent = "Mirror lost the thread while preparing that reflection. Please try again.";
+      } else if (error?.response?.status === 429) {
         errorContent = "Mirror needs a pause. Try again in a little while.";
       } else if (error?.response?.status === 404) {
         errorContent = "Your profile wasn't found. Please try logging in again.";
       } else if (error?.response?.status === 500) {
-        const detail = error?.response?.data?.detail;
+        // Use structured message if available, otherwise generic
+        const detail = typeof errorData === 'object' ? errorData?.message : errorData;
         errorContent = detail || "Mirror encountered an issue. Please try again.";
       } else if (error?.code === 'ECONNABORTED') {
         errorContent = "The reflection took too long. Please try a shorter message.";
