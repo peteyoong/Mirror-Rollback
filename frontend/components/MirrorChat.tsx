@@ -645,10 +645,7 @@ export default function MirrorChat({
         data={messages}
         keyExtractor={(item) => item.id}
         renderItem={renderMessage}
-        contentContainerStyle={[
-          styles.messagesContainer,
-          { paddingBottom: 100 + insets.bottom }
-        ]}
+        contentContainerStyle={styles.messagesContainer}
         showsVerticalScrollIndicator={false}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
         ListFooterComponent={
@@ -658,6 +655,7 @@ export default function MirrorChat({
             </View>
           ) : null
         }
+        style={{ flex: 1 }}
       />
 
       {/* Input Bar - NOT absolute positioned for proper touch handling */}
