@@ -442,9 +442,17 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* Section Divider */}
         <View style={styles.gkDivider}>
           <View style={styles.gkDividerLine} />
-          <Text style={styles.gkDividerText}>GENE KEYS</Text>
+          <Text style={styles.gkDividerText}>YOUR SEQUENCES</Text>
           <View style={styles.gkDividerLine} />
         </View>
+        
+        {/* Helper Text */}
+        <Text style={styles.gkHelperText}>
+          These sequences are derived from your Human Design chart and translated here into everyday language.
+        </Text>
+        
+        {/* View Mode Toggle */}
+        {renderViewModeToggle()}
         
         {/* Section Header */}
         <TouchableOpacity
@@ -455,9 +463,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <View style={styles.gkSectionHeaderLeft}>
             <Ionicons name="key-outline" size={20} color={Colors.accent} />
             <View>
-              <Text style={styles.gkSectionTitle}>Your Sequences</Text>
+              <Text style={styles.gkSectionTitle}>Explore Your Sequences</Text>
               <Text style={styles.gkSectionSubtitle}>
-                Derived from your Human Design chart
+                {sequenceViewMode === 'everyday' 
+                  ? 'Tap to see themes and meanings'
+                  : 'Tap to see gate and line values'}
               </Text>
             </View>
           </View>
