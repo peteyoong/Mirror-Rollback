@@ -10380,6 +10380,131 @@ async def get_enneagram_traits(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ============================================
+# PATTERN DRIFT ENDPOINT
+# ============================================
+
+@api_router.get("/insights/pattern-drift/{user_id}")
+async def get_pattern_drift(user_id: str):
+    """
+    Get Pattern Drift analysis for a user.
+    
+    Detects possible Enneagram pattern movement (stress/growth drift) over time
+    using signals from user reflections and journal content.
+    
+    Architecture: Deterministic layer → Structured JSON → Template-based UI text
+    Philosophy: "Mirror, not guru" - observational, not diagnostic
+    
+    Returns structured drift data including:
+    - baseline_type: User's Enneagram core type
+    - drift_candidate: Type they may be moving toward
+    - direction: "stress" or "growth"
+    - confidence_label: "low", "emerging", or "moderate"
+    - signal_keywords: Keywords that triggered detection
+    - summary: Template-based reflective summary
+    """
+    try:
+        logger.info(f"[PatternDrift] Fetching drift for user {user_id}")
+        
+        # Check cache first
+        cached = await db.pattern_drift_cache.find_one({"user_id": user_id})
+        if cached and is_cache_valid(cached, max_age_hours=24):
+            logger.info(f"[PatternDrift] Returning cached result for {user_id}")
+            # Remove MongoDB _id before returning
+            cached.pop("_id", None)
+            return cached
+        
+        # Get user's Enneagram result
+        enneagram_result = await db.enneagram_results.find_one({"user_id": user_id})
+        
+        if not enneagram_result:
+            return {
+                "baseline_type": None,
+                "drift_detected": False,
+                "error": "No Enneagram result found. Complete the assessment first.",
+                "calculated_at": datetime.now(timezone.utc).isoformat()
+            }
+        
+        baseline_type = enneagram_result.get("inferred_core")
+        
+        if not baseline_type or baseline_type not in ENNEAGRAM_DRIFT_MAP:
+            return {
+                "baseline_type": baseline_type,
+                "drift_detected": False,
+                "error": "Invalid baseline type.",
+                "calculated_at": datetime.now(timezone.utc).isoformat()
+            }
+        
+        # Calculate date range (14-day rolling window)
+        window_days = 14
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=window_days)
+        
+        # Fetch reflections from the window
+        reflections = await db.reflections.find({
+            "user_id": user_id,
+            "created_at": {"$gte": cutoff_date}
+        }).to_list(length=100)
+        
+        # Also try string-based user_id match and date filtering
+        if not reflections:
+            all_reflections = await db.reflections.find({"user_id": user_id}).to_list(length=100)
+            reflections = [
+                r for r in all_reflections 
+                if r.get("created_at") and (
+                    isinstance(r["created_at"], datetime) and r["created_at"] >= cutoff_date
+                    or isinstance(r["created_at"], str) and r["created_at"] >= cutoff_date.isoformat()
+                )
+            ]
+        
+        # Fetch journal entries from the window
+        journal_entries = await db.journal.find({
+            "user_id": user_id,
+            "created_at": {"$gte": cutoff_date}
+        }).to_list(length=100)
+        
+        # Also try string-based filtering
+        if not journal_entries:
+            all_journals = await db.journal.find({"user_id": user_id}).to_list(length=100)
+            journal_entries = [
+                j for j in all_journals 
+                if j.get("created_at") and (
+                    isinstance(j["created_at"], datetime) and j["created_at"] >= cutoff_date
+                    or isinstance(j["created_at"], str) and j["created_at"] >= cutoff_date.isoformat()
+                )
+            ]
+        
+        logger.info(f"[PatternDrift] Found {len(reflections)} reflections, {len(journal_entries)} journal entries")
+        
+        # Calculate drift
+        drift_result = calculate_pattern_drift(
+            user_id=user_id,
+            baseline_type=baseline_type,
+            reflections=reflections,
+            journal_entries=journal_entries,
+            window_days=window_days,
+            threshold=5.0
+        )
+        
+        # Add user_id for caching
+        drift_result["user_id"] = user_id
+        
+        # Cache the result (upsert)
+        await db.pattern_drift_cache.update_one(
+            {"user_id": user_id},
+            {"$set": drift_result},
+            upsert=True
+        )
+        
+        logger.info(f"[PatternDrift] Cached result for {user_id}")
+        
+        return drift_result
+        
+    except Exception as e:
+        logger.error(f"[PatternDrift] Error: {e}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Enneagram Feedback endpoint
 class EnneagramFeedbackRequest(BaseModel):
     user_id: str
