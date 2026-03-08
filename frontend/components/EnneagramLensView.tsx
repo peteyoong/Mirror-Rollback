@@ -1112,10 +1112,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
     return (
       <>
         {/* Identity Card */}
-        <View style={styles.identityCard}>
+        <View style={[styles.identityCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
           <View style={styles.identityMain}>
             <View style={styles.identityTitleRow}>
-              <Text style={styles.identityType}>
+              <Text style={[styles.identityType, { color: theme.text }]}>
                 {wing !== 'balanced' ? `${core}w${wing}` : `Type ${core}`}
               </Text>
               <TouchableOpacity 
@@ -1125,56 +1125,56 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 <Ionicons name="pencil" size={14} color={theme.textTertiary} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.identityName}>{TYPE_NAMES[core]}</Text>
+            <Text style={[styles.identityName, { color: theme.textSecondary }]}>{TYPE_NAMES[core]}</Text>
           </View>
           {renderConfidenceBadge()}
-          <Text style={styles.identityNote}>
+          <Text style={[styles.identityNote, { color: theme.textTertiary }]}>
             This lens reflects strategy, not identity.
           </Text>
         </View>
 
         {/* Core Pattern Card */}
-        <View style={styles.overviewCard}>
-          <Text style={styles.overviewCardTitle}>Your Core Pattern</Text>
-          <Text style={styles.overviewCardBody}>
+        <View style={[styles.overviewCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+          <Text style={[styles.overviewCardTitle, { color: theme.textTertiary }]}>Your Core Pattern</Text>
+          <Text style={[styles.overviewCardBody, { color: theme.text }]}>
             {CORE_PATTERNS[core]}
           </Text>
         </View>
 
         {/* What Drives This Card */}
-        <View style={styles.overviewCard}>
-          <Text style={styles.overviewCardTitle}>What Drives This</Text>
-          <Text style={styles.overviewCardBody}>
+        <View style={[styles.overviewCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+          <Text style={[styles.overviewCardTitle, { color: theme.textTertiary }]}>What Drives This</Text>
+          <Text style={[styles.overviewCardBody, { color: theme.text }]}>
             {PATTERN_DRIVERS[core]}
           </Text>
         </View>
 
         {/* Where This Shows Up Card */}
-        <View style={styles.overviewCard}>
-          <Text style={styles.overviewCardTitle}>Where This Often Appears</Text>
+        <View style={[styles.overviewCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+          <Text style={[styles.overviewCardTitle, { color: theme.textTertiary }]}>Where This Often Appears</Text>
           <View style={styles.manifestationList}>
             <View style={styles.manifestationItem}>
-              <Text style={styles.manifestationLabel}>Decision making</Text>
-              <Text style={styles.manifestationText}>{manifestations.decisions}</Text>
+              <Text style={[styles.manifestationLabel, { color: theme.textTertiary }]}>Decision making</Text>
+              <Text style={[styles.manifestationText, { color: theme.textSecondary }]}>{manifestations.decisions}</Text>
             </View>
             <View style={styles.manifestationItem}>
-              <Text style={styles.manifestationLabel}>Work & creativity</Text>
-              <Text style={styles.manifestationText}>{manifestations.work}</Text>
+              <Text style={[styles.manifestationLabel, { color: theme.textTertiary }]}>Work & creativity</Text>
+              <Text style={[styles.manifestationText, { color: theme.textSecondary }]}>{manifestations.work}</Text>
             </View>
             <View style={styles.manifestationItem}>
-              <Text style={styles.manifestationLabel}>Relationships</Text>
-              <Text style={styles.manifestationText}>{manifestations.relationships}</Text>
+              <Text style={[styles.manifestationLabel, { color: theme.textTertiary }]}>Relationships</Text>
+              <Text style={[styles.manifestationText, { color: theme.textSecondary }]}>{manifestations.relationships}</Text>
             </View>
             <View style={styles.manifestationItem}>
-              <Text style={styles.manifestationLabel}>Under stress</Text>
-              <Text style={styles.manifestationText}>{manifestations.stress}</Text>
+              <Text style={[styles.manifestationLabel, { color: theme.textTertiary }]}>Under stress</Text>
+              <Text style={[styles.manifestationText, { color: theme.textSecondary }]}>{manifestations.stress}</Text>
             </View>
           </View>
         </View>
 
         {/* Pattern Movement Card - positioned after baseline content */}
         {patternDrift && (
-          <View style={styles.patternMovementCard}>
+          <View style={[styles.patternMovementCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
             {/* Header */}
             <View style={styles.patternMovementHeader}>
               <Ionicons name="pulse-outline" size={16} color={patternDrift.drift_candidate ? theme.accent : theme.textTertiary} />
