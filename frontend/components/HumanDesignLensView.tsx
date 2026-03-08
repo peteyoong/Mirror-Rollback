@@ -454,7 +454,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Render all Gene Keys sequences with section header
+  // Render all Gene Keys sequences with improved visual hierarchy
   const renderGeneKeys = () => {
     if (!data?.gene_keys) return null;
     
@@ -462,57 +462,31 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     return (
       <View style={styles.gkContainer}>
-        {/* Section Divider */}
-        <View style={styles.gkDivider}>
-          <View style={styles.gkDividerLine} />
-          <Text style={styles.gkDividerText}>YOUR SEQUENCES</Text>
-          <View style={styles.gkDividerLine} />
+        {/* Section Header with integrated toggle */}
+        <View style={styles.gkSectionHeaderWrapper}>
+          <View style={styles.gkSectionHeaderTop}>
+            <View style={styles.gkSectionTitleRow}>
+              <Ionicons name="key-outline" size={18} color={Colors.accent} />
+              <Text style={styles.gkSectionMainTitle}>YOUR SEQUENCES</Text>
+            </View>
+            {/* View Mode Toggle - attached to header */}
+            {renderViewModeToggle()}
+          </View>
+          <Text style={styles.gkSectionIntro}>
+            Derived from your Human Design chart, these sequences illuminate different dimensions of your experience.
+          </Text>
         </View>
         
-        {/* Helper Text */}
-        <Text style={styles.gkHelperText}>
-          These sequences are derived from your Human Design chart and translated here into everyday language.
-        </Text>
-        
-        {/* View Mode Toggle */}
-        {renderViewModeToggle()}
-        
-        {/* Section Header */}
-        <TouchableOpacity
-          style={styles.gkSectionHeader}
-          onPress={() => setGeneKeysExpanded(!geneKeysExpanded)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.gkSectionHeaderLeft}>
-            <Ionicons name="key-outline" size={20} color={Colors.accent} />
-            <View>
-              <Text style={styles.gkSectionTitle}>Explore Your Sequences</Text>
-              <Text style={styles.gkSectionSubtitle}>
-                {sequenceViewMode === 'everyday' 
-                  ? 'Tap to see themes and meanings'
-                  : 'Tap to see gate and line values'}
-              </Text>
-            </View>
-          </View>
-          <Ionicons
-            name={geneKeysExpanded ? 'chevron-up' : 'chevron-down'}
-            size={20}
-            color={Colors.textTertiary}
-          />
-        </TouchableOpacity>
-        
-        {/* Arc Cards */}
-        {geneKeysExpanded && (
-          <View style={styles.gkArcsContainer}>
-            {renderGeneKeysArc('Purpose', 'purpose', gk.purpose_arc, 'compass-outline', 'Your life direction')}
-            {renderGeneKeysArc('Love', 'love', gk.love_arc, 'heart-outline', 'Relationships & relating')}
-            {renderGeneKeysArc('Prosperity', 'prosperity', gk.prosperity_arc, 'diamond-outline', 'Abundance & vocation')}
-            
-            {isDebugEnabled() && (
-              <Text style={styles.gkVersion}>v: {gk.gene_keys_version}</Text>
-            )}
-          </View>
-        )}
+        {/* Arc Cards Container */}
+        <View style={styles.gkArcsContainer}>
+          {renderGeneKeysArc('Purpose', 'purpose', gk.purpose_arc, 'compass-outline', 'Your life direction')}
+          {renderGeneKeysArc('Love', 'love', gk.love_arc, 'heart-outline', 'Relationships & relating')}
+          {renderGeneKeysArc('Prosperity', 'prosperity', gk.prosperity_arc, 'diamond-outline', 'Abundance & vocation')}
+          
+          {isDebugEnabled() && (
+            <Text style={styles.gkVersion}>v: {gk.gene_keys_version}</Text>
+          )}
+        </View>
       </View>
     );
   };
