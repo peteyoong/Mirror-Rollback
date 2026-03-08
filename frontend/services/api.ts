@@ -350,7 +350,7 @@ export const sendEnneagramChat = async (data: {
   message: string;
   context: {
     inferred_core: number;
-    inferred_wing: number | string;
+    inferred_wing: number | string | null;
     confidence_tier: string;
     is_close?: boolean;
     top_candidates?: { type: number; probability: number }[];
@@ -368,7 +368,7 @@ export const submitEnneagramFeedback = async (data: {
   accuracy_feedback: 'yes' | 'mostly' | 'no';
   timestamp: string;
   inferred_core: number;
-  inferred_wing: number | string;
+  inferred_wing: number | string | null;
   confidence: number;
   energy_state?: string;
   life_context?: string;
