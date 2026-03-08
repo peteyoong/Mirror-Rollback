@@ -447,12 +447,16 @@ def calculate_pattern_drift(
     
     logger.info(f"[PatternDrift] Robustness check: {distinct_keyword_count} distinct keywords, {winning_entry_count} entries, passes={passes_guardrails}")
     
-    # Only mark as detected if score meets threshold AND passes guardrails
-    if winning_score >= threshold and passes_guardrails:
+    # v0.1.1: Detection logic updated
+    # drift_detected = True if:
+    # 1. Score >= threshold AND passes guardrails (high confidence)
+    # 2. OR: Confidence is "emerging" or "moderate" AND passes guardrails (valid signal pattern)
+    # This ensures we don't miss legitimate emerging patterns
+    if passes_guardrails and (winning_score >= threshold or confidence_label in ["emerging", "moderate"]):
         drift_detected = True
         summary = DRIFT_SUMMARY_TEMPLATES.get(direction, {}).get(baseline_type)
     elif winning_score > 0 and passes_guardrails:
-        # Below threshold but has valid signals - still show as emerging
+        # Below emerging threshold but has some valid signals - show summary but not detected
         summary = DRIFT_SUMMARY_TEMPLATES.get(direction, {}).get(baseline_type)
     else:
         # Failed guardrails - don't show drift
