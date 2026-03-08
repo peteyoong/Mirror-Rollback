@@ -105,7 +105,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   
   // Gene Keys expansion state
-  const [geneKeysExpanded, setGeneKeysExpanded] = useState(false);
   const [expandedArc, setExpandedArc] = useState<string | null>(null);
   
   // View mode toggle: 'everyday' or 'technical'
