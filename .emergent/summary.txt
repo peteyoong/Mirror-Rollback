@@ -1,58 +1,53 @@
 <analysis>
 
-**original_problem_statement**: The user wants to allow users to declare their Enneagram type manually during onboarding instead of forcing them to take the assessment. This involves creating a new UI flow for type and wing selection, a backend endpoint to save this self-declared data, and ensuring the existing Enneagram lens views work correctly with this new data source.
+**original_problem_statement**: The user initially requested a feature to allow users to self-declare their Enneagram type during onboarding. This was successfully implemented and debugged.
 
-This task follows a series of major architectural and UI/UX improvements, including:
-- Refactoring the Enneagram Deep Dive screen into a structured, narrative layout.
-- A visual refinement pass on the Enneagram Deep Dive to improve spacing and readability.
-- A complete redesign of the Enneagram Overview tab to be a reflective, card-based summary.
-- A redesign of the Human Design Overview tab to match the same reflective philosophy.
-- A critical architectural refactor of the Human Design Overview to use fast, deterministic templates instead of a slow, runtime LLM call, establishing a new deterministic-first pattern.
-- A critical architectural refactor of the Home screen's keystone to use a deterministic-first with background LLM enrichment pattern, ensuring an instant-loading UI.
-- A UX polish pass on the Home screen to improve its visual hierarchy and create a more premium, reflective feel.
-- A full product validation pass of the core daily user flow.
+The work then evolved through a series of iterative feature requests:
+1.  **Edit Type**: Allow existing users to edit their Enneagram type.
+2.  **UX Refinements**: Improve the discoverability of the edit function, display the data source (Assessment vs. Self-declared), adjust the confidence display, and create a shared footer for actions.
+3.  **Content Quality**: Refine the Enneagram Deep Dive copy to be more concise, structured, and psychologically sharp, based on user feedback and a provided reference PDF. This led to a new content structure:  →  →  → .
+4.  **Pattern Drift Feature (v0.1)**: Implement a new feature to detect potential shifts in a user's Enneagram patterns (stress/growth) based on signals from their journal entries and reflections. This involved creating a deterministic backend scoring engine, a new API endpoint, and a new Pattern Movement card in the UI.
 
-PRODUCT REQUIREMENTS:
-- Add a choice on the Enneagram intro screen: Take the assessment or I already know my type.
-- If I already know is chosen, present a new screen to select one of the 9 types, followed by a screen to select a wing (or no wing).
-- Create a new backend endpoint to save the self-declared type, wing, and a  field to the  collection.
-- Ensure the existing  (both Overview and Deep Dive tabs) correctly displays the data for a self-declared user.
-- The user should be able to edit this later in their Profile (future task).
+PRODUCT REQUIREMENTS (Current):
+- Finalize and validate the Pattern Drift feature.
+- Ensure the scoring logic is robust, preventing false positives while correctly identifying true signals.
+- Hide debug information from production API responses.
+- The feature must adhere to the mirror, not guru philosophy, using reflective, non-deterministic language.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is architecturally sound and stable. Core navigation surfaces (Home, HD Overview, Enneagram Overview) have been refactored to load instantly using deterministic templates, with LLM generation reserved for background enrichment or deep-dive content. The UI for the Enneagram and Home screens has been significantly polished.
-
-The new feature for self-declaring an Enneagram type is partially implemented:
-- A new screen  has been created for type/wing selection.
-- A new backend endpoint  exists and has been tested via  to correctly save the data to the database.
-- The Enneagram intro screen has been modified to show the new choice.
-- The navigation from the intro screen to the  screen is working.
+- A fully functional Enneagram self-declaration and editing flow.
+- A polished Enneagram Lens UI with consistent headers, source-aware confidence badges, and an improved content structure.
+- A new Pattern Drift feature (v0.1.1) has been implemented. This includes:
+    - A backend module  with deterministic logic for scoring signals from user journals and reflections.
+    - A new API endpoint  that returns the drift analysis.
+    - A new Pattern Movement card integrated into the Enneagram Overview UI that displays the analysis.
+- A backend validation script has been created to test the drift detection logic against synthetic data.
 
 **Last working item**:
-    - Last item agent was working: Debugging why the frontend does not render the  after a user successfully saves their self-declared Enneagram type. The agent confirmed the backend API and database save operations are working correctly. The issue lies within the frontend's data fetching or state management logic in the  file, which is failing to retrieve the newly saved result and display the lens view.
+    - Last item agent was working: The agent was performing a validation pass on the Pattern Drift v0.1.1 feature. A Python test script was created to run 12 synthetic test cases. 9 of the 12 tests passed, but 3 failed due to the guardrail logic () being slightly too strict, preventing detection even when confidence was moderate. The agent was about to adjust the guardrails and thresholds to fix these validation failures.
     - Status: IN PROGRESS
-    - Agent Testing Done: N
-    - Which testing method agent to use? The agent should use the  to manually test the full flow after fixing the bug. The immediate next step is code debugging, not testing.
+    - Agent Testing Done: N (Validation is in progress but not complete)
+    - Which testing method agent to use? backend testing agent. The agent should modify the validation script and the core logic in , then test by running the Python script. No UI changes are needed.
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  Issue 1: (P0) Fix the broken self-declared Enneagram flow.
+  Issue 1: (P0) Finalize and validate the Pattern Drift feature (v0.1.1).
   Issue 2: (P1) Onboarding birth time input remains unclickable on native builds.
 
   Issues Detail:
   - Issue 1: 
-     - Attempted fixes: The agent confirmed the backend endpoint  works correctly and saves data to the database. It also confirmed the navigation to the  screen works. The agent was attempting to debug the data-fetching part of the frontend by ing the result endpoint, but was blocked by a proxy issue (getting HTML instead of JSON). The bug is that after saving the self-declared type, the user is not redirected or the main Enneagram page () does not correctly fetch the new result to render the .
+     - Attempted fixes: A validation script was created which revealed 3 test failures. The failures occurred because the guardrails (requiring a minimum number of entries or distinct keywords) were preventing detection even when the confidence score was significant.
      - Next debug checklist:
-        1. Examine the  function in . Ensure that after a successful API call, it correctly navigates the user, perhaps back to  with .
-        2. Examine the  hook in . Add  statements to trace the API call to , the response, and the logic that sets the  state.
-        3. Verify that the user's session and  are correctly passed in the API call from the frontend. The previous agent suspected a session issue.
-        4. Once the data fetching is fixed, use the  to test the full flow: Login -> Lenses -> Enneagram -> I know my type -> Select Type/Wing -> Save -> Verify  is shown with the correct data.
-     - Why fix this issue and what will be achieved with the fix? This is a core part of the new feature request. Fixing it will allow users who know their Enneagram type to use the app without taking the assessment, reducing onboarding friction.
+        1. Review the failing test cases (Test 2, Test 6) in the validation script ( or similar).
+        2. Adjust the guardrail logic or confidence thresholds in . Specifically, review the  and  conditions to be less strict.
+        3. Rerun the validation script to ensure all 12 test cases pass as expected.
+        4. Modify the  endpoint in  to hide the  object from the JSON response by default. It should only be included if a query parameter like  is present.
+     - Why fix this issue and what will be achieved with the fix? This will ensure the new Pattern Drift feature is reliable, accurate, and provides a stable foundation for future enhancements. It also completes the user's explicit request.
      - Status:  IN PROGRESS
      - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? Frontend
+     - Should Test frontend/backend/both after fix? Backend
      - Blocked on other issue: None
 
   - Issue 2: 
@@ -65,95 +60,98 @@ The new feature for self-declaring an Enneagram type is partially implemented:
      - Blocked on other issue: User action required for testing.
 
 **In progress Task List**:
-  - Task 1: (P0) Complete the Enneagram self-declaration feature.
-     - Where to resume: Debugging the frontend logic in  (on save) and  (on load) to correctly display the  after a user submits their type.
-     - What will be achieved with this? A complete, working feature that reduces user onboarding friction.
-     - Status: IN PROGRESS
-     - Should Test frontend/backend/both after fix? Frontend
-     - Blocked on something: The aforementioned bug.
+  - None.
 
 **Upcoming and Future Tasks**
     - **Upcoming Tasks:**
-        - (P1) Review the Today tab to evaluate if a deterministic first-pass architecture is needed, similar to the Home and Overview tabs.
+        - (P0) Apply the new content structure (, , , ) to the remaining Enneagram Deep Dive sections (e.g., Core Type descriptions, Top Alternatives).
     - **Future Tasks:**
-        - Daily Insight / Home integration.
-        - Mirror Chat suggestions.
-        - Refactor fallback content in  into separate JSON/Python files.
-        - Implement  guardrail.
-        - Add the ability for users to edit their self-declared Enneagram type in Profile settings.
+        - (P1) Enhance Pattern Drift (v0.2) to include Mirror Chat transcripts as a signal source.
+        - (P1) Add an interpretive LLM enrichment layer to the Pattern Drift summary text.
+        - (P2) Layer in astrology transits and human design themes to create a more comprehensive Pattern Engine.
+        - (P2) Allow users to edit their self-declared Enneagram type in their Profile settings.
+        - (P2) Refactor fallback content in  into separate JSON/Python files.
 
 **Completed work in this session**
-- **Enneagram Deep Dive Structure Refactor:** Reorganized the screen from a flat list into structured sections (Identity, Structure, Patterns).
-- **Enneagram Deep Dive Visual Refinement:** Polished spacing, typography, and hierarchy for a more premium reading experience.
-- **Enneagram Overview Redesign:** Transformed the Overview tab into a reflective, card-based narrative summary.
-- **Human Design Overview Polish:** Applied the same reflective, narrative-driven design to the HD Overview.
-- **Architecture: Human Design Overview (Deterministic):** Refactored the HD Overview to use fast, deterministic frontend templates, removing a 5-15 second blocking LLM call.
-- **Architecture: Home Keystone (Deterministic-First):** Refactored the Home screen to instantly load a deterministic keystone and then trigger a background task to enrich it with a personalized LLM version, which is then cached.
-- **Home Screen UX Refinement:** Polished the visual hierarchy, spacing, and typography of the Home screen to feel more like the emotional center of the app.
-- **Product Validation:** Successfully tested the full daily flow (Home -> Reflection -> Lenses -> Deep Dive), confirming the new architecture provides a smooth, fast, and complete user experience.
+- **Enneagram Self-Declare Bug Fix**: Fixed both frontend (data refetching with ) and backend ( TypeError) bugs to make the self-declaration flow fully functional.
+- **Edit My Type Feature**: Implemented the ability for existing users to edit their Enneagram type.
+- **Enneagram UX Refinements**:
+  - Moved the Edit Type action to an intuitive pencil icon in the main identity header.
+  - Added a Self-declared vs. Assessment source badge.
+  - Made the Retake Assessment and Edit Type actions a shared footer across all Enneagram tabs.
+- **Enneagram Content Refinement**:
+  - Rewrote Deep Dive copy to be more concise and psychologically sharp.
+  - Implemented a new, user-approved content structure (, , , ) for Wing, Stress, and Growth patterns.
+- **Pattern Drift Feature (v0.1.1)**:
+  - Created a deterministic backend engine in  to detect pattern shifts from user journals and reflections.
+  - Implemented the  endpoint.
+  - Designed and built the Pattern Movement UI card in the Enneagram Overview.
+  - Refined the scoring logic with improved keywords and robustness guardrails to prevent false positives.
 
 **Earlier issues found/mentioned but not fixed**
-- None.
+   - Issue 1: Onboarding birth time input is unclickable on native builds.
+     - Status: USER VERIFICATION PENDING. This is a recurring issue from a previous fork, blocked on user testing of a new native build.
 
 **Known issue recurrence from previous fork**
-  - **Issue recurrence in previous fork:** Onboarding birth time input is unclickable on the deployed native app.
-  - **Recurrence count:** 2+
-  - **Status:** USER VERIFICATION PENDING
-  Note: This remains blocked on the user providing feedback from a native test build. Do not attempt to re-fix.
+  - Issue recurrence in previous fork: Onboarding birth time input is unclickable on the deployed native app.
+  - Recurrence count: 2+
+  - Status: USER VERIFICATION PENDING
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Deterministic-First Architecture:** A new core pattern established in this session. Core UI surfaces load instantly using pre-defined templates or fast-computed data. This provides a fast, reliable user experience.
-- **Background LLM Enrichment:** The companion pattern to the above. After the deterministic UI is rendered, a background task is triggered to generate richer, personalized content from an LLM. This result is then cached and used to silently update the UI or for subsequent loads.
-- **Silent UI Updates:** The frontend Home screen now polls for an enriched version of its content and updates the view without a jarring flash or loading spinner, creating a seamless personalization effect.
-- **Component-level State Management:** Debugging highlighted the importance of managing component state during tab switching, especially when different tabs rely on API responses with different data structures (e.g., HD Overview vs. Deep Dive).
+- **Deterministic-First Architecture**: Core UI surfaces load instantly; complex analysis (like Pattern Drift) is done via separate, cached API calls.
+- **Reflective, Non-Deterministic Copy**: A core product philosophy. UI text is written to be invitational and observational (You may notice...) rather than diagnostic (You are...).
+- **Component-level State Management**: Using  to trigger data fetching when a screen becomes active.
+- **Deterministic Signal Detection**: Using keyword clusters, source weighting, and rolling time windows to analyze text for patterns without relying on ML/LLM for the core detection.
+- **Robustness Guardrails**: Implementing checks (e.g., minimum number of entries or distinct keywords) to prevent low-quality signals from generating a result.
 
 **key DB schema**
-  - **enneagram_results**: a  field (String) has been added to distinguish between  and  results.
+  - **reflections**: (Signal Source) Contains user responses to structured prompts. Fields used: , .
+  - **journals**: (Signal Source) Contains free-form user journal entries. Fields used: , .
+  - **enneagram_results**: Contains the user's core type. The  field (assessment or self_declared) is now used in the UI.
 
 **changes in tech stack**
   - None.
 
 **All files of reference**
-- : **NEW** file for the self-declaration feature.
-- : **MODIFIED** to route to the new flow, but contains the **CURRENT BUG**.
-- : **MODIFIED** with the new , , and home screen architecture.
-- : Heavily modified and now considered feature-complete.
-- : Heavily modified and now considered feature-complete.
-- : Heavily modified (Home screen) and now considered feature-complete.
+- : **NEW**. Core logic for the Pattern Drift feature.
+- : **HEAVILY MODIFIED**. Contains UI for all recent features: Edit Type, Source Badge, refined content structure, and the Pattern Movement card.
+- : **MODIFIED**. Imports and serves the new Pattern Drift API endpoint.
+- : **MODIFIED**. Fixed a critical data-fetching bug.
 
 **Areas that need refactoring**:
--  could still be broken into smaller modules. This is a tracked future task.
+- None at present.
 
 **key api endpoints**
-- : (NEW) Saves a user's self-declared Enneagram type and wing.
-- : (NEW) Fast, deterministic endpoint returning only core HD mechanics.
-- : (REFACTORED) Now implements the deterministic-first + background enrichment pattern.
+- : Saves user's self-declared type. (Stable)
+- : Retrieves user's Enneagram result. (Stable)
+- : **NEW**. Retrieves the Pattern Drift analysis.
 
 **Critical Info for New Agent**
-- **Your immediate task is to fix the bug in the Enneagram self-declaration flow.** The backend and the UI for selection are done. The problem is that after a user saves their type, the main Enneagram page () fails to fetch this new result and render the . Start your debugging in  (the save/redirect logic) and  (the data loading logic).
-- **Adhere to the new architectural patterns.** Core navigation surfaces must be fast and deterministic. Use the deterministic-first with optional background LLM enrichment pattern as your guide for any new features on core screens.
-- **Do not refactor the Home, HD Overview, or Enneagram views.** These have been heavily worked on, approved by the user, and are considered architecturally complete. Only touch them if you find a verifiable bug related to your current task.
+- Your immediate task is to finalize the **Pattern Drift validation**. The backend logic is in . A test script already exists; you need to analyze the 3 failing tests and adjust the scoring thresholds or guardrails to make the detection more accurate.
+- After fixing the validation failures, you must modify the API endpoint in  to **hide the  field** from the production response.
+- Adhere strictly to the mirror, not guru philosophy in any user-facing text. Use observational and invitational language.
+- Do not add new features or major UI changes. This task is a refinement and validation pass.
 
 **documents created in this job**
-- None.
+- A temporary backend test script for validating the Pattern Drift feature was created and used.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **Request:** Add feature to allow users to self-declare their Enneagram type. **Status:** IN PROGRESS (BUGGY).
-2.  **Confirmation:** Approved the completed Home screen UX refinement and product validation. Directed agent to focus on product validation. **Status:** COMPLETED.
-3.  **Request:** Perform a UX refinement pass on the Home screen for visual hierarchy and readability. **Status:** COMPLETED.
-4.  **Confirmation:** Approved the Home Keystone architecture. Set deterministic-first as the new standard. **Status:** COMPLETED.
-5.  **Request:** Refactor the Home screen keystone to be deterministic-first with background LLM enrichment. **Status:** COMPLETED.
-6.  **Confirmation:** Approved the Human Design Overview architectural refactor. **Status:** COMPLETED.
-7.  **Request:** Refactor the HD Overview to be fast and deterministic, removing the blocking LLM call. **Status:** COMPLETED.
-8.  **Request:** Polish the Human Design Overview to have a more reflective, narrative feel. **Status:** COMPLETED.
-9.  **Request:** Redesign the Enneagram Overview tab to have a structured, reflective narrative. **Status:** COMPLETED.
-10. **Request:** Perform a visual refinement pass on the Enneagram Deep Dive screen. **Status:** COMPLETED.
+1.  **Request:** Run a validation pass on Pattern Drift v0.1.1 with synthetic test cases and hide the  field. **Status:** IN PROGRESS.
+2.  **Confirmation:** Approved Pattern Drift v0.1.1 as feature-complete for internal testing. **Status:** COMPLETED.
+3.  **Request:** Refine Pattern Drift signal quality by improving keywords, clarifying confidence scores, and adding robustness guardrails. **Status:** COMPLETED.
+4.  **Confirmation:** Confirmed v0.1 implementation and provided detailed refinements for the next iteration (v0.1.1). **Status:** COMPLETED.
+5.  **Request:** Proceed with Pattern Drift v0.1 implementation without pausing for approval, providing a detailed list of constraints and requirements. **Status:** COMPLETED.
+6.  **Confirmation:** Approved the plan to implement Pattern Drift. **Status:** COMPLETED.
+7.  **Request:** Provided a detailed technical specification for the Pattern Drift v0.1 feature. **Status:** COMPLETED.
+8.  **Confirmation:** Approved the refined content structure and requested it be rolled out to all Enneagram content. **Status:** COMPLETED.
+9.  **Request:** Provided a PDF reference for content style and asked for a sample rewrite of Wing Flavors using a mirror, not guru tone. **Status:** COMPLETED.
+10. **Request:** Refine the Enneagram Deep Dive copy for quality, conciseness, and structure. **Status:** COMPLETED.
 
 **Project Health Check:**
-- **Broken**: The new Enneagram Self-Declare feature is broken. The rest of the app is stable.
+- **Broken**: No user-facing features are broken. The new Pattern Drift feature is functionally complete but pending final validation.
 - **Mocked**: None.
 
 **3rd Party Integrations**
@@ -162,16 +160,15 @@ The new feature for self-declaring an Enneagram type is partially implemented:
 - **MongoDB**: The primary database.
 
 **Testing status**
-  - Testing agent used after significant changes: NO (but  was used extensively for manual verification).
+  - Testing agent used after significant changes: NO. Agent used  and manual  scripts for testing.
   - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: []
-  - Known regressions: A temporary regression was introduced (and fixed) when implementing the HD Overview refactor, where switching tabs caused a crash. The fix involved adding a conditional check for .
+  - Test files created: A temporary Python script was created for backend validation of the Pattern Drift feature.
+  - Known regressions: None.
 
 **Credentials to test flow:**
-- Use  for testing views that require existing user data (e.g., HD/Enneagram lenses).
-- Use  for testing flows for a new user who does not have Enneagram results.
+- Use  (or create a new user) for testing. Test data for Pattern Drift can be injected using backend scripts if needed.
 
 **What agent forgot to execute**
-- The agent did not forget anything, but the implementation of the final feature request has a bug that needs to be fixed. The logic for redirecting/re-fetching data after the self-declared type is saved is incomplete or incorrect.
+- The agent has not yet hidden the  field from the production response of the Pattern Drift API, as requested by the user. This should be completed as part of the current validation task.
 
 </analysis>
