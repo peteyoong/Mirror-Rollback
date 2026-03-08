@@ -559,10 +559,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               </TouchableOpacity>
             )}
 
-            {/* Sections - filter out Incarnation Cross since it's already in Core Mechanics */}
-            {data.sections
-              .filter(section => !section.label.toLowerCase().includes('incarnation cross'))
-              .map((section, index) => renderSection(section, index))}
+            {/* Sections */}
+            {data.sections.map((section, index) => renderSection(section, index))}
 
             {/* Gene Keys Sequences (Deep Dive only) */}
             {activeTab === 'deep_dive' && renderGeneKeys()}
