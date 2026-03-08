@@ -2255,7 +2255,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: Colors.surfaceLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
@@ -2829,7 +2829,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: Colors.surfaceLight,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Colors.border,
   },
@@ -2848,7 +2848,7 @@ const styles = StyleSheet.create({
   editTypeInline: {
     padding: 6,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: Colors.surfaceLight,
   },
   
   // Pattern Movement Card
@@ -2998,7 +2998,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   driftKeywordBadge: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: Colors.surfaceLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
