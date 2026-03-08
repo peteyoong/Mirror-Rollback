@@ -446,7 +446,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
             <Ionicons
               name={isExpanded ? 'chevron-up' : 'chevron-down'}
               size={18}
-              color={Colors.textTertiary}
+              color={theme.textTertiary}
             />
           )}
         </TouchableOpacity>
@@ -499,7 +499,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
           activeOpacity={0.8}
         >
           <View style={styles.unlockButtonContent}>
-            <Ionicons name="add-circle-outline" size={22} color={Colors.surface} />
+            <Ionicons name="add-circle-outline" size={22} color={theme.textInverse} />
             <View style={styles.unlockButtonText}>
               <Text style={styles.unlockButtonTitle}>Add Full Birth Name</Text>
               <Text style={styles.unlockButtonSubtitle}>Loading profile...</Text>
@@ -514,7 +514,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
     if (profile?.numerology_full_name) {
       return (
         <View style={styles.fullNameCard}>
-          <Ionicons name="person-outline" size={18} color={Colors.textSecondary} />
+          <Ionicons name="person-outline" size={18} color={theme.textSecondary} />
           <View style={styles.fullNameTextContainer}>
             <Text style={styles.fullNameLabel}>Full Birth Name</Text>
             <Text style={styles.fullNameValue}>{profile.numerology_full_name}</Text>
@@ -523,7 +523,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
             style={styles.editNameButton}
             onPress={openUnlockModal}
           >
-            <Ionicons name="pencil-outline" size={16} color={Colors.accent} />
+            <Ionicons name="pencil-outline" size={16} color={theme.accent} />
           </TouchableOpacity>
         </View>
       );
@@ -537,7 +537,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
         activeOpacity={0.8}
       >
         <View style={styles.unlockButtonContent}>
-          <Ionicons name="add-circle-outline" size={22} color={Colors.surface} />
+          <Ionicons name="add-circle-outline" size={22} color={theme.textInverse} />
           <View style={styles.unlockButtonText}>
             <Text style={styles.unlockButtonTitle}>Add Full Birth Name</Text>
             <Text style={styles.unlockButtonSubtitle}>Unlock Expression, Soul Urge & Personality numbers</Text>
@@ -674,14 +674,14 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
               style={styles.modalCloseButton}
               onPress={closeUnlockModal}
             >
-              <Ionicons name="close" size={24} color={Colors.textSecondary} />
+              <Ionicons name="close" size={24} color={theme.textSecondary} />
             </TouchableOpacity>
 
             {/* INPUT STEP - Always show TextInput for add/edit */}
             {unlockStep === 'input' && (
               <>
                 <View style={styles.modalIconContainer}>
-                  <Ionicons name="person-outline" size={32} color={Colors.accent} />
+                  <Ionicons name="person-outline" size={32} color={theme.accent} />
                 </View>
                 <Text style={styles.modalTitle}>
                   {modalMode === 'edit' ? 'Edit Your Name' : 'Your Full Birth Name'}
@@ -742,7 +742,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                     disabled={isUnlocking}
                   >
                     {isUnlocking ? (
-                      <ActivityIndicator size="small" color={Colors.surface} />
+                      <ActivityIndicator size="small" color={theme.textInverse} />
                     ) : (
                       <Text style={styles.modalPrimaryButtonText}>
                         {modalMode === 'edit' ? 'Save' : 'Unlock'}
@@ -794,7 +794,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
       >
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.textTertiary} />
+            <ActivityIndicator size="large" color={theme.textTertiary} />
             <Text style={styles.loadingText}>
               {activeTab === 'deep_dive' 
                 ? 'Generating your personalized reading...\nThis may take 30-45 seconds'
@@ -803,7 +803,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
-            <Ionicons name="alert-circle-outline" size={32} color={Colors.textTertiary} />
+            <Ionicons name="alert-circle-outline" size={32} color={theme.textTertiary} />
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity
               style={styles.retryButton}
@@ -842,7 +842,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                 <Ionicons
                   name={expandedSection ? 'contract-outline' : 'expand-outline'}
                   size={16}
-                  color={Colors.accent}
+                  color={theme.accent}
                 />
               </TouchableOpacity>
             )}
@@ -868,7 +868,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
               style={styles.askMirrorButton}
               onPress={onOpenChat}
             >
-              <Ionicons name="chatbubble-outline" size={18} color={Colors.surface} />
+              <Ionicons name="chatbubble-outline" size={18} color={theme.textInverse} />
               <Text style={styles.askMirrorText}>Ask about this lens</Text>
             </TouchableOpacity>
 
@@ -918,7 +918,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: "transparent",
   },
   healthBanner: {
     backgroundColor: '#D32F2F',
@@ -959,19 +959,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     alignItems: 'center',
   },
   activeTab: {
-    backgroundColor: Colors.text,
+    backgroundColor: "transparent",
   },
   tabText: {
     fontSize: 13,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: "inherit",
   },
   activeTabText: {
-    color: Colors.surface,
+    color: "inherit",
   },
   content: {
     flex: 1,
@@ -987,7 +987,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: Colors.textTertiary,
+    color: "inherit",
   },
   errorContainer: {
     paddingVertical: 60,
@@ -996,34 +996,34 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: "inherit",
     textAlign: 'center',
   },
   retryButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 8,
   },
   retryText: {
     fontSize: 14,
-    color: Colors.accent,
+    color: "inherit",
     fontWeight: '500',
   },
   title: {
     fontSize: 20,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
     marginBottom: 8,
   },
   dateLabel: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: "inherit",
     marginBottom: 16,
   },
   // Core Numbers Card
   coreNumbersCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -1033,7 +1033,7 @@ const styles = StyleSheet.create({
   coreNumbersTitle: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: "inherit",
     letterSpacing: 1,
     textAlign: 'center',
     marginBottom: 12,
@@ -1049,13 +1049,13 @@ const styles = StyleSheet.create({
   },
   numberLabel: {
     fontSize: 10,
-    color: Colors.textTertiary,
+    color: "inherit",
     marginBottom: 4,
   },
   numberValue: {
     fontSize: 24,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
   },
   lockedNumber: {
     opacity: 0.5,
@@ -1063,11 +1063,11 @@ const styles = StyleSheet.create({
   numberDivider: {
     width: 1,
     height: 30,
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: "transparent",
   },
   // Cycles Card
   cyclesCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 12,
     marginBottom: 16,
@@ -1083,18 +1083,18 @@ const styles = StyleSheet.create({
   },
   cycleLabel: {
     fontSize: 10,
-    color: Colors.textTertiary,
+    color: "inherit",
     marginBottom: 4,
   },
   cycleNumber: {
     fontSize: 20,
     fontWeight: '600',
-    color: Colors.accent,
+    color: "inherit",
   },
   cycleDivider: {
     width: 1,
     height: 24,
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: "transparent",
   },
   // Expand Button
   expandButton: {
@@ -1107,12 +1107,12 @@ const styles = StyleSheet.create({
   },
   expandButtonText: {
     fontSize: 14,
-    color: Colors.accent,
+    color: "inherit",
     fontWeight: '500',
   },
   // Section Card
   sectionCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -1125,18 +1125,18 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
     flex: 1,
   },
   sectionBody: {
     fontSize: 14,
     lineHeight: 22,
-    color: Colors.textSecondary,
+    color: "inherit",
     marginTop: 12,
   },
   // Mirror Prompt
   mirrorPromptCard: {
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 16,
     marginTop: 8,
@@ -1145,14 +1145,14 @@ const styles = StyleSheet.create({
   mirrorPromptLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.accent,
+    color: "inherit",
     letterSpacing: 1,
     marginBottom: 8,
   },
   mirrorPromptText: {
     fontSize: 15,
     lineHeight: 22,
-    color: Colors.text,
+    color: "inherit",
     fontStyle: 'italic',
   },
   // Unlock Prompt
@@ -1160,7 +1160,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -1171,7 +1171,7 @@ const styles = StyleSheet.create({
   unlockText: {
     flex: 1,
     fontSize: 13,
-    color: Colors.textSecondary,
+    color: "inherit",
     lineHeight: 20,
   },
   unlockTextContainer: {
@@ -1179,7 +1179,7 @@ const styles = StyleSheet.create({
   },
   unlockCta: {
     fontSize: 12,
-    color: Colors.accent,
+    color: "inherit",
     marginTop: 4,
     fontWeight: '500',
   },
@@ -1189,7 +1189,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: Colors.text,
+    backgroundColor: "transparent",
     borderRadius: 12,
     paddingVertical: 14,
     marginTop: 8,
@@ -1197,12 +1197,12 @@ const styles = StyleSheet.create({
   askMirrorText: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.surface,
+    color: "inherit",
   },
   // Footer
   footer: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: "inherit",
     textAlign: 'center',
     marginTop: 20,
     fontStyle: 'italic',
@@ -1214,7 +1214,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   unlockModalContainer: {
-    backgroundColor: Colors.background,
+    backgroundColor: "transparent",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -1236,13 +1236,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 22,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
     textAlign: 'center',
     marginBottom: 4,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: Colors.textTertiary,
+    color: "inherit",
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -1252,11 +1252,11 @@ const styles = StyleSheet.create({
   modalText: {
     fontSize: 15,
     lineHeight: 22,
-    color: Colors.textSecondary,
+    color: "inherit",
     marginBottom: 16,
   },
   bulletList: {
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -1264,13 +1264,13 @@ const styles = StyleSheet.create({
   bulletItem: {
     fontSize: 14,
     lineHeight: 22,
-    color: Colors.text,
+    color: "inherit",
     marginBottom: 8,
   },
   modalNote: {
     fontSize: 13,
     lineHeight: 20,
-    color: Colors.textTertiary,
+    color: "inherit",
     fontStyle: 'italic',
   },
   modalActions: {
@@ -1282,24 +1282,24 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     borderRadius: 12,
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
   },
   modalSecondaryButtonText: {
     fontSize: 15,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: "inherit",
   },
   modalPrimaryButton: {
     flex: 1,
     paddingVertical: 14,
     alignItems: 'center',
     borderRadius: 12,
-    backgroundColor: Colors.text,
+    backgroundColor: "transparent",
   },
   modalPrimaryButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.surface,
+    color: "inherit",
   },
   disabledButton: {
     opacity: 0.6,
@@ -1322,7 +1322,7 @@ const styles = StyleSheet.create({
   },
   privacyNote: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: "inherit",
     fontStyle: 'italic',
   },
   // Unlock Button Styles (prominent BLACK button)
@@ -1330,7 +1330,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.text,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -1348,7 +1348,7 @@ const styles = StyleSheet.create({
   unlockButtonTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.surface,
+    color: "inherit",
     marginBottom: 2,
   },
   unlockButtonSubtitle: {
@@ -1359,7 +1359,7 @@ const styles = StyleSheet.create({
   fullNameCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 14,
     marginBottom: 16,
@@ -1372,20 +1372,20 @@ const styles = StyleSheet.create({
   },
   fullNameLabel: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: "inherit",
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 2,
   },
   fullNameValue: {
     fontSize: 15,
-    color: Colors.text,
+    color: "inherit",
     fontWeight: '500',
   },
   editNameButton: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: "transparent",
   },
   modalDebug: {
     marginTop: 12,
@@ -1395,7 +1395,7 @@ const styles = StyleSheet.create({
   },
   modalDebugText: {
     fontSize: 10,
-    color: Colors.textTertiary,
+    color: "inherit",
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
 });
