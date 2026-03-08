@@ -1373,12 +1373,20 @@ export default function EnneagramLensView({ result, userId }: Props) {
         <AccordionSection
           id="deeper_patterns"
           title="Deeper Patterns"
-          subtitle="Tendencies and tradeoffs you may notice"
+          subtitle="Tradeoffs and tendencies to notice"
         >
           <View style={styles.accordionBodySection}>
-            <Text style={styles.accordionBodyTitle}>Growth Path</Text>
+            <Text style={styles.accordionBodyTitle}>The Core Tradeoff</Text>
             <Text style={styles.accordionBodyText}>
-              Self-mastery for Type {core} involves recognizing your core motivation patterns and developing flexibility in how you respond to situations.
+              {core === 1 ? 'Integrity vs. flexibility. The drive toward correctness can crowd out acceptance of what is.' :
+               core === 2 ? 'Giving vs. receiving. The focus on others\' needs can obscure your own.' :
+               core === 3 ? 'Achievement vs. authenticity. The drive to succeed can disconnect you from what you actually feel.' :
+               core === 4 ? 'Depth vs. presence. The search for meaning can obscure the ordinary beauty already here.' :
+               core === 5 ? 'Understanding vs. participating. The pull toward observation can become avoidance of engagement.' :
+               core === 6 ? 'Preparation vs. trust. Vigilance against threat can become the threat itself.' :
+               core === 7 ? 'Possibility vs. depth. The draw toward options can prevent the satisfaction of completion.' :
+               core === 8 ? 'Strength vs. vulnerability. The protection of power can block the intimacy you actually want.' :
+               'Harmony vs. assertion. The maintenance of peace can mean the loss of yourself.'}
             </Text>
           </View>
           <View style={styles.accordionBodySection}>
