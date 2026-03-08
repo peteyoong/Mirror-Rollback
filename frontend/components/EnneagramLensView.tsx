@@ -1795,7 +1795,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
             </View>
             <View style={styles.flowItem}>
               <View style={styles.flowIconContainer}>
-                <Ionicons name="arrow-up" size={16} color="#81C784" />
+                <Ionicons name="arrow-up" size={16} color="#2E7D32" />
               </View>
               <Text style={styles.flowLabel}>When Resourced → Type {(data?.computed_details || computedDetails)?.growth_line_to || '—'}</Text>
             </View>
