@@ -1422,10 +1422,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
         <AccordionSection
           id="top_alternatives"
           title="Top Alternatives"
-          subtitle="Other patterns worth considering"
+          subtitle="Other patterns worth exploring"
         >
           <Text style={styles.accordionBodyText}>
-            These types showed similar response patterns. Consider exploring them for self-verification.
+            Your responses showed resonance with these types. Worth exploring if your primary type doesn't fully land.
           </Text>
           {result.top_candidates.slice(0, 3).map((candidate, index) => (
             <View key={candidate.type} style={styles.alternativeRow}>
