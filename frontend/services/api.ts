@@ -68,7 +68,8 @@ export function parseSessionRestoreError(error: AxiosError): SessionRestoreError
   }
   
   // Try to parse structured error from backend
-  const detail = response.data?.detail;
+  const data = response.data as Record<string, any> | undefined;
+  const detail = data?.detail;
   if (detail && typeof detail === 'object' && detail.code) {
     return {
       code: detail.code,
@@ -96,7 +97,7 @@ export function parseSessionRestoreError(error: AxiosError): SessionRestoreError
   
   return {
     code: 'server_error',
-    message: response.data?.detail || 'An unexpected error occurred',
+    message: data?.detail || 'An unexpected error occurred',
     recovery_action: 'retry'
   };
 }
