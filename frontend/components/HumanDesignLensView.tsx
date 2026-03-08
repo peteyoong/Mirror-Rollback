@@ -796,7 +796,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                 style={styles.askMirrorButton}
                 onPress={onOpenChat}
               >
-                <Ionicons name="chatbubble-outline" size={18} color={Colors.surface} />
+                <Ionicons name="chatbubble-outline" size={18} color={theme.textInverse} />
                 <Text style={styles.askMirrorText}>Ask about this lens</Text>
               </TouchableOpacity>
             )}
@@ -1035,7 +1035,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 20,
     borderLeftWidth: 2,
-    borderLeftColor: Colors.accent,
+    borderLeftColor: "transparent",
     opacity: 0.9,
   },
   mirrorPromptLabel: {
