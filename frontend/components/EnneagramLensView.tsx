@@ -1124,6 +1124,92 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </Text>
         </View>
 
+        {/* Pattern Movement Card */}
+        {patternDrift && (patternDrift.drift_candidate || patternDrift.signals_detected > 0) && (
+          <View style={styles.patternMovementCard}>
+            <View style={styles.patternMovementHeader}>
+              <Ionicons name="pulse-outline" size={16} color={Colors.accent} />
+              <Text style={styles.patternMovementTitle}>Pattern Movement</Text>
+              {patternDrift.confidence_label && patternDrift.confidence_label !== 'low' && (
+                <View style={[
+                  styles.driftConfidenceBadge,
+                  patternDrift.confidence_label === 'moderate' && styles.driftConfidenceModerate,
+                  patternDrift.confidence_label === 'emerging' && styles.driftConfidenceEmerging,
+                ]}>
+                  <Text style={styles.driftConfidenceText}>
+                    {patternDrift.confidence_label}
+                  </Text>
+                </View>
+              )}
+            </View>
+            
+            <View style={styles.patternMovementContent}>
+              {/* Baseline */}
+              <View style={styles.driftRow}>
+                <Text style={styles.driftLabel}>Baseline</Text>
+                <Text style={styles.driftValue}>
+                  Type {patternDrift.baseline_type} · {patternDrift.baseline_name?.replace('The ', '')}
+                </Text>
+              </View>
+              
+              {/* Recent Signal */}
+              {patternDrift.drift_candidate && (
+                <View style={styles.driftRow}>
+                  <Text style={styles.driftLabel}>Recent Signal</Text>
+                  <View style={styles.driftSignalValue}>
+                    <Ionicons 
+                      name={patternDrift.direction === 'stress' ? 'arrow-down' : 'arrow-up'} 
+                      size={12} 
+                      color={patternDrift.direction === 'stress' ? '#E57373' : '#81C784'} 
+                    />
+                    <Text style={[
+                      styles.driftValue,
+                      patternDrift.direction === 'stress' && styles.driftStress,
+                      patternDrift.direction === 'growth' && styles.driftGrowth,
+                    ]}>
+                      Type {patternDrift.drift_candidate} patterns
+                    </Text>
+                  </View>
+                </View>
+              )}
+              
+              {/* Keywords */}
+              {patternDrift.signal_keywords && patternDrift.signal_keywords.length > 0 && (
+                <View style={styles.driftKeywords}>
+                  {patternDrift.signal_keywords.slice(0, 3).map((keyword, index) => (
+                    <View key={index} style={styles.driftKeywordBadge}>
+                      <Text style={styles.driftKeywordText}>{keyword}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+              
+              {/* Summary */}
+              {patternDrift.summary && (
+                <Text style={styles.driftSummary}>
+                  {patternDrift.summary}
+                </Text>
+              )}
+            </View>
+            
+            {/* Disclaimer */}
+            <Text style={styles.driftDisclaimer}>
+              This is a reflective signal, not a fixed conclusion.
+            </Text>
+          </View>
+        )}
+        
+        {/* Pattern Drift Loading State */}
+        {patternDriftLoading && (
+          <View style={styles.patternMovementCard}>
+            <View style={styles.patternMovementHeader}>
+              <Ionicons name="pulse-outline" size={16} color={Colors.textTertiary} />
+              <Text style={[styles.patternMovementTitle, { color: Colors.textTertiary }]}>Pattern Movement</Text>
+            </View>
+            <ActivityIndicator size="small" color={Colors.textTertiary} style={{ marginVertical: 12 }} />
+          </View>
+        )}
+
         {/* Core Pattern Card */}
         <View style={styles.overviewCard}>
           <Text style={styles.overviewCardTitle}>Your Core Pattern</Text>
