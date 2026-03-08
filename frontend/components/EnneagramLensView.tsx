@@ -891,6 +891,24 @@ export default function EnneagramLensView({ result, userId }: Props) {
     loadDeepDive();
   }, [userId, activeTab, deepDiveData]);
 
+  // Load Pattern Drift data (lazy load on Overview tab)
+  useEffect(() => {
+    const loadPatternDrift = async () => {
+      if (!userId || activeTab !== 'summary' || patternDrift) return;
+      
+      setPatternDriftLoading(true);
+      try {
+        const response = await getPatternDrift(userId);
+        setPatternDrift(response);
+      } catch (error) {
+        console.error('Failed to load pattern drift:', error);
+      } finally {
+        setPatternDriftLoading(false);
+      }
+    };
+    loadPatternDrift();
+  }, [userId, activeTab, patternDrift]);
+
   // Handle Q&A question submission
   const handleAskQuestion = useCallback(async (question?: string) => {
     const questionToAsk = question || qaQuestion;
