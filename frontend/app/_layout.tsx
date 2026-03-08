@@ -230,8 +230,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
-    // Full width on all platforms - no maxWidth on mobile
+    // Background color is set dynamically via theme
     width: '100%',
   },
   loadingContainer: {
@@ -245,18 +244,15 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: Colors.textSecondary,
     marginTop: 12,
   },
   buildInfo: {
     fontSize: 10,
-    color: Colors.textTertiary,
     marginTop: 8,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   stageInfo: {
     fontSize: 10,
-    color: Colors.textTertiary,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
 });
