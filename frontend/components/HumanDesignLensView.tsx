@@ -384,7 +384,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         </TouchableOpacity>
         {isExpanded && (
           <View style={styles.gkArcContent}>
-            {sequenceViewMode === 'everyday' && arcDescription.helperText && (
+            {arcDescription.helperText && (
               <Text style={styles.gkArcHelper}>{arcDescription.helperText}</Text>
             )}
             {Object.entries(arcData).map(([name, position]) => 
