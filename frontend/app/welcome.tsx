@@ -80,40 +80,43 @@ export default function Welcome() {
   // If user is already logged in, show continue option
   if (hasExistingSession) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.title}>Project Mirror</Text>
+            <Text style={[styles.title, { color: theme.text }]}>Project Mirror</Text>
           </View>
           
           <View style={styles.messageContainer}>
-            <Text style={styles.welcomeBack}>Welcome back{user?.name ? `, ${user.name}` : ''}.</Text>
-            <Text style={styles.tagline}>Your reflection space awaits.</Text>
+            <Text style={[styles.welcomeBack, { color: theme.text }]}>Welcome back{user?.name ? `, ${user.name}` : ''}.</Text>
+            <Text style={[styles.tagline, { color: theme.textSecondary }]}>Your reflection space awaits.</Text>
           </View>
           
           <View style={styles.buttonContainer}>
             <TouchableOpacity 
-              style={styles.primaryButton}
+              style={[styles.primaryButton, { 
+                backgroundColor: theme.buttonPrimaryBg,
+                borderColor: theme.border 
+              }]}
               onPress={handleContinue}
               activeOpacity={0.8}
             >
-              <Text style={styles.primaryButtonText}>Continue</Text>
+              <Text style={[styles.primaryButtonText, { color: theme.buttonPrimaryText }]}>Continue</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={styles.textButton}
+              style={[styles.textButton, { borderColor: theme.border }]}
               onPress={handleBeginReflection}
               activeOpacity={0.8}
             >
-              <Text style={styles.textButtonText}>Start Fresh</Text>
+              <Text style={[styles.textButtonText, { color: theme.textTertiary }]}>Start Fresh</Text>
             </TouchableOpacity>
           </View>
         </View>
         
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
+          <Text style={[styles.footerText, { color: theme.textTertiary }]}>
             You don't have to do anything with what you notice.
           </Text>
         </View>
