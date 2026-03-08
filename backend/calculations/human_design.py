@@ -545,34 +545,75 @@ def get_incarnation_cross_interpretation(cross_name: str, orientation: str) -> d
 
 def get_incarnation_cross_name(p_sun_gate: int, profile_line1: int) -> str:
     """
-    Get the full incarnation cross name based on personality Sun gate and profile.
+    DEPRECATED: Use get_incarnation_cross_full() instead.
+    This function is kept for backward compatibility.
+    """
+    result = get_incarnation_cross_full(p_sun_gate, profile_line1)
+    return result['cross_name']
+
+
+def get_incarnation_cross_full(p_sun_gate: int, p_sun_line: int) -> dict:
+    """
+    Get the full incarnation cross data based on personality Sun gate and LINE.
     
-    The cross angle (Right Angle, Left Angle, Juxtaposition) is determined by the
-    first number of the profile:
-    - Lines 1, 2, 3, 4 = Right Angle Cross (RAX) - Personal destiny
-    - Line 4 with specific gates = Juxtaposition Cross (JXP) - Fixed fate
-    - Lines 5, 6 = Left Angle Cross (LAX) - Transpersonal karma
+    IMPORTANT: The cross angle (RAX/JXP/LAX) is determined by the Personality Sun LINE,
+    NOT the profile.
+    
+    Personality Sun Line → Cross Angle:
+    - Lines 1, 2, 3 → Right Angle Cross (RAX) - Personal destiny
+    - Line 4 → Juxtaposition Cross (JXP) - Fixed fate  
+    - Lines 5, 6 → Left Angle Cross (LAX) - Transpersonal karma
     
     Args:
-        p_sun_gate: Personality Sun gate number
-        profile_line1: First line of the profile (1-6)
+        p_sun_gate: Personality Sun gate number (1-64)
+        p_sun_line: Personality Sun line number (1-6)
     
     Returns:
-        Full cross name like "RAX Migration" or "LAX Tension"
+        Dict with full cross information:
+        {
+            "cross_name": "Left Angle Cross of Migration 1",
+            "cross_family": "Migration",
+            "angle": "LAX",
+            "angle_full": "Left Angle Cross",
+            "variant": 1,
+            "display_quartet": None  # To be filled by caller with gate data
+        }
     """
-    cross_name = INCARNATION_CROSS_NAMES.get(p_sun_gate, f"Cross of Gate {p_sun_gate}")
+    cross_family = INCARNATION_CROSS_NAMES.get(p_sun_gate, f"Gate {p_sun_gate}")
     
-    # Determine cross angle from profile
-    if profile_line1 in [1, 2, 3]:
-        angle = "RAX"  # Right Angle Cross
-    elif profile_line1 == 4:
-        angle = "JXP"  # Juxtaposition Cross
-    elif profile_line1 in [5, 6]:
-        angle = "LAX"  # Left Angle Cross
+    # Determine cross angle from PERSONALITY SUN LINE (not profile!)
+    if p_sun_line in [1, 2, 3]:
+        angle = "RAX"
+        angle_full = "Right Angle Cross"
+        # Variant: lines 1,2,3 map to variants 1,2,3 within RAX
+        variant = p_sun_line
+    elif p_sun_line == 4:
+        angle = "JXP"
+        angle_full = "Juxtaposition Cross"
+        # Juxtaposition has only 1 variant per gate
+        variant = 1
+    elif p_sun_line in [5, 6]:
+        angle = "LAX"
+        angle_full = "Left Angle Cross"
+        # Variant: line 5 = variant 1, line 6 = variant 2
+        variant = p_sun_line - 4
     else:
-        angle = "RAX"  # Default fallback
+        # Fallback for invalid line
+        angle = "RAX"
+        angle_full = "Right Angle Cross"
+        variant = 1
     
-    return f"{angle} {cross_name}"
+    # Build full cross name: e.g., "Left Angle Cross of Migration 1"
+    cross_name = f"{angle_full} of {cross_family} {variant}"
+    
+    return {
+        "cross_name": cross_name,
+        "cross_family": cross_family,
+        "angle": angle,
+        "angle_full": angle_full,
+        "variant": variant,
+        "display_quartet": None  # To be filled by caller
+    }
 
 
 def longitude_to_gate(longitude: float) -> Dict:
