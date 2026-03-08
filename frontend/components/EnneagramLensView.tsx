@@ -110,6 +110,107 @@ const JOURNAL_PROMPTS: { [key: number]: string } = {
   9: 'What opinion or preference am I merging away to keep the peace?',
 };
 
+// ============================================
+// OVERVIEW DATA (Reflective Summary)
+// ============================================
+
+// Core Pattern descriptions - the first "mirror"
+const CORE_PATTERNS: { [key: number]: string } = {
+  1: 'A tendency toward improvement, correctness, and holding yourself to high standards. Your attention naturally moves to what could be better, more aligned, more right.',
+  2: 'A tendency toward connection through giving, anticipating what others need, and finding value in being helpful. Your attention naturally moves toward relationships and how you can support.',
+  3: 'A tendency toward achievement, efficiency, and presenting yourself in the best possible light. Your attention naturally moves to goals, outcomes, and how you\'re perceived.',
+  4: 'A tendency toward depth, authenticity, and finding meaning in emotional experience. Your attention naturally moves to what feels significant, unique, or missing.',
+  5: 'A tendency toward observation, understanding, and maintaining inner resources. Your attention naturally moves to knowledge, boundaries, and preserving your energy.',
+  6: 'A tendency toward preparation, questioning, and seeking reliable ground. Your attention naturally moves to potential risks, loyalties, and what you can trust.',
+  7: 'A tendency toward possibility, exploration, and maintaining access to positive options. Your attention naturally moves to what could be interesting, stimulating, or enjoyable.',
+  8: 'A tendency toward strength, directness, and protecting your autonomy. Your attention naturally moves to power dynamics, control, and who can be trusted.',
+  9: 'A tendency toward harmony, comfort, and maintaining inner and outer peace. Your attention naturally moves to what creates connection and avoids disruption.',
+};
+
+// What drives this pattern - internal motivation
+const PATTERN_DRIVERS: { [key: number]: string } = {
+  1: 'Avoiding error and criticism. A deep sense that things should be done correctly, and that you are responsible for making them so.',
+  2: 'Avoiding being unwanted or unnecessary. A deep sense that love is earned through giving, and that your value comes from being needed.',
+  3: 'Avoiding failure and worthlessness. A deep sense that you must achieve to be valuable, and that image matters as much as substance.',
+  4: 'Avoiding ordinariness and emotional flatness. A deep sense that authentic self-expression is essential, and that something meaningful is always just out of reach.',
+  5: 'Avoiding depletion and intrusion. A deep sense that your resources are limited, and that understanding the world provides safety.',
+  6: 'Avoiding danger and betrayal. A deep sense that the world requires vigilance, and that security must be actively maintained.',
+  7: 'Avoiding pain and limitation. A deep sense that freedom and possibility are essential, and that being trapped in negativity must be prevented.',
+  8: 'Avoiding vulnerability and being controlled. A deep sense that strength is necessary for survival, and that weakness invites harm.',
+  9: 'Avoiding conflict and disconnection. A deep sense that peace must be preserved, and that your own needs can wait to maintain harmony.',
+};
+
+// Where this shows up - bullet points for each type
+const PATTERN_MANIFESTATIONS: { [key: number]: { decisions: string; work: string; relationships: string; stress: string } } = {
+  1: {
+    decisions: 'Weighing options against internal standards; difficulty with "good enough"',
+    work: 'High quality output paired with self-criticism when results fall short',
+    relationships: 'Teaching and improving others; sometimes perceived as critical',
+    stress: 'Tightening standards, increased frustration with imperfection',
+  },
+  2: {
+    decisions: 'Considering how choices affect others before yourself',
+    work: 'People-focused, collaborative, may struggle with boundaries',
+    relationships: 'Giving generously; sometimes expecting recognition in return',
+    stress: 'Over-helping, feeling unappreciated, difficulty asking for support',
+  },
+  3: {
+    decisions: 'Evaluating which option leads to the best outcome or impression',
+    work: 'Goal-driven, efficient, adapts presentation to context',
+    relationships: 'Charming and engaging; may struggle with deeper vulnerability',
+    stress: 'Working harder, image-consciousness, avoiding feelings of failure',
+  },
+  4: {
+    decisions: 'Seeking the option that feels most authentic or meaningful',
+    work: 'Creative, expressive, may struggle with routine tasks',
+    relationships: 'Deep connection valued; can feel misunderstood or different',
+    stress: 'Intensifying emotions, withdrawing, romanticizing what\'s missing',
+  },
+  5: {
+    decisions: 'Gathering information before committing; preferring certainty',
+    work: 'Deep expertise, independent, may hesitate to engage or share',
+    relationships: 'Private, selective, needs space to recharge',
+    stress: 'Withdrawing further, detaching from emotions, hoarding resources',
+  },
+  6: {
+    decisions: 'Scanning for risks, seeking input, testing trustworthiness',
+    work: 'Reliable, thorough, may second-guess or seek reassurance',
+    relationships: 'Loyal and committed; can be suspicious or test loyalty',
+    stress: 'Increased anxiety, worst-case thinking, seeking authority or rebelling',
+  },
+  7: {
+    decisions: 'Keeping options open, favoring exciting possibilities',
+    work: 'Innovative, multi-tasking, may struggle with follow-through',
+    relationships: 'Fun and engaging; may avoid difficult emotional territory',
+    stress: 'Scattering attention, over-planning, avoiding uncomfortable feelings',
+  },
+  8: {
+    decisions: 'Acting decisively, trusting gut instinct, taking charge',
+    work: 'Leading, protecting territory, direct communication',
+    relationships: 'Intense loyalty; may dominate or test boundaries',
+    stress: 'Increasing force, controlling more, difficulty showing vulnerability',
+  },
+  9: {
+    decisions: 'Considering what maintains harmony; may defer or delay',
+    work: 'Steady, accommodating, may struggle with priorities',
+    relationships: 'Easy-going, merging with others\' preferences',
+    stress: 'Numbing out, passive resistance, losing sense of own wants',
+  },
+};
+
+// Reflection prompts for Overview (different from journal prompts)
+const OVERVIEW_REFLECTIONS: { [key: number]: string } = {
+  1: 'Where in your life is the standard you\'re holding serving growth—and where might it be creating unnecessary pressure?',
+  2: 'Where are you giving freely—and where might giving be a way to avoid asking for what you need?',
+  3: 'Where is your drive to achieve aligned with your values—and where might it be a substitute for being seen as you are?',
+  4: 'Where is your depth serving you—and where might intensity be a way to avoid the ordinary richness already present?',
+  5: 'Where is your understanding serving wisdom—and where might knowing be a way to avoid engaging?',
+  6: 'Where is your vigilance keeping you safe—and where might it be preventing trust that wants to grow?',
+  7: 'Where are you expanding possibility—and where might depth be asking for attention?',
+  8: 'Where is your strength protecting what matters—and where might vulnerability be waiting to connect?',
+  9: 'Where is your peace genuine presence—and where might it be a way to avoid the clarity of your own voice?',
+};
+
 // Wing flavor descriptions - how each wing colors the core type
 const WING_FLAVORS: { [key: string]: string } = {
   // Type 1 wings
