@@ -2338,7 +2338,7 @@ const styles = StyleSheet.create({
   heroBadgeText: {
     fontSize: 28,
     fontWeight: '700',
-    color: Colors.background,
+    color: undefined,
   },
   heroTitle: {
     fontSize: 24,
@@ -2578,7 +2578,7 @@ const styles = StyleSheet.create({
   ctaButtonPrimaryText: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.background,
+    color: undefined,
   },
   ctaButtonSecondary: {
     backgroundColor: undefined,
@@ -2622,7 +2622,7 @@ const styles = StyleSheet.create({
     color: undefined,
   },
   energyButtonTextSelected: {
-    color: Colors.background,
+    color: undefined,
   },
 
   // Practice Card
@@ -2741,7 +2741,7 @@ const styles = StyleSheet.create({
     color: undefined,
   },
   masteryButtonTextSelected: {
-    color: Colors.background,
+    color: undefined,
   },
   masteryDescription: {
     backgroundColor: undefined,
@@ -3083,7 +3083,7 @@ const styles = StyleSheet.create({
     width: 3,
     height: 3,
     borderRadius: 1.5,
-    backgroundColor: Colors.textTertiary,
+    backgroundColor: undefined,
   },
 
   // Modal
@@ -3141,7 +3141,7 @@ const styles = StyleSheet.create({
   modalConfirmText: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.background,
+    color: undefined,
   },
   
   // Chat Box
@@ -3201,7 +3201,7 @@ const styles = StyleSheet.create({
     color: undefined,
   },
   chatMessageTextUser: {
-    color: Colors.background,
+    color: undefined,
   },
   chatInputContainer: {
     flexDirection: 'row',
