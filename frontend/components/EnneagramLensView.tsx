@@ -1445,6 +1445,46 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
 
+  // Deep Dive Sub-Tabs
+  deepDiveSubTabContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: 16,
+  },
+  deepDiveSubTab: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    borderRadius: 6,
+  },
+  deepDiveSubTabActive: {
+    backgroundColor: Colors.text,
+  },
+  deepDiveSubTabText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.textTertiary,
+  },
+  deepDiveSubTabTextActive: {
+    color: Colors.surface,
+  },
+
+  // Verification Badge
+  verificationBadge: {
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  verificationBadgeText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+
   // Hero Card
   heroCard: {
     backgroundColor: Colors.surface,
