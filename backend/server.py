@@ -10506,6 +10506,10 @@ async def get_pattern_drift(user_id: str, debug: bool = False):
         
         logger.info(f"[PatternDrift] Cached result for {user_id}")
         
+        # Remove debug info from production response unless explicitly requested
+        if not debug and "_debug" in drift_result:
+            drift_result = {k: v for k, v in drift_result.items() if k != "_debug"}
+        
         return drift_result
         
     except Exception as e:
