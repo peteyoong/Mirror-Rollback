@@ -10,7 +10,9 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  useColorScheme,
 } from 'react-native';
+import { LightTheme, DarkTheme, ThemeColors } from '../constants/theme';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
