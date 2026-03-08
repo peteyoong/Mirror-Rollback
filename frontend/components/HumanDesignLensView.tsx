@@ -221,6 +221,9 @@ interface Props {
 type TabType = 'summary' | 'today' | 'deep_dive';
 
 export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
+  // Theme support
+  const { theme, isDark } = useTheme();
+  
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [data, setData] = useState<HumanDesignData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
