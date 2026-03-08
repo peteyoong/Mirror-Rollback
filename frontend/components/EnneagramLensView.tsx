@@ -1491,6 +1491,181 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
+  // Accordion Styles
+  accordionCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+  },
+  accordionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  accordionHeaderText: {
+    flex: 1,
+    marginRight: 12,
+  },
+  accordionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  accordionSubtitle: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+  },
+  accordionContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingTop: 12,
+  },
+  accordionBodySection: {
+    marginBottom: 16,
+  },
+  accordionBodyTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 6,
+  },
+  accordionBodyText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+  },
+
+  // Wing Card (inside accordion)
+  wingCard: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 12,
+  },
+  wingCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  wingCardTitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  wingCardName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+
+  // Structure Grid Compact
+  structureGridCompact: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  structureGridRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  structureGridItem: {
+    alignItems: 'center',
+  },
+  structureGridLabel: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    marginBottom: 2,
+  },
+  structureGridValue: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+
+  // Flow Row (stress/growth)
+  flowRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  flowItem: {
+    alignItems: 'center',
+  },
+  flowIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  flowLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+
+  // Alternative Rows
+  alternativeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  alternativeRank: {
+    width: 24,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+  },
+  alternativeInfo: {
+    flex: 1,
+  },
+  alternativeType: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  alternativeName: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+  alternativePercent: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+
+  // Disclaimer Card
+  disclaimerCard: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 8,
+    padding: 14,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  disclaimerText: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+
   // Hero Card
   heroCard: {
     backgroundColor: Colors.surface,
