@@ -1864,6 +1864,119 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 
+  // ============================================
+  // OVERVIEW TAB STYLES (Redesigned)
+  // ============================================
+
+  // Identity Card (new compact design)
+  identityCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 10,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+    marginBottom: 10,
+  },
+  identityMain: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  identityType: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  identityName: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  identityNote: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    marginTop: 6,
+    fontStyle: 'italic',
+  },
+
+  // Overview Cards
+  overviewCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 10,
+    padding: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+    marginBottom: 10,
+  },
+  overviewCardTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  overviewCardBody: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: Colors.textSecondary,
+  },
+
+  // Manifestation List (Where This Shows Up)
+  manifestationList: {
+    gap: 10,
+  },
+  manifestationItem: {
+    paddingBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+  },
+  manifestationLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 3,
+  },
+  manifestationText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textSecondary,
+  },
+
+  // Reflection Card
+  reflectionCard: {
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: Colors.textTertiary,
+  },
+  reflectionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  reflectionText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+  },
+
+  // Subtle Link (Explore Deep Dive)
+  subtleLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 12,
+  },
+  subtleLinkText: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+  },
+
   // Cards
   card: {
     backgroundColor: Colors.surface,
