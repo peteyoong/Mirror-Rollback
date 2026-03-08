@@ -10,10 +10,8 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  useColorScheme,
 } from 'react-native';
-import { LightTheme, DarkTheme, ThemeColors } from '../constants/theme';
-import { Colors } from '../constants/colors';
+import { useTheme, ThemeColors } from '../contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
