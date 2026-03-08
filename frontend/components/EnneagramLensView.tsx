@@ -211,43 +211,134 @@ const OVERVIEW_REFLECTIONS: { [key: number]: string } = {
   9: 'Where is your peace genuine presence—and where might it be a way to avoid the clarity of your own voice?',
 };
 
-// Wing flavor descriptions - how each wing colors the core type
-const WING_FLAVORS: { [key: string]: string } = {
+// Wing flavor descriptions - structured format for Deep Dive
+// Format: Core Pattern | Tradeoff | Strength | Experiment
+const WING_FLAVORS: { [key: string]: { pattern: string; tradeoff: string; strength: string; experiment: string } } = {
   // Type 1 wings
-  '1w9': 'The 9-wing softens Reformer energy with patience and conflict-avoidance. You pick battles carefully, holding principles without forcing them. Risk: passive-aggression when standards aren\'t met.',
-  '1w2': 'The 2-wing adds warmth to the Reformer drive—improvement expressed as care for others. Natural mentors. Risk: the inner critic extends to how well you serve.',
+  '1w9': {
+    pattern: 'The 9-wing often softens Reformer energy with patience and a preference for harmony. You may notice a tendency to pick battles carefully—holding principles without forcing them, expressing idealism quietly rather than vocally.',
+    tradeoff: 'The pull toward peace can sometimes delay necessary confrontation. Standards may simmer beneath the surface rather than being addressed directly.',
+    strength: 'When integrated, this combination offers principled steadiness—the capacity to hold firm without rigidity, to improve without demanding.',
+    experiment: 'Notice when you\'re choosing peace over clarity. Try expressing one opinion today without softening it.'
+  },
+  '1w2': {
+    pattern: 'The 2-wing often adds warmth to the Reformer drive—improvement expressed as care for others. You may notice your desire for things to be better showing up as wanting to help people do better.',
+    tradeoff: 'The inner critic may extend to how well you serve others. Helping can become another arena for self-judgment.',
+    strength: 'When integrated, this combination offers grounded mentorship—the ability to guide others toward growth while maintaining genuine warmth.',
+    experiment: 'Notice when helping feels like obligation versus invitation. Try offering support without attachment to whether it\'s received "correctly."'
+  },
   
   // Type 2 wings
-  '2w1': 'The 1-wing brings structure to helping—a sense of doing it "right." Conscientious, reliable care. Risk: self-criticism when giving doesn\'t meet your own standards.',
-  '2w3': 'The 3-wing adds energy and visibility to helping—drawn to roles where care has impact. Risk: confusing being needed with being successful.',
+  '2w1': {
+    pattern: 'The 1-wing often brings structure to the Helper pattern—a sense of doing it right, not just doing it. You may notice standards around how care "should" be given.',
+    tradeoff: 'Self-criticism can arise when giving doesn\'t meet your own internal standards. The gift may feel tainted if it\'s not perfect.',
+    strength: 'When integrated, this combination offers reliable, conscientious care—support others can count on, delivered with integrity.',
+    experiment: 'Notice when you\'re judging your own generosity. Try giving something imperfectly and letting it be enough.'
+  },
+  '2w3': {
+    pattern: 'The 3-wing often adds energy and visibility to the Helper instinct. You may find yourself drawn to roles where care has impact—leading, organizing, being the one who makes things happen.',
+    tradeoff: 'Being needed and being successful can become entangled. The applause for helping may start mattering more than the help itself.',
+    strength: 'When integrated, this combination offers effective compassion—the ability to mobilize care at scale, to make helping happen.',
+    experiment: 'Notice when you\'re tracking recognition alongside service. Try helping someone invisibly this week.'
+  },
   
   // Type 3 wings
-  '3w2': 'The 2-wing brings warmth to achievement—success through people, networks, being liked and respected. Risk: performing warmth rather than feeling it.',
-  '3w4': 'The 4-wing adds depth and style to achievement—success with personal distinction. Risk: inner tension between image and authenticity.',
+  '3w2': {
+    pattern: 'The 2-wing often brings warmth to the Achiever drive—success expressed through people, networks, being liked as well as respected.',
+    tradeoff: 'Warmth can become performance. The charm that wins people over may disconnect from what you actually feel.',
+    strength: 'When integrated, this combination offers inspiring presence—the capacity to achieve while bringing others along, to succeed without isolation.',
+    experiment: 'Notice when warmth feels strategic versus spontaneous. Try letting someone see you uncertain or unprepared.'
+  },
+  '3w4': {
+    pattern: 'The 4-wing often adds depth and aesthetic sensitivity to the Achiever energy. You may pursue success in distinctive ways—achievement with personal style, work that reflects something real.',
+    tradeoff: 'Image and authenticity can pull in different directions. The desire to be both successful and genuine may create internal tension.',
+    strength: 'When integrated, this combination offers meaningful achievement—success that carries personal signature, accomplishment that feels true.',
+    experiment: 'Notice when you\'re crafting image versus expressing truth. Try sharing work before it\'s polished.'
+  },
   
   // Type 4 wings
-  '4w3': 'The 3-wing channels emotional depth into visible expression—creative output, performance, building something that reflects inner experience. Risk: the audience becoming the measure of authenticity.',
-  '4w5': 'The 5-wing adds intellectual depth to emotional exploration—processing feeling through analysis, symbol, or private creative work. Risk: isolation from connection.',
+  '4w3': {
+    pattern: 'The 3-wing often channels emotional depth into visible expression—creative output, performance, building something that reflects inner experience for others to witness.',
+    tradeoff: 'The audience can become the measure of authenticity. External validation may start shaping what feels true inside.',
+    strength: 'When integrated, this combination offers expressive power—the ability to make inner worlds visible, to create from depth in ways that reach others.',
+    experiment: 'Notice when you\'re creating for response versus expression. Try making something you never show anyone.'
+  },
+  '4w5': {
+    pattern: 'The 5-wing often adds intellectual depth to emotional exploration—processing feeling through analysis, symbol, or private creative work. You may find yourself drawn to understanding your inner world as much as feeling it.',
+    tradeoff: 'The pull toward knowing can become withdrawal from connecting. Understanding may substitute for being understood.',
+    strength: 'When integrated, this combination offers profound insight—the capacity to map emotional territory with precision, to name what others feel but cannot articulate.',
+    experiment: 'Notice when analysis is serving understanding versus avoiding contact. Try sharing a feeling before you\'ve fully figured it out.'
+  },
   
   // Type 5 wings
-  '5w4': 'The 4-wing brings emotional depth to analysis—drawn to meaning, symbol, inner experience. Often creative or artistic. Risk: getting lost in subjective interpretation.',
-  '5w6': 'The 6-wing adds practical concern to observation—focus on systems, preparation, understanding how things work. Risk: anxiety disguised as thorough analysis.',
+  '5w4': {
+    pattern: 'The 4-wing often brings emotional depth to the Investigator mind—analysis drawn to meaning, symbol, subjective experience. There may be a creative or artistic dimension to how you think.',
+    tradeoff: 'The pull toward inner worlds can become isolation. Rich internal experience may substitute for external connection.',
+    strength: 'When integrated, this combination offers creative insight—the ability to see patterns others miss, to think with both precision and feeling.',
+    experiment: 'Notice when you\'re enriching inner life versus avoiding outer life. Try sharing an idea before it\'s complete.'
+  },
+  '5w6': {
+    pattern: 'The 6-wing often adds practical concern to the Investigator stance—focus on systems, preparation, understanding how things work in order to navigate safely.',
+    tradeoff: 'Thorough analysis can become anxious preparation. The pursuit of enough information may never feel complete.',
+    strength: 'When integrated, this combination offers grounded expertise—knowledge that serves action, understanding that builds real security.',
+    experiment: 'Notice when research is serving clarity versus postponing decision. Try acting on 80% certainty.'
+  },
   
   // Type 6 wings
-  '6w5': 'The 5-wing brings analytical depth to vigilance—seeking security through knowledge and mastery. Often independent beneath team orientation. Risk: paralysis by analysis.',
-  '6w7': 'The 7-wing adds optimism to the Loyalist pattern—testing but also hoping, warmth alongside vigilance. Risk: using positivity to avoid real fears.',
+  '6w5': {
+    pattern: 'The 5-wing often brings analytical depth to Loyalist vigilance—seeking security through knowledge, mastering systems, thinking through scenarios before they arrive.',
+    tradeoff: 'Analysis can become another form of vigilance. The mind may generate threats faster than it resolves them.',
+    strength: 'When integrated, this combination offers strategic wisdom—the ability to anticipate and prepare without being paralyzed by possibility.',
+    experiment: 'Notice when thinking is serving preparation versus feeding worry. Try trusting your first instinct on something small.'
+  },
+  '6w7': {
+    pattern: 'The 7-wing often adds optimism to the Loyalist pattern—balancing worst-case with best-case, testing but also hoping. There may be warmth and humor alongside the vigilance.',
+    tradeoff: 'Positivity can become another avoidance strategy. Hope may be used to bypass legitimate concerns rather than address them.',
+    strength: 'When integrated, this combination offers resilient optimism—the ability to face reality clearly while maintaining access to lightness.',
+    experiment: 'Notice when optimism is serving courage versus denial. Try sitting with one worry without resolving or reframing it.'
+  },
   
   // Type 7 wings
-  '7w6': 'The 6-wing brings loyalty and groundedness to Enthusiast energy—adventure with trusted people, more follow-through. Risk: anxiety fueling the escape into options.',
-  '7w8': 'The 8-wing adds intensity and force to enthusiasm—assertive pursuit of options, entrepreneurial, less patience for limits. Risk: bulldozing past discomfort.',
+  '7w6': {
+    pattern: 'The 6-wing often brings groundedness to Enthusiast energy—adventure with trusted people, more follow-through, loyalty alongside the love of options.',
+    tradeoff: 'Anxiety may fuel the escape into possibilities. The pursuit of positive experience can be driven by what you\'re avoiding as much as what you\'re seeking.',
+    strength: 'When integrated, this combination offers committed exploration—the ability to go deep with people and projects while maintaining joy.',
+    experiment: 'Notice when new options are serving excitement versus escape. Try staying with one thing past the point of initial interest.'
+  },
+  '7w8': {
+    pattern: 'The 8-wing often adds intensity to the Enthusiast pattern—assertive pursuit of experience, entrepreneurial energy, less patience for limits.',
+    tradeoff: 'Force can override sensitivity. The drive toward more may bulldoze past discomfort that deserves attention.',
+    strength: 'When integrated, this combination offers bold vision—the ability to pursue possibility with conviction, to make things happen.',
+    experiment: 'Notice when intensity is serving aliveness versus avoidance. Try letting something be difficult without fixing or leaving it.'
+  },
   
   // Type 8 wings
-  '8w7': 'The 7-wing adds energy and optimism to Challenger force—enjoying the game, charismatic, larger-than-life. Risk: excess disguised as enthusiasm.',
-  '8w9': 'The 9-wing brings steadiness to Challenger strength—quiet power, calm presence, more receptivity. Risk: stubbornness mistaken for patience.',
+  '8w7': {
+    pattern: 'The 7-wing often adds energy and optimism to Challenger force—enjoying the game, the strategy, the possibilities. There may be a charismatic, expansive quality to how you move through the world.',
+    tradeoff: 'Enthusiasm can mask vulnerability. The larger-than-life presence may keep others from seeing what\'s underneath.',
+    strength: 'When integrated, this combination offers magnetic leadership—the ability to mobilize energy and inspire action while staying connected to joy.',
+    experiment: 'Notice when bigness is serving expression versus protection. Try letting someone see you at less than full strength.'
+  },
+  '8w9': {
+    pattern: 'The 9-wing often brings steadiness to Challenger strength—quiet power, calm presence, force that doesn\'t need to announce itself.',
+    tradeoff: 'Patience can become stubbornness. The unwillingness to push may be avoidance of conflict disguised as equanimity.',
+    strength: 'When integrated, this combination offers grounded power—the ability to hold space, to protect without dominating, to lead through presence.',
+    experiment: 'Notice when calm is serving groundedness versus withdrawal. Try expressing preference before you\'re certain it will be received well.'
+  },
   
   // Type 9 wings
-  '9w8': 'The 8-wing gives the Peacemaker access to anger and assertion—quiet force that emerges when boundaries are crossed. Risk: eruption after too much accommodation.',
-  '9w1': 'The 1-wing brings principle to the Peacemaker pattern—clearer opinions, sense of right and wrong. Risk: passive judgment instead of direct expression.',
+  '9w8': {
+    pattern: 'The 8-wing often gives the Peacemaker access to assertion—a quiet force that emerges when boundaries are crossed, stubbornness beneath the accommodation.',
+    tradeoff: 'Anger may erupt rather than flow. Long periods of accommodation can end in intensity that surprises everyone, including you.',
+    strength: 'When integrated, this combination offers peaceful strength—the ability to maintain harmony while honoring your own presence and needs.',
+    experiment: 'Notice when you\'re accommodating out of preference versus avoidance. Try expressing disagreement before it becomes urgent.'
+  },
+  '9w1': {
+    pattern: 'The 1-wing often brings principle to the Peacemaker pattern—clearer opinions, a sense of right and wrong, even if expressing them directly still feels difficult.',
+    tradeoff: 'Judgment may simmer beneath the agreeable surface. Internal criticism of self and others may coexist with external harmony.',
+    strength: 'When integrated, this combination offers principled peace—the ability to hold values clearly while remaining genuinely open to others.',
+    experiment: 'Notice when agreement is serving connection versus comfort. Try voicing one opinion today without apologizing for it.'
+  }
 };
 
 // Balanced wings explanation
