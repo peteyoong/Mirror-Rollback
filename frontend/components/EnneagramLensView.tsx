@@ -732,6 +732,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
     router.push('/enneagram/assessment');
   };
 
+  const handleEditType = () => {
+    // Navigate to the self-declare screen to manually edit type
+    router.push('/enneagram/self-declare');
+  };
+
   // ============================================
   // RENDER HELPERS
   // ============================================
