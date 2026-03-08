@@ -61,6 +61,20 @@ interface GeneKeysData {
   };
 }
 
+interface IncarnationCrossStructured {
+  cross_name: string;
+  orientation: string;
+  gate_quartet: {
+    personality_sun: number;
+    personality_earth: number;
+    design_sun: number;
+    design_earth: number;
+    display: string;
+  };
+  themes: string[];
+  orientation_flavor: string;
+}
+
 interface HumanDesignData {
   title: string;
   sections: HumanDesignSection[];
@@ -74,6 +88,8 @@ interface HumanDesignData {
     incarnation_cross?: string;
     incarnation_cross_gates?: string;
   };
+  // Structured Incarnation Cross (deterministic)
+  incarnation_cross_structured?: IncarnationCrossStructured | null;
   // Gene Keys sequences (deterministic compute)
   gene_keys?: GeneKeysData | null;
   date?: string;
