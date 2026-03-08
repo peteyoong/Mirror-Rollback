@@ -303,26 +303,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const interp = generateSphereInterpretation(name, position.gate, position.line);
     const sourceInfo = `${position.source_planet} • ${chartLabel}`;
     
-    // Technical view: compact row with values
-    if (sequenceViewMode === 'technical') {
-      return (
-        <View key={name} style={styles.gkSphereItemTechnical}>
-          <View style={styles.gkSphereLeft}>
-            <Text style={styles.gkSphereName}>{interp.sphereTitle}</Text>
-            <Text style={styles.gkSphereDescriptorSmall}>{interp.sphereDescriptor}</Text>
-          </View>
-          <View style={styles.gkSphereRight}>
-            <Text style={styles.gkGateLine}>
-              {position.gate}.{position.line}
-            </Text>
-            <Text style={styles.gkSource}>
-              {sourceInfo}
-            </Text>
-          </View>
-        </View>
-      );
-    }
-    
     // MEANING-FIRST VIEW: sphere name → descriptor → interpretation → metadata
     return (
       <View key={name} style={styles.sphereCard}>
