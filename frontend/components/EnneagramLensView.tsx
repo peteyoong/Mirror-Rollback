@@ -2011,7 +2011,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const isSelfDeclared = result.source === 'self_declared' || result.method === 'self_declared';
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {renderTabs()}
       
       <ScrollView
@@ -2024,25 +2024,25 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {activeTab === 'deep_dive' && renderDeepDiveTab()}
         
         {/* Shared Footer - visible on all tabs */}
-        <View style={styles.sharedFooter}>
-          <View style={styles.footerDivider} />
+        <View style={[styles.sharedFooter, { borderTopColor: theme.border }]}>
+          <View style={[styles.footerDivider, { backgroundColor: theme.border }]} />
           <View style={styles.footerActions}>
             <TouchableOpacity
               style={styles.footerAction}
               onPress={() => setShowRetakeModal(true)}
             >
-              <Ionicons name="refresh-outline" size={16} color={Colors.textSecondary} />
-              <Text style={styles.footerActionText}>Retake Assessment</Text>
+              <Ionicons name="refresh-outline" size={16} color={theme.textSecondary} />
+              <Text style={[styles.footerActionText, { color: theme.textSecondary }]}>Retake Assessment</Text>
             </TouchableOpacity>
             
-            <View style={styles.footerDot} />
+            <View style={[styles.footerDot, { backgroundColor: theme.border }]} />
             
             <TouchableOpacity
               style={styles.footerAction}
               onPress={handleEditType}
             >
-              <Ionicons name="pencil-outline" size={16} color={Colors.textSecondary} />
-              <Text style={styles.footerActionText}>Edit Type</Text>
+              <Ionicons name="pencil-outline" size={16} color={theme.textSecondary} />
+              <Text style={[styles.footerActionText, { color: theme.textSecondary }]}>Edit Type</Text>
             </TouchableOpacity>
           </View>
         </View>
