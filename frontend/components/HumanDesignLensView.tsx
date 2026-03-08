@@ -450,34 +450,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Render the structured Incarnation Cross section (Deep Dive only)
-  const renderIncarnationCross = () => {
-    const cross = data?.incarnation_cross_structured;
-    if (!cross) return null;
-    
-    return (
-      <View style={styles.crossContainer}>
-        {/* Section Header */}
-        <View style={styles.crossSectionHeader}>
-          <Ionicons name="navigate-outline" size={18} color={Colors.accent} />
-          <Text style={styles.crossSectionTitle}>YOUR INCARNATION CROSS</Text>
-        </View>
-        
-        {/* Cross Card - Simplified */}
-        <View style={styles.crossCard}>
-          {/* Cross Name - prominent */}
-          <Text style={styles.crossName}>{cross.cross_name}</Text>
-          
-          {/* Gate Quartet - subtle metadata */}
-          <View style={styles.crossMetadata}>
-            <Text style={styles.crossMetaLabel}>Gates</Text>
-            <Text style={styles.crossMetaValue}>{cross.gate_quartet.display}</Text>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
   const renderSection = (section: HumanDesignSection, index: number) => {
     const isExpanded = expandedSection === section.label || activeTab !== 'deep_dive';
 
