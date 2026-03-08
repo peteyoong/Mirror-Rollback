@@ -264,11 +264,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     setError(null);
 
     try {
+      // Overview uses fast deterministic endpoint (no LLM)
+      // Today and Deep Dive use their existing LLM-generated endpoints
       const endpoint = tab === 'today' 
         ? `/human-design/today/${userId}`
         : tab === 'deep_dive'
         ? `/human-design/deep-dive/${userId}`
-        : `/human-design/summary/${userId}`;
+        : `/human-design/mechanics/${userId}`;  // Fast endpoint for Overview
 
       const response = await api.get(endpoint);
       setData(response.data);
