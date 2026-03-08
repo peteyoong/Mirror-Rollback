@@ -1689,13 +1689,13 @@ const styles = StyleSheet.create({
   alternativeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.border,
   },
   alternativeRank: {
-    width: 24,
-    fontSize: 14,
+    width: 22,
+    fontSize: 13,
     fontWeight: '600',
     color: Colors.textTertiary,
   },
@@ -1703,27 +1703,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   alternativeType: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
     color: Colors.text,
   },
   alternativeName: {
-    fontSize: 12,
-    color: Colors.textSecondary,
+    fontSize: 11,
+    color: Colors.textTertiary,
   },
   alternativePercent: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
     color: Colors.textSecondary,
   },
 
   // Disclaimer Card
   disclaimerCard: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: 'rgba(255,255,255,0.02)',
     borderRadius: 8,
-    padding: 14,
-    marginTop: 8,
-    marginBottom: 16,
+    padding: 12,
+    marginTop: 12,
   },
   disclaimerText: {
     fontSize: 12,
