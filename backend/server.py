@@ -7699,6 +7699,42 @@ You're essentially here for one thing. The specific gates of your cross describe
         }
         
         # =====================================================================
+        # ADD STRUCTURED INCARNATION CROSS (DETERMINISTIC)
+        # =====================================================================
+        try:
+            cross_name = incarnation_cross.get('name', 'Unknown')
+            # Extract orientation from cross name (e.g., "LAX Migration" -> "LAX")
+            orientation = "RAX"  # default
+            if cross_name.startswith("LAX "):
+                orientation = "LAX"
+            elif cross_name.startswith("JXP "):
+                orientation = "JXP"
+            elif cross_name.startswith("RAX "):
+                orientation = "RAX"
+            
+            cross_interp = get_incarnation_cross_interpretation(cross_name, orientation)
+            
+            # Build gate quartet from incarnation_cross dict
+            gate_quartet = {
+                "personality_sun": incarnation_cross.get('personality_sun'),
+                "personality_earth": incarnation_cross.get('personality_earth'),
+                "design_sun": incarnation_cross.get('design_sun'),
+                "design_earth": incarnation_cross.get('design_earth'),
+                "display": incarnation_cross.get('gates', '')
+            }
+            
+            result["incarnation_cross_structured"] = {
+                "cross_name": cross_interp["full_label"],
+                "orientation": orientation,
+                "gate_quartet": gate_quartet,
+                "themes": cross_interp["themes"],
+                "orientation_flavor": cross_interp["orientation_flavor"]
+            }
+        except Exception as cross_error:
+            logger.warning(f"[HD_DEEP_DIVE] Incarnation cross structured interpretation failed: {cross_error}")
+            result["incarnation_cross_structured"] = None
+        
+        # =====================================================================
         # ADD GENE KEYS SEQUENCES (DETERMINISTIC - NO INTERPRETATION)
         # =====================================================================
         try:
