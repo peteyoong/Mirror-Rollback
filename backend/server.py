@@ -6954,6 +6954,45 @@ def get_incarnation_cross_label(cross_string):
         return cross_string if isinstance(cross_string, str) else 'Unknown'
 
 
+@api_router.get("/human-design/mechanics/{user_id}")
+async def get_human_design_mechanics(user_id: str):
+    """
+    Fast, deterministic endpoint returning only computed chart mechanics.
+    NO LLM generation - instant response for Overview tabs.
+    Frontend handles all reflective prose via deterministic templates.
+    """
+    try:
+        user, chart = await get_user_astrology_data(user_id)
+        hd_data = extract_human_design_data(chart)
+        
+        if hd_data['type'] == 'Unknown':
+            raise HTTPException(status_code=404, detail="Human Design data not found")
+        
+        strategy_desc = HD_STRATEGY_DESCRIPTIONS.get(hd_data['type'], 'Unique engagement pattern')
+        incarnation_cross = hd_data.get('incarnation_cross', 'Unknown')
+        cross_gates_str = hd_data.get('incarnation_cross_gates')
+        
+        return {
+            "core_mechanics": {
+                "type": hd_data['type'],
+                "strategy": strategy_desc,
+                "authority": hd_data['authority'],
+                "profile": hd_data.get('profile', 'Unknown'),
+                "definition": hd_data.get('definition', 'Unknown'),
+                "incarnation_cross": hd_data.get('incarnation_cross_label', incarnation_cross),
+                "incarnation_cross_gates": cross_gates_str
+            },
+            "computation_version": hd_data.get('computation_version', 'mirror_compute_v1'),
+            "astronomy_version": hd_data.get('astronomy_version', 'true_sidereal_m_swe_v1'),
+            "human_design_version": hd_data.get('human_design_version', 'hd_sidereal_v1')
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Human Design mechanics error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.get("/human-design/summary/{user_id}")
 async def get_human_design_summary(user_id: str):
     """
