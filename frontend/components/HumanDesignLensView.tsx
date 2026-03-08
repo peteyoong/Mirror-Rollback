@@ -260,7 +260,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   }, [activeTab, userId]);
 
   const loadTabData = async (tab: TabType) => {
-    console.log('[HumanDesignLensView] loadTabData called for:', tab, 'userId:', userId);
     setIsLoading(true);
     setError(null);
 
@@ -271,10 +270,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         ? `/human-design/deep-dive/${userId}`
         : `/human-design/summary/${userId}`;
 
-      console.log('[HumanDesignLensView] Fetching:', endpoint);
       const response = await api.get(endpoint);
-      console.log('[HumanDesignLensView] Response received:', response.data ? 'data exists' : 'no data');
-      console.log('[HumanDesignLensView] core_mechanics:', response.data?.core_mechanics ? 'present' : 'missing');
       setData(response.data);
       
       // Debug: Calculate raw data length for comparison
@@ -290,7 +286,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       console.error(`Human Design ${tab} error:`, err);
       setError('Unable to load this view right now.');
     } finally {
-      console.log('[HumanDesignLensView] loadTabData complete, setting isLoading=false');
       setIsLoading(false);
     }
   };
