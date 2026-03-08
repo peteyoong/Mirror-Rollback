@@ -8918,6 +8918,124 @@ async def get_user_profile(user_id: str):
 # ENNEAGRAM ENDPOINTS
 # ============================================
 
+# =====================================================
+# SELF-DECLARED ENNEAGRAM TYPE
+# =====================================================
+
+class EnneagramSelfDeclareRequest(BaseModel):
+    user_id: str
+    enneagram_type: int  # 1-9
+    enneagram_wing: Optional[int] = None  # Adjacent type or None for balanced
+    source: str = "self_declared"
+
+
+@api_router.post("/enneagram/self-declare")
+async def save_self_declared_enneagram(request: EnneagramSelfDeclareRequest):
+    """
+    Save a self-declared Enneagram type for users who already know their type.
+    Reduces onboarding friction for experienced Enneagram users.
+    """
+    try:
+        # Validate type is 1-9
+        if request.enneagram_type < 1 or request.enneagram_type > 9:
+            raise HTTPException(status_code=400, detail="Enneagram type must be between 1 and 9")
+        
+        # Validate wing is adjacent if provided
+        if request.enneagram_wing is not None:
+            valid_wings = []
+            if request.enneagram_type == 1:
+                valid_wings = [9, 2]
+            elif request.enneagram_type == 9:
+                valid_wings = [8, 1]
+            else:
+                valid_wings = [request.enneagram_type - 1, request.enneagram_type + 1]
+            
+            if request.enneagram_wing not in valid_wings:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Invalid wing for type {request.enneagram_type}. Valid wings: {valid_wings}"
+                )
+        
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(request.user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        logger.info(f"[ENNEAGRAM_SELF_DECLARE] user={request.user_id} type={request.enneagram_type} wing={request.enneagram_wing}")
+        
+        # Compute enriched Enneagram details
+        wing_for_compute = request.enneagram_wing if request.enneagram_wing else 0
+        enneagram_computed_details = compute_enneagram_details(
+            core_type=request.enneagram_type,
+            wing=wing_for_compute,
+            wing_left_score=0.5 if request.enneagram_wing else 0.5,  # Neutral scores for self-declared
+            wing_right_score=0.5 if request.enneagram_wing else 0.5,
+            confidence=0.85  # High confidence for self-declared (they know their type)
+        )
+        
+        # Build top_candidates (just the declared type at 100%)
+        top_candidates = [
+            {"type": request.enneagram_type, "probability": 1.0}
+        ]
+        
+        # Determine wing representation
+        wing_value = request.enneagram_wing if request.enneagram_wing else "balanced"
+        
+        # Save to enneagram_results collection (same as assessment results)
+        result_data = {
+            "user_id": request.user_id,
+            "method": "self_declared",
+            "version": "v1",
+            "source": "self_declared",
+            "core_type": request.enneagram_type,
+            "inferred_core": request.enneagram_type,
+            "wing": wing_value,
+            "inferred_wing": wing_value,
+            "confidence": 0.85,  # Self-declared gets high confidence
+            "confidence_tier": "high",
+            "is_close": False,
+            "top_candidates": top_candidates,
+            "state_calibration": {
+                "energy_state": "neutral",
+                "life_context": "self_reported",
+                "answer_frame": "self_declared"
+            },
+            "debug_scores": {
+                "raw_scores": {str(request.enneagram_type): 100},
+                "wing_scores": {"left": 50, "right": 50}
+            },
+            "enneagram_computed_details": enneagram_computed_details,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Upsert - update if exists, insert if not
+        await db.enneagram_results.update_one(
+            {"user_id": request.user_id},
+            {"$set": result_data},
+            upsert=True
+        )
+        
+        return {
+            "success": True,
+            "message": "Enneagram type saved successfully",
+            "result": {
+                "inferred_core": request.enneagram_type,
+                "inferred_wing": wing_value,
+                "confidence": 0.85,
+                "confidence_tier": "high",
+                "source": "self_declared",
+                "top_candidates": top_candidates
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Self-declared Enneagram error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/enneagram/results")
 async def save_enneagram_result(request: EnneagramResultSave):
     """Save Enneagram assessment results to user profile
