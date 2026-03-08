@@ -4,6 +4,7 @@ import { View, Text, ActivityIndicator, StyleSheet, Platform, useWindowDimension
 import { useAppStore } from '../store';
 import { ThemeProvider, useThemeColors } from '../contexts/ThemeContext';
 import { LightTheme, DarkTheme } from '../constants/theme';
+import { Colors } from '../constants/colors';  // For error boundary (static)
 import { DebugViewportOverlay } from '../components/DebugViewportOverlay';
 import { AddToHomeScreenBanner } from '../components/AddToHomeScreenBanner';
 
