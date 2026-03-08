@@ -908,9 +908,42 @@ const styles = StyleSheet.create({
   },
   // Gene Keys styles - Editorial, spacious design
   gkContainer: {
-    marginTop: 40,
+    marginTop: 32,
     marginBottom: 24,
   },
+  // New consolidated section header
+  gkSectionHeaderWrapper: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  gkSectionHeaderTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  gkSectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  gkSectionMainTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    letterSpacing: 1.5,
+  },
+  gkSectionIntro: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    lineHeight: 19,
+    paddingRight: 8,
+  },
+  // Legacy styles kept for reference
   gkDivider: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -941,23 +974,21 @@ const styles = StyleSheet.create({
   },
   viewModeToggle: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderRadius: 8,
-    padding: 3,
-    marginBottom: 20,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 6,
+    padding: 2,
   },
   viewModeButton: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 4,
     alignItems: 'center',
   },
   viewModeButtonActive: {
     backgroundColor: Colors.accent,
   },
   viewModeText: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.textTertiary,
     fontWeight: '500',
   },
