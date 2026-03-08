@@ -748,9 +748,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             {/* TODAY TAB - Keep existing */}
             {activeTab === 'today' && (
               <>
-                <Text style={styles.title}>{data.title}</Text>
+                <Text style={styles.title}>{data.title || 'Today\'s Human Design'}</Text>
                 {data.date && <Text style={styles.dateLabel}>{data.date}</Text>}
-                {data.sections.map((section, index) => renderSection(section, index))}
+                {data.sections?.map((section, index) => renderSection(section, index))}
                 {data.mirror_prompt && (
                   <View style={styles.mirrorPromptCard}>
                     <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
