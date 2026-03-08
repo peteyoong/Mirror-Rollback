@@ -710,7 +710,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                       <TextInput
                         style={styles.nameInput}
                         placeholder="Enter your full birth name"
-                        placeholderTextColor={Colors.textTertiary}
+                        placeholderTextColor={theme.textTertiary}
                         value={modalInputName}
                         onChangeText={setModalInputName}
                         autoCapitalize="words"
@@ -1028,7 +1028,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.surfaceLight,
+    borderColor: "transparent",
   },
   coreNumbersTitle: {
     fontSize: 11,
@@ -1165,7 +1165,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.accent,
+    borderColor: "transparent",
     borderStyle: 'dashed',
   },
   unlockText: {
@@ -1365,7 +1365,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     gap: 12,
     borderWidth: 1,
-    borderColor: Colors.surfaceLight,
+    borderColor: "transparent",
   },
   fullNameTextContainer: {
     flex: 1,
