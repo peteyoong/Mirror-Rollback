@@ -127,32 +127,36 @@ export default function Welcome() {
   // Login form view
   if (showLogin) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
           <View style={styles.content}>
             <View style={styles.header}>
-              <Text style={styles.title}>Project Mirror</Text>
+              <Text style={[styles.title, { color: theme.text }]}>Project Mirror</Text>
             </View>
             
             <View style={styles.loginContainer}>
-              <Text style={styles.loginTitle}>Welcome back</Text>
-              <Text style={styles.loginSubtitle}>
+              <Text style={[styles.loginTitle, { color: theme.text }]}>Welcome back</Text>
+              <Text style={[styles.loginSubtitle, { color: theme.textSecondary }]}>
                 Enter the email you used to save your reflection space.
               </Text>
               
               <TextInput
-                style={styles.input}
+                style={[styles.input, { 
+                  backgroundColor: theme.surface,
+                  borderColor: theme.border,
+                  color: theme.text 
+                }]}
                 value={email}
                 onChangeText={(text) => {
                   setEmail(text);
                   setError('');
                 }}
                 placeholder="your@email.com"
-                placeholderTextColor={Colors.textTertiary}
+                placeholderTextColor={theme.textTertiary}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -160,21 +164,28 @@ export default function Welcome() {
               />
               
               {error ? (
-                <View style={styles.errorContainer}>
-                  <Text style={styles.errorText}>{error}</Text>
+                <View style={[styles.errorContainer, { backgroundColor: theme.error + '20' }]}>
+                  <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>
                 </View>
               ) : null}
               
               <TouchableOpacity 
-                style={[styles.primaryButton, isLoading && styles.buttonDisabled]}
+                style={[
+                  styles.primaryButton, 
+                  { 
+                    backgroundColor: theme.buttonPrimaryBg,
+                    borderColor: theme.border 
+                  },
+                  isLoading && styles.buttonDisabled
+                ]}
                 onPress={handleLogin}
                 disabled={isLoading}
                 activeOpacity={0.8}
               >
                 {isLoading ? (
-                  <ActivityIndicator size="small" color={Colors.text} />
+                  <ActivityIndicator size="small" color={theme.buttonPrimaryText} />
                 ) : (
-                  <Text style={styles.primaryButtonText}>Sign In</Text>
+                  <Text style={[styles.primaryButtonText, { color: theme.buttonPrimaryText }]}>Sign In</Text>
                 )}
               </TouchableOpacity>
               
@@ -188,7 +199,7 @@ export default function Welcome() {
                 disabled={isLoading}
                 activeOpacity={0.8}
               >
-                <Text style={styles.textButtonText}>Back</Text>
+                <Text style={[styles.textButtonText, { color: theme.textTertiary }]}>Back</Text>
               </TouchableOpacity>
             </View>
           </View>
