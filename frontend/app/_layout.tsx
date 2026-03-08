@@ -91,7 +91,7 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryS
 const errorStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: LightTheme.background,
   },
   scrollContent: {
     padding: 24,
@@ -102,16 +102,16 @@ const errorStyles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '600',
-    color: Colors.text,
+    color: LightTheme.text,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: Colors.textSecondary,
+    color: LightTheme.textSecondary,
     marginBottom: 24,
   },
   infoBox: {
-    backgroundColor: Colors.surface,
+    backgroundColor: LightTheme.surface,
     borderRadius: 12,
     padding: 16,
     width: '100%',
@@ -120,13 +120,13 @@ const errorStyles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: LightTheme.textTertiary,
     marginTop: 12,
     marginBottom: 4,
   },
   infoValue: {
     fontSize: 14,
-    color: Colors.text,
+    color: LightTheme.text,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   errorText: {
@@ -135,7 +135,7 @@ const errorStyles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   reloadButton: {
-    backgroundColor: Colors.accent,
+    backgroundColor: LightTheme.accent,
     paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 8,
@@ -144,11 +144,11 @@ const errorStyles = StyleSheet.create({
   reloadButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.background,
+    color: LightTheme.background,
   },
   hint: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: LightTheme.textTertiary,
     textAlign: 'center',
     maxWidth: 300,
   },
