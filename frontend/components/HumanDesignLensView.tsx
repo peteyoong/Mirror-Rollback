@@ -1000,43 +1000,6 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     opacity: 0.8,
   },
-  // Technical view sphere item (compact row)
-  gkSphereItemTechnical: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.04)',
-  },
-  gkSphereLeft: {
-    flex: 1,
-  },
-  gkSphereRight: {
-    alignItems: 'flex-end',
-  },
-  gkSphereName: {
-    fontSize: 14,
-    color: Colors.text,
-    fontWeight: '500',
-  },
-  gkGateLine: {
-    fontSize: 15,
-    color: Colors.text,
-    fontWeight: '600',
-    fontFamily: 'monospace',
-  },
-  gkSource: {
-    fontSize: 10,
-    color: Colors.textTertiary,
-    marginTop: 2,
-    opacity: 0.7,
-  },
-  gkSphereDescriptorSmall: {
-    fontSize: 11,
-    color: Colors.textTertiary,
-    marginTop: 2,
-  },
   // ============================================
   // MEANING-FIRST SPHERE CARD STYLES
   // ============================================
