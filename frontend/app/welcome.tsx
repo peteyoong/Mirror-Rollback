@@ -248,6 +248,7 @@ export default function Welcome() {
         <Text style={styles.footerText}>
           You don't have to do anything with what you notice.
         </Text>
+        <Text style={styles.buildInfo}>v{BUILD_VERSION} • {BUILD_ID}</Text>
       </View>
     </SafeAreaView>
   );
