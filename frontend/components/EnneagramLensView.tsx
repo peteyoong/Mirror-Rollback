@@ -1077,7 +1077,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
               value={chatInput}
               onChangeText={setChatInput}
               placeholder="Ask about today's pattern, your wing, stress loops, or how to practice."
-              placeholderTextColor={Colors.textTertiary}
+              placeholderTextColor={theme.textTertiary}
               multiline
               maxLength={500}
               editable={!chatLoading}
@@ -1093,7 +1093,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
               <Ionicons 
                 name="send" 
                 size={18} 
-                color={(!chatInput.trim() || chatLoading) ? Colors.textTertiary : Colors.background} 
+                color={(!chatInput.trim() || chatLoading) ? theme.textTertiary : theme.background} 
               />
             </TouchableOpacity>
           </View>
@@ -1177,7 +1177,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <View style={styles.patternMovementCard}>
             {/* Header */}
             <View style={styles.patternMovementHeader}>
-              <Ionicons name="pulse-outline" size={16} color={patternDrift.drift_candidate ? Colors.accent : Colors.textTertiary} />
+              <Ionicons name="pulse-outline" size={16} color={patternDrift.drift_candidate ? theme.accent : theme.textTertiary} />
               <Text style={[styles.patternMovementTitle, !patternDrift.drift_candidate && styles.patternMovementTitleMuted]}>Pattern Movement</Text>
               {patternDrift.drift_candidate && patternDrift.confidence_label && patternDrift.confidence_label !== 'low' && (
                 <View style={[
@@ -1356,7 +1356,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 <Ionicons
                   name={state === 'low' ? 'battery-dead-outline' : state === 'neutral' ? 'battery-half-outline' : 'battery-full-outline'}
                   size={18}
-                  color={energyState === state ? Colors.background : Colors.text}
+                  color={energyState === state ? theme.background : theme.text}
                 />
                 <Text style={[
                   styles.energyButtonText,
@@ -1972,7 +1972,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
               value={qaQuestion}
               onChangeText={setQaQuestion}
               placeholder="Ask about your type, patterns, or the Enneagram..."
-              placeholderTextColor={Colors.textTertiary}
+              placeholderTextColor={theme.textTertiary}
               multiline
               maxLength={500}
               editable={!qaLoading}
@@ -1988,7 +1988,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
               <Ionicons 
                 name="send" 
                 size={18} 
-                color={(!qaQuestion.trim() || qaLoading) ? Colors.textTertiary : Colors.background} 
+                color={(!qaQuestion.trim() || qaLoading) ? theme.textTertiary : theme.background} 
               />
             </TouchableOpacity>
           </View>
@@ -2086,7 +2086,7 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: Colors.text,
+    borderBottomColor: undefined,
   },
   tabText: {
     fontSize: 14,
@@ -2113,7 +2113,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   deepDiveSubTabActive: {
-    backgroundColor: Colors.text,
+    backgroundColor: undefined,
   },
   deepDiveSubTabText: {
     fontSize: 12,
@@ -2121,7 +2121,7 @@ const styles = StyleSheet.create({
     color: undefined,
   },
   deepDiveSubTabTextActive: {
-    color: Colors.surface,
+    color: undefined,
   },
 
   // Verification Badge
@@ -2330,7 +2330,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Colors.text,
+    backgroundColor: undefined,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -2442,7 +2442,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 2,
-    borderLeftColor: Colors.textTertiary,
+    borderLeftColor: undefined,
   },
   reflectionLabel: {
     fontSize: 10,
@@ -2526,7 +2526,7 @@ const styles = StyleSheet.create({
   wingDivider: {
     width: 1,
     height: 32,
-    backgroundColor: Colors.border,
+    backgroundColor: undefined,
   },
   wingLabel: {
     fontSize: 12,
@@ -2570,7 +2570,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   ctaButtonPrimary: {
-    backgroundColor: Colors.text,
+    backgroundColor: undefined,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -2613,8 +2613,8 @@ const styles = StyleSheet.create({
     borderColor: undefined,
   },
   energyButtonSelected: {
-    backgroundColor: Colors.text,
-    borderColor: Colors.text,
+    backgroundColor: undefined,
+    borderColor: undefined,
   },
   energyButtonText: {
     fontSize: 14,
@@ -2653,7 +2653,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: undefined,
     borderLeftWidth: 3,
-    borderLeftColor: Colors.text,
+    borderLeftColor: undefined,
   },
   promptLabel: {
     fontSize: 11,
@@ -2733,7 +2733,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   masteryButtonSelected: {
-    backgroundColor: Colors.text,
+    backgroundColor: undefined,
   },
   masteryButtonText: {
     fontSize: 13,
@@ -2775,7 +2775,7 @@ const styles = StyleSheet.create({
   experimentLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.accent,
+    color: undefined,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -2936,7 +2936,7 @@ const styles = StyleSheet.create({
   movementArrowLine: {
     width: 24,
     height: 2,
-    backgroundColor: Colors.border,
+    backgroundColor: undefined,
     marginLeft: -2,
   },
   movementArrowStress: {
@@ -3059,7 +3059,7 @@ const styles = StyleSheet.create({
   },
   footerDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.border,
+    backgroundColor: undefined,
     marginBottom: 16,
   },
   footerActions: {
@@ -3135,7 +3135,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     alignItems: 'center',
-    backgroundColor: Colors.text,
+    backgroundColor: undefined,
     borderRadius: 10,
   },
   modalConfirmText: {
@@ -3187,7 +3187,7 @@ const styles = StyleSheet.create({
   },
   chatMessageUser: {
     alignSelf: 'flex-end',
-    backgroundColor: Colors.text,
+    backgroundColor: undefined,
   },
   chatMessageAssistant: {
     alignSelf: 'flex-start',
@@ -3224,12 +3224,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.text,
+    backgroundColor: undefined,
     alignItems: 'center',
     justifyContent: 'center',
   },
   chatSendButtonDisabled: {
-    backgroundColor: Colors.border,
+    backgroundColor: undefined,
   },
   
   // Daily Micro-Lesson Card
@@ -3352,7 +3352,7 @@ const styles = StyleSheet.create({
   structureDivider: {
     width: 1,
     height: 32,
-    backgroundColor: Colors.border,
+    backgroundColor: undefined,
   },
 
   // Trait Cards Section (Deep Dive)
@@ -3518,12 +3518,12 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: Colors.text,
+    backgroundColor: undefined,
     alignItems: 'center',
     justifyContent: 'center',
   },
   qaSendButtonDisabled: {
-    backgroundColor: Colors.border,
+    backgroundColor: undefined,
   },
   qaDisclaimer: {
     fontSize: 11,
@@ -3603,7 +3603,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     borderLeftWidth: 3,
-    borderLeftColor: Colors.textTertiary,
+    borderLeftColor: undefined,
   },
   mirrorPromptHeader: {
     marginBottom: 8,
