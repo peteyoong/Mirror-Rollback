@@ -837,13 +837,14 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   mirrorPromptCard: {
-    backgroundColor: '#FDFCFA',
+    backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 12,
     padding: 20,
     marginTop: 8,
     marginBottom: 20,
-    borderLeftWidth: 3,
+    borderLeftWidth: 2,
     borderLeftColor: Colors.accent,
+    opacity: 0.9,
   },
   mirrorPromptLabel: {
     fontSize: 10,
@@ -851,6 +852,7 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     letterSpacing: 1.2,
     marginBottom: 8,
+    opacity: 0.6,
   },
   mirrorPromptText: {
     fontSize: 16,
