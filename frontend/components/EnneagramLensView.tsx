@@ -2430,13 +2430,19 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
 
-  // Section Divider (before Pattern Insights)
+  // Section Divider (text-based)
   sectionDivider: {
-    height: 1,
-    backgroundColor: Colors.border,
+    marginTop: 20,
     marginBottom: 16,
-    marginTop: 4,
-    opacity: 0.5,
+    paddingVertical: 8,
+  },
+  sectionDividerText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    textAlign: 'center',
   },
 
   // Q&A Modal
