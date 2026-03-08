@@ -130,12 +130,31 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [tabRestored, setTabRestored] = useState(false);
   
   // Gene Keys expansion state
   const [expandedArc, setExpandedArc] = useState<string | null>(null);
   
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
+
+  // Restore persisted tab on mount
+  useEffect(() => {
+    const restoreTab = async () => {
+      try {
+        const savedTab = await AsyncStorage.getItem(HD_TAB_STORAGE_KEY);
+        console.log('[HumanDesignLensView] Restored tab from storage:', savedTab);
+        if (savedTab && ['summary', 'today', 'deep_dive'].includes(savedTab)) {
+          setActiveTab(savedTab as TabType);
+        }
+      } catch (e) {
+        console.log('[HumanDesignLensView] Failed to restore tab:', e);
+      } finally {
+        setTabRestored(true);
+      }
+    };
+    restoreTab();
+  }, []);
 
   // Debug logging on mount
   useEffect(() => {
@@ -144,14 +163,22 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     console.log('[HumanDesignLensView] userId:', userId);
   }, []);
 
-  // Debug logging on tab change
+  // Persist tab when it changes (after initial restore)
   useEffect(() => {
-    console.log('[HumanDesignLensView] activeTab changed to:', activeTab);
-  }, [activeTab]);
+    if (tabRestored) {
+      console.log('[HumanDesignLensView] Persisting tab:', activeTab);
+      AsyncStorage.setItem(HD_TAB_STORAGE_KEY, activeTab).catch(e => 
+        console.log('[HumanDesignLensView] Failed to persist tab:', e)
+      );
+    }
+  }, [activeTab, tabRestored]);
 
+  // Load data when tab or user changes (only after tab is restored)
   useEffect(() => {
-    loadTabData(activeTab);
-  }, [activeTab, userId]);
+    if (tabRestored) {
+      loadTabData(activeTab);
+    }
+  }, [activeTab, userId, tabRestored]);
 
   const loadTabData = async (tab: TabType) => {
     setIsLoading(true);
