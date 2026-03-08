@@ -382,13 +382,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* Row 1: Type + Authority */}
         <View style={styles.mechanicsGrid}>
           <View style={styles.mechanicItem}>
-            <Ionicons name="flash-outline" size={16} color={Colors.accent} />
+            <Ionicons name="flash-outline" size={16} color={theme.accent} />
             <Text style={styles.mechanicLabel}>Type</Text>
             <Text style={styles.mechanicValue}>{formatMechanic(mechanics.type)}</Text>
           </View>
           <View style={styles.mechanicDivider} />
           <View style={styles.mechanicItem}>
-            <Ionicons name="compass-outline" size={16} color={Colors.accent} />
+            <Ionicons name="compass-outline" size={16} color={theme.accent} />
             <Text style={styles.mechanicLabel}>Authority</Text>
             <Text style={styles.mechanicValue}>{formatMechanic(mechanics.authority)}</Text>
           </View>
@@ -397,13 +397,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* Row 2: Profile + Definition */}
         <View style={[styles.mechanicsGrid, { marginTop: 16 }]}>
           <View style={styles.mechanicItem}>
-            <Ionicons name="person-outline" size={16} color={Colors.accent} />
+            <Ionicons name="person-outline" size={16} color={theme.accent} />
             <Text style={styles.mechanicLabel}>Profile</Text>
             <Text style={styles.mechanicValue}>{mechanics.profile || '—'}</Text>
           </View>
           <View style={styles.mechanicDivider} />
           <View style={styles.mechanicItem}>
-            <Ionicons name="layers-outline" size={16} color={Colors.accent} />
+            <Ionicons name="layers-outline" size={16} color={theme.accent} />
             <Text style={styles.mechanicLabel}>Definition</Text>
             <Text style={styles.mechanicValue}>{formatMechanic(mechanics.definition)}</Text>
           </View>
@@ -412,7 +412,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* Row 3: Incarnation Cross */}
         <View style={[styles.mechanicsGrid, { marginTop: 16 }]}>
           <View style={[styles.mechanicItem, { flex: 1 }]}>
-            <Ionicons name="git-branch-outline" size={16} color={Colors.accent} />
+            <Ionicons name="git-branch-outline" size={16} color={theme.accent} />
             <Text style={styles.mechanicLabel}>Incarnation Cross</Text>
             <Text style={[styles.mechanicValue, styles.mechanicValueSmall]}>{formatCross()}</Text>
             <Text style={styles.mechanicGates}>{getCrossGates()}</Text>
@@ -515,7 +515,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           activeOpacity={0.7}
         >
           <View style={styles.gkArcHeaderLeft}>
-            <Ionicons name={icon} size={18} color={Colors.accent} />
+            <Ionicons name={icon} size={18} color={theme.accent} />
             <View>
               <Text style={styles.gkArcTitle}>{arcDescription.title || arcName}</Text>
               <Text style={styles.gkArcSubtitle}>
@@ -528,7 +528,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <Ionicons
               name={isExpanded ? 'chevron-up' : 'chevron-down'}
               size={18}
-              color={Colors.textTertiary}
+              color={theme.textTertiary}
             />
           </View>
         </TouchableOpacity>
@@ -558,7 +558,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         <View style={styles.gkSectionHeaderWrapper}>
           <View style={styles.gkSectionHeaderTop}>
             <View style={styles.gkSectionTitleRow}>
-              <Ionicons name="key-outline" size={18} color={Colors.accent} />
+              <Ionicons name="key-outline" size={18} color={theme.accent} />
               <Text style={styles.gkSectionMainTitle}>YOUR SEQUENCES</Text>
             </View>
           </View>
@@ -674,7 +674,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           onPress={() => setActiveTab('deep_dive')}
         >
           <Text style={styles.hdSubtleLinkText}>Explore Deep Dive</Text>
-          <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
+          <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
         </TouchableOpacity>
       </>
     );
@@ -699,7 +699,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <Ionicons
               name={isExpanded ? 'chevron-up' : 'chevron-down'}
               size={18}
-              color={Colors.textTertiary}
+              color={theme.textTertiary}
             />
           )}
         </TouchableOpacity>
@@ -725,7 +725,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       >
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.textTertiary} />
+            <ActivityIndicator size="large" color={theme.textTertiary} />
             <Text style={styles.loadingText}>
               {activeTab === 'deep_dive' 
                 ? 'Generating your personalized reading...\nThis may take 30-45 seconds'
@@ -734,7 +734,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
-            <Ionicons name="alert-circle-outline" size={32} color={Colors.textTertiary} />
+            <Ionicons name="alert-circle-outline" size={32} color={theme.textTertiary} />
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity
               style={styles.retryButton}
@@ -777,7 +777,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                   <Ionicons
                     name={expandedSection ? 'contract-outline' : 'expand-outline'}
                     size={16}
-                    color={Colors.accent}
+                    color={theme.accent}
                   />
                 </TouchableOpacity>
                 {data.sections?.map((section, index) => renderSection(section, index))}
@@ -831,14 +831,14 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: "transparent",
   },
   // Unified tab section with inline description
   tabSection: {
     paddingTop: 8,
     paddingBottom: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    borderBottomColor: "transparent",
   },
   tabContainer: {
     flexDirection: 'row',
@@ -851,24 +851,24 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     alignItems: 'center',
   },
   activeTab: {
-    backgroundColor: Colors.text,
+    backgroundColor: "transparent",
   },
   tabText: {
     fontSize: 13,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: "inherit",
   },
   activeTabText: {
-    color: Colors.surface,
+    color: "inherit",
   },
   // Inline tab description - tightly coupled to tabs
   tabDescriptionInline: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: "inherit",
     textAlign: 'center',
     paddingHorizontal: 20,
     paddingBottom: 8,
@@ -879,11 +879,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: 'rgba(255,255,255,0.02)',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    borderBottomColor: "transparent",
   },
   tabDescription: {
     fontSize: 13,
-    color: Colors.textSecondary,
+    color: "inherit",
     textAlign: 'center',
     lineHeight: 18,
     fontStyle: 'italic',
@@ -902,7 +902,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: Colors.textTertiary,
+    color: "inherit",
   },
   errorContainer: {
     paddingVertical: 60,
@@ -911,43 +911,43 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: "inherit",
     textAlign: 'center',
   },
   retryButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 8,
   },
   retryText: {
     fontSize: 14,
-    color: Colors.accent,
+    color: "inherit",
     fontWeight: '500',
   },
   title: {
     fontSize: 20,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
     marginBottom: 8,
   },
   dateLabel: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: "inherit",
     marginBottom: 20,
   },
   coreMechanicsCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: "transparent",
   },
   coreMechanicsTitle: {
     fontSize: 10,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: "inherit",
     letterSpacing: 1.5,
     textAlign: 'center',
     marginBottom: 16,
@@ -964,14 +964,14 @@ const styles = StyleSheet.create({
   },
   mechanicLabel: {
     fontSize: 10,
-    color: Colors.textTertiary,
+    color: "inherit",
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   mechanicValue: {
     fontSize: 14,
     fontWeight: '500',
-    color: Colors.text,
+    color: "inherit",
     textAlign: 'center',
   },
   mechanicValueSmall: {
@@ -980,14 +980,14 @@ const styles = StyleSheet.create({
   },
   mechanicGates: {
     fontSize: 11,
-    color: Colors.textSecondary,
+    color: "inherit",
     textAlign: 'center',
     marginTop: 2,
   },
   mechanicDivider: {
     width: 1,
     height: 40,
-    backgroundColor: Colors.border,
+    backgroundColor: "transparent",
   },
   expandButton: {
     flexDirection: 'row',
@@ -999,16 +999,16 @@ const styles = StyleSheet.create({
   },
   expandButtonText: {
     fontSize: 14,
-    color: Colors.accent,
+    color: "inherit",
     fontWeight: '500',
   },
   sectionCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: "transparent",
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -1018,14 +1018,14 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.textSecondary,
+    color: "inherit",
     letterSpacing: 0.3,
     flex: 1,
   },
   sectionBody: {
     fontSize: 15,
     lineHeight: 24,
-    color: Colors.text,
+    color: "inherit",
     marginTop: 12,
   },
   mirrorPromptCard: {
@@ -1041,7 +1041,7 @@ const styles = StyleSheet.create({
   mirrorPromptLabel: {
     fontSize: 10,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: "inherit",
     letterSpacing: 1.2,
     marginBottom: 8,
     opacity: 0.6,
@@ -1049,7 +1049,7 @@ const styles = StyleSheet.create({
   mirrorPromptText: {
     fontSize: 15,
     lineHeight: 24,
-    color: Colors.textSecondary,
+    color: "inherit",
     fontStyle: 'italic',
   },
   askMirrorButton: {
@@ -1058,18 +1058,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 14,
-    backgroundColor: Colors.text,
+    backgroundColor: "transparent",
     borderRadius: 12,
     marginBottom: 20,
   },
   askMirrorText: {
     fontSize: 15,
-    color: Colors.surface,
+    color: "inherit",
     fontWeight: '500',
   },
   footer: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: "inherit",
     textAlign: 'center',
     fontStyle: 'italic',
     opacity: 0.7,
@@ -1081,12 +1081,12 @@ const styles = StyleSheet.create({
 
   // HD Identity Card
   hdIdentityCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 10,
     padding: 16,
     alignItems: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: "transparent",
     marginBottom: 10,
   },
   hdIdentityMain: {
@@ -1096,45 +1096,45 @@ const styles = StyleSheet.create({
   hdIdentityType: {
     fontSize: 22,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
     marginBottom: 2,
   },
   hdIdentityProfile: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: "inherit",
   },
   hdIdentityNote: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: "inherit",
     marginTop: 6,
     fontStyle: 'italic',
   },
 
   // HD Overview Cards
   hdOverviewCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 10,
     padding: 14,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: "transparent",
     marginBottom: 10,
   },
   hdOverviewCardTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
     marginBottom: 8,
   },
   hdOverviewCardSubtitle: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.accent,
+    color: "inherit",
     marginBottom: 6,
   },
   hdOverviewCardBody: {
     fontSize: 14,
     lineHeight: 21,
-    color: Colors.textSecondary,
+    color: "inherit",
   },
 
   // HD Manifestation List
@@ -1144,18 +1144,18 @@ const styles = StyleSheet.create({
   hdManifestationItem: {
     paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    borderBottomColor: "transparent",
   },
   hdManifestationLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
     marginBottom: 3,
   },
   hdManifestationText: {
     fontSize: 13,
     lineHeight: 19,
-    color: Colors.textSecondary,
+    color: "inherit",
   },
 
   // HD Reflection Card
@@ -1165,19 +1165,19 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 2,
-    borderLeftColor: Colors.textTertiary,
+    borderLeftColor: "transparent",
   },
   hdReflectionLabel: {
     fontSize: 10,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: "inherit",
     letterSpacing: 0.8,
     marginBottom: 8,
   },
   hdReflectionText: {
     fontSize: 14,
     lineHeight: 22,
-    color: Colors.textSecondary,
+    color: "inherit",
     fontStyle: 'italic',
   },
 
@@ -1191,7 +1191,7 @@ const styles = StyleSheet.create({
   },
   hdSubtleLinkText: {
     fontSize: 13,
-    color: Colors.textTertiary,
+    color: "inherit",
   },
 
   // Version Debug Panel styles (non-production)
@@ -1241,7 +1241,7 @@ const styles = StyleSheet.create({
   crossSectionTitle: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.textSecondary,
+    color: "inherit",
     letterSpacing: 1.5,
   },
   crossCard: {
@@ -1254,13 +1254,13 @@ const styles = StyleSheet.create({
   crossName: {
     fontSize: 20,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
     marginBottom: 8,
     letterSpacing: 0.3,
   },
   crossFlavor: {
     fontSize: 15,
-    color: Colors.textSecondary,
+    color: "inherit",
     lineHeight: 22,
     marginBottom: 16,
     fontStyle: 'italic',
@@ -1278,14 +1278,14 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: Colors.accent,
+    backgroundColor: "transparent",
     marginTop: 7,
     marginRight: 12,
   },
   crossThemeText: {
     flex: 1,
     fontSize: 14,
-    color: Colors.text,
+    color: "inherit",
     lineHeight: 20,
   },
   crossMetadata: {
@@ -1297,13 +1297,13 @@ const styles = StyleSheet.create({
   },
   crossMetaLabel: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: "inherit",
     marginRight: 8,
     opacity: 0.7,
   },
   crossMetaValue: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: "inherit",
     fontFamily: 'monospace',
     letterSpacing: 0.5,
   },
@@ -1335,12 +1335,12 @@ const styles = StyleSheet.create({
   gkSectionMainTitle: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.textSecondary,
+    color: "inherit",
     letterSpacing: 1.5,
   },
   gkSectionIntro: {
     fontSize: 13,
-    color: Colors.textTertiary,
+    color: "inherit",
     lineHeight: 19,
     paddingRight: 8,
   },
@@ -1359,13 +1359,13 @@ const styles = StyleSheet.create({
   gkDividerText: {
     fontSize: 10,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: "inherit",
     letterSpacing: 2.5,
     opacity: 0.7,
   },
   gkHelperText: {
     fontSize: 13,
-    color: Colors.textTertiary,
+    color: "inherit",
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 19,
@@ -1392,11 +1392,11 @@ const styles = StyleSheet.create({
   gkSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
   },
   gkSectionSubtitle: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: "inherit",
     marginTop: 2,
   },
   gkArcsContainer: {
@@ -1433,18 +1433,18 @@ const styles = StyleSheet.create({
   gkArcTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
   },
   gkArcSubtitle: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: "inherit",
     marginTop: 2,
     maxWidth: 200,
     lineHeight: 16,
   },
   gkArcCount: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: "inherit",
     opacity: 0.7,
   },
   gkArcContent: {
@@ -1454,7 +1454,7 @@ const styles = StyleSheet.create({
   },
   gkArcHelper: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: "inherit",
     fontStyle: 'italic',
     marginBottom: 24,
     lineHeight: 17,
@@ -1474,27 +1474,27 @@ const styles = StyleSheet.create({
   sphereTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
     marginBottom: 2,
     letterSpacing: 0.2,
   },
   sphereGateLine: {
     fontSize: 13,
-    color: Colors.textTertiary,
+    color: "inherit",
     fontFamily: 'monospace',
     marginBottom: 10,
     opacity: 0.7,
   },
   sphereDescriptor: {
     fontSize: 13,
-    color: Colors.accent,
+    color: "inherit",
     fontWeight: '500',
     marginBottom: 14,
     opacity: 0.9,
   },
   sphereInterpretation: {
     fontSize: 15,
-    color: Colors.textSecondary,
+    color: "inherit",
     lineHeight: 23,
     marginBottom: 16,
   },
@@ -1507,13 +1507,13 @@ const styles = StyleSheet.create({
   },
   sphereMetaText: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: "inherit",
     opacity: 0.6,
     letterSpacing: 0.3,
   },
   sphereMetaDot: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: "inherit",
     opacity: 0.4,
     marginHorizontal: 8,
   },
@@ -1526,20 +1526,20 @@ const styles = StyleSheet.create({
   gkSphereTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
     marginBottom: 8,
     letterSpacing: 0.2,
   },
   gkSphereTheme: {
     fontSize: 13,
-    color: Colors.accent,
+    color: "inherit",
     fontWeight: '500',
     marginBottom: 10,
     opacity: 0.9,
   },
   gkSphereDescription: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: "inherit",
     lineHeight: 21,
     marginBottom: 0,
   },
@@ -1555,7 +1555,7 @@ const styles = StyleSheet.create({
   },
   gkSpherePrompt: {
     fontSize: 13,
-    color: Colors.textTertiary,
+    color: "inherit",
     fontStyle: 'italic',
     lineHeight: 18,
     opacity: 0.75,
@@ -1563,14 +1563,14 @@ const styles = StyleSheet.create({
   // Technical value - very subtle, secondary
   gkSphereTechnical: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: "inherit",
     marginTop: 16,
     opacity: 0.5,
     letterSpacing: 0.5,
   },
   gkVersion: {
     fontSize: 10,
-    color: Colors.textTertiary,
+    color: "inherit",
     textAlign: 'center',
     marginTop: 16,
     fontFamily: 'monospace',
