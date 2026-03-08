@@ -296,25 +296,110 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ isRestoringSession: true, sessionRestoreError: null });
     
     try {
-      // First try to load from local storage
+      // =====================================================================
+      // STEP 1: Load persisted data from storage FIRST
+      // =====================================================================
       await get().loadPersistedData();
       
-      // Check if we loaded data from storage
+      // Check if we loaded COMPLETE data from storage
       const stateAfterLoad = get();
       if (stateAfterLoad.user && stateAfterLoad.chart) {
-        console.log('[SessionRestore] Restored from local storage');
+        console.log('[SessionRestore] ✓ Restored from local storage (user + chart)');
+        // IMPORTANT: Also sync the stable user ID cache with the persisted user
+        if (stateAfterLoad.user.id) {
+          try {
+            const { setStableUserIdCache } = await import('../utils/stableUserId');
+            setStableUserIdCache(stateAfterLoad.user.id);
+            console.log('[SessionRestore] ✓ Synced stable user ID cache:', maskUserId(stateAfterLoad.user.id));
+          } catch (e) {
+            // Ignore if function not available
+          }
+        }
         return true;
       }
       
-      // If no local data, try to fetch from API using STABLE user ID
-      // This ensures the same user ID is used across sessions
-      const userId = await getStableUserId();
+      // =====================================================================
+      // STEP 2: Determine the user ID to use for API restore
+      // Priority: persisted user.id > MIRROR_USER_ID > mirror_last_user_id > (NO UUID GENERATION)
+      // =====================================================================
+      let userId: string | null = null;
+      let userIdSource = 'unknown';
       
-      console.log('[SessionRestore] Using stable userId:', maskUserId(userId));
-      console.log('[SessionRestore] Attempting API restore...');
+      // Check if we have a persisted user object with an ID
+      if (stateAfterLoad.user?.id) {
+        userId = stateAfterLoad.user.id;
+        userIdSource = 'persisted_user_object';
+        console.log('[SessionRestore] 📍 Using user ID from persisted user object:', maskUserId(userId));
+      }
       
-      // Run assertion check in debug mode
-      await assertUserIdStable();
+      // If no user object, check storage keys directly (in priority order)
+      if (!userId) {
+        const mirrorUserId = await storage.getItem('MIRROR_USER_ID');
+        if (mirrorUserId) {
+          userId = mirrorUserId;
+          userIdSource = 'MIRROR_USER_ID';
+          console.log('[SessionRestore] 📍 Using user ID from MIRROR_USER_ID:', maskUserId(userId));
+        }
+      }
+      
+      if (!userId) {
+        const lastUserId = await storage.getItem(SESSION_USER_ID_KEY);
+        if (lastUserId) {
+          userId = lastUserId;
+          userIdSource = 'mirror_last_user_id';
+          console.log('[SessionRestore] 📍 Using user ID from mirror_last_user_id:', maskUserId(userId));
+        }
+      }
+      
+      // =====================================================================
+      // STEP 3: If NO valid persisted user ID exists, route to onboarding
+      // DO NOT generate a UUID - UUIDs are not valid MongoDB ObjectIds
+      // =====================================================================
+      if (!userId) {
+        console.log('[SessionRestore] ⚠️ No persisted user ID found - routing to onboarding');
+        console.log('[SessionRestore] 🚫 UUID generation SKIPPED - only MongoDB ObjectIds are valid');
+        set({ 
+          sessionRestoreError: null,
+          hasCompletedOnboarding: false
+        });
+        return false;
+      }
+      
+      // =====================================================================
+      // STEP 4: Validate the user ID format
+      // MongoDB ObjectIds are 24 hex characters - reject UUIDs
+      // =====================================================================
+      const isMongoObjectId = /^[a-f\d]{24}$/i.test(userId);
+      const isUUID = /^[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}$/i.test(userId);
+      
+      if (isUUID) {
+        console.log('[SessionRestore] ⚠️ Found UUID format - clearing and routing to onboarding');
+        console.log('[SessionRestore] UUID:', maskUserId(userId), '- backend requires MongoDB ObjectId');
+        await storage.removeItem('MIRROR_USER_ID');
+        await storage.removeItem(SESSION_USER_ID_KEY);
+        await storage.removeItem('user');
+        await storage.removeItem('chart');
+        set({ 
+          sessionRestoreError: null,
+          hasCompletedOnboarding: false
+        });
+        return false;
+      }
+      
+      console.log('[SessionRestore] ✓ User ID format valid:', userIdSource, isMongoObjectId ? '(MongoDB ObjectId)' : '');
+      console.log('[SessionRestore] Attempting API restore with:', maskUserId(userId));
+      
+      // Sync the stable user ID cache
+      try {
+        const { setStableUserIdCache } = await import('../utils/stableUserId');
+        setStableUserIdCache(userId);
+      } catch (e) {
+        // Ignore if function not available
+      }
+      
+      // =====================================================================
+      // STEP 5: Fetch user and chart from API
+      // =====================================================================
       
       // Fetch user data
       let userData: User | null = null;
