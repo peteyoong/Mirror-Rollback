@@ -199,8 +199,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </Text>
         </TouchableOpacity>
       </View>
-      {/* Tab description - tightly coupled to tabs */}
-      <Text style={styles.tabDescriptionInline}>{TAB_DESCRIPTIONS[activeTab]}</Text>
     </View>
   );
 
