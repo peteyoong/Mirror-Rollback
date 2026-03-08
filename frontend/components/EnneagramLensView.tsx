@@ -444,13 +444,9 @@ interface ChatMessage {
   content: string;
 }
 
-// Deep Dive sub-tab type
-type DeepDiveSubTab = 'pattern' | 'wings' | 'self_mastery' | 'verification';
-
 export default function EnneagramLensView({ result, userId }: Props) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('summary');
-  const [activeDeepDiveSubTab, setActiveDeepDiveSubTab] = useState<DeepDiveSubTab>('pattern');
   const [energyState, setEnergyState] = useState<EnergyState | null>(
     (result.state_calibration?.energy_state as EnergyState) || null
   );
