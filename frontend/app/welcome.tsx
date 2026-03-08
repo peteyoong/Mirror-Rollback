@@ -422,4 +422,10 @@ const styles = StyleSheet.create({
     color: Colors.error,
     textAlign: 'center',
   },
+  buildInfo: {
+    fontSize: 10,
+    color: Colors.textTertiary,
+    marginTop: 8,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
 });
