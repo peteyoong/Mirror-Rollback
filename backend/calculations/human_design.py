@@ -1280,9 +1280,20 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     d_sun_gate = design_data['Sun']['gate']['gate']
     d_earth_gate = design_data['Earth']['gate']['gate']
     
-    # Get proper cross name (e.g., "RAX Migration" instead of "Right Angle Cross of 37/40")
-    incarnation_cross_name = get_incarnation_cross_name(p_sun_gate, personality_sun_line)
+    # Get FULL cross data using Personality Sun LINE (not profile!)
+    cross_data = get_incarnation_cross_full(p_sun_gate, personality_sun_line)
     incarnation_cross_gates = f"{p_sun_gate}/{p_earth_gate} | {d_sun_gate}/{d_earth_gate}"
+    
+    # Update cross_data with gate quartet
+    cross_data['display_quartet'] = incarnation_cross_gates
+    cross_data['personality_sun'] = p_sun_gate
+    cross_data['personality_earth'] = p_earth_gate
+    cross_data['design_sun'] = d_sun_gate
+    cross_data['design_earth'] = d_earth_gate
+    cross_data['personality_sun_line'] = personality_sun_line
+    
+    # Legacy field for backward compatibility
+    incarnation_cross_name = cross_data['cross_name']
     
     # Format channels for output
     defined_channels_formatted = [
