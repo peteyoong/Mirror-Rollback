@@ -133,6 +133,18 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
 
+  // Debug logging on mount
+  useEffect(() => {
+    console.log('[HumanDesignLensView] MOUNTED');
+    console.log('[HumanDesignLensView] Build:', BUILD_VERSION, BUILD_ID);
+    console.log('[HumanDesignLensView] userId:', userId);
+  }, []);
+
+  // Debug logging on tab change
+  useEffect(() => {
+    console.log('[HumanDesignLensView] activeTab changed to:', activeTab);
+  }, [activeTab]);
+
   useEffect(() => {
     loadTabData(activeTab);
   }, [activeTab, userId]);
