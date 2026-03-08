@@ -149,50 +149,47 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     }
   };
 
-  // Tab descriptions for user clarity
+  // Tab descriptions for user clarity - integrated into tab bar
   const TAB_DESCRIPTIONS: Record<TabType, string> = {
-    summary: "A quick orientation to your Human Design.",
-    today: "How today's transits interact with your design.",
-    deep_dive: "Explore the deeper layers of your chart."
+    summary: "Quick orientation to your chart",
+    today: "Today's transit interactions",
+    deep_dive: "Deeper layers & sequences"
   };
 
   const renderTabs = () => (
-    <View style={styles.tabContainer}>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
-        onPress={() => setActiveTab('summary')}
-      >
-        <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>
-          Overview
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'today' && styles.activeTab]}
-        onPress={() => setActiveTab('today')}
-      >
-        <Text style={[styles.tabText, activeTab === 'today' && styles.activeTabText]}>
-          Today
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
-        onPress={() => setActiveTab('deep_dive')}
-      >
-        <Text style={[styles.tabText, activeTab === 'deep_dive' && styles.activeTabText]}>
-          Deep Dive
-        </Text>
-      </TouchableOpacity>
+    <View style={styles.tabSection}>
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
+          onPress={() => setActiveTab('summary')}
+        >
+          <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>
+            Overview
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'today' && styles.activeTab]}
+          onPress={() => setActiveTab('today')}
+        >
+          <Text style={[styles.tabText, activeTab === 'today' && styles.activeTabText]}>
+            Today
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
+          onPress={() => setActiveTab('deep_dive')}
+        >
+          <Text style={[styles.tabText, activeTab === 'deep_dive' && styles.activeTabText]}>
+            Deep Dive
+          </Text>
+        </TouchableOpacity>
+      </View>
+      {/* Tab description - tightly coupled to tabs */}
+      <Text style={styles.tabDescriptionInline}>{TAB_DESCRIPTIONS[activeTab]}</Text>
     </View>
   );
 
-  // Render tab description at top of content
-  const renderTabDescription = () => (
-    <View style={styles.tabDescriptionContainer}>
-      <Text style={styles.tabDescription}>
-        {TAB_DESCRIPTIONS[activeTab]}
-      </Text>
-    </View>
-  );
+  // Removed separate renderTabDescription - now integrated into renderTabs
 
   // Always render core mechanics for deep dive, even with fallback values
   const renderCoreMechanics = () => {
