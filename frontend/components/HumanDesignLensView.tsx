@@ -63,7 +63,10 @@ interface GeneKeysData {
 
 interface IncarnationCrossStructured {
   cross_name: string;
-  orientation: string;
+  cross_family: string;
+  angle: string;
+  angle_full: string;
+  variant: number;
   gate_quartet: {
     personality_sun: number;
     personality_earth: number;
