@@ -1161,8 +1161,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 4,
+    marginBottom: 2,
     letterSpacing: 0.2,
+  },
+  sphereGateLine: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    fontFamily: 'monospace',
+    marginBottom: 10,
+    opacity: 0.7,
   },
   sphereDescriptor: {
     fontSize: 13,
