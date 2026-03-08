@@ -1646,13 +1646,47 @@ export default function EnneagramLensView({ result, userId }: Props) {
               <Text style={styles.flowLabel}>When Resourced → Type {(data?.computed_details || computedDetails)?.growth_line_to || '—'}</Text>
             </View>
           </View>
+          
+          {/* Stress Section */}
           <View style={styles.accordionBodySection}>
             <Text style={styles.accordionBodyTitle}>Under Stress</Text>
-            <Text style={styles.accordionBodyText}>{STRESS_PATTERNS[core]}</Text>
+            <Text style={styles.accordionBodyText}>{STRESS_PATTERNS[core]?.pattern}</Text>
           </View>
           <View style={styles.accordionBodySection}>
+            <Text style={styles.accordionBodyTitle}>The Tradeoff</Text>
+            <Text style={styles.accordionBodyText}>{STRESS_PATTERNS[core]?.tradeoff}</Text>
+          </View>
+          <View style={styles.accordionBodySection}>
+            <Text style={styles.accordionBodyTitle}>Potential Strength</Text>
+            <Text style={styles.accordionBodyText}>{STRESS_PATTERNS[core]?.strength}</Text>
+          </View>
+          <View style={styles.experimentCard}>
+            <View style={styles.experimentHeader}>
+              <Ionicons name="flask-outline" size={14} color={Colors.accent} />
+              <Text style={styles.experimentLabel}>Try This</Text>
+            </View>
+            <Text style={styles.experimentText}>{STRESS_PATTERNS[core]?.experiment}</Text>
+          </View>
+          
+          {/* Growth Section */}
+          <View style={[styles.accordionBodySection, { marginTop: 24 }]}>
             <Text style={styles.accordionBodyTitle}>When Resourced</Text>
-            <Text style={styles.accordionBodyText}>{GROWTH_PATTERNS[core]}</Text>
+            <Text style={styles.accordionBodyText}>{GROWTH_PATTERNS[core]?.pattern}</Text>
+          </View>
+          <View style={styles.accordionBodySection}>
+            <Text style={styles.accordionBodyTitle}>The Tradeoff</Text>
+            <Text style={styles.accordionBodyText}>{GROWTH_PATTERNS[core]?.tradeoff}</Text>
+          </View>
+          <View style={styles.accordionBodySection}>
+            <Text style={styles.accordionBodyTitle}>Potential Strength</Text>
+            <Text style={styles.accordionBodyText}>{GROWTH_PATTERNS[core]?.strength}</Text>
+          </View>
+          <View style={styles.experimentCard}>
+            <View style={styles.experimentHeader}>
+              <Ionicons name="flask-outline" size={14} color={Colors.accent} />
+              <Text style={styles.experimentLabel}>Try This</Text>
+            </View>
+            <Text style={styles.experimentText}>{GROWTH_PATTERNS[core]?.experiment}</Text>
           </View>
         </AccordionSection>
 
