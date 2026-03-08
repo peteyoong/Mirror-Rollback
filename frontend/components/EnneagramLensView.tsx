@@ -1020,27 +1020,42 @@ export default function EnneagramLensView({ result, userId }: Props) {
     const typeLabel = data?.type_label || (wing !== 'balanced' ? `${core}w${wing}` : `Type ${core}`);
     const typeName = data?.type_name || TYPE_NAMES[core];
 
-    return (
-      <>
-        {/* ===== HEADER ===== */}
-        <View style={styles.deepDiveHeader}>
-          <View style={styles.deepDiveHeaderTop}>
-            <Text style={styles.deepDiveType}>{typeLabel}</Text>
-            <View style={[
-              styles.confidenceBadge,
-              confidence === 'high' && styles.confidenceHigh,
-              confidence === 'medium' && styles.confidenceMedium,
-              confidence === 'low' && styles.confidenceLow,
-            ]}>
-              <Text style={styles.confidenceBadgeText}>
-                {confidence === 'high' ? 'High' : confidence === 'medium' ? 'Moderate' : 'Exploratory'} Confidence
-              </Text>
-            </View>
-          </View>
-          <Text style={styles.deepDiveWingStance}>{typeName}</Text>
-          <Text style={styles.deepDiveNote}>This lens reflects strategy, not identity.</Text>
-        </View>
+    // Sub-tab labels
+    const SUB_TAB_LABELS: Record<DeepDiveSubTab, string> = {
+      pattern: 'Pattern',
+      wings: 'Wings',
+      self_mastery: 'Self-Mastery',
+      verification: 'Verification',
+    };
 
+    // Render sub-tab navigation
+    const renderDeepDiveSubTabs = () => (
+      <View style={styles.deepDiveSubTabContainer}>
+        {(['pattern', 'wings', 'self_mastery', 'verification'] as DeepDiveSubTab[]).map((subTab) => (
+          <TouchableOpacity
+            key={subTab}
+            style={[
+              styles.deepDiveSubTab,
+              activeDeepDiveSubTab === subTab && styles.deepDiveSubTabActive,
+            ]}
+            onPress={() => setActiveDeepDiveSubTab(subTab)}
+          >
+            <Text
+              style={[
+                styles.deepDiveSubTabText,
+                activeDeepDiveSubTab === subTab && styles.deepDiveSubTabTextActive,
+              ]}
+            >
+              {SUB_TAB_LABELS[subTab]}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+
+    // Render Pattern sub-tab content
+    const renderPatternContent = () => (
+      <>
         {/* ===== DEEP DIVE SECTIONS (From API) ===== */}
         {data?.sections && data.sections.map((section, index) => (
           <View key={index} style={styles.deepDiveSection}>
@@ -1085,6 +1100,121 @@ export default function EnneagramLensView({ result, userId }: Props) {
             </View>
           </View>
         )}
+      </>
+    );
+
+    // Render Wings sub-tab content
+    const renderWingsContent = () => (
+      <>
+        <View style={styles.deepDiveSection}>
+          <Text style={styles.deepDiveSectionTitle}>Your Wing Access</Text>
+          <Text style={styles.deepDiveSectionBody}>
+            Wings are access paths — capacities you can develop. The quieter wing often holds untapped potential.
+          </Text>
+        </View>
+        
+        {wing !== 'balanced' ? (
+          <View style={styles.structureCard}>
+            <View style={styles.structureGrid}>
+              <View style={styles.structureItem}>
+                <Ionicons name="star" size={14} color={Colors.accent} />
+                <Text style={styles.structureLabel}>Dominant Wing</Text>
+                <Text style={styles.structureValue}>Wing {wing}</Text>
+                <Text style={styles.structureSubValue}>{TYPE_NAMES[wing as number]}</Text>
+              </View>
+              <View style={styles.structureDivider} />
+              <View style={styles.structureItem}>
+                <Ionicons name="star-outline" size={14} color={Colors.textSecondary} />
+                <Text style={styles.structureLabel}>Growth Access</Text>
+                <Text style={styles.structureValue}>Wing {otherWing}</Text>
+                <Text style={styles.structureSubValue}>{TYPE_NAMES[otherWing]}</Text>
+              </View>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.deepDiveSection}>
+            <Text style={styles.deepDiveSectionBody}>
+              You show access to both wings. Balance comes from choosing consciously based on the situation, not defaulting to one pattern.
+            </Text>
+          </View>
+        )}
+
+        {/* Stress/Growth Patterns */}
+        <View style={styles.deepDiveSection}>
+          <Text style={styles.deepDiveSectionTitle}>Under Stress</Text>
+          <Text style={styles.deepDiveSectionBody}>{STRESS_PATTERNS[core]}</Text>
+        </View>
+        
+        <View style={styles.deepDiveSection}>
+          <Text style={styles.deepDiveSectionTitle}>When Resourced</Text>
+          <Text style={styles.deepDiveSectionBody}>{GROWTH_PATTERNS[core]}</Text>
+        </View>
+      </>
+    );
+
+    // Render Self-Mastery sub-tab content
+    const renderSelfMasteryContent = () => (
+      <>
+        <View style={styles.deepDiveSection}>
+          <Text style={styles.deepDiveSectionTitle}>Growth Path</Text>
+          <Text style={styles.deepDiveSectionBody}>
+            Self-mastery for Type {core} involves recognizing your core motivation patterns and developing flexibility in how you respond to situations.
+          </Text>
+        </View>
+
+        <View style={styles.deepDiveSection}>
+          <Text style={styles.deepDiveSectionTitle}>Daily Reflection</Text>
+          <Text style={styles.deepDiveSectionBody}>{JOURNAL_PROMPTS[core]}</Text>
+        </View>
+
+        <View style={styles.deepDiveSection}>
+          <Text style={styles.deepDiveSectionTitle}>Integration Practice</Text>
+          <Text style={styles.deepDiveSectionBody}>{GROWTH_PATTERNS[core]}</Text>
+        </View>
+      </>
+    );
+
+    // Render Verification sub-tab content
+    const renderVerificationContent = () => (
+      <>
+        <View style={styles.deepDiveSection}>
+          <Text style={styles.deepDiveSectionTitle}>Assessment Confidence</Text>
+          <View style={[
+            styles.verificationBadge,
+            confidence === 'high' && styles.confidenceHigh,
+            confidence === 'medium' && styles.confidenceMedium,
+            confidence === 'low' && styles.confidenceLow,
+          ]}>
+            <Text style={styles.verificationBadgeText}>
+              {confidence === 'high' ? 'High' : confidence === 'medium' ? 'Moderate' : 'Exploratory'} Confidence
+            </Text>
+          </View>
+          <Text style={styles.deepDiveSectionBody}>
+            {confidence === 'high' 
+              ? 'Your responses showed a clear pattern consistent with this type.'
+              : confidence === 'medium'
+              ? 'Your responses suggest this type, but consider exploring related types as well.'
+              : 'Consider retaking the assessment when in a different state, or explore the top alternatives.'}
+          </Text>
+        </View>
+
+        <View style={styles.deepDiveSection}>
+          <Text style={styles.deepDiveSectionTitle}>Top Alternatives</Text>
+          <Text style={styles.cardSubtitle}>
+            Common mistypes included for self-verification
+          </Text>
+          {result.top_candidates.slice(0, 3).map((candidate, index) => (
+            <View key={candidate.type} style={styles.candidateRow}>
+              <Text style={styles.candidateRank}>{index + 1}</Text>
+              <Text style={styles.candidateType}>
+                Type {candidate.type} — {TYPE_NAMES[candidate.type]}
+              </Text>
+              <Text style={styles.candidatePercent}>
+                {Math.round(candidate.probability * 100)}%
+              </Text>
+            </View>
+          ))}
+        </View>
 
         {/* ===== RETAKE LINK ===== */}
         <TouchableOpacity
@@ -1094,8 +1224,40 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <Ionicons name="refresh-outline" size={16} color={Colors.textSecondary} />
           <Text style={styles.retakeLinkText}>Retake Assessment</Text>
         </TouchableOpacity>
+      </>
+    );
+
+    return (
+      <>
+        {/* ===== HEADER ===== */}
+        <View style={styles.deepDiveHeader}>
+          <View style={styles.deepDiveHeaderTop}>
+            <Text style={styles.deepDiveType}>{typeLabel}</Text>
+            <View style={[
+              styles.confidenceBadge,
+              confidence === 'high' && styles.confidenceHigh,
+              confidence === 'medium' && styles.confidenceMedium,
+              confidence === 'low' && styles.confidenceLow,
+            ]}>
+              <Text style={styles.confidenceBadgeText}>
+                {confidence === 'high' ? 'High' : confidence === 'medium' ? 'Moderate' : 'Exploratory'} Confidence
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.deepDiveWingStance}>{typeName}</Text>
+          <Text style={styles.deepDiveNote}>This lens reflects strategy, not identity.</Text>
+        </View>
+
+        {/* ===== SUB-TAB NAVIGATION ===== */}
+        {renderDeepDiveSubTabs()}
+
+        {/* ===== SUB-TAB CONTENT ===== */}
+        {activeDeepDiveSubTab === 'pattern' && renderPatternContent()}
+        {activeDeepDiveSubTab === 'wings' && renderWingsContent()}
+        {activeDeepDiveSubTab === 'self_mastery' && renderSelfMasteryContent()}
+        {activeDeepDiveSubTab === 'verification' && renderVerificationContent()}
         
-        {/* Chat Box */}
+        {/* Chat Box - Always visible */}
         {renderChatBox()}
       </>
     );
