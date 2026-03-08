@@ -130,17 +130,62 @@ const STRESS_PATTERNS: { [key: number]: { pattern: string; tradeoff: string; str
   }
 };
 
-// Growth patterns per type
-const GROWTH_PATTERNS: { [key: number]: string } = {
-  1: 'Access spontaneity and joy. Loosen the grip on standards. Allow lightness, acceptance, and playful engagement.',
-  2: 'Access self-care and emotional honesty. Honor your own needs without guilt. Rest without earning it.',
-  3: 'Access commitment over image. Value depth and authentic connection more than visible success.',
-  4: 'Access objectivity and discipline. Use structure to channel emotion into action. Trust what\'s present.',
-  5: 'Access confident engagement. Move from observation to participation. Share knowledge generously.',
-  6: 'Access inner peace and trust. Relax vigilance. Act from groundedness rather than anticipation.',
-  7: 'Access focused depth. Stay with one thing. Find richness in completion rather than variety.',
-  8: 'Access openheartedness and vulnerability. Let others in. Use strength to protect, not dominate.',
-  9: 'Access assertive energy and clear priorities. Make your mark. Let your preferences be known.',
+// Growth patterns per type - structured format
+const GROWTH_PATTERNS: { [key: number]: { pattern: string; tradeoff: string; strength: string; experiment: string } } = {
+  1: {
+    pattern: 'When resourced, you may notice access to spontaneity and joy—a loosening of the grip on standards, permission to play.',
+    tradeoff: 'Lightness may initially feel irresponsible. You might resist accepting imperfection even when it serves you.',
+    strength: 'This movement offers the gift of acceptance—the capacity to enjoy what is without needing to fix it.',
+    experiment: 'Do something "imperfectly" on purpose today. What happens when good enough is actually good enough?'
+  },
+  2: {
+    pattern: 'When resourced, you may notice access to self-care and emotional honesty—honoring your own needs without guilt.',
+    tradeoff: 'Attending to yourself may initially feel selfish. You might resist receiving what you freely give others.',
+    strength: 'This movement offers the gift of authenticity—the capacity to know and express what you actually need.',
+    experiment: 'Let someone help you with something this week. Notice what arises when you receive without immediately reciprocating.'
+  },
+  3: {
+    pattern: 'When resourced, you may notice access to commitment and loyalty—valuing depth over image, authentic connection over impression.',
+    tradeoff: 'Slowing down may initially feel like falling behind. You might resist intimacy that can\'t be optimized.',
+    strength: 'This movement offers the gift of belonging—the capacity to be valued for who you are, not what you achieve.',
+    experiment: 'Stay in a conversation past the point of productivity. What opens up when you\'re not moving toward an outcome?'
+  },
+  4: {
+    pattern: 'When resourced, you may notice access to objectivity and discipline—using structure to channel emotion into action.',
+    tradeoff: 'Structure may initially feel constraining. You might resist routines that seem to flatten emotional experience.',
+    strength: 'This movement offers the gift of groundedness—the capacity to act from principle, not just feeling.',
+    experiment: 'Follow a simple routine this week without questioning it. What happens when you trust the container?'
+  },
+  5: {
+    pattern: 'When resourced, you may notice access to confident engagement—moving from observation to participation, sharing knowledge generously.',
+    tradeoff: 'Engagement may initially feel exposing. You might resist action before you feel fully prepared.',
+    strength: 'This movement offers the gift of impact—the capacity to shape the world, not just understand it.',
+    experiment: 'Share your perspective before someone asks for it. What happens when you offer rather than wait?'
+  },
+  6: {
+    pattern: 'When resourced, you may notice access to inner peace and trust—relaxing vigilance, acting from groundedness rather than anticipation.',
+    tradeoff: 'Trust may initially feel naive. You might resist letting go of the watchfulness that feels protective.',
+    strength: 'This movement offers the gift of presence—the capacity to rest in what is rather than brace for what might be.',
+    experiment: 'Let something unfold without contingency planning. What happens when you trust the situation to work out?'
+  },
+  7: {
+    pattern: 'When resourced, you may notice access to focused depth—staying with one thing, finding richness in completion rather than variety.',
+    tradeoff: 'Focus may initially feel limiting. You might resist depth that requires giving up other options.',
+    strength: 'This movement offers the gift of mastery—the capacity to go deep enough to find what breadth cannot reach.',
+    experiment: 'Finish something before starting something new. What satisfaction lives on the other side of completion?'
+  },
+  8: {
+    pattern: 'When resourced, you may notice access to openheartedness and vulnerability—letting others in, using strength to protect rather than dominate.',
+    tradeoff: 'Vulnerability may initially feel like weakness. You might resist softening that seems to compromise your position.',
+    strength: 'This movement offers the gift of intimacy—the capacity to be seen and known, not just respected.',
+    experiment: 'Share something tender with someone you trust. What happens when strength includes softness?'
+  },
+  9: {
+    pattern: 'When resourced, you may notice access to assertive energy and clear priorities—making your mark, letting your preferences be known.',
+    tradeoff: 'Assertion may initially feel aggressive. You might resist differentiation that seems to threaten harmony.',
+    strength: 'This movement offers the gift of presence—the capacity to matter, to take up space, to be fully here.',
+    experiment: 'State a clear preference today without hedging. What happens when you simply say what you want?'
+  }
 };
 
 // Journal prompts per type
