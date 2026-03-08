@@ -477,6 +477,19 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const [deepDiveData, setDeepDiveData] = useState<EnneagramDeepDiveResponse | null>(null);
   const [deepDiveLoading, setDeepDiveLoading] = useState(false);
   
+  // Debug logging on mount
+  useEffect(() => {
+    console.log('[EnneagramLensView] MOUNTED');
+    console.log('[EnneagramLensView] Build:', BUILD_VERSION, BUILD_ID);
+    console.log('[EnneagramLensView] userId:', userId);
+    console.log('[EnneagramLensView] renderTabs will be called:', typeof renderTabs);
+  }, []);
+
+  // Debug logging on tab change
+  useEffect(() => {
+    console.log('[EnneagramLensView] activeTab changed to:', activeTab);
+  }, [activeTab]);
+
   // Q&A Modal state (hidden initially per user request)
   const [showQAModal, setShowQAModal] = useState(false);
   const [qaQuestion, setQaQuestion] = useState('');
