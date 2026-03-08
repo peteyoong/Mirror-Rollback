@@ -738,9 +738,8 @@ interface ChatMessage {
 export default function EnneagramLensView({ result, userId }: Props) {
   const router = useRouter();
   
-  // Theme support
-  const colorScheme = useColorScheme();
-  const theme: ThemeColors = colorScheme === 'dark' ? DarkTheme : LightTheme;
+  // Theme support - use the useTheme hook
+  const { theme, isDark } = useTheme();
   
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [energyState, setEnergyState] = useState<EnergyState | null>(
