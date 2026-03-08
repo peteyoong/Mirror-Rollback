@@ -191,6 +191,47 @@ export default function MirrorScreen() {
       setKeystone(response.data);
       lastLoadedDateRef.current = dateToLoad;
       setCurrentDate(dateToLoad);
+      
+      // If we got a deterministic (non-enriched) version, poll for enriched version
+      // This ensures instant first render + richer content when ready
+      if (response.data.is_enriched === false) {
+        // Start silent polling for enriched version
+        const pollForEnriched = async () => {
+          // Wait a few seconds for background LLM to complete
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          
+          try {
+            const enrichedResponse = await api.get(`/mirror/home/${user.id}`, {
+              params: { date: dateToLoad }
+            });
+            
+            // Only update if we got the enriched version and still on same date
+            if (enrichedResponse.data.is_enriched === true && 
+                lastLoadedDateRef.current === dateToLoad) {
+              // Silently update - no loading state change
+              setKeystone(enrichedResponse.data);
+              console.log('[MirrorHome] Silent update with enriched keystone');
+            } else if (enrichedResponse.data.is_enriched === false) {
+              // Still not enriched, try once more after another delay
+              await new Promise(resolve => setTimeout(resolve, 5000));
+              const finalResponse = await api.get(`/mirror/home/${user.id}`, {
+                params: { date: dateToLoad }
+              });
+              if (finalResponse.data.is_enriched === true && 
+                  lastLoadedDateRef.current === dateToLoad) {
+                setKeystone(finalResponse.data);
+                console.log('[MirrorHome] Silent update with enriched keystone (2nd poll)');
+              }
+            }
+          } catch (pollErr) {
+            // Silent failure - deterministic version is fine
+            console.log('[MirrorHome] Enrichment poll failed, keeping deterministic version');
+          }
+        };
+        
+        // Start polling in background (don't await)
+        pollForEnriched();
+      }
     } catch (err: any) {
       console.error('Load keystone error:', err);
       // Use fallback
