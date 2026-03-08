@@ -146,7 +146,9 @@ SOURCE_WEIGHTS = {
 }
 
 # Scoring thresholds and bounds
-DETECTION_THRESHOLD = 5.0  # Raw score needed for detection
+# v0.1.1: Lowered threshold from 5.0 to 3.0 for more sensitive detection
+# This allows emerging signals (0.4-0.8 confidence) to trigger drift_detected
+DETECTION_THRESHOLD = 3.0  # Raw score needed for detection
 CONFIDENCE_BOUNDS = {
     "low": (0.0, 0.4),
     "emerging": (0.4, 0.8),
