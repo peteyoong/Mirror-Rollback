@@ -762,7 +762,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             {/* DEEP DIVE TAB - Keep existing technical depth */}
             {activeTab === 'deep_dive' && (
               <>
-                <Text style={styles.title}>{data.title}</Text>
+                <Text style={styles.title}>{data.title || 'Your Human Design'}</Text>
                 {renderCoreMechanics()}
                 <TouchableOpacity
                   style={styles.expandButton}
@@ -777,7 +777,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                     color={Colors.accent}
                   />
                 </TouchableOpacity>
-                {data.sections.map((section, index) => renderSection(section, index))}
+                {data.sections?.map((section, index) => renderSection(section, index))}
                 {renderGeneKeys()}
                 {data.mirror_prompt && (
                   <View style={styles.mirrorPromptCard}>
