@@ -1614,14 +1614,14 @@ const styles = StyleSheet.create({
   wingCard: {
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 8,
-    padding: 12,
-    marginTop: 12,
+    padding: 10,
+    marginTop: 10,
   },
   wingCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
+    gap: 5,
+    marginBottom: 2,
   },
   wingCardTitle: {
     fontSize: 13,
