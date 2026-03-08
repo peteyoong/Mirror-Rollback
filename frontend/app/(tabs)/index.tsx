@@ -36,6 +36,7 @@ interface DailyKeystone {
   };
   daily_seed: string;
   is_first_visit: boolean;
+  is_enriched?: boolean;  // True when LLM-personalized, false when deterministic
 }
 
 // Get local date in YYYY-MM-DD format
