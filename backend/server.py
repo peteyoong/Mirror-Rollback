@@ -10385,7 +10385,7 @@ async def get_enneagram_traits(user_id: str):
 # ============================================
 
 @api_router.get("/insights/pattern-drift/{user_id}")
-async def get_pattern_drift(user_id: str):
+async def get_pattern_drift(user_id: str, debug: bool = False):
     """
     Get Pattern Drift analysis for a user.
     
@@ -10402,6 +10402,9 @@ async def get_pattern_drift(user_id: str):
     - confidence_label: "low", "emerging", or "moderate"
     - signal_keywords: Keywords that triggered detection
     - summary: Template-based reflective summary
+    
+    Query Parameters:
+    - debug: bool (default: False) - Include debug info in response
     """
     try:
         logger.info(f"[PatternDrift] Fetching drift for user {user_id}")
