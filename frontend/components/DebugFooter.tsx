@@ -81,8 +81,8 @@ export default function DebugFooter({ lens, sections, source, rawDataLength, deb
       </Text>
       
       {/* Data integrity check */}
-      {rawDataLength && (
-        <Text style={[styles.info, dataMismatch && styles.error]}>
+      {rawDataLength !== undefined && rawDataLength > 0 && (
+        <Text style={[styles.info, dataMismatch ? styles.error : undefined]}>
           API Response: {rawDataLength}c | Rendered: {totalChars}c | 
           {dataMismatch ? ' ⚠️ MISMATCH!' : ' ✓ Match'}
         </Text>
