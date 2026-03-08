@@ -1212,6 +1212,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
       </View>
     );
 
+    // Check if self-declared
+    const isSelfDeclared = result.source === 'self_declared' || result.method === 'self_declared';
+
     return (
       <>
         {/* ═══════════════════════════════════════════════════════════════
@@ -1222,17 +1225,32 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {/* Identity Card */}
         <View style={styles.deepDiveHeader}>
           <View style={styles.deepDiveHeaderTop}>
-            <Text style={styles.deepDiveType}>{typeLabel}</Text>
-            <View style={[
-              styles.confidenceBadge,
-              confidence === 'high' && styles.confidenceHigh,
-              confidence === 'medium' && styles.confidenceMedium,
-              confidence === 'low' && styles.confidenceLow,
-            ]}>
-              <Text style={styles.confidenceBadgeText}>
-                {confidence === 'high' ? 'High Confidence' : confidence === 'medium' ? 'Moderate Confidence' : 'Exploratory'}
-              </Text>
+            <View style={styles.identityTitleRow}>
+              <Text style={styles.deepDiveType}>{typeLabel}</Text>
+              <TouchableOpacity 
+                style={styles.editTypeInline}
+                onPress={handleEditType}
+              >
+                <Ionicons name="pencil" size={14} color={Colors.textTertiary} />
+              </TouchableOpacity>
             </View>
+            {isSelfDeclared ? (
+              <View style={styles.sourceBadge}>
+                <Ionicons name="person-outline" size={12} color={Colors.textSecondary} />
+                <Text style={styles.sourceBadgeText}>Self-declared</Text>
+              </View>
+            ) : (
+              <View style={[
+                styles.confidenceBadge,
+                confidence === 'high' && styles.confidenceHigh,
+                confidence === 'medium' && styles.confidenceMedium,
+                confidence === 'low' && styles.confidenceLow,
+              ]}>
+                <Text style={styles.confidenceBadgeText}>
+                  {confidence === 'high' ? 'High Confidence' : confidence === 'medium' ? 'Moderate Confidence' : 'Exploratory'}
+                </Text>
+              </View>
+            )}
           </View>
           <Text style={styles.deepDiveWingStance}>{typeName}</Text>
           <Text style={styles.deepDiveNote}>This lens reflects strategy, not identity.</Text>
