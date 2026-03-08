@@ -1127,6 +1127,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {/* Pattern Movement Card */}
         {patternDrift && (patternDrift.drift_candidate || patternDrift.signals_detected > 0) && (
           <View style={styles.patternMovementCard}>
+            {/* Header */}
             <View style={styles.patternMovementHeader}>
               <Ionicons name="pulse-outline" size={16} color={Colors.accent} />
               <Text style={styles.patternMovementTitle}>Pattern Movement</Text>
@@ -1143,40 +1144,70 @@ export default function EnneagramLensView({ result, userId }: Props) {
               )}
             </View>
             
-            <View style={styles.patternMovementContent}>
-              {/* Baseline */}
-              <View style={styles.driftRow}>
-                <Text style={styles.driftLabel}>Baseline</Text>
-                <Text style={styles.driftValue}>
-                  Type {patternDrift.baseline_type} · {patternDrift.baseline_name?.replace('The ', '')}
-                </Text>
+            {/* Visual Movement Indicator */}
+            <View style={styles.movementIndicatorContainer}>
+              <View style={styles.movementIndicator}>
+                {/* Baseline Type Circle */}
+                <View style={styles.typeCircle}>
+                  <Text style={styles.typeCircleNumber}>{patternDrift.baseline_type}</Text>
+                </View>
+                
+                {/* Arrow (only show if drift detected) */}
+                {patternDrift.drift_candidate ? (
+                  <>
+                    <View style={[
+                      styles.movementArrowLine,
+                      patternDrift.direction === 'stress' && styles.movementArrowStress,
+                      patternDrift.direction === 'growth' && styles.movementArrowGrowth,
+                    ]} />
+                    <Ionicons 
+                      name="chevron-forward" 
+                      size={16} 
+                      color={patternDrift.direction === 'stress' ? '#E57373' : '#81C784'} 
+                      style={styles.movementArrowIcon}
+                    />
+                    
+                    {/* Drift Type Circle */}
+                    <View style={[
+                      styles.typeCircle,
+                      styles.typeCircleDrift,
+                      patternDrift.direction === 'stress' && styles.typeCircleStress,
+                      patternDrift.direction === 'growth' && styles.typeCircleGrowth,
+                    ]}>
+                      <Text style={[
+                        styles.typeCircleNumber,
+                        patternDrift.direction === 'stress' && styles.typeCircleNumberStress,
+                        patternDrift.direction === 'growth' && styles.typeCircleNumberGrowth,
+                      ]}>{patternDrift.drift_candidate}</Text>
+                    </View>
+                  </>
+                ) : null}
               </View>
               
-              {/* Recent Signal */}
-              {patternDrift.drift_candidate && (
-                <View style={styles.driftRow}>
-                  <Text style={styles.driftLabel}>Recent Signal</Text>
-                  <View style={styles.driftSignalValue}>
-                    <Ionicons 
-                      name={patternDrift.direction === 'stress' ? 'arrow-down' : 'arrow-up'} 
-                      size={12} 
-                      color={patternDrift.direction === 'stress' ? '#E57373' : '#81C784'} 
-                    />
-                    <Text style={[
-                      styles.driftValue,
-                      patternDrift.direction === 'stress' && styles.driftStress,
-                      patternDrift.direction === 'growth' && styles.driftGrowth,
-                    ]}>
-                      Type {patternDrift.drift_candidate} patterns
-                    </Text>
-                  </View>
-                </View>
+              {/* Direction Label */}
+              {patternDrift.drift_candidate && patternDrift.direction && (
+                <Text style={[
+                  styles.movementDirectionLabel,
+                  patternDrift.direction === 'stress' && styles.movementDirectionStress,
+                  patternDrift.direction === 'growth' && styles.movementDirectionGrowth,
+                ]}>
+                  {patternDrift.direction === 'stress' ? 'stress point' : 'growth point'}
+                </Text>
               )}
               
+              {/* No movement detected - show baseline only label */}
+              {!patternDrift.drift_candidate && (
+                <Text style={styles.movementBaselineLabel}>
+                  {patternDrift.baseline_name?.replace('The ', '')}
+                </Text>
+              )}
+            </View>
+            
+            <View style={styles.patternMovementContent}>
               {/* Keywords */}
               {patternDrift.signal_keywords && patternDrift.signal_keywords.length > 0 && (
                 <View style={styles.driftKeywords}>
-                  {patternDrift.signal_keywords.slice(0, 3).map((keyword, index) => (
+                  {patternDrift.signal_keywords.slice(0, 4).map((keyword, index) => (
                     <View key={index} style={styles.driftKeywordBadge}>
                       <Text style={styles.driftKeywordText}>{keyword}</Text>
                     </View>
