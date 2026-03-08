@@ -344,6 +344,30 @@ export const getEnneagramResult = async (userId: string) => {
   return response.data;
 };
 
+// Pattern Drift API
+export interface PatternDriftResponse {
+  baseline_type: number | null;
+  baseline_name: string | null;
+  drift_detected: boolean;
+  drift_candidate: number | null;
+  drift_candidate_name: string | null;
+  direction: 'stress' | 'growth' | null;
+  confidence_label: 'low' | 'emerging' | 'moderate';
+  confidence_score: number;
+  signal_keywords: string[];
+  signal_sources: string[];
+  signals_detected: number;
+  window_days: number;
+  summary: string | null;
+  calculated_at: string;
+  error?: string;
+}
+
+export const getPatternDrift = async (userId: string): Promise<PatternDriftResponse> => {
+  const response = await apiWithRetry.get(`/insights/pattern-drift/${userId}`);
+  return response.data;
+};
+
 // Enneagram Chat API
 export const sendEnneagramChat = async (data: {
   user_id: string;
