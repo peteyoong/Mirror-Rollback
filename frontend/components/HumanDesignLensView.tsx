@@ -304,53 +304,50 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Render a single Gene Key sphere position with context
+  // Render a single Gene Key sphere position with MEANING-FIRST design
   const renderGeneKeySphere = (name: string, position: GeneKeyPosition) => {
     const chartLabel = position.source_chart === 'personality' ? 'Conscious' : 'Unconscious';
-    const explanation = formatSequenceExplanation(name, position.gate, position.line);
-    const gateTheme = getGateTheme(position.gate);
+    const interp = generateSphereInterpretation(name, position.gate, position.line);
+    const sourceInfo = `${position.source_planet} • ${chartLabel}`;
     
-    // Technical view: show raw values prominently
+    // Technical view: compact row with values
     if (sequenceViewMode === 'technical') {
       return (
         <View key={name} style={styles.gkSphereItemTechnical}>
           <View style={styles.gkSphereLeft}>
-            <Text style={styles.gkSphereName}>{explanation.title}</Text>
+            <Text style={styles.gkSphereName}>{interp.sphereTitle}</Text>
+            <Text style={styles.gkSphereDescriptorSmall}>{interp.sphereDescriptor}</Text>
           </View>
           <View style={styles.gkSphereRight}>
             <Text style={styles.gkGateLine}>
               {position.gate}.{position.line}
             </Text>
             <Text style={styles.gkSource}>
-              {position.source_planet} • {chartLabel}
+              {sourceInfo}
             </Text>
           </View>
         </View>
       );
     }
     
-    // Everyday language view: editorial, spacious layout
+    // MEANING-FIRST VIEW: sphere name → descriptor → interpretation → metadata
     return (
-      <View key={name} style={styles.gkSphereItemExpanded}>
-        {/* Sphere Title - emphasized */}
-        <Text style={styles.gkSphereTitle}>{explanation.title}</Text>
+      <View key={name} style={styles.sphereCard}>
+        {/* 1. Sphere Name - prominent */}
+        <Text style={styles.sphereTitle}>{interp.sphereTitle}</Text>
         
-        {/* Theme Label */}
-        <Text style={styles.gkSphereTheme}>{explanation.themeLabel}</Text>
+        {/* 2. Plain-English Descriptor - one line */}
+        <Text style={styles.sphereDescriptor}>{interp.sphereDescriptor}</Text>
         
-        {/* Description */}
-        <Text style={styles.gkSphereDescription}>{explanation.description}</Text>
+        {/* 3. Meaning-First Interpretation - short paragraph */}
+        <Text style={styles.sphereInterpretation}>{interp.meaningInterpretation}</Text>
         
-        {/* Reflection Prompt - visually separated */}
-        {explanation.reflectionPrompt && (
-          <View style={styles.gkReflectionContainer}>
-            <View style={styles.gkReflectionDivider} />
-            <Text style={styles.gkSpherePrompt}>{explanation.reflectionPrompt}</Text>
-          </View>
-        )}
-        
-        {/* Technical value - secondary, subtle */}
-        <Text style={styles.gkSphereTechnical}>{explanation.technicalValue}</Text>
+        {/* 4. Technical Details - subtle metadata at bottom */}
+        <View style={styles.sphereMetadata}>
+          <Text style={styles.sphereMetaText}>{interp.technicalGateLine}</Text>
+          <Text style={styles.sphereMetaDot}>•</Text>
+          <Text style={styles.sphereMetaText}>{sourceInfo}</Text>
+        </View>
       </View>
     );
   };
