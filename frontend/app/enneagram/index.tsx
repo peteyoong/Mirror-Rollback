@@ -39,27 +39,36 @@ export default function EnneagramScreen() {
   const [result, setResult] = useState<EnneagramResult | null>(null);
   const [loading, setLoading] = useState(true);
   
-  useEffect(() => {
-    const fetchResult = async () => {
-      if (!user?.id) {
-        setLoading(false);
-        return;
-      }
-      
-      try {
-        const response = await getEnneagramResult(user.id);
-        if (response.has_result && response.result) {
-          setResult(response.result);
+  // Use useFocusEffect to re-fetch data every time screen comes into focus
+  // This is critical for the self-declare flow where user navigates back after saving
+  useFocusEffect(
+    useCallback(() => {
+      const fetchResult = async () => {
+        if (!user?.id) {
+          setLoading(false);
+          return;
         }
-      } catch (error) {
-        console.error('Error fetching Enneagram result:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchResult();
-  }, [user?.id]);
+        
+        setLoading(true); // Reset loading state on each focus
+        
+        try {
+          const response = await getEnneagramResult(user.id);
+          if (response.has_result && response.result) {
+            setResult(response.result);
+          } else {
+            setResult(null); // Ensure result is cleared if not found
+          }
+        } catch (error) {
+          console.error('Error fetching Enneagram result:', error);
+          setResult(null);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchResult();
+    }, [user?.id])
+  );
   
   // Redirect if no user
   if (!user) {
