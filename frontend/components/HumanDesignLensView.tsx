@@ -15,6 +15,9 @@ import {
   formatSequenceExplanation, 
   getArcDescription, 
   getGateTheme,
+  generateSphereInterpretation,
+  getSphereDescriptor,
+  getSequenceRole,
   SEQUENCE_ROLES 
 } from '../utils/humanDesignContext';
 
