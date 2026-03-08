@@ -2473,6 +2473,35 @@ const styles = StyleSheet.create({
     color: Colors.text,
     textAlign: 'center',
   },
+  
+  // Experiment Card (Try This)
+  experimentCard: {
+    backgroundColor: 'rgba(255, 215, 0, 0.05)',
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.2)',
+  },
+  experimentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  experimentLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.accent,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  experimentText: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: Colors.text,
+    fontStyle: 'italic',
+  },
 
   // Verification
   verificationItem: {
