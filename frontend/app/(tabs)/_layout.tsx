@@ -1,27 +1,29 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 import SessionRestoreWrapper from '../../components/SessionRestoreWrapper';
 
 export default function TabLayout() {
+  const { theme } = useTheme();
+  
   return (
     <SessionRestoreWrapper>
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.text,
-        tabBarInactiveTintColor: Colors.textTertiary,
+        tabBarActiveTintColor: theme.tabActive,
+        tabBarInactiveTintColor: theme.tabInactive,
         tabBarStyle: {
-          backgroundColor: Colors.surface,
-          borderTopColor: Colors.border,
+          backgroundColor: theme.surface,
+          borderTopColor: theme.border,
           borderTopWidth: 1,
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
         },
         headerStyle: {
-          backgroundColor: Colors.background,
+          backgroundColor: theme.background,
         },
-        headerTintColor: Colors.text,
+        headerTintColor: theme.text,
         headerShadowVisible: false,
       }}
     >
