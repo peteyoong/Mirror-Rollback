@@ -300,7 +300,7 @@ export const saveEnneagramResult = async (data: {
   method: string;
   version: string;
   inferred_core: number;
-  inferred_wing: number | string;
+  inferred_wing: number | string | null;
   confidence: number;
   confidence_tier: string;
   is_close: boolean;
