@@ -1085,7 +1085,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   gkArcsContainer: {
-    gap: 16,
+    gap: 24,
   },
   // Arc Card - light, editorial feel
   gkArcCard: {
