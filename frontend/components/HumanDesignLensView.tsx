@@ -126,55 +126,38 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  const [tabRestored, setTabRestored] = useState(false);
   
   // Gene Keys expansion state
   const [expandedArc, setExpandedArc] = useState<string | null>(null);
   
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
-
-  // Restore persisted tab on mount
-  useEffect(() => {
-    const restoreTab = async () => {
-      try {
-        const savedTab = await AsyncStorage.getItem(HD_TAB_STORAGE_KEY);
-        console.log('[HumanDesignLensView] Restored tab from storage:', savedTab);
-        if (savedTab && ['summary', 'today', 'deep_dive'].includes(savedTab)) {
-          setActiveTab(savedTab as TabType);
-        }
-      } catch (e) {
-        console.log('[HumanDesignLensView] Failed to restore tab:', e);
-      } finally {
-        setTabRestored(true);
-      }
-    };
-    restoreTab();
-  }, []);
+  
+  // Track mount count for debugging
+  const mountCount = useRef(0);
 
   // Debug logging on mount
   useEffect(() => {
-    console.log('[HumanDesignLensView] MOUNTED');
+    mountCount.current += 1;
+    console.log('[HumanDesignLensView] MOUNTED (count:', mountCount.current, ')');
     console.log('[HumanDesignLensView] Build:', BUILD_VERSION, BUILD_ID);
     console.log('[HumanDesignLensView] userId:', userId);
+    console.log('[HumanDesignLensView] Initial activeTab:', activeTab);
+    
+    return () => {
+      console.log('[HumanDesignLensView] UNMOUNTING');
+    };
   }, []);
 
-  // Persist tab when it changes (after initial restore)
+  // Log tab changes
   useEffect(() => {
-    if (tabRestored) {
-      console.log('[HumanDesignLensView] Persisting tab:', activeTab);
-      AsyncStorage.setItem(HD_TAB_STORAGE_KEY, activeTab).catch(e => 
-        console.log('[HumanDesignLensView] Failed to persist tab:', e)
-      );
-    }
-  }, [activeTab, tabRestored]);
+    console.log('[HumanDesignLensView] Tab changed to:', activeTab);
+  }, [activeTab]);
 
-  // Load data when tab or user changes (only after tab is restored)
+  // Load data when tab or user changes
   useEffect(() => {
-    if (tabRestored) {
-      loadTabData(activeTab);
-    }
-  }, [activeTab, userId, tabRestored]);
+    loadTabData(activeTab);
+  }, [activeTab, userId]);
 
   const loadTabData = async (tab: TabType) => {
     setIsLoading(true);
