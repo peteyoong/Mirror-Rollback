@@ -2807,6 +2807,104 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.05)',
   },
   
+  // Pattern Movement Card
+  patternMovementCard: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  patternMovementHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  patternMovementTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+    flex: 1,
+  },
+  patternMovementContent: {
+    gap: 10,
+  },
+  driftRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  driftLabel: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  driftValue: {
+    fontSize: 14,
+    color: Colors.text,
+  },
+  driftSignalValue: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  driftStress: {
+    color: '#E57373',
+  },
+  driftGrowth: {
+    color: '#81C784',
+  },
+  driftKeywords: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 4,
+  },
+  driftKeywordBadge: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  driftKeywordText: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+  },
+  driftSummary: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+    marginTop: 8,
+  },
+  driftDisclaimer: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  driftConfidenceBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  driftConfidenceModerate: {
+    backgroundColor: 'rgba(129, 199, 132, 0.15)',
+  },
+  driftConfidenceEmerging: {
+    backgroundColor: 'rgba(255, 215, 0, 0.15)',
+  },
+  driftConfidenceText: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    textTransform: 'capitalize',
+  },
+  
   // Shared footer (across all tabs)
   sharedFooter: {
     marginTop: 24,
