@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
-import { Colors } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
