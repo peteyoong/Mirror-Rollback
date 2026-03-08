@@ -2192,7 +2192,7 @@ const styles = StyleSheet.create({
 
   // Wing Card (inside accordion)
   wingCard: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: Colors.surfaceLight,
     borderRadius: 8,
     padding: 10,
     marginTop: 10,
@@ -2216,7 +2216,7 @@ const styles = StyleSheet.create({
 
   // Structure Grid Compact
   structureGridCompact: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: Colors.surfaceLight,
     borderRadius: 8,
     padding: 10,
     marginTop: 12,
@@ -2243,7 +2243,7 @@ const styles = StyleSheet.create({
   flowRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: Colors.surfaceLight,
     borderRadius: 8,
     padding: 10,
     marginBottom: 12,
@@ -2853,7 +2853,7 @@ const styles = StyleSheet.create({
   
   // Pattern Movement Card
   patternMovementCard: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: Colors.surfaceLight,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
