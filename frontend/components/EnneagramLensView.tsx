@@ -2894,26 +2894,26 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: Colors.surfaceLight,
     borderWidth: 2,
-    borderColor: Colors.textTertiary,
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   typeCircleMuted: {
-    borderColor: 'rgba(255,255,255,0.15)',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceLight,
   },
   typeCircleDrift: {
     borderStyle: 'dashed',
   },
   typeCircleStress: {
-    borderColor: '#E57373',
-    backgroundColor: 'rgba(229, 115, 115, 0.1)',
+    borderColor: '#C62828',
+    backgroundColor: '#FFEBEE',
   },
   typeCircleGrowth: {
-    borderColor: '#81C784',
-    backgroundColor: 'rgba(129, 199, 132, 0.1)',
+    borderColor: '#2E7D32',
+    backgroundColor: '#E8F5E9',
   },
   typeCircleNumber: {
     fontSize: 18,
@@ -2924,43 +2924,43 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
   },
   typeCircleNumberStress: {
-    color: '#E57373',
+    color: '#C62828',
   },
   typeCircleNumberGrowth: {
-    color: '#81C784',
+    color: '#2E7D32',
   },
   movementArrowLine: {
     width: 24,
     height: 2,
-    backgroundColor: Colors.textTertiary,
+    backgroundColor: Colors.border,
     marginLeft: -2,
   },
   movementArrowStress: {
-    backgroundColor: '#E57373',
+    backgroundColor: '#C62828',
   },
   movementArrowGrowth: {
-    backgroundColor: '#81C784',
+    backgroundColor: '#2E7D32',
   },
   movementArrowIcon: {
     marginRight: -2,
   },
   movementDirectionLabel: {
     fontSize: 11,
-    fontWeight: '500',
-    color: Colors.textTertiary,
+    fontWeight: '600',
+    color: Colors.textSecondary,
     textTransform: 'lowercase',
     letterSpacing: 0.5,
     marginTop: 10,
   },
   movementDirectionStress: {
-    color: '#E57373',
+    color: '#C62828',
   },
   movementDirectionGrowth: {
-    color: '#81C784',
+    color: '#2E7D32',
   },
   movementBaselineLabel: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: Colors.textSecondary,
     marginTop: 8,
   },
   
