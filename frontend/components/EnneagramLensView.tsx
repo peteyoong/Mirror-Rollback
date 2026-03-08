@@ -86,15 +86,15 @@ const STRESS_PATTERNS: { [key: number]: string } = {
 
 // Growth patterns per type
 const GROWTH_PATTERNS: { [key: number]: string } = {
-  1: 'When resourced, access spontaneity and joy (7-like): lightness, acceptance, playful engagement.',
-  2: 'When resourced, access self-care and boundaries (4-like): honoring your own needs and feelings.',
-  3: 'When resourced, access commitment and loyalty (6-like): depth over image, authentic connection.',
-  4: 'When resourced, access objectivity and discipline (1-like): structure, principles, right action.',
-  5: 'When resourced, access confident action (8-like): assertion, decisiveness, engaging the world.',
-  6: 'When resourced, access inner peace and receptivity (9-like): trust, relaxation, groundedness.',
-  7: 'When resourced, access focused depth (5-like): concentration, mastery, finishing what you start.',
-  8: 'When resourced, access openheartedness (2-like): vulnerability, care, letting others in.',
-  9: 'When resourced, access assertive energy (3-like): goals, action, making your mark.',
+  1: 'Access spontaneity and joy. Loosen the grip on standards. Allow lightness, acceptance, and playful engagement.',
+  2: 'Access self-care and emotional honesty. Honor your own needs without guilt. Rest without earning it.',
+  3: 'Access commitment over image. Value depth and authentic connection more than visible success.',
+  4: 'Access objectivity and discipline. Use structure to channel emotion into action. Trust what\'s present.',
+  5: 'Access confident engagement. Move from observation to participation. Share knowledge generously.',
+  6: 'Access inner peace and trust. Relax vigilance. Act from groundedness rather than anticipation.',
+  7: 'Access focused depth. Stay with one thing. Find richness in completion rather than variety.',
+  8: 'Access openheartedness and vulnerability. Let others in. Use strength to protect, not dominate.',
+  9: 'Access assertive energy and clear priorities. Make your mark. Let your preferences be known.',
 };
 
 // Journal prompts per type
