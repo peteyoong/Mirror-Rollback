@@ -229,6 +229,19 @@ export async function clearStableUserId(): Promise<void> {
 }
 
 /**
+ * Set the cached stable user ID directly
+ * Used when user logs in and we need to sync the cache with the persisted ID
+ * @param userId The user ID to cache (typically MongoDB ObjectId from login)
+ */
+export function setStableUserIdCache(userId: string): void {
+  if (DEBUG_MIRROR) {
+    console.log('[StableUserId] Setting cache directly:', maskUserId(userId));
+  }
+  _cachedStableUserId = userId;
+  _assertionCheckCount = 1;
+}
+
+/**
  * Debug: Get all user ID related info
  */
 export async function getDebugUserIdInfo(): Promise<{
