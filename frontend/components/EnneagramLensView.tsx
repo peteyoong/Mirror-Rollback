@@ -2867,6 +2867,9 @@ const styles = StyleSheet.create({
     color: Colors.text,
     flex: 1,
   },
+  patternMovementTitleMuted: {
+    color: Colors.textTertiary,
+  },
   patternMovementContent: {
     gap: 10,
   },
@@ -2892,6 +2895,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  typeCircleMuted: {
+    borderColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
   typeCircleDrift: {
     borderStyle: 'dashed',
   },
@@ -2907,6 +2914,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: Colors.text,
+  },
+  typeCircleNumberMuted: {
+    color: Colors.textTertiary,
   },
   typeCircleNumberStress: {
     color: '#E57373',
@@ -2933,8 +2943,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
     color: Colors.textTertiary,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    textTransform: 'lowercase',
+    letterSpacing: 0.5,
     marginTop: 10,
   },
   movementDirectionStress: {
@@ -2945,11 +2955,11 @@ const styles = StyleSheet.create({
   },
   movementBaselineLabel: {
     fontSize: 12,
-    color: Colors.textSecondary,
+    color: Colors.textTertiary,
     marginTop: 8,
   },
   
-  // Old drift styles (kept for keywords/summary)
+  // Drift content styles (keywords secondary, summary tertiary)
   driftRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -3000,11 +3010,19 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
   },
+  driftSummaryNeutral: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textTertiary,
+    marginTop: 4,
+    textAlign: 'center',
+  },
   driftDisclaimer: {
     fontSize: 11,
     color: Colors.textTertiary,
     marginTop: 12,
     textAlign: 'center',
+    opacity: 0.7,
   },
   driftConfidenceBadge: {
     paddingHorizontal: 8,
