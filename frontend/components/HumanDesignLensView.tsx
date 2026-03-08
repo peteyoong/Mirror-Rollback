@@ -321,23 +321,25 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const chartLabel = position.source_chart === 'personality' ? 'Conscious' : 'Unconscious';
     const interp = generateSphereInterpretation(name, position.gate, position.line);
     const sourceInfo = `${position.source_planet} • ${chartLabel}`;
+    const gateLineDisplay = `${position.gate}.${position.line}`;
     
-    // MEANING-FIRST VIEW: sphere name → descriptor → interpretation → metadata
+    // MEANING-FIRST VIEW: sphere name → gate.line → descriptor → interpretation → metadata
     return (
       <View key={name} style={styles.sphereCard}>
         {/* 1. Sphere Name - prominent */}
         <Text style={styles.sphereTitle}>{interp.sphereTitle}</Text>
         
-        {/* 2. Plain-English Descriptor - one line */}
+        {/* 2. Gate.Line - technical identifier right under title */}
+        <Text style={styles.sphereGateLine}>{gateLineDisplay}</Text>
+        
+        {/* 3. Plain-English Descriptor - one line */}
         <Text style={styles.sphereDescriptor}>{interp.sphereDescriptor}</Text>
         
-        {/* 3. Meaning-First Interpretation - short paragraph */}
+        {/* 4. Meaning-First Interpretation - short paragraph */}
         <Text style={styles.sphereInterpretation}>{interp.meaningInterpretation}</Text>
         
-        {/* 4. Technical Details - subtle metadata at bottom */}
+        {/* 5. Technical Details - subtle metadata at bottom */}
         <View style={styles.sphereMetadata}>
-          <Text style={styles.sphereMetaText}>{interp.technicalGateLine}</Text>
-          <Text style={styles.sphereMetaDot}>•</Text>
           <Text style={styles.sphereMetaText}>{sourceInfo}</Text>
         </View>
       </View>
