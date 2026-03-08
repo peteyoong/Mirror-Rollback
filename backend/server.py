@@ -5090,6 +5090,7 @@ class DailyKeystoneResponse(BaseModel):
     micro_affirmation: str
     source_signals: dict
     daily_seed: str
+    is_enriched: bool = False  # True when LLM-personalized, False when deterministic
 
 
 # Keep old response model for backwards compatibility
@@ -5097,6 +5098,440 @@ class MirrorHomeResponse(BaseModel):
     reflection: str
     generated_at: str
     is_first_visit: bool = False
+
+
+# =====================================================================
+# DETERMINISTIC KEYSTONE TEMPLATES
+# =====================================================================
+# These provide instant, complete keystones based on computed chart data.
+# They feel intentional and reflective, not placeholder-like.
+
+DETERMINISTIC_KEYSTONE_TEMPLATES = {
+    # Fire emphasis (Aries, Leo, Sagittarius sun/moon)
+    "fire": [
+        {
+            "title": "The Quiet Before Movement",
+            "keystone": "There's an impulse rising, something that wants to begin. Before acting, there's a moment—brief, easy to miss—where you can feel what's underneath the momentum.",
+            "reflect_question": "What feels ready to move, and what might benefit from one more breath?",
+            "micro_affirmation": "The spark knows its timing."
+        },
+        {
+            "title": "Heat and Patience",
+            "keystone": "Energy wants to flow outward today. The tension isn't whether to move, but how to let the fire warm without consuming.",
+            "reflect_question": "Where could your intensity become invitation rather than force?",
+            "micro_affirmation": "Warmth travels further than flame."
+        }
+    ],
+    # Earth emphasis (Taurus, Virgo, Capricorn)
+    "earth": [
+        {
+            "title": "What Remains",
+            "keystone": "Beneath the day's demands, there's something steady. Not resistant to change—rooted through it. Today might ask you to notice what holds without gripping.",
+            "reflect_question": "What foundation are you standing on, even when everything else shifts?",
+            "micro_affirmation": "Steadiness is not stillness."
+        },
+        {
+            "title": "The Work Underneath",
+            "keystone": "There's a quiet satisfaction in tending to what grows slowly. Today might reveal where patient effort has been building something you couldn't see.",
+            "reflect_question": "What are you building that won't be visible for a while?",
+            "micro_affirmation": "Some things mature in the dark."
+        }
+    ],
+    # Air emphasis (Gemini, Libra, Aquarius)
+    "air": [
+        {
+            "title": "Between Thoughts",
+            "keystone": "The mind is quick today, connecting dots, seeing patterns. Somewhere in that activity is a quieter question waiting to be noticed.",
+            "reflect_question": "What idea keeps returning, even when you're thinking about something else?",
+            "micro_affirmation": "Insight arrives between intentions."
+        },
+        {
+            "title": "The Weight of Lightness",
+            "keystone": "There's freedom in how quickly you can shift perspective. And sometimes, a gentle pull toward staying with one view long enough to see what it reveals.",
+            "reflect_question": "What would it mean to stay curious about one thing today?",
+            "micro_affirmation": "Depth and movement can coexist."
+        }
+    ],
+    # Water emphasis (Cancer, Scorpio, Pisces)
+    "water": [
+        {
+            "title": "Undercurrents",
+            "keystone": "Something is moving beneath the surface today. Not demanding attention—just present, like water finding its level. You might feel more than you can name.",
+            "reflect_question": "What emotion is asking to be acknowledged, not solved?",
+            "micro_affirmation": "Feelings know their own timing."
+        },
+        {
+            "title": "The Tide's Teaching",
+            "keystone": "There's a pull inward today, an invitation to feel what's here before deciding what to do with it. Not withdrawal—receptivity.",
+            "reflect_question": "What would it mean to receive today rather than produce?",
+            "micro_affirmation": "Sensitivity is a form of strength."
+        }
+    ],
+    # Generator/MG types
+    "generator": [
+        {
+            "title": "Response Rising",
+            "keystone": "Your energy today is waiting to respond to something that genuinely calls you. The question isn't what to do—it's what lights up when you encounter it.",
+            "reflect_question": "What made your body say yes before your mind caught up?",
+            "micro_affirmation": "Your response is your compass."
+        }
+    ],
+    # Projector types
+    "projector": [
+        {
+            "title": "The Art of Waiting",
+            "keystone": "Your clarity comes in a different rhythm than action. Today might offer moments where being recognized matters more than being busy.",
+            "reflect_question": "Where are you being invited that you haven't fully noticed?",
+            "micro_affirmation": "Your seeing is your gift."
+        }
+    ],
+    # Manifestor types
+    "manifestor": [
+        {
+            "title": "Before the Initiation",
+            "keystone": "Something in you knows when it's time to begin. Today might be about letting others know what's moving, creating the space for your impact to land.",
+            "reflect_question": "Who needs to know what you're about to do?",
+            "micro_affirmation": "Informing is freeing."
+        }
+    ],
+    # Reflector types
+    "reflector": [
+        {
+            "title": "The Mirror's Patience",
+            "keystone": "You're sampling today's energy, not defined by it. What you notice about your environment tells you something important—about them, and about what you're becoming.",
+            "reflect_question": "What does today's environment reveal that yesterday's didn't?",
+            "micro_affirmation": "Your openness is your wisdom."
+        }
+    ],
+    # Default/fallback
+    "default": [
+        {
+            "title": "A Moment of Arrival",
+            "keystone": "Something in you brought you here today. That small act of pausing—even for a moment—is itself a form of attention worth honoring.",
+            "reflect_question": "What feels most present right now, underneath the surface?",
+            "micro_affirmation": "You don't have to have it figured out to be here."
+        },
+        {
+            "title": "Today's Texture",
+            "keystone": "Each day arrives with its own quality, its own invitation. Before the tasks and the thinking, there's a felt sense of what this day is asking.",
+            "reflect_question": "What quality does today seem to carry?",
+            "micro_affirmation": "Noticing is enough."
+        },
+        {
+            "title": "The Space Between",
+            "keystone": "Between what happened yesterday and what comes next, there's this moment. Not empty—full of something quieter than thought.",
+            "reflect_question": "What's here in the pause?",
+            "micro_affirmation": "Presence needs no justification."
+        }
+    ]
+}
+
+
+def generate_deterministic_keystone(user_id: str, date_str: str, chart_data: Optional[dict] = None) -> dict:
+    """
+    Generate an instant, deterministic keystone based on computed chart data.
+    No LLM calls. Target: <50ms.
+    """
+    import hashlib
+    
+    # Create deterministic seed
+    seed_input = f"{user_id}:{date_str}:deterministic-keystone-v1"
+    daily_seed = hashlib.sha256(seed_input.encode()).hexdigest()
+    
+    # Determine which template category to use based on chart
+    template_key = "default"
+    
+    if chart_data:
+        # Check astrology emphasis
+        astro = chart_data.get('astrology', {})
+        sun_sign = None
+        moon_sign = None
+        
+        if 'sun_sign' in astro:
+            sun_sign = astro.get('sun_sign')
+            moon_sign = astro.get('moon_sign')
+        elif 'planets' in astro:
+            planets = astro.get('planets', {})
+            sun_data = planets.get('Sun', {})
+            moon_data = planets.get('Moon', {})
+            sun_sign = sun_data.get('sign') if isinstance(sun_data, dict) else None
+            moon_sign = moon_data.get('sign') if isinstance(moon_data, dict) else None
+        
+        fire_signs = ["Aries", "Leo", "Sagittarius"]
+        earth_signs = ["Taurus", "Virgo", "Capricorn"]
+        air_signs = ["Gemini", "Libra", "Aquarius"]
+        water_signs = ["Cancer", "Scorpio", "Pisces"]
+        
+        # Prioritize HD type for personalization
+        hd = chart_data.get('human_design', {})
+        hd_type = hd.get('type', '')
+        
+        if hd_type in ['Generator', 'Manifesting Generator']:
+            template_key = "generator"
+        elif hd_type == 'Projector':
+            template_key = "projector"
+        elif hd_type == 'Manifestor':
+            template_key = "manifestor"
+        elif hd_type == 'Reflector':
+            template_key = "reflector"
+        elif sun_sign in fire_signs or moon_sign in fire_signs:
+            template_key = "fire"
+        elif sun_sign in earth_signs or moon_sign in earth_signs:
+            template_key = "earth"
+        elif sun_sign in air_signs or moon_sign in air_signs:
+            template_key = "air"
+        elif sun_sign in water_signs or moon_sign in water_signs:
+            template_key = "water"
+    
+    # Get templates for this category
+    templates = DETERMINISTIC_KEYSTONE_TEMPLATES.get(template_key, DETERMINISTIC_KEYSTONE_TEMPLATES["default"])
+    
+    # Select template deterministically based on seed
+    template_index = int(daily_seed[:4], 16) % len(templates)
+    template = templates[template_index]
+    
+    return {
+        "date": date_str,
+        "title": template["title"],
+        "keystone": template["keystone"],
+        "reflect_question": template["reflect_question"],
+        "micro_affirmation": template["micro_affirmation"],
+        "source_signals": {
+            "used": ["deterministic", template_key],
+            "tone": "grounding"
+        },
+        "daily_seed": daily_seed[:12],
+        "reflection": template["keystone"],  # Backwards compatibility
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "is_first_visit": False,
+        "is_enriched": False  # Flag indicating this is deterministic, not LLM-enriched
+    }
+
+
+# Background task tracking for LLM enrichment
+_keystone_enrichment_tasks: dict = {}
+
+
+async def enrich_keystone_background(user_id: str, date_str: str, daily_seed: str):
+    """
+    Background task to generate LLM-enriched keystone.
+    Updates cache when complete. Frontend can poll for enriched version.
+    """
+    import json as json_module
+    
+    try:
+        logger.info(f"[Keystone] Starting background enrichment for {user_id} on {date_str}")
+        
+        # Get user and chart data
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            logger.warning(f"[Keystone] User not found for enrichment: {user_id}")
+            return
+        
+        chart = await db.charts.find_one({"user_id": user_id})
+        user_name = user.get('name', 'this person')
+        
+        # Select variant template using seed
+        variant_index = int(daily_seed[:2], 16) % len(KEYSTONE_VARIANT_TEMPLATES)
+        variant = KEYSTONE_VARIANT_TEMPLATES[variant_index]
+        
+        # Build lens context (same as before)
+        lens_parts = []
+        sign_qualities = {
+            'Aries': 'initiating energy, directness, a part that moves first',
+            'Taurus': 'steadiness, sensory awareness, a part that builds slowly',
+            'Gemini': 'curiosity, adaptability, a part that explores many paths',
+            'Cancer': 'emotional depth, nurturing instinct, a part that protects what matters',
+            'Leo': 'creative expression, warmth, a part that seeks to be seen',
+            'Virgo': 'attention to detail, discernment, a part that refines',
+            'Libra': 'relational awareness, harmony-seeking, a part that weighs and balances',
+            'Scorpio': 'intensity, depth-seeking, a part that goes underneath',
+            'Sagittarius': 'expansiveness, truth-seeking, a part that seeks wide horizons',
+            'Capricorn': 'structure, long-term thinking, a part that climbs steadily',
+            'Aquarius': 'independence, unconventionality, a part that stands apart',
+            'Pisces': 'permeability, imagination, a part that dissolves boundaries'
+        }
+        
+        type_qualities = {
+            'Generator': 'sustained energy that responds to life, satisfaction-seeking',
+            'Manifesting Generator': 'multi-passionate energy, efficiency in action',
+            'Projector': 'perceptive awareness, sensitivity to being recognized',
+            'Manifestor': 'initiating force, impact-making independence',
+            'Reflector': 'reflective awareness, sensitivity to environment'
+        }
+        
+        authority_qualities = {
+            'Sacral': 'gut-level knowing, responses arise in the moment',
+            'Emotional': 'clarity comes over time, waves of feeling',
+            'Splenic': 'instinctive knowing, quiet inner alerts',
+            'Ego': 'willpower-based clarity, commitment matters',
+            'Self-Projected': 'hearing oneself speak brings clarity',
+            'Mental': 'processing through others, environment matters',
+            'Lunar': 'patience with long cycles, month-long rhythms'
+        }
+        
+        if chart:
+            astro = chart.get('astrology', {})
+            sun_sign = moon_sign = rising_sign = None
+            
+            if 'sun_sign' in astro:
+                sun_sign = astro.get('sun_sign')
+                moon_sign = astro.get('moon_sign')
+                rising_sign = astro.get('rising_sign')
+            elif 'planets' in astro:
+                planets = astro.get('planets', {})
+                sun_data = planets.get('Sun', {})
+                moon_data = planets.get('Moon', {})
+                sun_sign = sun_data.get('sign') if isinstance(sun_data, dict) else None
+                moon_sign = moon_data.get('sign') if isinstance(moon_data, dict) else None
+                asc_data = astro.get('ascendant', astro.get('Ascendant', {}))
+                rising_sign = asc_data.get('sign') if isinstance(asc_data, dict) else None
+            
+            if sun_sign and sun_sign in sign_qualities:
+                lens_parts.append(f"Core presence: {sign_qualities[sun_sign]}")
+            if moon_sign and moon_sign in sign_qualities:
+                lens_parts.append(f"Emotional texture: {sign_qualities[moon_sign]}")
+            if rising_sign and rising_sign in sign_qualities:
+                lens_parts.append(f"How they meet the world: {sign_qualities[rising_sign]}")
+            
+            hd = chart.get('human_design', {})
+            hd_type = hd.get('type', '')
+            authority = hd.get('authority', '')
+            
+            if hd_type and hd_type in type_qualities:
+                lens_parts.append(f"Energy pattern: {type_qualities[hd_type]}")
+            if authority and authority in authority_qualities:
+                lens_parts.append(f"Decision texture: {authority_qualities[authority]}")
+        
+        lens_context = "\n".join(lens_parts) if lens_parts else "No lens data available."
+        
+        # Build lived context
+        lived_parts = []
+        source_signals_used = ["lens_core"]
+        
+        timeline_events = await db.user_timeline.find(
+            {"user_id": user_id}
+        ).sort("created_at_iso", -1).limit(3).to_list(3)
+        
+        if timeline_events:
+            source_signals_used.append("timeline")
+            for evt in timeline_events:
+                state = evt.get('inferred_state', 'present')
+                themes = evt.get('themes', [])
+                tension = evt.get('tension', '')
+                if themes or tension:
+                    lived_parts.append(f"Recent signal: state={state}, themes={themes[:2] if themes else []}")
+        
+        journal_entries = await db.journal_entries.find(
+            {"user_id": user_id}
+        ).sort("timestamp", -1).limit(3).to_list(3)
+        
+        if journal_entries:
+            source_signals_used.append("journal")
+            for entry in journal_entries:
+                themes = entry.get('themes', [])
+                if themes:
+                    lived_parts.append(f"Journal signal: themes={themes[:2]}")
+        
+        memory_update = user.get('memory_update', {})
+        if memory_update:
+            source_signals_used.append("memory")
+            themes = memory_update.get('recurring_themes', [])
+            tensions = memory_update.get('active_tensions', [])
+            if themes or tensions:
+                lived_parts.append(f"Memory synthesis: themes={themes[:3] if themes else []}, tensions={tensions[:2] if tensions else []}")
+        
+        lived_context = "\n".join(lived_parts) if lived_parts else "No lived data yet."
+        
+        # Determine tone
+        tone = "grounding"
+        if memory_update:
+            state = memory_update.get('inferred_state', '').lower()
+            if 'grounded' in state or 'stable' in state:
+                tone = "grounding"
+            elif 'processing' in state or 'integrating' in state:
+                tone = "integrating"
+            elif 'exploring' in state or 'curious' in state:
+                tone = "exploring"
+        
+        # Generate via LLM
+        from emergent_contract import emergent_generate
+        
+        keystone_additional_prompt = f"""
+TODAY'S VARIANT: {variant['opening']}
+STRUCTURAL APPROACH: {variant['structure']}
+
+USER'S LENS SYNTHESIS (do NOT name any system — use archetypal phrasing):
+{lens_context}
+
+RECENT LIVED EXPERIENCE (if available):
+{lived_context}
+
+CURRENT TONE GUIDANCE: {tone}
+
+=== OUTPUT REQUIREMENTS ===
+Return ONLY valid JSON:
+{{
+  "title": "3-6 word poetic title",
+  "keystone": "2-3 sentences. Recognition, Tension, Opening.",
+  "reflect_question": "One gentle question inviting self-inquiry",
+  "micro_affirmation": "8-14 words, non-prescriptive, grounding"
+}}
+"""
+        
+        user_prompt = f"Generate the Daily Keystone for {user_name} on {date_str}. Return ONLY valid JSON."
+        
+        response_text = await emergent_generate(
+            mode="daily_insight",
+            user_message=user_prompt,
+            endpoint="mirror_home_keystone_enrichment",
+            user_id=user_id,
+            context={"date": date_str, "daily_seed": daily_seed, "tone": tone},
+            additional_system_prompt=keystone_additional_prompt,
+            model="gpt-5.2"
+        )
+        
+        # Parse response
+        try:
+            clean_response = response_text.strip()
+            if clean_response.startswith("```"):
+                lines = clean_response.split("\n")
+                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            keystone_data = json_module.loads(clean_response)
+        except json_module.JSONDecodeError as e:
+            logger.error(f"[Keystone] Failed to parse enriched JSON: {e}")
+            return  # Don't update cache with bad data
+        
+        # Update cache with enriched version
+        generated_at = datetime.now(timezone.utc).isoformat()
+        
+        await db.daily_keystones.update_one(
+            {"user_id": user_id, "date": date_str},
+            {"$set": {
+                "user_id": user_id,
+                "date": date_str,
+                "daily_seed": daily_seed,
+                "title": keystone_data.get("title", "A Moment of Pause"),
+                "keystone": keystone_data.get("keystone", "Something in you brought you here today."),
+                "reflect_question": keystone_data.get("reflect_question", "What feels most present?"),
+                "micro_affirmation": keystone_data.get("micro_affirmation", "You are already here."),
+                "source_signals": {"used": source_signals_used, "tone": tone},
+                "generated_at": generated_at,
+                "is_enriched": True,
+                "enriched_at": datetime.now(timezone.utc).isoformat()
+            }},
+            upsert=True
+        )
+        
+        logger.info(f"[Keystone] Background enrichment complete for {user_id} on {date_str}")
+        
+    except Exception as e:
+        logger.error(f"[Keystone] Background enrichment failed: {e}")
+    finally:
+        # Clean up task tracking
+        task_key = f"{user_id}:{date_str}"
+        if task_key in _keystone_enrichment_tasks:
+            del _keystone_enrichment_tasks[task_key]
 
 
 # =====================================================================
