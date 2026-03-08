@@ -36,18 +36,20 @@ export default function ReflectionEntry({ onPress }: ReflectionEntryProps) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingTop: 12,
+    paddingBottom: 4,
   },
   entry: {
-    paddingVertical: 10,
-    paddingHorizontal: 24,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 6,
   },
   entryText: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textTertiary,
-    fontWeight: '400',
-    letterSpacing: 0.2,
+    fontWeight: '500',
+    letterSpacing: 0.3,
   },
 });
