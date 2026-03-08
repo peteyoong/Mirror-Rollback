@@ -584,6 +584,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             {/* Sections */}
             {data.sections.map((section, index) => renderSection(section, index))}
 
+            {/* Structured Incarnation Cross (Deep Dive only) */}
+            {activeTab === 'deep_dive' && renderIncarnationCross()}
+
             {/* Gene Keys Sequences (Deep Dive only) */}
             {activeTab === 'deep_dive' && renderGeneKeys()}
 
