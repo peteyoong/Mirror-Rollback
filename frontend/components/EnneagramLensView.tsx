@@ -1020,216 +1020,63 @@ export default function EnneagramLensView({ result, userId }: Props) {
     const typeLabel = data?.type_label || (wing !== 'balanced' ? `${core}w${wing}` : `Type ${core}`);
     const typeName = data?.type_name || TYPE_NAMES[core];
 
-    // Sub-tab labels
-    const SUB_TAB_LABELS: Record<DeepDiveSubTab, string> = {
-      pattern: 'Pattern',
-      wings: 'Wings',
-      self_mastery: 'Self-Mastery',
-      verification: 'Verification',
+    // Accordion sections state
+    const [expandedSections, setExpandedSections] = React.useState<Set<string>>(new Set(['core_story']));
+    
+    const toggleSection = (sectionId: string) => {
+      setExpandedSections(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(sectionId)) {
+          newSet.delete(sectionId);
+        } else {
+          newSet.add(sectionId);
+        }
+        return newSet;
+      });
     };
 
-    // Render sub-tab navigation
-    const renderDeepDiveSubTabs = () => (
-      <View style={styles.deepDiveSubTabContainer}>
-        {(['pattern', 'wings', 'self_mastery', 'verification'] as DeepDiveSubTab[]).map((subTab) => (
-          <TouchableOpacity
-            key={subTab}
-            style={[
-              styles.deepDiveSubTab,
-              activeDeepDiveSubTab === subTab && styles.deepDiveSubTabActive,
-            ]}
-            onPress={() => setActiveDeepDiveSubTab(subTab)}
+    // Accordion Section Component
+    const AccordionSection = ({ 
+      id, 
+      title, 
+      subtitle, 
+      children 
+    }: { 
+      id: string; 
+      title: string; 
+      subtitle: string; 
+      children: React.ReactNode;
+    }) => {
+      const isExpanded = expandedSections.has(id);
+      return (
+        <View style={styles.accordionCard}>
+          <TouchableOpacity 
+            style={styles.accordionHeader} 
+            onPress={() => toggleSection(id)}
+            activeOpacity={0.7}
           >
-            <Text
-              style={[
-                styles.deepDiveSubTabText,
-                activeDeepDiveSubTab === subTab && styles.deepDiveSubTabTextActive,
-              ]}
-            >
-              {SUB_TAB_LABELS[subTab]}
-            </Text>
+            <View style={styles.accordionHeaderText}>
+              <Text style={styles.accordionTitle}>{title}</Text>
+              <Text style={styles.accordionSubtitle}>{subtitle}</Text>
+            </View>
+            <Ionicons 
+              name={isExpanded ? "chevron-up" : "chevron-down"} 
+              size={20} 
+              color={Colors.textSecondary} 
+            />
           </TouchableOpacity>
-        ))}
-      </View>
-    );
-
-    // Render Pattern sub-tab content
-    const renderPatternContent = () => (
-      <>
-        {/* ===== DEEP DIVE SECTIONS (From API) ===== */}
-        {data?.sections && data.sections.map((section, index) => (
-          <View key={index} style={styles.deepDiveSection}>
-            <Text style={styles.deepDiveSectionTitle}>{section.label}</Text>
-            <Text style={styles.deepDiveSectionBody}>{section.body}</Text>
-          </View>
-        ))}
-
-        {/* ===== ENNEAGRAM STRUCTURE (2×2 grid) ===== */}
-        {(data?.computed_details || computedDetails) && (
-          <View style={styles.structureCard}>
-            <Text style={styles.structureTitle}>ENNEAGRAM STRUCTURE</Text>
-            
-            {/* Row 1: Center + Hornevian Group */}
-            <View style={styles.structureGrid}>
-              <View style={styles.structureItem}>
-                <Ionicons name="radio-button-on-outline" size={14} color={Colors.textSecondary} />
-                <Text style={styles.structureLabel}>Center</Text>
-                <Text style={styles.structureValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.center)}</Text>
-              </View>
-              <View style={styles.structureDivider} />
-              <View style={styles.structureItem}>
-                <Ionicons name="people-outline" size={14} color={Colors.textSecondary} />
-                <Text style={styles.structureLabel}>Social Style</Text>
-                <Text style={styles.structureValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.hornevian_group)}</Text>
-              </View>
+          {isExpanded && (
+            <View style={styles.accordionContent}>
+              {children}
             </View>
-            
-            {/* Row 2: Stress Line + Growth Line */}
-            <View style={[styles.structureGrid, { marginTop: 12 }]}>
-              <View style={styles.structureItem}>
-                <Ionicons name="arrow-down-outline" size={14} color={Colors.textSecondary} />
-                <Text style={styles.structureLabel}>Stress → Type</Text>
-                <Text style={styles.structureValue}>{(data?.computed_details || computedDetails)?.stress_line_to || '—'}</Text>
-              </View>
-              <View style={styles.structureDivider} />
-              <View style={styles.structureItem}>
-                <Ionicons name="arrow-up-outline" size={14} color={Colors.textSecondary} />
-                <Text style={styles.structureLabel}>Growth → Type</Text>
-                <Text style={styles.structureValue}>{(data?.computed_details || computedDetails)?.growth_line_to || '—'}</Text>
-              </View>
-            </View>
-          </View>
-        )}
-      </>
-    );
-
-    // Render Wings sub-tab content
-    const renderWingsContent = () => (
-      <>
-        <View style={styles.deepDiveSection}>
-          <Text style={styles.deepDiveSectionTitle}>Your Wing Access</Text>
-          <Text style={styles.deepDiveSectionBody}>
-            Wings are access paths — capacities you can develop. The quieter wing often holds untapped potential.
-          </Text>
+          )}
         </View>
-        
-        {wing !== 'balanced' ? (
-          <View style={styles.structureCard}>
-            <View style={styles.structureGrid}>
-              <View style={styles.structureItem}>
-                <Ionicons name="star" size={14} color={Colors.accent} />
-                <Text style={styles.structureLabel}>Dominant Wing</Text>
-                <Text style={styles.structureValue}>Wing {wing}</Text>
-                <Text style={styles.structureSubValue}>{TYPE_NAMES[wing as number]}</Text>
-              </View>
-              <View style={styles.structureDivider} />
-              <View style={styles.structureItem}>
-                <Ionicons name="star-outline" size={14} color={Colors.textSecondary} />
-                <Text style={styles.structureLabel}>Growth Access</Text>
-                <Text style={styles.structureValue}>Wing {otherWing}</Text>
-                <Text style={styles.structureSubValue}>{TYPE_NAMES[otherWing]}</Text>
-              </View>
-            </View>
-          </View>
-        ) : (
-          <View style={styles.deepDiveSection}>
-            <Text style={styles.deepDiveSectionBody}>
-              You show access to both wings. Balance comes from choosing consciously based on the situation, not defaulting to one pattern.
-            </Text>
-          </View>
-        )}
-
-        {/* Stress/Growth Patterns */}
-        <View style={styles.deepDiveSection}>
-          <Text style={styles.deepDiveSectionTitle}>Under Stress</Text>
-          <Text style={styles.deepDiveSectionBody}>{STRESS_PATTERNS[core]}</Text>
-        </View>
-        
-        <View style={styles.deepDiveSection}>
-          <Text style={styles.deepDiveSectionTitle}>When Resourced</Text>
-          <Text style={styles.deepDiveSectionBody}>{GROWTH_PATTERNS[core]}</Text>
-        </View>
-      </>
-    );
-
-    // Render Self-Mastery sub-tab content
-    const renderSelfMasteryContent = () => (
-      <>
-        <View style={styles.deepDiveSection}>
-          <Text style={styles.deepDiveSectionTitle}>Growth Path</Text>
-          <Text style={styles.deepDiveSectionBody}>
-            Self-mastery for Type {core} involves recognizing your core motivation patterns and developing flexibility in how you respond to situations.
-          </Text>
-        </View>
-
-        <View style={styles.deepDiveSection}>
-          <Text style={styles.deepDiveSectionTitle}>Daily Reflection</Text>
-          <Text style={styles.deepDiveSectionBody}>{JOURNAL_PROMPTS[core]}</Text>
-        </View>
-
-        <View style={styles.deepDiveSection}>
-          <Text style={styles.deepDiveSectionTitle}>Integration Practice</Text>
-          <Text style={styles.deepDiveSectionBody}>{GROWTH_PATTERNS[core]}</Text>
-        </View>
-      </>
-    );
-
-    // Render Verification sub-tab content
-    const renderVerificationContent = () => (
-      <>
-        <View style={styles.deepDiveSection}>
-          <Text style={styles.deepDiveSectionTitle}>Assessment Confidence</Text>
-          <View style={[
-            styles.verificationBadge,
-            confidence === 'high' && styles.confidenceHigh,
-            confidence === 'medium' && styles.confidenceMedium,
-            confidence === 'low' && styles.confidenceLow,
-          ]}>
-            <Text style={styles.verificationBadgeText}>
-              {confidence === 'high' ? 'High' : confidence === 'medium' ? 'Moderate' : 'Exploratory'} Confidence
-            </Text>
-          </View>
-          <Text style={styles.deepDiveSectionBody}>
-            {confidence === 'high' 
-              ? 'Your responses showed a clear pattern consistent with this type.'
-              : confidence === 'medium'
-              ? 'Your responses suggest this type, but consider exploring related types as well.'
-              : 'Consider retaking the assessment when in a different state, or explore the top alternatives.'}
-          </Text>
-        </View>
-
-        <View style={styles.deepDiveSection}>
-          <Text style={styles.deepDiveSectionTitle}>Top Alternatives</Text>
-          <Text style={styles.cardSubtitle}>
-            Common mistypes included for self-verification
-          </Text>
-          {result.top_candidates.slice(0, 3).map((candidate, index) => (
-            <View key={candidate.type} style={styles.candidateRow}>
-              <Text style={styles.candidateRank}>{index + 1}</Text>
-              <Text style={styles.candidateType}>
-                Type {candidate.type} — {TYPE_NAMES[candidate.type]}
-              </Text>
-              <Text style={styles.candidatePercent}>
-                {Math.round(candidate.probability * 100)}%
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        {/* ===== RETAKE LINK ===== */}
-        <TouchableOpacity
-          style={styles.retakeLink}
-          onPress={() => setShowRetakeModal(true)}
-        >
-          <Ionicons name="refresh-outline" size={16} color={Colors.textSecondary} />
-          <Text style={styles.retakeLinkText}>Retake Assessment</Text>
-        </TouchableOpacity>
-      </>
-    );
+      );
+    };
 
     return (
       <>
-        {/* ===== HEADER ===== */}
+        {/* ===== HEADER CARD ===== */}
         <View style={styles.deepDiveHeader}>
           <View style={styles.deepDiveHeaderTop}>
             <Text style={styles.deepDiveType}>{typeLabel}</Text>
@@ -1240,7 +1087,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
               confidence === 'low' && styles.confidenceLow,
             ]}>
               <Text style={styles.confidenceBadgeText}>
-                {confidence === 'high' ? 'High' : confidence === 'medium' ? 'Moderate' : 'Exploratory'} Confidence
+                {confidence === 'high' ? 'High Confidence' : confidence === 'medium' ? 'Moderate Confidence' : 'Exploratory'}
               </Text>
             </View>
           </View>
@@ -1248,16 +1095,175 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <Text style={styles.deepDiveNote}>This lens reflects strategy, not identity.</Text>
         </View>
 
-        {/* ===== SUB-TAB NAVIGATION ===== */}
-        {renderDeepDiveSubTabs()}
+        {/* ===== CORE STORY SECTION ===== */}
+        <AccordionSection
+          id="core_story"
+          title="Core Story"
+          subtitle="Your primary pattern and motivation"
+        >
+          {data?.sections && data.sections.map((section, index) => (
+            <View key={index} style={styles.accordionBodySection}>
+              {section.label !== 'Core Story' && (
+                <Text style={styles.accordionBodyTitle}>{section.label}</Text>
+              )}
+              <Text style={styles.accordionBodyText}>{section.body}</Text>
+            </View>
+          ))}
+        </AccordionSection>
 
-        {/* ===== SUB-TAB CONTENT ===== */}
-        {activeDeepDiveSubTab === 'pattern' && renderPatternContent()}
-        {activeDeepDiveSubTab === 'wings' && renderWingsContent()}
-        {activeDeepDiveSubTab === 'self_mastery' && renderSelfMasteryContent()}
-        {activeDeepDiveSubTab === 'verification' && renderVerificationContent()}
+        {/* ===== YOUR WING SECTION ===== */}
+        <AccordionSection
+          id="your_wing"
+          title={wing !== 'balanced' ? `Type ${typeLabel} — Your Wing` : `Your Wing Access`}
+          subtitle="How your dominant wing colors your expression"
+        >
+          {wing !== 'balanced' ? (
+            <>
+              <Text style={styles.accordionBodyText}>
+                Your {wing}-wing brings the energy of {TYPE_NAMES[wing as number]} into your Type {core} expression. 
+                This combination creates a distinctive approach — blending {core}'s core motivation with {wing}'s qualities.
+              </Text>
+              <View style={styles.wingCard}>
+                <View style={styles.wingCardHeader}>
+                  <Ionicons name="star" size={16} color={Colors.accent} />
+                  <Text style={styles.wingCardTitle}>Wing {wing}</Text>
+                </View>
+                <Text style={styles.wingCardName}>{TYPE_NAMES[wing as number]}</Text>
+              </View>
+            </>
+          ) : (
+            <Text style={styles.accordionBodyText}>
+              You show access to both wings. Balance comes from choosing consciously based on the situation, 
+              not defaulting to one pattern.
+            </Text>
+          )}
+        </AccordionSection>
+
+        {/* ===== THE OTHER WING SECTION ===== */}
+        <AccordionSection
+          id="other_wing"
+          title={`The Other Wing (${otherWing})`}
+          subtitle="Alternate access point for growth"
+        >
+          <Text style={styles.accordionBodyText}>
+            Wings are access paths — capacities you can develop. The quieter wing often holds untapped potential.
+          </Text>
+          <View style={styles.wingCard}>
+            <View style={styles.wingCardHeader}>
+              <Ionicons name="star-outline" size={16} color={Colors.textSecondary} />
+              <Text style={styles.wingCardTitle}>Wing {otherWing}</Text>
+            </View>
+            <Text style={styles.wingCardName}>{TYPE_NAMES[otherWing]}</Text>
+          </View>
+          <Text style={[styles.accordionBodyText, { marginTop: 12 }]}>
+            Developing access to your {otherWing}-wing can provide balance and new capacities when your dominant pattern feels limiting.
+          </Text>
+        </AccordionSection>
+
+        {/* ===== DEEPER PATTERNS SECTION ===== */}
+        <AccordionSection
+          id="deeper_patterns"
+          title="Deeper Patterns"
+          subtitle="Tendencies and tradeoffs you may notice"
+        >
+          {/* Enneagram Structure Grid */}
+          {(data?.computed_details || computedDetails) && (
+            <View style={styles.structureGridCompact}>
+              <View style={styles.structureGridRow}>
+                <View style={styles.structureGridItem}>
+                  <Text style={styles.structureGridLabel}>Center</Text>
+                  <Text style={styles.structureGridValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.center)}</Text>
+                </View>
+                <View style={styles.structureGridItem}>
+                  <Text style={styles.structureGridLabel}>Social Style</Text>
+                  <Text style={styles.structureGridValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.hornevian_group)}</Text>
+                </View>
+              </View>
+            </View>
+          )}
+          <View style={styles.accordionBodySection}>
+            <Text style={styles.accordionBodyTitle}>Growth Path</Text>
+            <Text style={styles.accordionBodyText}>
+              Self-mastery for Type {core} involves recognizing your core motivation patterns and developing flexibility in how you respond to situations.
+            </Text>
+          </View>
+          <View style={styles.accordionBodySection}>
+            <Text style={styles.accordionBodyTitle}>Daily Reflection</Text>
+            <Text style={styles.accordionBodyText}>{JOURNAL_PROMPTS[core]}</Text>
+          </View>
+        </AccordionSection>
+
+        {/* ===== ENERGETIC FLOW SECTION ===== */}
+        <AccordionSection
+          id="energetic_flow"
+          title="Energetic Flow"
+          subtitle="Movement under stress and when resourced"
+        >
+          <View style={styles.flowRow}>
+            <View style={styles.flowItem}>
+              <View style={styles.flowIconContainer}>
+                <Ionicons name="arrow-down" size={16} color="#E57373" />
+              </View>
+              <Text style={styles.flowLabel}>Under Stress → Type {(data?.computed_details || computedDetails)?.stress_line_to || '—'}</Text>
+            </View>
+            <View style={styles.flowItem}>
+              <View style={styles.flowIconContainer}>
+                <Ionicons name="arrow-up" size={16} color="#81C784" />
+              </View>
+              <Text style={styles.flowLabel}>When Resourced → Type {(data?.computed_details || computedDetails)?.growth_line_to || '—'}</Text>
+            </View>
+          </View>
+          <View style={styles.accordionBodySection}>
+            <Text style={styles.accordionBodyTitle}>Under Stress</Text>
+            <Text style={styles.accordionBodyText}>{STRESS_PATTERNS[core]}</Text>
+          </View>
+          <View style={styles.accordionBodySection}>
+            <Text style={styles.accordionBodyTitle}>When Resourced</Text>
+            <Text style={styles.accordionBodyText}>{GROWTH_PATTERNS[core]}</Text>
+          </View>
+        </AccordionSection>
+
+        {/* ===== TOP ALTERNATIVES SECTION ===== */}
+        <AccordionSection
+          id="top_alternatives"
+          title="Top Alternatives"
+          subtitle="Other patterns worth considering"
+        >
+          <Text style={styles.accordionBodyText}>
+            These types showed similar response patterns. Consider exploring them for self-verification.
+          </Text>
+          {result.top_candidates.slice(0, 3).map((candidate, index) => (
+            <View key={candidate.type} style={styles.alternativeRow}>
+              <Text style={styles.alternativeRank}>{index + 1}</Text>
+              <View style={styles.alternativeInfo}>
+                <Text style={styles.alternativeType}>Type {candidate.type}</Text>
+                <Text style={styles.alternativeName}>{TYPE_NAMES[candidate.type]}</Text>
+              </View>
+              <Text style={styles.alternativePercent}>
+                {Math.round(candidate.probability * 100)}%
+              </Text>
+            </View>
+          ))}
+        </AccordionSection>
+
+        {/* ===== DISCLAIMER ===== */}
+        <View style={styles.disclaimerCard}>
+          <Text style={styles.disclaimerText}>
+            This isn't a rule—just a Type {core} pattern you might notice; you're free to take what resonates, 
+            leave the rest, and only engage it if it feels useful.
+          </Text>
+        </View>
+
+        {/* ===== RETAKE LINK ===== */}
+        <TouchableOpacity
+          style={styles.retakeLink}
+          onPress={() => setShowRetakeModal(true)}
+        >
+          <Ionicons name="refresh-outline" size={16} color={Colors.textSecondary} />
+          <Text style={styles.retakeLinkText}>Retake Assessment</Text>
+        </TouchableOpacity>
         
-        {/* Chat Box - Always visible */}
+        {/* Chat Box */}
         {renderChatBox()}
       </>
     );
