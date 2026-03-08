@@ -453,6 +453,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const [selectedMasteryLevel, setSelectedMasteryLevel] = useState<MasteryLevel>('average');
   const [showRetakeModal, setShowRetakeModal] = useState(false);
   
+  // Deep Dive accordion state
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['core_story']));
+  
   // Chat state
   const [chatExpanded, setChatExpanded] = useState(false);
   const [chatInput, setChatInput] = useState('');
