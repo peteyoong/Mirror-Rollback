@@ -622,7 +622,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         onPress={() => setActiveTab('summary')}
       >
         <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>
-          Summary
+          Overview
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
