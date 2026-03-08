@@ -1100,7 +1100,62 @@ const styles = StyleSheet.create({
     marginTop: 2,
     opacity: 0.7,
   },
-  // Everyday language sphere item - spacious, editorial
+  gkSphereDescriptorSmall: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    marginTop: 2,
+  },
+  // ============================================
+  // MEANING-FIRST SPHERE CARD STYLES
+  // ============================================
+  sphereCard: {
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  sphereTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+    letterSpacing: 0.2,
+  },
+  sphereDescriptor: {
+    fontSize: 13,
+    color: Colors.accent,
+    fontWeight: '500',
+    marginBottom: 14,
+    opacity: 0.9,
+  },
+  sphereInterpretation: {
+    fontSize: 15,
+    color: Colors.textSecondary,
+    lineHeight: 23,
+    marginBottom: 16,
+  },
+  sphereMetadata: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)',
+  },
+  sphereMetaText: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    opacity: 0.6,
+    letterSpacing: 0.3,
+  },
+  sphereMetaDot: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    opacity: 0.4,
+    marginHorizontal: 8,
+  },
+  // Everyday language sphere item - spacious, editorial (legacy)
   gkSphereItemExpanded: {
     paddingVertical: 8,
     paddingHorizontal: 0,
