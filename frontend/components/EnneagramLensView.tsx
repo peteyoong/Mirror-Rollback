@@ -990,7 +990,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
     if (isSelfDeclared) {
       return (
         <View style={styles.sourceBadge}>
-          <Ionicons name="person-outline" size={12} color={Colors.textSecondary} />
+          <Ionicons name="person-outline" size={12} color={theme.textSecondary} />
           <Text style={styles.sourceBadgeText}>Self-declared</Text>
         </View>
       );
@@ -1030,14 +1030,14 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <Ionicons 
             name="chatbubble-outline" 
             size={18} 
-            color={Colors.textSecondary} 
+            color={theme.textSecondary} 
           />
           <Text style={styles.chatHeaderText}>Ask about this</Text>
         </View>
         <Ionicons 
           name={chatExpanded ? 'chevron-down' : 'chevron-up'} 
           size={18} 
-          color={Colors.textTertiary} 
+          color={theme.textTertiary} 
         />
       </TouchableOpacity>
       
@@ -1064,7 +1064,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
               ))}
               {chatLoading && (
                 <View style={styles.chatMessageAssistant}>
-                  <ActivityIndicator size="small" color={Colors.textSecondary} />
+                  <ActivityIndicator size="small" color={theme.textSecondary} />
                 </View>
               )}
             </View>
@@ -1122,7 +1122,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 style={styles.editTypeInline}
                 onPress={handleEditType}
               >
-                <Ionicons name="pencil" size={14} color={Colors.textTertiary} />
+                <Ionicons name="pencil" size={14} color={theme.textTertiary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.identityName}>{TYPE_NAMES[core]}</Text>
@@ -1290,10 +1290,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {patternDriftLoading && (
           <View style={styles.patternMovementCard}>
             <View style={styles.patternMovementHeader}>
-              <Ionicons name="pulse-outline" size={16} color={Colors.textTertiary} />
-              <Text style={[styles.patternMovementTitle, { color: Colors.textTertiary }]}>Pattern Movement</Text>
+              <Ionicons name="pulse-outline" size={16} color={theme.textTertiary} />
+              <Text style={[styles.patternMovementTitle, { color: theme.textTertiary }]}>Pattern Movement</Text>
             </View>
-            <ActivityIndicator size="small" color={Colors.textTertiary} style={{ marginVertical: 12 }} />
+            <ActivityIndicator size="small" color={theme.textTertiary} style={{ marginVertical: 12 }} />
           </View>
         )}
 
@@ -1311,7 +1311,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           onPress={() => setActiveTab('deep_dive')}
         >
           <Text style={styles.subtleLinkText}>Explore Deep Dive</Text>
-          <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
+          <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
         </TouchableOpacity>
       </>
     );
@@ -1376,14 +1376,14 @@ export default function EnneagramLensView({ result, userId }: Props) {
               <Text style={styles.microLessonTitle}>Daily Micro-Lesson</Text>
               <Text style={styles.microLessonSubtitle}>Type {core} practice</Text>
             </View>
-            <Ionicons name="bulb-outline" size={22} color={Colors.text} />
+            <Ionicons name="bulb-outline" size={22} color={theme.text} />
           </View>
           <Text style={styles.microLessonBody}>
             {renderBoldText(todaysLesson, styles.microLessonBodyText, styles.microLessonBoldText)}
           </Text>
           <View style={styles.microLessonFooter}>
             <View style={styles.microLessonRotates}>
-              <Ionicons name="refresh-outline" size={12} color={Colors.textTertiary} />
+              <Ionicons name="refresh-outline" size={12} color={theme.textTertiary} />
               <Text style={styles.microLessonRotatesText}>Rotates daily</Text>
             </View>
             <TouchableOpacity 
@@ -1394,7 +1394,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
               }}
             >
               <Text style={styles.microLessonAskText}>Ask about this</Text>
-              <Ionicons name="chatbubble-outline" size={12} color={Colors.text} />
+              <Ionicons name="chatbubble-outline" size={12} color={theme.text} />
             </TouchableOpacity>
           </View>
         </View>
@@ -1402,7 +1402,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {/* Stress Pattern Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Ionicons name="warning-outline" size={18} color={Colors.textSecondary} />
+            <Ionicons name="warning-outline" size={18} color={theme.textSecondary} />
             <Text style={styles.cardTitle}>Watch For (Stress)</Text>
           </View>
           <Text style={styles.cardBody}>
@@ -1413,7 +1413,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {/* Growth Pattern Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Ionicons name="trending-up-outline" size={18} color={Colors.textSecondary} />
+            <Ionicons name="trending-up-outline" size={18} color={theme.textSecondary} />
             <Text style={styles.cardTitle}>Access (Growth)</Text>
           </View>
           <Text style={styles.cardBody}>
@@ -1482,7 +1482,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
     if (deepDiveLoading) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.textSecondary} />
+          <ActivityIndicator size="large" color={theme.textSecondary} />
           <Text style={styles.loadingText}>Loading your Deep Dive...</Text>
         </View>
       );
@@ -1533,7 +1533,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
             <Ionicons 
               name={isExpanded ? "chevron-up" : "chevron-down"} 
               size={20} 
-              color={Colors.textSecondary} 
+              color={theme.textSecondary} 
             />
           </TouchableOpacity>
           {isExpanded && (
@@ -1571,12 +1571,12 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 style={styles.editTypeInline}
                 onPress={handleEditType}
               >
-                <Ionicons name="pencil" size={14} color={Colors.textTertiary} />
+                <Ionicons name="pencil" size={14} color={theme.textTertiary} />
               </TouchableOpacity>
             </View>
             {isSelfDeclared ? (
               <View style={styles.sourceBadge}>
-                <Ionicons name="person-outline" size={12} color={Colors.textSecondary} />
+                <Ionicons name="person-outline" size={12} color={theme.textSecondary} />
                 <Text style={styles.sourceBadgeText}>Self-declared</Text>
               </View>
             ) : (
@@ -1663,7 +1663,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
             <>
               <View style={styles.wingCard}>
                 <View style={styles.wingCardHeader}>
-                  <Ionicons name="star" size={16} color={Colors.accent} />
+                  <Ionicons name="star" size={16} color={theme.accent} />
                   <Text style={styles.wingCardTitle}>Wing {wing} · {TYPE_NAMES[wing as number]}</Text>
                 </View>
               </View>
@@ -1695,7 +1695,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
               {/* Experiment */}
               <View style={styles.experimentCard}>
                 <View style={styles.experimentHeader}>
-                  <Ionicons name="flask-outline" size={14} color={Colors.accent} />
+                  <Ionicons name="flask-outline" size={14} color={theme.accent} />
                   <Text style={styles.experimentLabel}>Try This</Text>
                 </View>
                 <Text style={styles.experimentText}>
@@ -1718,7 +1718,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         >
           <View style={styles.wingCard}>
             <View style={styles.wingCardHeader}>
-              <Ionicons name="star-outline" size={16} color={Colors.textSecondary} />
+              <Ionicons name="star-outline" size={16} color={theme.textSecondary} />
               <Text style={styles.wingCardTitle}>Wing {otherWing} · {TYPE_NAMES[otherWing]}</Text>
             </View>
           </View>
@@ -1742,7 +1742,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           {/* Experiment */}
           <View style={styles.experimentCard}>
             <View style={styles.experimentHeader}>
-              <Ionicons name="flask-outline" size={14} color={Colors.accent} />
+              <Ionicons name="flask-outline" size={14} color={theme.accent} />
               <Text style={styles.experimentLabel}>Try This</Text>
             </View>
             <Text style={styles.experimentText}>
@@ -1820,7 +1820,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </View>
           <View style={styles.experimentCard}>
             <View style={styles.experimentHeader}>
-              <Ionicons name="flask-outline" size={14} color={Colors.accent} />
+              <Ionicons name="flask-outline" size={14} color={theme.accent} />
               <Text style={styles.experimentLabel}>Try This</Text>
             </View>
             <Text style={styles.experimentText}>{STRESS_PATTERNS[core]?.experiment}</Text>
@@ -1841,7 +1841,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </View>
           <View style={styles.experimentCard}>
             <View style={styles.experimentHeader}>
-              <Ionicons name="flask-outline" size={14} color={Colors.accent} />
+              <Ionicons name="flask-outline" size={14} color={theme.accent} />
               <Text style={styles.experimentLabel}>Try This</Text>
             </View>
             <Text style={styles.experimentText}>{GROWTH_PATTERNS[core]?.experiment}</Text>
@@ -1945,7 +1945,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <View style={styles.qaModalHeader}>
             <Text style={styles.qaModalTitle}>Ask About Enneagram</Text>
             <TouchableOpacity onPress={() => setShowQAModal(false)}>
-              <Ionicons name="close" size={24} color={Colors.textSecondary} />
+              <Ionicons name="close" size={24} color={theme.textSecondary} />
             </TouchableOpacity>
           </View>
           
@@ -1960,7 +1960,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           
           {qaLoading && (
             <View style={styles.qaLoadingContainer}>
-              <ActivityIndicator size="small" color={Colors.textSecondary} />
+              <ActivityIndicator size="small" color={theme.textSecondary} />
               <Text style={styles.qaLoadingText}>Searching book knowledge...</Text>
             </View>
           )}
