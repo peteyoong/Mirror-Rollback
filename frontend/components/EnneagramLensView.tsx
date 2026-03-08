@@ -1638,8 +1638,8 @@ const styles = StyleSheet.create({
   structureGridCompact: {
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
+    padding: 10,
+    marginTop: 12,
   },
   structureGridRow: {
     flexDirection: 'row',
