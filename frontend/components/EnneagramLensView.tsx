@@ -1665,8 +1665,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
+    padding: 10,
+    marginBottom: 12,
   },
   flowItem: {
     alignItems: 'center',
