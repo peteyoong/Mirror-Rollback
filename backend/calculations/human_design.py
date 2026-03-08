@@ -488,6 +488,19 @@ INCARNATION_CROSS_THEMES = {
             "JXP": "You are a fixed driver - direction and calling is your destiny."
         }
     },
+    "Assimilation": {
+        "themes": [
+            "Making the complex simple",
+            "Breaking down what's complicated",
+            "Individual insight for collective benefit",
+            "The value of simplicity"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal journey involves distilling complex ideas into clear understanding.",
+            "LAX": "You simplify for others - your insights make the complex accessible to all.",
+            "JXP": "You are meant to assimilate - breaking things down is your fixed destiny."
+        }
+    },
 }
 
 def get_incarnation_cross_interpretation(cross_name: str, orientation: str) -> dict:
