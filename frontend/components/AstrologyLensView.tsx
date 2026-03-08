@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
   placementDivider: {
     width: 1,
     height: 20,
-    backgroundColor: Colors.border,
+    backgroundColor: "transparent",
   },
   expandButton: {
     flexDirection: 'row',
@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 20,
     borderLeftWidth: 3,
-    borderLeftColor: Colors.accent,
+    borderLeftColor: "transparent",
   },
   mirrorPromptLabel: {
     fontSize: 10,
