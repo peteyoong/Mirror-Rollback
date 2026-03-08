@@ -1433,24 +1433,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
             leave the rest, and only engage it if it feels useful.
           </Text>
         </View>
-
-        {/* Retake Link */}
-        <TouchableOpacity
-          style={styles.retakeLink}
-          onPress={() => setShowRetakeModal(true)}
-        >
-          <Ionicons name="refresh-outline" size={16} color={Colors.textSecondary} />
-          <Text style={styles.retakeLinkText}>Retake Assessment</Text>
-        </TouchableOpacity>
-        
-        {/* Edit Type Link */}
-        <TouchableOpacity
-          style={styles.editTypeLink}
-          onPress={handleEditType}
-        >
-          <Ionicons name="pencil-outline" size={16} color={Colors.textSecondary} />
-          <Text style={styles.retakeLinkText}>Edit My Type</Text>
-        </TouchableOpacity>
         
         {/* Chat Box */}
         {renderChatBox()}
