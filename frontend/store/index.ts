@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import { getChart, getUser, parseSessionRestoreError, SessionRestoreError } from '../services/api';
-import { getStableUserId, assertUserIdStable, maskUserId, clearStableUserId } from '../utils/stableUserId';
+import { maskUserId, clearStableUserId } from '../utils/stableUserId';
 
 // Storage key for session persistence (legacy - now using MIRROR_USER_ID via stableUserId)
 const SESSION_USER_ID_KEY = 'mirror_last_user_id';
