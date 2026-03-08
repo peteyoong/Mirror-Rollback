@@ -529,6 +529,8 @@ interface EnneagramResult {
     life_context: string;
     answer_frame: string;
   };
+  source?: 'assessment' | 'self_declared';
+  method?: string;
 }
 
 interface Props {
