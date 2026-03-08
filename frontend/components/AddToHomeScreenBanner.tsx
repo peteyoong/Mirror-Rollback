@@ -120,14 +120,15 @@ export function AddToHomeScreenBanner() {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 70, // Position above the tab bar (tab bar height is ~60)
     left: 0,
     right: 0,
     backgroundColor: Colors.surface,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.border,
-    paddingBottom: 34, // Safe area for home indicator
-    zIndex: 1000,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+    zIndex: 999,
   },
   content: {
     flexDirection: 'row',
