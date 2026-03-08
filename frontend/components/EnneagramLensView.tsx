@@ -774,6 +774,19 @@ export default function EnneagramLensView({ result, userId }: Props) {
 
   const renderConfidenceBadge = () => {
     const tier = result.confidence_tier;
+    const isSelfDeclared = result.source === 'self_declared' || result.method === 'self_declared';
+    
+    // Self-declared results show "Self-declared" instead of confidence
+    if (isSelfDeclared) {
+      return (
+        <View style={styles.sourceBadge}>
+          <Ionicons name="person-outline" size={12} color={Colors.textSecondary} />
+          <Text style={styles.sourceBadgeText}>Self-declared</Text>
+        </View>
+      );
+    }
+    
+    // Assessment results show confidence tier
     return (
       <View style={[
         styles.confidenceBadge,
