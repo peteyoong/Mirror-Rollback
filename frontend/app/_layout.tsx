@@ -154,6 +154,18 @@ const errorStyles = StyleSheet.create({
 });
 
 export default function RootLayout() {
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === 'dark' ? DarkTheme : LightTheme;
+  
+  return (
+    <ThemeProvider>
+      <ThemedRootLayout theme={theme} />
+    </ThemeProvider>
+  );
+}
+
+// Inner component that uses theme
+function ThemedRootLayout({ theme }: { theme: typeof LightTheme }) {
   const { 
     restoreSession, 
     isRestoringSession, 
@@ -168,6 +180,7 @@ export default function RootLayout() {
     // Trigger session restore on app start
     console.log('[RootLayout] Starting session restore...');
     console.log('[RootLayout] Build:', BUILD_VERSION, 'ID:', BUILD_ID);
+    console.log('[RootLayout] Theme:', theme.isDark ? 'dark' : 'light');
     setBootstrapStage('restoring_session');
     restoreSession().then(() => {
       setBootstrapStage('ready');
@@ -181,16 +194,16 @@ export default function RootLayout() {
   // This is the AUTH HYDRATION GATE
   if (!hasTriedSessionRestore || isRestoringSession) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[
           styles.loadingContainer,
           // Only apply maxWidth on desktop web
           Platform.OS === 'web' && !isMobile && styles.desktopMaxWidth
         ]}>
-          <ActivityIndicator size="large" color={Colors.textSecondary} />
-          <Text style={styles.loadingText}>Restoring your profile...</Text>
-          <Text style={styles.buildInfo}>v{BUILD_VERSION} • {BUILD_ID}</Text>
-          <Text style={styles.stageInfo}>Stage: {bootstrapStage}</Text>
+          <ActivityIndicator size="large" color={theme.textSecondary} />
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Restoring your profile...</Text>
+          <Text style={[styles.buildInfo, { color: theme.textTertiary }]}>v{BUILD_VERSION} • {BUILD_ID}</Text>
+          <Text style={[styles.stageInfo, { color: theme.textTertiary }]}>Stage: {bootstrapStage}</Text>
         </View>
         {/* Debug viewport overlay for web */}
         {Platform.OS === 'web' && <DebugViewportOverlay />}
@@ -202,7 +215,7 @@ export default function RootLayout() {
     <AppErrorBoundary>
       <Stack screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: Colors.background },
+        contentStyle: { backgroundColor: theme.background },
       }} />
       {/* iOS Add to Home Screen Banner (browser only) */}
       {Platform.OS === 'web' && <AddToHomeScreenBanner />}
