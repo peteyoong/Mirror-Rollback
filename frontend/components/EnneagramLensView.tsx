@@ -3620,22 +3620,31 @@ const styles = StyleSheet.create({
   },
   confidenceBadgeText: {
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.textSecondary,
   },
   confidenceText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.text,
   },
   confidenceHigh: {
-    backgroundColor: 'rgba(76, 175, 80, 0.15)',
+    backgroundColor: '#E8F5E9',
+  },
+  confidenceHighText: {
+    color: '#2E7D32',
   },
   confidenceMedium: {
-    backgroundColor: 'rgba(255, 193, 7, 0.15)',
+    backgroundColor: '#FFF8E1',
+  },
+  confidenceMediumText: {
+    color: '#E65100',
   },
   confidenceLow: {
-    backgroundColor: 'rgba(158, 158, 158, 0.15)',
+    backgroundColor: '#F5F5F5',
+  },
+  confidenceLowText: {
+    color: '#616161',
   },
 
   // Wing Section
