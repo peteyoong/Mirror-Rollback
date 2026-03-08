@@ -165,9 +165,20 @@ export const useAppStore = create<AppState>((set, get) => ({
   
   setUser: async (user) => {
     set({ user });
-    // Persist user ID for session restore
-    await storage.setItem(SESSION_USER_ID_KEY, user.id);
+    // Persist user ID for session restore - sync ALL storage keys
+    // This ensures getStableUserId() and session restore use the same ID
+    await storage.setItem(SESSION_USER_ID_KEY, user.id);           // Legacy key
+    await storage.setItem('MIRROR_USER_ID', user.id);               // Primary stable key
     await storage.setItem('user', JSON.stringify(user));
+    
+    // Also update the stableUserId cache if module is imported
+    try {
+      const { setStableUserIdCache } = await import('../utils/stableUserId');
+      setStableUserIdCache(user.id);
+    } catch (e) {
+      // Module might not have the function, that's ok
+    }
+    console.log('[setUser] Persisted user ID to all storage keys:', user.id?.slice(0, 8) + '...');
   },
   
   setChart: async (chart) => {
