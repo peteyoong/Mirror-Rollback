@@ -992,7 +992,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
       );
     }
     
-    // Assessment results show confidence tier
+    // Assessment results show confidence tier with improved contrast
     return (
       <View style={[
         styles.confidenceBadge,
@@ -1000,7 +1000,12 @@ export default function EnneagramLensView({ result, userId }: Props) {
         tier === 'medium' && styles.confidenceMedium,
         tier === 'low' && styles.confidenceLow,
       ]}>
-        <Text style={styles.confidenceText}>
+        <Text style={[
+          styles.confidenceText,
+          tier === 'high' && styles.confidenceHighText,
+          tier === 'medium' && styles.confidenceMediumText,
+          tier === 'low' && styles.confidenceLowText,
+        ]}>
           {tier === 'high' ? 'High' : tier === 'medium' ? 'Medium' : 'Low'} Confidence
         </Text>
       </View>
