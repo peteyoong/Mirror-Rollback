@@ -899,9 +899,17 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {/* Identity Card */}
         <View style={styles.identityCard}>
           <View style={styles.identityMain}>
-            <Text style={styles.identityType}>
-              {wing !== 'balanced' ? `${core}w${wing}` : `Type ${core}`}
-            </Text>
+            <View style={styles.identityTitleRow}>
+              <Text style={styles.identityType}>
+                {wing !== 'balanced' ? `${core}w${wing}` : `Type ${core}`}
+              </Text>
+              <TouchableOpacity 
+                style={styles.editTypeInline}
+                onPress={handleEditType}
+              >
+                <Ionicons name="pencil" size={14} color={Colors.textTertiary} />
+              </TouchableOpacity>
+            </View>
             <Text style={styles.identityName}>{TYPE_NAMES[core]}</Text>
           </View>
           {renderConfidenceBadge()}
