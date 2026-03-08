@@ -302,19 +302,20 @@ def run_all_tests():
     
     # ------------------------------------------
     # TEST 11: Anchor keywords should score higher
+    # Type 2 stress → Type 8 (need Type 8 keywords!)
     # ------------------------------------------
     run_test(
         "Anchor Keyword Weight Test",
         baseline_type=2,
         reflections=[
-            {"perspective": "I feel like a martyr, sacrificing everything for others."},
-            {"perspective": "I've become possessive and feel indispensable to everyone."}
+            {"perspective": "I've been feeling the need to confront and dominate every situation."},
+            {"perspective": "I feel powerful but also vulnerable. I need to protect my territory."}
         ],
         journals=[],
         expected_drift=True,
         expected_direction="stress",  # Type 2 stress → 8
         min_confidence="emerging",
-        description="Anchor keywords (martyr, possessive, indispensable) should score higher"
+        description="Type 2 stress should show Type 8 behaviors (confront, dominate, power)"
     )
     
     # ------------------------------------------
