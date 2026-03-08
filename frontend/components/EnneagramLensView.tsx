@@ -1209,7 +1209,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
                     <Ionicons 
                       name="chevron-forward" 
                       size={16} 
-                      color={patternDrift.direction === 'stress' ? '#E57373' : '#81C784'} 
+                      color={patternDrift.direction === 'stress' ? '#C62828' : '#2E7D32'} 
                       style={styles.movementArrowIcon}
                     />
                     
