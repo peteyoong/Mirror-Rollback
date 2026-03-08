@@ -68,23 +68,23 @@ export default function LensesScreen() {
 
   if (!user) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.centered}>
-          <Text style={styles.errorText}>No user found</Text>
+          <Text style={[styles.errorText, { color: theme.textSecondary }]}>No user found</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Your Lenses</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: theme.text }]}>Your Lenses</Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
             Four perspectives for understanding yourself. Each offers a different way of
             seeing, not a definition of who you are.
           </Text>
@@ -93,37 +93,37 @@ export default function LensesScreen() {
         {/* Loading State */}
         {isLoading ? (
           <View style={styles.centered}>
-            <ActivityIndicator size="large" color={Colors.textSecondary} />
+            <ActivityIndicator size="large" color={theme.textSecondary} />
           </View>
         ) : (
           <View style={styles.lensesContainer}>
             {lenses.map((lens, index) => (
-              <View key={index} style={styles.lensCard}>
-                <Text style={styles.lensName}>{lens.name}</Text>
-                <Text style={styles.lensDescription}>{lens.description}</Text>
+              <View key={index} style={[styles.lensCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+                <Text style={[styles.lensName, { color: theme.text }]}>{lens.name}</Text>
+                <Text style={[styles.lensDescription, { color: theme.textSecondary }]}>{lens.description}</Text>
                 
                 <View style={styles.infoSection}>
                   <View style={styles.infoRow}>
-                    <Ionicons name="checkmark-circle-outline" size={16} color={Colors.textSecondary} />
-                    <Text style={styles.infoLabel}>Helps with:</Text>
+                    <Ionicons name="checkmark-circle-outline" size={16} color={theme.textSecondary} />
+                    <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Helps with:</Text>
                   </View>
-                  <Text style={styles.infoText}>{lens.helps_with}</Text>
+                  <Text style={[styles.infoText, { color: theme.textTertiary }]}>{lens.helps_with}</Text>
                 </View>
 
                 <View style={styles.infoSection}>
                   <View style={styles.infoRow}>
-                    <Ionicons name="close-circle-outline" size={16} color={Colors.textTertiary} />
-                    <Text style={styles.infoLabel}>Does not:</Text>
+                    <Ionicons name="close-circle-outline" size={16} color={theme.textTertiary} />
+                    <Text style={[styles.infoLabel, { color: theme.textTertiary }]}>Does not:</Text>
                   </View>
-                  <Text style={styles.infoText}>{lens.does_not}</Text>
+                  <Text style={[styles.infoText, { color: theme.textTertiary }]}>{lens.does_not}</Text>
                 </View>
 
                 <TouchableOpacity
-                  style={styles.viewButton}
+                  style={[styles.viewButton, { backgroundColor: theme.buttonPrimaryBg }]}
                   onPress={() => handleViewSummary(lens.name)}
                 >
-                  <Text style={styles.viewButtonText}>View Summary</Text>
-                  <Ionicons name="arrow-forward" size={16} color={Colors.background} />
+                  <Text style={[styles.viewButtonText, { color: theme.buttonPrimaryText }]}>View Summary</Text>
+                  <Ionicons name="arrow-forward" size={16} color={theme.buttonPrimaryText} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -132,7 +132,7 @@ export default function LensesScreen() {
 
         {/* Footer Note */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
+          <Text style={[styles.footerText, { color: theme.textTertiary }]}>
             These frameworks are tools for reflection, not rigid definitions. They work best
             when held lightly.
           </Text>
