@@ -343,40 +343,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       .join(' ');
   };
 
-  // Render view mode toggle
-  const renderViewModeToggle = () => {
-    return (
-      <View style={styles.viewModeToggle}>
-        <TouchableOpacity
-          style={[
-            styles.viewModeButton,
-            sequenceViewMode === 'everyday' && styles.viewModeButtonActive
-          ]}
-          onPress={() => setSequenceViewMode('everyday')}
-          activeOpacity={0.7}
-        >
-          <Text style={[
-            styles.viewModeText,
-            sequenceViewMode === 'everyday' && styles.viewModeTextActive
-          ]}>Everyday language</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.viewModeButton,
-            sequenceViewMode === 'technical' && styles.viewModeButtonActive
-          ]}
-          onPress={() => setSequenceViewMode('technical')}
-          activeOpacity={0.7}
-        >
-          <Text style={[
-            styles.viewModeText,
-            sequenceViewMode === 'technical' && styles.viewModeTextActive
-          ]}>Technical view</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
   // Render Gene Keys Arc card with collapse/expand
   const renderGeneKeysArc = (
     arcName: string, 
