@@ -576,6 +576,105 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
+  // ============================================
+  // OVERVIEW TAB (Reflective Summary)
+  // ============================================
+  
+  const renderOverviewTab = () => {
+    if (!data?.core_mechanics) return null;
+    
+    const { type, strategy, authority, profile } = data.core_mechanics;
+    const hdType = type || 'Unknown';
+    const manifestations = TYPE_MANIFESTATIONS[hdType] || TYPE_MANIFESTATIONS['Generator'];
+    const authorityData = AUTHORITY_TRANSLATIONS[authority || ''] || AUTHORITY_TRANSLATIONS['None'];
+    
+    // Format strategy for lookup
+    const strategyKey = Object.keys(STRATEGY_TRANSLATIONS).find(
+      key => strategy?.toLowerCase().includes(key.toLowerCase().split(' ')[0])
+    );
+    const strategyTranslation = strategyKey ? STRATEGY_TRANSLATIONS[strategyKey] : strategy || 'Follow your natural response pattern.';
+    
+    return (
+      <>
+        {/* Identity Card */}
+        <View style={styles.hdIdentityCard}>
+          <View style={styles.hdIdentityMain}>
+            <Text style={styles.hdIdentityType}>{hdType}</Text>
+            {profile && <Text style={styles.hdIdentityProfile}>{profile} Profile</Text>}
+          </View>
+          <Text style={styles.hdIdentityNote}>
+            This lens reflects energy patterns, not identity.
+          </Text>
+        </View>
+
+        {/* Your Energy Pattern Card */}
+        <View style={styles.hdOverviewCard}>
+          <Text style={styles.hdOverviewCardTitle}>Your Energy Pattern</Text>
+          <Text style={styles.hdOverviewCardBody}>
+            {TYPE_ENERGY_PATTERNS[hdType] || TYPE_ENERGY_PATTERNS['Generator']}
+          </Text>
+        </View>
+
+        {/* How You Engage Card (Strategy) */}
+        <View style={styles.hdOverviewCard}>
+          <Text style={styles.hdOverviewCardTitle}>How You Engage</Text>
+          <Text style={styles.hdOverviewCardBody}>
+            {strategyTranslation}
+          </Text>
+        </View>
+
+        {/* How Clarity Comes Card (Authority) */}
+        <View style={styles.hdOverviewCard}>
+          <Text style={styles.hdOverviewCardTitle}>How Clarity Comes</Text>
+          <Text style={styles.hdOverviewCardSubtitle}>{authorityData.short}</Text>
+          <Text style={styles.hdOverviewCardBody}>
+            {authorityData.expanded}
+          </Text>
+        </View>
+
+        {/* Where This Helps Card */}
+        <View style={styles.hdOverviewCard}>
+          <Text style={styles.hdOverviewCardTitle}>Where This Helps</Text>
+          <View style={styles.hdManifestationList}>
+            <View style={styles.hdManifestationItem}>
+              <Text style={styles.hdManifestationLabel}>Decisions</Text>
+              <Text style={styles.hdManifestationText}>{manifestations.decisions}</Text>
+            </View>
+            <View style={styles.hdManifestationItem}>
+              <Text style={styles.hdManifestationLabel}>Work</Text>
+              <Text style={styles.hdManifestationText}>{manifestations.work}</Text>
+            </View>
+            <View style={styles.hdManifestationItem}>
+              <Text style={styles.hdManifestationLabel}>Relationships</Text>
+              <Text style={styles.hdManifestationText}>{manifestations.relationships}</Text>
+            </View>
+            <View style={styles.hdManifestationItem}>
+              <Text style={styles.hdManifestationLabel}>Energy management</Text>
+              <Text style={styles.hdManifestationText}>{manifestations.energy}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Reflection Card */}
+        <View style={styles.hdReflectionCard}>
+          <Text style={styles.hdReflectionLabel}>A REFLECTION</Text>
+          <Text style={styles.hdReflectionText}>
+            "{TYPE_REFLECTIONS[hdType] || TYPE_REFLECTIONS['Generator']}"
+          </Text>
+        </View>
+
+        {/* Subtle Link to Deep Dive */}
+        <TouchableOpacity
+          style={styles.hdSubtleLink}
+          onPress={() => setActiveTab('deep_dive')}
+        >
+          <Text style={styles.hdSubtleLinkText}>Explore Deep Dive</Text>
+          <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
+        </TouchableOpacity>
+      </>
+    );
+  };
+
   const renderSection = (section: HumanDesignSection, index: number) => {
     const isExpanded = expandedSection === section.label || activeTab !== 'deep_dive';
 
