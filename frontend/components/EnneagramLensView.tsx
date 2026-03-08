@@ -1556,6 +1556,8 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // MAIN RENDER
   // ============================================
 
+  const isSelfDeclared = result.source === 'self_declared' || result.method === 'self_declared';
+
   return (
     <View style={styles.container}>
       {renderTabs()}
@@ -1568,6 +1570,30 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {activeTab === 'summary' && renderSummaryTab()}
         {activeTab === 'today' && renderTodayTab()}
         {activeTab === 'deep_dive' && renderDeepDiveTab()}
+        
+        {/* Shared Footer - visible on all tabs */}
+        <View style={styles.sharedFooter}>
+          <View style={styles.footerDivider} />
+          <View style={styles.footerActions}>
+            <TouchableOpacity
+              style={styles.footerAction}
+              onPress={() => setShowRetakeModal(true)}
+            >
+              <Ionicons name="refresh-outline" size={16} color={Colors.textSecondary} />
+              <Text style={styles.footerActionText}>Retake Assessment</Text>
+            </TouchableOpacity>
+            
+            <View style={styles.footerDot} />
+            
+            <TouchableOpacity
+              style={styles.footerAction}
+              onPress={handleEditType}
+            >
+              <Ionicons name="pencil-outline" size={16} color={Colors.textSecondary} />
+              <Text style={styles.footerActionText}>Edit Type</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         
         <View style={styles.bottomSpacer} />
       </ScrollView>
