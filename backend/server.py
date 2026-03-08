@@ -10438,6 +10438,24 @@ async def get_pattern_drift(user_id: str):
         # Calculate date range (14-day rolling window)
         window_days = 14
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=window_days)
+        cutoff_date_naive = cutoff_date.replace(tzinfo=None)  # For naive datetime comparisons
+        
+        # Helper function for safe date comparison
+        def is_within_window(created_at):
+            if not created_at:
+                return False
+            try:
+                if isinstance(created_at, str):
+                    return created_at >= cutoff_date.isoformat()[:10]  # Compare date strings
+                elif isinstance(created_at, datetime):
+                    # Handle both naive and aware datetimes
+                    if created_at.tzinfo is None:
+                        return created_at >= cutoff_date_naive
+                    else:
+                        return created_at >= cutoff_date
+                return False
+            except (TypeError, ValueError):
+                return False
         
         # Fetch reflections from the window
         reflections = await db.reflections.find({
@@ -10448,13 +10466,7 @@ async def get_pattern_drift(user_id: str):
         # Also try string-based user_id match and date filtering
         if not reflections:
             all_reflections = await db.reflections.find({"user_id": user_id}).to_list(length=100)
-            reflections = [
-                r for r in all_reflections 
-                if r.get("created_at") and (
-                    isinstance(r["created_at"], datetime) and r["created_at"] >= cutoff_date
-                    or isinstance(r["created_at"], str) and r["created_at"] >= cutoff_date.isoformat()
-                )
-            ]
+            reflections = [r for r in all_reflections if is_within_window(r.get("created_at"))]
         
         # Fetch journal entries from the window
         journal_entries = await db.journal.find({
@@ -10465,13 +10477,7 @@ async def get_pattern_drift(user_id: str):
         # Also try string-based filtering
         if not journal_entries:
             all_journals = await db.journal.find({"user_id": user_id}).to_list(length=100)
-            journal_entries = [
-                j for j in all_journals 
-                if j.get("created_at") and (
-                    isinstance(j["created_at"], datetime) and j["created_at"] >= cutoff_date
-                    or isinstance(j["created_at"], str) and j["created_at"] >= cutoff_date.isoformat()
-                )
-            ]
+            journal_entries = [j for j in all_journals if is_within_window(j.get("created_at"))]
         
         logger.info(f"[PatternDrift] Found {len(reflections)} reflections, {len(journal_entries)} journal entries")
         
