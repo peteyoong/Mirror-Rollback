@@ -170,7 +170,7 @@ export default function EnneagramResults() {
   // ============================================
   // Tap counter for hidden gesture activation (tap Confidence badge 7 times)
   const [debugTapCount, setDebugTapCount] = useState(0);
-  const debugTapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const debugTapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Computed: Should debug panel be shown?
   // Formula: showDebug = DEBUG_MIRROR_ENV && (urlDebugParam || tapCount >= 7)
