@@ -907,6 +907,88 @@ const styles = StyleSheet.create({
     color: '#aaaacc',
     fontFamily: 'monospace',
   },
+  // ============================================
+  // INCARNATION CROSS STYLES
+  // ============================================
+  crossContainer: {
+    marginTop: 32,
+    marginBottom: 24,
+  },
+  crossSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  crossSectionTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    letterSpacing: 1.5,
+  },
+  crossCard: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  crossName: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+    letterSpacing: 0.3,
+  },
+  crossFlavor: {
+    fontSize: 15,
+    color: Colors.textSecondary,
+    lineHeight: 22,
+    marginBottom: 16,
+    fontStyle: 'italic',
+  },
+  crossThemes: {
+    marginBottom: 16,
+    paddingLeft: 4,
+  },
+  crossThemeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  crossThemeBullet: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: Colors.accent,
+    marginTop: 7,
+    marginRight: 12,
+  },
+  crossThemeText: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.text,
+    lineHeight: 20,
+  },
+  crossMetadata: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+  },
+  crossMetaLabel: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    marginRight: 8,
+    opacity: 0.7,
+  },
+  crossMetaValue: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    fontFamily: 'monospace',
+    letterSpacing: 0.5,
+  },
   // Gene Keys styles - Editorial, spacious design
   gkContainer: {
     marginTop: 32,
