@@ -1427,17 +1427,17 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 </Text>
               </View>
               
-              {/* Tradeoff */}
+              {/* The Tradeoff */}
               <View style={styles.accordionBodySection}>
-                <Text style={styles.accordionBodyTitle}>Tradeoff</Text>
+                <Text style={styles.accordionBodyTitle}>The Tradeoff</Text>
                 <Text style={styles.accordionBodyText}>
                   {WING_FLAVORS[`${core}w${wing}`]?.tradeoff || ''}
                 </Text>
               </View>
               
-              {/* Strength */}
+              {/* Potential Strength */}
               <View style={styles.accordionBodySection}>
-                <Text style={styles.accordionBodyTitle}>Strength</Text>
+                <Text style={styles.accordionBodyTitle}>Potential Strength</Text>
                 <Text style={styles.accordionBodyText}>
                   {WING_FLAVORS[`${core}w${wing}`]?.strength || ''}
                 </Text>
