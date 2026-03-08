@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '../store';
-import { Colors } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { loginUser } from '../services/api';
 
 // Build info from environment
@@ -23,13 +23,11 @@ const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
 
 /**
  * Welcome Page - The Psychological Orientation Layer
- * 
- * Two options:
- * 1. Existing User Login - Enter email to restore session
- * 2. New User Registration - Begin new reflection journey
+ * Now with full dark mode support
  */
 export default function Welcome() {
   const router = useRouter();
+  const { theme, isDark } = useTheme();
   const { user, setUser, setChart } = useAppStore();
   
   const [showLogin, setShowLogin] = useState(false);
