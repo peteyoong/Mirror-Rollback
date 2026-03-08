@@ -20,10 +20,14 @@ import {
   getSequenceRole,
   SEQUENCE_ROLES 
 } from '../utils/humanDesignContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Build info for debugging
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
 const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
+
+// Storage key for tab persistence
+const HD_TAB_STORAGE_KEY = '@hd_active_tab';
 
 interface HumanDesignSection {
   label: string;
