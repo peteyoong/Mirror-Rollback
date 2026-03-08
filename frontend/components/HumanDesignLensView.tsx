@@ -1069,6 +1069,126 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     opacity: 0.7,
   },
+
+  // ============================================
+  // OVERVIEW TAB STYLES (Reflective Summary)
+  // ============================================
+
+  // HD Identity Card
+  hdIdentityCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 10,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+    marginBottom: 10,
+  },
+  hdIdentityMain: {
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  hdIdentityType: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  hdIdentityProfile: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  hdIdentityNote: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    marginTop: 6,
+    fontStyle: 'italic',
+  },
+
+  // HD Overview Cards
+  hdOverviewCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 10,
+    padding: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+    marginBottom: 10,
+  },
+  hdOverviewCardTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  hdOverviewCardSubtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.accent,
+    marginBottom: 6,
+  },
+  hdOverviewCardBody: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: Colors.textSecondary,
+  },
+
+  // HD Manifestation List
+  hdManifestationList: {
+    gap: 10,
+  },
+  hdManifestationItem: {
+    paddingBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+  },
+  hdManifestationLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 3,
+  },
+  hdManifestationText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.textSecondary,
+  },
+
+  // HD Reflection Card
+  hdReflectionCard: {
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: Colors.textTertiary,
+  },
+  hdReflectionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  hdReflectionText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+  },
+
+  // HD Subtle Link
+  hdSubtleLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 12,
+  },
+  hdSubtleLinkText: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+  },
+
   // Version Debug Panel styles (non-production)
   versionDebugCard: {
     backgroundColor: '#1a1a2e',
