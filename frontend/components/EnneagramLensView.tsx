@@ -2346,6 +2346,70 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingVertical: 8,
   },
+  
+  // Source badge (for self-declared)
+  sourceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+  },
+  sourceBadgeText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  
+  // Identity card edit button
+  identityTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  editTypeInline: {
+    padding: 6,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  
+  // Shared footer (across all tabs)
+  sharedFooter: {
+    marginTop: 24,
+    paddingTop: 16,
+  },
+  footerDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.border,
+    marginBottom: 16,
+  },
+  footerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  footerAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  footerActionText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  footerDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: Colors.textTertiary,
+  },
 
   // Modal
   modalOverlay: {
