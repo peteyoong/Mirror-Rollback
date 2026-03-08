@@ -160,17 +160,17 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
         <Text style={styles.corePlacementsTitle}>SUN • MOON • ASCENDANT</Text>
         <View style={styles.corePlacementsRow}>
           <View style={styles.placementItem}>
-            <Ionicons name="sunny-outline" size={16} color={Colors.accent} />
+            <Ionicons name="sunny-outline" size={16} color={theme.accent} />
             <Text style={styles.placementSign}>{formatPlacement(placements.sun)}</Text>
           </View>
           <View style={styles.placementDivider} />
           <View style={styles.placementItem}>
-            <Ionicons name="moon-outline" size={16} color={Colors.accent} />
+            <Ionicons name="moon-outline" size={16} color={theme.accent} />
             <Text style={styles.placementSign}>{formatPlacement(placements.moon)}</Text>
           </View>
           <View style={styles.placementDivider} />
           <View style={styles.placementItem}>
-            <Ionicons name="arrow-up-outline" size={16} color={Colors.accent} />
+            <Ionicons name="arrow-up-outline" size={16} color={theme.accent} />
             <Text style={styles.placementSign}>{formatPlacement(placements.ascendant)}</Text>
           </View>
         </View>
@@ -184,7 +184,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
     
     return (
       <View style={styles.computeErrorCard}>
-        <Ionicons name="alert-circle-outline" size={32} color={Colors.textTertiary} />
+        <Ionicons name="alert-circle-outline" size={32} color={theme.textTertiary} />
         <Text style={styles.computeErrorTitle}>
           We couldn't compute your Ascendant right now.
         </Text>
@@ -197,10 +197,10 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           disabled={isRecomputing}
         >
           {isRecomputing ? (
-            <ActivityIndicator size="small" color={Colors.surface} />
+            <ActivityIndicator size="small" color={theme.textInverse} />
           ) : (
             <>
-              <Ionicons name="refresh-outline" size={18} color={Colors.surface} />
+              <Ionicons name="refresh-outline" size={18} color={theme.textInverse} />
               <Text style={styles.recomputeButtonText}>Recompute chart</Text>
             </>
           )}
@@ -228,7 +228,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
             <Ionicons
               name={isExpanded ? 'chevron-up' : 'chevron-down'}
               size={18}
-              color={Colors.textTertiary}
+              color={theme.textTertiary}
             />
           )}
         </TouchableOpacity>
@@ -249,7 +249,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
     return (
       <View style={styles.chartReferenceCard}>
         <View style={styles.chartReferenceHeader}>
-          <Ionicons name="document-outline" size={20} color={Colors.textSecondary} />
+          <Ionicons name="document-outline" size={20} color={theme.textSecondary} />
           <Text style={styles.chartReferenceTitle}>Natal Chart (Reference)</Text>
         </View>
         <Text style={styles.chartReferenceDisclaimer}>
@@ -259,7 +259,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           style={styles.chartButton}
           onPress={() => setShowChartModal(true)}
         >
-          <Ionicons name="expand-outline" size={16} color={Colors.accent} />
+          <Ionicons name="expand-outline" size={16} color={theme.accent} />
           <Text style={styles.chartButtonText}>Open Full Chart (PDF)</Text>
         </TouchableOpacity>
       </View>
@@ -279,13 +279,13 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
             style={styles.modalClose}
             onPress={() => setShowChartModal(false)}
           >
-            <Ionicons name="close" size={24} color={Colors.textSecondary} />
+            <Ionicons name="close" size={24} color={theme.textSecondary} />
           </TouchableOpacity>
           
           <Text style={styles.modalTitle}>Natal Chart Reference</Text>
           
           <View style={styles.chartPlaceholder}>
-            <Ionicons name="planet-outline" size={48} color={Colors.textTertiary} />
+            <Ionicons name="planet-outline" size={48} color={theme.textTertiary} />
             <Text style={styles.chartPlaceholderText}>
               Full chart visualization coming soon
             </Text>
@@ -313,7 +313,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
       >
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.textTertiary} />
+            <ActivityIndicator size="large" color={theme.textTertiary} />
             <Text style={styles.loadingText}>
               {activeTab === 'deep_dive' 
                 ? 'Generating your personalized reading...\nThis may take 30-45 seconds'
@@ -322,7 +322,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
-            <Ionicons name="alert-circle-outline" size={32} color={Colors.textTertiary} />
+            <Ionicons name="alert-circle-outline" size={32} color={theme.textTertiary} />
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity
               style={styles.retryButton}
@@ -364,7 +364,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
                     <Ionicons
                       name={expandedSection ? 'contract-outline' : 'expand-outline'}
                       size={16}
-                      color={Colors.accent}
+                      color={theme.accent}
                     />
                   </TouchableOpacity>
                 )}
@@ -388,7 +388,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
                   style={styles.askMirrorButton}
                   onPress={onOpenChat}
                 >
-                  <Ionicons name="chatbubble-outline" size={18} color={Colors.surface} />
+                  <Ionicons name="chatbubble-outline" size={18} color={theme.textInverse} />
                   <Text style={styles.askMirrorText}>Ask about this lens</Text>
                 </TouchableOpacity>
 
@@ -421,7 +421,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: "transparent",
   },
   tabContainer: {
     flexDirection: 'row',
@@ -434,19 +434,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     alignItems: 'center',
   },
   activeTab: {
-    backgroundColor: Colors.text,
+    backgroundColor: "transparent",
   },
   tabText: {
     fontSize: 13,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: "inherit",
   },
   activeTabText: {
-    color: Colors.surface,
+    color: "inherit",
   },
   content: {
     flex: 1,
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: Colors.textTertiary,
+    color: "inherit",
   },
   errorContainer: {
     paddingVertical: 60,
@@ -471,43 +471,43 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: "inherit",
     textAlign: 'center',
   },
   retryButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 8,
   },
   retryText: {
     fontSize: 14,
-    color: Colors.accent,
+    color: "inherit",
     fontWeight: '500',
   },
   title: {
     fontSize: 20,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
     marginBottom: 8,
   },
   dateLabel: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: "inherit",
     marginBottom: 20,
   },
   corePlacementsCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: "transparent",
   },
   corePlacementsTitle: {
     fontSize: 10,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: "inherit",
     letterSpacing: 1.5,
     textAlign: 'center',
     marginBottom: 12,
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   placementSign: {
     fontSize: 15,
     fontWeight: '500',
-    color: Colors.text,
+    color: "inherit",
   },
   placementDivider: {
     width: 1,
@@ -543,16 +543,16 @@ const styles = StyleSheet.create({
   },
   expandButtonText: {
     fontSize: 14,
-    color: Colors.accent,
+    color: "inherit",
     fontWeight: '500',
   },
   sectionCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: "transparent",
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -562,14 +562,14 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.textSecondary,
+    color: "inherit",
     letterSpacing: 0.3,
     flex: 1,
   },
   sectionBody: {
     fontSize: 15,
     lineHeight: 24,
-    color: Colors.text,
+    color: "inherit",
     marginTop: 12,
   },
   mirrorPromptCard: {
@@ -584,23 +584,23 @@ const styles = StyleSheet.create({
   mirrorPromptLabel: {
     fontSize: 10,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: "inherit",
     letterSpacing: 1.2,
     marginBottom: 8,
   },
   mirrorPromptText: {
     fontSize: 16,
     lineHeight: 26,
-    color: Colors.text,
+    color: "inherit",
     fontStyle: 'italic',
   },
   chartReferenceCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: "transparent",
   },
   chartReferenceHeader: {
     flexDirection: 'row',
@@ -611,11 +611,11 @@ const styles = StyleSheet.create({
   chartReferenceTitle: {
     fontSize: 14,
     fontWeight: '500',
-    color: Colors.text,
+    color: "inherit",
   },
   chartReferenceDisclaimer: {
     fontSize: 13,
-    color: Colors.textTertiary,
+    color: "inherit",
     fontStyle: 'italic',
     marginBottom: 12,
   },
@@ -625,12 +625,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 12,
-    backgroundColor: Colors.background,
+    backgroundColor: "transparent",
     borderRadius: 8,
   },
   chartButtonText: {
     fontSize: 14,
-    color: Colors.accent,
+    color: "inherit",
     fontWeight: '500',
   },
   askMirrorButton: {
@@ -639,18 +639,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 14,
-    backgroundColor: Colors.text,
+    backgroundColor: "transparent",
     borderRadius: 12,
     marginBottom: 20,
   },
   askMirrorText: {
     fontSize: 15,
-    color: Colors.surface,
+    color: "inherit",
     fontWeight: '500',
   },
   footer: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: "inherit",
     textAlign: 'center',
     fontStyle: 'italic',
     opacity: 0.7,
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   modalContent: {
-    backgroundColor: Colors.background,
+    backgroundColor: "transparent",
     borderRadius: 16,
     padding: 24,
     width: '100%',
@@ -679,11 +679,11 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
     marginBottom: 20,
   },
   chartPlaceholder: {
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 40,
     alignItems: 'center',
@@ -691,38 +691,38 @@ const styles = StyleSheet.create({
   },
   chartPlaceholderText: {
     fontSize: 14,
-    color: Colors.textTertiary,
+    color: "inherit",
     marginTop: 12,
     textAlign: 'center',
   },
   modalDisclaimer: {
     fontSize: 13,
     lineHeight: 20,
-    color: Colors.textSecondary,
+    color: "inherit",
     textAlign: 'center',
     fontStyle: 'italic',
   },
   // Compute Error Card styles
   computeErrorCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 12,
     padding: 24,
     marginVertical: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: "transparent",
   },
   computeErrorTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
+    color: "inherit",
     textAlign: 'center',
     marginTop: 12,
     marginBottom: 8,
   },
   computeErrorMessage: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: "inherit",
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 20,
@@ -734,13 +734,13 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 12,
     paddingHorizontal: 24,
-    backgroundColor: Colors.text,
+    backgroundColor: "transparent",
     borderRadius: 8,
   },
   recomputeButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.surface,
+    color: "inherit",
   },
   disabledButton: {
     opacity: 0.6,
