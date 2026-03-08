@@ -411,8 +411,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               <Ionicons name="key-outline" size={18} color={Colors.accent} />
               <Text style={styles.gkSectionMainTitle}>YOUR SEQUENCES</Text>
             </View>
-            {/* View Mode Toggle - attached to header */}
-            {renderViewModeToggle()}
           </View>
           <Text style={styles.gkSectionIntro}>
             Derived from your Human Design chart, these sequences illuminate different dimensions of your experience.
