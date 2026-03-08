@@ -1124,7 +1124,46 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </Text>
         </View>
 
-        {/* Pattern Movement Card */}
+        {/* Core Pattern Card */}
+        <View style={styles.overviewCard}>
+          <Text style={styles.overviewCardTitle}>Your Core Pattern</Text>
+          <Text style={styles.overviewCardBody}>
+            {CORE_PATTERNS[core]}
+          </Text>
+        </View>
+
+        {/* What Drives This Card */}
+        <View style={styles.overviewCard}>
+          <Text style={styles.overviewCardTitle}>What Drives This</Text>
+          <Text style={styles.overviewCardBody}>
+            {PATTERN_DRIVERS[core]}
+          </Text>
+        </View>
+
+        {/* Where This Shows Up Card */}
+        <View style={styles.overviewCard}>
+          <Text style={styles.overviewCardTitle}>Where This Often Appears</Text>
+          <View style={styles.manifestationList}>
+            <View style={styles.manifestationItem}>
+              <Text style={styles.manifestationLabel}>Decision making</Text>
+              <Text style={styles.manifestationText}>{manifestations.decisions}</Text>
+            </View>
+            <View style={styles.manifestationItem}>
+              <Text style={styles.manifestationLabel}>Work & creativity</Text>
+              <Text style={styles.manifestationText}>{manifestations.work}</Text>
+            </View>
+            <View style={styles.manifestationItem}>
+              <Text style={styles.manifestationLabel}>Relationships</Text>
+              <Text style={styles.manifestationText}>{manifestations.relationships}</Text>
+            </View>
+            <View style={styles.manifestationItem}>
+              <Text style={styles.manifestationLabel}>Under stress</Text>
+              <Text style={styles.manifestationText}>{manifestations.stress}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Pattern Movement Card - positioned after baseline content */}
         {patternDrift && (
           <View style={styles.patternMovementCard}>
             {/* Header */}
@@ -1248,45 +1287,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
             <ActivityIndicator size="small" color={Colors.textTertiary} style={{ marginVertical: 12 }} />
           </View>
         )}
-
-        {/* Core Pattern Card */}
-        <View style={styles.overviewCard}>
-          <Text style={styles.overviewCardTitle}>Your Core Pattern</Text>
-          <Text style={styles.overviewCardBody}>
-            {CORE_PATTERNS[core]}
-          </Text>
-        </View>
-
-        {/* What Drives This Card */}
-        <View style={styles.overviewCard}>
-          <Text style={styles.overviewCardTitle}>What Drives This</Text>
-          <Text style={styles.overviewCardBody}>
-            {PATTERN_DRIVERS[core]}
-          </Text>
-        </View>
-
-        {/* Where This Shows Up Card */}
-        <View style={styles.overviewCard}>
-          <Text style={styles.overviewCardTitle}>Where This Often Appears</Text>
-          <View style={styles.manifestationList}>
-            <View style={styles.manifestationItem}>
-              <Text style={styles.manifestationLabel}>Decision making</Text>
-              <Text style={styles.manifestationText}>{manifestations.decisions}</Text>
-            </View>
-            <View style={styles.manifestationItem}>
-              <Text style={styles.manifestationLabel}>Work & creativity</Text>
-              <Text style={styles.manifestationText}>{manifestations.work}</Text>
-            </View>
-            <View style={styles.manifestationItem}>
-              <Text style={styles.manifestationLabel}>Relationships</Text>
-              <Text style={styles.manifestationText}>{manifestations.relationships}</Text>
-            </View>
-            <View style={styles.manifestationItem}>
-              <Text style={styles.manifestationLabel}>Under stress</Text>
-              <Text style={styles.manifestationText}>{manifestations.stress}</Text>
-            </View>
-          </View>
-        </View>
 
         {/* Reflection Prompt Card */}
         <View style={styles.reflectionCard}>
