@@ -1397,7 +1397,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
             <Text style={styles.cardTitle}>Watch For (Stress)</Text>
           </View>
           <Text style={styles.cardBody}>
-            {STRESS_PATTERNS[core]}
+            {STRESS_PATTERNS[core]?.pattern || 'Under stress, your patterns may shift.'}
           </Text>
         </View>
 
@@ -1408,7 +1408,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
             <Text style={styles.cardTitle}>Access (Growth)</Text>
           </View>
           <Text style={styles.cardBody}>
-            {GROWTH_PATTERNS[core]}
+            {GROWTH_PATTERNS[core]?.pattern || 'Growth invites new perspectives and behaviors.'}
           </Text>
         </View>
 
