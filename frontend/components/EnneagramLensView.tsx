@@ -2851,7 +2851,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   patternMovementTitle: {
     fontSize: 14,
@@ -2862,6 +2862,86 @@ const styles = StyleSheet.create({
   patternMovementContent: {
     gap: 10,
   },
+  
+  // Visual Movement Indicator
+  movementIndicatorContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingVertical: 8,
+  },
+  movementIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  typeCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 2,
+    borderColor: Colors.textTertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  typeCircleDrift: {
+    borderStyle: 'dashed',
+  },
+  typeCircleStress: {
+    borderColor: '#E57373',
+    backgroundColor: 'rgba(229, 115, 115, 0.1)',
+  },
+  typeCircleGrowth: {
+    borderColor: '#81C784',
+    backgroundColor: 'rgba(129, 199, 132, 0.1)',
+  },
+  typeCircleNumber: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  typeCircleNumberStress: {
+    color: '#E57373',
+  },
+  typeCircleNumberGrowth: {
+    color: '#81C784',
+  },
+  movementArrowLine: {
+    width: 24,
+    height: 2,
+    backgroundColor: Colors.textTertiary,
+    marginLeft: -2,
+  },
+  movementArrowStress: {
+    backgroundColor: '#E57373',
+  },
+  movementArrowGrowth: {
+    backgroundColor: '#81C784',
+  },
+  movementArrowIcon: {
+    marginRight: -2,
+  },
+  movementDirectionLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginTop: 10,
+  },
+  movementDirectionStress: {
+    color: '#E57373',
+  },
+  movementDirectionGrowth: {
+    color: '#81C784',
+  },
+  movementBaselineLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 8,
+  },
+  
+  // Old drift styles (kept for keywords/summary)
   driftRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -2892,13 +2972,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
-    marginTop: 4,
+    justifyContent: 'center',
   },
   driftKeywordBadge: {
     backgroundColor: 'rgba(255,255,255,0.05)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   driftKeywordText: {
     fontSize: 11,
@@ -2910,6 +2990,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontStyle: 'italic',
     marginTop: 8,
+    textAlign: 'center',
   },
   driftDisclaimer: {
     fontSize: 11,
