@@ -25,6 +25,106 @@ import {
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
 const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
 
+// ============================================
+// OVERVIEW DATA (Reflective Translations)
+// ============================================
+
+// Energy pattern descriptions by Type (reflective, not technical)
+const TYPE_ENERGY_PATTERNS: { [key: string]: string } = {
+  'Generator': 'Your energy is designed to respond. When something genuinely excites you, your body lights up with sustainable energy to pursue it. Without that inner response, energy becomes forced and depleting.',
+  'Manifesting Generator': 'Your energy moves fast and multi-directionally. You\'re designed to respond to what excites you, then act quickly—sometimes skipping steps. Your vitality comes from engaging with multiple interests that truly call to you.',
+  'Projector': 'Your energy is focused and penetrating, designed to guide and see into others. Rather than initiating or generating, you thrive when recognized and invited into the spaces where your insight is valued.',
+  'Manifestor': 'Your energy is designed to initiate and impact. You carry a powerful force that starts things and sets change in motion. Your flow comes from acting on your own impulses while keeping others informed.',
+  'Reflector': 'Your energy mirrors the world around you. You\'re designed to sample and reflect the health of your environment, taking in experiences over time before gaining clarity. Your wisdom comes from this unique openness.',
+};
+
+// Strategy translations (everyday language)
+const STRATEGY_TRANSLATIONS: { [key: string]: string } = {
+  'Wait to Respond': 'Wait for something in life to spark your inner "yes" before committing your energy. Your body knows before your mind—trust that gut response.',
+  'Wait for the Invitation': 'Wait to be recognized and invited before sharing your gifts. Unsolicited guidance often misses the mark; invited guidance transforms.',
+  'Inform Before Acting': 'Let others know what you\'re about to do before you do it. This isn\'t asking permission—it\'s reducing resistance and keeping peace.',
+  'Wait a Lunar Cycle': 'Give yourself a full moon cycle before making major decisions. Your clarity unfolds over time as you experience different energetic environments.',
+};
+
+// Authority translations (decision-making in everyday terms)
+const AUTHORITY_TRANSLATIONS: { [key: string]: { short: string; expanded: string } } = {
+  'Emotional': {
+    short: 'Clarity comes through emotional waves',
+    expanded: 'Your decisions gain clarity over time as your emotions move through highs and lows. Never decide in the peak of excitement or the depth of frustration—wait for calm.'
+  },
+  'Sacral': {
+    short: 'Clarity comes from gut responses',
+    expanded: 'Your body responds with sounds or sensations: an "uh-huh" of yes or an "unh-uh" of no. Trust these visceral reactions—they know before your mind does.'
+  },
+  'Splenic': {
+    short: 'Clarity comes in the moment',
+    expanded: 'Your intuition speaks once, quietly, in the present moment. Learn to recognize that subtle knowing—if you hesitate, you may miss it.'
+  },
+  'Ego': {
+    short: 'Clarity comes from what you truly want',
+    expanded: 'Your decisions are clear when you ask: "Do I really want this? Is my heart in it?" If there\'s no genuine desire, the energy won\'t sustain.'
+  },
+  'Self-Projected': {
+    short: 'Clarity comes through hearing yourself speak',
+    expanded: 'Talk through your decisions with others. Not for their advice—but to hear your own voice and recognize what\'s true for you in the speaking.'
+  },
+  'Mental': {
+    short: 'Clarity comes from environment and sounding boards',
+    expanded: 'Discuss your decisions in different environments with trusted people. You\'re not looking for answers from them—you\'re finding clarity through the process.'
+  },
+  'Lunar': {
+    short: 'Clarity comes over a full moon cycle',
+    expanded: 'Major decisions need about 28 days. Experience your question through different energetic environments before settling into knowing.'
+  },
+  'None': {
+    short: 'Clarity comes through environment',
+    expanded: 'Your decisions are influenced by place and people around you. Take time in different settings and notice where you feel most clear.'
+  },
+};
+
+// Where this helps - by Type
+const TYPE_MANIFESTATIONS: { [key: string]: { decisions: string; work: string; relationships: string; energy: string } } = {
+  'Generator': {
+    decisions: 'Wait for options to appear, then notice your gut response',
+    work: 'Most fulfilled when engaged in work that genuinely excites you',
+    relationships: 'Thrive with partners who understand your need to respond rather than be pushed',
+    energy: 'Sustainable when following satisfaction; draining when forcing through frustration',
+  },
+  'Manifesting Generator': {
+    decisions: 'Respond to what excites, then trust your quick moves',
+    work: 'Need variety and permission to change direction when mastery is reached',
+    relationships: 'Valued for your energy and speed; need space to pivot',
+    energy: 'High and multi-directional when engaged; scattered when bored',
+  },
+  'Projector': {
+    decisions: 'Wait to be asked; your insights land better when invited',
+    work: 'Excel in guiding, managing, and seeing others deeply',
+    relationships: 'Need recognition and appreciation for your unique perspective',
+    energy: 'Powerful in focused bursts; need rest and solitude to recharge',
+  },
+  'Manifestor': {
+    decisions: 'Act on your impulses; inform others before moving',
+    work: 'Best at initiating, starting projects, and catalyzing change',
+    relationships: 'Need independence; partners who don\'t try to control you',
+    energy: 'Comes in powerful surges; requires rest between initiations',
+  },
+  'Reflector': {
+    decisions: 'Take a full lunar cycle; let clarity emerge over time',
+    work: 'Natural evaluators of community and environment health',
+    relationships: 'Deeply affected by who you\'re with; choose environments carefully',
+    energy: 'Varies with the moon and surroundings; honor your fluctuations',
+  },
+};
+
+// Reflection prompts by Type
+const TYPE_REFLECTIONS: { [key: string]: string } = {
+  'Generator': 'Where are you saying yes out of obligation rather than genuine excitement—and where might your true response be waiting?',
+  'Manifesting Generator': 'Where are you forcing yourself to finish what no longer calls you—and where might a new response be pulling your energy?',
+  'Projector': 'Where are you offering guidance that wasn\'t invited—and where might recognition be waiting if you simply wait?',
+  'Manifestor': 'Where are you holding back your impulse to avoid conflict—and where might informing others create more peace than hiding?',
+  'Reflector': 'Where are you rushing decisions that need more time—and where might the full cycle bring surprising clarity?',
+};
+
 interface HumanDesignSection {
   label: string;
   body: string;
