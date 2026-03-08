@@ -153,18 +153,16 @@ const errorStyles = StyleSheet.create({
 });
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? DarkTheme : LightTheme;
-  
   return (
     <ThemeProvider>
-      <ThemedRootLayout theme={theme} />
+      <ThemedRootLayout />
     </ThemeProvider>
   );
 }
 
 // Inner component that uses theme
-function ThemedRootLayout({ theme }: { theme: typeof LightTheme }) {
+function ThemedRootLayout() {
+  const { theme, isDark } = useTheme();
   const { 
     restoreSession, 
     isRestoringSession, 
@@ -179,7 +177,7 @@ function ThemedRootLayout({ theme }: { theme: typeof LightTheme }) {
     // Trigger session restore on app start
     console.log('[RootLayout] Starting session restore...');
     console.log('[RootLayout] Build:', BUILD_VERSION, 'ID:', BUILD_ID);
-    console.log('[RootLayout] Theme:', theme.isDark ? 'dark' : 'light');
+    console.log('[RootLayout] Theme:', isDark ? 'DARK' : 'LIGHT');
     setBootstrapStage('restoring_session');
     restoreSession().then(() => {
       setBootstrapStage('ready');
