@@ -26,6 +26,10 @@ import {
   EnneagramDeepDiveResponse
 } from '../services/api';
 
+// Build info for debugging
+const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
+const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
+
 // ============================================
 // TYPE DATA
 // ============================================
