@@ -5855,40 +5855,37 @@ REFLECTION CHAT STYLE:
 async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_refresh: bool = False):
     """
     Generate the Daily Emotional Keystone.
-    Deterministic per day + deeply personalized using lenses + lived data.
+    
+    ARCHITECTURE: Deterministic First + Background LLM Enrichment
+    
+    1. If enriched (LLM) version is cached → return immediately
+    2. If not cached → return deterministic version instantly (<50ms)
+    3. Trigger background LLM enrichment
+    4. Frontend can poll to get enriched version when ready
     
     Args:
         user_id: The user's ID
         date: Optional date in YYYY-MM-DD format. If not provided, uses UTC date.
-        force_refresh: If true, regenerate even if cached.
-    
-    Returns:
-        DailyKeystoneResponse with title, keystone, reflect_question, micro_affirmation
+        force_refresh: If true, regenerate deterministic and re-trigger enrichment.
     """
     import hashlib
-    import json as json_module
+    import asyncio
     
-    COMPUTATION_VERSION = "keystone-v1"
+    COMPUTATION_VERSION = "keystone-v2-deterministic"
     
     try:
-        if not EMERGENT_LLM_KEY:
-            raise HTTPException(status_code=500, detail="AI service not configured")
-        
-        # Get user and chart data
+        # Get user
         user = await db.users.find_one({"_id": ObjectId(user_id)})
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        chart = await db.charts.find_one({"user_id": user_id})
-        
-        # Determine the date to use
+        # Determine the date
         if date:
             try:
                 target_date = datetime.strptime(date, "%Y-%m-%d").date()
             except ValueError:
                 target_date = datetime.now(timezone.utc).date()
         else:
-            # Use UTC date as fallback
             target_date = datetime.now(timezone.utc).date()
         
         date_str = target_date.strftime("%Y-%m-%d")
@@ -5898,16 +5895,16 @@ async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_ref
         daily_seed = hashlib.sha256(seed_input.encode()).hexdigest()[:12]
         
         # =====================================================================
-        # CHECK CACHE FOR DETERMINISTIC RESPONSE
+        # CHECK CACHE FOR ENRICHED (LLM) VERSION
         # =====================================================================
         if not force_refresh:
             cached = await db.daily_keystones.find_one({
                 "user_id": user_id,
                 "date": date_str,
-                "daily_seed": daily_seed
+                "is_enriched": True
             })
             if cached:
-                logger.info(f"[Keystone] Returning cached keystone for {user_id} on {date_str}")
+                logger.info(f"[Keystone] Returning cached ENRICHED keystone for {user_id} on {date_str}")
                 return {
                     "date": cached["date"],
                     "title": cached["title"],
@@ -5915,369 +5912,45 @@ async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_ref
                     "reflect_question": cached["reflect_question"],
                     "micro_affirmation": cached["micro_affirmation"],
                     "source_signals": cached["source_signals"],
-                    "daily_seed": cached["daily_seed"],
+                    "daily_seed": cached.get("daily_seed", daily_seed),
                     "reflection": cached["keystone"],
                     "generated_at": cached["generated_at"],
-                    "is_first_visit": cached.get("is_first_visit", False)
+                    "is_first_visit": cached.get("is_first_visit", False),
+                    "is_enriched": True
                 }
         
-        # Select variant template using seed (deterministic)
-        variant_index = int(daily_seed[:2], 16) % len(KEYSTONE_VARIANT_TEMPLATES)
-        variant = KEYSTONE_VARIANT_TEMPLATES[variant_index]
+        # =====================================================================
+        # NO ENRICHED VERSION - RETURN DETERMINISTIC INSTANTLY
+        # =====================================================================
+        logger.info(f"[Keystone] Generating DETERMINISTIC keystone for {user_id} on {date_str}")
+        
+        # Get chart data for personalized template selection
+        chart = await db.charts.find_one({"user_id": user_id})
+        
+        # Generate deterministic keystone (no LLM, instant)
+        deterministic_response = generate_deterministic_keystone(user_id, date_str, chart)
+        deterministic_response["daily_seed"] = daily_seed
         
         # =====================================================================
-        # BUILD LENS CONTEXT (without naming systems)
+        # TRIGGER BACKGROUND LLM ENRICHMENT (if not already running)
         # =====================================================================
-        lens_parts = []
-        user_name = user.get('name', 'this person')
+        task_key = f"{user_id}:{date_str}"
         
-        # Sign qualities mapping (internal use only)
-        sign_qualities = {
-            'Aries': 'initiating energy, directness, a part that moves first',
-            'Taurus': 'steadiness, sensory awareness, a part that builds slowly',
-            'Gemini': 'curiosity, adaptability, a part that explores many paths',
-            'Cancer': 'emotional depth, nurturing instinct, a part that protects what matters',
-            'Leo': 'creative expression, warmth, a part that seeks to be seen',
-            'Virgo': 'attention to detail, discernment, a part that refines',
-            'Libra': 'relational awareness, harmony-seeking, a part that weighs and balances',
-            'Scorpio': 'intensity, depth-seeking, a part that goes underneath',
-            'Sagittarius': 'expansiveness, truth-seeking, a part that seeks wide horizons',
-            'Capricorn': 'structure, long-term thinking, a part that climbs steadily',
-            'Aquarius': 'independence, unconventionality, a part that stands apart',
-            'Pisces': 'permeability, imagination, a part that dissolves boundaries'
-        }
+        if task_key not in _keystone_enrichment_tasks and EMERGENT_LLM_KEY:
+            # Start background enrichment task
+            logger.info(f"[Keystone] Triggering background enrichment for {user_id} on {date_str}")
+            task = asyncio.create_task(enrich_keystone_background(user_id, date_str, daily_seed))
+            _keystone_enrichment_tasks[task_key] = task
         
-        type_qualities = {
-            'Generator': 'sustained energy that responds to life, satisfaction-seeking',
-            'Manifesting Generator': 'multi-passionate energy, efficiency in action',
-            'Projector': 'perceptive awareness, sensitivity to being recognized',
-            'Manifestor': 'initiating force, impact-making independence',
-            'Reflector': 'reflective awareness, sensitivity to environment'
-        }
-        
-        authority_qualities = {
-            'Sacral': 'gut-level knowing, responses arise in the moment',
-            'Emotional': 'clarity comes over time, waves of feeling',
-            'Splenic': 'instinctive knowing, quiet inner alerts',
-            'Ego': 'willpower-based clarity, commitment matters',
-            'Self-Projected': 'hearing oneself speak brings clarity',
-            'Mental': 'processing through others, environment matters',
-            'Lunar': 'patience with long cycles, month-long rhythms'
-        }
-        
-        life_path_qualities = {
-            1: 'pioneering independence, self-direction themes',
-            2: 'partnership sensitivity, diplomatic currents',
-            3: 'creative expression, joy-seeking undertones',
-            4: 'foundational building, practical mastery',
-            5: 'freedom-seeking, change-embracing rhythms',
-            6: 'nurturing responsibility, harmony-creating',
-            7: 'inner searching, analytical depth',
-            8: 'material mastery, power dynamics awareness',
-            9: 'humanitarian breadth, completion themes',
-            11: 'intuitive sensitivity, inspirational capacity',
-            22: 'master building, large-scale vision',
-            33: 'master teaching, compassionate service'
-        }
-        
-        if chart:
-            # Astrology synthesis
-            astro = chart.get('astrology', {})
-            
-            # Get sun, moon, rising signs
-            sun_sign = None
-            moon_sign = None
-            rising_sign = None
-            mercury_sign = None
-            mars_sign = None
-            
-            # Handle different data structures
-            if 'sun_sign' in astro:
-                sun_sign = astro.get('sun_sign')
-                moon_sign = astro.get('moon_sign')
-                rising_sign = astro.get('rising_sign')
-            elif 'planets' in astro:
-                planets = astro.get('planets', {})
-                sun_data = planets.get('Sun', {})
-                moon_data = planets.get('Moon', {})
-                mercury_data = planets.get('Mercury', {})
-                mars_data = planets.get('Mars', {})
-                sun_sign = sun_data.get('sign') if isinstance(sun_data, dict) else None
-                moon_sign = moon_data.get('sign') if isinstance(moon_data, dict) else None
-                mercury_sign = mercury_data.get('sign') if isinstance(mercury_data, dict) else None
-                mars_sign = mars_data.get('sign') if isinstance(mars_data, dict) else None
-                # Rising might be in ascendant
-                asc_data = astro.get('ascendant', astro.get('Ascendant', {}))
-                rising_sign = asc_data.get('sign') if isinstance(asc_data, dict) else None
-            
-            if sun_sign and sun_sign in sign_qualities:
-                lens_parts.append(f"Core presence: {sign_qualities[sun_sign]}")
-            if moon_sign and moon_sign in sign_qualities:
-                lens_parts.append(f"Emotional texture: {sign_qualities[moon_sign]}")
-            if rising_sign and rising_sign in sign_qualities:
-                lens_parts.append(f"How they meet the world: {sign_qualities[rising_sign]}")
-            
-            # Add supporting placements if available
-            if mercury_sign and mercury_sign in sign_qualities:
-                lens_parts.append(f"Mind pattern: {sign_qualities[mercury_sign]}")
-            elif mars_sign and mars_sign in sign_qualities:
-                lens_parts.append(f"Action style: {sign_qualities[mars_sign]}")
-            
-            # Human Design synthesis
-            hd = chart.get('human_design', {})
-            hd_type = hd.get('type', '')
-            authority = hd.get('authority', '')
-            profile = hd.get('profile', '')
-            
-            if hd_type and hd_type in type_qualities:
-                lens_parts.append(f"Energy pattern: {type_qualities[hd_type]}")
-            if authority and authority in authority_qualities:
-                lens_parts.append(f"Decision texture: {authority_qualities[authority]}")
-            if profile:
-                # Interpret profile archetypally
-                profile_meanings = {
-                    '1/3': 'investigative experimentation, learning through doing',
-                    '1/4': 'deep research shared through close connections',
-                    '2/4': 'natural gifts emerging through relationships',
-                    '2/5': 'hermit-like tendencies with practical influence',
-                    '3/5': 'trial-and-error wisdom, problem-solving capacity',
-                    '3/6': 'experimental becoming, eventual perspective',
-                    '4/6': 'influential relationships, role model potential',
-                    '4/1': 'networked foundation, investigative depth',
-                    '5/1': 'practical solutions grounded in research',
-                    '5/2': 'universal offerings, natural talents',
-                    '6/2': 'role model becoming, hermit wisdom',
-                    '6/3': 'perspective-gathering through experience'
-                }
-                if profile in profile_meanings:
-                    lens_parts.append(f"Life approach: {profile_meanings[profile]}")
-            
-            # Numerology synthesis
-            num = chart.get('numerology', {})
-            life_path = num.get('life_path', {})
-            if isinstance(life_path, dict):
-                lp_num = life_path.get('number', 0)
-            else:
-                lp_num = life_path if isinstance(life_path, int) else 0
-            
-            if lp_num and lp_num in life_path_qualities:
-                lens_parts.append(f"Life theme: {life_path_qualities[lp_num]}")
-        
-        lens_context = "\n".join(lens_parts) if lens_parts else "No lens data available — generate from presence alone."
-        
-        # =====================================================================
-        # BUILD LIVED CONTEXT (recent timeline, journal, memory)
-        # =====================================================================
-        lived_parts = []
-        source_signals_used = ["lens_core"]
-        
-        # Get last 3 timeline events
-        timeline_events = await db.user_timeline.find(
-            {"user_id": user_id}
-        ).sort("created_at_iso", -1).limit(3).to_list(3)
-        
-        if timeline_events:
-            source_signals_used.append("timeline")
-            for evt in timeline_events:
-                state = evt.get('inferred_state', 'present')
-                themes = evt.get('themes', [])
-                tension = evt.get('tension', '')
-                if themes or tension:
-                    lived_parts.append(f"Recent signal: state={state}, themes={themes[:2] if themes else []}, tension hint={tension[:50] if tension else 'none'}")
-        
-        # Get last 3 journal entries
-        journal_entries = await db.journal_entries.find(
-            {"user_id": user_id}
-        ).sort("timestamp", -1).limit(3).to_list(3)
-        
-        if journal_entries:
-            source_signals_used.append("journal")
-            for entry in journal_entries:
-                content = entry.get('content', '')[:100]
-                themes = entry.get('themes', [])
-                if content or themes:
-                    lived_parts.append(f"Journal signal: themes={themes[:2] if themes else []}, tone hint from content length={len(content)}")
-        
-        # Get memory_update if present
-        memory_update = user.get('memory_update', {})
-        if memory_update:
-            source_signals_used.append("memory")
-            themes = memory_update.get('recurring_themes', [])
-            tensions = memory_update.get('active_tensions', [])
-            state = memory_update.get('inferred_state', '')
-            if themes or tensions or state:
-                lived_parts.append(f"Memory synthesis: themes={themes[:3] if themes else []}, tensions={tensions[:2] if tensions else []}, state={state}")
-        
-        lived_context = "\n".join(lived_parts) if lived_parts else "No lived data yet — this is their first meaningful engagement."
-        
-        # =====================================================================
-        # DETERMINE TONE GUIDANCE
-        # =====================================================================
-        tone = "unclear"
-        if memory_update:
-            state = memory_update.get('inferred_state', '').lower()
-            if 'grounded' in state or 'stable' in state:
-                tone = "grounding"
-            elif 'processing' in state or 'integrating' in state:
-                tone = "integrating"
-            elif 'exploring' in state or 'curious' in state:
-                tone = "exploring"
-            elif 'unsettled' in state or 'searching' in state:
-                tone = "stabilizing"
-        elif timeline_events:
-            # Infer from recent timeline
-            recent_state = timeline_events[0].get('inferred_state', '').lower() if timeline_events else ''
-            if 'curious' in recent_state or 'exploring' in recent_state:
-                tone = "exploring"
-            elif 'grounded' in recent_state or 'settled' in recent_state:
-                tone = "grounding"
-            else:
-                tone = "stabilizing"
-        else:
-            tone = "grounding"  # Default for first visit
-        
-        # =====================================================================
-        # GENERATE KEYSTONE VIA EMERGENT CONTRACT
-        # =====================================================================
-        from emergent_contract import emergent_generate
-        
-        # Build keystone-specific additional prompt
-        keystone_additional_prompt = f"""
-TODAY'S VARIANT: {variant['opening']}
-STRUCTURAL APPROACH: {variant['structure']}
-
-USER'S LENS SYNTHESIS (do NOT name any system — use archetypal phrasing):
-{lens_context}
-
-RECENT LIVED EXPERIENCE (if available):
-{lived_context}
-
-CURRENT TONE GUIDANCE: {tone}
-
-=== OUTPUT REQUIREMENTS ===
-You must return ONLY valid JSON in this exact format:
-{{
-  "title": "3-6 word poetic title (no punctuation except comma)",
-  "keystone": "2-3 sentences following the structural approach. Sentence 1: Recognition. Sentence 2: Tension. Sentence 3 (optional): Opening.",
-  "reflect_question": "One gentle question inviting self-inquiry (not advice-seeking)",
-  "micro_affirmation": "8-14 words, non-prescriptive, grounding statement"
-}}
-
-=== STRUCTURE FOR KEYSTONE ===
-Sentence 1 (Recognition): What seems present underneath the surface — name it without explaining
-Sentence 2 (Tension): Two pulls that may coexist — honor both without resolving
-Sentence 3 (Opening, optional): A doorway or possibility — not advice, just space
-
-The question should invite reflection, not action.
-The micro_affirmation grounds without directing.
-"""
-        
-        user_prompt = f"Generate the Daily Keystone for {user_name} on {date_str}. Remember: return ONLY valid JSON, no markdown."
-        
-        response_text = await emergent_generate(
-            mode="daily_insight",
-            user_message=user_prompt,
-            endpoint="mirror_home_keystone",
-            user_id=user_id,
-            context={
-                "date": date_str,
-                "daily_seed": daily_seed,
-                "tone": tone,
-                "source_signals": source_signals_used
-            },
-            additional_system_prompt=keystone_additional_prompt,
-            model="gpt-5.2"
-        )
-        
-        # Parse JSON response
-        try:
-            # Clean up response (remove markdown if present)
-            clean_response = response_text.strip()
-            if clean_response.startswith("```"):
-                # Remove markdown code blocks
-                lines = clean_response.split("\n")
-                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
-            
-            keystone_data = json_module.loads(clean_response)
-        except json_module.JSONDecodeError as e:
-            logger.error(f"Failed to parse keystone JSON: {e}, response: {response_text[:200]}")
-            # Generate fallback
-            keystone_data = {
-                "title": "A Quiet Arrival",
-                "keystone": f"Something in you brought you here today, {user_name}. That small act of pausing — even for a moment — is itself a form of attention.",
-                "reflect_question": "What feels most present right now, underneath the surface?",
-                "micro_affirmation": "You don't have to have it figured out to be here."
-            }
-        
-        # Build response
-        generated_at = datetime.now(timezone.utc).isoformat()
-        is_first = len(timeline_events) == 0
-        
-        response_data = {
-            "date": date_str,
-            "title": keystone_data.get("title", "A Moment of Pause"),
-            "keystone": keystone_data.get("keystone", "Something in you brought you here today."),
-            "reflect_question": keystone_data.get("reflect_question", "What feels most present right now?"),
-            "micro_affirmation": keystone_data.get("micro_affirmation", "You are already here."),
-            "source_signals": {
-                "used": source_signals_used,
-                "tone": tone
-            },
-            "daily_seed": daily_seed,
-            # Backwards compatibility
-            "reflection": keystone_data.get("keystone", "Something in you brought you here today."),
-            "generated_at": generated_at,
-            "is_first_visit": is_first
-        }
-        
-        # =====================================================================
-        # CACHE THE RESPONSE FOR DETERMINISM
-        # =====================================================================
-        try:
-            await db.daily_keystones.update_one(
-                {"user_id": user_id, "date": date_str},
-                {"$set": {
-                    "user_id": user_id,
-                    "date": date_str,
-                    "daily_seed": daily_seed,
-                    "title": response_data["title"],
-                    "keystone": response_data["keystone"],
-                    "reflect_question": response_data["reflect_question"],
-                    "micro_affirmation": response_data["micro_affirmation"],
-                    "source_signals": response_data["source_signals"],
-                    "generated_at": generated_at,
-                    "is_first_visit": is_first,
-                    "cached_at": datetime.now(timezone.utc).isoformat()
-                }},
-                upsert=True
-            )
-            logger.info(f"[Keystone] Cached keystone for {user_id} on {date_str}")
-        except Exception as cache_err:
-            logger.warning(f"[Keystone] Failed to cache: {cache_err}")
-        
-        return response_data
+        return deterministic_response
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Daily keystone error: {e}")
-        # Return calm fallback
+        # Return deterministic fallback
         fallback_date = date if date else datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        return {
-            "date": fallback_date,
-            "title": "A Quiet Arrival",
-            "keystone": "Something in you brought you here today. That's worth noticing.",
-            "reflect_question": "What feels most present right now?",
-            "micro_affirmation": "You don't have to have it figured out to be here.",
-            "source_signals": {
-                "used": ["fallback"],
-                "tone": "grounding"
-            },
-            "daily_seed": "fallback",
-            "reflection": "Something in you brought you here today. That's worth noticing.",
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "is_first_visit": False
-        }
+        return generate_deterministic_keystone(user_id, fallback_date, None)
 
 
 # =====================================================================
