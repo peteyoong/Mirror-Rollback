@@ -1125,13 +1125,13 @@ export default function EnneagramLensView({ result, userId }: Props) {
         </View>
 
         {/* Pattern Movement Card */}
-        {patternDrift && (patternDrift.drift_candidate || patternDrift.signals_detected > 0) && (
+        {patternDrift && (
           <View style={styles.patternMovementCard}>
             {/* Header */}
             <View style={styles.patternMovementHeader}>
-              <Ionicons name="pulse-outline" size={16} color={Colors.accent} />
-              <Text style={styles.patternMovementTitle}>Pattern Movement</Text>
-              {patternDrift.confidence_label && patternDrift.confidence_label !== 'low' && (
+              <Ionicons name="pulse-outline" size={16} color={patternDrift.drift_candidate ? Colors.accent : Colors.textTertiary} />
+              <Text style={[styles.patternMovementTitle, !patternDrift.drift_candidate && styles.patternMovementTitleMuted]}>Pattern Movement</Text>
+              {patternDrift.drift_candidate && patternDrift.confidence_label && patternDrift.confidence_label !== 'low' && (
                 <View style={[
                   styles.driftConfidenceBadge,
                   patternDrift.confidence_label === 'moderate' && styles.driftConfidenceModerate,
@@ -1148,8 +1148,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
             <View style={styles.movementIndicatorContainer}>
               <View style={styles.movementIndicator}>
                 {/* Baseline Type Circle */}
-                <View style={styles.typeCircle}>
-                  <Text style={styles.typeCircleNumber}>{patternDrift.baseline_type}</Text>
+                <View style={[styles.typeCircle, !patternDrift.drift_candidate && styles.typeCircleMuted]}>
+                  <Text style={[styles.typeCircleNumber, !patternDrift.drift_candidate && styles.typeCircleNumberMuted]}>
+                    {patternDrift.baseline_type}
+                  </Text>
                 </View>
                 
                 {/* Arrow (only show if drift detected) */}
@@ -1184,18 +1186,18 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 ) : null}
               </View>
               
-              {/* Direction Label */}
+              {/* Direction Label - Softer Mirror-style language */}
               {patternDrift.drift_candidate && patternDrift.direction && (
                 <Text style={[
                   styles.movementDirectionLabel,
                   patternDrift.direction === 'stress' && styles.movementDirectionStress,
                   patternDrift.direction === 'growth' && styles.movementDirectionGrowth,
                 ]}>
-                  {patternDrift.direction === 'stress' ? 'stress point' : 'growth point'}
+                  {patternDrift.direction === 'stress' ? 'possible stress signal' : 'possible growth signal'}
                 </Text>
               )}
               
-              {/* No movement detected - show baseline only label */}
+              {/* No movement detected - baseline only with type name */}
               {!patternDrift.drift_candidate && (
                 <Text style={styles.movementBaselineLabel}>
                   {patternDrift.baseline_name?.replace('The ', '')}
@@ -1204,8 +1206,8 @@ export default function EnneagramLensView({ result, userId }: Props) {
             </View>
             
             <View style={styles.patternMovementContent}>
-              {/* Keywords */}
-              {patternDrift.signal_keywords && patternDrift.signal_keywords.length > 0 && (
+              {/* Keywords (secondary) - only show if drift detected */}
+              {patternDrift.drift_candidate && patternDrift.signal_keywords && patternDrift.signal_keywords.length > 0 && (
                 <View style={styles.driftKeywords}>
                   {patternDrift.signal_keywords.slice(0, 4).map((keyword, index) => (
                     <View key={index} style={styles.driftKeywordBadge}>
@@ -1215,17 +1217,23 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 </View>
               )}
               
-              {/* Summary */}
-              {patternDrift.summary && (
+              {/* Summary (tertiary) */}
+              {patternDrift.drift_candidate && patternDrift.summary ? (
                 <Text style={styles.driftSummary}>
                   {patternDrift.summary}
                 </Text>
-              )}
+              ) : !patternDrift.drift_candidate ? (
+                <Text style={styles.driftSummaryNeutral}>
+                  No strong recent movement detected.
+                </Text>
+              ) : null}
             </View>
             
-            {/* Disclaimer */}
+            {/* Disclaimer (subtle) */}
             <Text style={styles.driftDisclaimer}>
-              This is a reflective signal, not a fixed conclusion.
+              {patternDrift.drift_candidate 
+                ? 'This is a reflective signal, not a fixed conclusion.'
+                : 'Patterns may emerge over time as you reflect.'}
             </Text>
           </View>
         )}
