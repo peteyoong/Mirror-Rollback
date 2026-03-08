@@ -10415,6 +10415,9 @@ async def get_pattern_drift(user_id: str, debug: bool = False):
             logger.info(f"[PatternDrift] Returning cached result for {user_id}")
             # Remove MongoDB _id before returning
             cached.pop("_id", None)
+            # Remove debug info from production response unless explicitly requested
+            if not debug and "_debug" in cached:
+                cached = {k: v for k, v in cached.items() if k != "_debug"}
             return cached
         
         # Get user's Enneagram result
