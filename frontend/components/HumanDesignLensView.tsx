@@ -582,9 +582,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         ) : data ? (
           <>
-            {/* Tab Description */}
-            {renderTabDescription()}
-
             {/* Title */}
             <Text style={styles.title}>{data.title}</Text>
 
