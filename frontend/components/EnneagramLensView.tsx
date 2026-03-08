@@ -72,16 +72,62 @@ const WING_NUMBERS: { [key: number]: { left: number; right: number } } = {
 };
 
 // Stress patterns per type
-const STRESS_PATTERNS: { [key: number]: string } = {
-  1: 'You may become moody, withdrawn, and emotionally volatile—losing your usual composure and feeling misunderstood.',
-  2: 'You may become aggressive and demanding, insisting on recognition and pushing harder when feeling unappreciated.',
-  3: 'You may disengage and go through the motions, avoiding situations where failure feels possible.',
-  4: 'You may become clingy and overinvolved, seeking external validation to fill an internal void.',
-  5: 'You may become scattered and impulsive, acting without your usual thoughtfulness.',
-  6: 'You may become competitive and image-conscious, trying to prove your worth through achievement.',
-  7: 'You may become critical and rigid, fixating on what\'s wrong rather than what\'s possible.',
-  8: 'You may withdraw and become secretive, pulling away from connection to protect vulnerability.',
-  9: 'You may become anxious and reactive, scanning for threats and worrying about worst cases.',
+// Stress patterns per type - structured format
+const STRESS_PATTERNS: { [key: number]: { pattern: string; tradeoff: string; strength: string; experiment: string } } = {
+  1: {
+    pattern: 'Under pressure, you may notice yourself becoming moody, withdrawn, and emotionally volatile—losing your usual composure and feeling misunderstood.',
+    tradeoff: 'The inner critic that usually drives improvement can turn inward destructively. Self-judgment may intensify rather than motivate.',
+    strength: 'This movement also opens access to emotional depth and authenticity. The feelings that surface may carry important information.',
+    experiment: 'When you notice yourself withdrawing, pause. What feeling is asking for attention beneath the surface?'
+  },
+  2: {
+    pattern: 'Under pressure, you may notice yourself becoming aggressive and demanding—insisting on recognition and pushing harder when feeling unappreciated.',
+    tradeoff: 'The energy that usually flows toward others may redirect into self-assertion. Generosity can flip into entitlement.',
+    strength: 'This movement also offers access to your own needs and boundaries. The force you feel may be legitimate self-advocacy emerging.',
+    experiment: 'When you notice yourself demanding recognition, pause. What need of your own have you been neglecting?'
+  },
+  3: {
+    pattern: 'Under pressure, you may notice yourself disengaging—going through the motions, avoiding situations where failure feels possible.',
+    tradeoff: 'The drive that usually propels achievement can flatline. Success may start feeling meaningless or unattainable.',
+    strength: 'This movement also offers permission to rest and simply be. The pause may reveal what matters beyond accomplishment.',
+    experiment: 'When you notice yourself going through the motions, pause. What would feel meaningful even without recognition?'
+  },
+  4: {
+    pattern: 'Under pressure, you may notice yourself becoming clingy and overinvolved—seeking external connection to fill an internal void.',
+    tradeoff: 'The independence you usually value can give way to neediness. Connection may be sought to avoid rather than enrich.',
+    strength: 'This movement also opens access to genuine interdependence. The reaching out may reflect real need for support.',
+    experiment: 'When you notice yourself seeking excessive connection, pause. What are you hoping someone else will provide?'
+  },
+  5: {
+    pattern: 'Under pressure, you may notice yourself becoming scattered and impulsive—acting without your usual thoughtfulness, jumping from thing to thing.',
+    tradeoff: 'The careful analysis you usually rely on may fragment. Action may outpace understanding.',
+    strength: 'This movement also offers access to spontaneity and engagement. The energy you feel may want expression, not just containment.',
+    experiment: 'When you notice scattered energy, pause. What are you avoiding by staying in motion?'
+  },
+  6: {
+    pattern: 'Under pressure, you may notice yourself becoming competitive and image-conscious—trying to prove your worth through visible achievement.',
+    tradeoff: 'The vigilance that usually protects may redirect into performance anxiety. Security may be sought through success.',
+    strength: 'This movement also offers access to confidence and capability. The drive you feel may reflect genuine ambition.',
+    experiment: 'When you notice yourself performing, pause. What would feel secure even without proving yourself?'
+  },
+  7: {
+    pattern: 'Under pressure, you may notice yourself becoming critical and rigid—fixating on what\'s wrong rather than what\'s possible.',
+    tradeoff: 'The optimism that usually flows freely may harden into judgment. Possibility may feel blocked.',
+    strength: 'This movement also offers access to discernment and standards. The criticism may carry legitimate insight.',
+    experiment: 'When you notice yourself becoming critical, pause. What standard are you holding, and is it serving you?'
+  },
+  8: {
+    pattern: 'Under pressure, you may notice yourself withdrawing and becoming secretive—pulling away from connection to protect vulnerability.',
+    tradeoff: 'The direct engagement you usually offer may retreat into isolation. Strength may feel like it requires distance.',
+    strength: 'This movement also offers access to reflection and conservation. The withdrawal may be genuine self-protection.',
+    experiment: 'When you notice yourself pulling away, pause. What vulnerability are you protecting, and does it need protection right now?'
+  },
+  9: {
+    pattern: 'Under pressure, you may notice yourself becoming anxious and reactive—scanning for threats, worrying about worst-case scenarios.',
+    tradeoff: 'The peace you usually maintain may fragment into vigilance. Calm may give way to contingency planning.',
+    strength: 'This movement also offers access to alertness and engagement. The anxiety may carry important information about what matters.',
+    experiment: 'When you notice anxiety rising, pause. What are you sensing that your usual calm might overlook?'
+  }
 };
 
 // Growth patterns per type
