@@ -369,7 +369,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <View>
               <Text style={styles.gkArcTitle}>{arcDescription.title || arcName}</Text>
               <Text style={styles.gkArcSubtitle}>
-                {sequenceViewMode === 'everyday' ? arcDescription.description : subtitle}
+                {arcDescription.description}
               </Text>
             </View>
           </View>
