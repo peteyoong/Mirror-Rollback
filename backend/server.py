@@ -9347,7 +9347,8 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
             "state_calibration": result.get("state_calibration", {}),
             "debug_scores": result.get("debug_scores", {}),
             "enneagram_computed_details": result.get("enneagram_computed_details", {}),
-            "created_at": result["created_at"].isoformat() if result.get("created_at") else None
+            # Handle both datetime objects and ISO strings (self-declared results use strings)
+            "created_at": result["created_at"].isoformat() if hasattr(result.get("created_at"), 'isoformat') else result.get("created_at")
         }
         
         # Add convergence data if present (v2 records)
