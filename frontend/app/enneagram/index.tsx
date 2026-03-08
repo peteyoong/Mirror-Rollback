@@ -211,14 +211,23 @@ export default function EnneagramScreen() {
           </Text>
         </View>
         
-        {/* CTA Button */}
-        <TouchableOpacity 
-          style={styles.ctaButton}
-          onPress={handleStartAssessment}
-        >
-          <Text style={styles.ctaButtonText}>Start Enneagram Assessment</Text>
-          <Ionicons name="arrow-forward" size={18} color={Colors.background} />
-        </TouchableOpacity>
+        {/* CTA Buttons */}
+        <View style={styles.ctaSection}>
+          <TouchableOpacity 
+            style={styles.ctaButton}
+            onPress={handleStartAssessment}
+          >
+            <Text style={styles.ctaButtonText}>Take the Assessment</Text>
+            <Ionicons name="arrow-forward" size={18} color={Colors.background} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.ctaButtonSecondary}
+            onPress={handleKnowMyType}
+          >
+            <Text style={styles.ctaButtonSecondaryText}>I already know my type</Text>
+          </TouchableOpacity>
+        </View>
         
         {/* Spacer for safe area */}
         <View style={styles.bottomSpacer} />
