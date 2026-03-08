@@ -764,6 +764,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const [deepDiveData, setDeepDiveData] = useState<EnneagramDeepDiveResponse | null>(null);
   const [deepDiveLoading, setDeepDiveLoading] = useState(false);
   
+  // Pattern Drift state
+  const [patternDrift, setPatternDrift] = useState<PatternDriftResponse | null>(null);
+  const [patternDriftLoading, setPatternDriftLoading] = useState(false);
+  
   // Debug logging on mount
   useEffect(() => {
     console.log('[EnneagramLensView] MOUNTED');
