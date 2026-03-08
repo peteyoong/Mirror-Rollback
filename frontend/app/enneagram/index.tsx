@@ -409,6 +409,9 @@ const styles = StyleSheet.create({
   },
   
   // CTA
+  ctaSection: {
+    gap: 12,
+  },
   ctaButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -423,6 +426,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Colors.background,
+  },
+  ctaButtonSecondary: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  ctaButtonSecondaryText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.text,
   },
   
   bottomSpacer: {
