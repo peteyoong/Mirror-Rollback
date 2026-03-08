@@ -214,40 +214,40 @@ const OVERVIEW_REFLECTIONS: { [key: number]: string } = {
 // Wing flavor descriptions - how each wing colors the core type
 const WING_FLAVORS: { [key: string]: string } = {
   // Type 1 wings
-  '1w9': 'The 9-wing brings a softer, more patient quality to the Reformer energy. You may notice a tendency to pick battles carefully, avoiding unnecessary conflict while still holding firm to principles. This combination often appears as quiet idealism rather than vocal criticism.',
-  '1w2': 'The 2-wing adds warmth and interpersonal focus to the Reformer drive. You may experience your desire for improvement as care for others—wanting to help them do better. This can create a mentor-like quality, though the inner critic may extend to how well you serve.',
+  '1w9': 'The 9-wing softens Reformer energy with patience and conflict-avoidance. You pick battles carefully, holding principles without forcing them. Risk: passive-aggression when standards aren\'t met.',
+  '1w2': 'The 2-wing adds warmth to the Reformer drive—improvement expressed as care for others. Natural mentors. Risk: the inner critic extends to how well you serve.',
   
   // Type 2 wings
-  '2w1': 'The 1-wing brings structure and principle to the Helper pattern. You may notice standards around how helping "should" be done—a sense of doing it right, not just doing it. This can create reliable, conscientious care but also self-criticism when your giving doesn\'t measure up.',
-  '2w3': 'The 3-wing adds energy and social awareness to the Helper instinct. You may be drawn to visible roles where helping has impact—leadership, organizing, being the one who makes things happen. The risk is confusing being needed with being successful.',
+  '2w1': 'The 1-wing brings structure to helping—a sense of doing it "right." Conscientious, reliable care. Risk: self-criticism when giving doesn\'t meet your own standards.',
+  '2w3': 'The 3-wing adds energy and visibility to helping—drawn to roles where care has impact. Risk: confusing being needed with being successful.',
   
   // Type 3 wings
-  '3w2': 'The 2-wing brings warmth and relational focus to the Achiever drive. Your success orientation may express through people—motivating teams, building networks, being liked as well as respected. The shadow here is performing warmth rather than feeling it.',
-  '3w4': 'The 4-wing adds depth and aesthetic sensitivity to the Achiever energy. You may pursue success in creative or distinctive ways—achievement with personal style. There\'s often an inner tension between image and authenticity.',
+  '3w2': 'The 2-wing brings warmth to achievement—success through people, networks, being liked and respected. Risk: performing warmth rather than feeling it.',
+  '3w4': 'The 4-wing adds depth and style to achievement—success with personal distinction. Risk: inner tension between image and authenticity.',
   
   // Type 4 wings
-  '4w3': 'The 3-wing brings ambition and audience-awareness to the Individualist depth. You may channel emotional intensity into creative output or visible expression—art, performance, building something that reflects your inner world. The risk is the audience becoming the measure.',
-  '4w5': 'The 5-wing adds intellectual focus and self-sufficiency to the Individualist search. You may process emotion through analysis, symbol, or private creative work. There\'s often a pull toward knowing yourself deeply, sometimes at the cost of connection.',
+  '4w3': 'The 3-wing channels emotional depth into visible expression—creative output, performance, building something that reflects inner experience. Risk: the audience becoming the measure of authenticity.',
+  '4w5': 'The 5-wing adds intellectual depth to emotional exploration—processing feeling through analysis, symbol, or private creative work. Risk: isolation from connection.',
   
   // Type 5 wings
-  '5w4': 'The 4-wing brings emotional depth and aesthetic sensitivity to the Investigator mind. Your analysis may be drawn to meaning, symbol, and subjective experience—understanding the inner world as much as the outer. There\'s often a creative or artistic dimension.',
-  '5w6': 'The 6-wing adds practical concern and skepticism to the Investigator stance. You may focus on systems, preparation, and understanding how things work in order to feel secure. There\'s often a loyalty to ideas or small trusted circles.',
+  '5w4': 'The 4-wing brings emotional depth to analysis—drawn to meaning, symbol, inner experience. Often creative or artistic. Risk: getting lost in subjective interpretation.',
+  '5w6': 'The 6-wing adds practical concern to observation—focus on systems, preparation, understanding how things work. Risk: anxiety disguised as thorough analysis.',
   
   // Type 6 wings
-  '6w5': 'The 5-wing brings analytical depth to the Loyalist vigilance. You may seek security through knowledge—understanding threats, mastering systems, thinking through scenarios. There\'s often an independent streak beneath the team orientation.',
-  '6w7': 'The 7-wing adds optimism and social energy to the Loyalist pattern. You may balance worst-case thinking with best-case possibilities—testing but also hoping. There\'s often warmth and humor alongside the vigilance.',
+  '6w5': 'The 5-wing brings analytical depth to vigilance—seeking security through knowledge and mastery. Often independent beneath team orientation. Risk: paralysis by analysis.',
+  '6w7': 'The 7-wing adds optimism to the Loyalist pattern—testing but also hoping, warmth alongside vigilance. Risk: using positivity to avoid real fears.',
   
   // Type 7 wings
-  '7w6': 'The 6-wing brings groundedness and relationship focus to the Enthusiast energy. You may balance adventure with loyalty—seeking fun with trusted people rather than alone. There\'s often more follow-through and anxiety than pure Sevens, and a stronger need to belong.',
-  '7w8': 'The 8-wing adds intensity and directness to the Enthusiast pattern. You may pursue options with more force—assertive, decisive, willing to push past obstacles. There\'s often entrepreneurial energy and less patience for limits.',
+  '7w6': 'The 6-wing brings loyalty and groundedness to Enthusiast energy—adventure with trusted people, more follow-through. Risk: anxiety fueling the escape into options.',
+  '7w8': 'The 8-wing adds intensity and force to enthusiasm—assertive pursuit of options, entrepreneurial, less patience for limits. Risk: bulldozing past discomfort.',
   
   // Type 8 wings
-  '8w7': 'The 7-wing adds energy and optimism to the Challenger force. You may approach challenges with enthusiasm—enjoying the game, the strategy, the possibilities. There\'s often a charismatic, larger-than-life quality.',
-  '8w9': 'The 9-wing brings steadiness and patience to the Challenger strength. You may wield power more quietly—a calm presence rather than an obvious force. There\'s often more receptivity and less need to dominate.',
+  '8w7': 'The 7-wing adds energy and optimism to Challenger force—enjoying the game, charismatic, larger-than-life. Risk: excess disguised as enthusiasm.',
+  '8w9': 'The 9-wing brings steadiness to Challenger strength—quiet power, calm presence, more receptivity. Risk: stubbornness mistaken for patience.',
   
   // Type 9 wings
-  '9w8': 'The 8-wing adds grounded strength to the Peacemaker ease. You may have more access to anger and assertion than typical Nines—a quiet force that emerges when boundaries are crossed. There\'s often stubbornness beneath the accommodation.',
-  '9w1': 'The 1-wing brings principle and idealism to the Peacemaker pattern. You may have clearer opinions than typical Nines—a sense of right and wrong—though expressing them directly may still feel difficult.',
+  '9w8': 'The 8-wing gives the Peacemaker access to anger and assertion—quiet force that emerges when boundaries are crossed. Risk: eruption after too much accommodation.',
+  '9w1': 'The 1-wing brings principle to the Peacemaker pattern—clearer opinions, sense of right and wrong. Risk: passive judgment instead of direct expression.',
 };
 
 // Balanced wings explanation
