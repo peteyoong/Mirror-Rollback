@@ -954,28 +954,28 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // ============================================
 
   const renderTabs = () => (
-    <View style={styles.tabContainer}>
+    <View style={[styles.tabContainer, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
       <TouchableOpacity
-        style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
+        style={[styles.tab, activeTab === 'summary' && styles.activeTab, activeTab === 'summary' && { borderBottomColor: theme.text }]}
         onPress={() => setActiveTab('summary')}
       >
-        <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>
+        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'summary' && { color: theme.text }]}>
           Overview
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={[styles.tab, activeTab === 'today' && styles.activeTab]}
+        style={[styles.tab, activeTab === 'today' && styles.activeTab, activeTab === 'today' && { borderBottomColor: theme.text }]}
         onPress={() => setActiveTab('today')}
       >
-        <Text style={[styles.tabText, activeTab === 'today' && styles.activeTabText]}>
+        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'today' && { color: theme.text }]}>
           Today
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
+        style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab, activeTab === 'deep_dive' && { borderBottomColor: theme.text }]}
         onPress={() => setActiveTab('deep_dive')}
       >
-        <Text style={[styles.tabText, activeTab === 'deep_dive' && styles.activeTabText]}>
+        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'deep_dive' && { color: theme.text }]}>
           Deep Dive
         </Text>
       </TouchableOpacity>
