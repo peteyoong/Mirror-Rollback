@@ -871,94 +871,83 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // SUMMARY TAB
   // ============================================
 
-  const renderSummaryTab = () => (
-    <>
-      {/* Hero Card */}
-      <View style={styles.heroCard}>
-        <View style={styles.heroBadge}>
-          <Text style={styles.heroBadgeText}>{core}</Text>
-        </View>
-        <Text style={styles.heroTitle}>Type {core}</Text>
-        <Text style={styles.heroSubtitle}>
-          {wing === 'balanced' ? 'Balanced wings' : `Wing ${wing}`}
-        </Text>
-        {renderConfidenceBadge()}
-        <Text style={styles.heroDisclaimer}>
-          This lens reflects motivation, not mood.
-        </Text>
-      </View>
-
-      {/* Core Motivation Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Core Motivation</Text>
-        <Text style={styles.cardBody}>
-          {CORE_MOTIVATIONS[core]}
-        </Text>
-      </View>
-
-      {/* Wing Access Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Your Wing Access</Text>
-        {wing !== 'balanced' ? (
-          <>
-            <Text style={styles.cardBody}>
-              Wings are access paths — capacities you can develop. The quieter wing often holds untapped potential.
+  const renderSummaryTab = () => {
+    const manifestations = PATTERN_MANIFESTATIONS[core];
+    
+    return (
+      <>
+        {/* Identity Card */}
+        <View style={styles.identityCard}>
+          <View style={styles.identityMain}>
+            <Text style={styles.identityType}>
+              {wing !== 'balanced' ? `${core}w${wing}` : `Type ${core}`}
             </Text>
-            <View style={styles.wingRow}>
-              <View style={styles.wingItem}>
-                <Text style={styles.wingLabel}>Dominant</Text>
-                <Text style={styles.wingValue}>Wing {wing}</Text>
-              </View>
-              <View style={styles.wingDivider} />
-              <View style={styles.wingItem}>
-                <Text style={styles.wingLabel}>Growth access</Text>
-                <Text style={styles.wingValue}>Wing {otherWing}</Text>
-              </View>
-            </View>
-          </>
-        ) : (
-          <Text style={styles.cardBody}>
-            You show access to both wings. Balance comes from choosing consciously based on the situation, not defaulting to one pattern.
-          </Text>
-        )}
-      </View>
-
-      {/* Top Alternatives Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Top Alternatives</Text>
-        <Text style={styles.cardSubtitle}>
-          Common mistypes included for self-verification
-        </Text>
-        {result.top_candidates.slice(0, 3).map((candidate, index) => (
-          <View key={candidate.type} style={styles.candidateRow}>
-            <Text style={styles.candidateRank}>{index + 1}</Text>
-            <Text style={styles.candidateType}>
-              Type {candidate.type} — {TYPE_NAMES[candidate.type]}
-            </Text>
-            <Text style={styles.candidatePercent}>
-              {Math.round(candidate.probability * 100)}%
-            </Text>
+            <Text style={styles.identityName}>{TYPE_NAMES[core]}</Text>
           </View>
-        ))}
-      </View>
+          {renderConfidenceBadge()}
+          <Text style={styles.identityNote}>
+            This lens reflects strategy, not identity.
+          </Text>
+        </View>
 
-      {/* CTA Row */}
-      <View style={styles.ctaRow}>
+        {/* Core Pattern Card */}
+        <View style={styles.overviewCard}>
+          <Text style={styles.overviewCardTitle}>Your Core Pattern</Text>
+          <Text style={styles.overviewCardBody}>
+            {CORE_PATTERNS[core]}
+          </Text>
+        </View>
+
+        {/* What Drives This Card */}
+        <View style={styles.overviewCard}>
+          <Text style={styles.overviewCardTitle}>What Drives This</Text>
+          <Text style={styles.overviewCardBody}>
+            {PATTERN_DRIVERS[core]}
+          </Text>
+        </View>
+
+        {/* Where This Shows Up Card */}
+        <View style={styles.overviewCard}>
+          <Text style={styles.overviewCardTitle}>Where This Often Appears</Text>
+          <View style={styles.manifestationList}>
+            <View style={styles.manifestationItem}>
+              <Text style={styles.manifestationLabel}>Decision making</Text>
+              <Text style={styles.manifestationText}>{manifestations.decisions}</Text>
+            </View>
+            <View style={styles.manifestationItem}>
+              <Text style={styles.manifestationLabel}>Work & creativity</Text>
+              <Text style={styles.manifestationText}>{manifestations.work}</Text>
+            </View>
+            <View style={styles.manifestationItem}>
+              <Text style={styles.manifestationLabel}>Relationships</Text>
+              <Text style={styles.manifestationText}>{manifestations.relationships}</Text>
+            </View>
+            <View style={styles.manifestationItem}>
+              <Text style={styles.manifestationLabel}>Under stress</Text>
+              <Text style={styles.manifestationText}>{manifestations.stress}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Reflection Prompt Card */}
+        <View style={styles.reflectionCard}>
+          <Text style={styles.reflectionLabel}>A REFLECTION</Text>
+          <Text style={styles.reflectionText}>
+            "{OVERVIEW_REFLECTIONS[core]}"
+          </Text>
+        </View>
+
+        {/* Subtle CTA */}
         <TouchableOpacity
-          style={styles.ctaButtonPrimary}
-          onPress={() => router.push('/enneagram/results')}
+          style={styles.subtleLink}
+          onPress={() => setActiveTab('deep_dive')}
         >
-          <Text style={styles.ctaButtonPrimaryText}>View Full Results</Text>
+          <Text style={styles.subtleLinkText}>Explore Deep Dive</Text>
+          <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.ctaButtonSecondary}
-          onPress={() => setShowRetakeModal(true)}
-        >
-          <Text style={styles.ctaButtonSecondaryText}>Retake Assessment</Text>
-        </TouchableOpacity>
-      </View>
-    </>
-  );
+      </>
+    );
+  };
 
   // ============================================
   // TODAY TAB
