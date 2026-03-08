@@ -663,6 +663,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  // Unified tab section with inline description
+  tabSection: {
+    paddingTop: 8,
+    paddingBottom: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+  },
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
@@ -688,6 +695,15 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: Colors.surface,
   },
+  // Inline tab description - tightly coupled to tabs
+  tabDescriptionInline: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  // Legacy styles kept for backward compatibility
   tabDescriptionContainer: {
     paddingHorizontal: 20,
     paddingVertical: 12,
