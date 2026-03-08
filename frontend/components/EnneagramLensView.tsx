@@ -3033,7 +3033,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: Colors.surfaceLight,
   },
   driftConfidenceModerate: {
     backgroundColor: 'rgba(129, 199, 132, 0.15)',
