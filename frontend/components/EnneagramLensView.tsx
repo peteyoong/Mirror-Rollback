@@ -2437,16 +2437,16 @@ const styles = StyleSheet.create({
 
   // Section Divider (text-based)
   sectionDivider: {
-    marginTop: 20,
-    marginBottom: 16,
-    paddingVertical: 8,
+    marginTop: 12,
+    marginBottom: 6,
+    paddingVertical: 4,
   },
   sectionDividerText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: Colors.textTertiary,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 0.8,
     textAlign: 'center',
   },
 
