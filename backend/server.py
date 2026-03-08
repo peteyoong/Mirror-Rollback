@@ -46,6 +46,14 @@ from enneagram_convergence import (
     get_convergence_rules_table
 )
 
+# Import Pattern Drift Module
+from pattern_drift import (
+    calculate_pattern_drift,
+    is_cache_valid,
+    ENNEAGRAM_DRIFT_MAP,
+    TYPE_NAMES as DRIFT_TYPE_NAMES
+)
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
