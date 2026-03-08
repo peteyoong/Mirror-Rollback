@@ -129,6 +129,9 @@ interface Props {
 type TabType = 'summary' | 'today' | 'deep_dive';
 
 export default function NumerologyLensView({ userId, onOpenChat }: Props) {
+  // Theme support
+  const { theme, isDark } = useTheme();
+  
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [data, setData] = useState<NumerologyData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
