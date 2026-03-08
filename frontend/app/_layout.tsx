@@ -1,8 +1,9 @@
 import React, { useEffect, useState, Component, ErrorInfo, ReactNode } from 'react';
 import { Stack } from 'expo-router';
-import { View, Text, ActivityIndicator, StyleSheet, Platform, useWindowDimensions, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, Platform, useWindowDimensions, TouchableOpacity, ScrollView, useColorScheme } from 'react-native';
 import { useAppStore } from '../store';
-import { Colors } from '../constants/colors';
+import { ThemeProvider, useThemeColors } from '../contexts/ThemeContext';
+import { LightTheme, DarkTheme } from '../constants/theme';
 import { DebugViewportOverlay } from '../components/DebugViewportOverlay';
 import { AddToHomeScreenBanner } from '../components/AddToHomeScreenBanner';
 
