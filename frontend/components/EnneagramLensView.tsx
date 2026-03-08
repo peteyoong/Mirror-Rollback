@@ -2060,7 +2060,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: undefined,
   },
   content: {
     flex: 1,
@@ -2075,9 +2075,9 @@ const styles = StyleSheet.create({
   // Tabs
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: undefined,
   },
   tab: {
     flex: 1,
@@ -2091,16 +2091,16 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 14,
     fontWeight: '500',
-    color: Colors.textTertiary,
+    color: undefined,
   },
   activeTabText: {
-    color: Colors.text,
+    color: undefined,
   },
 
   // Deep Dive Sub-Tabs
   deepDiveSubTabContainer: {
     flexDirection: 'row',
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 8,
     padding: 4,
     marginBottom: 16,
@@ -2118,7 +2118,7 @@ const styles = StyleSheet.create({
   deepDiveSubTabText: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.textTertiary,
+    color: undefined,
   },
   deepDiveSubTabTextActive: {
     color: Colors.surface,
@@ -2139,11 +2139,11 @@ const styles = StyleSheet.create({
 
   // Accordion Styles
   accordionCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 10,
     marginBottom: 8,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: undefined,
     overflow: 'hidden',
   },
   accordionHeader: {
@@ -2160,19 +2160,19 @@ const styles = StyleSheet.create({
   accordionTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
     marginBottom: 1,
   },
   accordionSubtitle: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: undefined,
     lineHeight: 16,
   },
   accordionContent: {
     paddingHorizontal: 14,
     paddingBottom: 14,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
+    borderTopColor: undefined,
     paddingTop: 14,
   },
   accordionBodySection: {
@@ -2184,19 +2184,19 @@ const styles = StyleSheet.create({
   accordionBodyTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
     marginBottom: 4,
     letterSpacing: 0.1,
   },
   accordionBodyText: {
     fontSize: 14,
     lineHeight: 21,
-    color: Colors.textSecondary,
+    color: undefined,
   },
 
   // Wing Card (inside accordion)
   wingCard: {
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
     borderRadius: 8,
     padding: 10,
     marginTop: 10,
@@ -2210,17 +2210,17 @@ const styles = StyleSheet.create({
   wingCardTitle: {
     fontSize: 13,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: undefined,
   },
   wingCardName: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
   },
 
   // Structure Grid Compact
   structureGridCompact: {
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
     borderRadius: 8,
     padding: 10,
     marginTop: 12,
@@ -2234,20 +2234,20 @@ const styles = StyleSheet.create({
   },
   structureGridLabel: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: undefined,
     marginBottom: 2,
   },
   structureGridValue: {
     fontSize: 13,
     fontWeight: '500',
-    color: Colors.text,
+    color: undefined,
   },
 
   // Flow Row (stress/growth)
   flowRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
     borderRadius: 8,
     padding: 10,
     marginBottom: 12,
@@ -2259,14 +2259,14 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
   },
   flowLabel: {
     fontSize: 12,
-    color: Colors.textSecondary,
+    color: undefined,
   },
 
   // Alternative Rows
@@ -2275,13 +2275,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    borderBottomColor: undefined,
   },
   alternativeRank: {
     width: 22,
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: undefined,
   },
   alternativeInfo: {
     flex: 1,
@@ -2289,21 +2289,21 @@ const styles = StyleSheet.create({
   alternativeType: {
     fontSize: 13,
     fontWeight: '500',
-    color: Colors.text,
+    color: undefined,
   },
   alternativeName: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: undefined,
   },
   alternativePercent: {
     fontSize: 13,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: undefined,
   },
 
   // Disclaimer Card
   disclaimerCard: {
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
     borderRadius: 8,
     padding: 12,
     marginTop: 12,
@@ -2311,19 +2311,19 @@ const styles = StyleSheet.create({
   disclaimerText: {
     fontSize: 12,
     lineHeight: 18,
-    color: Colors.textTertiary,
+    color: undefined,
     fontStyle: 'italic',
     textAlign: 'center',
   },
 
   // Hero Card
   heroCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
     marginBottom: 16,
   },
   heroBadge: {
@@ -2343,17 +2343,17 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
     marginBottom: 4,
   },
   heroSubtitle: {
     fontSize: 16,
-    color: Colors.textSecondary,
+    color: undefined,
     marginBottom: 12,
   },
   heroDisclaimer: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: undefined,
     marginTop: 8,
     fontStyle: 'italic',
   },
@@ -2364,12 +2364,12 @@ const styles = StyleSheet.create({
 
   // Identity Card (new compact design)
   identityCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 10,
     padding: 16,
     alignItems: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: undefined,
     marginBottom: 10,
   },
   identityMain: {
@@ -2379,39 +2379,39 @@ const styles = StyleSheet.create({
   identityType: {
     fontSize: 22,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
     marginBottom: 2,
   },
   identityName: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: undefined,
   },
   identityNote: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: undefined,
     marginTop: 6,
     fontStyle: 'italic',
   },
 
   // Overview Cards
   overviewCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 10,
     padding: 14,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: undefined,
     marginBottom: 10,
   },
   overviewCardTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
     marginBottom: 8,
   },
   overviewCardBody: {
     fontSize: 14,
     lineHeight: 21,
-    color: Colors.textSecondary,
+    color: undefined,
   },
 
   // Manifestation List (Where This Shows Up)
@@ -2421,23 +2421,23 @@ const styles = StyleSheet.create({
   manifestationItem: {
     paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    borderBottomColor: undefined,
   },
   manifestationLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
     marginBottom: 3,
   },
   manifestationText: {
     fontSize: 13,
     lineHeight: 19,
-    color: Colors.textSecondary,
+    color: undefined,
   },
 
   // Reflection Card
   reflectionCard: {
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
     borderRadius: 10,
     padding: 16,
     marginBottom: 12,
@@ -2447,14 +2447,14 @@ const styles = StyleSheet.create({
   reflectionLabel: {
     fontSize: 10,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: undefined,
     letterSpacing: 0.8,
     marginBottom: 8,
   },
   reflectionText: {
     fontSize: 14,
     lineHeight: 22,
-    color: Colors.textSecondary,
+    color: undefined,
     fontStyle: 'italic',
   },
 
@@ -2468,16 +2468,16 @@ const styles = StyleSheet.create({
   },
   subtleLinkText: {
     fontSize: 13,
-    color: Colors.textTertiary,
+    color: undefined,
   },
 
   // Cards
   card: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
     marginBottom: 12,
   },
   cardHeader: {
@@ -2489,23 +2489,23 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
     marginBottom: 8,
   },
   cardSubtitle: {
     fontSize: 13,
-    color: Colors.textTertiary,
+    color: undefined,
     marginBottom: 12,
   },
   cardBody: {
     fontSize: 15,
     lineHeight: 22,
-    color: Colors.textSecondary,
+    color: undefined,
   },
   cardNote: {
     fontSize: 13,
     lineHeight: 19,
-    color: Colors.textTertiary,
+    color: undefined,
     marginTop: 12,
     fontStyle: 'italic',
   },
@@ -2517,7 +2517,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: undefined,
   },
   wingItem: {
     flex: 1,
@@ -2530,13 +2530,13 @@ const styles = StyleSheet.create({
   },
   wingLabel: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: undefined,
     marginBottom: 4,
   },
   wingValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
   },
 
   // Candidates
@@ -2545,23 +2545,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: undefined,
   },
   candidateRank: {
     width: 24,
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: undefined,
   },
   candidateType: {
     flex: 1,
     fontSize: 14,
-    color: Colors.text,
+    color: undefined,
   },
   candidatePercent: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
   },
 
   // CTA Row
@@ -2581,17 +2581,17 @@ const styles = StyleSheet.create({
     color: Colors.background,
   },
   ctaButtonSecondary: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   ctaButtonSecondaryText: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
   },
 
   // Energy Buttons (Today tab)
@@ -2608,9 +2608,9 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: Colors.background,
+    backgroundColor: undefined,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   energyButtonSelected: {
     backgroundColor: Colors.text,
@@ -2619,7 +2619,7 @@ const styles = StyleSheet.create({
   energyButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: Colors.text,
+    color: undefined,
   },
   energyButtonTextSelected: {
     color: Colors.background,
@@ -2627,7 +2627,7 @@ const styles = StyleSheet.create({
 
   // Practice Card
   practiceCard: {
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
     borderRadius: 12,
     padding: 20,
     marginBottom: 12,
@@ -2635,37 +2635,37 @@ const styles = StyleSheet.create({
   practiceLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: undefined,
     letterSpacing: 0.5,
     marginBottom: 8,
   },
   practiceBody: {
     fontSize: 15,
     lineHeight: 22,
-    color: Colors.text,
+    color: undefined,
   },
 
   // Prompt Card
   promptCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 12,
     padding: 20,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
     borderLeftWidth: 3,
     borderLeftColor: Colors.text,
   },
   promptLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: undefined,
     letterSpacing: 0.5,
     marginBottom: 8,
   },
   promptBody: {
     fontSize: 16,
     lineHeight: 24,
-    color: Colors.text,
+    color: undefined,
     fontStyle: 'italic',
   },
 
@@ -2674,12 +2674,12 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: undefined,
   },
   patternLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: undefined,
     marginBottom: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -2687,7 +2687,7 @@ const styles = StyleSheet.create({
   patternValue: {
     fontSize: 14,
     lineHeight: 20,
-    color: Colors.text,
+    color: undefined,
   },
 
   // Wing Flight Row
@@ -2698,33 +2698,33 @@ const styles = StyleSheet.create({
   },
   wingFlightItem: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: undefined,
     borderRadius: 10,
     padding: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   wingFlightLabel: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: undefined,
     marginBottom: 4,
   },
   wingFlightValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.text,
+    color: undefined,
   },
 
   // Mastery Toggle
   masteryToggle: {
     flexDirection: 'row',
-    backgroundColor: Colors.background,
+    backgroundColor: undefined,
     borderRadius: 10,
     padding: 4,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   masteryButton: {
     flex: 1,
@@ -2738,22 +2738,22 @@ const styles = StyleSheet.create({
   masteryButtonText: {
     fontSize: 13,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: undefined,
   },
   masteryButtonTextSelected: {
     color: Colors.background,
   },
   masteryDescription: {
-    backgroundColor: Colors.background,
+    backgroundColor: undefined,
     borderRadius: 10,
     padding: 14,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   masteryDescriptionText: {
     fontSize: 14,
     lineHeight: 20,
-    color: Colors.text,
+    color: undefined,
     textAlign: 'center',
   },
   
@@ -2782,7 +2782,7 @@ const styles = StyleSheet.create({
   experimentText: {
     fontSize: 14,
     lineHeight: 21,
-    color: Colors.text,
+    color: undefined,
     fontStyle: 'italic',
   },
 
@@ -2793,16 +2793,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: undefined,
   },
   verificationType: {
     fontSize: 14,
-    color: Colors.text,
+    color: undefined,
   },
   verificationPercent: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.textSecondary,
+    color: undefined,
   },
   retakeLink: {
     flexDirection: 'row',
@@ -2814,7 +2814,7 @@ const styles = StyleSheet.create({
   },
   retakeLinkText: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: undefined,
   },
   editTypeLink: {
     flexDirection: 'row',
@@ -2833,14 +2833,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   sourceBadgeText: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: undefined,
   },
   
   // Identity card edit button
@@ -2852,17 +2852,17 @@ const styles = StyleSheet.create({
   editTypeInline: {
     padding: 6,
     borderRadius: 12,
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
   },
   
   // Pattern Movement Card
   patternMovementCard: {
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   patternMovementHeader: {
     flexDirection: 'row',
@@ -2873,11 +2873,11 @@ const styles = StyleSheet.create({
   patternMovementTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
     flex: 1,
   },
   patternMovementTitleMuted: {
-    color: Colors.textTertiary,
+    color: undefined,
   },
   patternMovementContent: {
     gap: 10,
@@ -2898,15 +2898,15 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: undefined,
     alignItems: 'center',
     justifyContent: 'center',
   },
   typeCircleMuted: {
-    borderColor: Colors.border,
-    backgroundColor: Colors.surfaceLight,
+    borderColor: undefined,
+    backgroundColor: undefinedLight,
   },
   typeCircleDrift: {
     borderStyle: 'dashed',
@@ -2922,10 +2922,10 @@ const styles = StyleSheet.create({
   typeCircleNumber: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.text,
+    color: undefined,
   },
   typeCircleNumberMuted: {
-    color: Colors.textTertiary,
+    color: undefined,
   },
   typeCircleNumberStress: {
     color: '#C62828',
@@ -2951,7 +2951,7 @@ const styles = StyleSheet.create({
   movementDirectionLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.textSecondary,
+    color: undefined,
     textTransform: 'lowercase',
     letterSpacing: 0.5,
     marginTop: 10,
@@ -2964,7 +2964,7 @@ const styles = StyleSheet.create({
   },
   movementBaselineLabel: {
     fontSize: 12,
-    color: Colors.textSecondary,
+    color: undefined,
     marginTop: 8,
   },
   
@@ -2976,13 +2976,13 @@ const styles = StyleSheet.create({
   },
   driftLabel: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: undefined,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   driftValue: {
     fontSize: 14,
-    color: Colors.text,
+    color: undefined,
   },
   driftSignalValue: {
     flexDirection: 'row',
@@ -3002,19 +3002,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   driftKeywordBadge: {
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   driftKeywordText: {
     fontSize: 11,
-    color: Colors.textSecondary,
+    color: undefined,
   },
   driftSummary: {
     fontSize: 13,
     lineHeight: 19,
-    color: Colors.textSecondary,
+    color: undefined,
     fontStyle: 'italic',
     marginTop: 8,
     textAlign: 'center',
@@ -3022,13 +3022,13 @@ const styles = StyleSheet.create({
   driftSummaryNeutral: {
     fontSize: 13,
     lineHeight: 19,
-    color: Colors.textTertiary,
+    color: undefined,
     marginTop: 4,
     textAlign: 'center',
   },
   driftDisclaimer: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: undefined,
     marginTop: 12,
     textAlign: 'center',
     opacity: 0.7,
@@ -3037,7 +3037,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
   },
   driftConfidenceModerate: {
     backgroundColor: 'rgba(129, 199, 132, 0.15)',
@@ -3048,7 +3048,7 @@ const styles = StyleSheet.create({
   driftConfidenceText: {
     fontSize: 10,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: undefined,
     textTransform: 'capitalize',
   },
   
@@ -3077,7 +3077,7 @@ const styles = StyleSheet.create({
   },
   footerActionText: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: undefined,
   },
   footerDot: {
     width: 3,
@@ -3095,7 +3095,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   modalContent: {
-    backgroundColor: Colors.background,
+    backgroundColor: undefined,
     borderRadius: 16,
     padding: 24,
     width: '100%',
@@ -3104,13 +3104,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
     marginBottom: 12,
   },
   modalText: {
     fontSize: 15,
     lineHeight: 22,
-    color: Colors.textSecondary,
+    color: undefined,
     marginBottom: 24,
   },
   modalActions: {
@@ -3121,15 +3121,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     alignItems: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   modalCancelText: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
   },
   modalConfirmButton: {
     flex: 1,
@@ -3147,10 +3147,10 @@ const styles = StyleSheet.create({
   // Chat Box
   chatContainer: {
     marginTop: 16,
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
     overflow: 'hidden',
   },
   chatHeader: {
@@ -3159,7 +3159,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
   },
   chatHeaderLeft: {
     flexDirection: 'row',
@@ -3169,7 +3169,7 @@ const styles = StyleSheet.create({
   chatHeaderText: {
     fontSize: 14,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: undefined,
   },
   chatBody: {
     padding: 14,
@@ -3191,14 +3191,14 @@ const styles = StyleSheet.create({
   },
   chatMessageAssistant: {
     alignSelf: 'flex-start',
-    backgroundColor: Colors.background,
+    backgroundColor: undefined,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   chatMessageText: {
     fontSize: 14,
     lineHeight: 20,
-    color: Colors.text,
+    color: undefined,
   },
   chatMessageTextUser: {
     color: Colors.background,
@@ -3210,15 +3210,15 @@ const styles = StyleSheet.create({
   },
   chatInput: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: undefined,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
     fontSize: 14,
     maxHeight: 100,
-    color: Colors.text,
+    color: undefined,
   },
   chatSendButton: {
     width: 40,
@@ -3234,11 +3234,11 @@ const styles = StyleSheet.create({
   
   // Daily Micro-Lesson Card
   microLessonCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
     marginBottom: 12,
   },
   microLessonHeader: {
@@ -3250,13 +3250,13 @@ const styles = StyleSheet.create({
   microLessonTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
     marginBottom: 2,
   },
   microLessonSubtitle: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: undefined,
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -3266,11 +3266,11 @@ const styles = StyleSheet.create({
   microLessonBodyText: {
     fontSize: 15,
     lineHeight: 23,
-    color: Colors.textSecondary,
+    color: undefined,
   },
   microLessonBoldText: {
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
   },
   microLessonFooter: {
     flexDirection: 'row',
@@ -3278,7 +3278,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: undefined,
   },
   microLessonRotates: {
     flexDirection: 'row',
@@ -3287,7 +3287,7 @@ const styles = StyleSheet.create({
   },
   microLessonRotatesText: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: undefined,
   },
   microLessonAskButton: {
     flexDirection: 'row',
@@ -3296,27 +3296,27 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 8,
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
   },
   microLessonAskText: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.text,
+    color: undefined,
   },
 
   // Enneagram Structure Card (Deep Dive)
   structureCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   structureTitle: {
     fontSize: 10,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: undefined,
     letterSpacing: 1.2,
     textAlign: 'center',
     marginBottom: 12,
@@ -3333,19 +3333,19 @@ const styles = StyleSheet.create({
   },
   structureLabel: {
     fontSize: 10,
-    color: Colors.textTertiary,
+    color: undefined,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
   structureValue: {
     fontSize: 13,
     fontWeight: '500',
-    color: Colors.text,
+    color: undefined,
     textAlign: 'center',
   },
   structureSubValue: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: undefined,
     textAlign: 'center',
     marginTop: 2,
   },
@@ -3368,7 +3368,7 @@ const styles = StyleSheet.create({
   traitCardsTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
   },
   traitCardsSourceBadge: {
     flexDirection: 'row',
@@ -3376,12 +3376,12 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
     borderRadius: 10,
   },
   traitCardsSourceText: {
     fontSize: 10,
-    color: Colors.textSecondary,
+    color: undefined,
     fontWeight: '500',
   },
   traitCardsLoading: {
@@ -3389,27 +3389,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   traitCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 10,
     padding: 14,
     marginBottom: 8,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   traitCardTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
     marginBottom: 6,
   },
   traitCardBody: {
     fontSize: 14,
     lineHeight: 21,
-    color: Colors.textSecondary,
+    color: undefined,
   },
   traitCardCitation: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: undefined,
     marginTop: 8,
     fontStyle: 'italic',
   },
@@ -3421,12 +3421,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
+    borderTopColor: undefined,
   },
   traitCardAskText: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.text,
+    color: undefined,
   },
 
   // Section Divider (text-based)
@@ -3438,7 +3438,7 @@ const styles = StyleSheet.create({
   sectionDividerText: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: undefined,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     textAlign: 'center',
@@ -3451,7 +3451,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   qaModalContent: {
-    backgroundColor: Colors.background,
+    backgroundColor: undefined,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -3467,16 +3467,16 @@ const styles = StyleSheet.create({
   qaModalTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
   },
   qaAnswerContainer: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 12,
     padding: 14,
     marginBottom: 16,
     maxHeight: 220,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   qaAnswerScroll: {
     flex: 1,
@@ -3484,7 +3484,7 @@ const styles = StyleSheet.create({
   qaAnswerText: {
     fontSize: 15,
     lineHeight: 23,
-    color: Colors.text,
+    color: undefined,
   },
   qaLoadingContainer: {
     flexDirection: 'row',
@@ -3495,7 +3495,7 @@ const styles = StyleSheet.create({
   },
   qaLoadingText: {
     fontSize: 13,
-    color: Colors.textSecondary,
+    color: undefined,
   },
   qaInputContainer: {
     flexDirection: 'row',
@@ -3504,15 +3504,15 @@ const styles = StyleSheet.create({
   },
   qaInput: {
     flex: 1,
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: undefined,
     fontSize: 14,
     maxHeight: 100,
-    color: Colors.text,
+    color: undefined,
   },
   qaSendButton: {
     width: 42,
@@ -3527,7 +3527,7 @@ const styles = StyleSheet.create({
   },
   qaDisclaimer: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: undefined,
     textAlign: 'center',
     marginTop: 12,
     fontStyle: 'italic',
@@ -3535,12 +3535,12 @@ const styles = StyleSheet.create({
 
   // Deep Dive Header (Anchor)
   deepDiveHeader: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 10,
     padding: 14,
     marginBottom: 8,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: undefined,
     alignItems: 'center',
   },
   deepDiveHeaderTop: {
@@ -3553,17 +3553,17 @@ const styles = StyleSheet.create({
   deepDiveType: {
     fontSize: 22,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
   },
   deepDiveWingStance: {
     fontSize: 15,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: undefined,
     marginBottom: 4,
   },
   deepDiveNote: {
     fontSize: 11,
-    color: Colors.textTertiary,
+    color: undefined,
     fontStyle: 'italic',
   },
 
@@ -3576,29 +3576,29 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: Colors.textTertiary,
+    color: undefined,
   },
   deepDiveSection: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   deepDiveSectionTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
     marginBottom: 10,
   },
   deepDiveSectionBody: {
     fontSize: 15,
     lineHeight: 24,
-    color: Colors.textSecondary,
+    color: undefined,
   },
   mirrorPromptCard: {
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -3611,13 +3611,13 @@ const styles = StyleSheet.create({
   mirrorPromptLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.textTertiary,
+    color: undefined,
     letterSpacing: 0.5,
   },
   mirrorPromptText: {
     fontSize: 15,
     lineHeight: 22,
-    color: Colors.text,
+    color: undefined,
     fontStyle: 'italic',
   },
 
@@ -3625,17 +3625,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: Colors.surfaceLight,
+    backgroundColor: undefinedLight,
   },
   confidenceBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.textSecondary,
+    color: undefined,
   },
   confidenceText: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
   },
   confidenceHigh: {
     backgroundColor: '#E8F5E9',
@@ -3658,28 +3658,28 @@ const styles = StyleSheet.create({
 
   // Wing Section
   wingSection: {
-    backgroundColor: Colors.surface,
+    backgroundColor: undefined,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    borderColor: undefined,
   },
   wingSectionTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.text,
+    color: undefined,
     marginBottom: 10,
   },
   wingSectionBody: {
     fontSize: 14,
     lineHeight: 21,
-    color: Colors.textSecondary,
+    color: undefined,
   },
   wingGrowthNoteText: {
     fontSize: 13,
     lineHeight: 20,
-    color: Colors.textTertiary,
+    color: undefined,
     marginTop: 10,
     fontStyle: 'italic',
   },
@@ -3687,11 +3687,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
+    borderTopColor: undefined,
   },
   wingAccessHintText: {
     fontSize: 13,
-    color: Colors.textTertiary,
+    color: undefined,
     textAlign: 'center',
   },
   wingGrowthHint: {
@@ -3701,11 +3701,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
+    borderTopColor: undefined,
   },
   wingGrowthHintText: {
     fontSize: 12,
-    color: Colors.textTertiary,
+    color: undefined,
     fontStyle: 'italic',
   },
 });
