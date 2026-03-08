@@ -465,23 +465,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={styles.crossSectionTitle}>YOUR INCARNATION CROSS</Text>
         </View>
         
-        {/* Cross Card */}
+        {/* Cross Card - Simplified */}
         <View style={styles.crossCard}>
           {/* Cross Name - prominent */}
           <Text style={styles.crossName}>{cross.cross_name}</Text>
-          
-          {/* Orientation Flavor - short interpretive text */}
-          <Text style={styles.crossFlavor}>{cross.orientation_flavor}</Text>
-          
-          {/* Theme Bullets */}
-          <View style={styles.crossThemes}>
-            {cross.themes.map((theme, idx) => (
-              <View key={idx} style={styles.crossThemeRow}>
-                <View style={styles.crossThemeBullet} />
-                <Text style={styles.crossThemeText}>{theme}</Text>
-              </View>
-            ))}
-          </View>
           
           {/* Gate Quartet - subtle metadata */}
           <View style={styles.crossMetadata}>
