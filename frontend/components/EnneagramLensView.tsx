@@ -1789,7 +1789,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <View style={styles.flowRow}>
             <View style={styles.flowItem}>
               <View style={styles.flowIconContainer}>
-                <Ionicons name="arrow-down" size={16} color="#E57373" />
+                <Ionicons name="arrow-down" size={16} color="#C62828" />
               </View>
               <Text style={styles.flowLabel}>Under Stress → Type {(data?.computed_details || computedDetails)?.stress_line_to || '—'}</Text>
             </View>
