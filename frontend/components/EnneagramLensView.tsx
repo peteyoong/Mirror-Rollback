@@ -2299,7 +2299,7 @@ const styles = StyleSheet.create({
 
   // Disclaimer Card
   disclaimerCard: {
-    backgroundColor: 'rgba(255,255,255,0.02)',
+    backgroundColor: Colors.surfaceLight,
     borderRadius: 8,
     padding: 12,
     marginTop: 12,
@@ -2433,7 +2433,7 @@ const styles = StyleSheet.create({
 
   // Reflection Card
   reflectionCard: {
-    backgroundColor: 'rgba(255,255,255,0.02)',
+    backgroundColor: Colors.surfaceLight,
     borderRadius: 10,
     padding: 16,
     marginBottom: 12,
