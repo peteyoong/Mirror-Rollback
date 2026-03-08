@@ -1316,27 +1316,24 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {/* Your Wing */}
         <AccordionSection
           id="your_wing"
-          title={wing !== 'balanced' ? `Type ${typeLabel} — Your Wing` : `Your Wing Access`}
+          title={wing !== 'balanced' ? `Your Wing (${wing})` : `Your Wing Access`}
           subtitle="How your dominant wing colors your expression"
         >
           {wing !== 'balanced' ? (
             <>
-              <Text style={styles.accordionBodyText}>
-                Your {wing}-wing brings the energy of {TYPE_NAMES[wing as number]} into your Type {core} expression. 
-                This combination creates a distinctive approach — blending {core}'s core motivation with {wing}'s qualities.
-              </Text>
               <View style={styles.wingCard}>
                 <View style={styles.wingCardHeader}>
                   <Ionicons name="star" size={16} color={Colors.accent} />
-                  <Text style={styles.wingCardTitle}>Wing {wing}</Text>
+                  <Text style={styles.wingCardTitle}>Wing {wing} · {TYPE_NAMES[wing as number]}</Text>
                 </View>
-                <Text style={styles.wingCardName}>{TYPE_NAMES[wing as number]}</Text>
               </View>
+              <Text style={styles.accordionBodyText}>
+                {WING_FLAVORS[`${core}w${wing}`] || `Your ${wing}-wing adds the qualities of ${TYPE_NAMES[wing as number]} to your core pattern.`}
+              </Text>
             </>
           ) : (
             <Text style={styles.accordionBodyText}>
-              You show access to both wings. Balance comes from choosing consciously based on the situation, 
-              not defaulting to one pattern.
+              You show access to both wings. This flexibility lets you choose consciously based on context rather than defaulting to one pattern.
             </Text>
           )}
         </AccordionSection>
@@ -1344,21 +1341,17 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {/* The Other Wing */}
         <AccordionSection
           id="other_wing"
-          title={`The Other Wing (${otherWing})`}
-          subtitle="Alternate access point for growth"
+          title={`Other Wing (${otherWing})`}
+          subtitle="Untapped capacity for balance"
         >
-          <Text style={styles.accordionBodyText}>
-            Wings are access paths — capacities you can develop. The quieter wing often holds untapped potential.
-          </Text>
           <View style={styles.wingCard}>
             <View style={styles.wingCardHeader}>
               <Ionicons name="star-outline" size={16} color={Colors.textSecondary} />
-              <Text style={styles.wingCardTitle}>Wing {otherWing}</Text>
+              <Text style={styles.wingCardTitle}>Wing {otherWing} · {TYPE_NAMES[otherWing]}</Text>
             </View>
-            <Text style={styles.wingCardName}>{TYPE_NAMES[otherWing]}</Text>
           </View>
-          <Text style={[styles.accordionBodyText, { marginTop: 12 }]}>
-            Developing access to your {otherWing}-wing can provide balance and new capacities when your dominant pattern feels limiting.
+          <Text style={styles.accordionBodyText}>
+            Your quieter wing often holds untapped potential. When your dominant pattern feels limiting, developing access to {otherWing}-wing qualities can provide balance.
           </Text>
         </AccordionSection>
 
