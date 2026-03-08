@@ -1018,9 +1018,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
     const confidence = data?.confidence_tier || result.confidence_tier;
     const typeLabel = data?.type_label || (wing !== 'balanced' ? `${core}w${wing}` : `Type ${core}`);
     const typeName = data?.type_name || TYPE_NAMES[core];
-
-    // Accordion sections state
-    const [expandedSections, setExpandedSections] = React.useState<Set<string>>(new Set(['core_story']));
     
     const toggleSection = (sectionId: string) => {
       setExpandedSections(prev => {
