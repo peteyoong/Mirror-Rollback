@@ -1400,7 +1400,14 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
             'personality_sun': p_sun_gate,
             'personality_earth': p_earth_gate,
             'design_sun': d_sun_gate,
-            'design_earth': d_earth_gate
+            'design_earth': d_earth_gate,
+            # NEW: Full cross data from get_incarnation_cross_full()
+            'cross_name': cross_data['cross_name'],
+            'cross_family': cross_data['cross_family'],
+            'angle': cross_data['angle'],
+            'angle_full': cross_data['angle_full'],
+            'variant': cross_data['variant'],
+            'personality_sun_line': cross_data['personality_sun_line']
         },
         'defined_centers': defined_centers,
         'undefined_centers': undefined_centers,
