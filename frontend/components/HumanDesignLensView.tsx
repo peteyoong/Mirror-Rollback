@@ -740,63 +740,71 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         ) : data ? (
           <>
-            {/* Title */}
-            <Text style={styles.title}>{data.title}</Text>
+            {/* OVERVIEW TAB - New reflective summary */}
+            {activeTab === 'summary' && renderOverviewTab()}
 
-            {/* Date for Today tab */}
-            {data.date && (
-              <Text style={styles.dateLabel}>{data.date}</Text>
+            {/* TODAY TAB - Keep existing */}
+            {activeTab === 'today' && (
+              <>
+                <Text style={styles.title}>{data.title}</Text>
+                {data.date && <Text style={styles.dateLabel}>{data.date}</Text>}
+                {data.sections.map((section, index) => renderSection(section, index))}
+                {data.mirror_prompt && (
+                  <View style={styles.mirrorPromptCard}>
+                    <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
+                  </View>
+                )}
+              </>
             )}
 
-            {/* Core Mechanics Card (Summary and Deep Dive) */}
-            {(activeTab === 'summary' || activeTab === 'deep_dive') && renderCoreMechanics()}
-
-            {/* Expand Button (Deep Dive only) */}
+            {/* DEEP DIVE TAB - Keep existing technical depth */}
             {activeTab === 'deep_dive' && (
+              <>
+                <Text style={styles.title}>{data.title}</Text>
+                {renderCoreMechanics()}
+                <TouchableOpacity
+                  style={styles.expandButton}
+                  onPress={() => setExpandedSection(expandedSection ? null : 'all')}
+                >
+                  <Text style={styles.expandButtonText}>
+                    {expandedSection ? 'Collapse sections' : 'Explore your mechanics'}
+                  </Text>
+                  <Ionicons
+                    name={expandedSection ? 'contract-outline' : 'expand-outline'}
+                    size={16}
+                    color={Colors.accent}
+                  />
+                </TouchableOpacity>
+                {data.sections.map((section, index) => renderSection(section, index))}
+                {renderGeneKeys()}
+                {data.mirror_prompt && (
+                  <View style={styles.mirrorPromptCard}>
+                    <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
+                  </View>
+                )}
+              </>
+            )}
+
+            {/* Ask Mirror Button - show on Today and Deep Dive */}
+            {(activeTab === 'today' || activeTab === 'deep_dive') && (
               <TouchableOpacity
-                style={styles.expandButton}
-                onPress={() => setExpandedSection(expandedSection ? null : 'all')}
+                style={styles.askMirrorButton}
+                onPress={onOpenChat}
               >
-                <Text style={styles.expandButtonText}>
-                  {expandedSection ? 'Collapse sections' : 'Explore your mechanics'}
-                </Text>
-                <Ionicons
-                  name={expandedSection ? 'contract-outline' : 'expand-outline'}
-                  size={16}
-                  color={Colors.accent}
-                />
+                <Ionicons name="chatbubble-outline" size={18} color={Colors.surface} />
+                <Text style={styles.askMirrorText}>Ask about this lens</Text>
               </TouchableOpacity>
             )}
 
-            {/* Sections */}
-            {data.sections.map((section, index) => renderSection(section, index))}
-
-            {/* Gene Keys Sequences (Deep Dive only) */}
-            {activeTab === 'deep_dive' && renderGeneKeys()}
-
-            {/* Mirror Prompt - subtle reflection prompt */}
-            {data.mirror_prompt && (
-              <View style={styles.mirrorPromptCard}>
-                <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
-              </View>
+            {/* Footer - only on Deep Dive */}
+            {activeTab === 'deep_dive' && (
+              <Text style={styles.footer}>
+                A lens for understanding energy patterns, not a definition of who you are.
+              </Text>
             )}
-
-            {/* Ask Mirror Button */}
-            <TouchableOpacity
-              style={styles.askMirrorButton}
-              onPress={onOpenChat}
-            >
-              <Ionicons name="chatbubble-outline" size={18} color={Colors.surface} />
-              <Text style={styles.askMirrorText}>Ask about this lens</Text>
-            </TouchableOpacity>
-
-            {/* Footer */}
-            <Text style={styles.footer}>
-              A lens for understanding energy patterns, not a definition of who you are.
-            </Text>
             
             {/* Version Debug Panel - only shows when DEBUG_MIRROR is enabled */}
-            {renderVersionDebug()}
+            {activeTab === 'deep_dive' && renderVersionDebug()}
             
             {/* Debug Footer - only shows when DEBUG_MIRROR is enabled */}
             {activeTab === 'deep_dive' && data.sections && (
