@@ -2101,6 +2101,12 @@ const styles = StyleSheet.create({
     color: Colors.text,
     textAlign: 'center',
   },
+  structureSubValue: {
+    fontSize: 11,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    marginTop: 2,
+  },
   structureDivider: {
     width: 1,
     height: 32,
