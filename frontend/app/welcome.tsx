@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { useAppStore } from '../store';
 import { useTheme } from '../contexts/ThemeContext';
 import { loginUser } from '../services/api';
+import { Colors } from '../constants/colors';
 
 // Build info from environment
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
