@@ -210,21 +210,21 @@ export default function Welcome() {
 
   // Default welcome view with two options
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       
       <View style={styles.content}>
         {/* Title */}
         <View style={styles.header}>
-          <Text style={styles.title}>Project Mirror</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Project Mirror</Text>
         </View>
         
         {/* Core Message */}
         <View style={styles.messageContainer}>
-          <Text style={styles.tagline}>A space for noticing.</Text>
+          <Text style={[styles.tagline, { color: theme.textSecondary }]}>A space for noticing.</Text>
           <View style={styles.permissionLines}>
-            <Text style={styles.permissionText}>Nothing to fix.</Text>
-            <Text style={styles.permissionText}>Nothing to decide.</Text>
+            <Text style={[styles.permissionText, { color: theme.textTertiary }]}>Nothing to fix.</Text>
+            <Text style={[styles.permissionText, { color: theme.textTertiary }]}>Nothing to decide.</Text>
           </View>
         </View>
         
@@ -232,35 +232,38 @@ export default function Welcome() {
         <View style={styles.buttonContainer}>
           {/* New User */}
           <TouchableOpacity 
-            style={styles.primaryButton}
+            style={[styles.primaryButton, { 
+              backgroundColor: theme.buttonPrimaryBg,
+              borderColor: theme.border 
+            }]}
             onPress={handleBeginReflection}
             activeOpacity={0.8}
           >
-            <Text style={styles.primaryButtonText}>New User</Text>
-            <Text style={styles.buttonSubtext}>Begin your reflection journey</Text>
+            <Text style={[styles.primaryButtonText, { color: theme.buttonPrimaryText }]}>New User</Text>
+            <Text style={[styles.buttonSubtext, { color: theme.textTertiary }]}>Begin your reflection journey</Text>
           </TouchableOpacity>
           
           {/* Existing User */}
           <TouchableOpacity 
-            style={styles.secondaryButton}
+            style={[styles.secondaryButton, { borderColor: theme.border }]}
             onPress={() => setShowLogin(true)}
             activeOpacity={0.8}
           >
-            <Text style={styles.secondaryButtonText}>Existing User</Text>
-            <Text style={styles.secondaryButtonSubtext}>Sign in with email</Text>
+            <Text style={[styles.secondaryButtonText, { color: theme.textSecondary }]}>Existing User</Text>
+            <Text style={[styles.secondaryButtonSubtext, { color: theme.textTertiary }]}>Sign in with email</Text>
           </TouchableOpacity>
         </View>
         
         {/* Exit Permission */}
-        <Text style={styles.exitPermission}>You can leave at any time.</Text>
+        <Text style={[styles.exitPermission, { color: theme.textTertiary }]}>You can leave at any time.</Text>
       </View>
       
       {/* Footer Philosophy Line */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>
+        <Text style={[styles.footerText, { color: theme.textTertiary }]}>
           You don't have to do anything with what you notice.
         </Text>
-        <Text style={styles.buildInfo}>v{BUILD_VERSION} • {BUILD_ID}</Text>
+        <Text style={[styles.buildInfo, { color: theme.textTertiary }]}>v{BUILD_VERSION} • {BUILD_ID}</Text>
       </View>
     </SafeAreaView>
   );
