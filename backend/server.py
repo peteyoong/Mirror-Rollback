@@ -7700,19 +7700,18 @@ You're essentially here for one thing. The specific gates of your cross describe
         
         # =====================================================================
         # ADD STRUCTURED INCARNATION CROSS (DETERMINISTIC)
+        # Now using the full cross data from get_incarnation_cross_full()
         # =====================================================================
         try:
-            cross_name = incarnation_cross.get('name', 'Unknown')
-            # Extract orientation from cross name (e.g., "LAX Migration" -> "LAX")
-            orientation = "RAX"  # default
-            if cross_name.startswith("LAX "):
-                orientation = "LAX"
-            elif cross_name.startswith("JXP "):
-                orientation = "JXP"
-            elif cross_name.startswith("RAX "):
-                orientation = "RAX"
+            # Use new structured cross data from calculation layer
+            cross_family = incarnation_cross.get('cross_family', 'Unknown')
+            angle = incarnation_cross.get('angle', 'RAX')
+            angle_full = incarnation_cross.get('angle_full', 'Right Angle Cross')
+            variant = incarnation_cross.get('variant', 1)
+            full_cross_name = incarnation_cross.get('cross_name', f"{angle_full} of {cross_family} {variant}")
             
-            cross_interp = get_incarnation_cross_interpretation(cross_name, orientation)
+            # Get themes for this cross family
+            cross_interp = get_incarnation_cross_interpretation(cross_family, angle)
             
             # Build gate quartet from incarnation_cross dict
             gate_quartet = {
@@ -7724,8 +7723,11 @@ You're essentially here for one thing. The specific gates of your cross describe
             }
             
             result["incarnation_cross_structured"] = {
-                "cross_name": cross_interp["full_label"],
-                "orientation": orientation,
+                "cross_name": full_cross_name,
+                "cross_family": cross_family,
+                "angle": angle,
+                "angle_full": angle_full,
+                "variant": variant,
                 "gate_quartet": gate_quartet,
                 "themes": cross_interp["themes"],
                 "orientation_flavor": cross_interp["orientation_flavor"]
