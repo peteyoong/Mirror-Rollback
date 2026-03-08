@@ -1087,9 +1087,21 @@ export default function EnneagramLensView({ result, userId }: Props) {
       );
     };
 
+    // Section Divider Component
+    const SectionDivider = ({ title }: { title: string }) => (
+      <View style={styles.sectionDivider}>
+        <Text style={styles.sectionDividerText}>{title}</Text>
+      </View>
+    );
+
     return (
       <>
-        {/* ===== HEADER CARD ===== */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SECTION 1 — IDENTITY BLOCK
+            Identity card + Core Story (expanded by default)
+        ═══════════════════════════════════════════════════════════════ */}
+        
+        {/* Identity Card */}
         <View style={styles.deepDiveHeader}>
           <View style={styles.deepDiveHeaderTop}>
             <Text style={styles.deepDiveType}>{typeLabel}</Text>
@@ -1108,7 +1120,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <Text style={styles.deepDiveNote}>This lens reflects strategy, not identity.</Text>
         </View>
 
-        {/* ===== CORE STORY SECTION ===== */}
+        {/* Core Story - expanded by default */}
         <AccordionSection
           id="core_story"
           title="Core Story"
@@ -1124,7 +1136,48 @@ export default function EnneagramLensView({ result, userId }: Props) {
           ))}
         </AccordionSection>
 
-        {/* ===== YOUR WING SECTION ===== */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SECTION 2 — STRUCTURE BLOCK
+            Understanding your type structure
+        ═══════════════════════════════════════════════════════════════ */}
+        
+        <SectionDivider title="Understanding Your Structure" />
+
+        {/* Your Core Strategy */}
+        <AccordionSection
+          id="core_strategy"
+          title="Your Core Strategy"
+          subtitle="How you naturally approach the world"
+        >
+          <Text style={styles.accordionBodyText}>
+            Type {core} moves through the world by {core === 7 
+              ? 'seeking variety, possibilities, and new experiences. Your mind naturally scans for what could be interesting, stimulating, or enjoyable next.'
+              : core === 1 ? 'striving to improve and perfect. Your attention naturally goes to what could be better, more correct, or more aligned with ideals.'
+              : core === 2 ? 'connecting with others and meeting their needs. Your attention naturally goes to what others want or require.'
+              : core === 3 ? 'achieving goals and earning recognition. Your attention naturally goes to what will create success and admiration.'
+              : core === 4 ? 'expressing individuality and seeking depth. Your attention naturally goes to what feels authentic and meaningful.'
+              : core === 5 ? 'observing and understanding. Your attention naturally goes to gathering knowledge and maintaining boundaries.'
+              : core === 6 ? 'anticipating problems and seeking security. Your attention naturally goes to potential risks and what could go wrong.'
+              : core === 8 ? 'taking charge and protecting territory. Your attention naturally goes to power dynamics and who is in control.'
+              : 'finding peace and avoiding conflict. Your attention naturally goes to maintaining harmony and inner calm.'}
+          </Text>
+          {(data?.computed_details || computedDetails) && (
+            <View style={styles.structureGridCompact}>
+              <View style={styles.structureGridRow}>
+                <View style={styles.structureGridItem}>
+                  <Text style={styles.structureGridLabel}>Center</Text>
+                  <Text style={styles.structureGridValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.center)}</Text>
+                </View>
+                <View style={styles.structureGridItem}>
+                  <Text style={styles.structureGridLabel}>Social Style</Text>
+                  <Text style={styles.structureGridValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.hornevian_group)}</Text>
+                </View>
+              </View>
+            </View>
+          )}
+        </AccordionSection>
+
+        {/* Your Wing */}
         <AccordionSection
           id="your_wing"
           title={wing !== 'balanced' ? `Type ${typeLabel} — Your Wing` : `Your Wing Access`}
@@ -1152,7 +1205,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           )}
         </AccordionSection>
 
-        {/* ===== THE OTHER WING SECTION ===== */}
+        {/* The Other Wing */}
         <AccordionSection
           id="other_wing"
           title={`The Other Wing (${otherWing})`}
@@ -1173,27 +1226,19 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </Text>
         </AccordionSection>
 
-        {/* ===== DEEPER PATTERNS SECTION ===== */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SECTION 3 — PATTERN BLOCK
+            Deeper patterns and tendencies to notice
+        ═══════════════════════════════════════════════════════════════ */}
+        
+        <SectionDivider title="Patterns to Notice" />
+
+        {/* Deeper Patterns */}
         <AccordionSection
           id="deeper_patterns"
           title="Deeper Patterns"
           subtitle="Tendencies and tradeoffs you may notice"
         >
-          {/* Enneagram Structure Grid */}
-          {(data?.computed_details || computedDetails) && (
-            <View style={styles.structureGridCompact}>
-              <View style={styles.structureGridRow}>
-                <View style={styles.structureGridItem}>
-                  <Text style={styles.structureGridLabel}>Center</Text>
-                  <Text style={styles.structureGridValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.center)}</Text>
-                </View>
-                <View style={styles.structureGridItem}>
-                  <Text style={styles.structureGridLabel}>Social Style</Text>
-                  <Text style={styles.structureGridValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.hornevian_group)}</Text>
-                </View>
-              </View>
-            </View>
-          )}
           <View style={styles.accordionBodySection}>
             <Text style={styles.accordionBodyTitle}>Growth Path</Text>
             <Text style={styles.accordionBodyText}>
@@ -1206,7 +1251,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </View>
         </AccordionSection>
 
-        {/* ===== ENERGETIC FLOW SECTION ===== */}
+        {/* Energetic Flow */}
         <AccordionSection
           id="energetic_flow"
           title="Energetic Flow"
@@ -1236,7 +1281,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </View>
         </AccordionSection>
 
-        {/* ===== TOP ALTERNATIVES SECTION ===== */}
+        {/* Top Alternatives */}
         <AccordionSection
           id="top_alternatives"
           title="Top Alternatives"
@@ -1259,7 +1304,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
           ))}
         </AccordionSection>
 
-        {/* ===== DISCLAIMER ===== */}
+        {/* ═══════════════════════════════════════════════════════════════
+            FOOTER
+        ═══════════════════════════════════════════════════════════════ */}
+
+        {/* Disclaimer */}
         <View style={styles.disclaimerCard}>
           <Text style={styles.disclaimerText}>
             This isn't a rule—just a Type {core} pattern you might notice; you're free to take what resonates, 
@@ -1267,7 +1316,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </Text>
         </View>
 
-        {/* ===== RETAKE LINK ===== */}
+        {/* Retake Link */}
         <TouchableOpacity
           style={styles.retakeLink}
           onPress={() => setShowRetakeModal(true)}
