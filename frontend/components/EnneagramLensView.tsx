@@ -73,15 +73,15 @@ const WING_NUMBERS: { [key: number]: { left: number; right: number } } = {
 
 // Stress patterns per type
 const STRESS_PATTERNS: { [key: number]: string } = {
-  1: 'Under stress, you may become moody and emotionally volatile, feeling misunderstood (4-like behavior).',
-  2: 'Under stress, you may become aggressive and controlling, demanding recognition (8-like behavior).',
-  3: 'Under stress, you may disengage and become apathetic, avoiding failure (9-like behavior).',
-  4: 'Under stress, you may become clingy and overly involved, seeking connection (2-like behavior).',
-  5: 'Under stress, you may become scattered and impulsive, acting without thinking (7-like behavior).',
-  6: 'Under stress, you may become competitive and arrogant, proving your worth (3-like behavior).',
-  7: 'Under stress, you may become critical and perfectionistic, rigid and controlling (1-like behavior).',
-  8: 'Under stress, you may become withdrawn and secretive, pulling away from connection (5-like behavior).',
-  9: 'Under stress, you may become anxious and reactive, worrying about worst cases (6-like behavior).',
+  1: 'You may become moody, withdrawn, and emotionally volatile—losing your usual composure and feeling misunderstood.',
+  2: 'You may become aggressive and demanding, insisting on recognition and pushing harder when feeling unappreciated.',
+  3: 'You may disengage and go through the motions, avoiding situations where failure feels possible.',
+  4: 'You may become clingy and overinvolved, seeking external validation to fill an internal void.',
+  5: 'You may become scattered and impulsive, acting without your usual thoughtfulness.',
+  6: 'You may become competitive and image-conscious, trying to prove your worth through achievement.',
+  7: 'You may become critical and rigid, fixating on what\'s wrong rather than what\'s possible.',
+  8: 'You may withdraw and become secretive, pulling away from connection to protect vulnerability.',
+  9: 'You may become anxious and reactive, scanning for threats and worrying about worst cases.',
 };
 
 // Growth patterns per type
