@@ -855,9 +855,9 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   mirrorPromptText: {
-    fontSize: 16,
-    lineHeight: 26,
-    color: Colors.text,
+    fontSize: 15,
+    lineHeight: 24,
+    color: Colors.textSecondary,
     fontStyle: 'italic',
   },
   askMirrorButton: {
