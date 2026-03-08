@@ -913,29 +913,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     opacity: 0.8,
   },
-  viewModeToggle: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 6,
-    padding: 2,
-  },
-  viewModeButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 4,
-    alignItems: 'center',
-  },
-  viewModeButtonActive: {
-    backgroundColor: Colors.accent,
-  },
-  viewModeText: {
-    fontSize: 11,
-    color: Colors.textTertiary,
-    fontWeight: '500',
-  },
-  viewModeTextActive: {
-    color: Colors.surface,
-  },
   gkSectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
