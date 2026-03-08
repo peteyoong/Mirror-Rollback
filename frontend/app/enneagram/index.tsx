@@ -70,6 +70,10 @@ export default function EnneagramScreen() {
     router.push('/enneagram/assessment');
   };
   
+  const handleKnowMyType = () => {
+    router.push('/enneagram/self-declare');
+  };
+  
   const handleBack = () => {
     router.back();
   };
