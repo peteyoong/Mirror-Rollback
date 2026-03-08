@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import ChatBot from '../../components/ChatBot';
@@ -33,6 +34,7 @@ const LENS_KEYS: { [key: string]: string } = {
 };
 
 export default function LensesScreen() {
+  const { theme, isDark } = useTheme();
   const { user } = useAppStore();
   const router = useRouter();
   const [lenses, setLenses] = useState<Lens[]>([]);
