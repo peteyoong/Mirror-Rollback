@@ -209,6 +209,327 @@ INCARNATION_CROSS_NAMES = {
     64: "Consciousness",
 }
 
+# ============================================================================
+# INCARNATION CROSS STRUCTURED INTERPRETATIONS
+# Deterministic theme layer separate from LLM prose
+# ============================================================================
+INCARNATION_CROSS_THEMES = {
+    # Cross name -> structured interpretation with theme bullets
+    "Migration": {
+        "themes": [
+            "Movement and transition as life themes",
+            "Finding belonging through shared agreements",
+            "The courage to leave what's familiar",
+            "Building community wherever you go"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal journey involves cycles of leaving and arriving. Growth comes through movement.",
+            "LAX": "You carry something that helps others navigate transitions. Your moves often serve a larger purpose.",
+            "JXP": "Your path of movement is fixed - you are meant to be a bridge between worlds."
+        }
+    },
+    "Sphinx": {
+        "themes": [
+            "The mystery of self-identity",
+            "Direction through self-love",
+            "Being a riddle others want to solve",
+            "Leadership through knowing yourself"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal journey is about discovering who you truly are beneath roles and expectations.",
+            "LAX": "Your self-knowledge becomes a compass that guides others toward their own direction.",
+            "JXP": "You embody the mystery - your very presence raises questions about identity and direction."
+        }
+    },
+    "Tension": {
+        "themes": [
+            "Holding opposing forces in creative tension",
+            "Depth that comes from struggle",
+            "The value of meaningful challenge",
+            "Purpose found through perseverance"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal growth comes through engaging with what's difficult, not avoiding it.",
+            "LAX": "You help others see that their struggles have meaning. Your tension serves the collective.",
+            "JXP": "You are meant to hold tension - it's your fixed role to embody this dynamic."
+        }
+    },
+    "Vessel of Love": {
+        "themes": [
+            "Love as a guiding principle",
+            "The body as a vehicle for spirit",
+            "Being present in physical experience",
+            "Love expressed through action"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal path is about embodying love in tangible, physical ways.",
+            "LAX": "You transmit love that serves something larger than yourself. Your presence heals.",
+            "JXP": "You are a fixed vessel - love flows through you in a consistent, destined pattern."
+        }
+    },
+    "Consciousness": {
+        "themes": [
+            "The drive to understand and know",
+            "Mental clarity as a life theme",
+            "Sharing what makes sense",
+            "Logic as a contribution"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal journey involves developing clarity through doubt and questioning.",
+            "LAX": "Your understanding serves the collective. You help others make sense of confusion.",
+            "JXP": "You are meant to embody a particular kind of knowing - your clarity is fixed."
+        }
+    },
+    "Contagion": {
+        "themes": [
+            "Spreading something valuable",
+            "The power of committed energy",
+            "Influence through demonstration",
+            "Success that others can catch"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal success spreads to those around you. Your energy is contagious.",
+            "LAX": "You carry something meant to spread widely. Your contagion serves the whole.",
+            "JXP": "You are a fixed carrier of contagious energy - spreading is your destiny."
+        }
+    },
+    "Eden": {
+        "themes": [
+            "The search for paradise",
+            "Emotional depth and experience",
+            "Crisis as transformation",
+            "Learning through feeling"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal journey involves emotional experiences that deepen understanding.",
+            "LAX": "Your emotional journey serves others - you help people process their own feelings.",
+            "JXP": "You are fixed in the emotional realm - eden and its losses are your domain."
+        }
+    },
+    "Explanation": {
+        "themes": [
+            "Making the complex understandable",
+            "Breaking through mental barriers",
+            "Insight that wants to be shared",
+            "Individual knowing that benefits all"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal breakthroughs in understanding are meant to be expressed.",
+            "LAX": "Your explanations serve the collective - you simplify for others.",
+            "JXP": "You are meant to explain - your insights have a fixed, destined quality."
+        }
+    },
+    "Laws": {
+        "themes": [
+            "Structure and natural order",
+            "The value of limitation",
+            "Principles that guide behavior",
+            "Conservation of what matters"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal growth involves accepting the laws and limits that shape your life.",
+            "LAX": "You help others understand the value of structure and limitation.",
+            "JXP": "You embody natural law - your principles are fixed and meant to be demonstrated."
+        }
+    },
+    "Service": {
+        "themes": [
+            "Contributing through correction",
+            "The joy of vitality",
+            "Making things better",
+            "Service that energizes"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal fulfillment comes through acts of service and improvement.",
+            "LAX": "Your service is meant for the collective - you correct what needs correcting for all.",
+            "JXP": "You are a fixed servant - service is your destined mode of being."
+        }
+    },
+    "Rulership": {
+        "themes": [
+            "Natural authority",
+            "Leading through emotional intelligence",
+            "Influence through presence",
+            "The responsibility of power"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal path involves developing authentic authority.",
+            "LAX": "Your leadership serves something larger - you rule for the benefit of others.",
+            "JXP": "You are meant to rule in some domain - your authority is fixed."
+        }
+    },
+    "Planning": {
+        "themes": [
+            "Organizing collective resources",
+            "The power of practical vision",
+            "Making things work",
+            "Contributing through logistics"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal growth involves learning to plan and organize effectively.",
+            "LAX": "Your planning abilities serve the collective - you organize for others.",
+            "JXP": "You are a fixed planner - organizing is your destined role."
+        }
+    },
+    "Unexpected": {
+        "themes": [
+            "The value of surprise",
+            "New experiences as growth",
+            "Leading others into the unknown",
+            "Completion through surprise"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal path involves embracing the unexpected as growth.",
+            "LAX": "You bring unexpected experiences to others - your surprises serve the collective.",
+            "JXP": "You are fixed in the unexpected - surprise is your destined mode."
+        }
+    },
+    "Four Ways": {
+        "themes": [
+            "Multiple paths and perspectives",
+            "Alertness to timing and opportunity",
+            "The value of instinct",
+            "Resources found through intuition"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal journey involves navigating multiple possible paths.",
+            "LAX": "You help others see the different ways forward. Your instincts serve the collective.",
+            "JXP": "You are meant to embody the four ways - your alertness is fixed."
+        }
+    },
+    "Maya": {
+        "themes": [
+            "The illusion and reality of experience",
+            "Finding truth in confusion",
+            "Cycles of growth and decay",
+            "Wisdom through limitation"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal journey involves seeing through illusion to reality.",
+            "LAX": "You help others navigate the maya - your clarity serves the collective.",
+            "JXP": "You are fixed in the maya - embodying the dance of illusion and reality."
+        }
+    },
+    "Sleeping Phoenix": {
+        "themes": [
+            "Rebirth and renewal",
+            "Power waiting to emerge",
+            "The value of intimacy",
+            "Transformation through connection"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal path involves cycles of death and rebirth in various forms.",
+            "LAX": "Your transformations serve others - your rebirths model possibility.",
+            "JXP": "You are a fixed phoenix - transformation and renewal is your destiny."
+        }
+    },
+    "Penetration": {
+        "themes": [
+            "Breaking through barriers",
+            "Shock as initiation",
+            "Depth and focus",
+            "Getting to the core"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal growth comes through penetrating experiences.",
+            "LAX": "You help others break through - your penetrating quality serves the collective.",
+            "JXP": "You are a fixed penetrator - breaking through is your destined mode."
+        }
+    },
+    "Education": {
+        "themes": [
+            "Gathering and sharing ideas",
+            "The value of harmony",
+            "Peace through understanding",
+            "Teaching and learning"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal path involves continuous learning and sharing.",
+            "LAX": "You educate for the benefit of all - your teaching serves the collective.",
+            "JXP": "You are a fixed educator - teaching is your destined role."
+        }
+    },
+    "Game Player": {
+        "themes": [
+            "Meaning found through risk",
+            "The value of struggle",
+            "Playing for something worthwhile",
+            "Purpose through challenge"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal growth comes through engaging with worthy struggles.",
+            "LAX": "You play games that serve the collective - your struggles have larger meaning.",
+            "JXP": "You are a fixed game player - meaningful struggle is your destiny."
+        }
+    },
+    "Incarnation": {
+        "themes": [
+            "The return and renewal",
+            "Spirit meeting form",
+            "Rationalizing experience",
+            "Making sense of cycles"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal path involves finding meaning in cycles of return.",
+            "LAX": "You help others understand the purpose of incarnation itself.",
+            "JXP": "You embody the incarnation theme - return and renewal is fixed in you."
+        }
+    },
+    "Driver": {
+        "themes": [
+            "Direction and purpose",
+            "The will to go higher",
+            "Receptive knowing",
+            "Being called forward"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal journey involves finding and following your true direction.",
+            "LAX": "You help others find their direction - your knowing serves the collective.",
+            "JXP": "You are a fixed driver - direction and calling is your destiny."
+        }
+    },
+}
+
+def get_incarnation_cross_interpretation(cross_name: str, orientation: str) -> dict:
+    """
+    Get the structured interpretation for an incarnation cross.
+    
+    Args:
+        cross_name: The cross name (e.g., "Migration")
+        orientation: The angle (RAX, LAX, or JXP)
+    
+    Returns:
+        Dict with themes and orientation-specific flavor
+    """
+    # Extract just the cross name if it includes orientation prefix
+    name_only = cross_name
+    for prefix in ["RAX ", "LAX ", "JXP "]:
+        if cross_name.startswith(prefix):
+            name_only = cross_name[len(prefix):]
+            break
+    
+    theme_data = INCARNATION_CROSS_THEMES.get(name_only, {
+        "themes": [
+            "Your unique life direction",
+            "The purpose encoded in your design",
+            "Your contribution to the whole"
+        ],
+        "orientation_flavor": {
+            "RAX": "Your personal journey follows this theme.",
+            "LAX": "This theme serves a transpersonal purpose through you.",
+            "JXP": "This theme is fixed in your destiny."
+        }
+    })
+    
+    return {
+        "cross_name": cross_name,
+        "name_only": name_only,
+        "orientation": orientation,
+        "themes": theme_data["themes"],
+        "orientation_flavor": theme_data["orientation_flavor"].get(orientation, ""),
+        "full_label": f"{orientation} {name_only}"
+    }
+
 def get_incarnation_cross_name(p_sun_gate: int, profile_line1: int) -> str:
     """
     Get the full incarnation cross name based on personality Sun gate and profile.
