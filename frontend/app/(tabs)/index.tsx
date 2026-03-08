@@ -262,11 +262,11 @@ export default function MirrorScreen() {
   // Show loading while session is being restored
   if (!hasTriedSessionRestore || isRestoringSession) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="dark" />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={Colors.textTertiary} />
-          <Text style={styles.restoringText}>Restoring your profile...</Text>
+          <ActivityIndicator size="large" color={theme.textTertiary} />
+          <Text style={[styles.restoringText, { color: theme.textSecondary }]}>Restoring your profile...</Text>
         </View>
       </SafeAreaView>
     );
@@ -275,35 +275,35 @@ export default function MirrorScreen() {
   // Show loading if no user
   if (!user) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="dark" />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={Colors.textTertiary} />
+          <ActivityIndicator size="large" color={theme.textTertiary} />
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar style="dark" />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       
       {/* Compact Header: "THE MIRROR" on left, User name + chevron on right */}
       <Pressable 
-        style={styles.header}
+        style={[styles.header, { backgroundColor: theme.background }]}
         onPress={handleUserPress}
       >
-        <Text style={styles.headerTitle}>THE MIRROR</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>THE MIRROR</Text>
         <View style={styles.userCluster}>
-          <Text style={styles.userName} numberOfLines={1} ellipsizeMode="tail">
+          <Text style={[styles.userName, { color: theme.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
             {user?.name || 'Account'}
           </Text>
-          <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
+          <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
         </View>
       </Pressable>
       
       {/* Subtle header separation */}
-      <View style={styles.headerDivider} />
+      <View style={[styles.headerDivider, { backgroundColor: theme.border }]} />
       
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -311,7 +311,7 @@ export default function MirrorScreen() {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor={Colors.textTertiary}
+            tintColor={theme.textTertiary}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -330,51 +330,54 @@ export default function MirrorScreen() {
         {/* Loading State */}
         {isLoading && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={Colors.textTertiary} />
+            <ActivityIndicator size="small" color={theme.textTertiary} />
           </View>
         )}
 
         {/* The Daily Keystone */}
         {keystone && !isLoading && (
-          <View style={styles.keystoneContainer}>
+          <View style={[styles.keystoneContainer, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
             {/* Title as section header */}
-            <Text style={styles.keystoneTitle}>
+            <Text style={[styles.keystoneTitle, { color: theme.textTertiary }]}>
               {keystone.title.toUpperCase()}
             </Text>
 
             {/* Main keystone text - the emotional center */}
-            <Text style={styles.keystoneText}>
+            <Text style={[styles.keystoneText, { color: theme.text }]}>
               {keystone.keystone}
             </Text>
 
             {/* Micro-affirmation - soft grounding line */}
-            <Text style={styles.microAffirmation}>
+            <Text style={[styles.microAffirmation, { color: theme.textSecondary }]}>
               {keystone.micro_affirmation}
             </Text>
 
             {/* Reflective question - separate section */}
-            <View style={styles.reflectContainer}>
-              <Text style={styles.reflectLabel}>Reflect</Text>
-              <Text style={styles.reflectQuestion}>
+            <View style={[styles.reflectContainer, { borderTopColor: theme.border }]}>
+              <Text style={[styles.reflectLabel, { color: theme.textTertiary }]}>Reflect</Text>
+              <Text style={[styles.reflectQuestion, { color: theme.textSecondary }]}>
                 {keystone.reflect_question}
               </Text>
             </View>
 
             {/* Continue with Mirror button */}
             <TouchableOpacity
-              style={styles.continueButton}
+              style={[styles.continueButton, { 
+                backgroundColor: theme.buttonPrimaryBg,
+                borderColor: theme.border 
+              }]}
               onPress={handleContinueWithMirror}
               activeOpacity={0.7}
             >
-              <Text style={styles.continueButtonText}>Continue with Mirror</Text>
-              <Text style={styles.continueButtonSubtext}>Stay with this for a moment.</Text>
+              <Text style={[styles.continueButtonText, { color: theme.buttonPrimaryText }]}>Continue with Mirror</Text>
+              <Text style={[styles.continueButtonSubtext, { color: theme.textTertiary }]}>Stay with this for a moment.</Text>
             </TouchableOpacity>
           </View>
         )}
 
         {/* Gentle footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
+          <Text style={[styles.footerText, { color: theme.textTertiary }]}>
             Your reflection for today
           </Text>
         </View>
