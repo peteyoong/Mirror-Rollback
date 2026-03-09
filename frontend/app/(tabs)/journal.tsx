@@ -105,6 +105,7 @@ type ViewMode = 'journal' | 'mirror' | 'timeline';
 
 export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
+  const { theme, isDark } = useTheme();
   const params = useLocalSearchParams<{ view?: string; fromKeystone?: string }>();
   const [viewMode, setViewMode] = useState<ViewMode>('journal');
   const [newEntry, setNewEntry] = useState('');
