@@ -2062,7 +2062,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <View style={styles.qaModalHeader}>
             <Text style={styles.qaModalTitle}>Ask About Enneagram</Text>
             <TouchableOpacity onPress={() => setShowQAModal(false)}>
-              <Ionicons name="close" size={24} color={theme.textSecondary} />
+              <Text style={[styles.closeButtonText, { color: theme.textSecondary }]}>✕</Text>
             </TouchableOpacity>
           </View>
           
@@ -2102,11 +2102,12 @@ export default function EnneagramLensView({ result, userId }: Props) {
               onPress={() => handleAskQuestion()}
               disabled={!qaQuestion.trim() || qaLoading}
             >
-              <Ionicons 
-                name="send" 
-                size={18} 
-                color={(!qaQuestion.trim() || qaLoading) ? theme.textTertiary : theme.background} 
-              />
+              <Text style={[
+                styles.sendButtonText,
+                { color: (!qaQuestion.trim() || qaLoading) ? theme.textTertiary : theme.background }
+              ]}>
+                ➤
+              </Text>
             </TouchableOpacity>
           </View>
           
