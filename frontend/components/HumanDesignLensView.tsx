@@ -559,10 +559,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <View style={styles.gkSectionHeaderTop}>
             <View style={styles.gkSectionTitleRow}>
               <Ionicons name="key-outline" size={18} color={theme.accent} />
-              <Text style={styles.gkSectionMainTitle}>YOUR SEQUENCES</Text>
+              <Text style={[styles.gkSectionMainTitle, { color: theme.textTertiary }]}>YOUR SEQUENCES</Text>
             </View>
           </View>
-          <Text style={styles.gkSectionIntro}>
+          <Text style={[styles.gkSectionIntro, { color: theme.textSecondary }]}>
             Derived from your Human Design chart, these sequences illuminate different dimensions of your experience.
           </Text>
         </View>
@@ -574,7 +574,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           {renderGeneKeysArc('Prosperity', 'prosperity', gk.prosperity_arc, 'diamond-outline', 'Abundance & vocation')}
           
           {isDebugEnabled() && (
-            <Text style={styles.gkVersion}>v: {gk.gene_keys_version}</Text>
+            <Text style={[styles.gkVersion, { color: theme.textTertiary }]}>v: {gk.gene_keys_version}</Text>
           )}
         </View>
       </View>
