@@ -28,6 +28,7 @@ const LENS_META: { [key: string]: { name: string; icon: string } } = {
   astrology: { name: 'True Sidereal Astrology', icon: 'planet-outline' },
   human_design: { name: 'Human Design', icon: 'body-outline' },
   numerology: { name: 'Numerology', icon: 'calculator-outline' },
+  enneagram: { name: 'Enneagram', icon: 'git-branch-outline' },
   consciousness: { name: 'Consciousness', icon: 'eye-outline' },
 };
 
