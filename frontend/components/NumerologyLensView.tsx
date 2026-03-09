@@ -367,28 +367,30 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
       value === 'locked' || value === null || value === undefined;
 
     return (
-      <View style={styles.coreNumbersCard}>
-        <Text style={styles.coreNumbersTitle}>LIFE PATH • EXPRESSION • SOUL URGE</Text>
+      <View style={[styles.coreNumbersCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.coreNumbersTitle, { color: theme.textTertiary }]}>LIFE PATH • EXPRESSION • SOUL URGE</Text>
         <View style={styles.coreNumbersRow}>
           <View style={styles.numberItem}>
-            <Text style={styles.numberLabel}>Life Path</Text>
-            <Text style={styles.numberValue}>{formatNumber(numbers.life_path)}</Text>
+            <Text style={[styles.numberLabel, { color: theme.textTertiary }]}>Life Path</Text>
+            <Text style={[styles.numberValue, { color: theme.text }]}>{formatNumber(numbers.life_path)}</Text>
           </View>
-          <View style={styles.numberDivider} />
+          <View style={[styles.numberDivider, { backgroundColor: theme.border }]} />
           <View style={styles.numberItem}>
-            <Text style={styles.numberLabel}>Expression</Text>
+            <Text style={[styles.numberLabel, { color: theme.textTertiary }]}>Expression</Text>
             <Text style={[
               styles.numberValue, 
+              { color: theme.text },
               isLocked(numbers.expression) && styles.lockedNumber
             ]}>
               {formatNumber(numbers.expression)}
             </Text>
           </View>
-          <View style={styles.numberDivider} />
+          <View style={[styles.numberDivider, { backgroundColor: theme.border }]} />
           <View style={styles.numberItem}>
-            <Text style={styles.numberLabel}>Soul Urge</Text>
+            <Text style={[styles.numberLabel, { color: theme.textTertiary }]}>Soul Urge</Text>
             <Text style={[
               styles.numberValue, 
+              { color: theme.text },
               isLocked(numbers.soul_urge) && styles.lockedNumber
             ]}>
               {formatNumber(numbers.soul_urge)}
