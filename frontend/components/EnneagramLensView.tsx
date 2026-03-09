@@ -3889,4 +3889,103 @@ const styles = StyleSheet.create({
     color: "inherit",
     fontStyle: 'italic',
   },
+
+  // At a Glance Tab Styles
+  glanceCard: {
+    backgroundColor: "transparent",
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "transparent",
+    padding: 16,
+  },
+  glanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "rgba(128, 128, 128, 0.2)",
+  },
+  glanceIconContainer: {
+    width: 32,
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  glanceContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  glanceLabel: {
+    fontSize: 14,
+    color: "inherit",
+  },
+  glanceValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: "inherit",
+    textAlign: 'right',
+  },
+  glanceSectionTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    color: "inherit",
+    marginBottom: 12,
+  },
+  glanceTagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  glanceTag: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  glanceTagText: {
+    fontSize: 13,
+    color: "inherit",
+  },
+  glanceRefGrid: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  glanceRefItem: {
+    flex: 1,
+  },
+  glanceRefLabel: {
+    fontSize: 12,
+    color: "inherit",
+    marginBottom: 4,
+  },
+  glanceRefValue: {
+    fontSize: 14,
+    color: "inherit",
+    lineHeight: 20,
+  },
+  glanceFooter: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  glanceFooterText: {
+    fontSize: 12,
+    color: "inherit",
+  },
+  loadingContainer: {
+    padding: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    fontSize: 14,
+    marginTop: 8,
+    color: "inherit",
+  },
 });
