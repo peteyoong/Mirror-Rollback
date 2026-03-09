@@ -602,68 +602,68 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     return (
       <>
         {/* Identity Card */}
-        <View style={styles.hdIdentityCard}>
+        <View style={[styles.hdIdentityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.hdIdentityMain}>
-            <Text style={styles.hdIdentityType}>{hdType}</Text>
-            {profile && <Text style={styles.hdIdentityProfile}>{profile} Profile</Text>}
+            <Text style={[styles.hdIdentityType, { color: theme.text }]}>{hdType}</Text>
+            {profile && <Text style={[styles.hdIdentityProfile, { color: theme.textSecondary }]}>{profile} Profile</Text>}
           </View>
-          <Text style={styles.hdIdentityNote}>
+          <Text style={[styles.hdIdentityNote, { color: theme.textTertiary }]}>
             This lens reflects energy patterns, not identity.
           </Text>
         </View>
 
         {/* Your Energy Pattern Card */}
-        <View style={styles.hdOverviewCard}>
-          <Text style={styles.hdOverviewCardTitle}>Your Energy Pattern</Text>
-          <Text style={styles.hdOverviewCardBody}>
+        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>Your Energy Pattern</Text>
+          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {TYPE_ENERGY_PATTERNS[hdType] || TYPE_ENERGY_PATTERNS['Generator']}
           </Text>
         </View>
 
         {/* How You Engage Card (Strategy) */}
-        <View style={styles.hdOverviewCard}>
-          <Text style={styles.hdOverviewCardTitle}>How You Engage</Text>
-          <Text style={styles.hdOverviewCardBody}>
+        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>How You Engage</Text>
+          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {strategyTranslation}
           </Text>
         </View>
 
         {/* How Clarity Comes Card (Authority) */}
-        <View style={styles.hdOverviewCard}>
-          <Text style={styles.hdOverviewCardTitle}>How Clarity Comes</Text>
-          <Text style={styles.hdOverviewCardSubtitle}>{authorityData.short}</Text>
-          <Text style={styles.hdOverviewCardBody}>
+        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>How Clarity Comes</Text>
+          <Text style={[styles.hdOverviewCardSubtitle, { color: theme.textSecondary }]}>{authorityData.short}</Text>
+          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {authorityData.expanded}
           </Text>
         </View>
 
         {/* Where This Helps Card */}
-        <View style={styles.hdOverviewCard}>
-          <Text style={styles.hdOverviewCardTitle}>Where This Helps</Text>
+        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>Where This Helps</Text>
           <View style={styles.hdManifestationList}>
-            <View style={styles.hdManifestationItem}>
-              <Text style={styles.hdManifestationLabel}>Decisions</Text>
-              <Text style={styles.hdManifestationText}>{manifestations.decisions}</Text>
+            <View style={[styles.hdManifestationItem, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.hdManifestationLabel, { color: theme.textTertiary }]}>Decisions</Text>
+              <Text style={[styles.hdManifestationText, { color: theme.textSecondary }]}>{manifestations.decisions}</Text>
             </View>
-            <View style={styles.hdManifestationItem}>
-              <Text style={styles.hdManifestationLabel}>Work</Text>
-              <Text style={styles.hdManifestationText}>{manifestations.work}</Text>
+            <View style={[styles.hdManifestationItem, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.hdManifestationLabel, { color: theme.textTertiary }]}>Work</Text>
+              <Text style={[styles.hdManifestationText, { color: theme.textSecondary }]}>{manifestations.work}</Text>
             </View>
-            <View style={styles.hdManifestationItem}>
-              <Text style={styles.hdManifestationLabel}>Relationships</Text>
-              <Text style={styles.hdManifestationText}>{manifestations.relationships}</Text>
+            <View style={[styles.hdManifestationItem, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.hdManifestationLabel, { color: theme.textTertiary }]}>Relationships</Text>
+              <Text style={[styles.hdManifestationText, { color: theme.textSecondary }]}>{manifestations.relationships}</Text>
             </View>
-            <View style={styles.hdManifestationItem}>
-              <Text style={styles.hdManifestationLabel}>Energy management</Text>
-              <Text style={styles.hdManifestationText}>{manifestations.energy}</Text>
+            <View style={[styles.hdManifestationItem, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.hdManifestationLabel, { color: theme.textTertiary }]}>Energy management</Text>
+              <Text style={[styles.hdManifestationText, { color: theme.textSecondary }]}>{manifestations.energy}</Text>
             </View>
           </View>
         </View>
 
         {/* Reflection Card */}
-        <View style={styles.hdReflectionCard}>
-          <Text style={styles.hdReflectionLabel}>A REFLECTION</Text>
-          <Text style={styles.hdReflectionText}>
+        <View style={[styles.hdReflectionCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
+          <Text style={[styles.hdReflectionLabel, { color: theme.textTertiary }]}>A REFLECTION</Text>
+          <Text style={[styles.hdReflectionText, { color: theme.text }]}>
             "{TYPE_REFLECTIONS[hdType] || TYPE_REFLECTIONS['Generator']}"
           </Text>
         </View>
@@ -673,7 +673,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           style={styles.hdSubtleLink}
           onPress={() => setActiveTab('deep_dive')}
         >
-          <Text style={styles.hdSubtleLinkText}>Explore Deep Dive</Text>
+          <Text style={[styles.hdSubtleLinkText, { color: theme.textTertiary }]}>Explore Deep Dive</Text>
           <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
         </TouchableOpacity>
       </>
