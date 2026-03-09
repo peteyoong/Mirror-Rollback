@@ -1280,7 +1280,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {patternDriftLoading && (
           <View style={styles.patternMovementCard}>
             <View style={styles.patternMovementHeader}>
-              <Ionicons name="pulse-outline" size={16} color={theme.textTertiary} />
               <Text style={[styles.patternMovementTitle, { color: theme.textTertiary }]}>Pattern Movement</Text>
             </View>
             <ActivityIndicator size="small" color={theme.textTertiary} style={{ marginVertical: 12 }} />
@@ -1300,8 +1299,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           style={styles.subtleLink}
           onPress={() => setActiveTab('deep_dive')}
         >
-          <Text style={[styles.subtleLinkText, { color: theme.textTertiary }]}>Explore Deep Dive</Text>
-          <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
+          <Text style={[styles.subtleLinkText, { color: theme.textTertiary }]}>Explore Deep Dive →</Text>
         </TouchableOpacity>
       </>
     );
