@@ -1033,7 +1033,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         onPress={() => setChatExpanded(!chatExpanded)}
       >
         <View style={styles.chatHeaderLeft}>
-          <Text style={styles.chatHeaderText}>Ask about this</Text>
+          <Text style={styles.chatHeaderText}>Ask about this lens</Text>
         </View>
         <Text style={[styles.chatExpandText, { color: theme.textTertiary }]}>
           {chatExpanded ? '▼' : '▲'}
