@@ -182,7 +182,7 @@ export default function LifeContextView({ userId, initialContext = 'relationship
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {renderContextTabs()}
 
       <ScrollView
