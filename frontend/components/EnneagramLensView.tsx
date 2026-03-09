@@ -2328,6 +2328,10 @@ const styles = StyleSheet.create({
     color: "inherit",
     lineHeight: 16,
   },
+  accordionChevron: {
+    fontSize: 14,
+    color: "inherit",
+  },
   accordionContent: {
     paddingHorizontal: 14,
     paddingBottom: 14,
