@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { getLifeContext, LifeContextResponse, LifeContextType } from '../services/api';
