@@ -433,8 +433,8 @@ export default function JournalScreen() {
 
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.title}>Journal</Text>
-              <Text style={styles.subtitle}>
+              <Text style={[styles.title, { color: theme.text }]}>Journal</Text>
+              <Text style={[styles.subtitle, { color: theme.textTertiary }]}>
                 A private space for your thoughts and reflections.
               </Text>
             </View>
