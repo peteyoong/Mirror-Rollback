@@ -259,10 +259,10 @@ export default function JournalScreen() {
 
   if (!user) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="dark" />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.centered}>
-          <Text style={styles.errorText}>No user found</Text>
+          <Text style={[styles.errorText, { color: theme.error }]}>No user found</Text>
         </View>
       </SafeAreaView>
     );
