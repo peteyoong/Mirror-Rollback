@@ -314,7 +314,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.textTertiary} />
-            <Text style={styles.loadingText}>
+            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
               {activeTab === 'deep_dive' 
                 ? 'Generating your personalized reading...\nThis may take 30-45 seconds'
                 : 'Loading...'}
@@ -323,12 +323,12 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
         ) : error ? (
           <View style={styles.errorContainer}>
             <Ionicons name="alert-circle-outline" size={32} color={theme.textTertiary} />
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={[styles.errorText, { color: theme.textSecondary }]}>{error}</Text>
             <TouchableOpacity
-              style={styles.retryButton}
+              style={[styles.retryButton, { backgroundColor: theme.surface }]}
               onPress={() => loadTabData(activeTab)}
             >
-              <Text style={styles.retryText}>Try Again</Text>
+              <Text style={[styles.retryText, { color: theme.text }]}>Try Again</Text>
             </TouchableOpacity>
             {/* Still show core card on Deep Dive even with error */}
             {activeTab === 'deep_dive' && renderCorePlacements()}
@@ -336,11 +336,11 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
         ) : data ? (
           <>
             {/* Title */}
-            <Text style={styles.title}>{data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : 'Astrology')}</Text>
+            <Text style={[styles.title, { color: theme.text }]}>{data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : 'Astrology')}</Text>
 
             {/* Date for Today's Snapshot tab only */}
             {activeTab === 'today' && data.date && (
-              <Text style={styles.dateLabel}>{data.date}</Text>
+              <Text style={[styles.dateLabel, { color: theme.textTertiary }]}>{data.date}</Text>
             )}
 
             {/* Core Placements Card (Deep Dive only) - always show even if success=false */}
