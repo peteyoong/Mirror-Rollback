@@ -444,11 +444,11 @@ export default function JournalScreen() {
               <View style={styles.inputContainer}>
                 <TextInput
                   ref={inputRef}
-                  style={styles.input}
+                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text }]}
                   value={newEntry}
                   onChangeText={setNewEntry}
                   placeholder="What's on your mind?"
-                  placeholderTextColor={Colors.textTertiary}
+                  placeholderTextColor={theme.textTertiary}
                   multiline
                   maxLength={2000}
                   editable={!isSubmitting}
@@ -458,24 +458,25 @@ export default function JournalScreen() {
                 <View style={styles.inputActions}>
                   {newEntry.trim().length > 0 && (
                     <TouchableOpacity
-                      style={styles.dismissButton}
+                      style={[styles.dismissButton, { backgroundColor: theme.surfaceLight }]}
                       onPress={dismissKeyboard}
                     >
-                      <Ionicons name="chevron-down" size={20} color={Colors.textSecondary} />
+                      <Ionicons name="chevron-down" size={20} color={theme.textSecondary} />
                     </TouchableOpacity>
                   )}
                   <TouchableOpacity
                     style={[
                       styles.submitButton,
+                      { backgroundColor: theme.text },
                       (!newEntry.trim() || isSubmitting) && styles.submitButtonDisabled,
                     ]}
                     onPress={handleSubmit}
                     disabled={!newEntry.trim() || isSubmitting}
                   >
                     {isSubmitting ? (
-                      <ActivityIndicator size="small" color={Colors.background} />
+                      <ActivityIndicator size="small" color={theme.background} />
                     ) : (
-                      <Ionicons name="checkmark" size={20} color={Colors.background} />
+                      <Ionicons name="checkmark" size={20} color={theme.background} />
                     )}
                   </TouchableOpacity>
                 </View>
