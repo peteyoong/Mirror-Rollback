@@ -1181,6 +1181,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
         >
           <Text style={[styles.subtleLinkText, { color: theme.textTertiary }]}>Explore Deep Dive →</Text>
         </TouchableOpacity>
+
+        {/* Chat Box */}
+        {renderChatBox()}
       </>
     );
   };
