@@ -408,21 +408,21 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
     const { personal_day, personal_month, personal_year } = data.cycles;
 
     return (
-      <View style={styles.cyclesCard}>
+      <View style={[styles.cyclesCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={styles.cyclesRow}>
           <View style={styles.cycleItem}>
-            <Text style={styles.cycleLabel}>Day</Text>
-            <Text style={styles.cycleNumber}>{personal_day}</Text>
+            <Text style={[styles.cycleLabel, { color: theme.textTertiary }]}>Day</Text>
+            <Text style={[styles.cycleNumber, { color: theme.text }]}>{personal_day}</Text>
           </View>
-          <View style={styles.cycleDivider} />
+          <View style={[styles.cycleDivider, { backgroundColor: theme.border }]} />
           <View style={styles.cycleItem}>
-            <Text style={styles.cycleLabel}>Month</Text>
-            <Text style={styles.cycleNumber}>{personal_month}</Text>
+            <Text style={[styles.cycleLabel, { color: theme.textTertiary }]}>Month</Text>
+            <Text style={[styles.cycleNumber, { color: theme.text }]}>{personal_month}</Text>
           </View>
-          <View style={styles.cycleDivider} />
+          <View style={[styles.cycleDivider, { backgroundColor: theme.border }]} />
           <View style={styles.cycleItem}>
-            <Text style={styles.cycleLabel}>Year</Text>
-            <Text style={styles.cycleNumber}>{personal_year}</Text>
+            <Text style={[styles.cycleLabel, { color: theme.textTertiary }]}>Year</Text>
+            <Text style={[styles.cycleNumber, { color: theme.text }]}>{personal_year}</Text>
           </View>
         </View>
       </View>
