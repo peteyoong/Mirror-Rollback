@@ -161,21 +161,21 @@ export default function LifeContextView({ userId, initialContext = 'relationship
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.textTertiary} />
-        <Text style={styles.loadingText}>Generating your Life context...</Text>
-        <Text style={styles.loadingSubtext}>This may take a moment</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.textTertiary} />
+        <Text style={[styles.loadingText, { color: theme.text }]}>Generating your Life context...</Text>
+        <Text style={[styles.loadingSubtext, { color: theme.textTertiary }]}>This may take a moment</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.errorContainer}>
-        <Ionicons name="alert-circle-outline" size={48} color={Colors.textTertiary} />
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => loadContextData()}>
-          <Text style={styles.retryButtonText}>Try Again</Text>
+      <View style={[styles.errorContainer, { backgroundColor: theme.background }]}>
+        <Ionicons name="alert-circle-outline" size={48} color={theme.textTertiary} />
+        <Text style={[styles.errorText, { color: theme.textSecondary }]}>{error}</Text>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => loadContextData()}>
+          <Text style={[styles.retryButtonText, { color: theme.text }]}>Try Again</Text>
         </TouchableOpacity>
       </View>
     );
