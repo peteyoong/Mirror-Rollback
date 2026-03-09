@@ -419,8 +419,8 @@ export default function JournalScreen() {
 
   // Journal View
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
