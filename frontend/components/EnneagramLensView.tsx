@@ -722,7 +722,7 @@ interface Props {
   userId: string;
 }
 
-type TabType = 'summary' | 'today' | 'deep_dive';
+type TabType = 'summary' | 'at_a_glance' | 'today' | 'deep_dive';
 type EnergyState = 'low' | 'neutral' | 'high';
 type MasteryLevel = 'reactive' | 'average' | 'resourced';
 
