@@ -1326,6 +1326,176 @@ export default function EnneagramLensView({ result, userId }: Props) {
   };
 
   // ============================================
+  // AT A GLANCE TAB
+  // ============================================
+
+  const renderAtAGlanceTab = () => {
+    const details = computedDetails || deepDiveData?.computed_details;
+    
+    // Wing stance display
+    const getWingStanceDisplay = () => {
+      if (!details) return 'Loading...';
+      if (details.wing_balance_label === 'balanced') {
+        return 'Wing access still developing';
+      }
+      return details.wing_openness_hint || `${wing !== 'balanced' ? `${core}w${wing}` : 'balanced'}`;
+    };
+
+    // Social style tags
+    const socialStyleTags = details?.social_style_tags || [];
+    
+    // Basic fear and desire based on type
+    const TYPE_BASIC_FEARS: { [key: number]: string } = {
+      1: 'Being corrupt, evil, or defective',
+      2: 'Being unwanted or unloved',
+      3: 'Being worthless or without value',
+      4: 'Having no identity or significance',
+      5: 'Being useless, incompetent, or incapable',
+      6: 'Being without support or guidance',
+      7: 'Being deprived or trapped in pain',
+      8: 'Being controlled or harmed by others',
+      9: 'Loss of connection or fragmentation',
+    };
+    
+    const TYPE_BASIC_DESIRES: { [key: number]: string } = {
+      1: 'To be good, balanced, and have integrity',
+      2: 'To be loved and appreciated',
+      3: 'To be valuable and worthwhile',
+      4: 'To find themselves and their significance',
+      5: 'To be capable and competent',
+      6: 'To have security and support',
+      7: 'To be satisfied and content',
+      8: 'To protect themselves and control their destiny',
+      9: 'To have inner peace and stability',
+    };
+
+    return (
+      <>
+        {/* Loading state */}
+        {traitsLoading && !details && (
+          <View style={[styles.loadingContainer, { backgroundColor: theme.cardBg }]}>
+            <ActivityIndicator size="small" color={theme.textSecondary} />
+            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading profile...</Text>
+          </View>
+        )}
+
+        {/* Profile Grid */}
+        {details && (
+          <>
+            {/* Profile Card */}
+            <View style={[styles.glanceCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+              {/* Wing Stance Row */}
+              <View style={styles.glanceRow}>
+                <View style={styles.glanceIconContainer}>
+                  <Ionicons name="git-branch-outline" size={18} color={theme.textSecondary} />
+                </View>
+                <View style={styles.glanceContent}>
+                  <Text style={[styles.glanceLabel, { color: theme.textTertiary }]}>Wing Stance</Text>
+                  <Text style={[styles.glanceValue, { color: theme.text }]}>{getWingStanceDisplay()}</Text>
+                </View>
+              </View>
+              
+              {/* Center Row */}
+              <View style={styles.glanceRow}>
+                <View style={styles.glanceIconContainer}>
+                  <Ionicons name="ellipse-outline" size={18} color={theme.textSecondary} />
+                </View>
+                <View style={styles.glanceContent}>
+                  <Text style={[styles.glanceLabel, { color: theme.textTertiary }]}>Center</Text>
+                  <Text style={[styles.glanceValue, { color: theme.text }]}>{formatGroupLabel(details.center)}</Text>
+                </View>
+              </View>
+              
+              {/* Hornevian Group Row */}
+              <View style={styles.glanceRow}>
+                <View style={styles.glanceIconContainer}>
+                  <Ionicons name="people-outline" size={18} color={theme.textSecondary} />
+                </View>
+                <View style={styles.glanceContent}>
+                  <Text style={[styles.glanceLabel, { color: theme.textTertiary }]}>Hornevian Group</Text>
+                  <Text style={[styles.glanceValue, { color: theme.text }]}>{formatGroupLabel(details.hornevian_group)}</Text>
+                </View>
+              </View>
+              
+              {/* Harmonic Group Row */}
+              <View style={styles.glanceRow}>
+                <View style={styles.glanceIconContainer}>
+                  <Ionicons name="musical-notes-outline" size={18} color={theme.textSecondary} />
+                </View>
+                <View style={styles.glanceContent}>
+                  <Text style={[styles.glanceLabel, { color: theme.textTertiary }]}>Harmonic Group</Text>
+                  <Text style={[styles.glanceValue, { color: theme.text }]}>{formatGroupLabel(details.harmonic_group)}</Text>
+                </View>
+              </View>
+              
+              {/* Growth Direction Row */}
+              <View style={styles.glanceRow}>
+                <View style={styles.glanceIconContainer}>
+                  <Ionicons name="trending-up-outline" size={18} color={theme.textSecondary} />
+                </View>
+                <View style={styles.glanceContent}>
+                  <Text style={[styles.glanceLabel, { color: theme.textTertiary }]}>Growth Direction</Text>
+                  <Text style={[styles.glanceValue, { color: theme.text }]}>Toward Type {details.growth_line_to}</Text>
+                </View>
+              </View>
+              
+              {/* Stress Direction Row */}
+              <View style={styles.glanceRow}>
+                <View style={styles.glanceIconContainer}>
+                  <Ionicons name="trending-down-outline" size={18} color={theme.textSecondary} />
+                </View>
+                <View style={styles.glanceContent}>
+                  <Text style={[styles.glanceLabel, { color: theme.textTertiary }]}>Stress Direction</Text>
+                  <Text style={[styles.glanceValue, { color: theme.text }]}>Toward Type {details.stress_line_to}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Social Style Card */}
+            {socialStyleTags.length > 0 && (
+              <View style={[styles.glanceCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+                <Text style={[styles.glanceSectionTitle, { color: theme.textTertiary }]}>SOCIAL STYLE</Text>
+                <View style={styles.glanceTagsContainer}>
+                  {socialStyleTags.map((tag, index) => (
+                    <View key={index} style={[styles.glanceTag, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
+                      <Text style={[styles.glanceTagText, { color: theme.text }]}>{tag}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Quick Reference Card */}
+            <View style={[styles.glanceCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+              <Text style={[styles.glanceSectionTitle, { color: theme.textTertiary }]}>QUICK REFERENCE</Text>
+              <View style={styles.glanceRefGrid}>
+                <View style={styles.glanceRefItem}>
+                  <Text style={[styles.glanceRefLabel, { color: theme.textTertiary }]}>Basic Fear</Text>
+                  <Text style={[styles.glanceRefValue, { color: theme.text }]}>{TYPE_BASIC_FEARS[core]}</Text>
+                </View>
+                <View style={styles.glanceRefItem}>
+                  <Text style={[styles.glanceRefLabel, { color: theme.textTertiary }]}>Basic Desire</Text>
+                  <Text style={[styles.glanceRefValue, { color: theme.text }]}>{TYPE_BASIC_DESIRES[core]}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Confidence Badge */}
+            <View style={styles.glanceFooter}>
+              <Text style={[styles.glanceFooterText, { color: theme.textTertiary }]}>
+                {result.confidence_tier === 'high' ? 'High' : result.confidence_tier === 'medium' ? 'Moderate' : 'Low'} confidence
+              </Text>
+              <Text style={[styles.glanceFooterText, { color: theme.textTertiary }]}>
+                {' '}·{' '}Based on assessment_inference_v2 results
+              </Text>
+            </View>
+          </>
+        )}
+      </>
+    );
+  };
+
+  // ============================================
   // TODAY TAB
   // ============================================
 
