@@ -1026,78 +1026,19 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // CHAT BOX COMPONENT
   // ============================================
   
-  const renderChatBox = () => (
-    <View style={styles.chatContainer}>
-      <TouchableOpacity 
-        style={styles.chatHeader}
-        onPress={() => setChatExpanded(!chatExpanded)}
+  const renderAskLensButton = () => (
+    <View style={styles.askLensContainer}>
+      <TouchableOpacity
+        style={[styles.askLensButton, { backgroundColor: theme.text }]}
+        onPress={() => setShowQAModal(true)}
       >
-        <View style={styles.chatHeaderLeft}>
-          <Text style={styles.chatHeaderText}>Ask about this lens</Text>
-        </View>
-        <Text style={[styles.chatExpandText, { color: theme.textTertiary }]}>
-          {chatExpanded ? '▼' : '▲'}
-        </Text>
+        <Text style={[styles.askLensText, { color: theme.background }]}>Ask about this lens</Text>
       </TouchableOpacity>
-      
-      {chatExpanded && (
-        <View style={styles.chatBody}>
-          {/* Chat Messages */}
-          {chatMessages.length > 0 && (
-            <View style={styles.chatMessages}>
-              {chatMessages.map((msg, index) => (
-                <View 
-                  key={index} 
-                  style={[
-                    styles.chatMessage,
-                    msg.role === 'user' ? styles.chatMessageUser : styles.chatMessageAssistant
-                  ]}
-                >
-                  <Text style={[
-                    styles.chatMessageText,
-                    msg.role === 'user' && styles.chatMessageTextUser
-                  ]}>
-                    {msg.content}
-                  </Text>
-                </View>
-              ))}
-              {chatLoading && (
-                <View style={styles.chatMessageAssistant}>
-                  <ActivityIndicator size="small" color={theme.textSecondary} />
-                </View>
-              )}
-            </View>
-          )}
-          
-          {/* Chat Input */}
-          <View style={styles.chatInputContainer}>
-            <TextInput
-              style={styles.chatInput}
-              value={chatInput}
-              onChangeText={setChatInput}
-              placeholder="Ask about today's pattern, your wing, stress loops, or how to practice."
-              placeholderTextColor={theme.textTertiary}
-              multiline
-              maxLength={500}
-              editable={!chatLoading}
-            />
-            <TouchableOpacity 
-              style={[
-                styles.chatSendButton,
-                (!chatInput.trim() || chatLoading) && styles.chatSendButtonDisabled
-              ]}
-              onPress={handleSendChat}
-              disabled={!chatInput.trim() || chatLoading}
-            >
-              <Text style={[
-                styles.sendButtonText,
-                { color: (!chatInput.trim() || chatLoading) ? theme.textTertiary : theme.background }
-              ]}>
-                ➤
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+      <Text style={[styles.askLensDisclaimer, { color: theme.textTertiary }]}>
+        A lens for understanding patterns, not a definition of identity.
+      </Text>
+    </View>
+  );
       )}
     </View>
   );
