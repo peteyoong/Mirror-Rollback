@@ -797,7 +797,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.textTertiary} />
-            <Text style={styles.loadingText}>
+            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
               {activeTab === 'deep_dive' 
                 ? 'Generating your personalized reading...\nThis may take 30-45 seconds'
                 : 'Loading...'}
@@ -806,12 +806,12 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
         ) : error ? (
           <View style={styles.errorContainer}>
             <Ionicons name="alert-circle-outline" size={32} color={theme.textTertiary} />
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={[styles.errorText, { color: theme.textSecondary }]}>{error}</Text>
             <TouchableOpacity
-              style={styles.retryButton}
+              style={[styles.retryButton, { backgroundColor: theme.surface }]}
               onPress={() => loadTabData(activeTab)}
             >
-              <Text style={styles.retryText}>Try Again</Text>
+              <Text style={[styles.retryText, { color: theme.text }]}>Try Again</Text>
             </TouchableOpacity>
             {/* Still show core numbers on Deep Dive even with error */}
             {activeTab === 'deep_dive' && renderCoreNumbers()}
@@ -819,11 +819,11 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
         ) : data ? (
           <>
             {/* Title */}
-            <Text style={styles.title}>{data.title}</Text>
+            <Text style={[styles.title, { color: theme.text }]}>{data.title}</Text>
 
             {/* Date for Today's Snapshot tab only */}
             {activeTab === 'today' && data.date && (
-              <Text style={styles.dateLabel}>{data.date}</Text>
+              <Text style={[styles.dateLabel, { color: theme.textTertiary }]}>{data.date}</Text>
             )}
 
             {/* Cycles Card (Today only) */}
@@ -838,7 +838,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                 style={styles.expandButton}
                 onPress={() => setExpandedSection(expandedSection ? null : 'all')}
               >
-                <Text style={styles.expandButtonText}>
+                <Text style={[styles.expandButtonText, { color: theme.accent }]}>
                   {expandedSection ? 'Collapse sections' : 'Explore your numbers'}
                 </Text>
                 <Ionicons
