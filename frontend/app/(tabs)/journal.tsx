@@ -548,7 +548,6 @@ export default function JournalScreen() {
               />
             )}
           </View>
-        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 
       {/* Mirror Reflection Modal (Quick Template-based) */}
