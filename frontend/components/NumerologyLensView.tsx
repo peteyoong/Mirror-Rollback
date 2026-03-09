@@ -854,11 +854,11 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
 
             {/* Mirror Prompt */}
             {data.mirror_prompt && (
-              <View style={styles.mirrorPromptCard}>
-                <Text style={styles.mirrorPromptLabel}>
+              <View style={[styles.mirrorPromptCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
+                <Text style={[styles.mirrorPromptLabel, { color: theme.textTertiary }]}>
                   {activeTab === 'today' ? 'REFLECT' : activeTab === 'deep_dive' ? 'MIRROR MOMENT' : 'REFLECT'}
                 </Text>
-                <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
+                <Text style={[styles.mirrorPromptText, { color: theme.text }]}>{data.mirror_prompt}</Text>
               </View>
             )}
 
@@ -867,15 +867,15 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
 
             {/* Ask Mirror Button */}
             <TouchableOpacity
-              style={styles.askMirrorButton}
+              style={[styles.askMirrorButton, { backgroundColor: theme.text }]}
               onPress={onOpenChat}
             >
-              <Ionicons name="chatbubble-outline" size={18} color={theme.textInverse} />
-              <Text style={styles.askMirrorText}>Ask about this lens</Text>
+              <Ionicons name="chatbubble-outline" size={18} color={theme.background} />
+              <Text style={[styles.askMirrorText, { color: theme.background }]}>Ask about this lens</Text>
             </TouchableOpacity>
 
             {/* Footer */}
-            <Text style={styles.footer}>
+            <Text style={[styles.footer, { color: theme.textTertiary }]}>
               A lens for noticing patterns, not a prediction of outcomes.
             </Text>
             
