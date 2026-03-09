@@ -726,7 +726,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.textTertiary} />
-            <Text style={styles.loadingText}>
+            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
               {activeTab === 'deep_dive' 
                 ? 'Generating your personalized reading...\nThis may take 30-45 seconds'
                 : 'Loading...'}
@@ -735,12 +735,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         ) : error ? (
           <View style={styles.errorContainer}>
             <Ionicons name="alert-circle-outline" size={32} color={theme.textTertiary} />
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={[styles.errorText, { color: theme.textSecondary }]}>{error}</Text>
             <TouchableOpacity
-              style={styles.retryButton}
+              style={[styles.retryButton, { backgroundColor: theme.surface }]}
               onPress={() => loadTabData(activeTab)}
             >
-              <Text style={styles.retryText}>Try Again</Text>
+              <Text style={[styles.retryText, { color: theme.text }]}>Try Again</Text>
             </TouchableOpacity>
           </View>
         ) : data ? (
@@ -751,12 +751,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             {/* TODAY TAB - Keep existing */}
             {activeTab === 'today' && (
               <>
-                <Text style={styles.title}>{data.title || 'Today\'s Human Design'}</Text>
-                {data.date && <Text style={styles.dateLabel}>{data.date}</Text>}
+                <Text style={[styles.title, { color: theme.text }]}>{data.title || 'Today\'s Human Design'}</Text>
+                {data.date && <Text style={[styles.dateLabel, { color: theme.textTertiary }]}>{data.date}</Text>}
                 {data.sections?.map((section, index) => renderSection(section, index))}
                 {data.mirror_prompt && (
-                  <View style={styles.mirrorPromptCard}>
-                    <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
+                  <View style={[styles.mirrorPromptCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
+                    <Text style={[styles.mirrorPromptText, { color: theme.text }]}>{data.mirror_prompt}</Text>
                   </View>
                 )}
               </>
@@ -765,13 +765,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             {/* DEEP DIVE TAB - Keep existing technical depth */}
             {activeTab === 'deep_dive' && (
               <>
-                <Text style={styles.title}>{data.title || 'Your Human Design'}</Text>
+                <Text style={[styles.title, { color: theme.text }]}>{data.title || 'Your Human Design'}</Text>
                 {renderCoreMechanics()}
                 <TouchableOpacity
                   style={styles.expandButton}
                   onPress={() => setExpandedSection(expandedSection ? null : 'all')}
                 >
-                  <Text style={styles.expandButtonText}>
+                  <Text style={[styles.expandButtonText, { color: theme.accent }]}>
                     {expandedSection ? 'Collapse sections' : 'Explore your mechanics'}
                   </Text>
                   <Ionicons
@@ -783,8 +783,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                 {data.sections?.map((section, index) => renderSection(section, index))}
                 {renderGeneKeys()}
                 {data.mirror_prompt && (
-                  <View style={styles.mirrorPromptCard}>
-                    <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
+                  <View style={[styles.mirrorPromptCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
+                    <Text style={[styles.mirrorPromptText, { color: theme.text }]}>{data.mirror_prompt}</Text>
                   </View>
                 )}
               </>
@@ -793,11 +793,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             {/* Ask Mirror Button - show on Today and Deep Dive */}
             {(activeTab === 'today' || activeTab === 'deep_dive') && (
               <TouchableOpacity
-                style={styles.askMirrorButton}
+                style={[styles.askMirrorButton, { backgroundColor: theme.text }]}
                 onPress={onOpenChat}
               >
-                <Ionicons name="chatbubble-outline" size={18} color={theme.textInverse} />
-                <Text style={styles.askMirrorText}>Ask about this lens</Text>
+                <Ionicons name="chatbubble-outline" size={18} color={theme.background} />
+                <Text style={[styles.askMirrorText, { color: theme.background }]}>Ask about this lens</Text>
               </TouchableOpacity>
             )}
 
