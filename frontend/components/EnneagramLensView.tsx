@@ -1708,8 +1708,8 @@ export default function EnneagramLensView({ result, userId }: Props) {
           subtitle="Tradeoffs and tendencies to notice"
         >
           <View style={styles.accordionBodySection}>
-            <Text style={styles.accordionBodyTitle}>The Core Tradeoff</Text>
-            <Text style={styles.accordionBodyText}>
+            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>The Core Tradeoff</Text>
+            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
               {core === 1 ? 'Integrity vs. flexibility. The drive toward correctness can crowd out acceptance of what is.' :
                core === 2 ? 'Giving vs. receiving. The focus on others\' needs can obscure your own.' :
                core === 3 ? 'Achievement vs. authenticity. The drive to succeed can disconnect you from what you actually feel.' :
@@ -1722,8 +1722,8 @@ export default function EnneagramLensView({ result, userId }: Props) {
             </Text>
           </View>
           <View style={styles.accordionBodySection}>
-            <Text style={styles.accordionBodyTitle}>Daily Reflection</Text>
-            <Text style={styles.accordionBodyText}>{JOURNAL_PROMPTS[core]}</Text>
+            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Daily Reflection</Text>
+            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{JOURNAL_PROMPTS[core]}</Text>
           </View>
         </AccordionSection>
 
@@ -1738,54 +1738,54 @@ export default function EnneagramLensView({ result, userId }: Props) {
               <View style={styles.flowIconContainer}>
                 <Text style={[styles.flowIconText, { color: '#C62828' }]}>↓</Text>
               </View>
-              <Text style={styles.flowLabel}>Under Stress → Type {(data?.computed_details || computedDetails)?.stress_line_to || '—'}</Text>
+              <Text style={[styles.flowLabel, { color: theme.textSecondary }]}>Under Stress → Type {(data?.computed_details || computedDetails)?.stress_line_to || '—'}</Text>
             </View>
             <View style={styles.flowItem}>
               <View style={styles.flowIconContainer}>
                 <Text style={[styles.flowIconText, { color: '#2E7D32' }]}>↑</Text>
               </View>
-              <Text style={styles.flowLabel}>When Resourced → Type {(data?.computed_details || computedDetails)?.growth_line_to || '—'}</Text>
+              <Text style={[styles.flowLabel, { color: theme.textSecondary }]}>When Resourced → Type {(data?.computed_details || computedDetails)?.growth_line_to || '—'}</Text>
             </View>
           </View>
           
           {/* Stress Section */}
           <View style={styles.accordionBodySection}>
-            <Text style={styles.accordionBodyTitle}>Under Stress</Text>
-            <Text style={styles.accordionBodyText}>{STRESS_PATTERNS[core]?.pattern}</Text>
+            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Under Stress</Text>
+            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{STRESS_PATTERNS[core]?.pattern}</Text>
           </View>
           <View style={styles.accordionBodySection}>
-            <Text style={styles.accordionBodyTitle}>The Tradeoff</Text>
-            <Text style={styles.accordionBodyText}>{STRESS_PATTERNS[core]?.tradeoff}</Text>
+            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>The Tradeoff</Text>
+            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{STRESS_PATTERNS[core]?.tradeoff}</Text>
           </View>
           <View style={styles.accordionBodySection}>
-            <Text style={styles.accordionBodyTitle}>Potential Strength</Text>
-            <Text style={styles.accordionBodyText}>{STRESS_PATTERNS[core]?.strength}</Text>
+            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Potential Strength</Text>
+            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{STRESS_PATTERNS[core]?.strength}</Text>
           </View>
           <View style={styles.experimentCard}>
             <View style={styles.experimentHeader}>
-              <Text style={styles.experimentLabel}>Try This</Text>
+              <Text style={[styles.experimentLabel, { color: theme.accent }]}>Try This</Text>
             </View>
-            <Text style={styles.experimentText}>{STRESS_PATTERNS[core]?.experiment}</Text>
+            <Text style={[styles.experimentText, { color: theme.textSecondary }]}>{STRESS_PATTERNS[core]?.experiment}</Text>
           </View>
           
           {/* Growth Section */}
           <View style={[styles.accordionBodySection, { marginTop: 24 }]}>
-            <Text style={styles.accordionBodyTitle}>When Resourced</Text>
-            <Text style={styles.accordionBodyText}>{GROWTH_PATTERNS[core]?.pattern}</Text>
+            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>When Resourced</Text>
+            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{GROWTH_PATTERNS[core]?.pattern}</Text>
           </View>
           <View style={styles.accordionBodySection}>
-            <Text style={styles.accordionBodyTitle}>The Tradeoff</Text>
-            <Text style={styles.accordionBodyText}>{GROWTH_PATTERNS[core]?.tradeoff}</Text>
+            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>The Tradeoff</Text>
+            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{GROWTH_PATTERNS[core]?.tradeoff}</Text>
           </View>
           <View style={styles.accordionBodySection}>
-            <Text style={styles.accordionBodyTitle}>Potential Strength</Text>
-            <Text style={styles.accordionBodyText}>{GROWTH_PATTERNS[core]?.strength}</Text>
+            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Potential Strength</Text>
+            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{GROWTH_PATTERNS[core]?.strength}</Text>
           </View>
           <View style={styles.experimentCard}>
             <View style={styles.experimentHeader}>
-              <Text style={styles.experimentLabel}>Try This</Text>
+              <Text style={[styles.experimentLabel, { color: theme.accent }]}>Try This</Text>
             </View>
-            <Text style={styles.experimentText}>{GROWTH_PATTERNS[core]?.experiment}</Text>
+            <Text style={[styles.experimentText, { color: theme.textSecondary }]}>{GROWTH_PATTERNS[core]?.experiment}</Text>
           </View>
         </AccordionSection>
 
@@ -1795,7 +1795,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           title="Top Alternatives"
           subtitle="Other patterns worth exploring"
         >
-          <Text style={styles.accordionBodyText}>
+          <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
             Your responses showed resonance with these types. Worth exploring if your primary type doesn't fully land.
           </Text>
           {result.top_candidates.slice(0, 3).map((candidate, index) => (
