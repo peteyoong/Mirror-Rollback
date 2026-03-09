@@ -587,17 +587,17 @@ export default function LensDetail() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar style="dark" />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: theme.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-          <Ionicons name="close" size={24} color={Colors.text} />
+          <Ionicons name="close" size={24} color={theme.text} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Ionicons name={lensMeta.icon as any} size={20} color={Colors.text} />
-          <Text style={styles.headerTitle}>{lensMeta.name}</Text>
+          <Ionicons name={lensMeta.icon as any} size={20} color={theme.text} />
+          <Text style={[styles.headerTitle, { color: theme.text }]}>{lensMeta.name}</Text>
         </View>
         <View style={styles.headerSpacer} />
       </View>
