@@ -1039,9 +1039,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
       </Text>
     </View>
   );
-      )}
-    </View>
-  );
 
   // ============================================
   // SUMMARY TAB
