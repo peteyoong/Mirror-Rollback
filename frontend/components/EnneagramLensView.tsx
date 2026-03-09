@@ -1298,9 +1298,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
         )}
 
         {/* Reflection Prompt Card */}
-        <View style={styles.reflectionCard}>
-          <Text style={styles.reflectionLabel}>A REFLECTION</Text>
-          <Text style={styles.reflectionText}>
+        <View style={[styles.reflectionCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
+          <Text style={[styles.reflectionLabel, { color: theme.textTertiary }]}>A REFLECTION</Text>
+          <Text style={[styles.reflectionText, { color: theme.text }]}>
             "{OVERVIEW_REFLECTIONS[core]}"
           </Text>
         </View>
@@ -1310,7 +1310,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           style={styles.subtleLink}
           onPress={() => setActiveTab('deep_dive')}
         >
-          <Text style={styles.subtleLinkText}>Explore Deep Dive</Text>
+          <Text style={[styles.subtleLinkText, { color: theme.textTertiary }]}>Explore Deep Dive</Text>
           <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
         </TouchableOpacity>
       </>
