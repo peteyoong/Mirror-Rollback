@@ -682,6 +682,32 @@ export default function LensDetail() {
             </SafeAreaView>
           </Modal>
         </>
+      ) : lens === 'enneagram' && user?.id ? (
+        <>
+          <EnneagramLensView
+            userId={user.id}
+            onOpenChat={() => setLensChatVisible(true)}
+          />
+          
+          {/* Lens Chat Modal */}
+          <Modal
+            visible={lensChatVisible}
+            animationType="slide"
+            presentationStyle="pageSheet"
+            onRequestClose={() => setLensChatVisible(false)}
+          >
+            <SafeAreaView style={styles.modalContainer} edges={['top', 'bottom']}>
+              <MirrorChat
+                userId={user.id}
+                lens="enneagram"
+                placeholder="Ask about your Enneagram type…"
+                headerTitle="Enneagram Chat"
+                headerSubtitle="Lens-focused reflection"
+                onClose={() => setLensChatVisible(false)}
+              />
+            </SafeAreaView>
+          </Modal>
+        </>
       ) : (
         // OTHER LENSES: Keep original implementation
         <>
