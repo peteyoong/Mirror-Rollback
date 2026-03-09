@@ -2890,7 +2890,6 @@ const styles = StyleSheet.create({
   experimentHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
     marginBottom: 8,
   },
   experimentLabel: {
