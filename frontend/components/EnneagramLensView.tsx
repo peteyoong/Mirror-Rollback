@@ -1693,11 +1693,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
               <Text style={[styles.accordionTitle, { color: theme.text }]}>{title}</Text>
               <Text style={[styles.accordionSubtitle, { color: theme.textTertiary }]}>{subtitle}</Text>
             </View>
-            <Ionicons 
-              name={isExpanded ? "chevron-up" : "chevron-down"} 
-              size={20} 
-              color={theme.textSecondary} 
-            />
+            <Text style={[styles.accordionChevron, { color: theme.textSecondary }]}>
+              {isExpanded ? '▼' : '▶'}
+            </Text>
           </TouchableOpacity>
           {isExpanded && (
             <View style={styles.accordionContent}>
