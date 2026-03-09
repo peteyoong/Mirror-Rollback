@@ -303,13 +303,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   };
 
   const renderTabs = () => (
-    <View style={styles.tabSection}>
+    <View style={[styles.tabSection, { borderBottomColor: theme.border }]}>
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
           onPress={() => setActiveTab('summary')}
         >
-          <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>
+          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'summary' && { color: theme.text }]}>
             Overview
           </Text>
         </TouchableOpacity>
@@ -317,7 +317,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           style={[styles.tab, activeTab === 'today' && styles.activeTab]}
           onPress={() => setActiveTab('today')}
         >
-          <Text style={[styles.tabText, activeTab === 'today' && styles.activeTabText]}>
+          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'today' && { color: theme.text }]}>
             Today
           </Text>
         </TouchableOpacity>
@@ -325,7 +325,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
           onPress={() => setActiveTab('deep_dive')}
         >
-          <Text style={[styles.tabText, activeTab === 'deep_dive' && styles.activeTabText]}>
+          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'deep_dive' && { color: theme.text }]}>
             Deep Dive
           </Text>
         </TouchableOpacity>
