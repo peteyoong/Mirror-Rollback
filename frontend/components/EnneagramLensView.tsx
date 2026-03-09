@@ -1728,16 +1728,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <View style={styles.deepDiveHeaderTop}>
             <View style={styles.identityTitleRow}>
               <Text style={[styles.deepDiveType, { color: theme.text }]}>{typeLabel}</Text>
-              <TouchableOpacity 
-                style={styles.editTypeInline}
-                onPress={handleEditType}
-              >
-                <Ionicons name="pencil" size={14} color={theme.textTertiary} />
-              </TouchableOpacity>
             </View>
             {isSelfDeclared ? (
               <View style={[styles.sourceBadge, { backgroundColor: theme.surfaceLight }]}>
-                <Ionicons name="person-outline" size={12} color={theme.textSecondary} />
                 <Text style={[styles.sourceBadgeText, { color: theme.textSecondary }]}>Self-declared</Text>
               </View>
             ) : (
