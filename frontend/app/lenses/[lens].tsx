@@ -758,7 +758,6 @@ export default function LensDetail() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   flex1: {
     flex: 1,
