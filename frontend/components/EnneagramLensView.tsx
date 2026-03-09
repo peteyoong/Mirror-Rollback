@@ -1124,7 +1124,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         </TouchableOpacity>
 
         {/* Chat Box */}
-        {renderChatBox()}
+        {renderAskLensButton()}
       </>
     );
   };
@@ -1277,7 +1277,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
             </View>
 
             {/* Chat Box */}
-            {renderChatBox()}
+            {renderAskLensButton()}
           </>
         )}
       </>
@@ -1397,7 +1397,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         </View>
         
         {/* Chat Box */}
-        {renderChatBox()}
+        {renderAskLensButton()}
       </>
     );
   };
@@ -1828,7 +1828,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         </View>
         
         {/* Chat Box */}
-        {renderChatBox()}
+        {renderAskLensButton()}
       </>
     );
   };
