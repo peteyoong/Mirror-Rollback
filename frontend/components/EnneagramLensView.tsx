@@ -1610,30 +1610,30 @@ export default function EnneagramLensView({ result, userId }: Props) {
             <>
               <View style={styles.wingCard}>
                 <View style={styles.wingCardHeader}>
-                  <Text style={styles.wingCardTitle}>Wing {wing} · {TYPE_NAMES[wing as number]}</Text>
+                  <Text style={[styles.wingCardTitle, { color: theme.text }]}>Wing {wing} · {TYPE_NAMES[wing as number]}</Text>
                 </View>
               </View>
               
               {/* Core Pattern */}
               <View style={styles.accordionBodySection}>
-                <Text style={styles.accordionBodyTitle}>Core Pattern</Text>
-                <Text style={styles.accordionBodyText}>
+                <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Core Pattern</Text>
+                <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
                   {WING_FLAVORS[`${core}w${wing}`]?.pattern || `Your ${wing}-wing adds the qualities of ${TYPE_NAMES[wing as number]} to your core pattern.`}
                 </Text>
               </View>
               
               {/* The Tradeoff */}
               <View style={styles.accordionBodySection}>
-                <Text style={styles.accordionBodyTitle}>The Tradeoff</Text>
-                <Text style={styles.accordionBodyText}>
+                <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>The Tradeoff</Text>
+                <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
                   {WING_FLAVORS[`${core}w${wing}`]?.tradeoff || ''}
                 </Text>
               </View>
               
               {/* Potential Strength */}
               <View style={styles.accordionBodySection}>
-                <Text style={styles.accordionBodyTitle}>Potential Strength</Text>
-                <Text style={styles.accordionBodyText}>
+                <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Potential Strength</Text>
+                <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
                   {WING_FLAVORS[`${core}w${wing}`]?.strength || ''}
                 </Text>
               </View>
@@ -1641,15 +1641,15 @@ export default function EnneagramLensView({ result, userId }: Props) {
               {/* Experiment */}
               <View style={styles.experimentCard}>
                 <View style={styles.experimentHeader}>
-                  <Text style={styles.experimentLabel}>Try This</Text>
+                  <Text style={[styles.experimentLabel, { color: theme.accent }]}>Try This</Text>
                 </View>
-                <Text style={styles.experimentText}>
+                <Text style={[styles.experimentText, { color: theme.textSecondary }]}>
                   {WING_FLAVORS[`${core}w${wing}`]?.experiment || ''}
                 </Text>
               </View>
             </>
           ) : (
-            <Text style={styles.accordionBodyText}>
+            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
               You show access to both wings. This flexibility lets you choose consciously based on context rather than defaulting to one pattern.
             </Text>
           )}
@@ -1663,22 +1663,22 @@ export default function EnneagramLensView({ result, userId }: Props) {
         >
           <View style={styles.wingCard}>
             <View style={styles.wingCardHeader}>
-              <Text style={styles.wingCardTitle}>Wing {otherWing} · {TYPE_NAMES[otherWing]}</Text>
+              <Text style={[styles.wingCardTitle, { color: theme.text }]}>Wing {otherWing} · {TYPE_NAMES[otherWing]}</Text>
             </View>
           </View>
           
           {/* Core Pattern */}
           <View style={styles.accordionBodySection}>
-            <Text style={styles.accordionBodyTitle}>Core Pattern</Text>
-            <Text style={styles.accordionBodyText}>
+            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Core Pattern</Text>
+            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
               {WING_FLAVORS[`${core}w${otherWing}`]?.pattern || `The ${otherWing}-wing offers access to ${TYPE_NAMES[otherWing]} qualities.`}
             </Text>
           </View>
           
           {/* Strength */}
           <View style={styles.accordionBodySection}>
-            <Text style={styles.accordionBodyTitle}>Potential Strength</Text>
-            <Text style={styles.accordionBodyText}>
+            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Potential Strength</Text>
+            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
               {WING_FLAVORS[`${core}w${otherWing}`]?.strength || ''}
             </Text>
           </View>
@@ -1686,9 +1686,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
           {/* Experiment */}
           <View style={styles.experimentCard}>
             <View style={styles.experimentHeader}>
-              <Text style={styles.experimentLabel}>Try This</Text>
+              <Text style={[styles.experimentLabel, { color: theme.accent }]}>Try This</Text>
             </View>
-            <Text style={styles.experimentText}>
+            <Text style={[styles.experimentText, { color: theme.textSecondary }]}>
               {WING_FLAVORS[`${core}w${otherWing}`]?.experiment || ''}
             </Text>
           </View>
