@@ -1912,13 +1912,13 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <View style={styles.flowRow}>
             <View style={styles.flowItem}>
               <View style={styles.flowIconContainer}>
-                <Ionicons name="arrow-down" size={16} color="#C62828" />
+                <Text style={[styles.flowIconText, { color: '#C62828' }]}>↓</Text>
               </View>
               <Text style={styles.flowLabel}>Under Stress → Type {(data?.computed_details || computedDetails)?.stress_line_to || '—'}</Text>
             </View>
             <View style={styles.flowItem}>
               <View style={styles.flowIconContainer}>
-                <Ionicons name="arrow-up" size={16} color="#2E7D32" />
+                <Text style={[styles.flowIconText, { color: '#2E7D32' }]}>↑</Text>
               </View>
               <Text style={styles.flowLabel}>When Resourced → Type {(data?.computed_details || computedDetails)?.growth_line_to || '—'}</Text>
             </View>
@@ -1939,7 +1939,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </View>
           <View style={styles.experimentCard}>
             <View style={styles.experimentHeader}>
-              <Ionicons name="flask-outline" size={14} color={theme.accent} />
               <Text style={styles.experimentLabel}>Try This</Text>
             </View>
             <Text style={styles.experimentText}>{STRESS_PATTERNS[core]?.experiment}</Text>
@@ -1960,7 +1959,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
           </View>
           <View style={styles.experimentCard}>
             <View style={styles.experimentHeader}>
-              <Ionicons name="flask-outline" size={14} color={theme.accent} />
               <Text style={styles.experimentLabel}>Try This</Text>
             </View>
             <Text style={styles.experimentText}>{GROWTH_PATTERNS[core]?.experiment}</Text>
