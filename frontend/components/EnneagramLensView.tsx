@@ -1366,9 +1366,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
             <View style={[styles.glanceCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
               {/* Wing Stance Row */}
               <View style={styles.glanceRow}>
-                <View style={styles.glanceIconContainer}>
-                  <Ionicons name="git-branch-outline" size={18} color={theme.textSecondary} />
-                </View>
                 <View style={styles.glanceContent}>
                   <Text style={[styles.glanceLabel, { color: theme.textTertiary }]}>Wing Stance</Text>
                   <Text style={[styles.glanceValue, { color: theme.text }]}>{getWingStanceDisplay()}</Text>
@@ -1377,9 +1374,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
               
               {/* Center Row */}
               <View style={styles.glanceRow}>
-                <View style={styles.glanceIconContainer}>
-                  <Ionicons name="ellipse-outline" size={18} color={theme.textSecondary} />
-                </View>
                 <View style={styles.glanceContent}>
                   <Text style={[styles.glanceLabel, { color: theme.textTertiary }]}>Center</Text>
                   <Text style={[styles.glanceValue, { color: theme.text }]}>{formatGroupLabel(details.center)}</Text>
@@ -1388,9 +1382,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
               
               {/* Hornevian Group Row */}
               <View style={styles.glanceRow}>
-                <View style={styles.glanceIconContainer}>
-                  <Ionicons name="people-outline" size={18} color={theme.textSecondary} />
-                </View>
                 <View style={styles.glanceContent}>
                   <Text style={[styles.glanceLabel, { color: theme.textTertiary }]}>Hornevian Group</Text>
                   <Text style={[styles.glanceValue, { color: theme.text }]}>{formatGroupLabel(details.hornevian_group)}</Text>
@@ -1399,9 +1390,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
               
               {/* Harmonic Group Row */}
               <View style={styles.glanceRow}>
-                <View style={styles.glanceIconContainer}>
-                  <Ionicons name="musical-notes-outline" size={18} color={theme.textSecondary} />
-                </View>
                 <View style={styles.glanceContent}>
                   <Text style={[styles.glanceLabel, { color: theme.textTertiary }]}>Harmonic Group</Text>
                   <Text style={[styles.glanceValue, { color: theme.text }]}>{formatGroupLabel(details.harmonic_group)}</Text>
@@ -1410,9 +1398,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
               
               {/* Growth Direction Row */}
               <View style={styles.glanceRow}>
-                <View style={styles.glanceIconContainer}>
-                  <Ionicons name="trending-up-outline" size={18} color={theme.textSecondary} />
-                </View>
                 <View style={styles.glanceContent}>
                   <Text style={[styles.glanceLabel, { color: theme.textTertiary }]}>Growth Direction</Text>
                   <Text style={[styles.glanceValue, { color: theme.text }]}>Toward Type {details.growth_line_to}</Text>
@@ -1421,9 +1406,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
               
               {/* Stress Direction Row */}
               <View style={styles.glanceRow}>
-                <View style={styles.glanceIconContainer}>
-                  <Ionicons name="trending-down-outline" size={18} color={theme.textSecondary} />
-                </View>
                 <View style={styles.glanceContent}>
                   <Text style={[styles.glanceLabel, { color: theme.textTertiary }]}>Stress Direction</Text>
                   <Text style={[styles.glanceValue, { color: theme.text }]}>Toward Type {details.stress_line_to}</Text>
