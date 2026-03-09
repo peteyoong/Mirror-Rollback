@@ -1090,11 +1090,12 @@ export default function EnneagramLensView({ result, userId }: Props) {
               onPress={handleSendChat}
               disabled={!chatInput.trim() || chatLoading}
             >
-              <Ionicons 
-                name="send" 
-                size={18} 
-                color={(!chatInput.trim() || chatLoading) ? theme.textTertiary : theme.background} 
-              />
+              <Text style={[
+                styles.sendButtonText,
+                { color: (!chatInput.trim() || chatLoading) ? theme.textTertiary : theme.background }
+              ]}>
+                ➤
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
