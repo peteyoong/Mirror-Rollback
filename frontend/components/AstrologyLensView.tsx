@@ -358,7 +358,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
                     style={styles.expandButton}
                     onPress={() => setExpandedSection(expandedSection ? null : 'all')}
                   >
-                    <Text style={styles.expandButtonText}>
+                    <Text style={[styles.expandButtonText, { color: theme.accent }]}>
                       {expandedSection ? 'Collapse sections' : 'Explore your core structure'}
                     </Text>
                     <Ionicons
@@ -374,9 +374,9 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
 
                 {/* Mirror Prompt */}
                 {data.mirror_prompt && (
-                  <View style={styles.mirrorPromptCard}>
-                    <Text style={styles.mirrorPromptLabel}>REFLECT</Text>
-                    <Text style={styles.mirrorPromptText}>{data.mirror_prompt}</Text>
+                  <View style={[styles.mirrorPromptCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
+                    <Text style={[styles.mirrorPromptLabel, { color: theme.textTertiary }]}>REFLECT</Text>
+                    <Text style={[styles.mirrorPromptText, { color: theme.text }]}>{data.mirror_prompt}</Text>
                   </View>
                 )}
 
@@ -385,15 +385,15 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
 
                 {/* Ask Mirror Button */}
                 <TouchableOpacity
-                  style={styles.askMirrorButton}
+                  style={[styles.askMirrorButton, { backgroundColor: theme.text }]}
                   onPress={onOpenChat}
                 >
-                  <Ionicons name="chatbubble-outline" size={18} color={theme.textInverse} />
-                  <Text style={styles.askMirrorText}>Ask about this lens</Text>
+                  <Ionicons name="chatbubble-outline" size={18} color={theme.background} />
+                  <Text style={[styles.askMirrorText, { color: theme.background }]}>Ask about this lens</Text>
                 </TouchableOpacity>
 
                 {/* Footer */}
-                <Text style={styles.footer}>
+                <Text style={[styles.footer, { color: theme.textTertiary }]}>
                   A lens for understanding patterns, not a definition of identity.
                 </Text>
                 
