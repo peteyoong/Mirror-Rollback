@@ -186,9 +186,9 @@ export const useTheme = () => useContext(ThemeContext);
 
 const THEME_STORAGE_KEY = '@mirror_theme_mode';
 
-// DEV OVERRIDE: Set to 'dark' to force dark mode for testing
-// Set to null to use normal system/stored preference
-const DEV_THEME_OVERRIDE: ThemeMode | null = 'dark';
+// DEV OVERRIDE: Set to 'dark' or 'light' to force theme for testing
+// Set to null to use normal system/stored preference (PRODUCTION MODE)
+const DEV_THEME_OVERRIDE: ThemeMode | null = null;
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const systemColorScheme = useColorScheme();
