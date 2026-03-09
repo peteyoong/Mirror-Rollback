@@ -1525,11 +1525,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 ]}
                 onPress={() => handleEnergySelect(state)}
               >
-                <Ionicons
-                  name={state === 'low' ? 'battery-dead-outline' : state === 'neutral' ? 'battery-half-outline' : 'battery-full-outline'}
-                  size={18}
-                  color={energyState === state ? theme.background : theme.text}
-                />
                 <Text style={[
                   styles.energyButtonText,
                   { color: theme.text },
