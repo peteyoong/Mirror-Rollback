@@ -454,22 +454,22 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     // MEANING-FIRST VIEW: sphere name → gate.line → descriptor → interpretation → metadata
     return (
-      <View key={name} style={styles.sphereCard}>
+      <View key={name} style={[styles.sphereCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         {/* 1. Sphere Name - prominent */}
-        <Text style={styles.sphereTitle}>{interp.sphereTitle}</Text>
+        <Text style={[styles.sphereTitle, { color: theme.text }]}>{interp.sphereTitle}</Text>
         
         {/* 2. Gate.Line - technical identifier right under title */}
-        <Text style={styles.sphereGateLine}>{gateLineDisplay}</Text>
+        <Text style={[styles.sphereGateLine, { color: theme.accent }]}>{gateLineDisplay}</Text>
         
         {/* 3. Plain-English Descriptor - one line */}
-        <Text style={styles.sphereDescriptor}>{interp.sphereDescriptor}</Text>
+        <Text style={[styles.sphereDescriptor, { color: theme.textSecondary }]}>{interp.sphereDescriptor}</Text>
         
         {/* 4. Meaning-First Interpretation - short paragraph */}
-        <Text style={styles.sphereInterpretation}>{interp.meaningInterpretation}</Text>
+        <Text style={[styles.sphereInterpretation, { color: theme.textSecondary }]}>{interp.meaningInterpretation}</Text>
         
         {/* 5. Technical Details - subtle metadata at bottom */}
-        <View style={styles.sphereMetadata}>
-          <Text style={styles.sphereMetaText}>{sourceInfo}</Text>
+        <View style={[styles.sphereMetadata, { borderTopColor: theme.border }]}>
+          <Text style={[styles.sphereMetaText, { color: theme.textTertiary }]}>{sourceInfo}</Text>
         </View>
       </View>
     );
