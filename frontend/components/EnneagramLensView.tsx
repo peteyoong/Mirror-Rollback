@@ -964,6 +964,14 @@ export default function EnneagramLensView({ result, userId }: Props) {
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
+        style={[styles.tab, activeTab === 'at_a_glance' && styles.activeTab, activeTab === 'at_a_glance' && { borderBottomColor: theme.text }]}
+        onPress={() => setActiveTab('at_a_glance')}
+      >
+        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'at_a_glance' && { color: theme.text }]}>
+          At a Glance
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         style={[styles.tab, activeTab === 'today' && styles.activeTab, activeTab === 'today' && { borderBottomColor: theme.text }]}
         onPress={() => setActiveTab('today')}
       >
