@@ -1171,7 +1171,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <View style={[styles.patternMovementCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
             {/* Header */}
             <View style={styles.patternMovementHeader}>
-              <Ionicons name="pulse-outline" size={16} color={patternDrift.drift_candidate ? theme.accent : theme.textTertiary} />
               <Text style={[styles.patternMovementTitle, !patternDrift.drift_candidate && styles.patternMovementTitleMuted]}>Pattern Movement</Text>
               {patternDrift.drift_candidate && patternDrift.confidence_label && patternDrift.confidence_label !== 'low' && (
                 <View style={[
@@ -1204,12 +1203,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
                       patternDrift.direction === 'stress' && styles.movementArrowStress,
                       patternDrift.direction === 'growth' && styles.movementArrowGrowth,
                     ]} />
-                    <Ionicons 
-                      name="chevron-forward" 
-                      size={16} 
-                      color={patternDrift.direction === 'stress' ? '#C62828' : '#2E7D32'} 
-                      style={styles.movementArrowIcon}
-                    />
+                    <Text style={[styles.movementArrowText, { color: patternDrift.direction === 'stress' ? '#C62828' : '#2E7D32' }]}>
+                      →
+                    </Text>
                     
                     {/* Drift Type Circle */}
                     <View style={[
