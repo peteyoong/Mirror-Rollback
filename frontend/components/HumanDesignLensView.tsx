@@ -376,21 +376,21 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     };
 
     return (
-      <View style={styles.coreMechanicsCard}>
-        <Text style={styles.coreMechanicsTitle}>CORE MECHANICS</Text>
+      <View style={[styles.coreMechanicsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.coreMechanicsTitle, { color: theme.textTertiary }]}>CORE MECHANICS</Text>
         
         {/* Row 1: Type + Authority */}
         <View style={styles.mechanicsGrid}>
           <View style={styles.mechanicItem}>
             <Ionicons name="flash-outline" size={16} color={theme.accent} />
-            <Text style={styles.mechanicLabel}>Type</Text>
-            <Text style={styles.mechanicValue}>{formatMechanic(mechanics.type)}</Text>
+            <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Type</Text>
+            <Text style={[styles.mechanicValue, { color: theme.text }]}>{formatMechanic(mechanics.type)}</Text>
           </View>
-          <View style={styles.mechanicDivider} />
+          <View style={[styles.mechanicDivider, { backgroundColor: theme.border }]} />
           <View style={styles.mechanicItem}>
             <Ionicons name="compass-outline" size={16} color={theme.accent} />
-            <Text style={styles.mechanicLabel}>Authority</Text>
-            <Text style={styles.mechanicValue}>{formatMechanic(mechanics.authority)}</Text>
+            <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Authority</Text>
+            <Text style={[styles.mechanicValue, { color: theme.text }]}>{formatMechanic(mechanics.authority)}</Text>
           </View>
         </View>
         
@@ -398,14 +398,14 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         <View style={[styles.mechanicsGrid, { marginTop: 16 }]}>
           <View style={styles.mechanicItem}>
             <Ionicons name="person-outline" size={16} color={theme.accent} />
-            <Text style={styles.mechanicLabel}>Profile</Text>
-            <Text style={styles.mechanicValue}>{mechanics.profile || '—'}</Text>
+            <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Profile</Text>
+            <Text style={[styles.mechanicValue, { color: theme.text }]}>{mechanics.profile || '—'}</Text>
           </View>
-          <View style={styles.mechanicDivider} />
+          <View style={[styles.mechanicDivider, { backgroundColor: theme.border }]} />
           <View style={styles.mechanicItem}>
             <Ionicons name="layers-outline" size={16} color={theme.accent} />
-            <Text style={styles.mechanicLabel}>Definition</Text>
-            <Text style={styles.mechanicValue}>{formatMechanic(mechanics.definition)}</Text>
+            <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Definition</Text>
+            <Text style={[styles.mechanicValue, { color: theme.text }]}>{formatMechanic(mechanics.definition)}</Text>
           </View>
         </View>
         
@@ -413,9 +413,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         <View style={[styles.mechanicsGrid, { marginTop: 16 }]}>
           <View style={[styles.mechanicItem, { flex: 1 }]}>
             <Ionicons name="git-branch-outline" size={16} color={theme.accent} />
-            <Text style={styles.mechanicLabel}>Incarnation Cross</Text>
-            <Text style={[styles.mechanicValue, styles.mechanicValueSmall]}>{formatCross()}</Text>
-            <Text style={styles.mechanicGates}>{getCrossGates()}</Text>
+            <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Incarnation Cross</Text>
+            <Text style={[styles.mechanicValue, styles.mechanicValueSmall, { color: theme.text }]}>{formatCross()}</Text>
+            <Text style={[styles.mechanicGates, { color: theme.textTertiary }]}>{getCrossGates()}</Text>
           </View>
         </View>
       </View>
