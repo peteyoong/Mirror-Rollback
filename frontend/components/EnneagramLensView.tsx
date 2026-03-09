@@ -2209,7 +2209,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
               style={styles.footerAction}
               onPress={() => setShowRetakeModal(true)}
             >
-              <Ionicons name="refresh-outline" size={16} color={theme.textSecondary} />
               <Text style={[styles.footerActionText, { color: theme.textSecondary }]}>Retake Assessment</Text>
             </TouchableOpacity>
             
@@ -2219,7 +2218,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
               style={styles.footerAction}
               onPress={handleEditType}
             >
-              <Ionicons name="pencil-outline" size={16} color={theme.textSecondary} />
               <Text style={[styles.footerActionText, { color: theme.textSecondary }]}>Edit Type</Text>
             </TouchableOpacity>
           </View>
