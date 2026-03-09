@@ -156,22 +156,22 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
     };
 
     return (
-      <View style={styles.corePlacementsCard}>
-        <Text style={styles.corePlacementsTitle}>SUN • MOON • ASCENDANT</Text>
+      <View style={[styles.corePlacementsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.corePlacementsTitle, { color: theme.textTertiary }]}>SUN • MOON • ASCENDANT</Text>
         <View style={styles.corePlacementsRow}>
           <View style={styles.placementItem}>
             <Ionicons name="sunny-outline" size={16} color={theme.accent} />
-            <Text style={styles.placementSign}>{formatPlacement(placements.sun)}</Text>
+            <Text style={[styles.placementSign, { color: theme.text }]}>{formatPlacement(placements.sun)}</Text>
           </View>
-          <View style={styles.placementDivider} />
+          <View style={[styles.placementDivider, { backgroundColor: theme.border }]} />
           <View style={styles.placementItem}>
             <Ionicons name="moon-outline" size={16} color={theme.accent} />
-            <Text style={styles.placementSign}>{formatPlacement(placements.moon)}</Text>
+            <Text style={[styles.placementSign, { color: theme.text }]}>{formatPlacement(placements.moon)}</Text>
           </View>
-          <View style={styles.placementDivider} />
+          <View style={[styles.placementDivider, { backgroundColor: theme.border }]} />
           <View style={styles.placementItem}>
             <Ionicons name="arrow-up-outline" size={16} color={theme.accent} />
-            <Text style={styles.placementSign}>{formatPlacement(placements.ascendant)}</Text>
+            <Text style={[styles.placementSign, { color: theme.text }]}>{formatPlacement(placements.ascendant)}</Text>
           </View>
         </View>
       </View>
