@@ -1334,6 +1334,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 {' '}·{' '}Based on assessment_inference_v2 results
               </Text>
             </View>
+
+            {/* Chat Box */}
+            {renderChatBox()}
           </>
         )}
       </>
