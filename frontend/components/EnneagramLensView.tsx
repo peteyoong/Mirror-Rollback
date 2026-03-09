@@ -3099,6 +3099,38 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
     overflow: 'hidden',
   },
+  
+  // Ask Lens Button Styles
+  askLensContainer: {
+    marginTop: 24,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  askLensButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    backgroundColor: "transparent",
+    borderRadius: 12,
+    marginBottom: 16,
+    width: '100%',
+  },
+  askLensText: {
+    fontSize: 15,
+    color: "inherit",
+    fontWeight: '500',
+  },
+  askLensDisclaimer: {
+    fontSize: 12,
+    color: "inherit",
+    textAlign: 'center',
+    fontStyle: 'italic',
+    opacity: 0.7,
+  },
+  
   chatHeader: {
     flexDirection: 'row',
     alignItems: 'center',
