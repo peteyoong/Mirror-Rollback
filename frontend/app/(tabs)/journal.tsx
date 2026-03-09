@@ -363,8 +363,8 @@ export default function JournalScreen() {
   // Timeline View
   if (viewMode === 'timeline') {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <StatusBar style="dark" />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         {renderModeToggle()}
         
         <View style={styles.timelineContainer}>
