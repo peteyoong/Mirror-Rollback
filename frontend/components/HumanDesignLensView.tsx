@@ -803,7 +803,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
             {/* Footer - only on Deep Dive */}
             {activeTab === 'deep_dive' && (
-              <Text style={styles.footer}>
+              <Text style={[styles.footer, { color: theme.textTertiary }]}>
                 A lens for understanding energy patterns, not a definition of who you are.
               </Text>
             )}
