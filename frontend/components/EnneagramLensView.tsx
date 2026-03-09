@@ -1340,16 +1340,17 @@ export default function EnneagramLensView({ result, userId }: Props) {
     return (
       <>
         {/* Today Check-in Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Today Check-in</Text>
-          <Text style={styles.cardBody}>What&apos;s your energy right now?</Text>
+        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.cardTitle, { color: theme.text }]}>Today Check-in</Text>
+          <Text style={[styles.cardBody, { color: theme.textSecondary }]}>What&apos;s your energy right now?</Text>
           <View style={styles.energyButtons}>
             {(['low', 'neutral', 'high'] as EnergyState[]).map((state) => (
               <TouchableOpacity
                 key={state}
                 style={[
                   styles.energyButton,
-                  energyState === state && styles.energyButtonSelected
+                  { borderColor: theme.border },
+                  energyState === state && [styles.energyButtonSelected, { backgroundColor: theme.text }]
                 ]}
                 onPress={() => handleEnergySelect(state)}
               >
@@ -1360,7 +1361,8 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 />
                 <Text style={[
                   styles.energyButtonText,
-                  energyState === state && styles.energyButtonTextSelected
+                  { color: theme.text },
+                  energyState === state && { color: theme.background }
                 ]}>
                   {state.charAt(0).toUpperCase() + state.slice(1)}
                 </Text>
@@ -1370,21 +1372,21 @@ export default function EnneagramLensView({ result, userId }: Props) {
         </View>
         
         {/* Daily Micro-Lesson Card */}
-        <View style={styles.microLessonCard}>
+        <View style={[styles.microLessonCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.microLessonHeader}>
             <View>
-              <Text style={styles.microLessonTitle}>Daily Micro-Lesson</Text>
-              <Text style={styles.microLessonSubtitle}>Type {core} practice</Text>
+              <Text style={[styles.microLessonTitle, { color: theme.text }]}>Daily Micro-Lesson</Text>
+              <Text style={[styles.microLessonSubtitle, { color: theme.textTertiary }]}>Type {core} practice</Text>
             </View>
             <Ionicons name="bulb-outline" size={22} color={theme.text} />
           </View>
-          <Text style={styles.microLessonBody}>
+          <Text style={[styles.microLessonBody, { color: theme.textSecondary }]}>
             {renderBoldText(todaysLesson, styles.microLessonBodyText, styles.microLessonBoldText)}
           </Text>
           <View style={styles.microLessonFooter}>
             <View style={styles.microLessonRotates}>
               <Ionicons name="refresh-outline" size={12} color={theme.textTertiary} />
-              <Text style={styles.microLessonRotatesText}>Rotates daily</Text>
+              <Text style={[styles.microLessonRotatesText, { color: theme.textTertiary }]}>Rotates daily</Text>
             </View>
             <TouchableOpacity 
               style={styles.microLessonAskButton}
@@ -1393,46 +1395,46 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 setActiveCardContext('practice');
               }}
             >
-              <Text style={styles.microLessonAskText}>Ask about this</Text>
-              <Ionicons name="chatbubble-outline" size={12} color={theme.text} />
+              <Text style={[styles.microLessonAskText, { color: theme.accent }]}>Ask about this</Text>
+              <Ionicons name="chatbubble-outline" size={12} color={theme.accent} />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Stress Pattern Card */}
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.cardHeader}>
             <Ionicons name="warning-outline" size={18} color={theme.textSecondary} />
-            <Text style={styles.cardTitle}>Watch For (Stress)</Text>
+            <Text style={[styles.cardTitle, { color: theme.text }]}>Watch For (Stress)</Text>
           </View>
-          <Text style={styles.cardBody}>
+          <Text style={[styles.cardBody, { color: theme.textSecondary }]}>
             {STRESS_PATTERNS[core]?.pattern || 'Under stress, your patterns may shift.'}
           </Text>
         </View>
 
         {/* Growth Pattern Card */}
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.cardHeader}>
             <Ionicons name="trending-up-outline" size={18} color={theme.textSecondary} />
-            <Text style={styles.cardTitle}>Access (Growth)</Text>
+            <Text style={[styles.cardTitle, { color: theme.text }]}>Access (Growth)</Text>
           </View>
-          <Text style={styles.cardBody}>
+          <Text style={[styles.cardBody, { color: theme.textSecondary }]}>
             {GROWTH_PATTERNS[core]?.pattern || 'Growth invites new perspectives and behaviors.'}
           </Text>
         </View>
 
         {/* 2-Minute Practice Card */}
-        <View style={styles.practiceCard}>
-          <Text style={styles.practiceLabel}>2-MINUTE PRACTICE</Text>
-          <Text style={styles.practiceBody}>
+        <View style={[styles.practiceCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
+          <Text style={[styles.practiceLabel, { color: theme.textTertiary }]}>2-MINUTE PRACTICE</Text>
+          <Text style={[styles.practiceBody, { color: theme.text }]}>
             {getPractice()}
           </Text>
         </View>
 
         {/* Journal Prompt Card */}
-        <View style={styles.promptCard}>
-          <Text style={styles.promptLabel}>JOURNAL PROMPT</Text>
-          <Text style={styles.promptBody}>
+        <View style={[styles.promptCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
+          <Text style={[styles.promptLabel, { color: theme.textTertiary }]}>JOURNAL PROMPT</Text>
+          <Text style={[styles.promptBody, { color: theme.text }]}>
             {JOURNAL_PROMPTS[core]}
           </Text>
         </View>
