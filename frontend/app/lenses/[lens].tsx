@@ -259,6 +259,7 @@ const HD_FALLBACK_QUESTION = "What might you notice if you simply observed how y
 export default function LensDetail() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { theme, isDark } = useTheme();
   const rawLens = params.lens as string;
   // Normalize lens param: human-design -> human_design
   const lens = rawLens?.replace(/-/g, '_');
