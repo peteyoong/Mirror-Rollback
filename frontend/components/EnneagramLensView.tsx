@@ -1035,18 +1035,11 @@ export default function EnneagramLensView({ result, userId }: Props) {
         onPress={() => setChatExpanded(!chatExpanded)}
       >
         <View style={styles.chatHeaderLeft}>
-          <Ionicons 
-            name="chatbubble-outline" 
-            size={18} 
-            color={theme.textSecondary} 
-          />
           <Text style={styles.chatHeaderText}>Ask about this</Text>
         </View>
-        <Ionicons 
-          name={chatExpanded ? 'chevron-down' : 'chevron-up'} 
-          size={18} 
-          color={theme.textTertiary} 
-        />
+        <Text style={[styles.chatExpandText, { color: theme.textTertiary }]}>
+          {chatExpanded ? '▼' : '▲'}
+        </Text>
       </TouchableOpacity>
       
       {chatExpanded && (
