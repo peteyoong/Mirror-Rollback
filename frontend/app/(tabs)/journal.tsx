@@ -426,61 +426,70 @@ export default function JournalScreen() {
         style={styles.keyboardView}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        <TouchableWithoutFeedback onPress={dismissKeyboard}>
-          <View style={styles.content}>
-            {/* Mode Toggle */}
-            {renderModeToggle()}
+        <View style={styles.content}>
+          {/* Mode Toggle */}
+          {renderModeToggle()}
 
-            {/* Header */}
+          {/* Header */}
+          <TouchableWithoutFeedback onPress={dismissKeyboard}>
             <View style={styles.header}>
               <Text style={[styles.title, { color: theme.text }]}>Journal</Text>
               <Text style={[styles.subtitle, { color: theme.textTertiary }]}>
                 A private space for your thoughts and reflections.
               </Text>
             </View>
+          </TouchableWithoutFeedback>
 
-            {/* New Entry Input */}
-            <View style={styles.inputSection}>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  ref={inputRef}
-                  style={[styles.input, { backgroundColor: theme.surface, color: theme.text }]}
-                  value={newEntry}
-                  onChangeText={setNewEntry}
-                  placeholder="What's on your mind?"
-                  placeholderTextColor={theme.textTertiary}
-                  multiline
-                  maxLength={2000}
-                  editable={!isSubmitting}
-                  returnKeyType="default"
-                  blurOnSubmit={false}
-                />
-                <View style={styles.inputActions}>
-                  {newEntry.trim().length > 0 && (
-                    <TouchableOpacity
-                      style={[styles.dismissButton, { backgroundColor: theme.surfaceLight }]}
-                      onPress={dismissKeyboard}
-                    >
-                      <Ionicons name="chevron-down" size={20} color={theme.textSecondary} />
-                    </TouchableOpacity>
-                  )}
+          {/* New Entry Input */}
+          <View style={styles.inputSection}>
+            <View style={styles.inputContainer}>
+              <TextInput
+                ref={inputRef}
+                style={[styles.input, { backgroundColor: theme.surface, color: theme.text }]}
+                value={newEntry}
+                onChangeText={(text) => {
+                  console.log('[JOURNAL_DEBUG] onChangeText:', text.length, 'chars');
+                  setNewEntry(text);
+                }}
+                onFocus={() => console.log('[JOURNAL_DEBUG] Input FOCUSED')}
+                onBlur={() => console.log('[JOURNAL_DEBUG] Input BLURRED')}
+                placeholder="What's on your mind?"
+                placeholderTextColor={theme.textTertiary}
+                multiline
+                maxLength={2000}
+                editable={!isSubmitting}
+                returnKeyType="default"
+                blurOnSubmit={false}
+              />
+              <View style={styles.inputActions}>
+                {newEntry.trim().length > 0 && (
                   <TouchableOpacity
-                    style={[
-                      styles.submitButton,
-                      { backgroundColor: theme.text },
-                      (!newEntry.trim() || isSubmitting) && styles.submitButtonDisabled,
-                    ]}
-                    onPress={handleSubmit}
-                    disabled={!newEntry.trim() || isSubmitting}
+                    style={[styles.dismissButton, { backgroundColor: theme.surfaceLight }]}
+                    onPress={dismissKeyboard}
                   >
-                    {isSubmitting ? (
-                      <ActivityIndicator size="small" color={theme.background} />
-                    ) : (
-                      <Ionicons name="checkmark" size={20} color={theme.background} />
-                    )}
+                    <Ionicons name="chevron-down" size={20} color={theme.textSecondary} />
                   </TouchableOpacity>
-                </View>
+                )}
+                <TouchableOpacity
+                  style={[
+                    styles.submitButton,
+                    { backgroundColor: theme.text },
+                    (!newEntry.trim() || isSubmitting) && styles.submitButtonDisabled,
+                  ]}
+                  onPress={() => {
+                    console.log('[JOURNAL_DEBUG] Submit button pressed, entry length:', newEntry.trim().length);
+                    handleSubmit();
+                  }}
+                  disabled={!newEntry.trim() || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator size="small" color={theme.background} />
+                  ) : (
+                    <Ionicons name="checkmark" size={20} color={theme.background} />
+                  )}
+                </TouchableOpacity>
               </View>
+            </View>
               
               {/* Reflect with Mirror button for current entry */}
               {newEntry.trim().length > 20 && (
