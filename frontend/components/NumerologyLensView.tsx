@@ -496,18 +496,18 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
     if (profileLoading) {
       return (
         <TouchableOpacity 
-          style={styles.unlockButton}
+          style={[styles.unlockButton, { backgroundColor: theme.accent }]}
           onPress={openUnlockModal}
           activeOpacity={0.8}
         >
           <View style={styles.unlockButtonContent}>
-            <Ionicons name="add-circle-outline" size={22} color={theme.textInverse} />
+            <Ionicons name="add-circle-outline" size={22} color={theme.background} />
             <View style={styles.unlockButtonText}>
-              <Text style={styles.unlockButtonTitle}>Add Full Birth Name</Text>
-              <Text style={styles.unlockButtonSubtitle}>Loading profile...</Text>
+              <Text style={[styles.unlockButtonTitle, { color: theme.background }]}>Add Full Birth Name</Text>
+              <Text style={[styles.unlockButtonSubtitle, { color: theme.background, opacity: 0.7 }]}>Loading profile...</Text>
             </View>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="rgba(255, 255, 255, 0.5)" />
+          <Ionicons name="chevron-forward" size={20} color={theme.background} style={{ opacity: 0.5 }} />
         </TouchableOpacity>
       );
     }
@@ -515,11 +515,11 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
     // Name EXISTS in server profile → Show name with Edit button
     if (profile?.numerology_full_name) {
       return (
-        <View style={styles.fullNameCard}>
+        <View style={[styles.fullNameCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Ionicons name="person-outline" size={18} color={theme.textSecondary} />
           <View style={styles.fullNameTextContainer}>
-            <Text style={styles.fullNameLabel}>Full Birth Name</Text>
-            <Text style={styles.fullNameValue}>{profile.numerology_full_name}</Text>
+            <Text style={[styles.fullNameLabel, { color: theme.textTertiary }]}>Full Birth Name</Text>
+            <Text style={[styles.fullNameValue, { color: theme.text }]}>{profile.numerology_full_name}</Text>
           </View>
           <TouchableOpacity 
             style={styles.editNameButton}
@@ -534,18 +534,18 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
     // Name ABSENT → Show CTA button to add name
     return (
       <TouchableOpacity 
-        style={styles.unlockButton}
+        style={[styles.unlockButton, { backgroundColor: theme.accent }]}
         onPress={openUnlockModal}
         activeOpacity={0.8}
       >
         <View style={styles.unlockButtonContent}>
-          <Ionicons name="add-circle-outline" size={22} color={theme.textInverse} />
+          <Ionicons name="add-circle-outline" size={22} color={theme.background} />
           <View style={styles.unlockButtonText}>
-            <Text style={styles.unlockButtonTitle}>Add Full Birth Name</Text>
-            <Text style={styles.unlockButtonSubtitle}>Unlock Expression, Soul Urge & Personality numbers</Text>
+            <Text style={[styles.unlockButtonTitle, { color: theme.background }]}>Add Full Birth Name</Text>
+            <Text style={[styles.unlockButtonSubtitle, { color: theme.background, opacity: 0.7 }]}>Unlock Expression, Soul Urge & Personality numbers</Text>
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={20} color="rgba(255, 255, 255, 0.5)" />
+        <Ionicons name="chevron-forward" size={20} color={theme.background} style={{ opacity: 0.5 }} />
       </TouchableOpacity>
     );
   };
