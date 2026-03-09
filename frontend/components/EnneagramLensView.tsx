@@ -998,7 +998,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
     if (isSelfDeclared) {
       return (
         <View style={styles.sourceBadge}>
-          <Ionicons name="person-outline" size={12} color={theme.textSecondary} />
           <Text style={styles.sourceBadgeText}>Self-declared</Text>
         </View>
       );
