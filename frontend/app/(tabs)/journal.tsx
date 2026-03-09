@@ -510,13 +510,13 @@ export default function JournalScreen() {
             {/* Entries List */}
             {isLoading ? (
               <View style={styles.centered}>
-                <ActivityIndicator size="large" color={Colors.textSecondary} />
+                <ActivityIndicator size="large" color={theme.textSecondary} />
               </View>
             ) : journalEntries.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <Ionicons name="book-outline" size={48} color={Colors.textTertiary} />
-                <Text style={styles.emptyText}>No entries yet</Text>
-                <Text style={styles.emptySubtext}>
+                <Ionicons name="book-outline" size={48} color={theme.textTertiary} />
+                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No entries yet</Text>
+                <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>
                   Start journaling to track your reflections over time.
                 </Text>
               </View>
