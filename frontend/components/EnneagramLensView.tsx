@@ -2197,6 +2197,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
         showsVerticalScrollIndicator={false}
       >
         {activeTab === 'summary' && renderSummaryTab()}
+        {activeTab === 'at_a_glance' && renderAtAGlanceTab()}
         {activeTab === 'today' && renderTodayTab()}
         {activeTab === 'deep_dive' && renderDeepDiveTab()}
         
