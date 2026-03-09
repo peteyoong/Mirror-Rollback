@@ -510,21 +510,21 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     return (
       <View style={styles.gkArcCard}>
         <TouchableOpacity
-          style={styles.gkArcHeader}
+          style={[styles.gkArcHeader, { borderBottomColor: theme.border }]}
           onPress={() => setExpandedArc(isExpanded ? null : arcKey)}
           activeOpacity={0.7}
         >
           <View style={styles.gkArcHeaderLeft}>
             <Ionicons name={icon} size={18} color={theme.accent} />
             <View>
-              <Text style={styles.gkArcTitle}>{arcDescription.title || arcName}</Text>
-              <Text style={styles.gkArcSubtitle}>
+              <Text style={[styles.gkArcTitle, { color: theme.text }]}>{arcDescription.title || arcName}</Text>
+              <Text style={[styles.gkArcSubtitle, { color: theme.textTertiary }]}>
                 {arcDescription.description}
               </Text>
             </View>
           </View>
           <View style={styles.gkArcHeaderRight}>
-            <Text style={styles.gkArcCount}>{sphereCount} spheres</Text>
+            <Text style={[styles.gkArcCount, { color: theme.textTertiary }]}>{sphereCount} spheres</Text>
             <Ionicons
               name={isExpanded ? 'chevron-up' : 'chevron-down'}
               size={18}
@@ -535,7 +535,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {isExpanded && (
           <View style={styles.gkArcContent}>
             {arcDescription.helperText && (
-              <Text style={styles.gkArcHelper}>{arcDescription.helperText}</Text>
+              <Text style={[styles.gkArcHelper, { color: theme.textTertiary }]}>{arcDescription.helperText}</Text>
             )}
             {Object.entries(arcData).map(([name, position]) => 
               renderGeneKeySphere(name, position)
