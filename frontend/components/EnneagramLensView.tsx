@@ -1572,7 +1572,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {/* Stress Pattern Card */}
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.cardHeader}>
-            <Ionicons name="warning-outline" size={18} color={theme.textSecondary} />
             <Text style={[styles.cardTitle, { color: theme.text }]}>Watch For (Stress)</Text>
           </View>
           <Text style={[styles.cardBody, { color: theme.textSecondary }]}>
@@ -1583,7 +1582,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
         {/* Growth Pattern Card */}
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.cardHeader}>
-            <Ionicons name="trending-up-outline" size={18} color={theme.textSecondary} />
             <Text style={[styles.cardTitle, { color: theme.text }]}>Access (Growth)</Text>
           </View>
           <Text style={[styles.cardBody, { color: theme.textSecondary }]}>
