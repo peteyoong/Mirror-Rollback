@@ -1522,15 +1522,15 @@ export default function EnneagramLensView({ result, userId }: Props) {
     }) => {
       const isExpanded = expandedSections.has(id);
       return (
-        <View style={styles.accordionCard}>
+        <View style={[styles.accordionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity 
             style={styles.accordionHeader} 
             onPress={() => toggleSection(id)}
             activeOpacity={0.7}
           >
             <View style={styles.accordionHeaderText}>
-              <Text style={styles.accordionTitle}>{title}</Text>
-              <Text style={styles.accordionSubtitle}>{subtitle}</Text>
+              <Text style={[styles.accordionTitle, { color: theme.text }]}>{title}</Text>
+              <Text style={[styles.accordionSubtitle, { color: theme.textTertiary }]}>{subtitle}</Text>
             </View>
             <Ionicons 
               name={isExpanded ? "chevron-up" : "chevron-down"} 
@@ -1550,7 +1550,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
     // Section Divider Component
     const SectionDivider = ({ title }: { title: string }) => (
       <View style={styles.sectionDivider}>
-        <Text style={styles.sectionDividerText}>{title}</Text>
+        <Text style={[styles.sectionDividerText, { color: theme.textTertiary }]}>{title}</Text>
       </View>
     );
 
@@ -1565,10 +1565,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
         ═══════════════════════════════════════════════════════════════ */}
         
         {/* Identity Card */}
-        <View style={styles.deepDiveHeader}>
+        <View style={[styles.deepDiveHeader, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.deepDiveHeaderTop}>
             <View style={styles.identityTitleRow}>
-              <Text style={styles.deepDiveType}>{typeLabel}</Text>
+              <Text style={[styles.deepDiveType, { color: theme.text }]}>{typeLabel}</Text>
               <TouchableOpacity 
                 style={styles.editTypeInline}
                 onPress={handleEditType}
@@ -1577,9 +1577,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
               </TouchableOpacity>
             </View>
             {isSelfDeclared ? (
-              <View style={styles.sourceBadge}>
+              <View style={[styles.sourceBadge, { backgroundColor: theme.surfaceLight }]}>
                 <Ionicons name="person-outline" size={12} color={theme.textSecondary} />
-                <Text style={styles.sourceBadgeText}>Self-declared</Text>
+                <Text style={[styles.sourceBadgeText, { color: theme.textSecondary }]}>Self-declared</Text>
               </View>
             ) : (
               <View style={[
@@ -1588,14 +1588,14 @@ export default function EnneagramLensView({ result, userId }: Props) {
                 confidence === 'medium' && styles.confidenceMedium,
                 confidence === 'low' && styles.confidenceLow,
               ]}>
-                <Text style={styles.confidenceBadgeText}>
+                <Text style={[styles.confidenceBadgeText, { color: theme.background }]}>
                   {confidence === 'high' ? 'High Confidence' : confidence === 'medium' ? 'Moderate Confidence' : 'Exploratory'}
                 </Text>
               </View>
             )}
           </View>
-          <Text style={styles.deepDiveWingStance}>{typeName}</Text>
-          <Text style={styles.deepDiveNote}>This lens reflects strategy, not identity.</Text>
+          <Text style={[styles.deepDiveWingStance, { color: theme.textSecondary }]}>{typeName}</Text>
+          <Text style={[styles.deepDiveNote, { color: theme.textTertiary }]}>This lens reflects strategy, not identity.</Text>
         </View>
 
         {/* Core Story - expanded by default */}
@@ -1607,9 +1607,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
           {data?.sections && data.sections.map((section, index) => (
             <View key={index} style={styles.accordionBodySection}>
               {section.label !== 'Core Story' && (
-                <Text style={styles.accordionBodyTitle}>{section.label}</Text>
+                <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>{section.label}</Text>
               )}
-              <Text style={styles.accordionBodyText}>{section.body}</Text>
+              <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{section.body}</Text>
             </View>
           ))}
         </AccordionSection>
