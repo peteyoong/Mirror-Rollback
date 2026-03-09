@@ -1549,14 +1549,12 @@ export default function EnneagramLensView({ result, userId }: Props) {
               <Text style={[styles.microLessonTitle, { color: theme.text }]}>Daily Micro-Lesson</Text>
               <Text style={[styles.microLessonSubtitle, { color: theme.textTertiary }]}>Type {core} practice</Text>
             </View>
-            <Ionicons name="bulb-outline" size={22} color={theme.text} />
           </View>
           <Text style={[styles.microLessonBody, { color: theme.textSecondary }]}>
             {renderBoldText(todaysLesson, styles.microLessonBodyText, styles.microLessonBoldText)}
           </Text>
           <View style={styles.microLessonFooter}>
             <View style={styles.microLessonRotates}>
-              <Ionicons name="refresh-outline" size={12} color={theme.textTertiary} />
               <Text style={[styles.microLessonRotatesText, { color: theme.textTertiary }]}>Rotates daily</Text>
             </View>
             <TouchableOpacity 
@@ -1567,7 +1565,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
               }}
             >
               <Text style={[styles.microLessonAskText, { color: theme.accent }]}>Ask about this</Text>
-              <Ionicons name="chatbubble-outline" size={12} color={theme.accent} />
             </TouchableOpacity>
           </View>
         </View>
