@@ -303,7 +303,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {renderTabs()}
 
       <ScrollView

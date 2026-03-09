@@ -768,7 +768,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Backend Unreachable Banner - visible when DEBUG_MIRROR is on and health check failed */}
       {isDebugEnabled() && backendHealthOk === false && (
         <View style={styles.healthBanner}>
