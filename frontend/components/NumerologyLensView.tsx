@@ -433,7 +433,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
     const isExpanded = expandedSection === section.label || activeTab !== 'deep_dive';
 
     return (
-      <View key={index} style={styles.sectionCard}>
+      <View key={index} style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <TouchableOpacity
           style={styles.sectionHeader}
           onPress={() => {
@@ -443,7 +443,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
           }}
           activeOpacity={activeTab === 'deep_dive' ? 0.7 : 1}
         >
-          <Text style={styles.sectionLabel}>{section.label}</Text>
+          <Text style={[styles.sectionLabel, { color: theme.text }]}>{section.label}</Text>
           {activeTab === 'deep_dive' && (
             <Ionicons
               name={isExpanded ? 'chevron-up' : 'chevron-down'}
@@ -454,7 +454,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
         </TouchableOpacity>
         {isExpanded && (
           <>
-            <Text style={styles.sectionBody}>{section.body}</Text>
+            <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>{section.body}</Text>
             {/* Debug: Show section-level metrics */}
             <SectionDebug label={section.label} body={section.body} index={index} />
           </>
