@@ -3343,6 +3343,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: "inherit",
   },
+  chatExpandText: {
+    fontSize: 12,
+    color: "inherit",
+  },
   chatBody: {
     padding: 14,
     paddingTop: 8,
