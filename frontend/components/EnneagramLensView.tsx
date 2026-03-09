@@ -1118,12 +1118,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
               <Text style={[styles.identityType, { color: theme.text }]}>
                 {wing !== 'balanced' ? `${core}w${wing}` : `Type ${core}`}
               </Text>
-              <TouchableOpacity 
-                style={styles.editTypeInline}
-                onPress={handleEditType}
-              >
-                <Ionicons name="pencil" size={14} color={theme.textTertiary} />
-              </TouchableOpacity>
             </View>
             <Text style={[styles.identityName, { color: theme.textSecondary }]}>{TYPE_NAMES[core]}</Text>
           </View>
