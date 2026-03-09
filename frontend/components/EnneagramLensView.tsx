@@ -1786,7 +1786,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
             <>
               <View style={styles.wingCard}>
                 <View style={styles.wingCardHeader}>
-                  <Ionicons name="star" size={16} color={theme.accent} />
                   <Text style={styles.wingCardTitle}>Wing {wing} · {TYPE_NAMES[wing as number]}</Text>
                 </View>
               </View>
@@ -1818,7 +1817,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
               {/* Experiment */}
               <View style={styles.experimentCard}>
                 <View style={styles.experimentHeader}>
-                  <Ionicons name="flask-outline" size={14} color={theme.accent} />
                   <Text style={styles.experimentLabel}>Try This</Text>
                 </View>
                 <Text style={styles.experimentText}>
@@ -1841,7 +1839,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
         >
           <View style={styles.wingCard}>
             <View style={styles.wingCardHeader}>
-              <Ionicons name="star-outline" size={16} color={theme.textSecondary} />
               <Text style={styles.wingCardTitle}>Wing {otherWing} · {TYPE_NAMES[otherWing]}</Text>
             </View>
           </View>
@@ -1865,7 +1862,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
           {/* Experiment */}
           <View style={styles.experimentCard}>
             <View style={styles.experimentHeader}>
-              <Ionicons name="flask-outline" size={14} color={theme.accent} />
               <Text style={styles.experimentLabel}>Try This</Text>
             </View>
             <Text style={styles.experimentText}>
