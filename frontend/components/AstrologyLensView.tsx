@@ -247,20 +247,20 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
     if (activeTab !== 'deep_dive') return null;
 
     return (
-      <View style={styles.chartReferenceCard}>
+      <View style={[styles.chartReferenceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={styles.chartReferenceHeader}>
           <Ionicons name="document-outline" size={20} color={theme.textSecondary} />
-          <Text style={styles.chartReferenceTitle}>Natal Chart (Reference)</Text>
+          <Text style={[styles.chartReferenceTitle, { color: theme.text }]}>Natal Chart (Reference)</Text>
         </View>
-        <Text style={styles.chartReferenceDisclaimer}>
+        <Text style={[styles.chartReferenceDisclaimer, { color: theme.textTertiary }]}>
           This chart shows structure, not meaning on its own.
         </Text>
         <TouchableOpacity
-          style={styles.chartButton}
+          style={[styles.chartButton, { backgroundColor: theme.surfaceLight }]}
           onPress={() => setShowChartModal(true)}
         >
           <Ionicons name="expand-outline" size={16} color={theme.accent} />
-          <Text style={styles.chartButtonText}>Open Full Chart (PDF)</Text>
+          <Text style={[styles.chartButtonText, { color: theme.accent }]}>Open Full Chart (PDF)</Text>
         </TouchableOpacity>
       </View>
     );
@@ -274,7 +274,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
       onRequestClose={() => setShowChartModal(false)}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+        <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
           <TouchableOpacity
             style={styles.modalClose}
             onPress={() => setShowChartModal(false)}
@@ -282,16 +282,16 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
             <Ionicons name="close" size={24} color={theme.textSecondary} />
           </TouchableOpacity>
           
-          <Text style={styles.modalTitle}>Natal Chart Reference</Text>
+          <Text style={[styles.modalTitle, { color: theme.text }]}>Natal Chart Reference</Text>
           
-          <View style={styles.chartPlaceholder}>
+          <View style={[styles.chartPlaceholder, { backgroundColor: theme.background }]}>
             <Ionicons name="planet-outline" size={48} color={theme.textTertiary} />
-            <Text style={styles.chartPlaceholderText}>
+            <Text style={[styles.chartPlaceholderText, { color: theme.textSecondary }]}>
               Full chart visualization coming soon
             </Text>
           </View>
           
-          <Text style={styles.modalDisclaimer}>
+          <Text style={[styles.modalDisclaimer, { color: theme.textTertiary }]}>
             This chart shows structure, not meaning on its own.
             {'\n\n'}
             Patterns suggest tendencies, not guarantees.
