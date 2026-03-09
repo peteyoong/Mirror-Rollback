@@ -3192,7 +3192,6 @@ const styles = StyleSheet.create({
   footerAction: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
