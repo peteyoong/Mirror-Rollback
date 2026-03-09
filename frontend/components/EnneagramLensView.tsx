@@ -3356,6 +3356,27 @@ const styles = StyleSheet.create({
   chatSendButtonDisabled: {
     backgroundColor: "transparent",
   },
+  sendButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: "inherit",
+  },
+  closeButtonText: {
+    fontSize: 24,
+    fontWeight: '400',
+    color: "inherit",
+  },
+  flowIconText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: "inherit",
+  },
+  movementArrowText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: "inherit",
+    marginHorizontal: 4,
+  },
   
   // Daily Micro-Lesson Card
   microLessonCard: {
