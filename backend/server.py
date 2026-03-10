@@ -11414,31 +11414,52 @@ async def get_user_activation_sequence(user_id: str):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Check if user has Human Design data
-        hd_data = user.get("human_design")
-        if not hd_data:
+        # Get user's birth data for HD computation
+        birth_date = user.get("birth_date")
+        birth_time = user.get("birth_time")
+        latitude = user.get("latitude") or user.get("birth_lat")
+        longitude = user.get("longitude") or user.get("birth_lon")
+        
+        if not all([birth_date, birth_time, latitude, longitude]):
             raise HTTPException(
                 status_code=400, 
-                detail="Human Design data not available. Please complete onboarding first."
+                detail="Birth data not available. Please complete onboarding first."
             )
         
-        # Extract the planetary positions for Activation Sequence
-        # Personality = Conscious, Design = Unconscious
-        personality_sun = hd_data.get("personality_sun", {})
-        personality_earth = hd_data.get("personality_earth", {})
-        design_sun = hd_data.get("design_sun", {})
-        design_earth = hd_data.get("design_earth", {})
+        # Compute Human Design chart (same as deep-dive endpoint)
+        from calculations.human_design import get_human_design_chart
+        canonical_hd = get_human_design_chart(
+            birth_date=birth_date,
+            birth_time=birth_time,
+            lat=latitude,
+            lon=longitude,
+            use_sidereal=True
+        )
+        
+        # Extract planetary positions from HD chart
+        personality = canonical_hd.get('personality', {})
+        design = canonical_hd.get('design', {})
+        
+        # Activation Sequence mapping:
+        # Life's Work = Personality Sun
+        # Evolution = Personality Earth  
+        # Radiance = Design Sun
+        # Purpose = Design Earth
+        p_sun = personality.get('Sun', {})
+        p_earth = personality.get('Earth', {})
+        d_sun = design.get('Sun', {})
+        d_earth = design.get('Earth', {})
         
         # Build activation sequence
         activation = get_activation_sequence(
-            personality_sun_gate=personality_sun.get("gate", 1),
-            personality_sun_line=personality_sun.get("line", 1),
-            personality_earth_gate=personality_earth.get("gate", 1),
-            personality_earth_line=personality_earth.get("line", 1),
-            design_sun_gate=design_sun.get("gate", 1),
-            design_sun_line=design_sun.get("line", 1),
-            design_earth_gate=design_earth.get("gate", 1),
-            design_earth_line=design_earth.get("line", 1),
+            personality_sun_gate=p_sun.get("gate", 1),
+            personality_sun_line=p_sun.get("line", 1),
+            personality_earth_gate=p_earth.get("gate", 1),
+            personality_earth_line=p_earth.get("line", 1),
+            design_sun_gate=d_sun.get("gate", 1),
+            design_sun_line=d_sun.get("line", 1),
+            design_earth_gate=d_earth.get("gate", 1),
+            design_earth_line=d_earth.get("line", 1),
         )
         
         logger.info(f"[GeneKeys] Successfully built Activation Sequence for user {user_id}")
