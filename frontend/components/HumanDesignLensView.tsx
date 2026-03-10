@@ -382,13 +382,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* Row 1: Type + Authority */}
         <View style={styles.mechanicsGrid}>
           <View style={styles.mechanicItem}>
-            <Ionicons name="flash-outline" size={16} color={theme.accent} />
+            <Text style={{ fontSize: 14, color: theme.accent }}>⚡</Text>
             <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Type</Text>
             <Text style={[styles.mechanicValue, { color: theme.text }]}>{formatMechanic(mechanics.type)}</Text>
           </View>
           <View style={[styles.mechanicDivider, { backgroundColor: theme.border }]} />
           <View style={styles.mechanicItem}>
-            <Ionicons name="compass-outline" size={16} color={theme.accent} />
+            <Text style={{ fontSize: 14, color: theme.accent }}>◎</Text>
             <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Authority</Text>
             <Text style={[styles.mechanicValue, { color: theme.text }]}>{formatMechanic(mechanics.authority)}</Text>
           </View>
@@ -397,13 +397,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* Row 2: Profile + Definition */}
         <View style={[styles.mechanicsGrid, { marginTop: 16 }]}>
           <View style={styles.mechanicItem}>
-            <Ionicons name="person-outline" size={16} color={theme.accent} />
+            <Text style={{ fontSize: 14, color: theme.accent }}>👤</Text>
             <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Profile</Text>
             <Text style={[styles.mechanicValue, { color: theme.text }]}>{mechanics.profile || '—'}</Text>
           </View>
           <View style={[styles.mechanicDivider, { backgroundColor: theme.border }]} />
           <View style={styles.mechanicItem}>
-            <Ionicons name="layers-outline" size={16} color={theme.accent} />
+            <Text style={{ fontSize: 14, color: theme.accent }}>☰</Text>
             <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Definition</Text>
             <Text style={[styles.mechanicValue, { color: theme.text }]}>{formatMechanic(mechanics.definition)}</Text>
           </View>
@@ -412,7 +412,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* Row 3: Incarnation Cross */}
         <View style={[styles.mechanicsGrid, { marginTop: 16 }]}>
           <View style={[styles.mechanicItem, { flex: 1 }]}>
-            <Ionicons name="git-branch-outline" size={16} color={theme.accent} />
+            <Text style={{ fontSize: 14, color: theme.accent }}>✦</Text>
             <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Incarnation Cross</Text>
             <Text style={[styles.mechanicValue, styles.mechanicValueSmall, { color: theme.text }]}>{formatCross()}</Text>
             <Text style={[styles.mechanicGates, { color: theme.textTertiary }]}>{getCrossGates()}</Text>
