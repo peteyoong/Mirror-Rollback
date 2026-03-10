@@ -115,6 +115,37 @@ SPHERE_TEMPLATES = {
         "your_higher_expression": "The gift of {gift} emerges precisely from your core wound. As you bring consciousness to this tender place, it becomes the source of your greatest capacity for love. Your wound becomes your medicine.",
         "practical_tips": "This sphere asks for gentleness. What is your earliest memory of {shadow}? How does it show up in your current relationships? The path isn't to fix this wound but to hold it with compassion.",
         "remember": "Your core wound is not your shame—it's your initiation. The transformation from {shadow} to {gift} at this level changes everything. Go slowly. Be kind to yourself."
+    },
+    # =========================================================================
+    # PEARL SEQUENCE SPHERES
+    # =========================================================================
+    "Vocation": {
+        "what_this_means": "Your Vocation sphere in the Pearl Sequence represents the work you're here to do in the world—not as a job title, but as a calling that emerges from your unique genius. Gene Key {gene_key} shapes how you offer your gifts, moving between {shadow} and {gift}. This is where your inner work meets outer contribution.",
+        "your_challenge": "The shadow of {shadow} can distort your relationship with work—either through over-identification with achievement or through hiding your gifts from the world. You might notice patterns of burnout, undervaluing yourself, or working in ways that don't align with your nature.",
+        "your_higher_expression": "The gift of {gift} transforms your work into genuine service. When operating from this frequency, work becomes effortless—not because it's easy, but because it flows from who you truly are. You find yourself doing what you love and being valued for it.",
+        "practical_tips": "Notice where {shadow} shows up in your work life. What would change if you approached your vocation from {gift} instead? Consider: what work would you do even if no one paid you? That's closer to your true vocation.",
+        "remember": "Your vocation isn't found—it's uncovered by removing the layers of conditioning about what you 'should' do. The path from {shadow} to {gift} reveals what you're actually here to offer."
+    },
+    "Culture": {
+        "what_this_means": "Your Culture sphere represents the environment and community where your gifts can flourish. Gene Key {gene_key} influences what kind of culture you thrive in and what you contribute to collective spaces. The journey from {shadow} to {gift} shapes how you relate to groups, organizations, and society.",
+        "your_challenge": "The shadow of {shadow} can create friction with collective environments—either through conforming too much and losing yourself, or through rebelling in ways that isolate you. You might notice patterns of not fitting in or compromising your authenticity to belong.",
+        "your_higher_expression": "The gift of {gift} allows you to find or create cultures where you genuinely belong. From this frequency, you contribute something unique to the collective while remaining true to yourself. You become a cultural catalyst.",
+        "practical_tips": "What environments bring out the worst in you? What environments bring out your best? The difference often relates to {shadow} and {gift}. Consider what kind of culture would support your vocation.",
+        "remember": "You don't have to fit into existing cultures—you can help create new ones. The transformation from {shadow} to {gift} makes you a builder of the environments your gifts need to flourish."
+    },
+    "Brand": {
+        "what_this_means": "Your Brand sphere represents the essence of how you're perceived in the world—your reputation, your unique signature, the quality people associate with you. Gene Key {gene_key} shapes your natural brand, moving between the shadow of {shadow} and the gift of {gift}. This is about authenticity, not marketing.",
+        "your_challenge": "The shadow of {shadow} can create a gap between how you present yourself and who you truly are. You might notice patterns of hiding, performing, or being misunderstood. The challenge is to let your authentic frequency be seen.",
+        "your_higher_expression": "The gift of {gift} is your true brand—the quality that naturally emanates when you're being yourself. When operating from this frequency, you attract the right opportunities and relationships without forcing or pretending.",
+        "practical_tips": "How do others describe you? How do you want to be known? Notice the gap. What would it take to let {gift} be more visible in how you show up? Authentic branding is about revealing, not constructing.",
+        "remember": "Your real brand already exists—it's the frequency you naturally broadcast. The journey from {shadow} to {gift} is about getting out of your own way so your true essence can be recognized."
+    },
+    "Pearl": {
+        "what_this_means": "Your Pearl sphere represents the culmination of the Pearl Sequence—the point where your inner transformation becomes outer prosperity. Gene Key {gene_key} reveals how abundance flows to you when you align with your true nature. The path from {shadow} to {gift} unlocks genuine prosperity.",
+        "your_challenge": "The shadow of {shadow} can block the flow of prosperity in your life—through beliefs about scarcity, unworthiness, or the relationship between money and spirituality. You might notice patterns of struggle, feast-and-famine cycles, or discomfort with receiving.",
+        "your_higher_expression": "The gift of {gift} opens the channels of abundance. This isn't about manifesting or manipulating reality—it's about removing the internal blocks that prevent natural prosperity from flowing. From this frequency, you receive in proportion to what you give.",
+        "practical_tips": "What is your relationship with prosperity? Where does {shadow} show up in your beliefs about money, success, or receiving? The Pearl isn't about wanting more—it's about opening to what's already trying to flow to you.",
+        "remember": "Prosperity is a natural side effect of alignment. The transformation from {shadow} to {gift} doesn't make you wealthy—it removes what's been blocking your natural abundance. The Pearl emerges from the friction of life itself."
     }
 }
 
