@@ -1267,6 +1267,84 @@ backend:
           
           CONCLUSION: Pattern Graph API endpoint is fully functional and working correctly. All test scenarios pass, response structure is complete, signal strength logic is accurate, and Gene Keys integration is properly mapping signals to the 7 core pattern categories. The API meets all specified requirements from the review request.
 
+  - task: "Pattern Graph API with Human Design Signals Integration"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/backend/services/pattern_graph.py, /app/backend/services/human_design_centers.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          PATTERN GRAPH API WITH HUMAN DESIGN SIGNALS INTEGRATION TESTING COMPLETE ✅
+          
+          🧪 COMPREHENSIVE TESTING PERFORMED (6/6 TESTS PASSED):
+          
+          1. ✅ PATTERN GRAPH ENDPOINT AVAILABILITY:
+             - Endpoint: GET /api/pattern-graph/697f0c6abf35c0528ff06954
+             - Status: 200 OK
+             - Response Structure: All required fields present (success, categories, summary, updated_at)
+             - Success field: true
+             - JSON parsing: Valid structure
+          
+          2. ✅ HUMAN DESIGN SIGNALS PRESENT:
+             - Found 4 HD signals in categories: ['Emotional Landscape', 'Growth & Transformation']
+             - Human Design signals successfully integrated into matched_sources
+             - At least one signal has source: "human_design" ✅
+             - Categories with HD signals: Emotional Landscape, Growth & Transformation
+          
+          3. ✅ CENTER SIGNAL FORMAT VERIFICATION:
+             - Found 4 properly formatted center signals
+             - Center signals have correct format: "Solar Plexus (defined)", "Spleen (open)"
+             - Detail format correct: "Gates: 6, 22, 36, 37, 49, 55"
+             - Emphasis signals have correct format: "Multiple gates: 28, 32"
+             - All HD center signals properly formatted with defined/open status
+          
+          4. ✅ MULTI-SOURCE CATEGORIES VERIFICATION:
+             - Found 2 multi-source categories, 2 marked as active
+             - Categories can have multiple sources: ["gene_keys", "human_design", "journal"]
+             - Signal strength correctly marked as "active" when 2+ sources present
+             - Multi-source logic working correctly: 3+ signals OR 2+ sources = active
+          
+          5. ✅ SIGNAL COUNT VERIFICATION:
+             - Signal distribution: HD=4, GK=28, Journal=1, Total=33
+             - Human Design signals: 4 (meets requirement of at least 3)
+             - Gene Keys signals: 28 (good coverage)
+             - Journal signals: 1 (reasonable for test user)
+             - Total signals: 33 (excellent distribution)
+          
+          6. ✅ API RESPONSE STRUCTURE VERIFICATION:
+             - All 7 categories present with proper structure
+             - Summary: {'active_categories': 7, 'emerging_categories': 0, 'total_signals': 33}
+             - Each category has required fields: category_id, category_name, signal_strength, matched_sources, matched_signals, summary
+             - Each signal has required fields: source, label (with optional sphere_name, detail)
+          
+          🔧 BACKEND INTEGRATION VERIFIED:
+          - All endpoints accessible via public URL (https://pattern-signals-4.preview.emergentagent.com/api)
+          - No HTTP errors or timeouts
+          - Response times acceptable (< 30 seconds)
+          - Human Design centers properly mapped to pattern categories
+          - Center definitions (defined/open) correctly included in signals
+          - Gate information properly formatted in signal details
+          - Multi-source aggregation working correctly
+          
+          🎯 REVIEW REQUEST REQUIREMENTS MET:
+          - ✅ GET /api/pattern-graph/{user_id} endpoint working
+          - ✅ Human Design signals appear in matched_sources for at least one category
+          - ✅ At least one signal has source: "human_design"
+          - ✅ Center signals properly formatted: "Sacral (defined)" or "Spleen (open)"
+          - ✅ Detail format correct: "Gates: 3, 27" (gates in that center)
+          - ✅ Multi-source categories verified: ["gene_keys", "human_design", "journal"]
+          - ✅ Signal strength "active" when 2+ sources present
+          - ✅ API returns 200 OK with all 7 categories
+          - ✅ Signal count verification: HD signals present (4 found, requirement was 3+)
+          
+          📊 TEST RESULTS: 6/6 TESTS PASSED (100% SUCCESS RATE)
+          
+          CONCLUSION: Pattern Graph API with Human Design signals integration is fully functional and working correctly. All review request requirements have been met: HD signals are present in matched_sources, center signals are properly formatted with defined/open status and gate information, multi-source categories work correctly with proper signal strength calculation, and the API returns all 7 categories with proper structure. The Human Design integration successfully adds center-based signals to the pattern recognition system.
+
 backend:
   - task: "Gene Keys Mirror Chat Context Awareness (Phase 9)"
     implemented: true
