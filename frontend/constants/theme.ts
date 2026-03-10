@@ -111,6 +111,10 @@ export const DarkTheme = {
   borderLight: '#2D2B29',
   borderFocus: '#E8DFD0',
   
+  // Card styling
+  cardBg: '#1E1E1E',
+  cardBorder: '#3A3836',
+  
   // Semantic Colors - adjusted for dark mode visibility
   error: '#EF5350',                // Lighter red for dark bg
   errorLight: '#2C1A1A',           // Dark red tint
