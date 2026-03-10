@@ -51,7 +51,7 @@ const getLocalDateString = (): string => {
 };
 
 export default function MirrorScreen() {
-  const { theme, isDark } = useTheme();
+  const { theme, isDark, themeMode, setThemeMode } = useTheme();
   const { user, hasTriedSessionRestore, isRestoringSession, clearUser } = useAppStore();
   const router = useRouter();
   const [keystone, setKeystone] = useState<DailyKeystone | null>(null);
@@ -59,6 +59,7 @@ export default function MirrorScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentDate, setCurrentDate] = useState<string>(getLocalDateString());
   const lastLoadedDateRef = useRef<string | null>(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   
   // Track daily focus state for reflection entry
   const [focusState, setFocusState] = useState<DailyFocusState>({
