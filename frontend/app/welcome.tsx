@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,10 +17,15 @@ import { useAppStore } from '../store';
 import { useTheme } from '../contexts/ThemeContext';
 import { loginUser } from '../services/api';
 import { Colors } from '../constants/colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Build info from environment
-const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
-const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
+// Build info - bump this to force cache refresh
+const BUILD_VERSION = '2.1.0';
+const BUILD_ID = 'theme-fix-v3';
+const BUILD_DATE = '2026-03-10';
+
+// Debug mode - set to true to show debug panel
+const SHOW_DEBUG_PANEL = __DEV__ || true; // Always show for now to debug production
 
 /**
  * Welcome Page - The Psychological Orientation Layer
