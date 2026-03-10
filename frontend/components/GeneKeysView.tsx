@@ -194,6 +194,59 @@ export default function GeneKeysView({ userId }: Props) {
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
     >
+      {/* Intro Block */}
+      <View style={styles.introBlock}>
+        <Text style={[styles.introTitle, { color: theme.text }]}>
+          Gene Keys
+        </Text>
+        <Text style={[styles.introSubtext, { color: theme.textTertiary }]}>
+          A contemplative layer within Human Design.
+        </Text>
+        <Text style={[styles.introBody, { color: theme.textSecondary }]}>
+          Gene Keys explores the deeper potential inside the same gates in your Human Design chart.
+        </Text>
+        <Text style={[styles.introBody, { color: theme.textSecondary, marginTop: 12 }]}>
+          Each sphere can show up in three ways:{'\n'}
+          • Shadow — when a pattern feels contracted{'\n'}
+          • Gift — when awareness opens{'\n'}
+          • Siddhi — the highest expression of the same energy
+        </Text>
+        <Text style={[styles.introBody, { color: theme.textSecondary, marginTop: 12 }]}>
+          You don't need to force change here. Start by noticing which patterns feel familiar.
+        </Text>
+        
+        {/* Collapsible How to Use */}
+        <TouchableOpacity
+          style={styles.howToUseHeader}
+          onPress={() => setHowToUseExpanded(!howToUseExpanded)}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.howToUseTitle, { color: theme.textTertiary }]}>
+            How to use this lens
+          </Text>
+          <Text style={[styles.howToUseChevron, { color: theme.textTertiary }]}>
+            {howToUseExpanded ? '▾' : '▸'}
+          </Text>
+        </TouchableOpacity>
+        
+        {howToUseExpanded && (
+          <View style={styles.howToUseContent}>
+            <Text style={[styles.howToUseItem, { color: theme.textSecondary }]}>
+              • Start with the sphere that feels most alive right now.
+            </Text>
+            <Text style={[styles.howToUseItem, { color: theme.textSecondary }]}>
+              • Read the challenge and higher expression slowly.
+            </Text>
+            <Text style={[styles.howToUseItem, { color: theme.textSecondary }]}>
+              • Use the practical tips as experiments, not rules.
+            </Text>
+            <Text style={[styles.howToUseItem, { color: theme.textSecondary }]}>
+              • Let the reflection question stay with you.
+            </Text>
+          </View>
+        )}
+      </View>
+
       {/* Sequences Overview */}
       {activationSequence && renderSequenceSection(activationSequence)}
       {venusSequence && renderSequenceSection(venusSequence)}
