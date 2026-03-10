@@ -605,4 +605,74 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: 24,
   },
+  // Settings Modal Styles
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  closeButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  closeButtonText: {
+    fontSize: 17,
+    fontWeight: '500',
+  },
+  modalContent: {
+    flex: 1,
+    paddingTop: 20,
+  },
+  settingsSection: {
+    marginHorizontal: 16,
+    marginBottom: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  settingsSectionTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  settingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  settingsLabel: {
+    fontSize: 16,
+  },
+  settingsValue: {
+    fontSize: 16,
+  },
+  settingsDivider: {
+    height: 1,
+    marginLeft: 16,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  appVersion: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 40,
+  },
 });
