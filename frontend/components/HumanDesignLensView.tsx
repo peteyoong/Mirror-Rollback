@@ -797,10 +797,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
             {/* GENE KEYS TAB - New interpretive layer */}
             {activeTab === 'gene_keys' && (
-              <GeneKeysView 
-                gate={data.gene_keys?.purpose_arc?.lifes_work?.gate || 22}
-                line={data.gene_keys?.purpose_arc?.lifes_work?.line || 1}
-              />
+              <GeneKeysView userId={userId} />
             )}
 
             {/* Ask Mirror Button - show on Today and Deep Dive */}
