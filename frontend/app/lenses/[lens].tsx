@@ -593,12 +593,15 @@ export default function LensDetail() {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: theme.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-          <Ionicons name="close" size={24} color={theme.text} />
+      <View style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.surface }]}>
+        <TouchableOpacity 
+          onPress={() => router.back()} 
+          style={[styles.closeButton, { backgroundColor: theme.surfaceLight }]}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="close" size={22} color={theme.text} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Ionicons name={lensMeta.icon as any} size={20} color={theme.text} />
           <Text style={[styles.headerTitle, { color: theme.text }]}>{lensMeta.name}</Text>
         </View>
         <View style={styles.headerSpacer} />
