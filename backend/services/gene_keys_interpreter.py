@@ -77,6 +77,44 @@ SPHERE_TEMPLATES = {
         "your_higher_expression": "When you're connected to your purpose, the gift of {gift} infuses your actions with meaning. You don't need to know the grand plan—you simply feel aligned. This sense of rightness comes not from achieving goals, but from living in integrity with your nature.",
         "practical_tips": "Purpose isn't found through thinking—it's felt. Notice the activities, relationships, and moments that give you a sense of meaning. What do they have in common? How does {gift} show up in those moments?",
         "remember": "Your purpose isn't something to figure out intellectually. It reveals itself through living. The transformation from {shadow} to {gift} IS your purpose in action."
+    },
+    # =========================================================================
+    # VENUS SEQUENCE SPHERES
+    # =========================================================================
+    "Attraction": {
+        "what_this_means": "Your Attraction sphere reveals the energetic signature that draws relationships and experiences into your life. Gene Key {gene_key} suggests that what you attract is shaped by the dance between {shadow} and {gift}. This isn't about manipulation—it's about understanding the invisible forces at play in your relational field.",
+        "your_challenge": "The shadow of {shadow} can create unconscious patterns in what you attract. You might notice recurring themes in relationships or situations that feel 'fated' but frustrating. These patterns aren't punishment—they're mirrors showing you where transformation wants to happen.",
+        "your_higher_expression": "When operating from {gift}, your attraction field shifts. You begin drawing in relationships and experiences that support your growth rather than replaying old patterns. This happens naturally as you become more conscious of your own energy.",
+        "practical_tips": "Pay attention to what keeps showing up in your life—especially in relationships. What's the common thread? Instead of trying to change what you attract, explore how {gift} might already be emerging in these situations.",
+        "remember": "You are always attracting what matches your frequency. The path from {shadow} to {gift} changes not just you, but the entire field of what becomes possible in your relationships."
+    },
+    "IQ": {
+        "what_this_means": "Your IQ sphere in the Venus Sequence represents your mental intelligence—how you process, analyze, and communicate in relationships. Gene Key {gene_key} shapes your cognitive style, moving between {shadow} and {gift}. This isn't about being 'smart'—it's about how your mind serves or sabotages connection.",
+        "your_challenge": "The shadow of {shadow} can manifest as mental patterns that create distance in relationships—overthinking, analyzing others, or using intellect as a shield. You might catch yourself in your head when your heart is needed.",
+        "your_higher_expression": "The gift of {gift} transforms your mental intelligence into a bridge for deeper connection. Your thoughts become clearer, your communication more precise, and your mind becomes an ally rather than an obstacle to intimacy.",
+        "practical_tips": "Notice when your mind takes over in relationships. What triggers analytical mode? Experiment with dropping from your head into your heart mid-conversation. What would {gift} sound like if you spoke from that place?",
+        "remember": "Your mind is a tool, not your identity. The journey from {shadow} to {gift} is about putting your intelligence in service of love rather than protection."
+    },
+    "EQ": {
+        "what_this_means": "Your EQ sphere represents your emotional intelligence—the capacity to feel, process, and navigate the emotional currents in relationships. Gene Key {gene_key} colors your emotional landscape with the spectrum from {shadow} to {gift}. This sphere reveals how you handle the waves of feeling that relationships inevitably bring.",
+        "your_challenge": "The shadow of {shadow} can distort your emotional responses—either through suppression, projection, or getting lost in emotional storms. You might notice patterns of reactivity or numbness that create distance from those you love.",
+        "your_higher_expression": "The gift of {gift} brings emotional mastery—not control, but the ability to ride emotional waves without being capsized by them. From this place, your emotions become a source of wisdom and connection rather than chaos.",
+        "practical_tips": "Track your emotional patterns in relationships. Where does {shadow} show up? What does it feel like in your body? Practice staying present with difficult emotions rather than reacting or withdrawing.",
+        "remember": "Emotional intelligence isn't about having 'good' emotions. It's about having a wise relationship with all emotions. The path from {shadow} to {gift} is walked one feeling at a time."
+    },
+    "SQ": {
+        "what_this_means": "Your SQ sphere represents your spiritual intelligence—your capacity for depth, meaning, and transcendence in relationships. Gene Key {gene_key} influences how you access the sacred dimension of love, moving between {shadow} and {gift}. This sphere connects your relationships to something larger than personal satisfaction.",
+        "your_challenge": "The shadow of {shadow} can either close you off from spiritual connection or create spiritual bypassing—using transcendent concepts to avoid real intimacy. You might notice a tendency to either dismiss the sacred or hide in it.",
+        "your_higher_expression": "The gift of {gift} brings genuine spiritual depth to your relationships. This isn't about shared beliefs—it's about the capacity to touch something holy in the space between you and another. Love becomes a gateway to the infinite.",
+        "practical_tips": "Consider what 'spiritual' means in your relationships. Is it abstract or embodied? How might {gift} show up in everyday moments with those you love? Look for the sacred in the ordinary.",
+        "remember": "Spiritual intelligence in relationships isn't about perfection or transcendence—it's about presence. The journey from {shadow} to {gift} deepens your capacity to be truly here with another."
+    },
+    "Core": {
+        "what_this_means": "Your Core sphere represents the deepest wound and highest potential in your relational life. Gene Key {gene_key} reveals the {shadow} that you've carried, often from early life, and the {gift} that emerges as you heal. This is the most tender and powerful sphere of the Venus Sequence.",
+        "your_challenge": "The shadow of {shadow} connects to your deepest vulnerability—the place where love has wounded you. This isn't something to 'get over' but something to integrate. You might notice this pattern echoing through your most significant relationships.",
+        "your_higher_expression": "The gift of {gift} emerges precisely from your core wound. As you bring consciousness to this tender place, it becomes the source of your greatest capacity for love. Your wound becomes your medicine.",
+        "practical_tips": "This sphere asks for gentleness. What is your earliest memory of {shadow}? How does it show up in your current relationships? The path isn't to fix this wound but to hold it with compassion.",
+        "remember": "Your core wound is not your shame—it's your initiation. The transformation from {shadow} to {gift} at this level changes everything. Go slowly. Be kind to yourself."
     }
 }
 
