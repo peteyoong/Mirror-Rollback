@@ -355,6 +355,52 @@ def get_venus_sequence(
     }
 
 
+class PearlSequenceResponse(TypedDict):
+    """Full Pearl Sequence response."""
+    sequence_name: str
+    spheres: List[SphereInterpretation]
+
+
+def get_pearl_sequence(
+    design_mars_gate: int,
+    design_mars_line: int,
+    personality_jupiter_gate: int,
+    personality_jupiter_line: int,
+    personality_sun_gate: int,
+    personality_sun_line: int,
+    design_jupiter_gate: int,
+    design_jupiter_line: int
+) -> PearlSequenceResponse:
+    """Build the complete Pearl Sequence from HD planetary data.
+    
+    Pearl Sequence mapping (prosperity & material world):
+    - Vocation = Design Mars (the work you're here to do)
+    - Culture = Personality Jupiter (the environment where you thrive)
+    - Brand = Personality Sun (your authentic signature in the world)
+    - Pearl = Design Jupiter (where prosperity flows from alignment)
+    
+    Args:
+        design_mars_gate/line: Unconscious Mars placement
+        personality_jupiter_gate/line: Conscious Jupiter placement
+        personality_sun_gate/line: Conscious Sun placement
+        design_jupiter_gate/line: Unconscious Jupiter placement
+    
+    Returns:
+        PearlSequenceResponse with all 4 spheres
+    """
+    spheres = [
+        get_sphere_interpretation("Vocation", design_mars_gate, design_mars_line),
+        get_sphere_interpretation("Culture", personality_jupiter_gate, personality_jupiter_line),
+        get_sphere_interpretation("Brand", personality_sun_gate, personality_sun_line),
+        get_sphere_interpretation("Pearl", design_jupiter_gate, design_jupiter_line),
+    ]
+    
+    return {
+        "sequence_name": "Pearl Sequence",
+        "spheres": spheres
+    }
+
+
 def get_available_gene_keys() -> list[int]:
     """Get list of Gene Key numbers that have interpretation data."""
     return list(GENE_KEYS.keys())
