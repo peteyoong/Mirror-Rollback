@@ -8390,6 +8390,10 @@ async def get_pattern_graph(user_id: str):
                 birth_utc = birth_result.get("birth_utc")
                 
                 logger.info(f"[PatternGraph] Birth UTC resolved: {birth_utc is not None}")
+                if not birth_utc:
+                    logger.info(f"[PatternGraph] Birth result keys: {list(birth_result.keys()) if birth_result else 'None'}")
+                    if birth_result:
+                        logger.info(f"[PatternGraph] Birth result: {birth_result}")
                 
                 if birth_utc:
                     # Get Human Design chart
