@@ -11417,6 +11417,7 @@ async def get_user_activation_sequence(user_id: str):
         # Get user's birth data for HD computation
         birth_date = user.get("birth_date")
         birth_time = user.get("birth_time")
+        timezone = user.get("timezone", "UTC")
         
         # Handle location - can be nested or flat
         birth_location = user.get("birth_location", {})
@@ -11433,14 +11434,27 @@ async def get_user_activation_sequence(user_id: str):
                 detail="Birth data not available. Please complete onboarding first."
             )
         
+        # Build birth_utc datetime (same logic as deep-dive endpoint)
+        from datetime import datetime
+        import pytz
+        from utils.datetime_utils import parse_birth_datetime_to_utc
+        
+        # Parse birth datetime to UTC
+        birth_utc = parse_birth_datetime_to_utc(birth_date, birth_time, timezone, latitude, longitude)
+        
+        if not birth_utc:
+            raise HTTPException(
+                status_code=400,
+                detail="Could not parse birth datetime"
+            )
+        
         # Compute Human Design chart (same as deep-dive endpoint)
         from calculations.human_design import get_human_design_chart
         canonical_hd = get_human_design_chart(
-            birth_date=birth_date,
-            birth_time=birth_time,
+            birth_datetime=birth_utc,
             lat=latitude,
             lon=longitude,
-            use_sidereal=True
+            sidereal_settings={"mode": "true_sidereal_user_defined"}
         )
         
         # Extract planetary positions from HD chart
