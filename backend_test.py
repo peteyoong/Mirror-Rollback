@@ -1,343 +1,274 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Project Mirror
-Testing Mirror Chat lens context functionality and other backend features
+Backend Testing Suite for Gene Keys Pattern Signals Layer
+Testing the implementation of shadow_keywords and gift_keywords in Gene Keys profile API.
 """
 
-import asyncio
-import aiohttp
+import requests
 import json
 import sys
-import time
-from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List
 
-# Test Configuration
+# Configuration
 BASE_URL = "https://pattern-signals-4.preview.emergentagent.com/api"
-TEST_USER_ID = "697f0c6abf35c0528ff06954"  # User ID from review request
-FALLBACK_USER_ID = "69819f1a1e4549392d7cb6d1"  # Fallback user from test_result.md
+TEST_USER_ID = "697f0c6abf35c0528ff06954"
 
-class MirrorChatTester:
-    def __init__(self):
-        self.session = None
-        self.results = []
-        
-    async def __aenter__(self):
-        self.session = aiohttp.ClientSession()
-        return self
-        
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self.session:
-            await self.session.close()
+def test_gene_keys_pattern_signals():
+    """
+    Test the Gene Keys Pattern Signals Layer implementation.
     
-    def log_result(self, test_name: str, status: str, details: str, response_data: Optional[Dict] = None):
-        """Log test result"""
-        result = {
-            "test": test_name,
-            "status": status,
-            "details": details,
-            "timestamp": datetime.now().isoformat(),
-            "response_data": response_data
-        }
-        self.results.append(result)
-        
-        # Print result
-        status_emoji = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
-        print(f"{status_emoji} {test_name}: {status}")
-        print(f"   {details}")
-        if response_data and status == "FAIL":
-            print(f"   Response: {json.dumps(response_data, indent=2)[:200]}...")
-        print()
+    Requirements:
+    1. Call GET /api/gene-keys/profile/{user_id}
+    2. Verify response contains all_spheres array with 13 spheres (4 Activation + 5 Venus + 4 Pearl)
+    3. For EACH sphere in all_spheres, verify shadow_keywords and gift_keywords fields exist
+    4. Verify keywords are populated (non-empty arrays) for at least one sphere
+    """
     
-    async def make_request(self, method: str, endpoint: str, data: Optional[Dict] = None) -> tuple[int, Dict]:
-        """Make HTTP request and return status code and response data"""
-        url = f"{BASE_URL}{endpoint}"
-        
-        try:
-            if method.upper() == "GET":
-                async with self.session.get(url) as response:
-                    status = response.status
-                    try:
-                        response_data = await response.json()
-                    except:
-                        response_data = {"error": "Invalid JSON response", "text": await response.text()}
-                    return status, response_data
-            elif method.upper() == "POST":
-                headers = {"Content-Type": "application/json"}
-                async with self.session.post(url, json=data, headers=headers) as response:
-                    status = response.status
-                    try:
-                        response_data = await response.json()
-                    except:
-                        response_data = {"error": "Invalid JSON response", "text": await response.text()}
-                    return status, response_data
-        except Exception as e:
-            return 0, {"error": str(e)}
+    print("🧪 GENE KEYS PATTERN SIGNALS LAYER TESTING")
+    print("=" * 60)
     
-    async def test_mirror_chat_endpoint_availability(self):
-        """Test 0: Basic endpoint availability"""
-        test_name = "Mirror Chat Endpoint Availability"
+    # Test 1: API Endpoint Availability
+    print("\n1. ✅ TESTING API ENDPOINT AVAILABILITY")
+    url = f"{BASE_URL}/gene-keys/profile/{TEST_USER_ID}"
+    print(f"   URL: {url}")
+    
+    try:
+        response = requests.get(url, timeout=30)
+        print(f"   Status Code: {response.status_code}")
         
-        # Simple test message
-        payload = {
-            "user_id": TEST_USER_ID,
-            "message": "Hello",
-            "session_id": "test_basic"
-        }
+        if response.status_code != 200:
+            print(f"   ❌ FAILED: Expected 200, got {response.status_code}")
+            print(f"   Response: {response.text}")
+            return False
+            
+        print("   ✅ PASSED: API endpoint accessible")
         
-        status, response = await self.make_request("POST", "/mirror/chat", payload)
+    except requests.exceptions.RequestException as e:
+        print(f"   ❌ FAILED: Request error - {e}")
+        return False
+    
+    # Parse response
+    try:
+        data = response.json()
+    except json.JSONDecodeError as e:
+        print(f"   ❌ FAILED: Invalid JSON response - {e}")
+        return False
+    
+    # Test 2: Response Structure Validation
+    print("\n2. ✅ TESTING RESPONSE STRUCTURE")
+    
+    # Check for required top-level fields
+    required_fields = ["activation_sequence", "venus_sequence", "pearl_sequence", "all_spheres"]
+    for field in required_fields:
+        if field not in data:
+            print(f"   ❌ FAILED: Missing required field '{field}'")
+            return False
+        print(f"   ✅ Found field: {field}")
+    
+    # Test 3: All Spheres Array Validation
+    print("\n3. ✅ TESTING ALL_SPHERES ARRAY")
+    
+    all_spheres = data.get("all_spheres", [])
+    if not isinstance(all_spheres, list):
+        print(f"   ❌ FAILED: all_spheres is not a list, got {type(all_spheres)}")
+        return False
+    
+    sphere_count = len(all_spheres)
+    print(f"   Total spheres found: {sphere_count}")
+    
+    # Verify exactly 13 spheres (4 Activation + 5 Venus + 4 Pearl)
+    if sphere_count != 13:
+        print(f"   ❌ FAILED: Expected 13 spheres, got {sphere_count}")
+        return False
+    
+    print("   ✅ PASSED: Correct number of spheres (13)")
+    
+    # Test 4: Sequence Distribution Validation
+    print("\n4. ✅ TESTING SEQUENCE DISTRIBUTION")
+    
+    sequence_counts = {}
+    for sphere in all_spheres:
+        sequence = sphere.get("sequence", "Unknown")
+        sequence_counts[sequence] = sequence_counts.get(sequence, 0) + 1
+    
+    print(f"   Sequence distribution: {sequence_counts}")
+    
+    expected_distribution = {"Activation": 4, "Venus": 5, "Pearl": 4}
+    for seq_name, expected_count in expected_distribution.items():
+        actual_count = sequence_counts.get(seq_name, 0)
+        if actual_count != expected_count:
+            print(f"   ❌ FAILED: {seq_name} sequence - expected {expected_count}, got {actual_count}")
+            return False
+        print(f"   ✅ {seq_name}: {actual_count} spheres")
+    
+    # Test 5: Shadow/Gift Keywords Field Validation
+    print("\n5. ✅ TESTING SHADOW/GIFT KEYWORDS FIELDS")
+    
+    spheres_with_keywords = 0
+    spheres_with_populated_keywords = 0
+    
+    for i, sphere in enumerate(all_spheres):
+        sphere_name = sphere.get("sphere_name", f"Sphere {i+1}")
+        sequence = sphere.get("sequence", "Unknown")
+        gene_key = sphere.get("gene_key", "Unknown")
         
-        if status == 200 and "response" in response:
-            self.log_result(
-                test_name,
-                "PASS",
-                f"✅ Mirror Chat endpoint accessible and responding",
-                {"status": status, "has_response": "response" in response}
-            )
-            return True
+        print(f"   Sphere {i+1}: {sphere_name} ({sequence}) - Gene Key {gene_key}")
+        
+        # Check for shadow_keywords field
+        if "shadow_keywords" not in sphere:
+            print(f"     ❌ FAILED: Missing 'shadow_keywords' field")
+            return False
+        
+        # Check for gift_keywords field
+        if "gift_keywords" not in sphere:
+            print(f"     ❌ FAILED: Missing 'gift_keywords' field")
+            return False
+        
+        spheres_with_keywords += 1
+        
+        # Validate field types
+        shadow_keywords = sphere["shadow_keywords"]
+        gift_keywords = sphere["gift_keywords"]
+        
+        if not isinstance(shadow_keywords, list):
+            print(f"     ❌ FAILED: shadow_keywords is not a list, got {type(shadow_keywords)}")
+            return False
+        
+        if not isinstance(gift_keywords, list):
+            print(f"     ❌ FAILED: gift_keywords is not a list, got {type(gift_keywords)}")
+            return False
+        
+        # Check if keywords are populated (non-empty)
+        shadow_populated = len(shadow_keywords) > 0
+        gift_populated = len(gift_keywords) > 0
+        
+        if shadow_populated and gift_populated:
+            spheres_with_populated_keywords += 1
+            print(f"     ✅ Keywords populated: {len(shadow_keywords)} shadow, {len(gift_keywords)} gift")
+            
+            # Show sample keywords for verification
+            if len(shadow_keywords) > 0:
+                sample_shadow = shadow_keywords[:3]  # First 3 keywords
+                print(f"     Sample shadow keywords: {sample_shadow}")
+            
+            if len(gift_keywords) > 0:
+                sample_gift = gift_keywords[:3]  # First 3 keywords
+                print(f"     Sample gift keywords: {sample_gift}")
         else:
-            self.log_result(
-                test_name,
-                "FAIL",
-                f"❌ Mirror Chat endpoint not working. Status: {status}",
-                response
-            )
+            print(f"     ⚠️  Keywords empty: shadow={len(shadow_keywords)}, gift={len(gift_keywords)}")
+    
+    print(f"\n   Summary:")
+    print(f"   - Spheres with keyword fields: {spheres_with_keywords}/13")
+    print(f"   - Spheres with populated keywords: {spheres_with_populated_keywords}/13")
+    
+    if spheres_with_keywords != 13:
+        print(f"   ❌ FAILED: Not all spheres have keyword fields")
+        return False
+    
+    if spheres_with_populated_keywords == 0:
+        print(f"   ❌ FAILED: No spheres have populated keywords")
+        return False
+    
+    print(f"   ✅ PASSED: All spheres have keyword fields")
+    print(f"   ✅ PASSED: {spheres_with_populated_keywords} spheres have populated keywords")
+    
+    # Test 6: Detailed Sphere Structure Validation
+    print("\n6. ✅ TESTING DETAILED SPHERE STRUCTURE")
+    
+    required_sphere_fields = [
+        "sphere_name", "sequence", "gene_key", "line", 
+        "shadow", "gift", "siddhi", "shadow_keywords", "gift_keywords"
+    ]
+    
+    for i, sphere in enumerate(all_spheres):
+        sphere_name = sphere.get("sphere_name", f"Sphere {i+1}")
+        
+        for field in required_sphere_fields:
+            if field not in sphere:
+                print(f"   ❌ FAILED: Sphere '{sphere_name}' missing field '{field}'")
+                return False
+        
+        # Validate specific field types
+        if not isinstance(sphere["gene_key"], int):
+            print(f"   ❌ FAILED: Sphere '{sphere_name}' gene_key is not int: {type(sphere['gene_key'])}")
+            return False
+        
+        if not isinstance(sphere["line"], int):
+            print(f"   ❌ FAILED: Sphere '{sphere_name}' line is not int: {type(sphere['line'])}")
+            return False
+        
+        if not isinstance(sphere["shadow"], str):
+            print(f"   ❌ FAILED: Sphere '{sphere_name}' shadow is not str: {type(sphere['shadow'])}")
+            return False
+        
+        if not isinstance(sphere["gift"], str):
+            print(f"   ❌ FAILED: Sphere '{sphere_name}' gift is not str: {type(sphere['gift'])}")
             return False
     
-    async def test_human_design_lens_context(self):
-        """Test 1: Human Design Chat Context - Should know incarnation cross data"""
-        test_name = "Human Design Lens Context"
-        
-        payload = {
-            "user_id": TEST_USER_ID,
-            "message": "Tell me about my incarnation cross",
-            "lens": "human_design",
-            "session_id": "test_hd_context"
-        }
-        
-        status, response = await self.make_request("POST", "/mirror/chat", payload)
-        
-        if status != 200:
-            self.log_result(test_name, "FAIL", f"HTTP {status} - Expected 200", response)
-            return False
-        
-        if "response" not in response:
-            self.log_result(test_name, "FAIL", "Missing 'response' field in API response", response)
-            return False
-        
-        response_text = response["response"].lower()
-        
-        # Check for expected incarnation cross data
-        expected_phrases = [
-            "right angle cross of migration",
-            "migration",
-            "37", "40",  # Gates
-            "incarnation cross"
-        ]
-        
-        found_phrases = []
-        missing_phrases = []
-        
-        for phrase in expected_phrases:
-            if phrase in response_text:
-                found_phrases.append(phrase)
-            else:
-                missing_phrases.append(phrase)
-        
-        if "right angle cross of migration" in response_text or ("migration" in response_text and "cross" in response_text):
-            self.log_result(
-                test_name, 
-                "PASS", 
-                f"✅ Response includes incarnation cross context. Found: {found_phrases}",
-                {"response_length": len(response["response"]), "found_context": found_phrases}
-            )
-            return True
-        else:
-            self.log_result(
-                test_name, 
-                "FAIL", 
-                f"❌ Response missing incarnation cross context. Missing: {missing_phrases}. Response: {response['response'][:200]}...",
-                response
-            )
-            return False
+    print(f"   ✅ PASSED: All spheres have correct field structure")
     
-    async def test_system_context_verification(self):
-        """Test 2: Verify system includes incarnation cross data in context"""
-        test_name = "System Context Verification"
-        
-        # Test with a more direct question about gates
-        payload = {
-            "user_id": TEST_USER_ID,
-            "message": "What are my incarnation cross gates?",
-            "lens": "human_design",
-            "session_id": "test_context_gates"
-        }
-        
-        status, response = await self.make_request("POST", "/mirror/chat", payload)
-        
-        if status != 200:
-            self.log_result(test_name, "FAIL", f"HTTP {status} - Expected 200", response)
-            return False
-        
-        if "response" not in response:
-            self.log_result(test_name, "FAIL", "Missing 'response' field in API response", response)
-            return False
-        
-        response_text = response["response"].lower()
-        
-        # Check for gate numbers and incarnation cross references
-        context_indicators = [
-            "37", "40",  # Specific gates
-            "gate", "gates",
-            "incarnation",
-            "cross"
-        ]
-        
-        found_indicators = [indicator for indicator in context_indicators if indicator in response_text]
-        
-        if len(found_indicators) >= 2:  # Should find at least 2 context indicators
-            self.log_result(
-                test_name,
-                "PASS", 
-                f"✅ System context includes incarnation cross data. Found indicators: {found_indicators}",
-                {"found_indicators": found_indicators}
-            )
-            return True
-        else:
-            self.log_result(
-                test_name,
-                "FAIL",
-                f"❌ System context missing incarnation cross data. Found only: {found_indicators}. Response: {response['response'][:200]}...",
-                response
-            )
-            return False
+    # Test 7: Sample Data Validation
+    print("\n7. ✅ TESTING SAMPLE DATA VALIDATION")
     
-    async def test_enneagram_lens_context(self):
-        """Test 3: Enneagram Context - Should know user's type"""
-        test_name = "Enneagram Lens Context"
-        
-        payload = {
-            "user_id": TEST_USER_ID,
-            "message": "What is my Enneagram type?",
-            "lens": "enneagram", 
-            "session_id": "test_ennea_context"
-        }
-        
-        status, response = await self.make_request("POST", "/mirror/chat", payload)
-        
-        if status != 200:
-            self.log_result(test_name, "FAIL", f"HTTP {status} - Expected 200", response)
-            return False
-        
-        if "response" not in response:
-            self.log_result(test_name, "FAIL", "Missing 'response' field in API response", response)
-            return False
-        
-        response_text = response["response"].lower()
-        
-        # Check for Enneagram type indicators
-        enneagram_indicators = [
-            "type", "enneagram",
-            "1", "2", "3", "4", "5", "6", "7", "8", "9",  # Type numbers
-            "wing", "stress", "growth"
-        ]
-        
-        found_indicators = [indicator for indicator in enneagram_indicators if indicator in response_text]
-        
-        # Should find type-related content
-        if "type" in response_text and len(found_indicators) >= 2:
-            self.log_result(
-                test_name,
-                "PASS",
-                f"✅ Enneagram context working. Found indicators: {found_indicators}",
-                {"found_indicators": found_indicators}
-            )
-            return True
-        else:
-            self.log_result(
-                test_name,
-                "FAIL", 
-                f"❌ Enneagram context missing or incomplete. Found: {found_indicators}. Response: {response['response'][:200]}...",
-                response
-            )
-            return False
+    # Find a sphere with populated keywords for detailed validation
+    sample_sphere = None
+    for sphere in all_spheres:
+        if len(sphere.get("shadow_keywords", [])) > 0 and len(sphere.get("gift_keywords", [])) > 0:
+            sample_sphere = sphere
+            break
     
-    async def test_emergent_contract_analytics(self):
-        """Test 4: Emergent Contract Analytics endpoint"""
-        test_name = "Emergent Contract Analytics"
+    if sample_sphere:
+        print(f"   Sample sphere: {sample_sphere['sphere_name']} (Gene Key {sample_sphere['gene_key']})")
+        print(f"   Shadow: {sample_sphere['shadow']}")
+        print(f"   Gift: {sample_sphere['gift']}")
+        print(f"   Shadow keywords: {sample_sphere['shadow_keywords']}")
+        print(f"   Gift keywords: {sample_sphere['gift_keywords']}")
         
-        status, response = await self.make_request("GET", "/emergent-contract/analytics")
+        # Validate keywords are strings
+        for keyword in sample_sphere['shadow_keywords']:
+            if not isinstance(keyword, str):
+                print(f"   ❌ FAILED: Shadow keyword is not string: {keyword} ({type(keyword)})")
+                return False
         
-        if status != 200:
-            self.log_result(test_name, "FAIL", f"HTTP {status} - Expected 200", response)
-            return False
+        for keyword in sample_sphere['gift_keywords']:
+            if not isinstance(keyword, str):
+                print(f"   ❌ FAILED: Gift keyword is not string: {keyword} ({type(keyword)})")
+                return False
         
-        required_fields = ["status", "contract_version", "analytics"]
-        missing_fields = [f for f in required_fields if f not in response]
-        
-        if missing_fields:
-            self.log_result(test_name, "FAIL", f"Missing required fields: {missing_fields}", response)
-            return False
-        
-        analytics = response.get("analytics", {})
-        has_events = analytics.get("total_events", 0) >= 0
-        
-        self.log_result(
-            test_name,
-            "PASS",
-            f"✅ Contract analytics working. Status: {response['status']}, Events: {analytics.get('total_events', 0)}",
-            {"analytics_keys": list(analytics.keys())}
-        )
-        return True
+        print(f"   ✅ PASSED: Sample keywords are valid strings")
+    else:
+        print(f"   ⚠️  WARNING: No sphere found with populated keywords for detailed validation")
     
-    async def run_all_tests(self):
-        """Run all Mirror Chat lens context tests"""
-        print("🧪 MIRROR CHAT LENS CONTEXT TESTING")
-        print("=" * 50)
-        print(f"Base URL: {BASE_URL}")
-        print(f"Test User ID: {TEST_USER_ID}")
-        print()
-        
-        # Run tests in order
-        tests = [
-            self.test_mirror_chat_endpoint_availability,
-            self.test_human_design_lens_context,
-            self.test_system_context_verification,
-            self.test_enneagram_lens_context,
-            self.test_emergent_contract_analytics
-        ]
-        
-        passed = 0
-        total = len(tests)
-        
-        for test_func in tests:
-            try:
-                result = await test_func()
-                if result:
-                    passed += 1
-            except Exception as e:
-                self.log_result(test_func.__name__, "ERROR", f"Test failed with exception: {str(e)}")
-        
-        print("=" * 50)
-        print(f"📊 TEST SUMMARY: {passed}/{total} PASSED")
-        
-        if passed == total:
-            print("🎉 ALL TESTS PASSED - Mirror Chat lens context working correctly!")
-        else:
-            print(f"⚠️  {total - passed} TESTS FAILED - Issues found with lens context")
-        
-        return passed, total, self.results
+    # Final Summary
+    print("\n" + "=" * 60)
+    print("🎉 GENE KEYS PATTERN SIGNALS LAYER TESTING COMPLETE")
+    print("=" * 60)
+    print("✅ ALL TESTS PASSED:")
+    print("   1. ✅ API endpoint accessible (200 OK)")
+    print("   2. ✅ Response structure valid")
+    print("   3. ✅ All_spheres contains exactly 13 spheres")
+    print("   4. ✅ Correct sequence distribution (4 Activation + 5 Venus + 4 Pearl)")
+    print("   5. ✅ All spheres contain shadow_keywords and gift_keywords fields")
+    print("   6. ✅ Keywords are arrays of strings")
+    print(f"   7. ✅ {spheres_with_populated_keywords} spheres have populated keywords")
+    print("   8. ✅ All required sphere fields present and correctly typed")
+    
+    return True
 
-async def main():
-    """Main test runner"""
-    async with MirrorChatTester() as tester:
-        passed, total, results = await tester.run_all_tests()
-        
-        # Return exit code based on results
-        if passed == total:
-            sys.exit(0)  # Success
-        else:
-            sys.exit(1)  # Failure
+
+def main():
+    """Run the Gene Keys Pattern Signals Layer tests."""
+    print("Starting Gene Keys Pattern Signals Layer Backend Testing...")
+    
+    success = test_gene_keys_pattern_signals()
+    
+    if success:
+        print("\n🎉 ALL TESTS PASSED! Gene Keys Pattern Signals Layer is working correctly.")
+        sys.exit(0)
+    else:
+        print("\n❌ TESTS FAILED! Gene Keys Pattern Signals Layer needs attention.")
+        sys.exit(1)
+
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
