@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Text } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import SessionRestoreWrapper from '../../components/SessionRestoreWrapper';
 
@@ -31,8 +31,8 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Mirror',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="moon-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 22, color }}>☽</Text>
           ),
         }}
       />
@@ -40,8 +40,8 @@ export default function TabLayout() {
         name="life"
         options={{
           title: 'Life',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="leaf-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 22, color }}>❧</Text>
           ),
         }}
       />
@@ -49,8 +49,8 @@ export default function TabLayout() {
         name="journal"
         options={{
           title: 'Journal',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="book-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 22, color }}>☰</Text>
           ),
         }}
       />
@@ -58,8 +58,8 @@ export default function TabLayout() {
         name="lenses"
         options={{
           title: 'Lenses',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="eye-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 22, color }}>◉</Text>
           ),
         }}
       />
