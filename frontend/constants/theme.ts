@@ -4,7 +4,7 @@
 
 import { useColorScheme } from 'react-native';
 
-// Light Theme - Calm, warm, paper-like
+// Light Theme - Calm, warm, paper-like with IMPROVED CONTRAST
 export const LightTheme = {
   // Backgrounds - warm, paper-like tones
   background: '#F5F3EF',
@@ -13,53 +13,57 @@ export const LightTheme = {
   surfaceLight: '#FAF9F7',
   surfaceMuted: '#F0EDE8',
   
-  // Text - high contrast for readability
+  // Text - IMPROVED high contrast for readability
   text: '#1A1A1A',
-  textSecondary: '#4A4A4A',
-  textTertiary: '#6B6B6B',
-  textDisabled: '#9A9A9A',
+  textSecondary: '#3D3D3D',        // Darker from #4A4A4A
+  textTertiary: '#5A5A5A',         // Darker from #6B6B6B  
+  textDisabled: '#8A8A8A',         // Darker from #9A9A9A
   textInverse: '#FFFFFF',
   
   // Accent & Interactive
-  accent: '#2A2A2A',
-  accentMuted: '#5A5A5A',
+  accent: '#1A1A1A',               // Darker from #2A2A2A
+  accentMuted: '#4A4A4A',          // Darker from #5A5A5A
   accentLight: '#E8E6E3',
   
-  // Borders & Dividers
-  border: '#D8D5D0',
-  borderLight: '#E5E3DF',
+  // Borders & Dividers - IMPROVED visibility
+  border: '#C5C2BD',               // Darker from #D8D5D0
+  borderLight: '#D8D5D0',          // Darker from #E5E3DF
   borderFocus: '#1A1A1A',
   
+  // Card styling
+  cardBg: '#FFFFFF',
+  cardBorder: '#D8D5D0',
+  
   // Semantic Colors
-  error: '#C62828',
+  error: '#B71C1C',                // Darker red for better contrast
   errorLight: '#FFEBEE',
-  success: '#2E7D32',
+  success: '#1B5E20',              // Darker green
   successLight: '#E8F5E9',
   warning: '#E65100',
   warningLight: '#FFF3E0',
-  info: '#1565C0',
+  info: '#0D47A1',                 // Darker blue
   infoLight: '#E3F2FD',
   
   // Badges & Highlights
   badgeBg: '#E8F4E8',
-  badgeText: '#2E7D32',
+  badgeText: '#1B5E20',            // Darker green
   highlightBg: '#FFF8E1',
-  highlightText: '#F57C00',
+  highlightText: '#E65100',
   
   // Pattern Movement
-  stressColor: '#C62828',
+  stressColor: '#B71C1C',          // Darker red
   stressColorBg: '#FFEBEE',
-  growthColor: '#2E7D32',
+  growthColor: '#1B5E20',          // Darker green
   growthColorBg: '#E8F5E9',
   
   // Input & Forms
   inputBg: '#FFFFFF',
-  inputBorder: '#D8D5D0',
-  inputPlaceholder: '#9A9A9A',
+  inputBorder: '#C5C2BD',          // Darker
+  inputPlaceholder: '#7A7A7A',     // Darker
   
   // Tabs & Navigation
   tabActive: '#1A1A1A',
-  tabInactive: '#6B6B6B',
+  tabInactive: '#5A5A5A',          // Darker
   tabIndicator: '#1A1A1A',
   
   // Buttons
@@ -67,9 +71,9 @@ export const LightTheme = {
   buttonPrimaryText: '#FFFFFF',
   buttonSecondaryBg: 'transparent',
   buttonSecondaryText: '#1A1A1A',
-  buttonSecondaryBorder: '#D8D5D0',
+  buttonSecondaryBorder: '#C5C2BD', // Darker
   buttonDisabledBg: '#E5E3DF',
-  buttonDisabledText: '#9A9A9A',
+  buttonDisabledText: '#8A8A8A',    // Darker
   
   // Special states
   cardShadow: 'rgba(0,0,0,0.08)',
