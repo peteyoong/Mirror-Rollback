@@ -25,7 +25,7 @@ import MirrorReflectionModal from '../../components/MirrorReflectionModal';
 import MirrorChat from '../../components/MirrorChat';
 import { createJournalEntry, getJournalEntries } from '../../services/api';
 import api from '../../services/api';
-import { Ionicons } from '@expo/vector-icons';
+// Removed Ionicons - using text-based alternatives for web compatibility
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -275,11 +275,7 @@ export default function JournalScreen() {
         style={[styles.modeButton, viewMode === 'journal' && styles.modeButtonActive]}
         onPress={() => setViewMode('journal')}
       >
-        <Ionicons 
-          name="book-outline" 
-          size={16} 
-          color={viewMode === 'journal' ? Colors.accent : Colors.textSecondary} 
-        />
+        <Text style={{ fontSize: 14, color: viewMode === 'journal' ? Colors.accent : Colors.textSecondary }}>☰</Text>
         <Text style={[styles.modeButtonText, viewMode === 'journal' && styles.modeButtonTextActive]}>
           Journal
         </Text>
@@ -288,11 +284,7 @@ export default function JournalScreen() {
         style={[styles.modeButton, viewMode === 'mirror' && styles.modeButtonActive]}
         onPress={() => setViewMode('mirror')}
       >
-        <Ionicons 
-          name="sparkles" 
-          size={16} 
-          color={viewMode === 'mirror' ? Colors.accent : Colors.textSecondary} 
-        />
+        <Text style={{ fontSize: 14, color: viewMode === 'mirror' ? Colors.accent : Colors.textSecondary }}>✦</Text>
         <Text style={[styles.modeButtonText, viewMode === 'mirror' && styles.modeButtonTextActive]}>
           Mirror
         </Text>
@@ -301,11 +293,7 @@ export default function JournalScreen() {
         style={[styles.modeButton, viewMode === 'timeline' && styles.modeButtonActive]}
         onPress={() => setViewMode('timeline')}
       >
-        <Ionicons 
-          name="time-outline" 
-          size={16} 
-          color={viewMode === 'timeline' ? Colors.accent : Colors.textSecondary} 
-        />
+        <Text style={{ fontSize: 14, color: viewMode === 'timeline' ? Colors.accent : Colors.textSecondary }}>⏱</Text>
         <Text style={[styles.modeButtonText, viewMode === 'timeline' && styles.modeButtonTextActive]}>
           Timeline
         </Text>
