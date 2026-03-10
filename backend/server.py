@@ -11463,18 +11463,30 @@ async def get_user_activation_sequence(user_id: str):
         d_sun = design.get('Sun', {})
         d_earth = design.get('Earth', {})
         
-        logger.info(f"[GeneKeys] Sun gates: p_sun={p_sun.get('gate')}, d_sun={d_sun.get('gate')}")
+        logger.info(f"[GeneKeys] Sun data: p_sun={p_sun}, d_sun={d_sun}")
+        
+        # Extract gate and line values (they are stored directly as integers in the dict)
+        p_sun_gate = p_sun.get('gate', 1) if isinstance(p_sun.get('gate'), int) else 1
+        p_sun_line = p_sun.get('line', 1) if isinstance(p_sun.get('line'), int) else 1
+        p_earth_gate = p_earth.get('gate', 1) if isinstance(p_earth.get('gate'), int) else 1
+        p_earth_line = p_earth.get('line', 1) if isinstance(p_earth.get('line'), int) else 1
+        d_sun_gate = d_sun.get('gate', 1) if isinstance(d_sun.get('gate'), int) else 1
+        d_sun_line = d_sun.get('line', 1) if isinstance(d_sun.get('line'), int) else 1
+        d_earth_gate = d_earth.get('gate', 1) if isinstance(d_earth.get('gate'), int) else 1
+        d_earth_line = d_earth.get('line', 1) if isinstance(d_earth.get('line'), int) else 1
+        
+        logger.info(f"[GeneKeys] Parsed gates: p_sun={p_sun_gate}.{p_sun_line}, d_sun={d_sun_gate}.{d_sun_line}")
         
         # Build activation sequence
         activation = get_activation_sequence(
-            personality_sun_gate=p_sun.get("gate", 1),
-            personality_sun_line=p_sun.get("line", 1),
-            personality_earth_gate=p_earth.get("gate", 1),
-            personality_earth_line=p_earth.get("line", 1),
-            design_sun_gate=d_sun.get("gate", 1),
-            design_sun_line=d_sun.get("line", 1),
-            design_earth_gate=d_earth.get("gate", 1),
-            design_earth_line=d_earth.get("line", 1),
+            personality_sun_gate=p_sun_gate,
+            personality_sun_line=p_sun_line,
+            personality_earth_gate=p_earth_gate,
+            personality_earth_line=p_earth_line,
+            design_sun_gate=d_sun_gate,
+            design_sun_line=d_sun_line,
+            design_earth_gate=d_earth_gate,
+            design_earth_line=d_earth_line,
         )
         
         logger.info(f"[GeneKeys] Successfully built Activation Sequence")
