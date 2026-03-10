@@ -15,7 +15,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
-import { Ionicons } from '@expo/vector-icons';
+// Removed Ionicons - using text-based alternatives for web compatibility
 import { useAppStore } from '../../store';
 import MirrorChat from '../../components/MirrorChat';
 import AstrologyLensView from '../../components/AstrologyLensView';
