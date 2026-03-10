@@ -8382,8 +8382,11 @@ async def get_pattern_graph(user_id: str):
             if birth_date and birth_time and lat is not None and lon is not None:
                 logger.info(f"[PatternGraph] Attempting HD chart generation...")
                 # Combine birth_date and birth_time into datetime
+                # Convert birth_date to string if it's a datetime object
+                birth_date_str = birth_date.strftime("%Y-%m-%d") if hasattr(birth_date, 'strftime') else str(birth_date)
+                
                 birth_result = resolve_birth_utc_with_debug(
-                    birth_date_str=birth_date,
+                    birth_date_str=birth_date_str,
                     birth_time_str=birth_time,
                     timezone_str=timezone_str
                 )
