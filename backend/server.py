@@ -8377,7 +8377,10 @@ async def get_pattern_graph(user_id: str):
         try:
             from services.human_design_centers import build_centers_profile
             
+            logger.info(f"[PatternGraph] Birth data check - date: {birth_date is not None}, time: {birth_time is not None}, lat: {lat is not None}, lon: {lon is not None}")
+            
             if birth_date and birth_time and lat is not None and lon is not None:
+                logger.info(f"[PatternGraph] Attempting to load Human Design chart...")
                 # Get Human Design chart
                 hd_chart = get_human_design_chart(
                     birth_date=birth_date,
@@ -8402,9 +8405,13 @@ async def get_pattern_graph(user_id: str):
                     
                     logger.info(f"[PatternGraph] Loaded HD centers: {len(human_design_centers) if human_design_centers else 0}")
                     logger.info(f"[PatternGraph] Loaded HD gates: {len(human_design_gates) if human_design_gates else 0}")
+                else:
+                    logger.info(f"[PatternGraph] No HD chart returned")
+            else:
+                logger.info(f"[PatternGraph] Missing birth data for Human Design")
                     
         except Exception as hd_err:
-            logger.debug(f"[PatternGraph] Could not load Human Design: {hd_err}")
+            logger.info(f"[PatternGraph] Could not load Human Design: {hd_err}")
         
         # Aggregate pattern graph
         pattern_graph = aggregate_pattern_graph(
