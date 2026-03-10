@@ -8414,7 +8414,6 @@ async def get_pattern_graph(user_id: str):
             logger.debug(f"[PatternGraph] Could not load Human Design: {hd_err}")
         
         # Aggregate pattern graph
-        logger.info(f"[PatternGraph] Calling aggregation with HD centers: {len(human_design_centers) if human_design_centers else 0}, HD gates: {len(human_design_gates) if human_design_gates else 0}")
         pattern_graph = aggregate_pattern_graph(
             gene_keys_profile=gene_keys_profile,
             journal_entries=journal_entries,
