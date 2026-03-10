@@ -15,6 +15,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Import Human Design center mappings
+try:
+    from .human_design_centers import GATE_TO_CENTER, CENTER_THEMES
+except ImportError:
+    logger.warning("Could not import Human Design center mappings")
+    GATE_TO_CENTER = {}
+    CENTER_THEMES = {}
+
 
 # =============================================================================
 # THE 7 CORE PATTERN CATEGORIES
