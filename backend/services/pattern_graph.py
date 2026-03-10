@@ -358,6 +358,89 @@ def aggregate_journal_signals(
     return category_signals
 
 
+def aggregate_human_design_center_signals(
+    centers_profile: Optional[List[dict]] = None,
+    active_gates: Optional[List[int]] = None
+) -> Dict[str, List[MatchedSignal]]:
+    """Extract pattern signals from Human Design centers and gates.
+    
+    Args:
+        centers_profile: List of center interpretations from build_centers_profile()
+        active_gates: List of active gate numbers
+    
+    Returns:
+        Dict mapping category_id to list of matched signals
+    """
+    category_signals: Dict[str, List[MatchedSignal]] = {
+        cat["id"]: [] for cat in PATTERN_CATEGORIES
+    }
+    
+    if not centers_profile and not active_gates:
+        return category_signals
+    
+    # Map center themes to pattern categories
+    center_to_category = {
+        "Head": "mind_meaning",           # Mental pressure, questions
+        "Ajna": "mind_meaning",           # Thinking patterns, opinions
+        "Throat": "expression_action",    # Communication, manifestation
+        "G Center": "identity_direction", # Identity, direction, self
+        "Ego": "energy_vitality",         # Willpower, commitment, resources
+        "Solar Plexus": "emotional_landscape", # Emotions, feelings
+        "Sacral": "energy_vitality",      # Life force, work energy
+        "Spleen": "growth_transformation", # Instinct, survival, health
+        "Root": "energy_vitality"         # Pressure, drive, adrenaline
+    }
+    
+    # Process centers if available
+    if centers_profile:
+        for center in centers_profile:
+            center_name = center.get("center_name", "")
+            defined = center.get("defined", False)
+            gates_present = center.get("gates_present", [])
+            
+            # Map center to category
+            category_id = center_to_category.get(center_name)
+            if category_id and gates_present:
+                # Create signal for defined centers with active gates
+                state = "defined" if defined else "open"
+                signal: MatchedSignal = {
+                    "source": "human_design",
+                    "label": f"{center.get('display_name', center_name)} ({state})",
+                    "sphere_name": None,
+                    "detail": f"Gates: {', '.join(map(str, gates_present))}"
+                }
+                category_signals[category_id].append(signal)
+    
+    # Process individual gates if available
+    if active_gates and GATE_TO_CENTER:
+        # Group gates by center
+        center_gates = {}
+        for gate in active_gates:
+            center = GATE_TO_CENTER.get(gate)
+            if center:
+                if center not in center_gates:
+                    center_gates[center] = []
+                center_gates[center].append(gate)
+        
+        # Create signals for centers with multiple gates (indicates emphasis)
+        for center, gates in center_gates.items():
+            if len(gates) >= 2:  # Only signal if multiple gates in same center
+                category_id = center_to_category.get(center)
+                if category_id:
+                    signal: MatchedSignal = {
+                        "source": "human_design",
+                        "label": f"{center} emphasis",
+                        "sphere_name": None,
+                        "detail": f"Multiple gates: {', '.join(map(str, gates))}"
+                    }
+                    # Only add if not already present
+                    existing_labels = [s["label"] for s in category_signals[category_id]]
+                    if signal["label"] not in existing_labels:
+                        category_signals[category_id].append(signal)
+    
+    return category_signals
+
+
 def calculate_signal_strength(signals: List[MatchedSignal]) -> str:
     """Calculate signal strength based on number and diversity of signals.
     
