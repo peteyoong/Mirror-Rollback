@@ -407,3 +407,133 @@ def get_pearl_sequence(
 def get_available_gene_keys() -> list[int]:
     """Get list of Gene Key numbers that have interpretation data."""
     return list(GENE_KEYS.keys())
+
+
+# =============================================================================
+# GENE KEYS PROFILE - Unified access to all sequences
+# =============================================================================
+
+class SphereSummary(TypedDict):
+    """Compact sphere data for the all_spheres array."""
+    sphere_name: str
+    sequence: str
+    gene_key: int
+    line: int
+    shadow: str
+    gift: str
+    siddhi: str
+
+
+class GeneKeysProfile(TypedDict):
+    """Complete Gene Keys profile with all sequences."""
+    activation_sequence: ActivationSequenceResponse
+    venus_sequence: VenusSequenceResponse
+    pearl_sequence: PearlSequenceResponse
+    all_spheres: List[SphereSummary]
+
+
+def build_gene_keys_profile(
+    # Activation Sequence planets
+    personality_sun_gate: int,
+    personality_sun_line: int,
+    personality_earth_gate: int,
+    personality_earth_line: int,
+    design_sun_gate: int,
+    design_sun_line: int,
+    design_earth_gate: int,
+    design_earth_line: int,
+    # Venus Sequence planets
+    design_moon_gate: int,
+    design_moon_line: int,
+    personality_mercury_gate: int,
+    personality_mercury_line: int,
+    design_mercury_gate: int,
+    design_mercury_line: int,
+    design_venus_gate: int,
+    design_venus_line: int,
+    personality_mars_gate: int,
+    personality_mars_line: int,
+    # Pearl Sequence planets
+    design_mars_gate: int,
+    design_mars_line: int,
+    personality_jupiter_gate: int,
+    personality_jupiter_line: int,
+    design_jupiter_gate: int,
+    design_jupiter_line: int,
+) -> GeneKeysProfile:
+    """Build complete Gene Keys profile from all planetary data.
+    
+    This function builds all three sequences from a single set of planetary
+    data, avoiding multiple HD computations.
+    
+    Returns:
+        GeneKeysProfile with activation, venus, pearl sequences and flattened spheres
+    """
+    # Build Activation Sequence
+    activation = get_activation_sequence(
+        personality_sun_gate, personality_sun_line,
+        personality_earth_gate, personality_earth_line,
+        design_sun_gate, design_sun_line,
+        design_earth_gate, design_earth_line
+    )
+    
+    # Build Venus Sequence
+    venus = get_venus_sequence(
+        design_moon_gate, design_moon_line,
+        personality_mercury_gate, personality_mercury_line,
+        design_mercury_gate, design_mercury_line,
+        design_venus_gate, design_venus_line,
+        personality_mars_gate, personality_mars_line
+    )
+    
+    # Build Pearl Sequence (Note: Brand uses personality_sun, same as Life's Work)
+    pearl = get_pearl_sequence(
+        design_mars_gate, design_mars_line,
+        personality_jupiter_gate, personality_jupiter_line,
+        personality_sun_gate, personality_sun_line,  # Brand = Personality Sun
+        design_jupiter_gate, design_jupiter_line
+    )
+    
+    # Flatten all spheres with sequence attribution
+    all_spheres: List[SphereSummary] = []
+    
+    for sphere in activation["spheres"]:
+        all_spheres.append({
+            "sphere_name": sphere["sphere_name"],
+            "sequence": "Activation",
+            "gene_key": sphere["gene_key"],
+            "line": sphere["line"],
+            "shadow": sphere["shadow"],
+            "gift": sphere["gift"],
+            "siddhi": sphere["siddhi"]
+        })
+    
+    for sphere in venus["spheres"]:
+        all_spheres.append({
+            "sphere_name": sphere["sphere_name"],
+            "sequence": "Venus",
+            "gene_key": sphere["gene_key"],
+            "line": sphere["line"],
+            "shadow": sphere["shadow"],
+            "gift": sphere["gift"],
+            "siddhi": sphere["siddhi"]
+        })
+    
+    for sphere in pearl["spheres"]:
+        all_spheres.append({
+            "sphere_name": sphere["sphere_name"],
+            "sequence": "Pearl",
+            "gene_key": sphere["gene_key"],
+            "line": sphere["line"],
+            "shadow": sphere["shadow"],
+            "gift": sphere["gift"],
+            "siddhi": sphere["siddhi"]
+        })
+    
+    return {
+        "activation_sequence": activation,
+        "venus_sequence": venus,
+        "pearl_sequence": pearl,
+        "all_spheres": all_spheres
+    }
+
