@@ -116,40 +116,107 @@ export default function MirrorScreen() {
 
   // Handler for logout action sheet
   const handleUserPress = () => {
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['Cancel', 'Log out'],
-          destructiveButtonIndex: 1,
-          cancelButtonIndex: 0,
-          title: user?.name || 'Account',
-        },
-        async (buttonIndex) => {
-          if (buttonIndex === 1) {
-            await clearUser();
-            router.replace('/welcome');
-          }
-        }
-      );
-    } else {
-      // Android/Web fallback using Alert
-      Alert.alert(
-        user?.name || 'Account',
-        'What would you like to do?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Log out', 
-            style: 'destructive',
-            onPress: async () => {
-              await clearUser();
-              router.replace('/welcome');
-            }
-          },
-        ]
-      );
-    }
+    setShowSettingsModal(true);
   };
+
+  const handleLogout = async () => {
+    setShowSettingsModal(false);
+    await clearUser();
+    router.replace('/welcome');
+  };
+
+  const handleThemeChange = (mode: ThemeMode) => {
+    setThemeMode(mode);
+  };
+
+  // Settings Modal Component
+  const renderSettingsModal = () => (
+    <Modal
+      visible={showSettingsModal}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={() => setShowSettingsModal(false)}
+    >
+      <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.background }]}>
+        {/* Modal Header */}
+        <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+          <Text style={[styles.modalTitle, { color: theme.text }]}>Settings</Text>
+          <TouchableOpacity 
+            onPress={() => setShowSettingsModal(false)}
+            style={styles.closeButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={[styles.closeButtonText, { color: theme.text }]}>Done</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView style={styles.modalContent}>
+          {/* User Info Section */}
+          <View style={[styles.settingsSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.settingsSectionTitle, { color: theme.textTertiary }]}>ACCOUNT</Text>
+            <View style={styles.settingsRow}>
+              <Text style={[styles.settingsLabel, { color: theme.text }]}>Name</Text>
+              <Text style={[styles.settingsValue, { color: theme.textSecondary }]}>{user?.name || 'Unknown'}</Text>
+            </View>
+            <View style={[styles.settingsDivider, { backgroundColor: theme.border }]} />
+            <View style={styles.settingsRow}>
+              <Text style={[styles.settingsLabel, { color: theme.text }]}>Email</Text>
+              <Text style={[styles.settingsValue, { color: theme.textSecondary }]}>{user?.email || 'Unknown'}</Text>
+            </View>
+          </View>
+
+          {/* Theme Section */}
+          <View style={[styles.settingsSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.settingsSectionTitle, { color: theme.textTertiary }]}>APPEARANCE</Text>
+            <TouchableOpacity 
+              style={styles.settingsRow}
+              onPress={() => handleThemeChange('system')}
+            >
+              <Text style={[styles.settingsLabel, { color: theme.text }]}>System</Text>
+              {themeMode === 'system' && (
+                <Ionicons name="checkmark" size={20} color={theme.accent} />
+              )}
+            </TouchableOpacity>
+            <View style={[styles.settingsDivider, { backgroundColor: theme.border }]} />
+            <TouchableOpacity 
+              style={styles.settingsRow}
+              onPress={() => handleThemeChange('light')}
+            >
+              <Text style={[styles.settingsLabel, { color: theme.text }]}>Light</Text>
+              {themeMode === 'light' && (
+                <Ionicons name="checkmark" size={20} color={theme.accent} />
+              )}
+            </TouchableOpacity>
+            <View style={[styles.settingsDivider, { backgroundColor: theme.border }]} />
+            <TouchableOpacity 
+              style={styles.settingsRow}
+              onPress={() => handleThemeChange('dark')}
+            >
+              <Text style={[styles.settingsLabel, { color: theme.text }]}>Dark</Text>
+              {themeMode === 'dark' && (
+                <Ionicons name="checkmark" size={20} color={theme.accent} />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Logout Section */}
+          <View style={[styles.settingsSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <TouchableOpacity 
+              style={styles.settingsRow}
+              onPress={handleLogout}
+            >
+              <Text style={[styles.logoutText, { color: theme.error }]}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* App Info */}
+          <Text style={[styles.appVersion, { color: theme.textTertiary }]}>
+            Mirror v1.0.0
+          </Text>
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
+  );
 
   // Check for date change on focus/visibility
   useEffect(() => {
