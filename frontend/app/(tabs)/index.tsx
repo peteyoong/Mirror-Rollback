@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+// Removed Ionicons - using text-based alternatives for web compatibility
 import { useTheme, ThemeMode } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
@@ -174,7 +174,7 @@ export default function MirrorScreen() {
             >
               <Text style={[styles.settingsLabel, { color: theme.text }]}>System</Text>
               {themeMode === 'system' && (
-                <Ionicons name="checkmark" size={20} color={theme.accent} />
+                <Text style={[styles.checkmark, { color: theme.accent }]}>✓</Text>
               )}
             </TouchableOpacity>
             <View style={[styles.settingsDivider, { backgroundColor: theme.border }]} />
@@ -184,7 +184,7 @@ export default function MirrorScreen() {
             >
               <Text style={[styles.settingsLabel, { color: theme.text }]}>Light</Text>
               {themeMode === 'light' && (
-                <Ionicons name="checkmark" size={20} color={theme.accent} />
+                <Text style={[styles.checkmark, { color: theme.accent }]}>✓</Text>
               )}
             </TouchableOpacity>
             <View style={[styles.settingsDivider, { backgroundColor: theme.border }]} />
@@ -194,7 +194,7 @@ export default function MirrorScreen() {
             >
               <Text style={[styles.settingsLabel, { color: theme.text }]}>Dark</Text>
               {themeMode === 'dark' && (
-                <Ionicons name="checkmark" size={20} color={theme.accent} />
+                <Text style={[styles.checkmark, { color: theme.accent }]}>✓</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -369,7 +369,7 @@ export default function MirrorScreen() {
           <Text style={[styles.userName, { color: theme.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
             {user?.name || 'Account'}
           </Text>
-          <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
+          <Text style={[styles.chevron, { color: theme.textTertiary }]}>›</Text>
         </TouchableOpacity>
       </View>
       
