@@ -24,7 +24,7 @@ interface SphereData {
   remember: string;
 }
 
-interface ActivationSequence {
+interface SequenceData {
   sequence_name: string;
   spheres: SphereData[];
 }
@@ -35,25 +35,33 @@ interface Props {
 
 export default function GeneKeysView({ userId }: Props) {
   const { theme } = useTheme();
-  const [activationSequence, setActivationSequence] = useState<ActivationSequence | null>(null);
+  const [activationSequence, setActivationSequence] = useState<SequenceData | null>(null);
+  const [venusSequence, setVenusSequence] = useState<SequenceData | null>(null);
   const [selectedSphere, setSelectedSphere] = useState<SphereData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadActivationSequence();
+    loadSequences();
   }, [userId]);
 
-  const loadActivationSequence = async () => {
+  const loadSequences = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await api.get(`/gene-keys/activation-sequence/${userId}`);
-      setActivationSequence(response.data);
-      // Default to Life's Work (first sphere)
-      if (response.data.spheres?.length > 0) {
-        setSelectedSphere(response.data.spheres[0]);
+      // Load both sequences in parallel
+      const [activationRes, venusRes] = await Promise.all([
+        api.get(`/gene-keys/activation-sequence/${userId}`),
+        api.get(`/gene-keys/venus-sequence/${userId}`)
+      ]);
+      
+      setActivationSequence(activationRes.data);
+      setVenusSequence(venusRes.data);
+      
+      // Default to Life's Work (first sphere of Activation)
+      if (activationRes.data.spheres?.length > 0) {
+        setSelectedSphere(activationRes.data.spheres[0]);
       }
     } catch (err: any) {
       console.error('Gene Keys fetch error:', err);
@@ -85,8 +93,7 @@ export default function GeneKeysView({ userId }: Props) {
     );
   }
 
-  const renderSphereCard = (sphere: SphereData, index: number) => {
-    const isSelected = selectedSphere?.sphere_name === sphere.sphere_name;
+  const renderSphereCard = (sphere: SphereData, isSelected: boolean) => {
     return (
       <TouchableOpacity
         key={sphere.sphere_name}
@@ -119,29 +126,42 @@ export default function GeneKeysView({ userId }: Props) {
     );
   };
 
+  const renderSequenceSection = (sequence: SequenceData, description: string) => (
+    <View style={styles.sequenceSection}>
+      <Text style={[styles.sequenceTitle, { color: theme.textTertiary }]}>
+        {sequence.sequence_name.toUpperCase()}
+      </Text>
+      <Text style={[styles.sequenceSubtitle, { color: theme.textSecondary }]}>
+        {description}
+      </Text>
+      
+      <View style={styles.sphereGrid}>
+        {sequence.spheres.map((sphere) => 
+          renderSphereCard(sphere, selectedSphere?.sphere_name === sphere.sphere_name)
+        )}
+      </View>
+    </View>
+  );
+
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
     >
-      {/* Section A: Activation Sequence Overview */}
-      <View style={styles.sequenceSection}>
-        <Text style={[styles.sequenceTitle, { color: theme.textTertiary }]}>
-          ACTIVATION SEQUENCE
-        </Text>
-        <Text style={[styles.sequenceSubtitle, { color: theme.textSecondary }]}>
-          Your unique path of self-discovery
-        </Text>
-        
-        <View style={styles.sphereGrid}>
-          {activationSequence.spheres.map((sphere, index) => 
-            renderSphereCard(sphere, index)
-          )}
-        </View>
-      </View>
+      {/* Activation Sequence */}
+      {activationSequence && renderSequenceSection(
+        activationSequence,
+        "Your path of self-discovery"
+      )}
 
-      {/* Section B: Selected Sphere Detail */}
+      {/* Venus Sequence */}
+      {venusSequence && renderSequenceSection(
+        venusSequence,
+        "Your path through relationships"
+      )}
+
+      {/* Selected Sphere Detail */}
       {selectedSphere && (
         <View style={styles.detailSection}>
           {/* Header with Gene Key number */}
@@ -311,6 +331,7 @@ const styles = StyleSheet.create({
   // Detail Section
   detailSection: {
     marginBottom: 20,
+    marginTop: 8,
   },
   detailHeader: {
     borderRadius: 12,
