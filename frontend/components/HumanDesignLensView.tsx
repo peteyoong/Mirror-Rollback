@@ -270,9 +270,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     try {
       // Overview uses fast deterministic endpoint (no LLM)
       // Today and Deep Dive use their existing LLM-generated endpoints
+      // Gene Keys tab also uses deep-dive to get gene_keys data
       const endpoint = tab === 'today' 
         ? `/human-design/today/${userId}`
-        : tab === 'deep_dive'
+        : (tab === 'deep_dive' || tab === 'gene_keys')
         ? `/human-design/deep-dive/${userId}`
         : `/human-design/mechanics/${userId}`;  // Fast endpoint for Overview
 
