@@ -22,6 +22,7 @@ import {
 } from '../utils/humanDesignContext';
 import GeneKeysView from './GeneKeysView';
 import CentersView from './CentersView';
+import DefinedGatesView from './DefinedGatesView';
 
 // Build info for debugging
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
