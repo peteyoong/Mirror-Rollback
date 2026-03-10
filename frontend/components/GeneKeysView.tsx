@@ -33,6 +33,22 @@ interface Props {
   userId: string;
 }
 
+// Sequence descriptions for clarity
+const SEQUENCE_INFO = {
+  "Activation Sequence": {
+    description: "Self-discovery & core stability",
+    intro: "These four spheres reveal themes in how you develop as an individual."
+  },
+  "Venus Sequence": {
+    description: "Relationships & emotional patterns",
+    intro: "These five spheres reflect patterns in how you connect with others."
+  },
+  "Pearl Sequence": {
+    description: "Vocation, contribution & prosperity",
+    intro: "These four spheres highlight themes in work and material life."
+  }
+};
+
 export default function GeneKeysView({ userId }: Props) {
   const { theme } = useTheme();
   const [activationSequence, setActivationSequence] = useState<SequenceData | null>(null);
@@ -51,7 +67,6 @@ export default function GeneKeysView({ userId }: Props) {
     setError(null);
 
     try {
-      // Load all three sequences in parallel
       const [activationRes, venusRes, pearlRes] = await Promise.all([
         api.get(`/gene-keys/activation-sequence/${userId}`),
         api.get(`/gene-keys/venus-sequence/${userId}`),
@@ -62,7 +77,6 @@ export default function GeneKeysView({ userId }: Props) {
       setVenusSequence(venusRes.data);
       setPearlSequence(pearlRes.data);
       
-      // Default to Life's Work (first sphere of Activation)
       if (activationRes.data.spheres?.length > 0) {
         setSelectedSphere(activationRes.data.spheres[0]);
       }
@@ -103,14 +117,18 @@ export default function GeneKeysView({ userId }: Props) {
         style={[
           styles.sphereCard,
           { 
-            backgroundColor: isSelected ? theme.accent + '20' : theme.surface,
-            borderColor: isSelected ? theme.accent : theme.border 
+            backgroundColor: isSelected ? theme.accent + '15' : theme.surface,
+            borderColor: isSelected ? theme.accent : theme.border,
+            borderWidth: isSelected ? 2 : 1,
           }
         ]}
         onPress={() => setSelectedSphere(sphere)}
         activeOpacity={0.7}
       >
-        <Text style={[styles.sphereLabel, { color: theme.textTertiary }]}>
+        <Text style={[
+          styles.sphereLabel, 
+          { color: isSelected ? theme.accent : theme.textTertiary }
+        ]}>
           {sphere.sphere_name.toUpperCase()}
         </Text>
         <Text style={[styles.sphereGeneKey, { color: theme.text }]}>
@@ -129,22 +147,45 @@ export default function GeneKeysView({ userId }: Props) {
     );
   };
 
-  const renderSequenceSection = (sequence: SequenceData, description: string) => (
-    <View style={styles.sequenceSection}>
-      <Text style={[styles.sequenceTitle, { color: theme.textTertiary }]}>
-        {sequence.sequence_name.toUpperCase()}
-      </Text>
-      <Text style={[styles.sequenceSubtitle, { color: theme.textSecondary }]}>
-        {description}
-      </Text>
-      
-      <View style={styles.sphereGrid}>
-        {sequence.spheres.map((sphere) => 
-          renderSphereCard(sphere, selectedSphere?.sphere_name === sphere.sphere_name)
-        )}
+  const renderSequenceSection = (sequence: SequenceData) => {
+    const info = SEQUENCE_INFO[sequence.sequence_name as keyof typeof SEQUENCE_INFO] || {
+      description: "",
+      intro: ""
+    };
+    
+    return (
+      <View style={styles.sequenceSection}>
+        <View style={styles.sequenceHeader}>
+          <Text style={[styles.sequenceTitle, { color: theme.text }]}>
+            {sequence.sequence_name}
+          </Text>
+          <Text style={[styles.sequenceDescription, { color: theme.textTertiary }]}>
+            {info.description}
+          </Text>
+        </View>
+        
+        <View style={styles.sphereGrid}>
+          {sequence.spheres.map((sphere) => 
+            renderSphereCard(sphere, selectedSphere?.sphere_name === sphere.sphere_name)
+          )}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
+
+  // Helper to render practical tips with proper formatting
+  const renderPracticalTips = (tips: string) => {
+    const lines = tips.split('\n').filter(line => line.trim());
+    return (
+      <View style={styles.tipsContainer}>
+        {lines.map((line, index) => (
+          <Text key={index} style={[styles.tipLine, { color: theme.textSecondary }]}>
+            {line}
+          </Text>
+        ))}
+      </View>
+    );
+  };
 
   return (
     <ScrollView
@@ -152,55 +193,38 @@ export default function GeneKeysView({ userId }: Props) {
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
     >
-      {/* Activation Sequence */}
-      {activationSequence && renderSequenceSection(
-        activationSequence,
-        "Your path of self-discovery"
-      )}
-
-      {/* Venus Sequence */}
-      {venusSequence && renderSequenceSection(
-        venusSequence,
-        "Your path through relationships"
-      )}
-
-      {/* Pearl Sequence */}
-      {pearlSequence && renderSequenceSection(
-        pearlSequence,
-        "Your path to prosperity"
-      )}
+      {/* Sequences Overview */}
+      {activationSequence && renderSequenceSection(activationSequence)}
+      {venusSequence && renderSequenceSection(venusSequence)}
+      {pearlSequence && renderSequenceSection(pearlSequence)}
 
       {/* Selected Sphere Detail */}
       {selectedSphere && (
         <View style={styles.detailSection}>
-          {/* Header with Gene Key number */}
+          {/* Divider */}
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+          
+          {/* Clean Title Block */}
           <View style={[styles.detailHeader, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[styles.detailSphereLabel, { color: theme.accent }]}>
               {selectedSphere.sphere_name}
             </Text>
-            <Text style={[styles.detailGeneKeyLabel, { color: theme.textTertiary }]}>GENE KEY</Text>
             <Text style={[styles.detailGeneKeyTitle, { color: theme.text }]}>
-              {selectedSphere.gene_key}.{selectedSphere.line}
+              Gene Key {selectedSphere.gene_key}.{selectedSphere.line}
             </Text>
-          </View>
-
-          {/* Shadow / Gift / Siddhi Spectrum */}
-          <View style={[styles.spectrumCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <View style={styles.spectrumRow}>
-              <View style={styles.spectrumItem}>
-                <Text style={[styles.spectrumLabel, { color: theme.textTertiary }]}>SHADOW</Text>
-                <Text style={[styles.spectrumValue, { color: theme.text }]}>{selectedSphere.shadow}</Text>
-              </View>
-              <Text style={[styles.spectrumArrow, { color: theme.textTertiary }]}>→</Text>
-              <View style={styles.spectrumItem}>
-                <Text style={[styles.spectrumLabel, { color: theme.accent }]}>GIFT</Text>
-                <Text style={[styles.spectrumValue, { color: theme.text }]}>{selectedSphere.gift}</Text>
-              </View>
-              <Text style={[styles.spectrumArrow, { color: theme.textTertiary }]}>→</Text>
-              <View style={styles.spectrumItem}>
-                <Text style={[styles.spectrumLabel, { color: theme.textTertiary }]}>SIDDHI</Text>
-                <Text style={[styles.spectrumValue, { color: theme.text }]}>{selectedSphere.siddhi}</Text>
-              </View>
+            {/* Spectrum row */}
+            <View style={styles.spectrumInline}>
+              <Text style={[styles.spectrumText, { color: theme.textTertiary }]}>
+                {selectedSphere.shadow}
+              </Text>
+              <Text style={[styles.spectrumArrowSmall, { color: theme.textTertiary }]}> → </Text>
+              <Text style={[styles.spectrumText, { color: theme.accent }]}>
+                {selectedSphere.gift}
+              </Text>
+              <Text style={[styles.spectrumArrowSmall, { color: theme.textTertiary }]}> → </Text>
+              <Text style={[styles.spectrumText, { color: theme.textTertiary }]}>
+                {selectedSphere.siddhi}
+              </Text>
             </View>
           </View>
 
@@ -231,14 +255,12 @@ export default function GeneKeysView({ userId }: Props) {
           {/* Practical Tips */}
           <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>Practical Tips</Text>
-            <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>
-              {selectedSphere.practical_tips}
-            </Text>
+            {renderPracticalTips(selectedSphere.practical_tips)}
           </View>
 
           {/* Remember */}
           <View style={[styles.rememberCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
-            <Text style={[styles.rememberLabel, { color: theme.textTertiary }]}>REMEMBER</Text>
+            <Text style={[styles.rememberLabel, { color: theme.textTertiary }]}>Remember</Text>
             <Text style={[styles.rememberText, { color: theme.text }]}>
               {selectedSphere.remember}
             </Text>
@@ -248,7 +270,7 @@ export default function GeneKeysView({ userId }: Props) {
 
       {/* Footer */}
       <Text style={[styles.footer, { color: theme.textTertiary }]}>
-        Gene Keys is one lens for understanding patterns, not a definition of who you are.
+        Gene Keys offers one lens for self-reflection—a starting point, not a final word.
       </Text>
     </ScrollView>
   );
@@ -259,7 +281,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    padding: 20,
+    padding: 16,
     paddingBottom: 40,
   },
   loadingContainer: {
@@ -282,157 +304,151 @@ const styles = StyleSheet.create({
   
   // Sequence Section
   sequenceSection: {
-    marginBottom: 24,
+    marginBottom: 20,
+  },
+  sequenceHeader: {
+    marginBottom: 12,
   },
   sequenceTitle: {
-    fontSize: 11,
+    fontSize: 15,
     fontWeight: '600',
-    letterSpacing: 1.5,
-    textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  sequenceSubtitle: {
-    fontSize: 13,
-    textAlign: 'center',
-    marginBottom: 16,
+  sequenceDescription: {
+    fontSize: 12,
+    fontStyle: 'italic',
   },
   sphereGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
-    justifyContent: 'space-between',
+    gap: 8,
   },
   sphereCard: {
     width: '48%',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1.5,
+    borderRadius: 10,
+    padding: 10,
+    minHeight: 80,
   },
   sphereLabel: {
     fontSize: 9,
-    fontWeight: '600',
-    letterSpacing: 1,
+    fontWeight: '700',
+    letterSpacing: 0.8,
     marginBottom: 4,
   },
   sphereGeneKey: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '600',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   sphereSpectrum: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   sphereShadow: {
-    fontSize: 11,
+    fontSize: 10,
     flex: 1,
   },
   sphereArrow: {
-    fontSize: 10,
+    fontSize: 9,
+    opacity: 0.6,
   },
   sphereGift: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '500',
     flex: 1,
   },
   
+  // Divider
+  divider: {
+    height: 1,
+    marginVertical: 20,
+    opacity: 0.5,
+  },
+  
   // Detail Section
   detailSection: {
-    marginBottom: 20,
-    marginTop: 8,
+    marginBottom: 16,
   },
   detailHeader: {
     borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 14,
+    borderWidth: 1,
     alignItems: 'center',
   },
   detailSphereLabel: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     letterSpacing: 0.5,
-    marginBottom: 8,
-  },
-  detailGeneKeyLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 1.5,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   detailGeneKeyTitle: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '600',
+    marginBottom: 8,
   },
-  spectrumCard: {
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  spectrumRow: {
+  spectrumInline: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
-  spectrumItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  spectrumLabel: {
-    fontSize: 9,
-    fontWeight: '600',
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  spectrumValue: {
-    fontSize: 13,
+  spectrumText: {
+    fontSize: 12,
     fontWeight: '500',
-    textAlign: 'center',
   },
-  spectrumArrow: {
-    fontSize: 16,
-    paddingHorizontal: 4,
+  spectrumArrowSmall: {
+    fontSize: 11,
+    opacity: 0.6,
   },
   sectionCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
   },
   sectionTitle: {
     fontSize: 11,
     fontWeight: '600',
-    letterSpacing: 0.5,
-    marginBottom: 10,
+    letterSpacing: 0.3,
+    marginBottom: 8,
+    textTransform: 'uppercase',
   },
   sectionBody: {
     fontSize: 14,
-    lineHeight: 22,
+    lineHeight: 21,
+  },
+  tipsContainer: {
+    gap: 6,
+  },
+  tipLine: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   rememberCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 16,
     borderLeftWidth: 3,
-    backgroundColor: 'rgba(255,255,255,0.02)',
   },
   rememberLabel: {
     fontSize: 10,
     fontWeight: '600',
-    letterSpacing: 1,
-    marginBottom: 8,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    textTransform: 'uppercase',
   },
   rememberText: {
     fontSize: 14,
-    lineHeight: 22,
+    lineHeight: 21,
     fontStyle: 'italic',
   },
   footer: {
-    fontSize: 12,
+    fontSize: 11,
     textAlign: 'center',
     fontStyle: 'italic',
     opacity: 0.7,
+    marginTop: 8,
   },
 });
