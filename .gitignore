@@ -234,3 +234,7 @@ model.patch
 *.env
 *.env.*
 .emergent/summary.txt
+-e 
+# Environment files
+*.env
+*.env.*
