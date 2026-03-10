@@ -595,7 +595,14 @@ export default function LensDetail() {
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.surface }]}>
         <TouchableOpacity 
-          onPress={() => router.back()} 
+          onPress={() => {
+            // Try to go back, but if no history, navigate to lenses tab
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(tabs)/lenses');
+            }
+          }} 
           style={[styles.closeButton, { backgroundColor: theme.surfaceLight }]}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
