@@ -219,7 +219,7 @@ interface Props {
   onOpenChat: () => void;
 }
 
-type TabType = 'summary' | 'today' | 'deep_dive';
+type TabType = 'summary' | 'today' | 'deep_dive' | 'gene_keys';
 
 export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Theme support
