@@ -4609,6 +4609,117 @@ async def mirror_chat(request: MirrorChatRequest):
                     content = entry.get('content', '')[:300]  # Truncate long entries
                     context_parts.append(f"[{date_str}] {content}")
         
+        # ===== GENE KEYS PATTERN MATCHING =====
+        # Load Gene Keys profile and match against user's message for subtle context awareness
+        gene_keys_context = ""
+        try:
+            from services.gene_keys_matcher import (
+                match_gene_keys_to_message,
+                build_gene_keys_chat_context,
+                log_gene_keys_match_debug
+            )
+            
+            # Only run matching for generalist mode or human_design lens
+            if request.lens is None or request.lens == "human_design":
+                # Try to load Gene Keys profile (reuse the profile endpoint logic)
+                gk_profile = None
+                try:
+                    birth_date = user.get("birth_date")
+                    birth_time = user.get("birth_time")
+                    gk_timezone = user.get("timezone", "UTC")
+                    birth_location = user.get("birth_location", {})
+                    
+                    if isinstance(birth_location, dict):
+                        gk_lat = birth_location.get("latitude")
+                        gk_lon = birth_location.get("longitude")
+                    else:
+                        gk_lat = user.get("latitude") or user.get("birth_lat")
+                        gk_lon = user.get("longitude") or user.get("birth_lon")
+                    
+                    if all([birth_date, birth_time, gk_lat, gk_lon]):
+                        from calculations.timezone_utils import resolve_birth_utc_with_debug
+                        from calculations.human_design import get_human_design_chart
+                        from services.gene_keys_interpreter import build_gene_keys_profile
+                        
+                        if hasattr(birth_date, 'strftime'):
+                            gk_birth_date_str = birth_date.strftime("%Y-%m-%d")
+                        else:
+                            gk_birth_date_str = str(birth_date).split(' ')[0]
+                        
+                        gk_result = resolve_birth_utc_with_debug(gk_birth_date_str, birth_time, gk_timezone)
+                        gk_birth_utc = gk_result.get('birth_utc')
+                        
+                        if gk_birth_utc:
+                            # Compute HD chart for Gene Keys
+                            gk_hd = get_human_design_chart(
+                                birth_datetime=gk_birth_utc,
+                                lat=float(gk_lat),
+                                lon=float(gk_lon)
+                            )
+                            
+                            personality = gk_hd.get('personality', {})
+                            design = gk_hd.get('design', {})
+                            
+                            def gk_extract(planet_data):
+                                gate_data = planet_data.get('gate', {})
+                                if isinstance(gate_data, dict):
+                                    return gate_data.get('gate', 1), gate_data.get('line', 1)
+                                return 1, 1
+                            
+                            # Build profile
+                            gk_profile = build_gene_keys_profile(
+                                personality_sun_gate=gk_extract(personality.get('Sun', {}))[0],
+                                personality_sun_line=gk_extract(personality.get('Sun', {}))[1],
+                                personality_earth_gate=gk_extract(personality.get('Earth', {}))[0],
+                                personality_earth_line=gk_extract(personality.get('Earth', {}))[1],
+                                design_sun_gate=gk_extract(design.get('Sun', {}))[0],
+                                design_sun_line=gk_extract(design.get('Sun', {}))[1],
+                                design_earth_gate=gk_extract(design.get('Earth', {}))[0],
+                                design_earth_line=gk_extract(design.get('Earth', {}))[1],
+                                design_moon_gate=gk_extract(design.get('Moon', {}))[0],
+                                design_moon_line=gk_extract(design.get('Moon', {}))[1],
+                                personality_mercury_gate=gk_extract(personality.get('Mercury', {}))[0],
+                                personality_mercury_line=gk_extract(personality.get('Mercury', {}))[1],
+                                design_mercury_gate=gk_extract(design.get('Mercury', {}))[0],
+                                design_mercury_line=gk_extract(design.get('Mercury', {}))[1],
+                                design_venus_gate=gk_extract(design.get('Venus', {}))[0],
+                                design_venus_line=gk_extract(design.get('Venus', {}))[1],
+                                personality_mars_gate=gk_extract(personality.get('Mars', {}))[0],
+                                personality_mars_line=gk_extract(personality.get('Mars', {}))[1],
+                                design_mars_gate=gk_extract(design.get('Mars', {}))[0],
+                                design_mars_line=gk_extract(design.get('Mars', {}))[1],
+                                personality_jupiter_gate=gk_extract(personality.get('Jupiter', {}))[0],
+                                personality_jupiter_line=gk_extract(personality.get('Jupiter', {}))[1],
+                                design_jupiter_gate=gk_extract(design.get('Jupiter', {}))[0],
+                                design_jupiter_line=gk_extract(design.get('Jupiter', {}))[1],
+                            )
+                except Exception as gk_load_err:
+                    logger.debug(f"[GK_MATCH] Could not load Gene Keys profile: {gk_load_err}")
+                
+                # Run matching if we have a profile
+                if gk_profile and gk_profile.get('all_spheres'):
+                    match_result = match_gene_keys_to_message(
+                        user_message=request.message,
+                        all_spheres=gk_profile['all_spheres'],
+                        min_keyword_matches=1,
+                        max_results=2
+                    )
+                    
+                    # Log debug info (dev-only)
+                    log_gene_keys_match_debug(
+                        user_id=request.user_id,
+                        message_preview=request.message,
+                        match_result=match_result
+                    )
+                    
+                    # Build context if match found
+                    if match_result['has_match']:
+                        gene_keys_context = build_gene_keys_chat_context(match_result)
+                        logger.info(f"[GK_MATCH] Added Gene Keys context for user {request.user_id}")
+        
+        except Exception as gk_err:
+            logger.debug(f"[GK_MATCH] Gene Keys matching skipped: {gk_err}")
+        
         # Build system prompt
         system_prompt = MIRROR_SYSTEM_PROMPT
         
