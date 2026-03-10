@@ -153,13 +153,19 @@ class PatternGraphTester:
                                 "category": category["category_name"]
                             })
                             
-                            # Check format: should have (defined) or (open) in label
-                            if not ("(defined)" in label or "(open)" in label):
-                                format_issues.append(f"Missing defined/open status in: {label}")
-                            
-                            # Check detail: should have "Gates:" format
-                            if detail and "Gates:" not in detail:
-                                format_issues.append(f"Missing 'Gates:' format in detail: {detail}")
+                            # Check format for center signals (not emphasis signals)
+                            if "emphasis" not in label:
+                                # Should have (defined) or (open) in label
+                                if not ("(defined)" in label or "(open)" in label):
+                                    format_issues.append(f"Missing defined/open status in: {label}")
+                                
+                                # Check detail: should have "Gates:" format
+                                if detail and "Gates:" not in detail:
+                                    format_issues.append(f"Missing 'Gates:' format in detail: {detail}")
+                            else:
+                                # Emphasis signals should have "Multiple gates:" format
+                                if detail and "Multiple gates:" not in detail:
+                                    format_issues.append(f"Missing 'Multiple gates:' format in emphasis detail: {detail}")
             
             if not center_signals_found:
                 self.log_test("Center Signal Format", False,
