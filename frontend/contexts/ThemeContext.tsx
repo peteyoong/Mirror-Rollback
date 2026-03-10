@@ -186,42 +186,56 @@ export const useTheme = () => useContext(ThemeContext);
 
 const THEME_STORAGE_KEY = '@mirror_theme_mode';
 
+// PRODUCTION DEFAULT: Set to 'dark' to ensure dark mode is the default
+// for new users and when system detection fails on mobile web.
+// Users can always change this via Settings modal.
+const PRODUCTION_DEFAULT_MODE: ThemeMode = 'dark';
+
 // DEV OVERRIDE: Set to 'dark' or 'light' to force theme for testing
 // Set to null to use normal system/stored preference (PRODUCTION MODE)
 const DEV_THEME_OVERRIDE: ThemeMode | null = null;
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const systemColorScheme = useColorScheme();
-  const [themeMode, setThemeModeState] = useState<ThemeMode>('system');
+  // Start with production default (dark) to prevent flash of light theme
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(PRODUCTION_DEFAULT_MODE);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load saved theme preference
+  // Load saved theme preference on mount
   useEffect(() => {
     const loadTheme = async () => {
       try {
         const saved = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        console.log(`[Theme] Loaded from storage: ${saved}`);
         if (saved && ['system', 'light', 'dark'].includes(saved)) {
           setThemeModeState(saved as ThemeMode);
+        } else {
+          // No saved preference - keep production default (dark)
+          // and save it for next time
+          await AsyncStorage.setItem(THEME_STORAGE_KEY, PRODUCTION_DEFAULT_MODE);
+          console.log(`[Theme] No saved preference, defaulting to: ${PRODUCTION_DEFAULT_MODE}`);
         }
       } catch (e) {
-        console.log('[Theme] Failed to load saved theme');
+        console.log('[Theme] Failed to load saved theme, using default');
       }
       setIsLoaded(true);
     };
     loadTheme();
   }, []);
 
-  // Save theme preference
+  // Save theme preference when changed
   const setThemeMode = async (mode: ThemeMode) => {
+    console.log(`[Theme] User setting theme to: ${mode}`);
     setThemeModeState(mode);
     try {
       await AsyncStorage.setItem(THEME_STORAGE_KEY, mode);
+      console.log(`[Theme] Saved to storage: ${mode}`);
     } catch (e) {
       console.log('[Theme] Failed to save theme');
     }
   };
 
-  // Determine actual theme
+  // Determine actual theme to apply
   const effectiveMode = DEV_THEME_OVERRIDE || themeMode;
   
   let isDark = false;
@@ -232,22 +246,34 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   } else {
     // System mode - check system preference
     // useColorScheme returns 'dark', 'light', or null
-    // On mobile web, null is common - default to DARK theme for better UX
-    // (dark mode is the primary brand aesthetic for Mirror)
-    isDark = systemColorScheme === 'dark' || systemColorScheme === null;
+    // On mobile web, this can be unreliable, but we respect user's explicit choice of "System"
+    if (systemColorScheme === 'dark') {
+      isDark = true;
+    } else if (systemColorScheme === 'light') {
+      isDark = false;
+    } else {
+      // null/undefined - system couldn't detect, fall back to dark
+      isDark = true;
+    }
   }
 
   const theme = isDark ? DarkTheme : LightTheme;
 
-  // Log for debugging
+  // Enhanced logging for debugging
   useEffect(() => {
-    if (isLoaded) {
-      console.log(`[Theme] Mode: ${effectiveMode}, System: ${systemColorScheme}, Active: ${isDark ? 'DARK' : 'LIGHT'}`);
-      if (DEV_THEME_OVERRIDE) {
-        console.log(`[Theme] DEV OVERRIDE ACTIVE: ${DEV_THEME_OVERRIDE}`);
-      }
+    console.log(`[Theme] ========================================`);
+    console.log(`[Theme] isLoaded: ${isLoaded}`);
+    console.log(`[Theme] themeMode (stored): ${themeMode}`);
+    console.log(`[Theme] effectiveMode: ${effectiveMode}`);
+    console.log(`[Theme] systemColorScheme: ${systemColorScheme}`);
+    console.log(`[Theme] Platform: ${Platform.OS}`);
+    console.log(`[Theme] Result isDark: ${isDark}`);
+    console.log(`[Theme] Active theme: ${isDark ? 'DARK' : 'LIGHT'}`);
+    if (DEV_THEME_OVERRIDE) {
+      console.log(`[Theme] DEV OVERRIDE ACTIVE: ${DEV_THEME_OVERRIDE}`);
     }
-  }, [effectiveMode, systemColorScheme, isDark, isLoaded]);
+    console.log(`[Theme] ========================================`);
+  }, [effectiveMode, systemColorScheme, isDark, isLoaded, themeMode]);
 
   return (
     <ThemeContext.Provider value={{ theme, themeMode, setThemeMode, isDark }}>
