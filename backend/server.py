@@ -8377,10 +8377,7 @@ async def get_pattern_graph(user_id: str):
         try:
             from services.human_design_centers import build_centers_profile
             
-            logger.info(f"[PatternGraph] HD loading - birth_date: {birth_date is not None}, birth_time: {birth_time is not None}, lat: {lat is not None}, lon: {lon is not None}")
-            
             if birth_date and birth_time and lat is not None and lon is not None:
-                logger.info(f"[PatternGraph] Attempting HD chart generation...")
                 # Combine birth_date and birth_time into datetime
                 # Convert birth_date to string if it's a datetime object
                 birth_date_str = birth_date.strftime("%Y-%m-%d") if hasattr(birth_date, 'strftime') else str(birth_date)
@@ -8392,12 +8389,6 @@ async def get_pattern_graph(user_id: str):
                 )
                 birth_utc = birth_result.get("birth_utc")
                 
-                logger.info(f"[PatternGraph] Birth UTC resolved: {birth_utc is not None}")
-                if not birth_utc:
-                    logger.info(f"[PatternGraph] Birth result keys: {list(birth_result.keys()) if birth_result else 'None'}")
-                    if birth_result:
-                        logger.info(f"[PatternGraph] Birth result: {birth_result}")
-                
                 if birth_utc:
                     # Get Human Design chart
                     hd_chart = get_human_design_chart(
@@ -8406,15 +8397,11 @@ async def get_pattern_graph(user_id: str):
                         lon=lon
                     )
                 
-                    logger.info(f"[PatternGraph] HD chart generated: {hd_chart is not None}")
-                
                     if hd_chart:
                         # Get centers profile
                         defined_centers = hd_chart.get("defined_centers", [])
                         undefined_centers = hd_chart.get("undefined_centers", [])
                         active_gates = hd_chart.get("active_gates", [])
-                        
-                        logger.info(f"[PatternGraph] HD chart data - defined: {len(defined_centers)}, undefined: {len(undefined_centers)}, gates: {len(active_gates)}")
                         
                         human_design_centers = build_centers_profile(
                             defined_centers=defined_centers,
@@ -8423,12 +8410,8 @@ async def get_pattern_graph(user_id: str):
                         )
                         human_design_gates = active_gates
                         
-                        logger.info(f"[PatternGraph] Final HD data - centers: {len(human_design_centers) if human_design_centers else 0}, gates: {len(human_design_gates) if human_design_gates else 0}")
-            else:
-                logger.info(f"[PatternGraph] Missing birth data for HD")
-                        
         except Exception as hd_err:
-            logger.info(f"[PatternGraph] HD loading error: {hd_err}")
+            logger.debug(f"[PatternGraph] Could not load Human Design: {hd_err}")
         
         # Aggregate pattern graph
         logger.info(f"[PatternGraph] Calling aggregation with HD centers: {len(human_design_centers) if human_design_centers else 0}, HD gates: {len(human_design_gates) if human_design_gates else 0}")
