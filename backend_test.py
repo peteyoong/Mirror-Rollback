@@ -1,285 +1,411 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Project Mirror
-Tests Human Design Defined Gates endpoint implementation
+Backend API Testing Suite for Pattern Graph Endpoint
+Tests the GET /api/pattern-graph/{user_id} endpoint implementation.
 """
 
 import requests
 import json
-import time
-from typing import Dict, List, Any
+import sys
+from datetime import datetime
+from typing import Dict, Any, List
 
 # Configuration
 BASE_URL = "https://pattern-signals-4.preview.emergentagent.com/api"
 TEST_USER_ID = "697f0c6abf35c0528ff06954"
 
-class TestResults:
-    def __init__(self):
-        self.passed = 0
-        self.failed = 0
-        self.errors = []
-        
-    def add_pass(self, test_name: str):
-        self.passed += 1
-        print(f"✅ {test_name}")
-        
-    def add_fail(self, test_name: str, error: str):
-        self.failed += 1
-        self.errors.append(f"{test_name}: {error}")
-        print(f"❌ {test_name}: {error}")
-        
-    def summary(self):
-        total = self.passed + self.failed
-        print(f"\n📊 TEST SUMMARY:")
-        print(f"Total Tests: {total}")
-        print(f"Passed: {self.passed}")
-        print(f"Failed: {self.failed}")
-        if self.errors:
-            print(f"\n🔍 FAILURES:")
-            for error in self.errors:
-                print(f"  - {error}")
+# Expected 7 core categories
+EXPECTED_CATEGORIES = [
+    "Energy & Vitality",
+    "Emotional Landscape", 
+    "Identity & Direction",
+    "Mind & Meaning",
+    "Expression & Action",
+    "Relationships & Boundaries",
+    "Growth & Transformation"
+]
 
-def test_human_design_gates_endpoint():
-    """Test the Human Design Defined Gates endpoint implementation"""
-    results = TestResults()
-    
-    print("🧪 TESTING HUMAN DESIGN DEFINED GATES ENDPOINT")
-    print("=" * 60)
-    
-    # Test 1: Basic Gates Endpoint Test
-    print("\n1. BASIC GATES ENDPOINT TEST")
-    try:
-        url = f"{BASE_URL}/human-design/gates/{TEST_USER_ID}"
-        print(f"   Testing: GET {url}")
+# Valid signal strength values
+VALID_SIGNAL_STRENGTHS = ["quiet", "emerging", "active"]
+
+# Valid source types
+VALID_SOURCES = ["gene_keys", "journal", "chat"]
+
+class PatternGraphTester:
+    def __init__(self):
+        self.test_results = []
+        self.total_tests = 0
+        self.passed_tests = 0
         
-        start_time = time.time()
-        response = requests.get(url, timeout=30)
-        response_time = time.time() - start_time
-        
-        print(f"   Response Time: {response_time:.2f} seconds")
-        print(f"   Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            results.add_pass("Basic endpoint accessibility (200 OK)")
+    def log_test(self, test_name: str, passed: bool, details: str = ""):
+        """Log a test result."""
+        self.total_tests += 1
+        if passed:
+            self.passed_tests += 1
+            status = "✅ PASS"
         else:
-            results.add_fail("Basic endpoint accessibility", f"Status {response.status_code}")
-            return results
+            status = "❌ FAIL"
             
-        # Parse response
+        result = f"{status}: {test_name}"
+        if details:
+            result += f" - {details}"
+            
+        self.test_results.append(result)
+        print(result)
+        
+    def test_basic_endpoint_availability(self) -> Dict[str, Any]:
+        """Test 1: Basic Pattern Graph Endpoint Test"""
+        print(f"\n🧪 TEST 1: Basic Pattern Graph Endpoint Test")
+        print(f"Testing: GET {BASE_URL}/pattern-graph/{TEST_USER_ID}")
+        
         try:
-            data = response.json()
-        except json.JSONDecodeError as e:
-            results.add_fail("JSON parsing", f"Invalid JSON: {e}")
-            return results
+            response = requests.get(f"{BASE_URL}/pattern-graph/{TEST_USER_ID}", timeout=30)
             
-        # Check basic response structure
-        if data.get("success") is True:
-            results.add_pass("Response success field is true")
-        else:
-            results.add_fail("Response success field", f"Expected true, got {data.get('success')}")
+            # Check status code
+            self.log_test("HTTP Status Code", response.status_code == 200, 
+                         f"Got {response.status_code}")
             
-        if "gates" in data and isinstance(data["gates"], list):
-            results.add_pass("Gates array present")
-            gates = data["gates"]
-            print(f"   Gates Count: {len(gates)}")
-        else:
-            results.add_fail("Gates array", "Missing or not a list")
-            return results
+            if response.status_code != 200:
+                print(f"Response: {response.text}")
+                return {}
+                
+            # Parse JSON
+            try:
+                data = response.json()
+                self.log_test("JSON Response Parsing", True, "Valid JSON structure")
+            except json.JSONDecodeError as e:
+                self.log_test("JSON Response Parsing", False, f"Invalid JSON: {e}")
+                return {}
             
-        if "summary" in data and isinstance(data["summary"], dict):
-            results.add_pass("Summary object present")
-            summary = data["summary"]
-            if "total_gates" in summary:
-                results.add_pass("Summary contains total_gates")
-                print(f"   Total Gates: {summary['total_gates']}")
-            else:
-                results.add_fail("Summary total_gates", "Missing total_gates field")
-        else:
-            results.add_fail("Summary object", "Missing or not a dict")
+            # Check required top-level fields
+            required_fields = ["success", "categories", "summary", "updated_at"]
+            for field in required_fields:
+                has_field = field in data
+                self.log_test(f"Required field '{field}'", has_field, 
+                             f"Present: {has_field}")
             
-    except requests.exceptions.RequestException as e:
-        results.add_fail("Basic endpoint test", f"Request failed: {e}")
-        return results
-    except Exception as e:
-        results.add_fail("Basic endpoint test", f"Unexpected error: {e}")
-        return results
+            # Check success field
+            success = data.get("success", False)
+            self.log_test("Success field value", success == True, 
+                         f"success: {success}")
+            
+            return data
+            
+        except requests.exceptions.RequestException as e:
+            self.log_test("HTTP Request", False, f"Request failed: {e}")
+            return {}
     
-    # Test 2: Gate Data Structure Test
-    print("\n2. GATE DATA STRUCTURE TEST")
-    if len(gates) > 0:
-        # Test first gate structure
-        sample_gate = gates[0]
-        print(f"   Testing gate structure with Gate {sample_gate.get('gate_number', 'Unknown')}")
+    def test_category_structure(self, data: Dict[str, Any]):
+        """Test 2: Category Data Structure Test"""
+        print(f"\n🧪 TEST 2: Category Data Structure Test")
         
-        required_fields = [
-            "gate_number", "line_numbers_present", "center_name", "gate_name",
-            "themes", "shadow", "gift", "siddhi", "what_this_means",
-            "your_challenge", "your_genius", "practical_experiments", "remember"
+        categories = data.get("categories", [])
+        
+        # Check exactly 7 categories
+        self.log_test("Exactly 7 categories", len(categories) == 7, 
+                     f"Found {len(categories)} categories")
+        
+        if len(categories) != 7:
+            print(f"Categories found: {[c.get('category_name', 'Unknown') for c in categories]}")
+            return
+        
+        # Check each category has required fields
+        required_category_fields = [
+            "category_id", "category_name", "signal_strength", 
+            "matched_sources", "matched_signals", "summary"
         ]
         
-        for field in required_fields:
-            if field in sample_gate:
-                results.add_pass(f"Gate has {field} field")
-            else:
-                results.add_fail(f"Gate {field} field", "Missing required field")
-        
-        # Validate specific field types and content
-        if isinstance(sample_gate.get("gate_number"), int) and 1 <= sample_gate.get("gate_number", 0) <= 64:
-            results.add_pass("Gate number is valid integer (1-64)")
-        else:
-            results.add_fail("Gate number validation", f"Expected int 1-64, got {sample_gate.get('gate_number')}")
+        for i, category in enumerate(categories):
+            cat_name = category.get("category_name", f"Category {i+1}")
             
-        if isinstance(sample_gate.get("line_numbers_present"), list):
-            results.add_pass("Line numbers present is array")
-        else:
-            results.add_fail("Line numbers present", "Expected array")
+            for field in required_category_fields:
+                has_field = field in category
+                self.log_test(f"Category '{cat_name}' has '{field}'", has_field,
+                             f"Field present: {has_field}")
             
-        if isinstance(sample_gate.get("center_name"), str) and sample_gate.get("center_name"):
-            results.add_pass("Center name is non-empty string")
-        else:
-            results.add_fail("Center name", "Expected non-empty string")
+            # Check signal strength is valid
+            strength = category.get("signal_strength", "")
+            valid_strength = strength in VALID_SIGNAL_STRENGTHS
+            self.log_test(f"Category '{cat_name}' valid signal_strength", valid_strength,
+                         f"Got '{strength}', expected one of {VALID_SIGNAL_STRENGTHS}")
             
-        if isinstance(sample_gate.get("gate_name"), str) and sample_gate.get("gate_name"):
-            results.add_pass("Gate name is non-empty string")
-        else:
-            results.add_fail("Gate name", "Expected non-empty string")
+            # Check matched_sources is array
+            sources = category.get("matched_sources", [])
+            is_list = isinstance(sources, list)
+            self.log_test(f"Category '{cat_name}' matched_sources is array", is_list,
+                         f"Type: {type(sources).__name__}")
             
-        if isinstance(sample_gate.get("themes"), list) and len(sample_gate.get("themes", [])) == 3:
-            results.add_pass("Themes is array with 3 items")
-        else:
-            results.add_fail("Themes validation", f"Expected array with 3 items, got {sample_gate.get('themes')}")
+            # Check matched_signals is array
+            signals = category.get("matched_signals", [])
+            is_list = isinstance(signals, list)
+            self.log_test(f"Category '{cat_name}' matched_signals is array", is_list,
+                         f"Type: {type(signals).__name__}")
             
-        # Gene Keys bridge validation
-        gene_keys_fields = ["shadow", "gift", "siddhi"]
-        for field in gene_keys_fields:
-            value = sample_gate.get(field)
-            if isinstance(value, str) and value.strip():
-                results.add_pass(f"Gene Keys {field} is non-empty string")
-            else:
-                results.add_fail(f"Gene Keys {field}", "Expected non-empty string")
-        
-        # Interpretive content validation
-        interpretive_fields = ["what_this_means", "your_challenge", "your_genius", "remember"]
-        for field in interpretive_fields:
-            value = sample_gate.get(field)
-            if isinstance(value, str) and len(value.strip()) > 20:  # Meaningful content
-                results.add_pass(f"Interpretive field {field} has meaningful content")
-            else:
-                results.add_fail(f"Interpretive field {field}", "Expected meaningful content (>20 chars)")
-        
-        # Practical experiments validation
-        experiments = sample_gate.get("practical_experiments")
-        if isinstance(experiments, list) and len(experiments) == 3:
-            results.add_pass("Practical experiments is array with 3 items")
-            all_strings = all(isinstance(exp, str) and len(exp.strip()) > 10 for exp in experiments)
-            if all_strings:
-                results.add_pass("All practical experiments are meaningful strings")
-            else:
-                results.add_fail("Practical experiments content", "Expected meaningful strings (>10 chars each)")
-        else:
-            results.add_fail("Practical experiments", "Expected array with 3 items")
-            
-    else:
-        results.add_fail("Gate data structure test", "No gates returned to test structure")
+            # Check summary is non-empty string
+            summary = category.get("summary", "")
+            is_string = isinstance(summary, str) and len(summary.strip()) > 0
+            self.log_test(f"Category '{cat_name}' has non-empty summary", is_string,
+                         f"Summary length: {len(summary)} chars")
     
-    # Test 3: Content Quality Test
-    print("\n3. CONTENT QUALITY TEST")
-    if len(gates) > 0:
-        # Check for meaningful interpretive content
-        sample_gate = gates[0]
+    def test_signal_structure(self, data: Dict[str, Any]):
+        """Test 3: Signal Structure Test"""
+        print(f"\n🧪 TEST 3: Signal Structure Test")
         
-        # Verify Gene Keys bridge has different values
-        shadow = sample_gate.get("shadow", "")
-        gift = sample_gate.get("gift", "")
-        siddhi = sample_gate.get("siddhi", "")
+        categories = data.get("categories", [])
+        total_signals_tested = 0
         
-        if shadow != gift and gift != siddhi and shadow != siddhi:
-            results.add_pass("Gene Keys bridge has different values for shadow/gift/siddhi")
-        else:
-            results.add_fail("Gene Keys bridge uniqueness", "Shadow, gift, and siddhi should be different")
-        
-        # Check for reflective/practical tone (avoid jargon-heavy content)
-        what_this_means = sample_gate.get("what_this_means", "")
-        jargon_indicators = ["cosmic", "divine", "sacred", "mystical", "karmic", "destiny"]
-        jargon_count = sum(1 for word in jargon_indicators if word.lower() in what_this_means.lower())
-        
-        if jargon_count <= 1:  # Allow minimal jargon
-            results.add_pass("Content has practical, non-jargon-heavy tone")
-        else:
-            results.add_fail("Content tone", f"Too much jargon detected ({jargon_count} indicators)")
-        
-        # Check for practical language
-        practical_indicators = ["you", "your", "practice", "notice", "track", "experiment"]
-        practical_count = sum(1 for word in practical_indicators if word.lower() in what_this_means.lower())
-        
-        if practical_count >= 2:
-            results.add_pass("Content uses practical, reflective language")
-        else:
-            results.add_fail("Content practicality", "Content should be more practical and reflective")
+        for category in categories:
+            cat_name = category.get("category_name", "Unknown")
+            signals = category.get("matched_signals", [])
             
-        print(f"   Sample Gate: {sample_gate.get('gate_number')} - {sample_gate.get('gate_name')}")
-        print(f"   Shadow: {shadow}")
-        print(f"   Gift: {gift}")
-        print(f"   Siddhi: {siddhi}")
-        
-    # Test 4: Multiple Gates Test
-    print("\n4. MULTIPLE GATES TEST")
-    if len(gates) > 10:
-        results.add_pass("Returns multiple gates (>10 gates typically)")
-        print(f"   Gates returned: {len(gates)}")
-        
-        # Check that we're getting only user's active gates, not all 64
-        if len(gates) < 64:
-            results.add_pass("Returns only user's active gates (not all 64)")
-        else:
-            results.add_fail("Gate filtering", "Should return only active gates, not all 64")
-            
-        # Test a few more gates for consistency
-        gates_to_test = min(3, len(gates))
-        consistent_structure = True
-        
-        for i in range(gates_to_test):
-            gate = gates[i]
-            required_fields = ["gate_number", "gate_name", "shadow", "gift", "siddhi"]
-            for field in required_fields:
-                if field not in gate or not gate[field]:
-                    consistent_structure = False
-                    break
-            if not consistent_structure:
-                break
+            for i, signal in enumerate(signals):
+                total_signals_tested += 1
+                signal_id = f"{cat_name} Signal {i+1}"
                 
-        if consistent_structure:
-            results.add_pass("Multiple gates have consistent structure")
+                # Check required signal fields
+                required_signal_fields = ["source", "label"]
+                for field in required_signal_fields:
+                    has_field = field in signal
+                    self.log_test(f"{signal_id} has '{field}'", has_field,
+                                 f"Field present: {has_field}")
+                
+                # Check source is valid
+                source = signal.get("source", "")
+                valid_source = source in VALID_SOURCES
+                self.log_test(f"{signal_id} valid source", valid_source,
+                             f"Got '{source}', expected one of {VALID_SOURCES}")
+                
+                # Check label is non-empty string
+                label = signal.get("label", "")
+                is_string = isinstance(label, str) and len(label.strip()) > 0
+                self.log_test(f"{signal_id} has non-empty label", is_string,
+                             f"Label: '{label[:50]}...' ({len(label)} chars)")
+                
+                # Check optional fields exist (can be None)
+                optional_fields = ["sphere_name", "detail"]
+                for field in optional_fields:
+                    has_field = field in signal
+                    field_value = signal.get(field)
+                    self.log_test(f"{signal_id} has '{field}' field", has_field,
+                                 f"Value: {field_value}")
+        
+        self.log_test("Total signals tested", total_signals_tested > 0,
+                     f"Tested {total_signals_tested} signals across all categories")
+    
+    def test_category_names_verification(self, data: Dict[str, Any]):
+        """Test 4: Category Names Verification"""
+        print(f"\n🧪 TEST 4: Category Names Verification")
+        
+        categories = data.get("categories", [])
+        found_names = [cat.get("category_name", "") for cat in categories]
+        
+        print(f"Expected categories: {EXPECTED_CATEGORIES}")
+        print(f"Found categories: {found_names}")
+        
+        for expected_name in EXPECTED_CATEGORIES:
+            found = expected_name in found_names
+            self.log_test(f"Category '{expected_name}' present", found,
+                         f"Found in response: {found}")
+        
+        # Check for unexpected categories
+        unexpected = [name for name in found_names if name not in EXPECTED_CATEGORIES]
+        if unexpected:
+            self.log_test("No unexpected categories", False,
+                         f"Unexpected: {unexpected}")
         else:
-            results.add_fail("Gate structure consistency", "Not all gates have consistent structure")
+            self.log_test("No unexpected categories", True, "All categories expected")
+    
+    def test_signal_strength_logic(self, data: Dict[str, Any]):
+        """Test 5: Signal Strength Logic Test"""
+        print(f"\n🧪 TEST 5: Signal Strength Logic Test")
+        
+        categories = data.get("categories", [])
+        
+        for category in categories:
+            cat_name = category.get("category_name", "Unknown")
+            signals = category.get("matched_signals", [])
+            sources = category.get("matched_sources", [])
+            strength = category.get("signal_strength", "")
             
-    else:
-        results.add_fail("Multiple gates test", f"Expected >10 gates, got {len(gates)}")
+            num_signals = len(signals)
+            num_sources = len(sources)
+            
+            # Test signal strength logic:
+            # - Active: 3+ signals OR 2+ sources
+            # - Emerging: 1-2 signals from single source  
+            # - Quiet: no signals
+            
+            expected_strength = ""
+            if num_signals >= 3 or num_sources >= 2:
+                expected_strength = "active"
+            elif num_signals >= 1:
+                expected_strength = "emerging"
+            else:
+                expected_strength = "quiet"
+            
+            correct_logic = strength == expected_strength
+            self.log_test(f"'{cat_name}' signal strength logic", correct_logic,
+                         f"Signals: {num_signals}, Sources: {num_sources}, "
+                         f"Expected: '{expected_strength}', Got: '{strength}'")
     
-    # Test 5: Performance Test
-    print("\n5. PERFORMANCE TEST")
-    if response_time < 10.0:  # Should be reasonably fast
-        results.add_pass(f"Response time acceptable ({response_time:.2f}s < 10s)")
-    else:
-        results.add_fail("Performance", f"Response too slow: {response_time:.2f}s")
+    def test_summary_structure(self, data: Dict[str, Any]):
+        """Test 6: Summary Structure Test"""
+        print(f"\n🧪 TEST 6: Summary Structure Test")
+        
+        summary = data.get("summary", {})
+        
+        # Check required summary fields
+        required_summary_fields = ["active_categories", "emerging_categories", "total_signals"]
+        for field in required_summary_fields:
+            has_field = field in summary
+            self.log_test(f"Summary has '{field}'", has_field,
+                         f"Field present: {has_field}")
+        
+        # Check field types and values
+        active_count = summary.get("active_categories", -1)
+        emerging_count = summary.get("emerging_categories", -1)
+        total_signals = summary.get("total_signals", -1)
+        
+        # Verify counts are non-negative integers
+        self.log_test("active_categories is non-negative int", 
+                     isinstance(active_count, int) and active_count >= 0,
+                     f"Value: {active_count}")
+        
+        self.log_test("emerging_categories is non-negative int",
+                     isinstance(emerging_count, int) and emerging_count >= 0,
+                     f"Value: {emerging_count}")
+        
+        self.log_test("total_signals is non-negative int",
+                     isinstance(total_signals, int) and total_signals >= 0,
+                     f"Value: {total_signals}")
+        
+        # Verify counts match actual categories
+        categories = data.get("categories", [])
+        actual_active = sum(1 for c in categories if c.get("signal_strength") == "active")
+        actual_emerging = sum(1 for c in categories if c.get("signal_strength") == "emerging")
+        actual_total = sum(len(c.get("matched_signals", [])) for c in categories)
+        
+        self.log_test("active_categories count matches", active_count == actual_active,
+                     f"Summary: {active_count}, Actual: {actual_active}")
+        
+        self.log_test("emerging_categories count matches", emerging_count == actual_emerging,
+                     f"Summary: {emerging_count}, Actual: {actual_emerging}")
+        
+        self.log_test("total_signals count matches", total_signals == actual_total,
+                     f"Summary: {total_signals}, Actual: {actual_total}")
     
-    return results
+    def test_timestamp_format(self, data: Dict[str, Any]):
+        """Test 7: Timestamp Format Test"""
+        print(f"\n🧪 TEST 7: Timestamp Format Test")
+        
+        updated_at = data.get("updated_at", "")
+        
+        # Check timestamp is present
+        self.log_test("updated_at field present", bool(updated_at),
+                     f"Value: '{updated_at}'")
+        
+        # Try to parse as ISO format
+        try:
+            parsed_time = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
+            self.log_test("updated_at is valid ISO timestamp", True,
+                         f"Parsed: {parsed_time}")
+        except (ValueError, AttributeError) as e:
+            self.log_test("updated_at is valid ISO timestamp", False,
+                         f"Parse error: {e}")
+    
+    def run_all_tests(self):
+        """Run all Pattern Graph API tests."""
+        print("=" * 80)
+        print("🧪 PATTERN GRAPH API ENDPOINT TESTING")
+        print("=" * 80)
+        print(f"Base URL: {BASE_URL}")
+        print(f"Test User ID: {TEST_USER_ID}")
+        print(f"Timestamp: {datetime.now().isoformat()}")
+        
+        # Test 1: Basic endpoint availability
+        data = self.test_basic_endpoint_availability()
+        
+        if not data:
+            print("\n❌ CRITICAL: Basic endpoint test failed. Stopping further tests.")
+            self.print_summary()
+            return
+        
+        # Test 2-7: Structure and logic tests
+        self.test_category_structure(data)
+        self.test_signal_structure(data)
+        self.test_category_names_verification(data)
+        self.test_signal_strength_logic(data)
+        self.test_summary_structure(data)
+        self.test_timestamp_format(data)
+        
+        # Print final summary
+        self.print_summary()
+        
+        # Print sample response data for verification
+        self.print_sample_data(data)
+    
+    def print_summary(self):
+        """Print test summary."""
+        print("\n" + "=" * 80)
+        print("📊 TEST SUMMARY")
+        print("=" * 80)
+        
+        for result in self.test_results:
+            print(result)
+        
+        print(f"\n🎯 OVERALL RESULTS: {self.passed_tests}/{self.total_tests} tests passed")
+        
+        if self.passed_tests == self.total_tests:
+            print("🎉 ALL TESTS PASSED! Pattern Graph API is working correctly.")
+        else:
+            failed = self.total_tests - self.passed_tests
+            print(f"⚠️  {failed} test(s) failed. Review the issues above.")
+    
+    def print_sample_data(self, data: Dict[str, Any]):
+        """Print sample response data for manual verification."""
+        print("\n" + "=" * 80)
+        print("📋 SAMPLE RESPONSE DATA")
+        print("=" * 80)
+        
+        categories = data.get("categories", [])
+        summary = data.get("summary", {})
+        
+        print(f"Summary: {summary}")
+        print(f"Total categories: {len(categories)}")
+        
+        # Show first few categories with signals
+        categories_with_signals = [c for c in categories if c.get("matched_signals")]
+        
+        if categories_with_signals:
+            print(f"\nCategories with signals ({len(categories_with_signals)}):")
+            for cat in categories_with_signals[:3]:  # Show first 3
+                name = cat.get("category_name", "Unknown")
+                strength = cat.get("signal_strength", "unknown")
+                signals = cat.get("matched_signals", [])
+                sources = cat.get("matched_sources", [])
+                
+                print(f"  • {name}: {strength} ({len(signals)} signals from {sources})")
+                for signal in signals[:2]:  # Show first 2 signals
+                    label = signal.get("label", "No label")
+                    source = signal.get("source", "unknown")
+                    print(f"    - {label} (from {source})")
+        else:
+            print("\nNo categories with signals found.")
+        
+        print(f"\nResponse timestamp: {data.get('updated_at', 'Not provided')}")
+
 
 def main():
-    """Run all tests"""
-    print("🚀 STARTING HUMAN DESIGN GATES ENDPOINT TESTING")
-    print(f"Base URL: {BASE_URL}")
-    print(f"Test User ID: {TEST_USER_ID}")
-    print("=" * 80)
+    """Main test execution."""
+    tester = PatternGraphTester()
+    tester.run_all_tests()
     
-    # Run the main test
-    results = test_human_design_gates_endpoint()
-    
-    # Print summary
-    results.summary()
-    
-    # Return exit code based on results
-    return 0 if results.failed == 0 else 1
+    # Return exit code based on test results
+    if tester.passed_tests == tester.total_tests:
+        sys.exit(0)  # Success
+    else:
+        sys.exit(1)  # Failure
+
 
 if __name__ == "__main__":
-    exit(main())
+    main()
