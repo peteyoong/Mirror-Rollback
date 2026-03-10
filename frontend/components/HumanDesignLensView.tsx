@@ -567,9 +567,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         
         {/* Arc Cards Container */}
         <View style={styles.gkArcsContainer}>
-          {renderGeneKeysArc('Purpose', 'purpose', gk.purpose_arc, 'compass-outline', 'Your life direction')}
-          {renderGeneKeysArc('Love', 'love', gk.love_arc, 'heart-outline', 'Relationships & relating')}
-          {renderGeneKeysArc('Prosperity', 'prosperity', gk.prosperity_arc, 'diamond-outline', 'Abundance & vocation')}
+          {renderGeneKeysArc('Purpose', 'purpose', gk.purpose_arc, '◎', 'Your life direction')}
+          {renderGeneKeysArc('Love', 'love', gk.love_arc, '♡', 'Relationships & relating')}
+          {renderGeneKeysArc('Prosperity', 'prosperity', gk.prosperity_arc, '◇', 'Abundance & vocation')}
           
           {isDebugEnabled() && (
             <Text style={[styles.gkVersion, { color: theme.textTertiary }]}>v: {gk.gene_keys_version}</Text>
