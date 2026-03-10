@@ -331,6 +331,14 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             Deep Dive
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'gene_keys' && styles.activeTab]}
+          onPress={() => setActiveTab('gene_keys')}
+        >
+          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'gene_keys' && { color: theme.text }]}>
+            Gene Keys
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
