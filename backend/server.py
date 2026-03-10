@@ -11730,6 +11730,124 @@ async def get_user_pearl_sequence(user_id: str):
         raise HTTPException(status_code=500, detail=f"Error building Pearl Sequence: {str(e)}")
 
 
+@api_router.get("/gene-keys/profile/{user_id}")
+async def get_user_gene_keys_profile(user_id: str):
+    """
+    Get the complete Gene Keys profile for a user in a single request.
+    
+    This endpoint efficiently computes all three sequences (Activation, Venus, Pearl)
+    from a single Human Design calculation, avoiding redundant computations.
+    
+    Returns:
+        GeneKeysProfile with all sequences and a flattened all_spheres array
+    """
+    logger.info(f"[GeneKeys] Fetching complete profile for user {user_id}")
+    
+    try:
+        # Get user from database
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get user's birth data
+        birth_date = user.get("birth_date")
+        birth_time = user.get("birth_time")
+        timezone = user.get("timezone", "UTC")
+        
+        # Handle location
+        birth_location = user.get("birth_location", {})
+        if isinstance(birth_location, dict):
+            latitude = birth_location.get("latitude")
+            longitude = birth_location.get("longitude")
+        else:
+            latitude = user.get("latitude") or user.get("birth_lat")
+            longitude = user.get("longitude") or user.get("birth_lon")
+        
+        if not all([birth_date, birth_time, latitude, longitude]):
+            raise HTTPException(status_code=400, detail="Birth data not available")
+        
+        # Parse birth datetime to UTC
+        from calculations.timezone_utils import resolve_birth_utc_with_debug
+        
+        if hasattr(birth_date, 'strftime'):
+            birth_date_str = birth_date.strftime("%Y-%m-%d")
+        else:
+            birth_date_str = str(birth_date).split(' ')[0]
+        
+        result = resolve_birth_utc_with_debug(birth_date_str, birth_time, timezone)
+        birth_utc = result.get('birth_utc')
+        
+        if not birth_utc:
+            raise HTTPException(status_code=400, detail=f"Could not parse birth datetime: {result.get('error')}")
+        
+        # Compute Human Design chart ONCE
+        from calculations.human_design import get_human_design_chart
+        canonical_hd = get_human_design_chart(
+            birth_datetime=birth_utc,
+            lat=float(latitude),
+            lon=float(longitude)
+        )
+        
+        # Extract all planetary positions from HD chart
+        personality = canonical_hd.get('personality', {})
+        design = canonical_hd.get('design', {})
+        
+        def extract_gate_line(planet_data):
+            gate_data = planet_data.get('gate', {})
+            if isinstance(gate_data, dict):
+                return gate_data.get('gate', 1), gate_data.get('line', 1)
+            return 1, 1
+        
+        # Activation Sequence planets
+        p_sun_gate, p_sun_line = extract_gate_line(personality.get('Sun', {}))
+        p_earth_gate, p_earth_line = extract_gate_line(personality.get('Earth', {}))
+        d_sun_gate, d_sun_line = extract_gate_line(design.get('Sun', {}))
+        d_earth_gate, d_earth_line = extract_gate_line(design.get('Earth', {}))
+        
+        # Venus Sequence planets
+        d_moon_gate, d_moon_line = extract_gate_line(design.get('Moon', {}))
+        p_mercury_gate, p_mercury_line = extract_gate_line(personality.get('Mercury', {}))
+        d_mercury_gate, d_mercury_line = extract_gate_line(design.get('Mercury', {}))
+        d_venus_gate, d_venus_line = extract_gate_line(design.get('Venus', {}))
+        p_mars_gate, p_mars_line = extract_gate_line(personality.get('Mars', {}))
+        
+        # Pearl Sequence planets
+        d_mars_gate, d_mars_line = extract_gate_line(design.get('Mars', {}))
+        p_jupiter_gate, p_jupiter_line = extract_gate_line(personality.get('Jupiter', {}))
+        d_jupiter_gate, d_jupiter_line = extract_gate_line(design.get('Jupiter', {}))
+        
+        logger.info(f"[GeneKeys] Profile gates extracted for user {user_id}")
+        
+        # Build complete profile with single function call
+        profile = build_gene_keys_profile(
+            # Activation
+            personality_sun_gate=p_sun_gate, personality_sun_line=p_sun_line,
+            personality_earth_gate=p_earth_gate, personality_earth_line=p_earth_line,
+            design_sun_gate=d_sun_gate, design_sun_line=d_sun_line,
+            design_earth_gate=d_earth_gate, design_earth_line=d_earth_line,
+            # Venus
+            design_moon_gate=d_moon_gate, design_moon_line=d_moon_line,
+            personality_mercury_gate=p_mercury_gate, personality_mercury_line=p_mercury_line,
+            design_mercury_gate=d_mercury_gate, design_mercury_line=d_mercury_line,
+            design_venus_gate=d_venus_gate, design_venus_line=d_venus_line,
+            personality_mars_gate=p_mars_gate, personality_mars_line=p_mars_line,
+            # Pearl
+            design_mars_gate=d_mars_gate, design_mars_line=d_mars_line,
+            personality_jupiter_gate=p_jupiter_gate, personality_jupiter_line=p_jupiter_line,
+            design_jupiter_gate=d_jupiter_gate, design_jupiter_line=d_jupiter_line,
+        )
+        
+        logger.info(f"[GeneKeys] Successfully built complete profile for user {user_id} ({len(profile['all_spheres'])} spheres)")
+        return profile
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        logger.error(f"[GeneKeys] Profile Error: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Error building Gene Keys profile: {str(e)}")
+
+
 @api_router.get("/gene-keys/sphere/{sphere_name}/{gate}/{line}")
 async def get_sphere_detail(sphere_name: str, gate: int, line: int):
     """
