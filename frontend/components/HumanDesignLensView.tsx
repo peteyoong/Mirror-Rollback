@@ -498,7 +498,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     arcName: string, 
     arcKey: string,
     arcData: Record<string, GeneKeyPosition> | undefined,
-    icon: keyof typeof Ionicons.glyphMap,
+    iconText: string,
     subtitle: string
   ) => {
     if (!arcData) return null;
@@ -515,7 +515,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           activeOpacity={0.7}
         >
           <View style={styles.gkArcHeaderLeft}>
-            <Ionicons name={icon} size={18} color={theme.accent} />
+            <Text style={{ fontSize: 16, color: theme.accent }}>{iconText}</Text>
             <View>
               <Text style={[styles.gkArcTitle, { color: theme.text }]}>{arcDescription.title || arcName}</Text>
               <Text style={[styles.gkArcSubtitle, { color: theme.textTertiary }]}>
@@ -525,11 +525,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
           <View style={styles.gkArcHeaderRight}>
             <Text style={[styles.gkArcCount, { color: theme.textTertiary }]}>{sphereCount} spheres</Text>
-            <Ionicons
-              name={isExpanded ? 'chevron-up' : 'chevron-down'}
-              size={18}
-              color={theme.textTertiary}
-            />
+            <Text style={{ fontSize: 16, color: theme.textTertiary }}>
+              {isExpanded ? '▲' : '▼'}
+            </Text>
           </View>
         </TouchableOpacity>
         {isExpanded && (
@@ -558,7 +556,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         <View style={styles.gkSectionHeaderWrapper}>
           <View style={styles.gkSectionHeaderTop}>
             <View style={styles.gkSectionTitleRow}>
-              <Ionicons name="key-outline" size={18} color={theme.accent} />
+              <Text style={{ fontSize: 16, color: theme.accent }}>🔑</Text>
               <Text style={[styles.gkSectionMainTitle, { color: theme.textTertiary }]}>YOUR SEQUENCES</Text>
             </View>
           </View>
