@@ -486,7 +486,7 @@ export default function LensDetail() {
     return (
       <View style={styles.personalizedMirrorCard}>
         <View style={styles.personalizedMirrorHeader}>
-          <Ionicons name="sparkles-outline" size={18} color={Colors.accent} />
+          <Text style={{ color: Colors.accent, fontSize: 18 }}>✦</Text>
           <Text style={styles.personalizedMirrorTitle}>Mirror Moment</Text>
         </View>
         
@@ -533,7 +533,7 @@ export default function LensDetail() {
     return (
       <View style={styles.personalizedMirrorCard}>
         <View style={styles.personalizedMirrorHeader}>
-          <Ionicons name="sparkles-outline" size={18} color={Colors.accent} />
+          <Text style={{ color: Colors.accent, fontSize: 18 }}>✦</Text>
           <Text style={styles.personalizedMirrorTitle}>Mirror Moment</Text>
         </View>
         
@@ -582,7 +582,7 @@ export default function LensDetail() {
           onChangeText={setChatInput}
         />
         <TouchableOpacity style={styles.chatSendButton}>
-          <Ionicons name="send" size={20} color={Colors.success} />
+          <Text style={{ color: Colors.success, fontSize: 18 }}>↑</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -750,7 +750,7 @@ export default function LensDetail() {
                   style={styles.askLensButton}
                   onPress={() => setLensChatVisible(true)}
                 >
-                  <Ionicons name="chatbubble-ellipses-outline" size={18} color={Colors.accent} />
+                  <Text style={{ color: Colors.accent, fontSize: 16 }}>💬</Text>
                   <Text style={styles.askLensButtonText}>Ask about this lens</Text>
                 </TouchableOpacity>
               )}
