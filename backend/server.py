@@ -11503,6 +11503,122 @@ async def get_user_activation_sequence(user_id: str):
         raise HTTPException(status_code=500, detail=f"Error building Activation Sequence: {str(e)}")
 
 
+@api_router.get("/gene-keys/venus-sequence/{user_id}")
+async def get_user_venus_sequence(user_id: str):
+    """
+    Get the Venus Sequence for a user based on their Human Design data.
+    
+    The Venus Sequence maps HD planetary positions to relationship spheres:
+    - Attraction = Design Moon (what you unconsciously attract)
+    - IQ = Personality Mercury (mental intelligence in relationships)
+    - EQ = Design Mercury (emotional intelligence)
+    - SQ = Design Venus (spiritual intelligence in love)
+    - Core = Personality Mars (deepest wound and potential)
+    
+    Args:
+        user_id: The user's ID
+    
+    Returns:
+        VenusSequenceResponse with all 5 spheres and interpretations
+    """
+    logger.info(f"[GeneKeys] Fetching Venus Sequence for user {user_id}")
+    
+    try:
+        # Get user from database
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get user's birth data
+        birth_date = user.get("birth_date")
+        birth_time = user.get("birth_time")
+        timezone = user.get("timezone", "UTC")
+        
+        # Handle location
+        birth_location = user.get("birth_location", {})
+        if isinstance(birth_location, dict):
+            latitude = birth_location.get("latitude")
+            longitude = birth_location.get("longitude")
+        else:
+            latitude = user.get("latitude") or user.get("birth_lat")
+            longitude = user.get("longitude") or user.get("birth_lon")
+        
+        if not all([birth_date, birth_time, latitude, longitude]):
+            raise HTTPException(status_code=400, detail="Birth data not available")
+        
+        # Parse birth datetime to UTC
+        from calculations.timezone_utils import resolve_birth_utc_with_debug
+        
+        if hasattr(birth_date, 'strftime'):
+            birth_date_str = birth_date.strftime("%Y-%m-%d")
+        else:
+            birth_date_str = str(birth_date).split(' ')[0]
+        
+        result = resolve_birth_utc_with_debug(birth_date_str, birth_time, timezone)
+        birth_utc = result.get('birth_utc')
+        
+        if not birth_utc:
+            raise HTTPException(status_code=400, detail=f"Could not parse birth datetime: {result.get('error')}")
+        
+        # Compute Human Design chart
+        from calculations.human_design import get_human_design_chart
+        canonical_hd = get_human_design_chart(
+            birth_datetime=birth_utc,
+            lat=float(latitude),
+            lon=float(longitude)
+        )
+        
+        # Extract planetary positions
+        personality = canonical_hd.get('personality', {})
+        design = canonical_hd.get('design', {})
+        
+        # Venus Sequence planets
+        d_moon = design.get('Moon', {})
+        p_mercury = personality.get('Mercury', {})
+        d_mercury = design.get('Mercury', {})
+        d_venus = design.get('Venus', {})
+        p_mars = personality.get('Mars', {})
+        
+        # Extract gate and line values
+        def extract_gate_line(planet_data):
+            gate_data = planet_data.get('gate', {})
+            if isinstance(gate_data, dict):
+                return gate_data.get('gate', 1), gate_data.get('line', 1)
+            return 1, 1
+        
+        d_moon_gate, d_moon_line = extract_gate_line(d_moon)
+        p_mercury_gate, p_mercury_line = extract_gate_line(p_mercury)
+        d_mercury_gate, d_mercury_line = extract_gate_line(d_mercury)
+        d_venus_gate, d_venus_line = extract_gate_line(d_venus)
+        p_mars_gate, p_mars_line = extract_gate_line(p_mars)
+        
+        logger.info(f"[GeneKeys] Venus Sequence gates: Attraction={d_moon_gate}, IQ={p_mercury_gate}, EQ={d_mercury_gate}, SQ={d_venus_gate}, Core={p_mars_gate}")
+        
+        # Build Venus sequence
+        venus = get_venus_sequence(
+            design_moon_gate=d_moon_gate,
+            design_moon_line=d_moon_line,
+            personality_mercury_gate=p_mercury_gate,
+            personality_mercury_line=p_mercury_line,
+            design_mercury_gate=d_mercury_gate,
+            design_mercury_line=d_mercury_line,
+            design_venus_gate=d_venus_gate,
+            design_venus_line=d_venus_line,
+            personality_mars_gate=p_mars_gate,
+            personality_mars_line=p_mars_line,
+        )
+        
+        logger.info(f"[GeneKeys] Successfully built Venus Sequence")
+        return venus
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        logger.error(f"[GeneKeys] Venus Sequence Error: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Error building Venus Sequence: {str(e)}")
+
+
 @api_router.get("/gene-keys/sphere/{sphere_name}/{gate}/{line}")
 async def get_sphere_detail(sphere_name: str, gate: int, line: int):
     """
