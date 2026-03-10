@@ -11370,30 +11370,8 @@ async def get_all_life_contexts(user_id: str):
 # Import Gene Keys interpreter service
 from services.gene_keys_interpreter import get_gene_key_interpretation, get_available_gene_keys, get_activation_sequence, get_sphere_interpretation
 
-@api_router.get("/gene-keys/{gate}/{line}")
-async def get_gene_key(gate: int, line: int):
-    """
-    Get Gene Key interpretation for a specific gate and line.
-    
-    Gene Keys use the same gate numbers (1-64) and line numbers (1-6) as Human Design.
-    This endpoint provides the Shadow/Gift/Siddhi meanings for a specific Gene Key.
-    
-    Args:
-        gate: Gate number (1-64), same as Gene Key number
-        line: Line number (1-6)
-    
-    Returns:
-        GeneKeyInterpretation with shadow, gift, siddhi meanings
-    """
-    logger.info(f"[GeneKeys] Fetching interpretation for Gene Key {gate}.{line}")
-    
-    interpretation = get_gene_key_interpretation(gate, line)
-    
-    if not interpretation["available"]:
-        logger.info(f"[GeneKeys] Gene Key {gate} not yet available")
-    
-    return interpretation
 
+# Note: More specific routes must come BEFORE catch-all routes
 
 @api_router.get("/gene-keys/available")
 async def get_available_keys():
@@ -11497,6 +11475,31 @@ async def get_sphere_detail(sphere_name: str, gate: int, line: int):
         )
     
     interpretation = get_sphere_interpretation(sphere_name, gate, line)
+    return interpretation
+
+
+@api_router.get("/gene-keys/{gate}/{line}")
+async def get_gene_key(gate: int, line: int):
+    """
+    Get Gene Key interpretation for a specific gate and line.
+    
+    Gene Keys use the same gate numbers (1-64) and line numbers (1-6) as Human Design.
+    This endpoint provides the Shadow/Gift/Siddhi meanings for a specific Gene Key.
+    
+    Args:
+        gate: Gate number (1-64), same as Gene Key number
+        line: Line number (1-6)
+    
+    Returns:
+        GeneKeyInterpretation with shadow, gift, siddhi meanings
+    """
+    logger.info(f"[GeneKeys] Fetching interpretation for Gene Key {gate}.{line}")
+    
+    interpretation = get_gene_key_interpretation(gate, line)
+    
+    if not interpretation["available"]:
+        logger.info(f"[GeneKeys] Gene Key {gate} not yet available")
+    
     return interpretation
 
 
