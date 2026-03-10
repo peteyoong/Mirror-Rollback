@@ -232,8 +232,9 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   } else {
     // System mode - check system preference
     // useColorScheme returns 'dark', 'light', or null
-    // null typically means system preference couldn't be determined
-    isDark = systemColorScheme === 'dark';
+    // On mobile web, null is common - default to DARK theme for better UX
+    // (dark mode is the primary brand aesthetic for Mirror)
+    isDark = systemColorScheme === 'dark' || systemColorScheme === null;
   }
 
   const theme = isDark ? DarkTheme : LightTheme;
