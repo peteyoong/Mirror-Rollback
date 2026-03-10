@@ -8370,10 +8370,44 @@ async def get_pattern_graph(user_id: str):
         except Exception as j_err:
             logger.debug(f"[PatternGraph] Could not load journal: {j_err}")
         
+        # Try to load Human Design data
+        human_design_centers = None
+        human_design_gates = None
+        try:
+            from services.human_design_centers import build_centers_profile
+            
+            if birth_date and birth_time and lat is not None and lon is not None:
+                # Get Human Design chart
+                hd_chart = get_human_design_chart(
+                    birth_date=birth_date,
+                    birth_time=birth_time,
+                    timezone_str=timezone_str,
+                    latitude=lat,
+                    longitude=lon
+                )
+                
+                if hd_chart:
+                    # Get centers profile
+                    defined_centers = hd_chart.get("defined_centers", [])
+                    undefined_centers = hd_chart.get("undefined_centers", [])
+                    active_gates = hd_chart.get("active_gates", [])
+                    
+                    human_design_centers = build_centers_profile(
+                        defined_centers=defined_centers,
+                        undefined_centers=undefined_centers,
+                        active_gates=active_gates
+                    )
+                    human_design_gates = active_gates
+                    
+        except Exception as hd_err:
+            logger.debug(f"[PatternGraph] Could not load Human Design: {hd_err}")
+        
         # Aggregate pattern graph
         pattern_graph = aggregate_pattern_graph(
             gene_keys_profile=gene_keys_profile,
-            journal_entries=journal_entries
+            journal_entries=journal_entries,
+            human_design_centers=human_design_centers,
+            human_design_gates=human_design_gates
         )
         
         return {
