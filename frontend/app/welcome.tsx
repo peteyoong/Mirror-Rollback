@@ -319,8 +319,11 @@ export default function Welcome() {
         <Text style={[styles.footerText, { color: theme.textTertiary }]}>
           You don't have to do anything with what you notice.
         </Text>
-        <Text style={[styles.buildInfo, { color: theme.textTertiary }]}>v{BUILD_VERSION} • {BUILD_ID}</Text>
+        <Text style={[styles.buildInfo, { color: theme.textTertiary }]}>v{BUILD_VERSION} • {BUILD_ID} • {BUILD_DATE}</Text>
       </View>
+      
+      {/* Debug Panel */}
+      {renderDebugPanel()}
     </SafeAreaView>
   );
 }
