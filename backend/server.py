@@ -8398,18 +8398,18 @@ async def get_pattern_graph(user_id: str):
                         lon=lon
                     )
                 
-                if hd_chart:
-                    # Get centers profile
-                    defined_centers = hd_chart.get("defined_centers", [])
-                    undefined_centers = hd_chart.get("undefined_centers", [])
-                    active_gates = hd_chart.get("active_gates", [])
-                    
-                    human_design_centers = build_centers_profile(
-                        defined_centers=defined_centers,
-                        undefined_centers=undefined_centers,
-                        active_gates=active_gates
-                    )
-                    human_design_gates = active_gates
+                    if hd_chart:
+                        # Get centers profile
+                        defined_centers = hd_chart.get("defined_centers", [])
+                        undefined_centers = hd_chart.get("undefined_centers", [])
+                        active_gates = hd_chart.get("active_gates", [])
+                        
+                        human_design_centers = build_centers_profile(
+                            defined_centers=defined_centers,
+                            undefined_centers=undefined_centers,
+                            active_gates=active_gates
+                        )
+                        human_design_gates = active_gates
                     
                     logger.info(f"[PatternGraph] Loaded HD centers: {len(human_design_centers) if human_design_centers else 0}")
                     logger.info(f"[PatternGraph] Loaded HD gates: {len(human_design_gates) if human_design_gates else 0}")
