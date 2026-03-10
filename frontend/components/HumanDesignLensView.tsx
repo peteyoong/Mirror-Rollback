@@ -672,7 +672,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           onPress={() => setActiveTab('deep_dive')}
         >
           <Text style={[styles.hdSubtleLinkText, { color: theme.textTertiary }]}>Explore Deep Dive</Text>
-          <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
+          <Text style={{ fontSize: 12, color: theme.textTertiary }}>›</Text>
         </TouchableOpacity>
       </>
     );
@@ -694,11 +694,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         >
           <Text style={[styles.sectionLabel, { color: theme.text }]}>{section.label}</Text>
           {activeTab === 'deep_dive' && (
-            <Ionicons
-              name={isExpanded ? 'chevron-up' : 'chevron-down'}
-              size={18}
-              color={theme.textTertiary}
-            />
+            <Text style={{ fontSize: 16, color: theme.textTertiary }}>
+              {isExpanded ? '▲' : '▼'}
+            </Text>
           )}
         </TouchableOpacity>
         {isExpanded && (
@@ -732,7 +730,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
-            <Ionicons name="alert-circle-outline" size={32} color={theme.textTertiary} />
+            <Text style={{ fontSize: 28, color: theme.textTertiary }}>⚠</Text>
             <Text style={[styles.errorText, { color: theme.textSecondary }]}>{error}</Text>
             <TouchableOpacity
               style={[styles.retryButton, { backgroundColor: theme.surface }]}
@@ -772,11 +770,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                   <Text style={[styles.expandButtonText, { color: theme.accent }]}>
                     {expandedSection ? 'Collapse sections' : 'Explore your mechanics'}
                   </Text>
-                  <Ionicons
-                    name={expandedSection ? 'contract-outline' : 'expand-outline'}
-                    size={16}
-                    color={theme.accent}
-                  />
+                  <Text style={{ fontSize: 14, color: theme.accent }}>
+                    {expandedSection ? '⤡' : '⤢'}
+                  </Text>
                 </TouchableOpacity>
                 {data.sections?.map((section, index) => renderSection(section, index))}
                 {renderGeneKeys()}
@@ -794,7 +790,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                 style={[styles.askMirrorButton, { backgroundColor: theme.text }]}
                 onPress={onOpenChat}
               >
-                <Ionicons name="chatbubble-outline" size={18} color={theme.background} />
+                <Text style={{ fontSize: 16, color: theme.background }}>💬</Text>
                 <Text style={[styles.askMirrorText, { color: theme.background }]}>Ask about this lens</Text>
               </TouchableOpacity>
             )}
