@@ -11417,8 +11417,15 @@ async def get_user_activation_sequence(user_id: str):
         # Get user's birth data for HD computation
         birth_date = user.get("birth_date")
         birth_time = user.get("birth_time")
-        latitude = user.get("latitude") or user.get("birth_lat")
-        longitude = user.get("longitude") or user.get("birth_lon")
+        
+        # Handle location - can be nested or flat
+        birth_location = user.get("birth_location", {})
+        if isinstance(birth_location, dict):
+            latitude = birth_location.get("latitude")
+            longitude = birth_location.get("longitude")
+        else:
+            latitude = user.get("latitude") or user.get("birth_lat")
+            longitude = user.get("longitude") or user.get("birth_lon")
         
         if not all([birth_date, birth_time, latitude, longitude]):
             raise HTTPException(
