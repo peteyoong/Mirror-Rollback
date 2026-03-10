@@ -15,7 +15,7 @@ import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import ChatBot from '../../components/ChatBot';
 import { getLenses } from '../../services/api';
-import { Ionicons } from '@expo/vector-icons';
+// Removed Ionicons - using text-based alternatives for web compatibility
 
 interface Lens {
   name: string;
@@ -104,7 +104,7 @@ export default function LensesScreen() {
                 
                 <View style={styles.infoSection}>
                   <View style={styles.infoRow}>
-                    <Ionicons name="checkmark-circle-outline" size={16} color={theme.textSecondary} />
+                    <Text style={{ fontSize: 14, color: theme.textSecondary }}>✓</Text>
                     <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Helps with:</Text>
                   </View>
                   <Text style={[styles.infoText, { color: theme.textTertiary }]}>{lens.helps_with}</Text>
@@ -112,7 +112,7 @@ export default function LensesScreen() {
 
                 <View style={styles.infoSection}>
                   <View style={styles.infoRow}>
-                    <Ionicons name="close-circle-outline" size={16} color={theme.textTertiary} />
+                    <Text style={{ fontSize: 14, color: theme.textTertiary }}>✗</Text>
                     <Text style={[styles.infoLabel, { color: theme.textTertiary }]}>Does not:</Text>
                   </View>
                   <Text style={[styles.infoText, { color: theme.textTertiary }]}>{lens.does_not}</Text>
@@ -123,7 +123,7 @@ export default function LensesScreen() {
                   onPress={() => handleViewSummary(lens.name)}
                 >
                   <Text style={[styles.viewButtonText, { color: theme.buttonPrimaryText }]}>View Summary</Text>
-                  <Ionicons name="arrow-forward" size={16} color={theme.buttonPrimaryText} />
+                  <Text style={{ fontSize: 14, color: theme.buttonPrimaryText }}>→</Text>
                 </TouchableOpacity>
               </View>
             ))}
