@@ -8264,6 +8264,131 @@ async def get_human_design_gates(user_id: str):
 
 
 # =====================================================================
+# PATTERN GRAPH ENDPOINTS
+# =====================================================================
+
+@api_router.get("/pattern-graph/{user_id}")
+async def get_pattern_graph(user_id: str):
+    """
+    Get aggregated pattern signals across 7 core categories.
+    
+    Aggregates signals from:
+    - Gene Keys profile (shadow/gift keywords)
+    - Recent journal entries
+    - (Future) Mirror Chat signal matching
+    
+    Returns 7 categories with signal strength (quiet/emerging/active)
+    and matched signals from each source.
+    """
+    try:
+        from services.pattern_graph import aggregate_pattern_graph
+        from calculations.timezone_utils import resolve_birth_utc_with_debug
+        from calculations.human_design import get_human_design_chart
+        from services.gene_keys_interpreter import build_gene_keys_profile
+        
+        # Get user
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Try to load Gene Keys profile
+        gene_keys_profile = None
+        try:
+            birth_date = user.get("birth_date")
+            birth_time = user.get("birth_time")
+            timezone_str = user.get("timezone", "UTC")
+            birth_location = user.get("birth_location", {})
+            
+            if isinstance(birth_location, dict):
+                lat = birth_location.get("latitude") or birth_location.get("lat")
+                lon = birth_location.get("longitude") or birth_location.get("lon") or birth_location.get("lng")
+            else:
+                lat = user.get("latitude") or user.get("birth_lat")
+                lon = user.get("longitude") or user.get("birth_lon")
+            
+            if all([birth_date, birth_time, lat, lon]):
+                if hasattr(birth_date, 'strftime'):
+                    birth_date_str = birth_date.strftime("%Y-%m-%d")
+                else:
+                    birth_date_str = str(birth_date).split(' ')[0]
+                
+                result = resolve_birth_utc_with_debug(birth_date_str, birth_time, timezone_str)
+                birth_utc = result.get('birth_utc')
+                
+                if birth_utc:
+                    hd_chart = get_human_design_chart(
+                        birth_datetime=birth_utc,
+                        lat=float(lat),
+                        lon=float(lon)
+                    )
+                    
+                    personality = hd_chart.get('personality', {})
+                    design = hd_chart.get('design', {})
+                    
+                    def extract_gate_line(planet_data):
+                        gate_data = planet_data.get('gate', {})
+                        if isinstance(gate_data, dict):
+                            return gate_data.get('gate', 1), gate_data.get('line', 1)
+                        return 1, 1
+                    
+                    # Build Gene Keys profile
+                    gene_keys_profile = build_gene_keys_profile(
+                        personality_sun_gate=extract_gate_line(personality.get('Sun', {}))[0],
+                        personality_sun_line=extract_gate_line(personality.get('Sun', {}))[1],
+                        personality_earth_gate=extract_gate_line(personality.get('Earth', {}))[0],
+                        personality_earth_line=extract_gate_line(personality.get('Earth', {}))[1],
+                        design_sun_gate=extract_gate_line(design.get('Sun', {}))[0],
+                        design_sun_line=extract_gate_line(design.get('Sun', {}))[1],
+                        design_earth_gate=extract_gate_line(design.get('Earth', {}))[0],
+                        design_earth_line=extract_gate_line(design.get('Earth', {}))[1],
+                        design_moon_gate=extract_gate_line(design.get('Moon', {}))[0],
+                        design_moon_line=extract_gate_line(design.get('Moon', {}))[1],
+                        personality_mercury_gate=extract_gate_line(personality.get('Mercury', {}))[0],
+                        personality_mercury_line=extract_gate_line(personality.get('Mercury', {}))[1],
+                        design_mercury_gate=extract_gate_line(design.get('Mercury', {}))[0],
+                        design_mercury_line=extract_gate_line(design.get('Mercury', {}))[1],
+                        design_venus_gate=extract_gate_line(design.get('Venus', {}))[0],
+                        design_venus_line=extract_gate_line(design.get('Venus', {}))[1],
+                        personality_mars_gate=extract_gate_line(personality.get('Mars', {}))[0],
+                        personality_mars_line=extract_gate_line(personality.get('Mars', {}))[1],
+                        design_mars_gate=extract_gate_line(design.get('Mars', {}))[0],
+                        design_mars_line=extract_gate_line(design.get('Mars', {}))[1],
+                        personality_jupiter_gate=extract_gate_line(personality.get('Jupiter', {}))[0],
+                        personality_jupiter_line=extract_gate_line(personality.get('Jupiter', {}))[1],
+                        design_jupiter_gate=extract_gate_line(design.get('Jupiter', {}))[0],
+                        design_jupiter_line=extract_gate_line(design.get('Jupiter', {}))[1],
+                    )
+        except Exception as gk_err:
+            logger.debug(f"[PatternGraph] Could not load Gene Keys: {gk_err}")
+        
+        # Load recent journal entries
+        journal_entries = []
+        try:
+            journal_entries = await db.journal.find(
+                {"user_id": user_id}
+            ).sort("timestamp", -1).limit(10).to_list(10)
+        except Exception as j_err:
+            logger.debug(f"[PatternGraph] Could not load journal: {j_err}")
+        
+        # Aggregate pattern graph
+        pattern_graph = aggregate_pattern_graph(
+            gene_keys_profile=gene_keys_profile,
+            journal_entries=journal_entries
+        )
+        
+        return {
+            "success": True,
+            **pattern_graph
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Pattern graph error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =====================================================================
 # NUMEROLOGY LENS ENDPOINTS
 # =====================================================================
 
