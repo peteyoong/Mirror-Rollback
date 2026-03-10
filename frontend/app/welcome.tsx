@@ -20,8 +20,8 @@ import { Colors } from '../constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Build info - bump this to force cache refresh
-const BUILD_VERSION = '2.1.0';
-const BUILD_ID = 'theme-fix-v3';
+const BUILD_VERSION = '2.2.0';
+const BUILD_ID = 'icon-fix-v4';
 const BUILD_DATE = '2026-03-10';
 
 // Debug mode - set to true to show debug panel
