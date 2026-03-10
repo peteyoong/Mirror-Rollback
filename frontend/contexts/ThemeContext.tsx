@@ -230,6 +230,9 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   } else if (effectiveMode === 'light') {
     isDark = false;
   } else {
+    // System mode - check system preference
+    // useColorScheme returns 'dark', 'light', or null
+    // null typically means system preference couldn't be determined
     isDark = systemColorScheme === 'dark';
   }
 
