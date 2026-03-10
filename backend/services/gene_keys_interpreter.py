@@ -273,6 +273,57 @@ def get_activation_sequence(
     }
 
 
+class VenusSequenceResponse(TypedDict):
+    """Full Venus Sequence response."""
+    sequence_name: str
+    spheres: List[SphereInterpretation]
+
+
+def get_venus_sequence(
+    design_moon_gate: int,
+    design_moon_line: int,
+    personality_mercury_gate: int,
+    personality_mercury_line: int,
+    design_mercury_gate: int,
+    design_mercury_line: int,
+    design_venus_gate: int,
+    design_venus_line: int,
+    personality_mars_gate: int,
+    personality_mars_line: int
+) -> VenusSequenceResponse:
+    """Build the complete Venus Sequence from HD planetary data.
+    
+    Venus Sequence mapping (relationships & emotional intelligence):
+    - Attraction = Design Moon (what you unconsciously attract)
+    - IQ = Personality Mercury (mental intelligence in relationships)
+    - EQ = Design Mercury (emotional intelligence)
+    - SQ = Design Venus (spiritual intelligence in love)
+    - Core = Personality Mars (deepest wound and potential in relationships)
+    
+    Args:
+        design_moon_gate/line: Unconscious Moon placement
+        personality_mercury_gate/line: Conscious Mercury placement
+        design_mercury_gate/line: Unconscious Mercury placement
+        design_venus_gate/line: Unconscious Venus placement
+        personality_mars_gate/line: Conscious Mars placement
+    
+    Returns:
+        VenusSequenceResponse with all 5 spheres
+    """
+    spheres = [
+        get_sphere_interpretation("Attraction", design_moon_gate, design_moon_line),
+        get_sphere_interpretation("IQ", personality_mercury_gate, personality_mercury_line),
+        get_sphere_interpretation("EQ", design_mercury_gate, design_mercury_line),
+        get_sphere_interpretation("SQ", design_venus_gate, design_venus_line),
+        get_sphere_interpretation("Core", personality_mars_gate, personality_mars_line),
+    ]
+    
+    return {
+        "sequence_name": "Venus Sequence",
+        "spheres": spheres
+    }
+
+
 def get_available_gene_keys() -> list[int]:
     """Get list of Gene Key numbers that have interpretation data."""
     return list(GENE_KEYS.keys())
