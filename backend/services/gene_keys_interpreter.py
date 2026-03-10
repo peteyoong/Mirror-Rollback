@@ -227,19 +227,23 @@ def get_sphere_interpretation(
         line: The line number (1-6)
     
     Returns:
-        SphereInterpretation with full template-based content
+        SphereInterpretation with full template-based content and keywords
     """
     # Get Gene Key data
     gk_data = GENE_KEYS.get(gene_key, {
         "gene_key": gene_key,
         "shadow": "Unknown",
         "gift": "Unknown",
-        "siddhi": "Unknown"
+        "siddhi": "Unknown",
+        "shadow_keywords": [],
+        "gift_keywords": []
     })
     
     shadow = gk_data.get("shadow", "Unknown")
     gift = gk_data.get("gift", "Unknown")
     siddhi = gk_data.get("siddhi", "Unknown")
+    shadow_keywords = gk_data.get("shadow_keywords", [])
+    gift_keywords = gk_data.get("gift_keywords", [])
     
     # Get sphere template (fallback to Life's Work if not found)
     template = SPHERE_TEMPLATES.get(sphere_name, SPHERE_TEMPLATES["Life's Work"])
@@ -261,6 +265,8 @@ def get_sphere_interpretation(
         "shadow": shadow,
         "gift": gift,
         "siddhi": siddhi,
+        "shadow_keywords": shadow_keywords,
+        "gift_keywords": gift_keywords,
         "what_this_means": template["what_this_means"].format(**format_vars),
         "your_challenge": template["your_challenge"].format(**format_vars),
         "your_higher_expression": template["your_higher_expression"].format(**format_vars),
