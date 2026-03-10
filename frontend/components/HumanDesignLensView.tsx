@@ -792,6 +792,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                 {/* Centers Section - New reflective subsection */}
                 <CentersView userId={userId} />
                 
+                {/* Defined Gates Section */}
+                <DefinedGatesView userId={userId} />
+                
                 {renderGeneKeys()}
                 {data.mirror_prompt && (
                   <View style={[styles.mirrorPromptCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
