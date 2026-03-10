@@ -318,11 +318,7 @@ export default function JournalScreen() {
           <View style={styles.stateChip}>
             <Text style={styles.stateChipText}>{formatState(item.inferred_state)}</Text>
           </View>
-          <Ionicons 
-            name={isExpanded ? "chevron-up" : "chevron-down"} 
-            size={16} 
-            color={Colors.textTertiary} 
-          />
+          <Text style={{ fontSize: 14, color: Colors.textTertiary }}>{isExpanded ? "▲" : "▼"}</Text>
         </View>
         <Text style={styles.timelineTheme} numberOfLines={isExpanded ? undefined : 1}>
           {firstTheme}
@@ -367,7 +363,7 @@ export default function JournalScreen() {
             </View>
           ) : timelineEvents.length === 0 ? (
             <View style={styles.emptyTimeline}>
-              <Ionicons name="time-outline" size={48} color={Colors.border} />
+              <Text style={{ fontSize: 42, color: Colors.border }}>⏱</Text>
               <Text style={styles.emptyTimelineText}>No timeline yet</Text>
               <Text style={styles.emptyTimelineSubtext}>
                 Start chatting with Mirror to build your pattern history
@@ -455,7 +451,7 @@ export default function JournalScreen() {
                     style={[styles.dismissButton, { backgroundColor: theme.surfaceLight }]}
                     onPress={dismissKeyboard}
                   >
-                    <Ionicons name="chevron-down" size={20} color={theme.textSecondary} />
+                    <Text style={{ fontSize: 18, color: theme.textSecondary }}>▼</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
@@ -473,7 +469,7 @@ export default function JournalScreen() {
                   {isSubmitting ? (
                     <ActivityIndicator size="small" color={theme.background} />
                   ) : (
-                    <Ionicons name="checkmark" size={20} color={theme.background} />
+                    <Text style={{ fontSize: 18, color: theme.background }}>✓</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -489,7 +485,7 @@ export default function JournalScreen() {
                   onPress={handleReflectCurrentEntry}
                   disabled={reflectionModalVisible}
                 >
-                  <Ionicons name="sparkles-outline" size={16} color={reflectionModalVisible ? Colors.textTertiary : Colors.accent} />
+                  <Text style={{ fontSize: 14, color: reflectionModalVisible ? Colors.textTertiary : Colors.accent }}>✦</Text>
                   <Text style={[
                     styles.reflectCurrentText,
                     reflectionModalVisible && styles.reflectTextDisabled
@@ -511,7 +507,7 @@ export default function JournalScreen() {
               </View>
             ) : journalEntries.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <Ionicons name="book-outline" size={48} color={theme.textTertiary} />
+                <Text style={{ fontSize: 42, color: theme.textTertiary }}>☰</Text>
                 <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No entries yet</Text>
                 <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>
                   Start journaling to track your reflections over time.
