@@ -63,6 +63,15 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="patterns"
+        options={{
+          title: 'Patterns',
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 22, color }}>⬡</Text>
+          ),
+        }}
+      />
     </Tabs>
     </SessionRestoreWrapper>
   );
