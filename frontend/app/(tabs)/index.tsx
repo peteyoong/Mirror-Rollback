@@ -358,18 +358,20 @@ export default function MirrorScreen() {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       
       {/* Compact Header: "THE MIRROR" on left, User name + chevron on right */}
-      <Pressable 
-        style={[styles.header, { backgroundColor: theme.background }]}
-        onPress={handleUserPress}
-      >
+      <View style={[styles.header, { backgroundColor: theme.background }]}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>THE MIRROR</Text>
-        <View style={styles.userCluster}>
+        <TouchableOpacity 
+          style={styles.userCluster}
+          onPress={handleUserPress}
+          activeOpacity={0.7}
+          hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+        >
           <Text style={[styles.userName, { color: theme.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
             {user?.name || 'Account'}
           </Text>
           <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
-        </View>
-      </Pressable>
+        </TouchableOpacity>
+      </View>
       
       {/* Subtle header separation */}
       <View style={[styles.headerDivider, { backgroundColor: theme.border }]} />
