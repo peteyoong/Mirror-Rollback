@@ -11393,18 +11393,6 @@ async def get_available_keys():
 async def get_user_activation_sequence(user_id: str):
     """
     Get the Activation Sequence for a user based on their Human Design data.
-    
-    The Activation Sequence maps HD planetary positions to Gene Keys spheres:
-    - Life's Work = Personality Sun (conscious sun)
-    - Evolution = Personality Earth (conscious earth)
-    - Radiance = Design Sun (unconscious sun)
-    - Purpose = Design Earth (unconscious earth)
-    
-    Args:
-        user_id: The user's ID
-    
-    Returns:
-        ActivationSequenceResponse with all 4 spheres and interpretations
     """
     logger.info(f"[GeneKeys] Fetching Activation Sequence for user {user_id}")
     
@@ -11414,12 +11402,14 @@ async def get_user_activation_sequence(user_id: str):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Get user's birth data for HD computation
+        # Get user's birth data
         birth_date = user.get("birth_date")
         birth_time = user.get("birth_time")
         timezone = user.get("timezone", "UTC")
         
-        # Handle location - can be nested or flat
+        logger.info(f"[GeneKeys] birth_date={birth_date}, birth_time={birth_time}, tz={timezone}")
+        
+        # Handle location
         birth_location = user.get("birth_location", {})
         if isinstance(birth_location, dict):
             latitude = birth_location.get("latitude")
@@ -11428,51 +11418,52 @@ async def get_user_activation_sequence(user_id: str):
             latitude = user.get("latitude") or user.get("birth_lat")
             longitude = user.get("longitude") or user.get("birth_lon")
         
-        if not all([birth_date, birth_time, latitude, longitude]):
-            raise HTTPException(
-                status_code=400, 
-                detail="Birth data not available. Please complete onboarding first."
-            )
+        logger.info(f"[GeneKeys] lat={latitude}, lon={longitude}")
         
-        # Parse birth datetime to UTC (same logic as deep-dive endpoint)
+        if not all([birth_date, birth_time, latitude, longitude]):
+            raise HTTPException(status_code=400, detail="Birth data not available")
+        
+        # Parse birth datetime to UTC
         from calculations.timezone_utils import resolve_birth_utc_with_debug
         
-        # Convert birth_date to string if it's a datetime object
+        # Convert birth_date to string
         if hasattr(birth_date, 'strftime'):
             birth_date_str = birth_date.strftime("%Y-%m-%d")
         else:
-            birth_date_str = str(birth_date).split(' ')[0]  # Handle "1990-06-15 00:00:00"
+            birth_date_str = str(birth_date).split(' ')[0]
+        
+        logger.info(f"[GeneKeys] birth_date_str={birth_date_str}")
         
         result = resolve_birth_utc_with_debug(birth_date_str, birth_time, timezone)
         birth_utc = result.get('birth_utc')
         
-        if not birth_utc:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Could not parse birth datetime: {result.get('error')}"
-            )
+        logger.info(f"[GeneKeys] birth_utc={birth_utc}")
         
-        # Compute Human Design chart (same as deep-dive endpoint)
+        if not birth_utc:
+            raise HTTPException(status_code=400, detail=f"Could not parse birth datetime: {result.get('error')}")
+        
+        # Compute Human Design chart
         from calculations.human_design import get_human_design_chart
+        
+        logger.info(f"[GeneKeys] Calling get_human_design_chart...")
         canonical_hd = get_human_design_chart(
             birth_datetime=birth_utc,
-            lat=latitude,
-            lon=longitude
+            lat=float(latitude),
+            lon=float(longitude)
         )
         
-        # Extract planetary positions from HD chart
+        logger.info(f"[GeneKeys] HD computed: type={canonical_hd.get('type')}")
+        
+        # Extract planetary positions
         personality = canonical_hd.get('personality', {})
         design = canonical_hd.get('design', {})
         
-        # Activation Sequence mapping:
-        # Life's Work = Personality Sun
-        # Evolution = Personality Earth  
-        # Radiance = Design Sun
-        # Purpose = Design Earth
         p_sun = personality.get('Sun', {})
         p_earth = personality.get('Earth', {})
         d_sun = design.get('Sun', {})
         d_earth = design.get('Earth', {})
+        
+        logger.info(f"[GeneKeys] Sun gates: p_sun={p_sun.get('gate')}, d_sun={d_sun.get('gate')}")
         
         # Build activation sequence
         activation = get_activation_sequence(
@@ -11486,13 +11477,14 @@ async def get_user_activation_sequence(user_id: str):
             design_earth_line=d_earth.get("line", 1),
         )
         
-        logger.info(f"[GeneKeys] Successfully built Activation Sequence for user {user_id}")
+        logger.info(f"[GeneKeys] Successfully built Activation Sequence")
         return activation
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"[GeneKeys] Error building Activation Sequence: {e}")
+        import traceback
+        logger.error(f"[GeneKeys] Error: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Error building Activation Sequence: {str(e)}")
 
 
