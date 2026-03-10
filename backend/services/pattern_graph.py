@@ -1,0 +1,471 @@
+"""Pattern Graph Aggregation Service
+
+Aggregates signals from Gene Keys, journal entries, and other sources
+into 7 core pattern categories for reflective insight.
+
+Philosophy:
+- Lightweight, deterministic aggregation
+- Reflective, not diagnostic
+- "Mirror not guru" - suggest patterns, don't prescribe
+"""
+
+from typing import List, Dict, Any, TypedDict, Optional
+from datetime import datetime, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# THE 7 CORE PATTERN CATEGORIES
+# =============================================================================
+
+PATTERN_CATEGORIES = [
+    {
+        "id": "energy_vitality",
+        "name": "Energy & Vitality",
+        "description": "Patterns around energy, pacing, exhaustion, and life force",
+        "quiet_summary": "No strong signals around energy themes at the moment.",
+        "emerging_summary": "A theme around energy, pacing, or vitality may be starting to surface.",
+        "active_summary": "Energy and vitality themes seem to be showing up across multiple areas."
+    },
+    {
+        "id": "emotional_landscape",
+        "name": "Emotional Landscape",
+        "description": "Patterns around feelings, emotional waves, and inner weather",
+        "quiet_summary": "No strong signals around emotional patterns at the moment.",
+        "emerging_summary": "Something around your emotional experience may be surfacing.",
+        "active_summary": "Emotional themes seem to be moving through multiple parts of your reflection."
+    },
+    {
+        "id": "identity_direction",
+        "name": "Identity & Direction",
+        "description": "Patterns around sense of self, purpose, and life direction",
+        "quiet_summary": "No strong signals around identity or direction themes at the moment.",
+        "emerging_summary": "A question about identity or direction may be emerging.",
+        "active_summary": "Themes of identity and direction seem to be present across your reflections."
+    },
+    {
+        "id": "mind_meaning",
+        "name": "Mind & Meaning",
+        "description": "Patterns around thinking, understanding, and sense-making",
+        "quiet_summary": "No strong signals around mental themes at the moment.",
+        "emerging_summary": "Something around thinking, clarity, or meaning may be surfacing.",
+        "active_summary": "Mental and meaning-making themes seem to be active in your current pattern."
+    },
+    {
+        "id": "expression_action",
+        "name": "Expression & Action",
+        "description": "Patterns around voice, communication, and taking action",
+        "quiet_summary": "No strong signals around expression themes at the moment.",
+        "emerging_summary": "A theme around expression or action may be emerging.",
+        "active_summary": "Expression and action themes seem to be showing up across your experience."
+    },
+    {
+        "id": "relationships_boundaries",
+        "name": "Relationships & Boundaries",
+        "description": "Patterns around connection, intimacy, and personal limits",
+        "quiet_summary": "No strong signals around relationship themes at the moment.",
+        "emerging_summary": "Something around relationships or boundaries may be surfacing.",
+        "active_summary": "Relationship and boundary themes seem to be present in multiple areas."
+    },
+    {
+        "id": "growth_transformation",
+        "name": "Growth & Transformation",
+        "description": "Patterns around change, evolution, and personal development",
+        "quiet_summary": "No strong signals around transformation themes at the moment.",
+        "emerging_summary": "A theme around growth or change may be starting to show.",
+        "active_summary": "Transformation and growth themes seem to be active across your reflection."
+    }
+]
+
+
+# =============================================================================
+# GENE KEYS TO CATEGORY MAPPING
+# =============================================================================
+# Maps Gene Key numbers to primary pattern categories
+
+GENE_KEY_CATEGORY_MAP = {
+    # Energy & Vitality
+    5: "energy_vitality",      # Fixed Rhythms
+    9: "energy_vitality",      # Focus / Determination
+    14: "energy_vitality",     # Power Skills
+    27: "energy_vitality",     # Caring / Nourishment
+    29: "energy_vitality",     # Saying Yes / Commitment
+    34: "energy_vitality",     # Power / Life Force
+    40: "energy_vitality",     # Aloneness / Exhaustion
+    42: "energy_vitality",     # Completion / Growth
+    52: "energy_vitality",     # Stillness
+    53: "energy_vitality",     # Starting / New Cycles
+    58: "energy_vitality",     # Joy / Vitality
+    
+    # Emotional Landscape
+    6: "emotional_landscape",   # Conflict Resolution / Intimacy
+    22: "emotional_landscape",  # Grace / Emotional Charm
+    30: "emotional_landscape",  # Feelings / Desire
+    36: "emotional_landscape",  # Crisis / Emotional Learning
+    37: "emotional_landscape",  # Community / Family (also relationships)
+    49: "emotional_landscape",  # Revolution / Principles
+    55: "emotional_landscape",  # Spirit / Emotional Range
+    
+    # Identity & Direction
+    1: "identity_direction",    # Self-Expression
+    2: "identity_direction",    # Direction
+    7: "identity_direction",    # Self-Direction / Leadership
+    10: "identity_direction",   # Self-Love / Behavior
+    15: "identity_direction",   # Extremes / Humanity
+    25: "identity_direction",   # Innocence / Universal Love
+    46: "identity_direction",   # Body / Determination
+    
+    # Mind & Meaning
+    4: "mind_meaning",          # Mental Solutions
+    11: "mind_meaning",         # Ideas
+    17: "mind_meaning",         # Opinions
+    24: "mind_meaning",         # Rationalizing
+    43: "mind_meaning",         # Insight
+    47: "mind_meaning",         # Realization
+    61: "mind_meaning",         # Mystery / Inner Truth
+    62: "mind_meaning",         # Details / Precision
+    63: "mind_meaning",         # Doubt / Questioning
+    64: "mind_meaning",         # Confusion / Before Completion
+    
+    # Expression & Action
+    8: "expression_action",     # Contribution
+    12: "expression_action",    # Caution / Articulation
+    16: "expression_action",    # Skills / Enthusiasm
+    20: "expression_action",    # Now / Presence
+    23: "expression_action",    # Assimilation / Insight Translation
+    31: "expression_action",    # Influence / Leadership
+    33: "expression_action",    # Privacy / Retreat
+    35: "expression_action",    # Change / Adventure
+    45: "expression_action",    # The King/Queen / Gathering
+    56: "expression_action",    # Stimulation / Storytelling
+    
+    # Relationships & Boundaries
+    13: "relationships_boundaries",  # Listener / Secrets
+    19: "relationships_boundaries",  # Wanting / Sensitivity
+    32: "relationships_boundaries",  # Continuity / Duration
+    38: "relationships_boundaries",  # The Fighter
+    39: "relationships_boundaries",  # Provocation
+    41: "relationships_boundaries",  # Fantasy / Anticipation
+    44: "relationships_boundaries",  # Alertness / Patterns
+    50: "relationships_boundaries",  # Values / Responsibility
+    54: "relationships_boundaries",  # Ambition
+    59: "relationships_boundaries",  # Intimacy / Breaking Barriers
+    
+    # Growth & Transformation
+    3: "growth_transformation",   # Ordering / Mutation
+    18: "growth_transformation",  # Correction / Improvement
+    21: "growth_transformation",  # Hunter / Control
+    26: "growth_transformation",  # Taming / Influence
+    28: "growth_transformation",  # Struggle / Purpose
+    48: "growth_transformation",  # Depth / Skill
+    51: "growth_transformation",  # Shock / Initiative
+    57: "growth_transformation",  # Intuition
+    60: "growth_transformation",  # Acceptance / Limitation
+}
+
+
+# =============================================================================
+# SHADOW/GIFT KEYWORD TO CATEGORY MAPPING
+# =============================================================================
+# Additional keyword-based detection for journal/chat signals
+
+KEYWORD_CATEGORY_MAP = {
+    "energy_vitality": [
+        "tired", "exhausted", "depleted", "energy", "vitality", "rest", "pacing",
+        "burnout", "refresh", "recharge", "fatigue", "drained", "power", "strength",
+        "weak", "powerful", "alive", "rhythm", "cycles", "sustainable", "endurance"
+    ],
+    "emotional_landscape": [
+        "feel", "feeling", "emotions", "emotional", "mood", "anxious", "anxiety",
+        "sad", "happy", "joy", "grief", "anger", "fear", "wave", "overwhelm",
+        "calm", "peace", "turbulent", "sensitive", "heart", "hurt", "love"
+    ],
+    "identity_direction": [
+        "who am i", "purpose", "direction", "lost", "identity", "self", "authentic",
+        "meaning", "calling", "path", "journey", "belong", "belonging", "role",
+        "confused about who", "discovering", "becoming", "true self"
+    ],
+    "mind_meaning": [
+        "think", "thinking", "thought", "understand", "clarity", "confused",
+        "insight", "realize", "idea", "concept", "meaning", "sense", "logic",
+        "rational", "doubt", "certainty", "question", "answer", "wisdom"
+    ],
+    "expression_action": [
+        "speak", "voice", "express", "action", "do", "doing", "create", "creative",
+        "communicate", "say", "said", "tell", "share", "silent", "quiet",
+        "stuck", "move", "moving", "manifest", "build", "start"
+    ],
+    "relationships_boundaries": [
+        "relationship", "boundary", "boundaries", "people", "connection", "connect",
+        "intimacy", "trust", "family", "friend", "partner", "alone", "lonely",
+        "together", "distance", "close", "conflict", "harmony", "support"
+    ],
+    "growth_transformation": [
+        "change", "changing", "grow", "growth", "transform", "evolve", "evolution",
+        "learn", "learning", "develop", "progress", "stuck", "breakthrough",
+        "challenge", "struggle", "overcome", "heal", "healing", "new"
+    ]
+}
+
+
+class MatchedSignal(TypedDict):
+    """A single matched signal from a source."""
+    source: str  # "gene_keys", "journal", "chat"
+    label: str   # Human-readable label
+    sphere_name: Optional[str]  # Gene Keys sphere if applicable
+    detail: Optional[str]  # Additional context
+
+
+class CategoryResult(TypedDict):
+    """Result for a single pattern category."""
+    category_id: str
+    category_name: str
+    signal_strength: str  # "quiet", "emerging", "active"
+    matched_sources: List[str]
+    matched_signals: List[MatchedSignal]
+    summary: str
+
+
+def get_category_by_id(category_id: str) -> Optional[dict]:
+    """Get category metadata by ID."""
+    for cat in PATTERN_CATEGORIES:
+        if cat["id"] == category_id:
+            return cat
+    return None
+
+
+def aggregate_gene_keys_signals(
+    gene_keys_profile: dict
+) -> Dict[str, List[MatchedSignal]]:
+    """Extract pattern signals from Gene Keys profile.
+    
+    Args:
+        gene_keys_profile: Result from build_gene_keys_profile()
+    
+    Returns:
+        Dict mapping category_id to list of matched signals
+    """
+    category_signals: Dict[str, List[MatchedSignal]] = {
+        cat["id"]: [] for cat in PATTERN_CATEGORIES
+    }
+    
+    all_spheres = gene_keys_profile.get("all_spheres", [])
+    
+    for sphere in all_spheres:
+        gene_key = sphere.get("gene_key", 0)
+        sphere_name = sphere.get("sphere_name", "Unknown")
+        shadow = sphere.get("shadow", "")
+        gift = sphere.get("gift", "")
+        sequence = sphere.get("sequence", "")
+        
+        # Map gene key to category
+        category_id = GENE_KEY_CATEGORY_MAP.get(gene_key)
+        if category_id:
+            signal: MatchedSignal = {
+                "source": "gene_keys",
+                "label": f"{shadow} → {gift}",
+                "sphere_name": f"{sphere_name} ({sequence})",
+                "detail": f"Gene Key {gene_key}"
+            }
+            category_signals[category_id].append(signal)
+        
+        # Also check shadow/gift keywords for additional category signals
+        shadow_keywords = sphere.get("shadow_keywords", [])
+        gift_keywords = sphere.get("gift_keywords", [])
+        all_keywords = shadow_keywords + gift_keywords
+        
+        for kw in all_keywords:
+            kw_lower = kw.lower()
+            for cat_id, cat_keywords in KEYWORD_CATEGORY_MAP.items():
+                if cat_id != category_id:  # Don't double-count
+                    for cat_kw in cat_keywords:
+                        if cat_kw in kw_lower or kw_lower in cat_kw:
+                            # Found a cross-category keyword match
+                            signal: MatchedSignal = {
+                                "source": "gene_keys",
+                                "label": f"{shadow} ({kw})",
+                                "sphere_name": sphere_name,
+                                "detail": f"Keyword resonance from Gene Key {gene_key}"
+                            }
+                            # Only add if not already present
+                            existing_labels = [s["label"] for s in category_signals[cat_id]]
+                            if signal["label"] not in existing_labels:
+                                category_signals[cat_id].append(signal)
+                            break
+    
+    return category_signals
+
+
+def aggregate_journal_signals(
+    journal_entries: List[dict],
+    max_entries: int = 10
+) -> Dict[str, List[MatchedSignal]]:
+    """Extract pattern signals from recent journal entries.
+    
+    Args:
+        journal_entries: List of recent journal entries
+        max_entries: Maximum entries to analyze
+    
+    Returns:
+        Dict mapping category_id to list of matched signals
+    """
+    category_signals: Dict[str, List[MatchedSignal]] = {
+        cat["id"]: [] for cat in PATTERN_CATEGORIES
+    }
+    
+    # Analyze recent entries
+    for entry in journal_entries[:max_entries]:
+        content = entry.get("content", "").lower()
+        timestamp = entry.get("timestamp")
+        
+        if len(content) < 20:
+            continue  # Skip very short entries
+        
+        # Check for keyword matches
+        for cat_id, keywords in KEYWORD_CATEGORY_MAP.items():
+            matches_found = []
+            for kw in keywords:
+                if kw in content:
+                    matches_found.append(kw)
+            
+            if matches_found:
+                # Create a signal for this category
+                date_str = ""
+                if timestamp:
+                    if hasattr(timestamp, 'strftime'):
+                        date_str = timestamp.strftime("%b %d")
+                    else:
+                        date_str = str(timestamp)[:10]
+                
+                signal: MatchedSignal = {
+                    "source": "journal",
+                    "label": f"Journal reflection ({', '.join(matches_found[:2])})",
+                    "sphere_name": None,
+                    "detail": f"From entry on {date_str}" if date_str else "Recent entry"
+                }
+                category_signals[cat_id].append(signal)
+    
+    return category_signals
+
+
+def calculate_signal_strength(signals: List[MatchedSignal]) -> str:
+    """Calculate signal strength based on number and diversity of signals.
+    
+    Returns:
+        "quiet", "emerging", or "active"
+    """
+    if not signals:
+        return "quiet"
+    
+    # Count unique sources
+    sources = set(s["source"] for s in signals)
+    num_signals = len(signals)
+    num_sources = len(sources)
+    
+    # Active: 3+ signals OR 2+ sources
+    if num_signals >= 3 or num_sources >= 2:
+        return "active"
+    
+    # Emerging: 1-2 signals from single source
+    if num_signals >= 1:
+        return "emerging"
+    
+    return "quiet"
+
+
+def get_category_summary(category: dict, strength: str) -> str:
+    """Get the appropriate summary text for a category and strength level."""
+    if strength == "quiet":
+        return category.get("quiet_summary", "No strong signals at the moment.")
+    elif strength == "emerging":
+        return category.get("emerging_summary", "A theme may be starting to surface.")
+    else:  # active
+        return category.get("active_summary", "This theme seems to be present across your reflection.")
+
+
+def aggregate_pattern_graph(
+    gene_keys_profile: Optional[dict] = None,
+    journal_entries: Optional[List[dict]] = None,
+    chat_signals: Optional[List[dict]] = None  # Future: from Mirror Chat
+) -> Dict[str, Any]:
+    """Main aggregation function for Pattern Graph.
+    
+    Combines signals from all available sources into the 7 pattern categories.
+    
+    Args:
+        gene_keys_profile: Result from build_gene_keys_profile()
+        journal_entries: List of recent journal entries
+        chat_signals: Future - signals from Mirror Chat analysis
+    
+    Returns:
+        Complete pattern graph response
+    """
+    # Initialize category results
+    all_signals: Dict[str, List[MatchedSignal]] = {
+        cat["id"]: [] for cat in PATTERN_CATEGORIES
+    }
+    
+    # Aggregate Gene Keys signals
+    if gene_keys_profile:
+        gk_signals = aggregate_gene_keys_signals(gene_keys_profile)
+        for cat_id, signals in gk_signals.items():
+            all_signals[cat_id].extend(signals)
+    
+    # Aggregate journal signals
+    if journal_entries:
+        journal_sigs = aggregate_journal_signals(journal_entries)
+        for cat_id, signals in journal_sigs.items():
+            all_signals[cat_id].extend(signals)
+    
+    # Build category results
+    categories: List[CategoryResult] = []
+    
+    for cat in PATTERN_CATEGORIES:
+        cat_id = cat["id"]
+        signals = all_signals.get(cat_id, [])
+        
+        # Deduplicate signals by label
+        seen_labels = set()
+        unique_signals = []
+        for sig in signals:
+            if sig["label"] not in seen_labels:
+                seen_labels.add(sig["label"])
+                unique_signals.append(sig)
+        
+        # Limit signals per category
+        unique_signals = unique_signals[:5]
+        
+        # Calculate strength
+        strength = calculate_signal_strength(unique_signals)
+        
+        # Get matched sources
+        sources = list(set(s["source"] for s in unique_signals))
+        
+        # Get summary
+        summary = get_category_summary(cat, strength)
+        
+        result: CategoryResult = {
+            "category_id": cat_id,
+            "category_name": cat["name"],
+            "signal_strength": strength,
+            "matched_sources": sources,
+            "matched_signals": unique_signals,
+            "summary": summary
+        }
+        categories.append(result)
+    
+    # Calculate overall stats
+    active_count = sum(1 for c in categories if c["signal_strength"] == "active")
+    emerging_count = sum(1 for c in categories if c["signal_strength"] == "emerging")
+    
+    return {
+        "categories": categories,
+        "summary": {
+            "active_categories": active_count,
+            "emerging_categories": emerging_count,
+            "total_signals": sum(len(c["matched_signals"]) for c in categories)
+        },
+        "updated_at": datetime.utcnow().isoformat()
+    }
