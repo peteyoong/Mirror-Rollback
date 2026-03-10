@@ -456,6 +456,9 @@ export default function MirrorScreen() {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* Settings Modal */}
+      {renderSettingsModal()}
     </SafeAreaView>
   );
 }
