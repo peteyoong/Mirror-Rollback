@@ -8381,13 +8381,21 @@ async def get_pattern_graph(user_id: str):
             
             if birth_date and birth_time and lat is not None and lon is not None:
                 logger.info(f"[PatternGraph] Attempting to load Human Design chart...")
-                # Get Human Design chart
-                hd_chart = get_human_design_chart(
+                
+                # Combine birth_date and birth_time into datetime
+                birth_utc, debug_info = resolve_birth_utc_with_debug(
                     birth_date=birth_date,
                     birth_time=birth_time,
                     timezone_str=timezone_str,
                     latitude=lat,
                     longitude=lon
+                )
+                
+                # Get Human Design chart
+                hd_chart = get_human_design_chart(
+                    birth_datetime=birth_utc,
+                    lat=lat,
+                    lon=lon
                 )
                 
                 if hd_chart:
