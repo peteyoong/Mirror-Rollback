@@ -1,348 +1,285 @@
 #!/usr/bin/env python3
 """
-Gene Keys Mirror Chat Context Awareness Testing (Phase 9)
-
-Tests the POST /api/mirror/chat endpoint with messages that trigger Gene Keys keyword matching.
-Verifies that the system correctly identifies shadow/gift patterns and provides subtle context.
+Backend Testing Suite for Project Mirror
+Tests Human Design Defined Gates endpoint implementation
 """
 
 import requests
 import json
 import time
-import sys
-from typing import Dict, Any, List
+from typing import Dict, List, Any
 
 # Configuration
 BASE_URL = "https://pattern-signals-4.preview.emergentagent.com/api"
 TEST_USER_ID = "697f0c6abf35c0528ff06954"
 
-def log_test(message: str, level: str = "INFO"):
-    """Log test messages with timestamp."""
-    timestamp = time.strftime("%H:%M:%S")
-    print(f"[{timestamp}] [{level}] {message}")
+class TestResults:
+    def __init__(self):
+        self.passed = 0
+        self.failed = 0
+        self.errors = []
+        
+    def add_pass(self, test_name: str):
+        self.passed += 1
+        print(f"✅ {test_name}")
+        
+    def add_fail(self, test_name: str, error: str):
+        self.failed += 1
+        self.errors.append(f"{test_name}: {error}")
+        print(f"❌ {test_name}: {error}")
+        
+    def summary(self):
+        total = self.passed + self.failed
+        print(f"\n📊 TEST SUMMARY:")
+        print(f"Total Tests: {total}")
+        print(f"Passed: {self.passed}")
+        print(f"Failed: {self.failed}")
+        if self.errors:
+            print(f"\n🔍 FAILURES:")
+            for error in self.errors:
+                print(f"  - {error}")
 
-def make_request(method: str, endpoint: str, data: Dict = None, timeout: int = 30) -> Dict[str, Any]:
-    """Make HTTP request with error handling."""
-    url = f"{BASE_URL}{endpoint}"
+def test_human_design_gates_endpoint():
+    """Test the Human Design Defined Gates endpoint implementation"""
+    results = TestResults()
     
+    print("🧪 TESTING HUMAN DESIGN DEFINED GATES ENDPOINT")
+    print("=" * 60)
+    
+    # Test 1: Basic Gates Endpoint Test
+    print("\n1. BASIC GATES ENDPOINT TEST")
     try:
-        if method.upper() == "POST":
-            response = requests.post(url, json=data, timeout=timeout)
-        elif method.upper() == "GET":
-            response = requests.get(url, timeout=timeout)
+        url = f"{BASE_URL}/human-design/gates/{TEST_USER_ID}"
+        print(f"   Testing: GET {url}")
+        
+        start_time = time.time()
+        response = requests.get(url, timeout=30)
+        response_time = time.time() - start_time
+        
+        print(f"   Response Time: {response_time:.2f} seconds")
+        print(f"   Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            results.add_pass("Basic endpoint accessibility (200 OK)")
         else:
-            raise ValueError(f"Unsupported method: {method}")
-        
-        log_test(f"{method} {endpoint} -> {response.status_code}")
-        
-        if response.status_code != 200:
-            log_test(f"HTTP Error: {response.status_code} - {response.text}", "ERROR")
-            return {"error": f"HTTP {response.status_code}", "details": response.text}
-        
-        return response.json()
-    
-    except requests.exceptions.Timeout:
-        log_test(f"Request timeout after {timeout}s", "ERROR")
-        return {"error": "timeout"}
+            results.add_fail("Basic endpoint accessibility", f"Status {response.status_code}")
+            return results
+            
+        # Parse response
+        try:
+            data = response.json()
+        except json.JSONDecodeError as e:
+            results.add_fail("JSON parsing", f"Invalid JSON: {e}")
+            return results
+            
+        # Check basic response structure
+        if data.get("success") is True:
+            results.add_pass("Response success field is true")
+        else:
+            results.add_fail("Response success field", f"Expected true, got {data.get('success')}")
+            
+        if "gates" in data and isinstance(data["gates"], list):
+            results.add_pass("Gates array present")
+            gates = data["gates"]
+            print(f"   Gates Count: {len(gates)}")
+        else:
+            results.add_fail("Gates array", "Missing or not a list")
+            return results
+            
+        if "summary" in data and isinstance(data["summary"], dict):
+            results.add_pass("Summary object present")
+            summary = data["summary"]
+            if "total_gates" in summary:
+                results.add_pass("Summary contains total_gates")
+                print(f"   Total Gates: {summary['total_gates']}")
+            else:
+                results.add_fail("Summary total_gates", "Missing total_gates field")
+        else:
+            results.add_fail("Summary object", "Missing or not a dict")
+            
     except requests.exceptions.RequestException as e:
-        log_test(f"Request error: {str(e)}", "ERROR")
-        return {"error": "request_failed", "details": str(e)}
-    except json.JSONDecodeError as e:
-        log_test(f"JSON decode error: {str(e)}", "ERROR")
-        return {"error": "json_decode_failed", "details": str(e)}
-
-def test_shadow_keyword_match():
-    """Test 1: Shadow Keyword Match Test
+        results.add_fail("Basic endpoint test", f"Request failed: {e}")
+        return results
+    except Exception as e:
+        results.add_fail("Basic endpoint test", f"Unexpected error: {e}")
+        return results
     
-    POST /api/mirror/chat with message containing shadow keywords.
-    Should trigger Gene Keys matching with shadow type.
-    """
-    log_test("=== TEST 1: Shadow Keyword Match ===")
-    
-    payload = {
-        "user_id": TEST_USER_ID,
-        "message": "I feel exhausted and depleted, like I have no energy left to give",
-        "lens": None,
-        "session_id": None,
-        "include_journal": True,
-        "include_history": True
-    }
-    
-    log_test(f"Testing shadow keywords: 'exhausted', 'depleted', 'no energy'")
-    response = make_request("POST", "/mirror/chat", payload)
-    
-    if "error" in response:
-        log_test(f"❌ FAILED: {response['error']}", "ERROR")
-        return False
-    
-    # Verify response structure
-    required_fields = ["response", "session_id", "timestamp"]
-    missing_fields = [field for field in required_fields if field not in response]
-    
-    if missing_fields:
-        log_test(f"❌ FAILED: Missing fields: {missing_fields}", "ERROR")
-        return False
-    
-    # Check response quality
-    response_text = response.get("response", "")
-    
-    # Should be reflective, not prescriptive
-    forbidden_phrases = ["you should", "you need to", "you must", "you will"]
-    violations = [phrase for phrase in forbidden_phrases if phrase.lower() in response_text.lower()]
-    
-    if violations:
-        log_test(f"❌ FAILED: Found prescriptive language: {violations}", "ERROR")
-        return False
-    
-    # Should contain reflective language
-    reflective_indicators = ["sounds like", "seems like", "might notice", "may be", "echoes", "pattern"]
-    has_reflective = any(indicator in response_text.lower() for indicator in reflective_indicators)
-    
-    if not has_reflective:
-        log_test(f"⚠️  WARNING: No clear reflective language detected", "WARN")
-    
-    log_test(f"✅ PASSED: Shadow keyword test completed")
-    log_test(f"Response preview: {response_text[:100]}...")
-    
-    return True
-
-def test_gift_keyword_match():
-    """Test 2: Gift Keyword Match Test
-    
-    POST /api/mirror/chat with gift-oriented message.
-    Should trigger Gene Keys matching with gift type.
-    """
-    log_test("=== TEST 2: Gift Keyword Match ===")
-    
-    payload = {
-        "user_id": TEST_USER_ID,
-        "message": "I feel patient and calm today, willing to wait for the right timing",
-        "lens": None,
-        "session_id": None,
-        "include_journal": True,
-        "include_history": True
-    }
-    
-    log_test(f"Testing gift keywords: 'patient', 'calm', 'timing'")
-    response = make_request("POST", "/mirror/chat", payload)
-    
-    if "error" in response:
-        log_test(f"❌ FAILED: {response['error']}", "ERROR")
-        return False
-    
-    # Verify response structure
-    required_fields = ["response", "session_id", "timestamp"]
-    missing_fields = [field for field in required_fields if field not in response]
-    
-    if missing_fields:
-        log_test(f"❌ FAILED: Missing fields: {missing_fields}", "ERROR")
-        return False
-    
-    # Check response quality
-    response_text = response.get("response", "")
-    
-    # Should be reflective, not prescriptive
-    forbidden_phrases = ["you should", "you need to", "you must", "you will"]
-    violations = [phrase for phrase in forbidden_phrases if phrase.lower() in response_text.lower()]
-    
-    if violations:
-        log_test(f"❌ FAILED: Found prescriptive language: {violations}", "ERROR")
-        return False
-    
-    log_test(f"✅ PASSED: Gift keyword test completed")
-    log_test(f"Response preview: {response_text[:100]}...")
-    
-    return True
-
-def test_no_match():
-    """Test 3: No Match Test
-    
-    POST /api/mirror/chat with neutral message.
-    Should show NO_MATCH in logs and still provide quality response.
-    """
-    log_test("=== TEST 3: No Match Test ===")
-    
-    payload = {
-        "user_id": TEST_USER_ID,
-        "message": "What should I have for dinner tonight? I'm thinking pasta or pizza.",
-        "lens": None,
-        "session_id": None,
-        "include_journal": True,
-        "include_history": True
-    }
-    
-    log_test(f"Testing neutral message with no Gene Keys keywords")
-    response = make_request("POST", "/mirror/chat", payload)
-    
-    if "error" in response:
-        log_test(f"❌ FAILED: {response['error']}", "ERROR")
-        return False
-    
-    # Verify response structure
-    required_fields = ["response", "session_id", "timestamp"]
-    missing_fields = [field for field in required_fields if field not in response]
-    
-    if missing_fields:
-        log_test(f"❌ FAILED: Missing fields: {missing_fields}", "ERROR")
-        return False
-    
-    # Check response quality - should still be reflective
-    response_text = response.get("response", "")
-    
-    # Should not force Gene Keys references
-    gene_keys_terms = ["gene key", "shadow", "gift", "siddhi", "sphere"]
-    forced_references = [term for term in gene_keys_terms if term.lower() in response_text.lower()]
-    
-    if forced_references:
-        log_test(f"⚠️  WARNING: Possible forced Gene Keys reference: {forced_references}", "WARN")
-    
-    log_test(f"✅ PASSED: No match test completed")
-    log_test(f"Response preview: {response_text[:100]}...")
-    
-    return True
-
-def test_response_quality():
-    """Test 4: Response Quality Test
-    
-    Verify responses maintain Mirror philosophy:
-    - Reflective, not prescriptive
-    - No forced Gene Keys mentions when not relevant
-    - Subtle tone when Gene Keys IS mentioned
-    """
-    log_test("=== TEST 4: Response Quality Test ===")
-    
-    # Test with a message that might trigger Gene Keys but should be handled subtly
-    payload = {
-        "user_id": TEST_USER_ID,
-        "message": "I've been feeling really scattered lately, jumping from one thing to another without finishing anything",
-        "lens": None,
-        "session_id": None,
-        "include_journal": True,
-        "include_history": True
-    }
-    
-    log_test(f"Testing response quality with potentially matching message")
-    response = make_request("POST", "/mirror/chat", payload)
-    
-    if "error" in response:
-        log_test(f"❌ FAILED: {response['error']}", "ERROR")
-        return False
-    
-    response_text = response.get("response", "")
-    
-    # Check for Mirror philosophy compliance
-    quality_checks = {
-        "no_prescriptive": True,
-        "reflective_tone": False,
-        "subtle_references": True,
-        "preserves_agency": False
-    }
-    
-    # Check for prescriptive language (should be absent)
-    prescriptive_phrases = ["you should", "you need to", "you must", "you will", "the best thing", "you have to"]
-    for phrase in prescriptive_phrases:
-        if phrase.lower() in response_text.lower():
-            quality_checks["no_prescriptive"] = False
-            log_test(f"⚠️  Found prescriptive phrase: '{phrase}'", "WARN")
-    
-    # Check for reflective language (should be present)
-    reflective_phrases = ["sounds like", "seems like", "might notice", "may be", "echoes", "pattern", "what you're describing"]
-    for phrase in reflective_phrases:
-        if phrase.lower() in response_text.lower():
-            quality_checks["reflective_tone"] = True
-            break
-    
-    # Check for agency-preserving language
-    agency_phrases = ["you might", "could be", "one way", "perhaps", "if that resonates"]
-    for phrase in agency_phrases:
-        if phrase.lower() in response_text.lower():
-            quality_checks["preserves_agency"] = True
-            break
-    
-    # Check if Gene Keys references are subtle (if present)
-    gene_keys_phrases = ["gene key", "shadow", "gift", "sphere"]
-    for phrase in gene_keys_phrases:
-        if phrase.lower() in response_text.lower():
-            # If Gene Keys is mentioned, check if it's subtle
-            subtle_indicators = ["may connect", "echoes a pattern", "might relate", "could be"]
-            is_subtle = any(indicator in response_text.lower() for indicator in subtle_indicators)
-            if not is_subtle:
-                quality_checks["subtle_references"] = False
-                log_test(f"⚠️  Gene Keys reference may not be subtle enough", "WARN")
-    
-    # Evaluate overall quality
-    passed_checks = sum(quality_checks.values())
-    total_checks = len(quality_checks)
-    
-    if passed_checks >= 3:
-        log_test(f"✅ PASSED: Response quality test ({passed_checks}/{total_checks} checks passed)")
+    # Test 2: Gate Data Structure Test
+    print("\n2. GATE DATA STRUCTURE TEST")
+    if len(gates) > 0:
+        # Test first gate structure
+        sample_gate = gates[0]
+        print(f"   Testing gate structure with Gate {sample_gate.get('gate_number', 'Unknown')}")
+        
+        required_fields = [
+            "gate_number", "line_numbers_present", "center_name", "gate_name",
+            "themes", "shadow", "gift", "siddhi", "what_this_means",
+            "your_challenge", "your_genius", "practical_experiments", "remember"
+        ]
+        
+        for field in required_fields:
+            if field in sample_gate:
+                results.add_pass(f"Gate has {field} field")
+            else:
+                results.add_fail(f"Gate {field} field", "Missing required field")
+        
+        # Validate specific field types and content
+        if isinstance(sample_gate.get("gate_number"), int) and 1 <= sample_gate.get("gate_number", 0) <= 64:
+            results.add_pass("Gate number is valid integer (1-64)")
+        else:
+            results.add_fail("Gate number validation", f"Expected int 1-64, got {sample_gate.get('gate_number')}")
+            
+        if isinstance(sample_gate.get("line_numbers_present"), list):
+            results.add_pass("Line numbers present is array")
+        else:
+            results.add_fail("Line numbers present", "Expected array")
+            
+        if isinstance(sample_gate.get("center_name"), str) and sample_gate.get("center_name"):
+            results.add_pass("Center name is non-empty string")
+        else:
+            results.add_fail("Center name", "Expected non-empty string")
+            
+        if isinstance(sample_gate.get("gate_name"), str) and sample_gate.get("gate_name"):
+            results.add_pass("Gate name is non-empty string")
+        else:
+            results.add_fail("Gate name", "Expected non-empty string")
+            
+        if isinstance(sample_gate.get("themes"), list) and len(sample_gate.get("themes", [])) == 3:
+            results.add_pass("Themes is array with 3 items")
+        else:
+            results.add_fail("Themes validation", f"Expected array with 3 items, got {sample_gate.get('themes')}")
+            
+        # Gene Keys bridge validation
+        gene_keys_fields = ["shadow", "gift", "siddhi"]
+        for field in gene_keys_fields:
+            value = sample_gate.get(field)
+            if isinstance(value, str) and value.strip():
+                results.add_pass(f"Gene Keys {field} is non-empty string")
+            else:
+                results.add_fail(f"Gene Keys {field}", "Expected non-empty string")
+        
+        # Interpretive content validation
+        interpretive_fields = ["what_this_means", "your_challenge", "your_genius", "remember"]
+        for field in interpretive_fields:
+            value = sample_gate.get(field)
+            if isinstance(value, str) and len(value.strip()) > 20:  # Meaningful content
+                results.add_pass(f"Interpretive field {field} has meaningful content")
+            else:
+                results.add_fail(f"Interpretive field {field}", "Expected meaningful content (>20 chars)")
+        
+        # Practical experiments validation
+        experiments = sample_gate.get("practical_experiments")
+        if isinstance(experiments, list) and len(experiments) == 3:
+            results.add_pass("Practical experiments is array with 3 items")
+            all_strings = all(isinstance(exp, str) and len(exp.strip()) > 10 for exp in experiments)
+            if all_strings:
+                results.add_pass("All practical experiments are meaningful strings")
+            else:
+                results.add_fail("Practical experiments content", "Expected meaningful strings (>10 chars each)")
+        else:
+            results.add_fail("Practical experiments", "Expected array with 3 items")
+            
     else:
-        log_test(f"⚠️  PARTIAL: Response quality needs improvement ({passed_checks}/{total_checks} checks passed)", "WARN")
+        results.add_fail("Gate data structure test", "No gates returned to test structure")
     
-    log_test(f"Quality checks: {quality_checks}")
-    log_test(f"Response preview: {response_text[:150]}...")
-    
-    return passed_checks >= 3
-
-def check_backend_logs():
-    """Check backend logs for [GK_MATCH] entries.
-    
-    Note: This is informational only as we can't directly access container logs
-    from this test script. The actual log checking should be done manually.
-    """
-    log_test("=== Backend Log Check (Manual) ===")
-    log_test("To verify Gene Keys matching, check backend logs for:")
-    log_test("1. [GK_MATCH] entries showing has_match=True/False")
-    log_test("2. Sphere matched (e.g., 'Evolution', 'Life's Work')")
-    log_test("3. Match type='shadow' or 'gift'")
-    log_test("4. Matched keywords arrays")
-    log_test("5. [GK_MATCH_DEBUG] entries with detailed matching info")
-    log_test("")
-    log_test("Example log command:")
-    log_test("tail -n 100 /var/log/supervisor/backend.*.log | grep GK_MATCH")
-
-def run_all_tests():
-    """Run all Gene Keys Mirror Chat Context Awareness tests."""
-    log_test("🧪 Starting Gene Keys Mirror Chat Context Awareness Testing (Phase 9)")
-    log_test(f"Base URL: {BASE_URL}")
-    log_test(f"Test User ID: {TEST_USER_ID}")
-    log_test("")
-    
-    # Track test results
-    test_results = []
-    
-    # Run individual tests
-    test_results.append(("Shadow Keyword Match", test_shadow_keyword_match()))
-    test_results.append(("Gift Keyword Match", test_gift_keyword_match()))
-    test_results.append(("No Match Test", test_no_match()))
-    test_results.append(("Response Quality", test_response_quality()))
-    
-    # Backend log check (informational)
-    check_backend_logs()
-    
-    # Summary
-    log_test("")
-    log_test("=== TEST SUMMARY ===")
-    
-    passed_tests = 0
-    total_tests = len(test_results)
-    
-    for test_name, result in test_results:
-        status = "✅ PASSED" if result else "❌ FAILED"
-        log_test(f"{status}: {test_name}")
-        if result:
-            passed_tests += 1
-    
-    log_test("")
-    log_test(f"📊 FINAL RESULTS: {passed_tests}/{total_tests} tests passed")
-    
-    if passed_tests == total_tests:
-        log_test("🎉 ALL TESTS PASSED - Gene Keys Mirror Chat Context Awareness is working correctly!")
-        return True
+    # Test 3: Content Quality Test
+    print("\n3. CONTENT QUALITY TEST")
+    if len(gates) > 0:
+        # Check for meaningful interpretive content
+        sample_gate = gates[0]
+        
+        # Verify Gene Keys bridge has different values
+        shadow = sample_gate.get("shadow", "")
+        gift = sample_gate.get("gift", "")
+        siddhi = sample_gate.get("siddhi", "")
+        
+        if shadow != gift and gift != siddhi and shadow != siddhi:
+            results.add_pass("Gene Keys bridge has different values for shadow/gift/siddhi")
+        else:
+            results.add_fail("Gene Keys bridge uniqueness", "Shadow, gift, and siddhi should be different")
+        
+        # Check for reflective/practical tone (avoid jargon-heavy content)
+        what_this_means = sample_gate.get("what_this_means", "")
+        jargon_indicators = ["cosmic", "divine", "sacred", "mystical", "karmic", "destiny"]
+        jargon_count = sum(1 for word in jargon_indicators if word.lower() in what_this_means.lower())
+        
+        if jargon_count <= 1:  # Allow minimal jargon
+            results.add_pass("Content has practical, non-jargon-heavy tone")
+        else:
+            results.add_fail("Content tone", f"Too much jargon detected ({jargon_count} indicators)")
+        
+        # Check for practical language
+        practical_indicators = ["you", "your", "practice", "notice", "track", "experiment"]
+        practical_count = sum(1 for word in practical_indicators if word.lower() in what_this_means.lower())
+        
+        if practical_count >= 2:
+            results.add_pass("Content uses practical, reflective language")
+        else:
+            results.add_fail("Content practicality", "Content should be more practical and reflective")
+            
+        print(f"   Sample Gate: {sample_gate.get('gate_number')} - {sample_gate.get('gate_name')}")
+        print(f"   Shadow: {shadow}")
+        print(f"   Gift: {gift}")
+        print(f"   Siddhi: {siddhi}")
+        
+    # Test 4: Multiple Gates Test
+    print("\n4. MULTIPLE GATES TEST")
+    if len(gates) > 10:
+        results.add_pass("Returns multiple gates (>10 gates typically)")
+        print(f"   Gates returned: {len(gates)}")
+        
+        # Check that we're getting only user's active gates, not all 64
+        if len(gates) < 64:
+            results.add_pass("Returns only user's active gates (not all 64)")
+        else:
+            results.add_fail("Gate filtering", "Should return only active gates, not all 64")
+            
+        # Test a few more gates for consistency
+        gates_to_test = min(3, len(gates))
+        consistent_structure = True
+        
+        for i in range(gates_to_test):
+            gate = gates[i]
+            required_fields = ["gate_number", "gate_name", "shadow", "gift", "siddhi"]
+            for field in required_fields:
+                if field not in gate or not gate[field]:
+                    consistent_structure = False
+                    break
+            if not consistent_structure:
+                break
+                
+        if consistent_structure:
+            results.add_pass("Multiple gates have consistent structure")
+        else:
+            results.add_fail("Gate structure consistency", "Not all gates have consistent structure")
+            
     else:
-        log_test("⚠️  SOME TESTS FAILED - Review failed tests and backend logs")
-        return False
+        results.add_fail("Multiple gates test", f"Expected >10 gates, got {len(gates)}")
+    
+    # Test 5: Performance Test
+    print("\n5. PERFORMANCE TEST")
+    if response_time < 10.0:  # Should be reasonably fast
+        results.add_pass(f"Response time acceptable ({response_time:.2f}s < 10s)")
+    else:
+        results.add_fail("Performance", f"Response too slow: {response_time:.2f}s")
+    
+    return results
+
+def main():
+    """Run all tests"""
+    print("🚀 STARTING HUMAN DESIGN GATES ENDPOINT TESTING")
+    print(f"Base URL: {BASE_URL}")
+    print(f"Test User ID: {TEST_USER_ID}")
+    print("=" * 80)
+    
+    # Run the main test
+    results = test_human_design_gates_endpoint()
+    
+    # Print summary
+    results.summary()
+    
+    # Return exit code based on results
+    return 0 if results.failed == 0 else 1
 
 if __name__ == "__main__":
-    success = run_all_tests()
-    sys.exit(0 if success else 1)
+    exit(main())
