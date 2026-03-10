@@ -2,7 +2,7 @@
 // Supports: System, Light, Dark modes with dev override
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ============================================
