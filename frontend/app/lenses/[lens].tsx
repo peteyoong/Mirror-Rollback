@@ -810,6 +810,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  closeButtonText: {
+    fontSize: 20,
+    fontWeight: '400',
+  },
   headerCenter: {
     flexDirection: 'row',
     alignItems: 'center',
