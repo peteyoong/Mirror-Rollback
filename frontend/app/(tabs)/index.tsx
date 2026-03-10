@@ -671,6 +671,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
+  checkmark: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  chevron: {
+    fontSize: 18,
+    fontWeight: '400',
+    marginLeft: 2,
+  },
   appVersion: {
     fontSize: 12,
     textAlign: 'center',
