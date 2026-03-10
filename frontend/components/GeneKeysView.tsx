@@ -356,6 +356,47 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   
+  // Intro Block
+  introBlock: {
+    marginBottom: 24,
+  },
+  introTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  introSubtext: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    marginBottom: 14,
+  },
+  introBody: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  howToUseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    paddingVertical: 8,
+  },
+  howToUseTitle: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  howToUseChevron: {
+    fontSize: 11,
+    marginLeft: 6,
+  },
+  howToUseContent: {
+    paddingLeft: 4,
+    gap: 6,
+  },
+  howToUseItem: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  
   // Sequence Section
   sequenceSection: {
     marginBottom: 20,
