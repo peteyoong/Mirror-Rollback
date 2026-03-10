@@ -37,6 +37,7 @@ export default function GeneKeysView({ userId }: Props) {
   const { theme } = useTheme();
   const [activationSequence, setActivationSequence] = useState<SequenceData | null>(null);
   const [venusSequence, setVenusSequence] = useState<SequenceData | null>(null);
+  const [pearlSequence, setPearlSequence] = useState<SequenceData | null>(null);
   const [selectedSphere, setSelectedSphere] = useState<SphereData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,14 +51,16 @@ export default function GeneKeysView({ userId }: Props) {
     setError(null);
 
     try {
-      // Load both sequences in parallel
-      const [activationRes, venusRes] = await Promise.all([
+      // Load all three sequences in parallel
+      const [activationRes, venusRes, pearlRes] = await Promise.all([
         api.get(`/gene-keys/activation-sequence/${userId}`),
-        api.get(`/gene-keys/venus-sequence/${userId}`)
+        api.get(`/gene-keys/venus-sequence/${userId}`),
+        api.get(`/gene-keys/pearl-sequence/${userId}`)
       ]);
       
       setActivationSequence(activationRes.data);
       setVenusSequence(venusRes.data);
+      setPearlSequence(pearlRes.data);
       
       // Default to Life's Work (first sphere of Activation)
       if (activationRes.data.spheres?.length > 0) {
