@@ -8064,6 +8064,106 @@ You're essentially here for one thing. The specific gates of your cross describe
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/human-design/centers/{user_id}")
+async def get_human_design_centers(user_id: str):
+    """
+    Get Human Design centers with reflective interpretations.
+    
+    Returns all 9 centers with:
+    - defined/undefined status
+    - gates present in each center
+    - themes
+    - template-based interpretations (what_this_means, your_challenge, your_genius, practical_experiments, remember)
+    
+    Uses deterministic template content - no LLM.
+    """
+    try:
+        from calculations.timezone_utils import resolve_birth_utc_with_debug
+        from calculations.human_design import get_human_design_chart
+        from services.human_design_centers import build_centers_profile
+        
+        # Get user
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get birth data
+        birth_date = user.get("birth_date")
+        birth_time = user.get("birth_time")
+        timezone_str = user.get("timezone", "UTC")
+        birth_location = user.get("birth_location", {})
+        
+        if isinstance(birth_location, dict):
+            lat = birth_location.get("latitude") or birth_location.get("lat")
+            lon = birth_location.get("longitude") or birth_location.get("lon") or birth_location.get("lng")
+        else:
+            lat = user.get("latitude") or user.get("birth_lat")
+            lon = user.get("longitude") or user.get("birth_lon")
+        
+        if not all([birth_date, birth_time, lat, lon]):
+            missing = []
+            if not birth_date: missing.append("birth_date")
+            if not birth_time: missing.append("birth_time")
+            if not lat or not lon: missing.append("birth_location")
+            return {
+                "success": False,
+                "error": "missing_birth_data",
+                "missing": missing,
+                "centers": []
+            }
+        
+        # Resolve birth UTC
+        if hasattr(birth_date, 'strftime'):
+            birth_date_str = birth_date.strftime("%Y-%m-%d")
+        else:
+            birth_date_str = str(birth_date).split(' ')[0]
+        
+        result = resolve_birth_utc_with_debug(birth_date_str, birth_time, timezone_str)
+        birth_utc = result.get('birth_utc')
+        
+        if not birth_utc:
+            return {
+                "success": False,
+                "error": "timezone_resolution_failed",
+                "centers": []
+            }
+        
+        # Compute Human Design chart
+        hd_chart = get_human_design_chart(
+            birth_datetime=birth_utc,
+            lat=float(lat),
+            lon=float(lon)
+        )
+        
+        # Extract centers data
+        defined_centers = hd_chart.get("defined_centers", [])
+        undefined_centers = hd_chart.get("undefined_centers", [])
+        active_gates = hd_chart.get("active_gates", [])
+        
+        # Build centers profile with interpretations
+        centers = build_centers_profile(
+            defined_centers=defined_centers,
+            undefined_centers=undefined_centers,
+            active_gates=active_gates
+        )
+        
+        return {
+            "success": True,
+            "centers": centers,
+            "summary": {
+                "defined_count": len(defined_centers),
+                "undefined_count": len(undefined_centers),
+                "definition_type": hd_chart.get("definition", "Unknown")
+            }
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Human Design centers error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # =====================================================================
 # NUMEROLOGY LENS ENDPOINTS
 # =====================================================================
