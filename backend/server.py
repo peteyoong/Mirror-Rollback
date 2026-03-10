@@ -4793,6 +4793,10 @@ async def mirror_chat(request: MirrorChatRequest):
         # Add context
         system_prompt += "\n\n--- USER CONTEXT ---\n" + "\n".join(context_parts)
         
+        # Add Gene Keys pattern awareness context (if match found)
+        if gene_keys_context:
+            system_prompt += "\n" + gene_keys_context
+        
         # Get or create chat history for session
         if session_id not in chat_sessions:
             chat_sessions[session_id] = []
