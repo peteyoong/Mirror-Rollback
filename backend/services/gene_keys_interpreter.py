@@ -23,13 +23,15 @@ class GeneKeyInterpretation(TypedDict):
 
 
 class SphereInterpretation(TypedDict):
-    """Detailed interpretation for a single sphere."""
+    """Detailed interpretation for a single sphere with pattern keywords."""
     sphere_name: str
     gene_key: int
     line: int
     shadow: str
     gift: str
     siddhi: str
+    shadow_keywords: List[str]
+    gift_keywords: List[str]
     what_this_means: str
     your_challenge: str
     your_higher_expression: str
