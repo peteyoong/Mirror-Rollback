@@ -33,15 +33,65 @@ const SHOW_DEBUG_PANEL = __DEV__ || true; // Always show for now to debug produc
  */
 export default function Welcome() {
   const router = useRouter();
-  const { theme, isDark } = useTheme();
+  const { theme, isDark, themeMode } = useTheme();
   const { user, setUser, setChart } = useAppStore();
   
   const [showLogin, setShowLogin] = useState(false);
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [debugInfo, setDebugInfo] = useState<{
+    storedTheme: string | null;
+    effectiveTheme: string;
+    platform: string;
+    userAgent: string;
+  } | null>(null);
   
   const hasExistingSession = !!user;
+
+  // Load debug info on mount
+  useEffect(() => {
+    const loadDebugInfo = async () => {
+      try {
+        const storedTheme = await AsyncStorage.getItem('@mirror_theme_mode');
+        setDebugInfo({
+          storedTheme,
+          effectiveTheme: isDark ? 'dark' : 'light',
+          platform: Platform.OS,
+          userAgent: Platform.OS === 'web' ? (typeof navigator !== 'undefined' ? navigator.userAgent.substring(0, 50) : 'N/A') : 'native',
+        });
+      } catch (e) {
+        console.log('[Debug] Failed to load debug info');
+      }
+    };
+    loadDebugInfo();
+  }, [isDark, themeMode]);
+
+  // Debug panel component
+  const renderDebugPanel = () => {
+    if (!SHOW_DEBUG_PANEL || !debugInfo) return null;
+    
+    return (
+      <View style={[styles.debugPanel, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
+        <Text style={[styles.debugTitle, { color: theme.accent }]}>🔧 Theme Debug</Text>
+        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+          Stored: {debugInfo.storedTheme || 'none'}
+        </Text>
+        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+          Mode: {themeMode} → {debugInfo.effectiveTheme}
+        </Text>
+        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+          Platform: {debugInfo.platform}
+        </Text>
+        <Text style={[styles.debugText, { color: theme.textTertiary, fontSize: 10 }]}>
+          {debugInfo.userAgent}
+        </Text>
+        <Text style={[styles.debugText, { color: theme.accent, fontSize: 10 }]}>
+          Build: {BUILD_VERSION} • {BUILD_ID}
+        </Text>
+      </View>
+    );
+  };
 
   const handleBeginReflection = () => {
     router.push('/onboarding');
