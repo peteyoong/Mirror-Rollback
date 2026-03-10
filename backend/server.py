@@ -11368,7 +11368,7 @@ async def get_all_life_contexts(user_id: str):
 # =====================================================================
 
 # Import Gene Keys interpreter service
-from services.gene_keys_interpreter import get_gene_key_interpretation, get_available_gene_keys
+from services.gene_keys_interpreter import get_gene_key_interpretation, get_available_gene_keys, get_activation_sequence, get_sphere_interpretation
 
 @api_router.get("/gene-keys/{gate}/{line}")
 async def get_gene_key(gate: int, line: int):
@@ -11409,6 +11409,95 @@ async def get_available_keys():
         "count": len(available),
         "total_possible": 64
     }
+
+
+@api_router.get("/gene-keys/activation-sequence/{user_id}")
+async def get_user_activation_sequence(user_id: str):
+    """
+    Get the Activation Sequence for a user based on their Human Design data.
+    
+    The Activation Sequence maps HD planetary positions to Gene Keys spheres:
+    - Life's Work = Personality Sun (conscious sun)
+    - Evolution = Personality Earth (conscious earth)
+    - Radiance = Design Sun (unconscious sun)
+    - Purpose = Design Earth (unconscious earth)
+    
+    Args:
+        user_id: The user's ID
+    
+    Returns:
+        ActivationSequenceResponse with all 4 spheres and interpretations
+    """
+    logger.info(f"[GeneKeys] Fetching Activation Sequence for user {user_id}")
+    
+    try:
+        # Get user from database
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check if user has Human Design data
+        hd_data = user.get("human_design")
+        if not hd_data:
+            raise HTTPException(
+                status_code=400, 
+                detail="Human Design data not available. Please complete onboarding first."
+            )
+        
+        # Extract the planetary positions for Activation Sequence
+        # Personality = Conscious, Design = Unconscious
+        personality_sun = hd_data.get("personality_sun", {})
+        personality_earth = hd_data.get("personality_earth", {})
+        design_sun = hd_data.get("design_sun", {})
+        design_earth = hd_data.get("design_earth", {})
+        
+        # Build activation sequence
+        activation = get_activation_sequence(
+            personality_sun_gate=personality_sun.get("gate", 1),
+            personality_sun_line=personality_sun.get("line", 1),
+            personality_earth_gate=personality_earth.get("gate", 1),
+            personality_earth_line=personality_earth.get("line", 1),
+            design_sun_gate=design_sun.get("gate", 1),
+            design_sun_line=design_sun.get("line", 1),
+            design_earth_gate=design_earth.get("gate", 1),
+            design_earth_line=design_earth.get("line", 1),
+        )
+        
+        logger.info(f"[GeneKeys] Successfully built Activation Sequence for user {user_id}")
+        return activation
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[GeneKeys] Error building Activation Sequence: {e}")
+        raise HTTPException(status_code=500, detail=f"Error building Activation Sequence: {str(e)}")
+
+
+@api_router.get("/gene-keys/sphere/{sphere_name}/{gate}/{line}")
+async def get_sphere_detail(sphere_name: str, gate: int, line: int):
+    """
+    Get detailed interpretation for a specific sphere with a Gene Key.
+    
+    Args:
+        sphere_name: Name of the sphere (Life's Work, Evolution, Radiance, Purpose)
+        gate: Gene Key number (1-64)
+        line: Line number (1-6)
+    
+    Returns:
+        SphereInterpretation with full template-based content
+    """
+    logger.info(f"[GeneKeys] Fetching {sphere_name} interpretation for Gene Key {gate}.{line}")
+    
+    # Validate sphere name
+    valid_spheres = ["Life's Work", "Evolution", "Radiance", "Purpose"]
+    if sphere_name not in valid_spheres:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid sphere name. Must be one of: {', '.join(valid_spheres)}"
+        )
+    
+    interpretation = get_sphere_interpretation(sphere_name, gate, line)
+    return interpretation
 
 
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
