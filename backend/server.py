@@ -8400,8 +8400,8 @@ async def get_pattern_graph(user_id: str):
                     )
                     human_design_gates = active_gates
                     
-                    logger.debug(f"[PatternGraph] Loaded HD centers: {len(human_design_centers) if human_design_centers else 0}")
-                    logger.debug(f"[PatternGraph] Loaded HD gates: {len(human_design_gates) if human_design_gates else 0}")
+                    logger.info(f"[PatternGraph] Loaded HD centers: {len(human_design_centers) if human_design_centers else 0}")
+                    logger.info(f"[PatternGraph] Loaded HD gates: {len(human_design_gates) if human_design_gates else 0}")
                     
         except Exception as hd_err:
             logger.debug(f"[PatternGraph] Could not load Human Design: {hd_err}")
