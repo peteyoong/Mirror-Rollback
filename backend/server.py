@@ -11434,18 +11434,22 @@ async def get_user_activation_sequence(user_id: str):
                 detail="Birth data not available. Please complete onboarding first."
             )
         
-        # Build birth_utc datetime (same logic as deep-dive endpoint)
-        from datetime import datetime
-        import pytz
-        from utils.datetime_utils import parse_birth_datetime_to_utc
+        # Parse birth datetime to UTC (same logic as deep-dive endpoint)
+        from calculations.timezone_utils import resolve_birth_utc_with_debug
         
-        # Parse birth datetime to UTC
-        birth_utc = parse_birth_datetime_to_utc(birth_date, birth_time, timezone, latitude, longitude)
+        # Convert birth_date to string if it's a datetime object
+        if hasattr(birth_date, 'strftime'):
+            birth_date_str = birth_date.strftime("%Y-%m-%d")
+        else:
+            birth_date_str = str(birth_date).split(' ')[0]  # Handle "1990-06-15 00:00:00"
+        
+        result = resolve_birth_utc_with_debug(birth_date_str, birth_time, timezone)
+        birth_utc = result.get('birth_utc')
         
         if not birth_utc:
             raise HTTPException(
                 status_code=400,
-                detail="Could not parse birth datetime"
+                detail=f"Could not parse birth datetime: {result.get('error')}"
             )
         
         # Compute Human Design chart (same as deep-dive endpoint)
