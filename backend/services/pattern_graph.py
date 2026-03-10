@@ -479,6 +479,8 @@ def get_category_summary(category: dict, strength: str) -> str:
 def aggregate_pattern_graph(
     gene_keys_profile: Optional[dict] = None,
     journal_entries: Optional[List[dict]] = None,
+    human_design_centers: Optional[List[dict]] = None,
+    human_design_gates: Optional[List[int]] = None,
     chat_signals: Optional[List[dict]] = None  # Future: from Mirror Chat
 ) -> Dict[str, Any]:
     """Main aggregation function for Pattern Graph.
@@ -488,6 +490,8 @@ def aggregate_pattern_graph(
     Args:
         gene_keys_profile: Result from build_gene_keys_profile()
         journal_entries: List of recent journal entries
+        human_design_centers: List of center interpretations from build_centers_profile()
+        human_design_gates: List of active gate numbers
         chat_signals: Future - signals from Mirror Chat analysis
     
     Returns:
@@ -508,6 +512,15 @@ def aggregate_pattern_graph(
     if journal_entries:
         journal_sigs = aggregate_journal_signals(journal_entries)
         for cat_id, signals in journal_sigs.items():
+            all_signals[cat_id].extend(signals)
+    
+    # Aggregate Human Design center signals
+    if human_design_centers or human_design_gates:
+        hd_signals = aggregate_human_design_center_signals(
+            centers_profile=human_design_centers,
+            active_gates=human_design_gates
+        )
+        for cat_id, signals in hd_signals.items():
             all_signals[cat_id].extend(signals)
     
     # Build category results
