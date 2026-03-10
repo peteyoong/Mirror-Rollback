@@ -11465,15 +11465,18 @@ async def get_user_activation_sequence(user_id: str):
         
         logger.info(f"[GeneKeys] Sun data: p_sun={p_sun}, d_sun={d_sun}")
         
-        # Extract gate and line values (they are stored directly as integers in the dict)
-        p_sun_gate = p_sun.get('gate', 1) if isinstance(p_sun.get('gate'), int) else 1
-        p_sun_line = p_sun.get('line', 1) if isinstance(p_sun.get('line'), int) else 1
-        p_earth_gate = p_earth.get('gate', 1) if isinstance(p_earth.get('gate'), int) else 1
-        p_earth_line = p_earth.get('line', 1) if isinstance(p_earth.get('line'), int) else 1
-        d_sun_gate = d_sun.get('gate', 1) if isinstance(d_sun.get('gate'), int) else 1
-        d_sun_line = d_sun.get('line', 1) if isinstance(d_sun.get('line'), int) else 1
-        d_earth_gate = d_earth.get('gate', 1) if isinstance(d_earth.get('gate'), int) else 1
-        d_earth_line = d_earth.get('line', 1) if isinstance(d_earth.get('line'), int) else 1
+        # Extract gate and line values - the structure is: {'position': {...}, 'gate': {'gate': 37, 'line': 5}}
+        def extract_gate_line(planet_data):
+            """Extract gate and line from planet data."""
+            gate_data = planet_data.get('gate', {})
+            if isinstance(gate_data, dict):
+                return gate_data.get('gate', 1), gate_data.get('line', 1)
+            return 1, 1
+        
+        p_sun_gate, p_sun_line = extract_gate_line(p_sun)
+        p_earth_gate, p_earth_line = extract_gate_line(p_earth)
+        d_sun_gate, d_sun_line = extract_gate_line(d_sun)
+        d_earth_gate, d_earth_line = extract_gate_line(d_earth)
         
         logger.info(f"[GeneKeys] Parsed gates: p_sun={p_sun_gate}.{p_sun_line}, d_sun={d_sun_gate}.{d_sun_line}")
         
