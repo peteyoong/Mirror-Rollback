@@ -8274,6 +8274,7 @@ async def get_pattern_graph(user_id: str):
     
     Aggregates signals from:
     - Gene Keys profile (shadow/gift keywords)
+    - Human Design centers and gates
     - Recent journal entries
     - (Future) Mirror Chat signal matching
     
