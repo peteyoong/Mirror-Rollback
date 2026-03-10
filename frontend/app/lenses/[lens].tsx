@@ -599,7 +599,7 @@ export default function LensDetail() {
           style={[styles.closeButton, { backgroundColor: theme.surfaceLight }]}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="close" size={22} color={theme.text} />
+          <Text style={[styles.closeButtonText, { color: theme.text }]}>✕</Text>
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={[styles.headerTitle, { color: theme.text }]}>{lensMeta.name}</Text>
