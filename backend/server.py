@@ -11457,8 +11457,7 @@ async def get_user_activation_sequence(user_id: str):
         canonical_hd = get_human_design_chart(
             birth_datetime=birth_utc,
             lat=latitude,
-            lon=longitude,
-            sidereal_settings={"mode": "true_sidereal_user_defined"}
+            lon=longitude
         )
         
         # Extract planetary positions from HD chart
