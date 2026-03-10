@@ -518,15 +518,12 @@ def aggregate_pattern_graph(
     
     # Aggregate Human Design center signals
     if human_design_centers or human_design_gates:
-        logger.info(f"[PatternGraph] Aggregating HD signals - centers: {len(human_design_centers) if human_design_centers else 0}, gates: {len(human_design_gates) if human_design_gates else 0}")
         hd_signals = aggregate_human_design_center_signals(
             centers_profile=human_design_centers,
             active_gates=human_design_gates
         )
         for cat_id, signals in hd_signals.items():
             all_signals[cat_id].extend(signals)
-    else:
-        logger.info(f"[PatternGraph] No HD data to aggregate")
     
     # Build category results
     categories: List[CategoryResult] = []
