@@ -300,7 +300,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const TAB_DESCRIPTIONS: Record<TabType, string> = {
     summary: "Quick orientation to your chart",
     today: "Today's transit interactions",
-    deep_dive: "Deeper layers & sequences"
+    deep_dive: "Deeper layers & sequences",
+    gene_keys: "Shadow → Gift → Siddhi"
   };
 
   const renderTabs = () => (
