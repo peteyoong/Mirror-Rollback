@@ -417,7 +417,7 @@ export default function LensDetail() {
       
       <View style={styles.mirrorTitleRow}>
         <View style={styles.mirrorIcon}>
-          <Ionicons name="radio-button-on-outline" size={16} color={Colors.textSecondary} />
+          <Text style={{ color: Colors.textSecondary, fontSize: 16 }}>◉</Text>
         </View>
         <Text style={styles.mirrorTitle}>{mirrorContent.title}</Text>
       </View>
