@@ -430,6 +430,8 @@ class SphereSummary(TypedDict):
     shadow: str
     gift: str
     siddhi: str
+    shadow_keywords: List[str]
+    gift_keywords: List[str]
 
 
 class GeneKeysProfile(TypedDict):
@@ -513,7 +515,9 @@ def build_gene_keys_profile(
             "line": sphere["line"],
             "shadow": sphere["shadow"],
             "gift": sphere["gift"],
-            "siddhi": sphere["siddhi"]
+            "siddhi": sphere["siddhi"],
+            "shadow_keywords": sphere["shadow_keywords"],
+            "gift_keywords": sphere["gift_keywords"]
         })
     
     for sphere in venus["spheres"]:
@@ -524,7 +528,9 @@ def build_gene_keys_profile(
             "line": sphere["line"],
             "shadow": sphere["shadow"],
             "gift": sphere["gift"],
-            "siddhi": sphere["siddhi"]
+            "siddhi": sphere["siddhi"],
+            "shadow_keywords": sphere["shadow_keywords"],
+            "gift_keywords": sphere["gift_keywords"]
         })
     
     for sphere in pearl["spheres"]:
@@ -535,7 +541,9 @@ def build_gene_keys_profile(
             "line": sphere["line"],
             "shadow": sphere["shadow"],
             "gift": sphere["gift"],
-            "siddhi": sphere["siddhi"]
+            "siddhi": sphere["siddhi"],
+            "shadow_keywords": sphere["shadow_keywords"],
+            "gift_keywords": sphere["gift_keywords"]
         })
     
     return {
