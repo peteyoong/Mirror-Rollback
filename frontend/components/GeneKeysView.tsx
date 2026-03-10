@@ -57,6 +57,7 @@ export default function GeneKeysView({ userId }: Props) {
   const [selectedSphere, setSelectedSphere] = useState<SphereData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [howToUseExpanded, setHowToUseExpanded] = useState(false);
 
   useEffect(() => {
     loadSequences();
