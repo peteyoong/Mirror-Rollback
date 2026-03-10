@@ -20,6 +20,7 @@ import {
   getSequenceRole,
   SEQUENCE_ROLES 
 } from '../utils/humanDesignContext';
+import GeneKeysView from './GeneKeysView';
 
 // Build info for debugging
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
