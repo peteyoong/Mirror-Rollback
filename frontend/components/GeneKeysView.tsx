@@ -164,6 +164,12 @@ export default function GeneKeysView({ userId }: Props) {
         "Your path through relationships"
       )}
 
+      {/* Pearl Sequence */}
+      {pearlSequence && renderSequenceSection(
+        pearlSequence,
+        "Your path to prosperity"
+      )}
+
       {/* Selected Sphere Detail */}
       {selectedSphere && (
         <View style={styles.detailSection}>
