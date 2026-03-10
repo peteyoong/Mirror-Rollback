@@ -4,46 +4,60 @@ import {
   Text,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
 
-interface GeneKeyInterpretation {
+interface SphereData {
+  sphere_name: string;
   gene_key: number;
   line: number;
   shadow: string;
   gift: string;
   siddhi: string;
-  available: boolean;
-  message?: string;
+  what_this_means: string;
+  your_challenge: string;
+  your_higher_expression: string;
+  practical_tips: string;
+  remember: string;
+}
+
+interface ActivationSequence {
+  sequence_name: string;
+  spheres: SphereData[];
 }
 
 interface Props {
-  gate: number;
-  line: number;
+  userId: string;
 }
 
-export default function GeneKeysView({ gate, line }: Props) {
+export default function GeneKeysView({ userId }: Props) {
   const { theme } = useTheme();
-  const [data, setData] = useState<GeneKeyInterpretation | null>(null);
+  const [activationSequence, setActivationSequence] = useState<ActivationSequence | null>(null);
+  const [selectedSphere, setSelectedSphere] = useState<SphereData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadGeneKeyData();
-  }, [gate, line]);
+    loadActivationSequence();
+  }, [userId]);
 
-  const loadGeneKeyData = async () => {
+  const loadActivationSequence = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await api.get(`/gene-keys/${gate}/${line}`);
-      setData(response.data);
+      const response = await api.get(`/gene-keys/activation-sequence/${userId}`);
+      setActivationSequence(response.data);
+      // Default to Life's Work (first sphere)
+      if (response.data.spheres?.length > 0) {
+        setSelectedSphere(response.data.spheres[0]);
+      }
     } catch (err: any) {
       console.error('Gene Keys fetch error:', err);
-      setError('Unable to load Gene Key interpretation.');
+      setError(err.response?.data?.detail || 'Unable to load Gene Keys.');
     } finally {
       setIsLoading(false);
     }
@@ -54,42 +68,56 @@ export default function GeneKeysView({ gate, line }: Props) {
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.textTertiary} />
         <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-          Loading Gene Key...
+          Loading Gene Keys...
         </Text>
       </View>
     );
   }
 
-  if (error || !data) {
+  if (error || !activationSequence) {
     return (
       <View style={styles.errorContainer}>
         <Text style={{ fontSize: 28, color: theme.textTertiary }}>⚠</Text>
         <Text style={[styles.errorText, { color: theme.textSecondary }]}>
-          {error || 'Unable to load Gene Key.'}
+          {error || 'Unable to load Gene Keys.'}
         </Text>
       </View>
     );
   }
 
-  // Handle unavailable Gene Keys
-  if (!data.available) {
+  const renderSphereCard = (sphere: SphereData, index: number) => {
+    const isSelected = selectedSphere?.sphere_name === sphere.sphere_name;
     return (
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
+      <TouchableOpacity
+        key={sphere.sphere_name}
+        style={[
+          styles.sphereCard,
+          { 
+            backgroundColor: isSelected ? theme.accent + '20' : theme.surface,
+            borderColor: isSelected ? theme.accent : theme.border 
+          }
+        ]}
+        onPress={() => setSelectedSphere(sphere)}
+        activeOpacity={0.7}
       >
-        <View style={[styles.headerCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.geneKeyTitle, { color: theme.text }]}>
-            Gene Key {data.gene_key}.{data.line}
+        <Text style={[styles.sphereLabel, { color: theme.textTertiary }]}>
+          {sphere.sphere_name.toUpperCase()}
+        </Text>
+        <Text style={[styles.sphereGeneKey, { color: theme.text }]}>
+          {sphere.gene_key}.{sphere.line}
+        </Text>
+        <View style={styles.sphereSpectrum}>
+          <Text style={[styles.sphereShadow, { color: theme.textTertiary }]} numberOfLines={1}>
+            {sphere.shadow}
           </Text>
-          <Text style={[styles.unavailableText, { color: theme.textSecondary }]}>
-            {data.message}
+          <Text style={[styles.sphereArrow, { color: theme.textTertiary }]}>→</Text>
+          <Text style={[styles.sphereGift, { color: theme.accent }]} numberOfLines={1}>
+            {sphere.gift}
           </Text>
         </View>
-      </ScrollView>
+      </TouchableOpacity>
     );
-  }
+  };
 
   return (
     <ScrollView
@@ -97,88 +125,101 @@ export default function GeneKeysView({ gate, line }: Props) {
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header with Gene Key number */}
-      <View style={[styles.headerCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[styles.geneKeyLabel, { color: theme.textTertiary }]}>GENE KEY</Text>
-        <Text style={[styles.geneKeyTitle, { color: theme.text }]}>
-          {data.gene_key}.{data.line}
+      {/* Section A: Activation Sequence Overview */}
+      <View style={styles.sequenceSection}>
+        <Text style={[styles.sequenceTitle, { color: theme.textTertiary }]}>
+          ACTIVATION SEQUENCE
         </Text>
-      </View>
-
-      {/* Shadow / Gift / Siddhi Spectrum */}
-      <View style={[styles.spectrumCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <View style={styles.spectrumRow}>
-          <View style={styles.spectrumItem}>
-            <Text style={[styles.spectrumLabel, { color: theme.textTertiary }]}>SHADOW</Text>
-            <Text style={[styles.spectrumValue, { color: theme.text }]}>{data.shadow}</Text>
-          </View>
-          <Text style={[styles.spectrumArrow, { color: theme.textTertiary }]}>→</Text>
-          <View style={styles.spectrumItem}>
-            <Text style={[styles.spectrumLabel, { color: theme.accent }]}>GIFT</Text>
-            <Text style={[styles.spectrumValue, { color: theme.text }]}>{data.gift}</Text>
-          </View>
-          <Text style={[styles.spectrumArrow, { color: theme.textTertiary }]}>→</Text>
-          <View style={styles.spectrumItem}>
-            <Text style={[styles.spectrumLabel, { color: theme.textTertiary }]}>SIDDHI</Text>
-            <Text style={[styles.spectrumValue, { color: theme.text }]}>{data.siddhi}</Text>
-          </View>
+        <Text style={[styles.sequenceSubtitle, { color: theme.textSecondary }]}>
+          Your unique path of self-discovery
+        </Text>
+        
+        <View style={styles.sphereGrid}>
+          {activationSequence.spheres.map((sphere, index) => 
+            renderSphereCard(sphere, index)
+          )}
         </View>
       </View>
 
-      {/* What This Means */}
-      <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>What This Means</Text>
-        <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>
-          This Gene Key represents a spectrum of consciousness. The Shadow ({data.shadow}) is not 
-          "bad"—it's the unconscious pattern that creates tension. The Gift ({data.gift}) emerges when 
-          you bring awareness to the Shadow. The Siddhi ({data.siddhi}) is the highest expression, 
-          available in moments of deep presence.
-        </Text>
-      </View>
+      {/* Section B: Selected Sphere Detail */}
+      {selectedSphere && (
+        <View style={styles.detailSection}>
+          {/* Header with Gene Key number */}
+          <View style={[styles.detailHeader, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.detailSphereLabel, { color: theme.accent }]}>
+              {selectedSphere.sphere_name}
+            </Text>
+            <Text style={[styles.detailGeneKeyLabel, { color: theme.textTertiary }]}>GENE KEY</Text>
+            <Text style={[styles.detailGeneKeyTitle, { color: theme.text }]}>
+              {selectedSphere.gene_key}.{selectedSphere.line}
+            </Text>
+          </View>
 
-      {/* Your Challenge */}
-      <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>Your Challenge</Text>
-        <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>
-          Notice when {data.shadow.toLowerCase()} shows up in your life. This isn't about 
-          fixing or changing anything—just witnessing. The Shadow is often most visible in 
-          moments of stress, reactivity, or when you feel triggered.
-        </Text>
-      </View>
+          {/* Shadow / Gift / Siddhi Spectrum */}
+          <View style={[styles.spectrumCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={styles.spectrumRow}>
+              <View style={styles.spectrumItem}>
+                <Text style={[styles.spectrumLabel, { color: theme.textTertiary }]}>SHADOW</Text>
+                <Text style={[styles.spectrumValue, { color: theme.text }]}>{selectedSphere.shadow}</Text>
+              </View>
+              <Text style={[styles.spectrumArrow, { color: theme.textTertiary }]}>→</Text>
+              <View style={styles.spectrumItem}>
+                <Text style={[styles.spectrumLabel, { color: theme.accent }]}>GIFT</Text>
+                <Text style={[styles.spectrumValue, { color: theme.text }]}>{selectedSphere.gift}</Text>
+              </View>
+              <Text style={[styles.spectrumArrow, { color: theme.textTertiary }]}>→</Text>
+              <View style={styles.spectrumItem}>
+                <Text style={[styles.spectrumLabel, { color: theme.textTertiary }]}>SIDDHI</Text>
+                <Text style={[styles.spectrumValue, { color: theme.text }]}>{selectedSphere.siddhi}</Text>
+              </View>
+            </View>
+          </View>
 
-      {/* Your Higher Expression */}
-      <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>Your Higher Expression</Text>
-        <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>
-          {data.gift} is already within you—it's not something to achieve. It naturally 
-          emerges when you embrace the Shadow with compassion rather than resistance. 
-          This is the gift you bring to the world when you're living authentically.
-        </Text>
-      </View>
+          {/* What This Means */}
+          <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>What This Means</Text>
+            <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>
+              {selectedSphere.what_this_means}
+            </Text>
+          </View>
 
-      {/* Ways to Experiment */}
-      <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>Ways to Experiment</Text>
-        <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>
-          When you notice the Shadow pattern arising, pause. Take a breath. Ask yourself: 
-          "What would {data.gift.toLowerCase()} look like right now?" This isn't about forcing 
-          a change—it's about creating space for a different response to emerge naturally.
-        </Text>
-      </View>
+          {/* Your Challenge */}
+          <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>Your Challenge (Shadow Expression)</Text>
+            <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>
+              {selectedSphere.your_challenge}
+            </Text>
+          </View>
 
-      {/* Remember */}
-      <View style={[styles.rememberCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
-        <Text style={[styles.rememberLabel, { color: theme.textTertiary }]}>REMEMBER</Text>
-        <Text style={[styles.rememberText, { color: theme.text }]}>
-          Gene Keys is not about becoming something you're not. It's about recognizing the 
-          full spectrum of who you already are. The journey from {data.shadow} to {data.gift} 
-          to {data.siddhi} is not linear—it's an unfolding awareness.
-        </Text>
-      </View>
+          {/* Your Genius */}
+          <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>Your Genius (Higher Expression)</Text>
+            <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>
+              {selectedSphere.your_higher_expression}
+            </Text>
+          </View>
+
+          {/* Practical Tips */}
+          <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>Practical Tips</Text>
+            <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>
+              {selectedSphere.practical_tips}
+            </Text>
+          </View>
+
+          {/* Remember */}
+          <View style={[styles.rememberCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
+            <Text style={[styles.rememberLabel, { color: theme.textTertiary }]}>REMEMBER</Text>
+            <Text style={[styles.rememberText, { color: theme.text }]}>
+              {selectedSphere.remember}
+            </Text>
+          </View>
+        </View>
+      )}
 
       {/* Footer */}
       <Text style={[styles.footer, { color: theme.textTertiary }]}>
-        This is one lens for understanding patterns, not a definition of who you are.
+        Gene Keys is one lens for understanding patterns, not a definition of who you are.
       </Text>
     </ScrollView>
   );
@@ -209,27 +250,90 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
-  headerCard: {
+  
+  // Sequence Section
+  sequenceSection: {
+    marginBottom: 24,
+  },
+  sequenceTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.5,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  sequenceSubtitle: {
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  sphereGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
+  sphereCard: {
+    width: '48%',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1.5,
+  },
+  sphereLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  sphereGeneKey: {
+    fontSize: 22,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  sphereSpectrum: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  sphereShadow: {
+    fontSize: 11,
+    flex: 1,
+  },
+  sphereArrow: {
+    fontSize: 10,
+  },
+  sphereGift: {
+    fontSize: 11,
+    fontWeight: '500',
+    flex: 1,
+  },
+  
+  // Detail Section
+  detailSection: {
+    marginBottom: 20,
+  },
+  detailHeader: {
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
   },
-  geneKeyLabel: {
+  detailSphereLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  detailGeneKeyLabel: {
     fontSize: 10,
     fontWeight: '600',
     letterSpacing: 1.5,
     marginBottom: 4,
   },
-  geneKeyTitle: {
+  detailGeneKeyTitle: {
     fontSize: 28,
     fontWeight: '600',
-  },
-  unavailableText: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 8,
   },
   spectrumCard: {
     borderRadius: 12,
