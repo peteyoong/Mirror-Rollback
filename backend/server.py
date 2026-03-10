@@ -11619,6 +11619,117 @@ async def get_user_venus_sequence(user_id: str):
         raise HTTPException(status_code=500, detail=f"Error building Venus Sequence: {str(e)}")
 
 
+@api_router.get("/gene-keys/pearl-sequence/{user_id}")
+async def get_user_pearl_sequence(user_id: str):
+    """
+    Get the Pearl Sequence for a user based on their Human Design data.
+    
+    The Pearl Sequence maps HD planetary positions to prosperity spheres:
+    - Vocation = Design Mars (the work you're here to do)
+    - Culture = Personality Jupiter (the environment where you thrive)
+    - Brand = Personality Sun (your authentic signature)
+    - Pearl = Design Jupiter (where prosperity flows from alignment)
+    
+    Args:
+        user_id: The user's ID
+    
+    Returns:
+        PearlSequenceResponse with all 4 spheres and interpretations
+    """
+    logger.info(f"[GeneKeys] Fetching Pearl Sequence for user {user_id}")
+    
+    try:
+        # Get user from database
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get user's birth data
+        birth_date = user.get("birth_date")
+        birth_time = user.get("birth_time")
+        timezone = user.get("timezone", "UTC")
+        
+        # Handle location
+        birth_location = user.get("birth_location", {})
+        if isinstance(birth_location, dict):
+            latitude = birth_location.get("latitude")
+            longitude = birth_location.get("longitude")
+        else:
+            latitude = user.get("latitude") or user.get("birth_lat")
+            longitude = user.get("longitude") or user.get("birth_lon")
+        
+        if not all([birth_date, birth_time, latitude, longitude]):
+            raise HTTPException(status_code=400, detail="Birth data not available")
+        
+        # Parse birth datetime to UTC
+        from calculations.timezone_utils import resolve_birth_utc_with_debug
+        
+        if hasattr(birth_date, 'strftime'):
+            birth_date_str = birth_date.strftime("%Y-%m-%d")
+        else:
+            birth_date_str = str(birth_date).split(' ')[0]
+        
+        result = resolve_birth_utc_with_debug(birth_date_str, birth_time, timezone)
+        birth_utc = result.get('birth_utc')
+        
+        if not birth_utc:
+            raise HTTPException(status_code=400, detail=f"Could not parse birth datetime: {result.get('error')}")
+        
+        # Compute Human Design chart
+        from calculations.human_design import get_human_design_chart
+        canonical_hd = get_human_design_chart(
+            birth_datetime=birth_utc,
+            lat=float(latitude),
+            lon=float(longitude)
+        )
+        
+        # Extract planetary positions
+        personality = canonical_hd.get('personality', {})
+        design = canonical_hd.get('design', {})
+        
+        # Pearl Sequence planets
+        d_mars = design.get('Mars', {})
+        p_jupiter = personality.get('Jupiter', {})
+        p_sun = personality.get('Sun', {})
+        d_jupiter = design.get('Jupiter', {})
+        
+        # Extract gate and line values
+        def extract_gate_line(planet_data):
+            gate_data = planet_data.get('gate', {})
+            if isinstance(gate_data, dict):
+                return gate_data.get('gate', 1), gate_data.get('line', 1)
+            return 1, 1
+        
+        d_mars_gate, d_mars_line = extract_gate_line(d_mars)
+        p_jupiter_gate, p_jupiter_line = extract_gate_line(p_jupiter)
+        p_sun_gate, p_sun_line = extract_gate_line(p_sun)
+        d_jupiter_gate, d_jupiter_line = extract_gate_line(d_jupiter)
+        
+        logger.info(f"[GeneKeys] Pearl Sequence gates: Vocation={d_mars_gate}, Culture={p_jupiter_gate}, Brand={p_sun_gate}, Pearl={d_jupiter_gate}")
+        
+        # Build Pearl sequence
+        pearl = get_pearl_sequence(
+            design_mars_gate=d_mars_gate,
+            design_mars_line=d_mars_line,
+            personality_jupiter_gate=p_jupiter_gate,
+            personality_jupiter_line=p_jupiter_line,
+            personality_sun_gate=p_sun_gate,
+            personality_sun_line=p_sun_line,
+            design_jupiter_gate=d_jupiter_gate,
+            design_jupiter_line=d_jupiter_line,
+        )
+        
+        logger.info(f"[GeneKeys] Successfully built Pearl Sequence")
+        return pearl
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        logger.error(f"[GeneKeys] Pearl Sequence Error: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Error building Pearl Sequence: {str(e)}")
+
+
 @api_router.get("/gene-keys/sphere/{sphere_name}/{gate}/{line}")
 async def get_sphere_detail(sphere_name: str, gate: int, line: int):
     """
