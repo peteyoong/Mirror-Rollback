@@ -8384,11 +8384,9 @@ async def get_pattern_graph(user_id: str):
                 
                 # Combine birth_date and birth_time into datetime
                 birth_utc, debug_info = resolve_birth_utc_with_debug(
-                    birth_date=birth_date,
-                    birth_time=birth_time,
-                    timezone_str=timezone_str,
-                    latitude=lat,
-                    longitude=lon
+                    birth_date_str=birth_date,
+                    birth_time_str=birth_time,
+                    timezone_str=timezone_str
                 )
                 
                 # Get Human Design chart
