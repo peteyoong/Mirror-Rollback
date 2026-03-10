@@ -8383,18 +8383,20 @@ async def get_pattern_graph(user_id: str):
                 logger.info(f"[PatternGraph] Attempting to load Human Design chart...")
                 
                 # Combine birth_date and birth_time into datetime
-                birth_utc, debug_info = resolve_birth_utc_with_debug(
+                birth_result = resolve_birth_utc_with_debug(
                     birth_date_str=birth_date,
                     birth_time_str=birth_time,
                     timezone_str=timezone_str
                 )
+                birth_utc = birth_result.get("birth_utc")
                 
-                # Get Human Design chart
-                hd_chart = get_human_design_chart(
-                    birth_datetime=birth_utc,
-                    lat=lat,
-                    lon=lon
-                )
+                if birth_utc:
+                    # Get Human Design chart
+                    hd_chart = get_human_design_chart(
+                        birth_datetime=birth_utc,
+                        lat=lat,
+                        lon=lon
+                    )
                 
                 if hd_chart:
                     # Get centers profile
