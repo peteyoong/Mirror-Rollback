@@ -375,6 +375,8 @@ def aggregate_human_design_center_signals(
         cat["id"]: [] for cat in PATTERN_CATEGORIES
     }
     
+    logger.info(f"[HD Aggregation] Centers: {len(centers_profile) if centers_profile else 0}, Gates: {len(active_gates) if active_gates else 0}")
+    
     if not centers_profile and not active_gates:
         return category_signals
     
