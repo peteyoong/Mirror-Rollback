@@ -218,6 +218,44 @@ KEYWORD_CATEGORY_MAP = {
 }
 
 
+# =============================================================================
+# HUMAN DESIGN CENTER TO CATEGORY MAPPING
+# =============================================================================
+
+HD_CENTER_CATEGORY_MAP = {
+    "Head": "mind_meaning",
+    "Ajna": "mind_meaning",
+    "Throat": "expression_action",
+    "G Center": "identity_direction",
+    "Solar Plexus": "emotional_landscape",
+    "Sacral": "energy_vitality",
+    "Root": "energy_vitality",
+    "Ego": "expression_action",
+    "Spleen": "energy_vitality",
+}
+
+# Human-readable center names for display
+HD_CENTER_DISPLAY_NAMES = {
+    "Head": "Head Center",
+    "Ajna": "Ajna (Mind) Center",
+    "Throat": "Throat Center",
+    "G Center": "G / Identity Center",
+    "Solar Plexus": "Solar Plexus Center",
+    "Sacral": "Sacral Center",
+    "Root": "Root Center",
+    "Ego": "Heart / Ego Center",
+    "Spleen": "Spleen Center",
+}
+
+
+# =============================================================================
+# HUMAN DESIGN GATE TO CATEGORY MAPPING
+# =============================================================================
+# Maps gates to categories (reuses Gene Key mapping since gates = keys)
+
+HD_GATE_CATEGORY_MAP = GENE_KEY_CATEGORY_MAP.copy()
+
+
 class MatchedSignal(TypedDict):
     """A single matched signal from a source."""
     source: str  # "gene_keys", "journal", "chat"
