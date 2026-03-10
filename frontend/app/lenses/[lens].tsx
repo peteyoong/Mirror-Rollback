@@ -803,7 +803,12 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   closeButton: {
-    padding: 4,
+    padding: 8,
+    borderRadius: 20,
+    minWidth: 36,
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerCenter: {
     flexDirection: 'row',
