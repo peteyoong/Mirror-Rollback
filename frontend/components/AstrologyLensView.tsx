@@ -160,17 +160,17 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
         <Text style={[styles.corePlacementsTitle, { color: theme.textTertiary }]}>SUN • MOON • ASCENDANT</Text>
         <View style={styles.corePlacementsRow}>
           <View style={styles.placementItem}>
-            <Ionicons name="sunny-outline" size={16} color={theme.accent} />
+            <Text style={{ fontSize: 14, color: theme.accent }}>☉</Text>
             <Text style={[styles.placementSign, { color: theme.text }]}>{formatPlacement(placements.sun)}</Text>
           </View>
           <View style={[styles.placementDivider, { backgroundColor: theme.border }]} />
           <View style={styles.placementItem}>
-            <Ionicons name="moon-outline" size={16} color={theme.accent} />
+            <Text style={{ fontSize: 14, color: theme.accent }}>☽</Text>
             <Text style={[styles.placementSign, { color: theme.text }]}>{formatPlacement(placements.moon)}</Text>
           </View>
           <View style={[styles.placementDivider, { backgroundColor: theme.border }]} />
           <View style={styles.placementItem}>
-            <Ionicons name="arrow-up-outline" size={16} color={theme.accent} />
+            <Text style={{ fontSize: 14, color: theme.accent }}>↑</Text>
             <Text style={[styles.placementSign, { color: theme.text }]}>{formatPlacement(placements.ascendant)}</Text>
           </View>
         </View>
@@ -184,7 +184,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
     
     return (
       <View style={styles.computeErrorCard}>
-        <Ionicons name="alert-circle-outline" size={32} color={theme.textTertiary} />
+        <Text style={{ fontSize: 28, color: theme.textTertiary }}>⚠</Text>
         <Text style={styles.computeErrorTitle}>
           We couldn't compute your Ascendant right now.
         </Text>
@@ -200,7 +200,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
             <ActivityIndicator size="small" color={theme.textInverse} />
           ) : (
             <>
-              <Ionicons name="refresh-outline" size={18} color={theme.textInverse} />
+              <Text style={{ fontSize: 16, color: theme.textInverse }}>↻</Text>
               <Text style={styles.recomputeButtonText}>Recompute chart</Text>
             </>
           )}
@@ -225,11 +225,9 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
         >
           <Text style={[styles.sectionLabel, { color: theme.text }]}>{section.label}</Text>
           {activeTab === 'deep_dive' && (
-            <Ionicons
-              name={isExpanded ? 'chevron-up' : 'chevron-down'}
-              size={18}
-              color={theme.textTertiary}
-            />
+            <Text style={{ fontSize: 16, color: theme.textTertiary }}>
+              {isExpanded ? '▲' : '▼'}
+            </Text>
           )}
         </TouchableOpacity>
         {isExpanded && (
@@ -249,7 +247,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
     return (
       <View style={[styles.chartReferenceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={styles.chartReferenceHeader}>
-          <Ionicons name="document-outline" size={20} color={theme.textSecondary} />
+          <Text style={{ fontSize: 18, color: theme.textSecondary }}>📄</Text>
           <Text style={[styles.chartReferenceTitle, { color: theme.text }]}>Natal Chart (Reference)</Text>
         </View>
         <Text style={[styles.chartReferenceDisclaimer, { color: theme.textTertiary }]}>
@@ -259,7 +257,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           style={[styles.chartButton, { backgroundColor: theme.surfaceLight }]}
           onPress={() => setShowChartModal(true)}
         >
-          <Ionicons name="expand-outline" size={16} color={theme.accent} />
+          <Text style={{ fontSize: 14, color: theme.accent }}>⤢</Text>
           <Text style={[styles.chartButtonText, { color: theme.accent }]}>Open Full Chart (PDF)</Text>
         </TouchableOpacity>
       </View>
@@ -279,13 +277,13 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
             style={styles.modalClose}
             onPress={() => setShowChartModal(false)}
           >
-            <Ionicons name="close" size={24} color={theme.textSecondary} />
+            <Text style={{ fontSize: 22, color: theme.textSecondary }}>✕</Text>
           </TouchableOpacity>
           
           <Text style={[styles.modalTitle, { color: theme.text }]}>Natal Chart Reference</Text>
           
           <View style={[styles.chartPlaceholder, { backgroundColor: theme.background }]}>
-            <Ionicons name="planet-outline" size={48} color={theme.textTertiary} />
+            <Text style={{ fontSize: 42, color: theme.textTertiary }}>☿</Text>
             <Text style={[styles.chartPlaceholderText, { color: theme.textSecondary }]}>
               Full chart visualization coming soon
             </Text>
@@ -322,7 +320,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
-            <Ionicons name="alert-circle-outline" size={32} color={theme.textTertiary} />
+            <Text style={{ fontSize: 28, color: theme.textTertiary }}>⚠</Text>
             <Text style={[styles.errorText, { color: theme.textSecondary }]}>{error}</Text>
             <TouchableOpacity
               style={[styles.retryButton, { backgroundColor: theme.surface }]}
@@ -361,11 +359,9 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
                     <Text style={[styles.expandButtonText, { color: theme.accent }]}>
                       {expandedSection ? 'Collapse sections' : 'Explore your core structure'}
                     </Text>
-                    <Ionicons
-                      name={expandedSection ? 'contract-outline' : 'expand-outline'}
-                      size={16}
-                      color={theme.accent}
-                    />
+                    <Text style={{ fontSize: 14, color: theme.accent }}>
+                      {expandedSection ? '⤡' : '⤢'}
+                    </Text>
                   </TouchableOpacity>
                 )}
 
@@ -388,7 +384,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
                   style={[styles.askMirrorButton, { backgroundColor: theme.text }]}
                   onPress={onOpenChat}
                 >
-                  <Ionicons name="chatbubble-outline" size={18} color={theme.background} />
+                  <Text style={{ fontSize: 16, color: theme.background }}>💬</Text>
                   <Text style={[styles.askMirrorText, { color: theme.background }]}>Ask about this lens</Text>
                 </TouchableOpacity>
 
