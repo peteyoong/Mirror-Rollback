@@ -8164,6 +8164,105 @@ async def get_human_design_centers(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/human-design/gates/{user_id}")
+async def get_human_design_gates(user_id: str):
+    """
+    Get Human Design defined gates with reflective interpretations.
+    
+    Returns only the gates active in the user's chart (not all 64) with:
+    - gate_number, line_numbers_present, center_name, gate_name
+    - themes
+    - Gene Keys bridge (shadow, gift, siddhi)
+    - template-based interpretations (what_this_means, your_challenge, your_genius, practical_experiments, remember)
+    
+    Uses deterministic template content - no LLM.
+    """
+    try:
+        from calculations.timezone_utils import resolve_birth_utc_with_debug
+        from calculations.human_design import get_human_design_chart
+        from services.human_design_gates import build_defined_gates
+        
+        # Get user
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get birth data
+        birth_date = user.get("birth_date")
+        birth_time = user.get("birth_time")
+        timezone_str = user.get("timezone", "UTC")
+        birth_location = user.get("birth_location", {})
+        
+        if isinstance(birth_location, dict):
+            lat = birth_location.get("latitude") or birth_location.get("lat")
+            lon = birth_location.get("longitude") or birth_location.get("lon") or birth_location.get("lng")
+        else:
+            lat = user.get("latitude") or user.get("birth_lat")
+            lon = user.get("longitude") or user.get("birth_lon")
+        
+        if not all([birth_date, birth_time, lat, lon]):
+            missing = []
+            if not birth_date: missing.append("birth_date")
+            if not birth_time: missing.append("birth_time")
+            if not lat or not lon: missing.append("birth_location")
+            return {
+                "success": False,
+                "error": "missing_birth_data",
+                "missing": missing,
+                "gates": []
+            }
+        
+        # Resolve birth UTC
+        if hasattr(birth_date, 'strftime'):
+            birth_date_str = birth_date.strftime("%Y-%m-%d")
+        else:
+            birth_date_str = str(birth_date).split(' ')[0]
+        
+        result = resolve_birth_utc_with_debug(birth_date_str, birth_time, timezone_str)
+        birth_utc = result.get('birth_utc')
+        
+        if not birth_utc:
+            return {
+                "success": False,
+                "error": "timezone_resolution_failed",
+                "gates": []
+            }
+        
+        # Compute Human Design chart
+        hd_chart = get_human_design_chart(
+            birth_datetime=birth_utc,
+            lat=float(lat),
+            lon=float(lon)
+        )
+        
+        # Extract gates data
+        active_gates = hd_chart.get("active_gates", [])
+        personality_gates = hd_chart.get("personality_gates", [])
+        design_gates = hd_chart.get("design_gates", [])
+        
+        # Build gates profile with interpretations
+        gates = build_defined_gates(
+            active_gates=active_gates,
+            personality_gates=personality_gates,
+            design_gates=design_gates
+        )
+        
+        return {
+            "success": True,
+            "gates": gates,
+            "summary": {
+                "total_gates": len(gates),
+                "centers_with_gates": len(set(g["center_name"] for g in gates))
+            }
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Human Design gates error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # =====================================================================
 # NUMEROLOGY LENS ENDPOINTS
 # =====================================================================
