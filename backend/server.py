@@ -11368,7 +11368,7 @@ async def get_all_life_contexts(user_id: str):
 # =====================================================================
 
 # Import Gene Keys interpreter service
-from services.gene_keys_interpreter import get_gene_key_interpretation, get_available_gene_keys, get_activation_sequence, get_sphere_interpretation
+from services.gene_keys_interpreter import get_gene_key_interpretation, get_available_gene_keys, get_activation_sequence, get_sphere_interpretation, get_venus_sequence
 
 
 # Note: More specific routes must come BEFORE catch-all routes
