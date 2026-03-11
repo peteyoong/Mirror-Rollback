@@ -483,116 +483,128 @@ export default function PatternsScreen() {
   );
 
   // ============================================================================
-  // RENDER: PATTERNS TAB
+  // RENDER: PATTERNS TAB (Compact Accordion Cards)
   // ============================================================================
 
   const renderDomainCard = (domain: PatternDomain) => {
     const strengthColor = getStrengthColor(domain.signal_strength);
-    const { synthesis, showUp, prompt } = getDomainContent(domain.category_id, domain.signal_strength);
+    const { synthesis, prompt } = getDomainContent(domain.category_id, domain.signal_strength);
     const isExpanded = expandedDomain === domain.category_id;
     
     const visibleSignals = domain.matched_signals?.filter(s => s.source !== 'enneagram') || [];
     const hasVisibleSignals = visibleSignals.length > 0;
     
+    // Group signals by source for the contributing signals section
     const transitSignal = visibleSignals.find(s => s.source === 'astrology_transit');
     const regularSignals = visibleSignals.filter(s => s.source !== 'astrology_transit');
     
-    const signalsBySource: Record<string, MatchedSignal[]> = {};
-    regularSignals.forEach(signal => {
-      const source = signal.source;
-      if (!signalsBySource[source]) signalsBySource[source] = [];
-      signalsBySource[source].push(signal);
-    });
+    // Count unique signal sources for compact display
+    const uniqueSources = new Set(regularSignals.map(s => s.source));
+    const hasJournal = uniqueSources.has('journal') || uniqueSources.has('mirror_chat');
+    const hasLensContext = uniqueSources.has('gene_keys') || uniqueSources.has('human_design');
+    const hasTiming = !!transitSignal;
 
     return (
-      <View
+      <TouchableOpacity
         key={domain.category_id}
-        style={[styles.domainCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+        style={[
+          styles.accordionCard, 
+          { 
+            backgroundColor: theme.surface, 
+            borderColor: isExpanded ? theme.accent + '40' : theme.border 
+          }
+        ]}
+        onPress={() => toggleExpanded(domain.category_id, domain.category_name)}
+        activeOpacity={0.7}
       >
-        <TouchableOpacity 
-          style={styles.domainHeaderTouchable}
-          onPress={() => toggleExpanded(domain.category_id, domain.category_name)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.domainHeaderRow}>
-            <Text style={[styles.domainName, { color: theme.text }]}>
+        {/* Collapsed View - Always Visible */}
+        <View style={styles.accordionHeader}>
+          <View style={styles.accordionLeft}>
+            <Text style={[styles.accordionTitle, { color: theme.text }]}>
               {domain.category_name}
             </Text>
-            <View style={styles.headerRight}>
-              <Text style={[styles.domainStrength, { color: strengthColor }]}>
+          </View>
+          <View style={styles.accordionRight}>
+            <View style={[styles.statusBadge, { backgroundColor: strengthColor + '18' }]}>
+              <Text style={[styles.statusText, { color: strengthColor }]}>
                 {getStrengthLabel(domain.signal_strength)}
               </Text>
-              {hasVisibleSignals && (
-                <Text style={[styles.expandChevron, { color: theme.textTertiary }]}>
-                  {isExpanded ? '▲' : '▼'}
-                </Text>
-              )}
             </View>
-          </View>
-        </TouchableOpacity>
-
-        <Text style={[styles.domainSynthesis, { color: theme.textSecondary }]}>
-          {synthesis}
-        </Text>
-
-        {showUp && (
-          <Text style={[styles.domainShowUp, { color: theme.textSecondary }]}>
-            {showUp}
-          </Text>
-        )}
-
-        <View style={styles.domainPromptRow}>
-          <Text style={[styles.domainPrompt, { color: theme.accent, flex: 1 }]}>
-            {prompt}
-          </Text>
-          <TouchableOpacity
-            onPress={() => handleJournalTrigger(domain.category_name, prompt)}
-            style={styles.journalTrigger}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={[styles.journalTriggerText, { color: theme.textTertiary }]}>
-              ✏️ Reflect
+            <Text style={[styles.accordionChevron, { color: theme.textTertiary }]}>
+              {isExpanded ? '▲' : '▼'}
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
 
-        {isExpanded && hasVisibleSignals && (
-          <View style={[styles.signalsSection, { borderTopColor: theme.border }]}>
-            <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>
-              Signals contributing to this pattern
+        {/* Expanded View */}
+        {isExpanded && (
+          <View style={[styles.accordionBody, { borderTopColor: theme.border }]}>
+            {/* Short Narrative (2-3 sentences) */}
+            <Text style={[styles.accordionNarrative, { color: theme.textSecondary }]}>
+              {synthesis}
             </Text>
-            
-            {Object.entries(signalsBySource).map(([source, signals]) => (
-              <View key={source} style={styles.sourceGroup}>
-                <Text style={[styles.sourceLabel, { color: theme.textSecondary }]}>
-                  {getSourceDisplayName(source)}
+
+            {/* Contributing Signals - Compact List */}
+            {(hasJournal || hasLensContext || hasTiming) && (
+              <View style={styles.signalsCompact}>
+                <Text style={[styles.signalsCompactLabel, { color: theme.textTertiary }]}>
+                  Signals contributing:
                 </Text>
-                {signals.slice(0, 4).map((signal, idx) => (
-                  <View key={idx} style={styles.signalItem}>
-                    <Text style={[styles.signalDot, { color: theme.textTertiary }]}>•</Text>
-                    <Text style={[styles.signalText, { color: theme.textTertiary }]}>
-                      {formatSignalLabel(signal)}
-                    </Text>
-                  </View>
-                ))}
-                {signals.length > 4 && (
-                  <Text style={[styles.moreSignals, { color: theme.textTertiary }]}>
-                    +{signals.length - 4} more
-                  </Text>
-                )}
-              </View>
-            ))}
-            
-            {transitSignal && (
-              <View style={styles.transitNote}>
-                <Text style={[styles.transitNoteText, { color: theme.textTertiary }]}>
-                  ✦ Current timing emphasis
-                </Text>
+                <View style={styles.signalsCompactList}>
+                  {hasJournal && (
+                    <View style={styles.signalChip}>
+                      <Text style={[styles.signalChipDot, { color: theme.textTertiary }]}>•</Text>
+                      <Text style={[styles.signalChipText, { color: theme.textSecondary }]}>
+                        Journal reflections
+                      </Text>
+                    </View>
+                  )}
+                  {uniqueSources.has('mirror_chat') && !hasJournal && (
+                    <View style={styles.signalChip}>
+                      <Text style={[styles.signalChipDot, { color: theme.textTertiary }]}>•</Text>
+                      <Text style={[styles.signalChipText, { color: theme.textSecondary }]}>
+                        Mirror insights
+                      </Text>
+                    </View>
+                  )}
+                  {hasTiming && (
+                    <View style={styles.signalChip}>
+                      <Text style={[styles.signalChipDot, { color: theme.textTertiary }]}>•</Text>
+                      <Text style={[styles.signalChipText, { color: theme.textSecondary }]}>
+                        Timing influence
+                      </Text>
+                    </View>
+                  )}
+                  {hasLensContext && (
+                    <View style={styles.signalChip}>
+                      <Text style={[styles.signalChipDot, { color: theme.textTertiary }]}>•</Text>
+                      <Text style={[styles.signalChipText, { color: theme.textSecondary }]}>
+                        Lens context
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
             )}
+
+            {/* Reflection Prompt */}
+            <View style={[styles.accordionPromptSection, { backgroundColor: theme.accent + '08' }]}>
+              <Text style={[styles.accordionPromptText, { color: theme.accent }]}>
+                "{prompt}"
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleJournalTrigger(domain.category_name, prompt)}
+                style={[styles.reflectButton, { borderColor: theme.accent + '40' }]}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={[styles.reflectButtonText, { color: theme.accent }]}>
+                  ✏️ Reflect
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
-      </View>
+      </TouchableOpacity>
     );
   };
 
