@@ -284,9 +284,10 @@ class CategoryResult(TypedDict):
     """Result for a single pattern category."""
     category_id: str
     category_name: str
-    signal_strength: str  # "quiet", "emerging", "active" -> now "quiet", "present", "recurring"
+    signal_strength: str  # "quiet", "present", "recurring"
     pattern_score: int    # Weighted score
     signal_count: int     # Number of unique signals
+    trend: str            # "rising", "steady", "fading"
     matched_sources: List[str]
     matched_signals: List[MatchedSignal]
     summary: str
