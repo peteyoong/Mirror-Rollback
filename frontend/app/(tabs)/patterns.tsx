@@ -677,4 +677,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingLeft: 16,
   },
+  transitNote: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+  },
+  transitNoteText: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    opacity: 0.6,
+  },
 });
