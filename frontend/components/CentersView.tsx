@@ -203,28 +203,42 @@ export default function CentersView({ userId }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* Section Header */}
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionHeaderTitle, { color: theme.textTertiary }]}>
-          CENTERS
-        </Text>
-        {summary && (
-          <Text style={[styles.sectionHeaderMeta, { color: theme.textTertiary }]}>
-            {summary.defined_count} Defined • {summary.undefined_count} Undefined
+      {/* Parent Accordion Header - collapsed by default */}
+      <TouchableOpacity
+        style={[styles.accordionHeader, { backgroundColor: theme.surface, borderColor: theme.border }]}
+        onPress={() => setIsAccordionExpanded(!isAccordionExpanded)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.accordionHeaderLeft}>
+          <Text style={[styles.accordionTitle, { color: theme.text }]}>
+            Centers
           </Text>
-        )}
-      </View>
+          {summary && (
+            <Text style={[styles.accordionSubtitle, { color: theme.textTertiary }]}>
+              {summary.defined_count} Defined • {summary.undefined_count} Undefined
+            </Text>
+          )}
+        </View>
+        <Text style={[styles.accordionChevron, { color: theme.textTertiary }]}>
+          {isAccordionExpanded ? '▲' : '▼'}
+        </Text>
+      </TouchableOpacity>
 
-      {/* Intro text */}
-      <Text style={[styles.introText, { color: theme.textSecondary }]}>
-        Your nine centers are like different rooms in a house—each with its own function.
-        Defined centers have consistent energy; undefined centers take in and amplify energy from others.
-      </Text>
+      {/* Accordion Content - Only visible when expanded */}
+      {isAccordionExpanded && (
+        <View style={styles.accordionContent}>
+          {/* Intro text */}
+          <Text style={[styles.introText, { color: theme.textSecondary }]}>
+            Your nine centers are like different rooms in a house—each with its own function.
+            Defined centers have consistent energy; undefined centers take in energy from others.
+          </Text>
 
-      {/* Centers list */}
-      <View style={styles.centersList}>
-        {centers.map(center => renderCenterCard(center))}
-      </View>
+          {/* Centers list */}
+          <View style={styles.centersList}>
+            {centers.map(center => renderCenterCard(center))}
+          </View>
+        </View>
+      )}
     </View>
   );
 }
