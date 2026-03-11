@@ -192,9 +192,14 @@ export default function PatternGraphScreen() {
               <Text style={[styles.categoryName, { color: theme.text }]}>
                 {category.category_name}
               </Text>
-              <Text style={[styles.categoryStrength, { color: strengthColor }]}>
-                {getStrengthLabel(category.signal_strength)}
-              </Text>
+              <View style={styles.categoryMetaRow}>
+                <Text style={[styles.categoryStrength, { color: strengthColor }]}>
+                  {getStrengthLabel(category.signal_strength)}
+                </Text>
+                <Text style={[styles.categoryTrend, { color: theme.textTertiary }]}>
+                  • {category.trend}
+                </Text>
+              </View>
             </View>
           </View>
           {hasSignals && (
