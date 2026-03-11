@@ -665,6 +665,15 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     fontStyle: 'italic',
   },
+  patternPulseAction: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+  },
+  patternPulseActionText: {
+    fontSize: 13,
+  },
   keystoneContainer: {
     paddingTop: 16,
     paddingBottom: 8,
