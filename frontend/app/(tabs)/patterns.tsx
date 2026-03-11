@@ -556,11 +556,12 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     padding: 18,
     marginBottom: 16,
+    overflow: 'visible', // Ensure content is not clipped
   },
-  domainHeader: {
+  domainHeaderTouchable: {
     marginBottom: 14,
   },
-  domainHeaderTop: {
+  domainHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
@@ -580,9 +581,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
-  expandIcon: {
+  expandChevron: {
     fontSize: 10,
-    marginLeft: 4,
+    marginLeft: 6,
   },
   domainSynthesis: {
     fontSize: 14,
