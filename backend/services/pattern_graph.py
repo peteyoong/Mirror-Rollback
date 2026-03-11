@@ -975,6 +975,40 @@ def aggregate_pattern_graph(
         for cat_id, signals in ennea_signals.items():
             all_signals[cat_id].extend(signals)
     
+    # First pass: Calculate preliminary scores (before transit amplification)
+    # This is needed to determine which domains have existing support
+    preliminary_scores: Dict[str, float] = {}
+    for cat in PATTERN_CATEGORIES:
+        cat_id = cat["id"]
+        signals = all_signals.get(cat_id, [])
+        # Quick score calculation for transit amplification check
+        seen_labels = set()
+        unique_sigs = []
+        for sig in signals:
+            if sig["label"] not in seen_labels:
+                seen_labels.add(sig["label"])
+                unique_sigs.append(sig)
+        preliminary_scores[cat_id] = calculate_weighted_score(unique_sigs[:5])
+    
+    # Get current transit themes and add transit signals (amplification only)
+    transit_themes = []
+    transit_emphasized_domains = set()
+    if include_transits:
+        transit_themes = get_current_transit_themes()
+        logger.debug(f"[PatternGraph] Active transit themes: {transit_themes}")
+        
+        # Aggregate transit signals (only for domains with existing support)
+        transit_signals = aggregate_transit_signals(
+            transit_themes=transit_themes,
+            existing_domain_scores=preliminary_scores
+        )
+        for cat_id, signals in transit_signals.items():
+            if signals:  # Only if transit added signals to this domain
+                all_signals[cat_id].extend(signals)
+                transit_emphasized_domains.add(cat_id)
+        
+        logger.debug(f"[PatternGraph] Transit-emphasized domains: {transit_emphasized_domains}")
+    
     # Calculate trends for all categories
     trends = calculate_pattern_trends(
         gene_keys_profile=gene_keys_profile,
