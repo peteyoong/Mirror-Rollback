@@ -611,7 +611,7 @@ const styles = StyleSheet.create({
   
   // Header
   header: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   pageTitle: {
     fontSize: 24,
@@ -623,47 +623,30 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   
-  // Stats row
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 20,
-  },
-  statItem: {
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  statLabel: {
-    fontSize: 12,
-    marginTop: 4,
-  },
-  statDivider: {
-    width: 1,
-    height: 32,
+  // Themes indicator (replaces stats row)
+  themesIndicator: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 24,
+    fontStyle: 'italic',
   },
   
-  // Pattern Tensions section
-  tensionsSection: {
-    marginBottom: 24,
-  },
-  tensionsSectionTitle: {
+  // Section styles (shared)
+  sectionTitle: {
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 1.5,
     marginBottom: 6,
   },
-  tensionsSectionSubtext: {
+  sectionSubtext: {
     fontSize: 13,
     lineHeight: 19,
     marginBottom: 16,
+  },
+  
+  // Pattern Tensions section
+  tensionsSection: {
+    marginBottom: 32,
   },
   tensionCard: {
     borderRadius: 12,
@@ -687,37 +670,88 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   
-  // Categories list
-  categoriesList: {
-    gap: 12,
+  // What's Most Present section
+  mostPresentSection: {
+    marginBottom: 32,
+  },
+  presentCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 12,
+  },
+  presentCardHeader: {
+    marginBottom: 12,
+  },
+  presentCardName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  presentCardMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  presentCardStrength: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  presentCardTrendSep: {
+    fontSize: 12,
+    marginHorizontal: 6,
+  },
+  presentCardTrend: {
+    fontSize: 12,
+  },
+  presentCardStory: {
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  presentCardPrompt: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
   },
   
-  // Category card
-  categoryCard: {
+  // Explore the Signals section
+  exploreSection: {
+    marginBottom: 24,
+  },
+  signalsCardList: {
+    gap: 10,
+  },
+  signalsCard: {
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
   },
-  
-  // Category header
-  categoryHeader: {
+  signalsCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: 14,
   },
-  categoryHeaderLeft: {
+  signalsCardLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  strengthIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 12,
+  signalsIndicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 10,
   },
-  categoryHeaderInfo: {
+  signalsCardName: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  signalsCardContent: {
+    padding: 14,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
     flex: 1,
   },
   categoryName: {
