@@ -21,7 +21,7 @@ import {
   SEQUENCE_ROLES 
 } from '../utils/humanDesignContext';
 import GeneKeysView from './GeneKeysView';
-import CentersView from './CentersView';
+import CentersView, { CentersViewHandle } from './CentersView';
 import DefinedGatesView from './DefinedGatesView';
 
 // Build info for debugging
