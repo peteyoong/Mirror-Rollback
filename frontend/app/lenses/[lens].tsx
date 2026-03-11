@@ -720,8 +720,16 @@ export default function LensDetail() {
             </SafeAreaView>
           </Modal>
         </>
+      ) : (lens === 'astrology' || lens === 'human_design') && !user?.id ? (
+        // LOADING STATE: User session is being restored for astrology/human_design
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.accent} />
+          <Text style={[styles.loadingText, { color: theme.textTertiary }]}>
+            Loading your {lensMeta.name}...
+          </Text>
+        </View>
       ) : (
-        // OTHER LENSES: Keep original implementation
+        // OTHER LENSES: Keep original implementation (numerology, consciousness, etc.)
         <>
           {/* Tabs */}
           {renderTabs()}
