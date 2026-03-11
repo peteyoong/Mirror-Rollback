@@ -1115,6 +1115,107 @@ const styles = StyleSheet.create({
   domainsSection: {
     marginBottom: 20,
   },
+  
+  // New Accordion Card Styles
+  accordionCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 10,
+    overflow: 'hidden',
+  },
+  accordionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  accordionLeft: {
+    flex: 1,
+  },
+  accordionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  accordionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  accordionChevron: {
+    fontSize: 10,
+  },
+  accordionBody: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  accordionNarrative: {
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 14,
+  },
+  signalsCompact: {
+    marginBottom: 14,
+  },
+  signalsCompactLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  signalsCompactList: {
+    gap: 4,
+  },
+  signalChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  signalChipDot: {
+    fontSize: 10,
+    marginRight: 8,
+  },
+  signalChipText: {
+    fontSize: 13,
+  },
+  accordionPromptSection: {
+    borderRadius: 10,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  accordionPromptText: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    lineHeight: 20,
+    flex: 1,
+  },
+  reflectButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  reflectButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  
+  // Legacy Domain Card Styles (kept for reference)
   domainCard: {
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
