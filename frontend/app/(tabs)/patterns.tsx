@@ -278,21 +278,47 @@ export default function PatternsScreen() {
   const renderDomainCard = (domain: PatternDomain) => {
     const strengthColor = getStrengthColor(domain.signal_strength);
     const { synthesis, showUp, prompt } = getDomainContent(domain.category_id, domain.signal_strength);
+    const isExpanded = expandedDomain === domain.category_id;
+    const hasSignals = domain.matched_signals && domain.matched_signals.length > 0;
+
+    // Group signals by source for display (excluding enneagram from display)
+    const visibleSignals = domain.matched_signals.filter(s => s.source !== 'enneagram');
+    const signalsBySource: Record<string, MatchedSignal[]> = {};
+    visibleSignals.forEach(signal => {
+      const source = signal.source;
+      if (!signalsBySource[source]) {
+        signalsBySource[source] = [];
+      }
+      signalsBySource[source].push(signal);
+    });
 
     return (
       <View
         key={domain.category_id}
         style={[styles.domainCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
       >
-        {/* Domain Header */}
-        <View style={styles.domainHeader}>
-          <Text style={[styles.domainName, { color: theme.text }]}>
-            {domain.category_name}
-          </Text>
-          <Text style={[styles.domainStrength, { color: strengthColor }]}>
-            {getStrengthLabel(domain.signal_strength)}
-          </Text>
-        </View>
+        {/* Domain Header - Tappable to expand */}
+        <TouchableOpacity 
+          style={styles.domainHeader}
+          onPress={() => toggleExpanded(domain.category_id)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.domainHeaderTop}>
+            <Text style={[styles.domainName, { color: theme.text }]}>
+              {domain.category_name}
+            </Text>
+            <View style={styles.headerRight}>
+              <Text style={[styles.domainStrength, { color: strengthColor }]}>
+                {getStrengthLabel(domain.signal_strength)}
+              </Text>
+              {hasSignals && (
+                <Text style={[styles.expandIcon, { color: theme.textTertiary }]}>
+                  {isExpanded ? '▲' : '▼'}
+                </Text>
+              )}
+            </View>
+          </View>
+        </TouchableOpacity>
 
         {/* Primary Synthesis */}
         <Text style={[styles.domainSynthesis, { color: theme.textSecondary }]}>
@@ -321,6 +347,36 @@ export default function PatternsScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Expandable Signals Section */}
+        {isExpanded && hasSignals && (
+          <View style={[styles.signalsSection, { borderTopColor: theme.border }]}>
+            <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>
+              Signals contributing to this pattern
+            </Text>
+            
+            {Object.entries(signalsBySource).map(([source, signals]) => (
+              <View key={source} style={styles.sourceGroup}>
+                <Text style={[styles.sourceLabel, { color: theme.textSecondary }]}>
+                  {getSourceDisplayName(source)}
+                </Text>
+                {signals.slice(0, 3).map((signal, idx) => (
+                  <View key={idx} style={styles.signalItem}>
+                    <Text style={[styles.signalDot, { color: theme.textTertiary }]}>•</Text>
+                    <Text style={[styles.signalText, { color: theme.textTertiary }]}>
+                      {formatSignalLabel(signal)}
+                    </Text>
+                  </View>
+                ))}
+                {signals.length > 3 && (
+                  <Text style={[styles.moreSignals, { color: theme.textTertiary }]}>
+                    +{signals.length - 3} more
+                  </Text>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     );
   };
