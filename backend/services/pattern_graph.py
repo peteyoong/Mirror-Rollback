@@ -2135,9 +2135,12 @@ def calculate_pattern_trends(
     Returns:
         Dict mapping category_id to trend ("rising", "steady", "fading")
     """
-    now = datetime.utcnow()
+    from datetime import timezone
     
-    # Define time periods
+    # Use timezone-aware datetime for consistency
+    now = datetime.now(timezone.utc)
+    
+    # Define time periods (timezone-aware)
     period_7_days = {
         "start": now - timedelta(days=7),
         "end": now
