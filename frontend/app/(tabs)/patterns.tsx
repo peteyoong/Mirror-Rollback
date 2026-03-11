@@ -307,10 +307,12 @@ export default function PatternsScreen() {
     const strengthColor = getStrengthColor(domain.signal_strength);
     const { synthesis, showUp, prompt } = getDomainContent(domain.category_id, domain.signal_strength);
     const isExpanded = expandedDomain === domain.category_id;
-    const hasSignals = domain.matched_signals && domain.matched_signals.length > 0;
-
-    // Group signals by source for display (excluding enneagram from display)
-    const visibleSignals = domain.matched_signals.filter(s => s.source !== 'enneagram');
+    
+    // Filter out enneagram signals for display (enneagram is invisible)
+    const visibleSignals = domain.matched_signals?.filter(s => s.source !== 'enneagram') || [];
+    const hasVisibleSignals = visibleSignals.length > 0;
+    
+    // Group signals by source for display
     const signalsBySource: Record<string, MatchedSignal[]> = {};
     visibleSignals.forEach(signal => {
       const source = signal.source;
@@ -320,18 +322,25 @@ export default function PatternsScreen() {
       signalsBySource[source].push(signal);
     });
 
+    // Log signal counts for debugging when expanded changes
+    if (isExpanded) {
+      const counts = countSignalsBySource(visibleSignals);
+      console.log(`[PATTERN_ACCORDION_SIGNALS] ${domain.category_name} gene_keys=${counts.gene_keys || 0} human_design=${counts.human_design || 0} journal=${counts.journal || 0}`);
+    }
+
     return (
       <View
         key={domain.category_id}
         style={[styles.domainCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
       >
-        {/* Domain Header - Tappable to expand */}
+        {/* Tappable Header Area - includes name, strength and chevron */}
         <TouchableOpacity 
-          style={styles.domainHeader}
-          onPress={() => toggleExpanded(domain.category_id)}
+          style={styles.domainHeaderTouchable}
+          onPress={() => toggleExpanded(domain.category_id, domain.category_name)}
           activeOpacity={0.7}
+          disabled={!hasVisibleSignals}
         >
-          <View style={styles.domainHeaderTop}>
+          <View style={styles.domainHeaderRow}>
             <Text style={[styles.domainName, { color: theme.text }]}>
               {domain.category_name}
             </Text>
@@ -339,8 +348,8 @@ export default function PatternsScreen() {
               <Text style={[styles.domainStrength, { color: strengthColor }]}>
                 {getStrengthLabel(domain.signal_strength)}
               </Text>
-              {hasSignals && (
-                <Text style={[styles.expandIcon, { color: theme.textTertiary }]}>
+              {hasVisibleSignals && (
+                <Text style={[styles.expandChevron, { color: theme.textTertiary }]}>
                   {isExpanded ? '▲' : '▼'}
                 </Text>
               )}
@@ -376,8 +385,8 @@ export default function PatternsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Expandable Signals Section */}
-        {isExpanded && hasSignals && (
+        {/* Expandable Signals Section - Only renders when expanded AND has visible signals */}
+        {isExpanded && hasVisibleSignals && (
           <View style={[styles.signalsSection, { borderTopColor: theme.border }]}>
             <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>
               Signals contributing to this pattern
@@ -388,7 +397,7 @@ export default function PatternsScreen() {
                 <Text style={[styles.sourceLabel, { color: theme.textSecondary }]}>
                   {getSourceDisplayName(source)}
                 </Text>
-                {signals.slice(0, 3).map((signal, idx) => (
+                {signals.slice(0, 4).map((signal, idx) => (
                   <View key={idx} style={styles.signalItem}>
                     <Text style={[styles.signalDot, { color: theme.textTertiary }]}>•</Text>
                     <Text style={[styles.signalText, { color: theme.textTertiary }]}>
@@ -396,9 +405,9 @@ export default function PatternsScreen() {
                     </Text>
                   </View>
                 ))}
-                {signals.length > 3 && (
+                {signals.length > 4 && (
                   <Text style={[styles.moreSignals, { color: theme.textTertiary }]}>
-                    +{signals.length - 3} more
+                    +{signals.length - 4} more
                   </Text>
                 )}
               </View>
