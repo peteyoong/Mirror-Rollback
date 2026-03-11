@@ -611,3 +611,281 @@ def aggregate_pattern_graph(
         },
         "updated_at": datetime.utcnow().isoformat()
     }
+
+
+# =============================================================================
+# TIMELINE AGGREGATION
+# =============================================================================
+
+class TimelineCategoryResult(TypedDict):
+    """Result for a single category in a time bucket."""
+    category_id: str
+    category_name: str
+    signal_strength: str  # "quiet", "present", "recurring"
+    total_signals: int
+    matched_sources: List[str]
+    summary: str
+
+
+class TimeBucketResult(TypedDict):
+    """Result for a single time bucket."""
+    bucket_name: str
+    bucket_label: str
+    start_date: str
+    end_date: str
+    categories: List[TimelineCategoryResult]
+    has_activity: bool
+
+
+def calculate_timeline_signal_strength(signal_count: int, source_count: int) -> str:
+    """Calculate signal strength for timeline display.
+    
+    Uses user-facing language:
+    - quiet: 0 signals
+    - present: 1-2 signals
+    - recurring: 3+ signals OR 2+ sources
+    """
+    if signal_count == 0:
+        return "quiet"
+    elif signal_count >= 3 or source_count >= 2:
+        return "recurring"
+    else:
+        return "present"
+
+
+def get_timeline_summary(category: dict, strength: str) -> str:
+    """Get timeline-appropriate summary for a category."""
+    cat_name = category["name"]
+    
+    if strength == "quiet":
+        return f"No signals in {cat_name.lower()} themes during this period."
+    elif strength == "present":
+        return f"{cat_name} themes appeared occasionally during this period."
+    else:  # recurring
+        return f"{cat_name} themes showed up repeatedly during this period."
+
+
+def aggregate_journal_signals_for_period(
+    journal_entries: List[dict],
+    start_date: datetime,
+    end_date: datetime
+) -> Dict[str, List[MatchedSignal]]:
+    """Aggregate journal signals within a specific time period.
+    
+    Args:
+        journal_entries: All journal entries
+        start_date: Period start (inclusive)
+        end_date: Period end (inclusive)
+    
+    Returns:
+        Dict mapping category_id to list of matched signals
+    """
+    category_signals: Dict[str, List[MatchedSignal]] = {
+        cat["id"]: [] for cat in PATTERN_CATEGORIES
+    }
+    
+    for entry in journal_entries:
+        timestamp = entry.get("timestamp")
+        if not timestamp:
+            continue
+        
+        # Convert timestamp to datetime if needed
+        if isinstance(timestamp, str):
+            try:
+                timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+            except:
+                continue
+        
+        # Check if within period
+        entry_date = timestamp.replace(tzinfo=None) if hasattr(timestamp, 'tzinfo') else timestamp
+        if not (start_date <= entry_date <= end_date):
+            continue
+        
+        content = entry.get("content", "").lower()
+        if len(content) < 20:
+            continue
+        
+        # Check for keyword matches
+        for cat_id, keywords in KEYWORD_CATEGORY_MAP.items():
+            matches_found = []
+            for kw in keywords:
+                if kw in content:
+                    matches_found.append(kw)
+            
+            if matches_found:
+                date_str = entry_date.strftime("%b %d")
+                signal: MatchedSignal = {
+                    "source": "journal",
+                    "label": f"Journal ({', '.join(matches_found[:2])})",
+                    "sphere_name": None,
+                    "detail": f"Entry on {date_str}"
+                }
+                category_signals[cat_id].append(signal)
+    
+    return category_signals
+
+
+def build_time_bucket(
+    bucket_name: str,
+    bucket_label: str,
+    start_date: datetime,
+    end_date: datetime,
+    gene_keys_signals: Dict[str, List[MatchedSignal]],
+    hd_signals: Dict[str, List[MatchedSignal]],
+    journal_signals: Dict[str, List[MatchedSignal]]
+) -> TimeBucketResult:
+    """Build a single time bucket result.
+    
+    Args:
+        bucket_name: Internal bucket identifier
+        bucket_label: User-facing label
+        start_date: Period start
+        end_date: Period end
+        gene_keys_signals: Gene Keys signals (always present, not time-filtered)
+        hd_signals: Human Design signals (always present, not time-filtered)
+        journal_signals: Journal signals filtered to this period
+    
+    Returns:
+        TimeBucketResult with categories
+    """
+    categories: List[TimelineCategoryResult] = []
+    
+    for cat in PATTERN_CATEGORIES:
+        cat_id = cat["id"]
+        
+        # Collect signals from all sources
+        all_signals: List[MatchedSignal] = []
+        all_signals.extend(gene_keys_signals.get(cat_id, []))
+        all_signals.extend(hd_signals.get(cat_id, []))
+        all_signals.extend(journal_signals.get(cat_id, []))
+        
+        # Deduplicate by label
+        seen_labels = set()
+        unique_signals = []
+        for sig in all_signals:
+            if sig["label"] not in seen_labels:
+                seen_labels.add(sig["label"])
+                unique_signals.append(sig)
+        
+        # Calculate metrics
+        sources = list(set(s["source"] for s in unique_signals))
+        total_signals = len(unique_signals)
+        
+        # Calculate strength using timeline language
+        strength = calculate_timeline_signal_strength(total_signals, len(sources))
+        
+        # Get summary
+        summary = get_timeline_summary(cat, strength)
+        
+        result: TimelineCategoryResult = {
+            "category_id": cat_id,
+            "category_name": cat["name"],
+            "signal_strength": strength,
+            "total_signals": total_signals,
+            "matched_sources": sources,
+            "summary": summary
+        }
+        categories.append(result)
+    
+    # Check if there's any activity
+    has_activity = any(c["signal_strength"] != "quiet" for c in categories)
+    
+    return {
+        "bucket_name": bucket_name,
+        "bucket_label": bucket_label,
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "categories": categories,
+        "has_activity": has_activity
+    }
+
+
+def aggregate_pattern_timeline(
+    gene_keys_profile: Optional[dict] = None,
+    journal_entries: Optional[List[dict]] = None,
+    human_design_centers: Optional[List[dict]] = None,
+    human_design_gates: Optional[List[int]] = None
+) -> Dict[str, Any]:
+    """Build pattern timeline with time buckets.
+    
+    Returns data for:
+    - Last 7 days
+    - Last 30 days
+    
+    Gene Keys and Human Design signals are "always present" (not time-filtered)
+    since they're based on birth chart, not recent activity.
+    
+    Journal signals ARE time-filtered to show what was reflected on during each period.
+    
+    Args:
+        gene_keys_profile: Result from build_gene_keys_profile()
+        journal_entries: All journal entries (will be filtered by date)
+        human_design_centers: List of center interpretations
+        human_design_gates: List of active gate numbers
+    
+    Returns:
+        Timeline response with time buckets
+    """
+    now = datetime.utcnow()
+    
+    # Define time buckets
+    buckets_config = [
+        {
+            "name": "last_7_days",
+            "label": "Last 7 Days",
+            "start": now - timedelta(days=7),
+            "end": now
+        },
+        {
+            "name": "last_30_days",
+            "label": "Last 30 Days",
+            "start": now - timedelta(days=30),
+            "end": now
+        }
+    ]
+    
+    # Pre-compute static signals (always present)
+    gk_signals: Dict[str, List[MatchedSignal]] = {}
+    if gene_keys_profile:
+        gk_signals = aggregate_gene_keys_signals(gene_keys_profile)
+    
+    hd_signals: Dict[str, List[MatchedSignal]] = {}
+    if human_design_centers or human_design_gates:
+        hd_signals = aggregate_human_design_center_signals(
+            centers_profile=human_design_centers,
+            active_gates=human_design_gates
+        )
+    
+    # Build time buckets
+    buckets: List[TimeBucketResult] = []
+    
+    for bucket_config in buckets_config:
+        # Get journal signals for this period
+        journal_sigs: Dict[str, List[MatchedSignal]] = {}
+        if journal_entries:
+            journal_sigs = aggregate_journal_signals_for_period(
+                journal_entries=journal_entries,
+                start_date=bucket_config["start"],
+                end_date=bucket_config["end"]
+            )
+        
+        bucket = build_time_bucket(
+            bucket_name=bucket_config["name"],
+            bucket_label=bucket_config["label"],
+            start_date=bucket_config["start"],
+            end_date=bucket_config["end"],
+            gene_keys_signals=gk_signals,
+            hd_signals=hd_signals,
+            journal_signals=journal_sigs
+        )
+        buckets.append(bucket)
+    
+    # Calculate summary
+    any_activity = any(b["has_activity"] for b in buckets)
+    
+    return {
+        "buckets": buckets,
+        "has_any_activity": any_activity,
+        "generated_at": now.isoformat()
+    }
+
