@@ -922,18 +922,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       return mechanics.incarnation_cross_gates || '—';
     };
 
-    // Navigate to mechanic detail section
+    // Navigate to mechanic detail modal
     const handleMechanicTap = (mechanicType: string) => {
-      // Find the relevant section in data.sections and expand it
-      if (data?.sections) {
-        const section = data.sections.find((s: any) => 
-          s.title?.toLowerCase().includes(mechanicType.toLowerCase()) ||
-          s.heading?.toLowerCase().includes(mechanicType.toLowerCase())
-        );
-        if (section) {
-          setExpandedSection(expandedSection === mechanicType ? null : mechanicType);
-        }
-      }
+      // Open the mechanics detail modal
+      setActiveMechanicDetail(mechanicType);
     };
 
     return (
