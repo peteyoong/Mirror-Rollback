@@ -172,6 +172,28 @@ export default function JournalScreen() {
     loadKeystoneContext();
   }, [params.fromKeystone, params.view]);
 
+  // Handle prefill from Pattern Pulse or Pattern Graph
+  useEffect(() => {
+    if (params.prefillPrompt) {
+      // Set prefilled content with prompt
+      const prefillContent = `Reflection prompt:\n${params.prefillPrompt}\n\nYour reflection:\n`;
+      setNewEntry(prefillContent);
+      
+      // Store pattern metadata for the entry
+      setPatternMetadata({
+        journal_source: params.journalSource || undefined,
+        pattern_category: params.category || undefined,
+        pattern_tension_pair: params.tensionPair || undefined,
+        prompt_text: params.prefillPrompt
+      });
+      
+      // Focus the input
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 300);
+    }
+  }, [params.prefillPrompt, params.journalSource, params.category, params.tensionPair]);
+
   useEffect(() => {
     loadEntries();
   }, []);
