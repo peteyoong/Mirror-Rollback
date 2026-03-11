@@ -1662,8 +1662,36 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               <GeneKeysView userId={userId} />
             )}
 
-            {/* Ask Mirror Button - show on Today and Structure */}
-            {(activeTab === 'today' || activeTab === 'structure') && (
+            {/* DEEP DIVE TAB - Expandable accordion sections with detailed content */}
+            {activeTab === 'deep_dive' && (
+              <>
+                <Text style={[styles.title, { color: theme.text }]}>Deep Dive</Text>
+                <Text style={[styles.structureSubtitle, { color: theme.textTertiary }]}>
+                  Explore your mechanics
+                </Text>
+                
+                {/* Type Accordion */}
+                {renderDeepDiveAccordion('type', 'Type', 'Your Energy Architecture', TYPE_STORIES[data?.core_mechanics?.type || 'Generator'])}
+                
+                {/* Strategy Accordion */}
+                {renderDeepDiveAccordion('strategy', 'Strategy', 'Your Engagement Pattern', getStrategyContent(data?.core_mechanics?.type))}
+                
+                {/* Authority Accordion */}
+                {renderDeepDiveAccordion('authority', 'Authority', 'Your Clarity Process', AUTHORITY_STORIES[data?.core_mechanics?.authority || 'Emotional'])}
+                
+                {/* Profile Accordion */}
+                {renderDeepDiveAccordion('profile', 'Profile', 'Your Learning Style', PROFILE_STORIES[data?.core_mechanics?.profile || '1/3'])}
+                
+                {/* Incarnation Cross Accordion */}
+                {renderDeepDiveAccordion('cross', 'Incarnation Cross', 'Your Life Direction', CROSS_STORIES[getCrossAngle(data?.core_mechanics?.incarnation_cross || '')])}
+                
+                {/* Definition & Centers Accordion */}
+                {renderDeepDiveAccordion('centers', 'Definition & Centers', 'Your Energy Configuration', getCentersContent())}
+              </>
+            )}
+
+            {/* Ask Mirror Button - show on Today, Structure, and Deep Dive */}
+            {(activeTab === 'today' || activeTab === 'structure' || activeTab === 'deep_dive') && (
               <TouchableOpacity
                 style={[styles.askMirrorButton, { backgroundColor: theme.text }]}
                 onPress={onOpenChat}
