@@ -260,10 +260,23 @@ export const getChart = async (userId: string) => {
 };
 
 // Journal APIs
-export const createJournalEntry = async (userId: string, content: string) => {
+// Pattern metadata for journal entries
+export interface PatternJournalMetadata {
+  journal_source?: 'pattern_pulse' | 'pattern_graph';
+  pattern_category?: string;
+  pattern_tension_pair?: string;
+  prompt_text?: string;
+}
+
+export const createJournalEntry = async (
+  userId: string, 
+  content: string,
+  metadata?: PatternJournalMetadata
+) => {
   const response = await apiWithRetry.post('/journal', {
     user_id: userId,
     content,
+    ...metadata
   });
   return response.data;
 };
