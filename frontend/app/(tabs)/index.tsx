@@ -94,6 +94,9 @@ export default function MirrorScreen() {
     ambientLine: null,
   });
 
+  // Pattern Pulse state
+  const [patternPulse, setPatternPulse] = useState<PatternPulseData | null>(null);
+
   // Handle focus state changes from DailyFocusCard
   const handleFocusStateChange = useCallback((state: DailyFocusState) => {
     setFocusState(state);
