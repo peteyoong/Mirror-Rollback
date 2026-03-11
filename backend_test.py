@@ -1,19 +1,28 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Suite for Pattern Graph Transit Integration
-Testing the new planetary transit integration in the Pattern Graph API.
+Backend API Testing for Weekly Pattern Synthesis Endpoint
+Testing GET /api/weekly-patterns/{user_id}
 """
 
 import requests
 import json
-import sys
+import time
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, List
 
-# Backend URL from environment
-BACKEND_URL = "https://mirror-lens-app.preview.emergentagent.com/api"
+# Configuration
+BASE_URL = "https://mirror-lens-app.preview.emergentagent.com/api"
+TEST_USER_ID = "6971c81f2b40fd5ef501d375"
+TIMEOUT = 30
 
-class PatternGraphTransitTester:
+def log_test(test_name: str, status: str, details: str = ""):
+    """Log test results with timestamp"""
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"[{timestamp}] {test_name}: {status}")
+    if details:
+        print(f"    {details}")
+
+class WeeklyPatternSynthesisTester:
     """Test suite for Pattern Graph API with transit integration."""
     
     def __init__(self):
