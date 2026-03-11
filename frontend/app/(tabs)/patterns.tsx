@@ -134,9 +134,9 @@ export default function PatternGraphScreen() {
 
   const getStrengthColor = (strength: string) => {
     switch (strength) {
-      case 'active':
+      case 'recurring':
         return theme.accent;
-      case 'emerging':
+      case 'present':
         return theme.textSecondary;
       default:
         return theme.textTertiary;
@@ -145,10 +145,10 @@ export default function PatternGraphScreen() {
 
   const getStrengthLabel = (strength: string) => {
     switch (strength) {
-      case 'active':
-        return 'Active';
-      case 'emerging':
-        return 'Emerging';
+      case 'recurring':
+        return 'Recurring';
+      case 'present':
+        return 'Present';
       default:
         return 'Quiet';
     }
