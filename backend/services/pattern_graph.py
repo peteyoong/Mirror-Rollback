@@ -627,8 +627,9 @@ def aggregate_pattern_graph(
         # Limit signals per category
         unique_signals = unique_signals[:5]
         
-        # Calculate strength
-        strength = calculate_signal_strength(unique_signals)
+        # Calculate strength using weighted scoring
+        pattern_score = calculate_weighted_score(unique_signals)
+        strength = calculate_signal_strength_from_score(pattern_score)
         
         # Get matched sources
         sources = list(set(s["source"] for s in unique_signals))
@@ -640,22 +641,24 @@ def aggregate_pattern_graph(
             "category_id": cat_id,
             "category_name": cat["name"],
             "signal_strength": strength,
+            "pattern_score": pattern_score,
+            "signal_count": len(unique_signals),
             "matched_sources": sources,
             "matched_signals": unique_signals,
             "summary": summary
         }
         categories.append(result)
     
-    # Calculate overall stats
-    active_count = sum(1 for c in categories if c["signal_strength"] == "active")
-    emerging_count = sum(1 for c in categories if c["signal_strength"] == "emerging")
+    # Calculate overall stats (using new terminology)
+    recurring_count = sum(1 for c in categories if c["signal_strength"] == "recurring")
+    present_count = sum(1 for c in categories if c["signal_strength"] == "present")
     
     return {
         "categories": categories,
         "summary": {
-            "active_categories": active_count,
-            "emerging_categories": emerging_count,
-            "total_signals": sum(len(c["matched_signals"]) for c in categories)
+            "active_categories": recurring_count,      # Renamed internally to recurring
+            "emerging_categories": present_count,      # Renamed internally to present
+            "total_signals": sum(c["signal_count"] for c in categories)
         },
         "updated_at": datetime.utcnow().isoformat()
     }
