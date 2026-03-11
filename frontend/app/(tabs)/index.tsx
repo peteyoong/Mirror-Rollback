@@ -267,9 +267,58 @@ export default function MirrorScreen() {
       // Only load if we haven't loaded for this date yet
       if (lastLoadedDateRef.current !== currentDate) {
         loadKeystone();
+        loadPatternPulse();
       }
     }
   }, [user, hasTriedSessionRestore, isRestoringSession, currentDate]);
+
+  // Load pattern pulse from existing pattern graph data
+  const loadPatternPulse = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const response = await api.get(`/pattern-graph/${user.id}`);
+      if (response.data.success) {
+        const { pattern_tensions, categories } = response.data;
+        
+        // Priority 1: Use top tension if available
+        if (pattern_tensions && pattern_tensions.length > 0) {
+          const topTension = pattern_tensions[0];
+          setPatternPulse({
+            type: 'tension',
+            title: `${topTension.category_a} ↔ ${topTension.category_b}`,
+            body: topTension.summary,
+            prompt: topTension.reflection_prompt
+          });
+          return;
+        }
+        
+        // Priority 2: Use top theme by pattern_score (non-quiet)
+        if (categories && categories.length > 0) {
+          const activeCategories = categories
+            .filter((c: PatternCategory) => c.signal_strength !== 'quiet')
+            .sort((a: PatternCategory, b: PatternCategory) => b.pattern_score - a.pattern_score);
+          
+          if (activeCategories.length > 0) {
+            const topTheme = activeCategories[0];
+            setPatternPulse({
+              type: 'theme',
+              title: topTheme.category_name,
+              body: topTheme.synthesis || topTheme.summary || `A theme around ${topTheme.category_name.toLowerCase()} may be asking for attention.`,
+              prompt: 'What might want naming right now?'
+            });
+            return;
+          }
+        }
+        
+        // No meaningful data - don't show pulse
+        setPatternPulse(null);
+      }
+    } catch (err) {
+      console.log('[PatternPulse] Failed to load:', err);
+      setPatternPulse(null);
+    }
+  };
 
   const loadKeystone = async (forceRefresh = false) => {
     if (!user?.id) return;
