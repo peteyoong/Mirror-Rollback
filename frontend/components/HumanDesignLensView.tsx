@@ -1053,6 +1053,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 2,
   },
+  mechanicDrillDown: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 6,
+    textAlign: 'center',
+  },
   mechanicDivider: {
     width: 1,
     height: 40,
