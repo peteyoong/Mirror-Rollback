@@ -2856,4 +2856,74 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  // Deep Dive Tab Styles
+  deepDiveAccordion: {
+    marginBottom: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  deepDiveHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  deepDiveHeaderText: {
+    flex: 1,
+  },
+  deepDiveTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  deepDiveSubtitle: {
+    fontSize: 13,
+  },
+  deepDiveChevron: {
+    fontSize: 14,
+    marginLeft: 12,
+  },
+  deepDiveContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  deepDiveParagraph: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  deepDiveSectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  deepDiveBulletRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+    paddingRight: 8,
+  },
+  deepDiveBullet: {
+    fontSize: 14,
+    marginRight: 8,
+    marginTop: 2,
+  },
+  deepDiveBulletText: {
+    fontSize: 14,
+    lineHeight: 20,
+    flex: 1,
+  },
+  deepDiveReflection: {
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    marginTop: 12,
+  },
+  deepDiveReflectionText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
 });
