@@ -226,28 +226,41 @@ export default function DefinedGatesView({ userId }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* Section Header */}
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionHeaderTitle, { color: theme.textTertiary }]}>
-          DEFINED GATES
-        </Text>
-        {summary && (
-          <Text style={[styles.sectionHeaderMeta, { color: theme.textTertiary }]}>
-            {summary.total_gates} gates active
+      {/* Accordion Header - Always visible, collapsed by default */}
+      <TouchableOpacity
+        style={[styles.accordionHeader, { backgroundColor: theme.surface, borderColor: theme.border }]}
+        onPress={() => setIsAccordionExpanded(!isAccordionExpanded)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.accordionHeaderLeft}>
+          <Text style={[styles.accordionTitle, { color: theme.text }]}>
+            Defined Gates
           </Text>
-        )}
-      </View>
+          {summary && (
+            <Text style={[styles.accordionSubtitle, { color: theme.textTertiary }]}>
+              {summary.total_gates} gates active
+            </Text>
+          )}
+        </View>
+        <Text style={[styles.accordionChevron, { color: theme.textTertiary }]}>
+          {isAccordionExpanded ? '▲' : '▼'}
+        </Text>
+      </TouchableOpacity>
 
-      {/* Intro text */}
-      <Text style={[styles.introText, { color: theme.textSecondary }]}>
-        Gates are specific energies that live within your centers. Each gate carries themes you naturally express.
-        Your defined gates show consistent patterns in how you engage with life.
-      </Text>
+      {/* Accordion Content - Only visible when expanded */}
+      {isAccordionExpanded && (
+        <View style={[styles.accordionContent, { borderColor: theme.border }]}>
+          {/* Intro text */}
+          <Text style={[styles.introText, { color: theme.textSecondary }]}>
+            Gates are specific energies that live within your centers. Each gate carries themes you naturally express.
+          </Text>
 
-      {/* Gates list */}
-      <View style={styles.gatesList}>
-        {gates.map(gate => renderGateCard(gate))}
-      </View>
+          {/* Gates list */}
+          <View style={styles.gatesList}>
+            {gates.map(gate => renderGateCard(gate))}
+          </View>
+        </View>
+      )}
     </View>
   );
 }
