@@ -809,6 +809,16 @@ const styles = StyleSheet.create({
   flex1: {
     flex: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 15,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
