@@ -752,49 +752,11 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-    flex: 1,
-  },
-  categoryName: {
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  categoryMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  categoryStrength: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  categoryTrendSeparator: {
-    fontSize: 12,
-    marginHorizontal: 4,
-  },
-  categoryTrend: {
-    fontSize: 12,
-    fontWeight: '400',
-  },
+  
+  // Expand icon
   expandIcon: {
     fontSize: 14,
     marginLeft: 8,
-  },
-  
-  // Summary row
-  summaryRow: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  summaryText: {
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  
-  // Expanded content
-  expandedContent: {
-    padding: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
   },
   
   // Sources
