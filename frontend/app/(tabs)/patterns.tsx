@@ -243,6 +243,34 @@ export default function PatternsScreen() {
     });
   };
 
+  const toggleExpanded = (domainId: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedDomain(expandedDomain === domainId ? null : domainId);
+  };
+
+  const getSourceDisplayName = (source: string): string => {
+    const sourceNames: Record<string, string> = {
+      'gene_keys': 'Gene Keys',
+      'human_design': 'Human Design',
+      'journal': 'Journal',
+      'mirror_chat': 'Mirror Chat',
+      'enneagram': 'Personality Pattern',
+    };
+    return sourceNames[source] || source;
+  };
+
+  const formatSignalLabel = (signal: MatchedSignal): string => {
+    // For enneagram signals, use a simpler format since it's "invisible"
+    if (signal.source === 'enneagram') {
+      return signal.label;
+    }
+    // For other signals, show label and sphere if available
+    if (signal.sphere_name) {
+      return `${signal.label} · ${signal.sphere_name}`;
+    }
+    return signal.label;
+  };
+
   // ============================================================================
   // RENDER: DOMAIN CARD
   // ============================================================================
