@@ -697,6 +697,11 @@ def calculate_weighted_score(signals: List[MatchedSignal]) -> int:
 def calculate_signal_strength_from_score(score: int) -> str:
     """Calculate signal strength from weighted score.
     
+    DEPRECATED: This simple threshold approach is being replaced by
+    calculate_dynamic_pattern_status() which considers time-based analysis.
+    
+    Kept for backward compatibility with existing code paths.
+    
     Thresholds:
     - 0-2: Quiet
     - 3-6: Present
@@ -711,6 +716,206 @@ def calculate_signal_strength_from_score(score: int) -> str:
         return "present"
     else:
         return "recurring"
+
+
+# =============================================================================
+# DYNAMIC PATTERN STATUS SYSTEM
+# =============================================================================
+# New status calculation based on signal frequency, recency, and trend
+
+def calculate_dynamic_pattern_status(
+    signals: List[MatchedSignal],
+    signal_timestamps: Dict[str, datetime] = None,
+    recent_signal_count_7d: int = 0,
+    recent_signal_count_30d: int = 0,
+    trend: str = "steady"
+) -> str:
+    """Calculate dynamic pattern status based on signal analysis.
+    
+    Status Definitions:
+    - Emerging: Signals appeared recently but were previously absent
+    - Present: Signals exist but are not dominant (occasional activity)
+    - Recurring: Signals appear repeatedly within recent time window
+    - Stable: Consistent signals across longer time windows
+    - Quiet: Little or no recent signals
+    - Context: Primarily lens/transit signals, not user reflections
+    
+    Args:
+        signals: List of matched signals for this domain
+        signal_timestamps: Dict mapping signal labels to their timestamps
+        recent_signal_count_7d: Count of signals in last 7 days
+        recent_signal_count_30d: Count of signals in last 30 days
+        trend: Trend from calculate_pattern_trends ("rising", "steady", "fading")
+    
+    Returns:
+        Status string: "emerging", "present", "recurring", "stable", "quiet", or "context"
+    """
+    if not signals:
+        return "quiet"
+    
+    # Calculate weighted score
+    score = calculate_weighted_score(signals)
+    
+    # Analyze signal sources
+    user_signals = [s for s in signals if s["source"] in ["journal", "mirror_chat"]]
+    lens_signals = [s for s in signals if s["source"] in ["gene_keys", "human_design", "human_design_centers", "human_design_gates", "enneagram"]]
+    transit_signals = [s for s in signals if s["source"] == "astrology_transit"]
+    
+    user_signal_count = len(user_signals)
+    lens_signal_count = len(lens_signals)
+    transit_signal_count = len(transit_signals)
+    total_signals = len(signals)
+    
+    # Calculate user vs context ratio
+    user_ratio = user_signal_count / total_signals if total_signals > 0 else 0
+    
+    # Decision logic based on the PRD requirements
+    
+    # 1. CONTEXT: Primarily lens/transit signals, not user reflections
+    if user_ratio < 0.3 and lens_signal_count > 0:
+        # Domain activated by interpretive lenses rather than user activity
+        return "context"
+    
+    # 2. QUIET: Little or no signals
+    if score <= 1 or total_signals <= 1:
+        return "quiet"
+    
+    # 3. EMERGING: New signals recently, trend is rising
+    # Signals in last 7 days but few in last 30 days
+    if trend == "rising" or (recent_signal_count_7d > 0 and recent_signal_count_30d <= recent_signal_count_7d * 1.5):
+        if score >= 3 and score <= 6:
+            return "emerging"
+    
+    # 4. RECURRING: Signals appear repeatedly in recent window
+    # High recent activity (multiple user signals in last 7 days)
+    if recent_signal_count_7d >= 3 and user_signal_count >= 2:
+        return "recurring"
+    
+    # High score with multiple user signals
+    if score >= 7 and user_signal_count >= 2:
+        return "recurring"
+    
+    # 5. STABLE: Consistent signals over longer time
+    # Good 30-day presence with steady trend
+    if recent_signal_count_30d >= 5 and trend == "steady":
+        return "stable"
+    
+    # Lens context with steady presence
+    if lens_signal_count >= 2 and user_signal_count >= 1 and trend == "steady":
+        return "stable"
+    
+    # 6. PRESENT: Signals exist but not dominant
+    # Default for moderate activity
+    if score >= 3:
+        return "present"
+    
+    return "quiet"
+
+
+def analyze_signal_recency(
+    domain_id: str,
+    journal_entries: List[dict] = None,
+    mirror_insights: List[dict] = None,
+    days_back: int = 7
+) -> Dict[str, Any]:
+    """Analyze signal recency for a domain within a time window.
+    
+    Args:
+        domain_id: The pattern domain ID
+        journal_entries: List of journal entries with created_at timestamps
+        mirror_insights: List of mirror insights with created_at timestamps
+        days_back: Number of days to analyze
+    
+    Returns:
+        Dict with recency analysis:
+        - signal_count: Total signals in window
+        - latest_signal_age_days: Age of most recent signal in days
+        - has_recent_activity: Whether there's activity in last 3 days
+    """
+    from datetime import datetime, timezone, timedelta
+    
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=days_back)
+    recent_cutoff = now - timedelta(days=3)  # "Recent" = last 3 days
+    
+    signal_count = 0
+    latest_signal_date = None
+    
+    # Analyze journal entries
+    if journal_entries:
+        for entry in journal_entries:
+            entry_date = entry.get("created_at")
+            if entry_date:
+                if isinstance(entry_date, str):
+                    try:
+                        entry_date = datetime.fromisoformat(entry_date.replace('Z', '+00:00'))
+                    except:
+                        continue
+                
+                # Check if entry has themes matching this domain
+                themes = entry.get("themes", [])
+                # Map themes to domains (simplified - journal themes often relate to domains)
+                if entry_date >= cutoff:
+                    signal_count += 1
+                    if latest_signal_date is None or entry_date > latest_signal_date:
+                        latest_signal_date = entry_date
+    
+    # Analyze mirror insights
+    if mirror_insights:
+        for insight in mirror_insights:
+            insight_date = insight.get("created_at")
+            if insight_date:
+                if isinstance(insight_date, str):
+                    try:
+                        insight_date = datetime.fromisoformat(insight_date.replace('Z', '+00:00'))
+                    except:
+                        continue
+                
+                # Check if insight domains include this domain
+                domains = insight.get("domains", [])
+                if domain_id in domains and insight_date >= cutoff:
+                    signal_count += 1
+                    if latest_signal_date is None or insight_date > latest_signal_date:
+                        latest_signal_date = insight_date
+    
+    # Calculate latest signal age
+    latest_signal_age_days = None
+    has_recent_activity = False
+    if latest_signal_date:
+        latest_signal_age_days = (now - latest_signal_date).days
+        has_recent_activity = latest_signal_date >= recent_cutoff
+    
+    return {
+        "signal_count": signal_count,
+        "latest_signal_age_days": latest_signal_age_days,
+        "has_recent_activity": has_recent_activity
+    }
+
+
+def calculate_domain_signal_frequency(
+    domain_id: str,
+    journal_entries: List[dict] = None,
+    mirror_insights: List[dict] = None
+) -> Dict[str, int]:
+    """Calculate signal frequency across different time windows.
+    
+    Args:
+        domain_id: The pattern domain ID
+        journal_entries: List of journal entries
+        mirror_insights: List of mirror insights
+    
+    Returns:
+        Dict with signal counts:
+        - last_7_days: Signals in last 7 days
+        - last_30_days: Signals in last 30 days
+    """
+    analysis_7d = analyze_signal_recency(domain_id, journal_entries, mirror_insights, days_back=7)
+    analysis_30d = analyze_signal_recency(domain_id, journal_entries, mirror_insights, days_back=30)
+    
+    return {
+        "last_7_days": analysis_7d["signal_count"],
+        "last_30_days": analysis_30d["signal_count"]
+    }
 
 
 def calculate_signal_strength(signals: List[MatchedSignal]) -> str:
