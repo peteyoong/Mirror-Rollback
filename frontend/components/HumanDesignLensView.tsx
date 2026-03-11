@@ -1639,6 +1639,16 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* DEBUG BANNER */}
+      <View style={{ backgroundColor: '#4CAF50', padding: 6, alignItems: 'center' }}>
+        <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>
+          HumanDesignLensView • v{process.env.EXPO_PUBLIC_BUILD_VERSION || 'dev'}
+        </Text>
+        <Text style={{ color: '#fff', fontSize: 9 }}>
+          User: {userId?.substring(0, 8)}... | Tab: {activeTab}
+        </Text>
+      </View>
+      
       {renderTabs()}
 
       <ScrollView
