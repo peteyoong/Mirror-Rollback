@@ -82,6 +82,7 @@ interface TimelineResponse {
 export default function PatternGraphScreen() {
   const { theme } = useTheme();
   const { user } = useAppStore();
+  const router = useRouter();
   const [categories, setCategories] = useState<PatternCategory[]>([]);
   const [summary, setSummary] = useState<{ active_categories: number; emerging_categories: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
