@@ -60,6 +60,35 @@ const CentersView = forwardRef<CentersViewHandle, Props>(({ userId }, ref) => {
   // Parent accordion state - collapsed by default
   const [isAccordionExpanded, setIsAccordionExpanded] = useState(false);
 
+  // Expose openCenter method to parent via ref
+  useImperativeHandle(ref, () => ({
+    openCenter: (centerName: string) => {
+      // First, expand the main accordion
+      if (!isAccordionExpanded) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setIsAccordionExpanded(true);
+      }
+      
+      // Then expand the specific center - normalize the name for matching
+      const normalizedName = centerName.toLowerCase().replace(/\s+/g, '').replace('/', '');
+      const matchedCenter = centers.find(c => {
+        const cn = c.center_name.toLowerCase().replace(/\s+/g, '').replace('/', '');
+        const dn = c.display_name.toLowerCase().replace(/\s+/g, '').replace('/', '');
+        return cn.includes(normalizedName) || normalizedName.includes(cn) ||
+               dn.includes(normalizedName) || normalizedName.includes(dn) ||
+               // Handle special cases
+               (normalizedName === 'g' && (cn === 'gcenter' || cn === 'g center')) ||
+               (normalizedName === 'heart' && (cn === 'ego' || cn.includes('heart'))) ||
+               (normalizedName === 'solarplexus' && cn.includes('solar'));
+      });
+      
+      if (matchedCenter) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setExpandedCenter(matchedCenter.center_name);
+      }
+    }
+  }), [isAccordionExpanded, centers]);
+
   useEffect(() => {
     loadCenters();
   }, [userId]);
