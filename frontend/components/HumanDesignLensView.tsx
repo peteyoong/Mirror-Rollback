@@ -1018,6 +1018,115 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
+  // Render the Mechanic Detail Modal
+  const renderMechanicDetailModal = () => {
+    if (!activeMechanicDetail || !data?.core_mechanics) return null;
+    
+    const mechanics = data.core_mechanics;
+    let title = '';
+    let subtitle = '';
+    let story: MechanicStory | null = null;
+    
+    // Get the appropriate story content based on mechanic type
+    switch (activeMechanicDetail) {
+      case 'type':
+        const typeVal = mechanics.type || 'Generator';
+        title = `Type: ${typeVal}`;
+        subtitle = 'How you engage with life';
+        story = TYPE_STORIES[typeVal] || TYPE_STORIES['Generator'];
+        break;
+      case 'authority':
+        const authVal = mechanics.authority || 'Emotional';
+        title = `Authority: ${authVal}`;
+        subtitle = 'How you make decisions';
+        story = AUTHORITY_STORIES[authVal] || AUTHORITY_STORIES['Emotional'];
+        break;
+      case 'profile':
+        const profileVal = mechanics.profile || '1/3';
+        title = `Profile: ${profileVal}`;
+        subtitle = 'Your life theme and role';
+        story = PROFILE_STORIES[profileVal] || PROFILE_STORIES['1/3'];
+        break;
+      case 'incarnation':
+        const crossVal = mechanics.incarnation_cross || 'Right Angle Cross';
+        const angle = getCrossAngle(crossVal);
+        title = crossVal;
+        subtitle = 'Your life purpose theme';
+        story = CROSS_STORIES[angle] || CROSS_STORIES['Right Angle'];
+        break;
+    }
+    
+    if (!story) return null;
+    
+    const screenWidth = Dimensions.get('window').width;
+    const modalWidth = Math.min(screenWidth - 32, 500);
+    
+    return (
+      <Modal
+        visible={!!activeMechanicDetail}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActiveMechanicDetail(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: theme.surface, width: modalWidth }]}>
+            <ScrollView 
+              style={styles.modalScrollView}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.modalScrollContent}
+            >
+              {/* Header */}
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>{title}</Text>
+                <Text style={[styles.modalSubtitle, { color: theme.textTertiary }]}>{subtitle}</Text>
+              </View>
+              
+              {/* Explanation Section */}
+              <View style={styles.modalSection}>
+                <Text style={[styles.modalSectionTitle, { color: theme.accent }]}>UNDERSTANDING</Text>
+                {story.explanation.map((para, i) => (
+                  <Text key={i} style={[styles.modalParagraph, { color: theme.text }]}>{para}</Text>
+                ))}
+              </View>
+              
+              {/* Patterns Section */}
+              <View style={styles.modalSection}>
+                <Text style={[styles.modalSectionTitle, { color: theme.accent }]}>HOW THIS TENDS TO SHOW UP</Text>
+                {story.patterns.map((pattern, i) => (
+                  <View key={i} style={styles.modalBulletRow}>
+                    <Text style={[styles.modalBullet, { color: theme.textTertiary }]}>•</Text>
+                    <Text style={[styles.modalBulletText, { color: theme.text }]}>{pattern}</Text>
+                  </View>
+                ))}
+              </View>
+              
+              {/* Challenge Section */}
+              <View style={styles.modalSection}>
+                <Text style={[styles.modalSectionTitle, { color: theme.accent }]}>COMMON CHALLENGE</Text>
+                <Text style={[styles.modalParagraph, { color: theme.text }]}>{story.challenge}</Text>
+              </View>
+              
+              {/* Reflection Section */}
+              <View style={[styles.modalSection, styles.modalReflectionSection, { backgroundColor: theme.background, borderLeftColor: theme.accent }]}>
+                <Text style={[styles.modalSectionTitle, { color: theme.accent }]}>REFLECTION</Text>
+                <Text style={[styles.modalReflectionText, { color: theme.text }]}>{story.reflection}</Text>
+              </View>
+            </ScrollView>
+            
+            {/* Close Button */}
+            <TouchableOpacity
+              style={[styles.modalCloseButton, { backgroundColor: theme.background, borderTopColor: theme.border }]}
+              onPress={() => setActiveMechanicDetail(null)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.modalCloseText, { color: theme.text }]}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
   // Render a single Gene Key sphere position with MEANING-FIRST design
   const renderGeneKeySphere = (name: string, position: GeneKeyPosition) => {
     const chartLabel = position.source_chart === 'personality' ? 'Conscious' : 'Unconscious';
