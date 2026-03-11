@@ -110,6 +110,55 @@ function formatState(state: string): string {
   return labels[state] || state;
 }
 
+// Generate a reflective insight summary from memory update
+// Guidelines: 1-2 sentences, reflective tone, not prescriptive, no advice
+function generateInsightSummary(memoryUpdate: MemoryUpdate): string {
+  const { themes, recurring_tensions, inferred_state, confidence } = memoryUpdate;
+  
+  // Priority 1: If there's a recurring tension, focus on that
+  if (recurring_tensions.length > 0) {
+    const tension = recurring_tensions[0];
+    // Make it reflective, not diagnostic
+    if (tension.toLowerCase().includes('and')) {
+      return `A tension between ${tension.toLowerCase()} surfaced in this reflection.`;
+    }
+    return `Something around ${tension.toLowerCase()} appears to be present.`;
+  }
+  
+  // Priority 2: If there are strong themes
+  if (themes.length > 0) {
+    const theme = themes[0];
+    if (themes.length > 1) {
+      return `Themes of ${theme.toLowerCase()} and ${themes[1].toLowerCase()} emerged in this conversation.`;
+    }
+    return `A sense of ${theme.toLowerCase()} seems to be moving through.`;
+  }
+  
+  // Priority 3: Use inferred state
+  const stateDescriptions: Record<string, string> = {
+    'grounding': 'A need for grounding and stability surfaced.',
+    'stabilizing': 'A process of finding balance seems underway.',
+    'exploring': 'An openness to exploring new perspectives emerged.',
+    'integrating': 'A moment of integration and understanding appeared.',
+    'unclear': 'Something is shifting, though its shape is still forming.',
+  };
+  
+  return stateDescriptions[inferred_state] || 'A reflection moment was captured.';
+}
+
+// Map inferred state to pattern domains
+function mapStateToDomains(state: string, themes: string[]): string[] {
+  const domainMap: Record<string, string[]> = {
+    'grounding': ['energy_vitality', 'mind_meaning'],
+    'stabilizing': ['emotional_landscape', 'relationships_boundaries'],
+    'exploring': ['identity_direction', 'growth_transformation'],
+    'integrating': ['mind_meaning', 'growth_transformation'],
+    'unclear': ['emotional_landscape'],
+  };
+  
+  return domainMap[state] || ['emotional_landscape'];
+}
+
 export default function MirrorChat({
   userId,
   lens = null,
