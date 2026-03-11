@@ -522,11 +522,11 @@ export default function PatternGraphScreen() {
         </View>
       )}
 
-      {/* SECTION 2: What's Most Present */}
+      {/* SECTION 2: Current Themes */}
       {topCategories.length > 0 && (
         <View style={styles.mostPresentSection}>
           <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>
-            WHAT'S MOST PRESENT
+            CURRENT THEMES
           </Text>
           <Text style={[styles.sectionSubtext, { color: theme.textSecondary }]}>
             The themes that seem to be surfacing most clearly right now.
@@ -536,19 +536,84 @@ export default function PatternGraphScreen() {
         </View>
       )}
 
-      {/* SECTION 3: Explore the Signals */}
-      {categories.filter(c => c.signal_strength !== 'quiet').length > 0 && (
+      {/* SECTION 3: Signals Behind These Patterns (grouped by source) */}
+      {hasAnySignals && (
         <View style={styles.exploreSection}>
           <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>
-            EXPLORE THE SIGNALS
+            SIGNALS BEHIND THESE PATTERNS
           </Text>
           <Text style={[styles.sectionSubtext, { color: theme.textSecondary }]}>
-            The underlying data behind your patterns.
+            The underlying sources that may be contributing to your patterns.
           </Text>
           
-          <View style={styles.signalsCardList}>
-            {categories.map(category => renderSignalsCard(category))}
-          </View>
+          {/* Gene Keys Signals */}
+          {geneKeysSignals.length > 0 && (
+            <View style={[styles.sourceSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.sourceTitle, { color: theme.text }]}>
+                Gene Keys
+              </Text>
+              {geneKeysSignals.slice(0, 6).map((signal, idx) => {
+                const formatted = formatGeneKeySignal(signal);
+                return (
+                  <View key={idx} style={styles.sourceSignalRow}>
+                    <Text style={[styles.sourceSignalTitle, { color: theme.textSecondary }]}>
+                      {formatted.title}
+                    </Text>
+                    {formatted.subtitle && (
+                      <Text style={[styles.sourceSignalSubtitle, { color: theme.textTertiary }]}>
+                        {formatted.subtitle}
+                      </Text>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          )}
+          
+          {/* Human Design Signals */}
+          {humanDesignSignals.length > 0 && (
+            <View style={[styles.sourceSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.sourceTitle, { color: theme.text }]}>
+                Human Design
+              </Text>
+              {humanDesignSignals.slice(0, 6).map((signal, idx) => (
+                <View key={idx} style={styles.sourceSignalRow}>
+                  <Text style={[styles.sourceSignalTitle, { color: theme.textSecondary }]}>
+                    {signal.label}
+                  </Text>
+                  {signal.detail && (
+                    <Text style={[styles.sourceSignalSubtitle, { color: theme.textTertiary }]}>
+                      {signal.detail}
+                    </Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+          
+          {/* Journal / Reflection Signals */}
+          {journalSignals.length > 0 && (
+            <View style={[styles.sourceSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.sourceTitle, { color: theme.text }]}>
+                Journal & Reflections
+              </Text>
+              <Text style={[styles.sourceKeywords, { color: theme.textSecondary }]}>
+                Recent reflection keywords: {journalSignals.slice(0, 8).join(', ')}
+              </Text>
+            </View>
+          )}
+          
+          {/* Timeline Activity */}
+          {timelineRecurring.length > 0 && (
+            <View style={[styles.sourceSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.sourceTitle, { color: theme.text }]}>
+                Timeline Activity
+              </Text>
+              <Text style={[styles.sourceKeywords, { color: theme.textSecondary }]}>
+                {timelineRecurring.join(', ')} {timelineRecurring.length === 1 ? 'has been' : 'have been'} recurring across the last 30 days.
+              </Text>
+            </View>
+          )}
         </View>
       )}
 
