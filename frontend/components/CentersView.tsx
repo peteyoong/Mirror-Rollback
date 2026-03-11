@@ -245,8 +245,36 @@ export default function CentersView({ userId }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 32,
-    marginBottom: 24,
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  // Parent Accordion
+  accordionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  accordionHeaderLeft: {
+    flex: 1,
+  },
+  accordionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  accordionSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  accordionChevron: {
+    fontSize: 12,
+  },
+  accordionContent: {
+    marginTop: 8,
+    paddingTop: 12,
   },
   loadingContainer: {
     paddingVertical: 40,
@@ -265,7 +293,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   
-  // Section header
+  // Old styles (kept for reference)
   sectionHeader: {
     marginBottom: 12,
   },
