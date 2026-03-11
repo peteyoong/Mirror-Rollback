@@ -88,6 +88,9 @@ export default function PatternGraphScreen() {
   const [error, setError] = useState<string | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   
+  // Pattern tensions state
+  const [patternTensions, setPatternTensions] = useState<PatternTension[]>([]);
+  
   // Timeline state
   const [timeline, setTimeline] = useState<TimeBucket[]>([]);
   const [timelineLoading, setTimelineLoading] = useState(false);
@@ -112,6 +115,7 @@ export default function PatternGraphScreen() {
       if (response.data.success) {
         setCategories(response.data.categories);
         setSummary(response.data.summary || null);
+        setPatternTensions(response.data.pattern_tensions || []);
       } else {
         setError('Unable to load pattern graph.');
       }
