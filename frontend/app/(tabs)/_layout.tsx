@@ -82,19 +82,6 @@ export default function TabLayout() {
         }}
       />
       
-      {/* Hidden tabs - Weekly and Timeline moved into Patterns */}
-      <Tabs.Screen
-        name="weekly"
-        options={{
-          href: null, // Hidden - now a sub-view of Patterns
-        }}
-      />
-      <Tabs.Screen
-        name="timeline"
-        options={{
-          href: null, // Hidden - now a sub-view of Patterns
-        }}
-      />
     </Tabs>
     </SessionRestoreWrapper>
   );
