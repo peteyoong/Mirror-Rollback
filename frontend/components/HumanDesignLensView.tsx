@@ -1878,6 +1878,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               </Text>
             )}
             
+            {/* Build Version Label - Always visible */}
+            <Text style={[styles.buildVersion, { color: theme.textTertiary }]}>
+              v{process.env.EXPO_PUBLIC_BUILD_VERSION || 'dev'} • {process.env.EXPO_PUBLIC_BUILD_ID || 'local'}
+            </Text>
+            
             {/* Version Debug Panel - only shows when DEBUG_MIRROR is enabled */}
             {activeTab === 'structure' && renderVersionDebug()}
             
