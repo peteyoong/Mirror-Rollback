@@ -807,34 +807,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
-  
-  // Footer
-  footer: {
-    paddingTop: 24,
-    paddingHorizontal: 8,
-  },
-  footerText: {
-    fontSize: 12,
-    lineHeight: 18,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  
-  // Pattern History section (compact summary)
-  historySection: {
-    marginTop: 32,
-    marginBottom: 16,
-  },
-  historyPeriod: {
-    marginBottom: 16,
-  },
-  historyPeriodLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  historyPeriodThemes: {
-    fontSize: 13,
-    lineHeight: 19,
-  },
 });
