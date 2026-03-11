@@ -13,6 +13,10 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
 
+// ============================================================================
+// INTERFACES
+// ============================================================================
+
 interface MatchedSignal {
   source: string;
   label: string;
@@ -20,7 +24,7 @@ interface MatchedSignal {
   detail?: string;
 }
 
-interface PatternCategory {
+interface PatternDomain {
   category_id: string;
   category_name: string;
   signal_strength: 'quiet' | 'present' | 'recurring';
@@ -30,19 +34,7 @@ interface PatternCategory {
   matched_sources: string[];
   matched_signals: MatchedSignal[];
   summary: string;
-  synthesis?: string;  // LLM-generated reflective paragraph for recurring patterns
-}
-
-interface PatternGraphResponse {
-  success: boolean;
-  categories: PatternCategory[];
-  summary: {
-    active_categories: number;
-    emerging_categories: number;
-    total_signals: number;
-  };
-  pattern_tensions: PatternTension[];
-  updated_at: string;
+  synthesis?: string;
 }
 
 interface PatternTension {
@@ -53,58 +45,60 @@ interface PatternTension {
   reflection_prompt: string;
 }
 
-// Timeline types
-interface TimelineCategory {
-  category_id: string;
-  category_name: string;
-  signal_strength: 'quiet' | 'present' | 'recurring';
-  total_signals: number;
-  matched_sources: string[];
-  summary: string;
-}
-
-interface TimeBucket {
-  bucket_name: string;
-  bucket_label: string;
-  start_date: string;
-  end_date: string;
-  categories: TimelineCategory[];
-  has_activity: boolean;
-}
-
-interface TimelineResponse {
+interface PatternGraphResponse {
   success: boolean;
-  buckets: TimeBucket[];
-  has_any_activity: boolean;
-  generated_at: string;
+  categories: PatternDomain[];
+  summary: {
+    active_categories: number;
+    emerging_categories: number;
+    total_signals: number;
+  };
+  pattern_tensions: PatternTension[];
+  updated_at: string;
 }
 
-export default function PatternGraphScreen() {
+// ============================================================================
+// DOMAIN REFLECTION PROMPTS
+// ============================================================================
+
+const DOMAIN_REFLECTION_PROMPTS: Record<string, string> = {
+  'energy_vitality': 'What does your energy want you to notice right now?',
+  'emotional_landscape': 'What emotion might be asking for your attention?',
+  'identity_direction': 'What part of yourself is seeking expression?',
+  'mind_meaning': 'What is your mind trying to understand?',
+  'expression_action': 'What wants to be expressed or created through you?',
+  'relationships_boundaries': 'Where might your connections be asking for care?',
+  'growth_transformation': 'What change might be ready to happen?'
+};
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+export default function PatternsScreen() {
   const { theme } = useTheme();
   const { user } = useAppStore();
   const router = useRouter();
-  const [categories, setCategories] = useState<PatternCategory[]>([]);
-  const [summary, setSummary] = useState<{ active_categories: number; emerging_categories: number } | null>(null);
+  
+  // State
+  const [domains, setDomains] = useState<PatternDomain[]>([]);
+  const [tensions, setTensions] = useState<PatternTension[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
-  
-  // Pattern tensions state
-  const [patternTensions, setPatternTensions] = useState<PatternTension[]>([]);
-  
-  // Timeline state
-  const [timeline, setTimeline] = useState<TimeBucket[]>([]);
-  const [timelineLoading, setTimelineLoading] = useState(false);
+  const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
+
+  // ============================================================================
+  // DATA LOADING
+  // ============================================================================
 
   useEffect(() => {
     if (user?.id) {
-      loadPatternGraph();
-      loadTimeline();
+      loadPatternData();
     }
   }, [user?.id]);
 
-  const loadPatternGraph = async (refresh = false) => {
+  const loadPatternData = async (refresh = false) => {
     if (refresh) {
       setIsRefreshing(true);
     } else {
@@ -115,14 +109,14 @@ export default function PatternGraphScreen() {
     try {
       const response = await api.get<PatternGraphResponse>(`/pattern-graph/${user?.id}`);
       if (response.data.success) {
-        setCategories(response.data.categories);
-        setSummary(response.data.summary || null);
-        setPatternTensions(response.data.pattern_tensions || []);
+        setDomains(response.data.categories);
+        // Limit tensions to max 2
+        setTensions((response.data.pattern_tensions || []).slice(0, 2));
       } else {
-        setError('Unable to load pattern graph.');
+        setError('Unable to load pattern data.');
       }
     } catch (err: any) {
-      console.error('Pattern graph load error:', err);
+      console.error('Pattern data load error:', err);
       setError('Unable to load patterns right now.');
     } finally {
       setIsLoading(false);
@@ -130,768 +124,542 @@ export default function PatternGraphScreen() {
     }
   };
 
-  const loadTimeline = async () => {
-    setTimelineLoading(true);
-    try {
-      const response = await api.get<TimelineResponse>(`/pattern-graph/timeline/${user?.id}`);
-      if (response.data.success) {
-        setTimeline(response.data.buckets);
-      }
-    } catch (err: any) {
-      console.error('Timeline load error:', err);
-    } finally {
-      setTimelineLoading(false);
-    }
-  };
+  const onRefresh = () => loadPatternData(true);
 
-  const toggleCategory = (categoryId: string) => {
-    setExpandedCategory(expandedCategory === categoryId ? null : categoryId);
-  };
+  // ============================================================================
+  // HELPERS
+  // ============================================================================
 
   const getStrengthColor = (strength: string) => {
     switch (strength) {
-      case 'recurring':
-        return theme.accent;
-      case 'present':
-        return theme.textSecondary;
-      default:
-        return theme.textTertiary;
+      case 'recurring': return theme.accent;
+      case 'present': return theme.textSecondary;
+      default: return theme.textTertiary;
     }
   };
 
   const getStrengthLabel = (strength: string) => {
     switch (strength) {
-      case 'recurring':
-        return 'Recurring';
-      case 'present':
-        return 'Present';
-      default:
-        return 'Quiet';
+      case 'recurring': return 'Recurring';
+      case 'present': return 'Present';
+      default: return 'Quiet';
     }
   };
 
-  const formatSource = (source: string) => {
-    switch (source) {
-      case 'gene_keys':
-        return 'Gene Keys';
-      case 'human_design':
-        return 'Human Design';
-      case 'journal':
-        return 'Journal';
-      case 'chat':
-        return 'Mirror Chat';
-      default:
-        return source;
-    }
+  const getReflectionPrompt = (domainId: string) => {
+    return DOMAIN_REFLECTION_PROMPTS[domainId] || 'What might this pattern be showing you?';
   };
 
-  // Trend labels removed - no longer showing arrows
-  // Signal strength is now the primary indicator
-
-  // getTrendColor function removed - no longer needed
-
-  // Get top categories by pattern_score (non-quiet only)
-  const topCategories = [...categories]
-    .filter(c => c.signal_strength !== 'quiet')
-    .sort((a, b) => b.pattern_score - a.pattern_score)
-    .slice(0, 3);
-
-  // Format signal label for cleaner display
-  const formatSignalLabel = (signal: MatchedSignal) => {
-    // Clean up repetitive phrasing like "Weakness (weak)" -> "Weakness"
-    let label = signal.label;
-    
-    // If it's a Gene Key pattern like "Shadow → Gift", format nicely
-    if (signal.detail && signal.detail.includes('Gene Key')) {
-      const keyMatch = signal.detail.match(/Gene Key (\d+)/);
-      if (keyMatch) {
-        return `Gene Key ${keyMatch[1]} — ${label}`;
+  const handleJournalTrigger = (domainName: string, prompt: string) => {
+    router.push({
+      pathname: '/(tabs)/journal',
+      params: {
+        prefillPrompt: prompt,
+        journalSource: 'pattern_domain',
+        category: domainName,
       }
-    }
-    
-    return label;
+    });
   };
 
-  // Reflection prompts for categories (deterministic)
-  const getCategoryReflectionPrompt = (categoryId: string) => {
-    const prompts: Record<string, string> = {
-      'energy_vitality': 'What does your energy want you to notice right now?',
-      'emotional_landscape': 'What emotion might be asking for your attention?',
-      'identity_direction': 'What part of yourself is seeking expression?',
-      'mind_meaning': 'What is your mind trying to understand?',
-      'expression_action': 'What wants to be expressed or created through you?',
-      'relationships_boundaries': 'Where might your connections be asking for care?',
-      'growth_transformation': 'What change might be ready to happen?'
-    };
-    return prompts[categoryId] || 'What might this pattern be showing you?';
+  const toggleDomain = (domainId: string) => {
+    setExpandedDomain(expandedDomain === domainId ? null : domainId);
   };
 
-  // Extract and group all signals by source (for Section 3)
+  // Extract signals grouped by source for Section 4
   const getSignalsBySource = () => {
-    const geneKeysSignals: { keyNumber: string; label: string; sphere?: string }[] = [];
-    const humanDesignSignals: { label: string; detail?: string }[] = [];
-    const journalSignals: string[] = [];
+    const geneKeys: { keyNumber: string; label: string; sphere?: string }[] = [];
+    const humanDesign: { label: string; detail?: string }[] = [];
+    const journal: string[] = [];
     
-    // Track seen Gene Key numbers to show one entry per key
-    const seenGeneKeyNumbers = new Set<string>();
-    const seenHumanDesign = new Set<string>();
+    const seenGeneKeys = new Set<string>();
+    const seenHD = new Set<string>();
     
-    // Collect all signals from all categories
-    categories.forEach(cat => {
-      cat.matched_signals.forEach(signal => {
+    domains.forEach(domain => {
+      domain.matched_signals.forEach(signal => {
         if (signal.source === 'gene_keys') {
-          // Extract Gene Key number from detail
           const keyMatch = signal.detail?.match(/Gene Key (\d+)/);
-          if (keyMatch) {
-            const keyNumber = keyMatch[1];
-            // Only add one entry per Gene Key number
-            if (!seenGeneKeyNumbers.has(keyNumber)) {
-              seenGeneKeyNumbers.add(keyNumber);
-              // Prefer the "Shadow → Gift" format if available
-              const isTransformation = signal.label.includes('→');
-              geneKeysSignals.push({
-                keyNumber,
-                label: signal.label,
-                sphere: signal.sphere_name
-              });
-            } else {
-              // If we already have this key, prefer the transformation label
-              const existingIdx = geneKeysSignals.findIndex(s => s.keyNumber === keyNumber);
-              if (existingIdx >= 0 && signal.label.includes('→') && !geneKeysSignals[existingIdx].label.includes('→')) {
-                geneKeysSignals[existingIdx].label = signal.label;
-              }
-            }
+          if (keyMatch && !seenGeneKeys.has(keyMatch[1])) {
+            seenGeneKeys.add(keyMatch[1]);
+            geneKeys.push({
+              keyNumber: keyMatch[1],
+              label: signal.label,
+              sphere: signal.sphere_name
+            });
           }
         } else if (signal.source === 'human_design' || signal.source === 'human_design_centers' || signal.source === 'human_design_gates') {
-          if (!seenHumanDesign.has(signal.label)) {
-            seenHumanDesign.add(signal.label);
-            humanDesignSignals.push({
+          if (!seenHD.has(signal.label)) {
+            seenHD.add(signal.label);
+            humanDesign.push({
               label: signal.label,
               detail: signal.detail
             });
           }
         } else if (signal.source === 'journal' || signal.source === 'mirror_chat') {
-          if (!journalSignals.includes(signal.label)) {
-            journalSignals.push(signal.label);
+          if (!journal.includes(signal.label)) {
+            journal.push(signal.label);
           }
         }
       });
     });
     
-    return { geneKeysSignals, humanDesignSignals, journalSignals };
+    return { geneKeys, humanDesign, journal };
   };
 
-  // Format Gene Key signal for clean display (one entry per key)
-  const formatGeneKeySignal = (signal: { keyNumber: string; label: string; sphere?: string }) => {
-    return {
-      title: `Gene Key ${signal.keyNumber} — ${signal.label}`,
-      subtitle: signal.sphere ? `Sphere: ${signal.sphere}` : undefined
-    };
-  };
+  const { geneKeys, humanDesign, journal } = getSignalsBySource();
+  const hasSignals = geneKeys.length > 0 || humanDesign.length > 0 || journal.length > 0;
 
-  // Get timeline data organized by period for compact display
-  const getTimelineByPeriod = () => {
-    const result: { period: string; recurring: string[] }[] = [];
-    
-    timeline.forEach(bucket => {
-      const recurring = bucket.categories
-        .filter(cat => cat.signal_strength === 'recurring')
-        .map(cat => cat.category_name);
-      
-      if (recurring.length > 0) {
-        result.push({
-          period: bucket.bucket_label,
-          recurring
-        });
-      }
-    });
-    
-    return result;
-  };
+  // ============================================================================
+  // RENDER: DOMAIN CARD
+  // ============================================================================
 
-  // Get recurring themes from timeline for summary (legacy)
-  const getTimelineSummary = () => {
-    const recurringThemes: string[] = [];
-    timeline.forEach(bucket => {
-      bucket.categories.forEach(cat => {
-        if (cat.signal_strength === 'recurring' && !recurringThemes.includes(cat.category_name)) {
-          recurringThemes.push(cat.category_name);
-        }
-      });
-    });
-    return recurringThemes;
-  };
-
-  const { geneKeysSignals, humanDesignSignals, journalSignals } = getSignalsBySource();
-  const timelineRecurring = getTimelineSummary();
-  const timelineByPeriod = getTimelineByPeriod();
-  const hasAnySignals = geneKeysSignals.length > 0 || humanDesignSignals.length > 0 || journalSignals.length > 0;
-
-  // Handle journal navigation from pattern prompts
-  const handleJournalFromPattern = (prompt: string, category?: string, tension?: string) => {
-    router.push({
-      pathname: '/(tabs)/journal',
-      params: {
-        prefillPrompt: prompt,
-        journalSource: 'pattern_graph',
-        category: category || '',
-        tensionPair: tension || ''
-      }
-    });
-  };
-
-  // Render a "Current Themes" card (story-focused)
-  const renderMostPresentCard = (category: PatternCategory) => {
-    const strengthColor = getStrengthColor(category.signal_strength);
-    const prompt = getCategoryReflectionPrompt(category.category_id);
+  const renderDomainCard = (domain: PatternDomain) => {
+    const isExpanded = expandedDomain === domain.category_id;
+    const strengthColor = getStrengthColor(domain.signal_strength);
+    const prompt = getReflectionPrompt(domain.category_id);
+    const hasSignals = domain.matched_signals.length > 0;
 
     return (
       <View
-        key={category.category_id}
-        style={[styles.presentCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+        key={domain.category_id}
+        style={[styles.domainCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
       >
-        <View style={styles.presentCardHeader}>
-          <Text style={[styles.presentCardName, { color: theme.text }]}>
-            {category.category_name}
-          </Text>
-          <View style={styles.presentCardMeta}>
-            <Text style={[styles.presentCardStrength, { color: strengthColor }]}>
-              {getStrengthLabel(category.signal_strength)}
+        {/* Domain Header */}
+        <TouchableOpacity
+          style={styles.domainHeader}
+          onPress={() => toggleDomain(domain.category_id)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.domainHeaderContent}>
+            <Text style={[styles.domainName, { color: theme.text }]}>
+              {domain.category_name}
+            </Text>
+            <Text style={[styles.domainStrength, { color: strengthColor }]}>
+              {getStrengthLabel(domain.signal_strength)}
             </Text>
           </View>
-        </View>
-        
-        {/* Synthesis or summary - the story */}
-        <Text style={[styles.presentCardStory, { color: theme.textSecondary }]}>
-          {category.synthesis || category.summary}
+          {hasSignals && (
+            <Text style={[styles.expandIcon, { color: theme.textTertiary }]}>
+              {isExpanded ? '▾' : '▸'}
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Synthesis Text */}
+        <Text style={[styles.domainSynthesis, { color: theme.textSecondary }]}>
+          {domain.synthesis || domain.summary}
         </Text>
-        
-        {/* Reflection prompt with journal icon */}
-        <View style={styles.presentCardPromptRow}>
-          <Text style={[styles.presentCardPrompt, { color: theme.accent, flex: 1 }]}>
+
+        {/* Reflection Prompt + Journal Trigger */}
+        <View style={styles.domainPromptRow}>
+          <Text style={[styles.domainPrompt, { color: theme.accent, flex: 1 }]}>
             {prompt}
           </Text>
           <TouchableOpacity
-            onPress={() => handleJournalFromPattern(prompt, category.category_name)}
-            style={styles.journalIcon}
+            onPress={() => handleJournalTrigger(domain.category_name, prompt)}
+            style={styles.journalTrigger}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Text style={[styles.journalIconText, { color: theme.textTertiary }]}>✏️</Text>
+            <Text style={[styles.journalTriggerText, { color: theme.textTertiary }]}>
+              ✏️ Reflect
+            </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Expanded: Signals contributing to this pattern */}
+        {isExpanded && hasSignals && (
+          <View style={[styles.domainExpanded, { borderTopColor: theme.border }]}>
+            <Text style={[styles.expandedTitle, { color: theme.textTertiary }]}>
+              Signals contributing to this pattern
+            </Text>
+            {domain.matched_signals.slice(0, 6).map((signal, idx) => (
+              <View key={idx} style={styles.expandedSignalRow}>
+                <Text style={[styles.expandedSignalBullet, { color: theme.accent }]}>•</Text>
+                <Text style={[styles.expandedSignalText, { color: theme.textSecondary }]}>
+                  {signal.detail || signal.label}
+                  {signal.sphere_name && ` (${signal.sphere_name})`}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     );
   };
 
-  // Check if all categories are quiet
-  const allQuiet = categories.every(c => c.signal_strength === 'quiet');
+  // ============================================================================
+  // RENDER: INTERACTION CARD
+  // ============================================================================
+
+  const renderInteractionCard = (tension: PatternTension, index: number) => (
+    <View
+      key={index}
+      style={[styles.interactionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+    >
+      <Text style={[styles.interactionPair, { color: theme.text }]}>
+        {tension.category_a} ↔ {tension.category_b}
+      </Text>
+      <Text style={[styles.interactionSummary, { color: theme.textSecondary }]}>
+        {tension.summary}
+      </Text>
+      <Text style={[styles.interactionPrompt, { color: theme.accent }]}>
+        {tension.reflection_prompt}
+      </Text>
+    </View>
+  );
+
+  // ============================================================================
+  // RENDER: LOADING / ERROR STATES
+  // ============================================================================
 
   if (isLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color={theme.textTertiary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-            Loading patterns...
-          </Text>
-        </View>
+      <View style={[styles.container, styles.centerContent, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.accent} />
+        <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
+          Loading patterns...
+        </Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: theme.textSecondary }]}>{error}</Text>
-          <TouchableOpacity
-            style={[styles.retryButton, { borderColor: theme.border }]}
-            onPress={() => loadPatternGraph()}
-          >
-            <Text style={[styles.retryText, { color: theme.accent }]}>Try Again</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={[styles.container, styles.centerContent, { backgroundColor: theme.background }]}>
+        <Text style={[styles.errorText, { color: theme.textSecondary }]}>{error}</Text>
+        <TouchableOpacity
+          style={[styles.retryButton, { borderColor: theme.border }]}
+          onPress={() => loadPatternData()}
+        >
+          <Text style={[styles.retryText, { color: theme.accent }]}>Try Again</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
+  // ============================================================================
+  // MAIN RENDER
+  // ============================================================================
+
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: theme.background }]}
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContent}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
-          onRefresh={() => loadPatternGraph(true)}
-          tintColor={theme.textTertiary}
+          onRefresh={onRefresh}
+          tintColor={theme.accent}
         />
       }
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={[styles.pageTitle, { color: theme.text }]}>
+      {/* ================================================================== */}
+      {/* SECTION 1: INTRO */}
+      {/* ================================================================== */}
+      <View style={styles.introSection}>
+        <Text style={[styles.introTitle, { color: theme.text }]}>
           Pattern Graph
         </Text>
-        <Text style={[styles.pageSubtext, { color: theme.textTertiary }]}>
-          Patterns that may be surfacing across what you've been exploring.
+        <Text style={[styles.introDescription, { color: theme.textSecondary }]}>
+          Patterns can emerge across different parts of life.
+        </Text>
+        <Text style={[styles.introDescription, { color: theme.textSecondary }]}>
+          This page gathers signals from your reflections, Human Design, Gene Keys and other lenses, and organizes them into seven life domains.
+        </Text>
+        <Text style={[styles.introDescription, { color: theme.textTertiary, fontStyle: 'italic' }]}>
+          Some areas may feel quiet. Others may be more active.
         </Text>
       </View>
 
-      {/* Subtle theme indicator (replaces dashboard stats) */}
-      {!allQuiet && (
-        <Text style={[styles.themesIndicator, { color: theme.textTertiary }]}>
-          Some themes may be more active than others right now.
-        </Text>
-      )}
+      {/* ================================================================== */}
+      {/* SECTION 2: PATTERN DOMAINS (Primary) */}
+      {/* ================================================================== */}
+      <View style={styles.domainsSection}>
+        {domains.map(domain => renderDomainCard(domain))}
+      </View>
 
-      {/* SECTION 1: Pattern Tensions */}
-      {patternTensions.length > 0 && (
-        <View style={styles.tensionsSection}>
+      {/* ================================================================== */}
+      {/* SECTION 3: WHERE PATTERNS INTERACT */}
+      {/* ================================================================== */}
+      {tensions.length > 0 && (
+        <View style={styles.interactionsSection}>
           <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>
-            PATTERN TENSIONS
+            WHERE PATTERNS INTERACT
           </Text>
-          <Text style={[styles.sectionSubtext, { color: theme.textSecondary }]}>
-            Sometimes two themes may be active at once, creating friction, growth, or choice.
-          </Text>
-          
-          {patternTensions.map((tension, index) => (
-            <View 
-              key={index}
-              style={[styles.tensionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-            >
-              <Text style={[styles.tensionCategories, { color: theme.text }]}>
-                {tension.category_a} ↔ {tension.category_b}
-              </Text>
-              <Text style={[styles.tensionSummary, { color: theme.textSecondary }]}>
-                {tension.summary}
-              </Text>
-              <Text style={[styles.tensionPrompt, { color: theme.accent }]}>
-                {tension.reflection_prompt}
-              </Text>
-            </View>
-          ))}
+          {tensions.map((tension, idx) => renderInteractionCard(tension, idx))}
         </View>
       )}
 
-      {/* SECTION 2: Current Themes */}
-      {topCategories.length > 0 && (
-        <View style={styles.mostPresentSection}>
-          <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>
-            CURRENT THEMES
-          </Text>
-          <Text style={[styles.sectionSubtext, { color: theme.textSecondary }]}>
-            The themes that seem to be surfacing most clearly right now.
-          </Text>
-          
-          {topCategories.map(category => renderMostPresentCard(category))}
-        </View>
-      )}
-
-      {/* SECTION 3: Signals Behind These Patterns (grouped by source) */}
-      {hasAnySignals && (
-        <View style={styles.exploreSection}>
+      {/* ================================================================== */}
+      {/* SECTION 4: SIGNALS BEHIND THESE PATTERNS */}
+      {/* ================================================================== */}
+      {hasSignals && (
+        <View style={styles.signalsSection}>
           <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>
             SIGNALS BEHIND THESE PATTERNS
           </Text>
-          <Text style={[styles.sectionSubtext, { color: theme.textSecondary }]}>
-            The underlying sources that may be contributing to your patterns.
+          <Text style={[styles.signalsDescription, { color: theme.textSecondary }]}>
+            These signals may be contributing to the patterns appearing above.
           </Text>
-          
-          {/* Gene Keys Signals */}
-          {geneKeysSignals.length > 0 && (
-            <View style={[styles.sourceSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.sourceTitle, { color: theme.text }]}>
+
+          {/* Gene Keys */}
+          {geneKeys.length > 0 && (
+            <View style={[styles.signalGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.signalGroupTitle, { color: theme.text }]}>
                 Gene Keys
               </Text>
-              {geneKeysSignals.slice(0, 6).map((signal, idx) => {
-                const formatted = formatGeneKeySignal(signal);
-                return (
-                  <View key={idx} style={styles.sourceSignalRow}>
-                    <Text style={[styles.sourceSignalTitle, { color: theme.textSecondary }]}>
-                      {formatted.title}
-                    </Text>
-                    {formatted.subtitle && (
-                      <Text style={[styles.sourceSignalSubtitle, { color: theme.textTertiary }]}>
-                        {formatted.subtitle}
-                      </Text>
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-          )}
-          
-          {/* Human Design Signals */}
-          {humanDesignSignals.length > 0 && (
-            <View style={[styles.sourceSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.sourceTitle, { color: theme.text }]}>
-                Human Design
-              </Text>
-              {humanDesignSignals.slice(0, 6).map((signal, idx) => (
-                <View key={idx} style={styles.sourceSignalRow}>
-                  <Text style={[styles.sourceSignalTitle, { color: theme.textSecondary }]}>
-                    {signal.label}
+              {geneKeys.slice(0, 6).map((gk, idx) => (
+                <View key={idx} style={styles.signalItem}>
+                  <Text style={[styles.signalItemTitle, { color: theme.textSecondary }]}>
+                    Gene Key {gk.keyNumber} — {gk.label}
                   </Text>
-                  {signal.detail && (
-                    <Text style={[styles.sourceSignalSubtitle, { color: theme.textTertiary }]}>
-                      {signal.detail}
+                  {gk.sphere && (
+                    <Text style={[styles.signalItemSubtitle, { color: theme.textTertiary }]}>
+                      Sphere: {gk.sphere}
                     </Text>
                   )}
                 </View>
               ))}
             </View>
           )}
-          
-          {/* Journal / Reflection Signals */}
-          {journalSignals.length > 0 && (
-            <View style={[styles.sourceSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.sourceTitle, { color: theme.text }]}>
+
+          {/* Human Design */}
+          {humanDesign.length > 0 && (
+            <View style={[styles.signalGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.signalGroupTitle, { color: theme.text }]}>
+                Human Design
+              </Text>
+              {humanDesign.slice(0, 6).map((hd, idx) => (
+                <View key={idx} style={styles.signalItem}>
+                  <Text style={[styles.signalItemTitle, { color: theme.textSecondary }]}>
+                    {hd.label}
+                  </Text>
+                  {hd.detail && (
+                    <Text style={[styles.signalItemSubtitle, { color: theme.textTertiary }]}>
+                      {hd.detail}
+                    </Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Journal & Reflections */}
+          {journal.length > 0 && (
+            <View style={[styles.signalGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.signalGroupTitle, { color: theme.text }]}>
                 Journal & Reflections
               </Text>
-              <Text style={[styles.sourceKeywords, { color: theme.textSecondary }]}>
-                Recent reflection keywords: {journalSignals.slice(0, 8).join(', ')}
+              <Text style={[styles.signalKeywords, { color: theme.textSecondary }]}>
+                Recent keywords: {journal.slice(0, 8).join(', ')}
               </Text>
             </View>
           )}
-        </View>
-      )}
-
-      {/* Empty state message */}
-      {allQuiet && (
-        <View style={styles.emptyState}>
-          <Text style={[styles.emptyStateText, { color: theme.textSecondary }]}>
-            Patterns may become clearer as you reflect, journal, and explore your lenses.
-          </Text>
-        </View>
-      )}
-
-      {/* Bottom Reflection Entry */}
-      {!allQuiet && (
-        <View style={[styles.bottomReflection, { borderTopColor: theme.border }]}>
-          <Text style={[styles.bottomReflectionTitle, { color: theme.textTertiary }]}>
-            REFLECTION
-          </Text>
-          <Text style={[styles.bottomReflectionSubtext, { color: theme.textSecondary }]}>
-            If something here resonated, you can capture it.
-          </Text>
-          <TouchableOpacity
-            style={[styles.bottomReflectionButton, { borderColor: theme.border }]}
-            onPress={() => router.push('/(tabs)/journal')}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.bottomReflectionButtonText, { color: theme.accent }]}>
-              Start a reflection
-            </Text>
-          </TouchableOpacity>
         </View>
       )}
     </ScrollView>
   );
 }
 
+// ============================================================================
+// STYLES
+// ============================================================================
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  contentContainer: {
-    padding: 16,
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 40,
   },
-  loadingContainer: {
-    flex: 1,
+  centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
   },
+  
+  // Loading & Error
   loadingText: {
+    marginTop: 16,
     fontSize: 14,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    gap: 16,
   },
   errorText: {
     fontSize: 14,
     textAlign: 'center',
+    marginBottom: 16,
   },
   retryButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   retryText: {
     fontSize: 14,
     fontWeight: '500',
   },
-  
-  // Header
-  header: {
-    marginBottom: 20,
+
+  // Section 1: Intro
+  introSection: {
+    marginBottom: 28,
   },
-  pageTitle: {
-    fontSize: 24,
+  introTitle: {
+    fontSize: 26,
     fontWeight: '600',
-    marginBottom: 8,
-  },
-  pageSubtext: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  
-  // Themes indicator (replaces stats row)
-  themesIndicator: {
-    fontSize: 13,
-    lineHeight: 19,
-    marginBottom: 24,
-    fontStyle: 'italic',
-  },
-  
-  // Section styles (shared)
-  sectionTitle: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 1.5,
-    marginBottom: 6,
-  },
-  sectionSubtext: {
-    fontSize: 13,
-    lineHeight: 19,
-    marginBottom: 16,
-  },
-  
-  // Pattern Tensions section
-  tensionsSection: {
-    marginBottom: 32,
-  },
-  tensionCard: {
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 16,
     marginBottom: 12,
   },
-  tensionCategories: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 10,
-  },
-  tensionSummary: {
+  introDescription: {
     fontSize: 14,
     lineHeight: 21,
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  tensionPrompt: {
-    fontSize: 13,
-    lineHeight: 19,
-    fontStyle: 'italic',
-  },
-  
-  // What's Most Present section
-  mostPresentSection: {
+
+  // Section 2: Pattern Domains
+  domainsSection: {
     marginBottom: 32,
   },
-  presentCard: {
+  domainCard: {
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     padding: 16,
     marginBottom: 12,
   },
-  presentCardHeader: {
+  domainHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
-  presentCardName: {
+  domainHeaderContent: {
+    flex: 1,
+  },
+  domainName: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
   },
-  presentCardMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  presentCardStrength: {
+  domainStrength: {
     fontSize: 12,
     fontWeight: '500',
   },
-  presentCardTrendSep: {
-    fontSize: 12,
-    marginHorizontal: 6,
-  },
-  presentCardTrend: {
-    fontSize: 12,
-  },
-  presentCardStory: {
+  expandIcon: {
     fontSize: 14,
-    lineHeight: 22,
+    marginLeft: 8,
+    marginTop: 2,
+  },
+  domainSynthesis: {
+    fontSize: 14,
+    lineHeight: 21,
     marginBottom: 12,
   },
-  presentCardPromptRow: {
+  domainPromptRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
-  presentCardPrompt: {
+  domainPrompt: {
     fontSize: 13,
     lineHeight: 19,
     fontStyle: 'italic',
   },
-  journalIcon: {
-    paddingLeft: 8,
+  journalTrigger: {
+    paddingLeft: 12,
     paddingTop: 2,
   },
-  journalIconText: {
-    fontSize: 14,
+  journalTriggerText: {
+    fontSize: 12,
   },
   
-  // Explore the Signals section (now source-grouped)
-  exploreSection: {
-    marginBottom: 24,
+  // Domain Expanded
+  domainExpanded: {
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  sourceSection: {
+  expandedTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  expandedSignalRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  expandedSignalBullet: {
+    fontSize: 12,
+    marginRight: 8,
+  },
+  expandedSignalText: {
+    fontSize: 13,
+    lineHeight: 18,
+    flex: 1,
+  },
+
+  // Section 3: Interactions
+  interactionsSection: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.5,
+    marginBottom: 14,
+  },
+  interactionCard: {
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     padding: 16,
     marginBottom: 12,
   },
-  sourceTitle: {
+  interactionPair: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
+  interactionSummary: {
+    fontSize: 14,
+    lineHeight: 21,
+    marginBottom: 10,
+  },
+  interactionPrompt: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
+  },
+
+  // Section 4: Signals
+  signalsSection: {
+    marginBottom: 16,
+  },
+  signalsDescription: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 16,
+  },
+  signalGroup: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 12,
+  },
+  signalGroupTitle: {
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 12,
   },
-  sourceSignalRow: {
+  signalItem: {
     marginBottom: 10,
   },
-  sourceSignalTitle: {
+  signalItemTitle: {
     fontSize: 13,
     lineHeight: 18,
   },
-  sourceSignalSubtitle: {
+  signalItemSubtitle: {
     fontSize: 12,
     marginTop: 2,
   },
-  sourceKeywords: {
+  signalKeywords: {
     fontSize: 13,
     lineHeight: 19,
-  },
-  
-  // Expand icon
-  expandIcon: {
-    fontSize: 14,
-    marginLeft: 8,
-  },
-  
-  // Sources
-  sourcesRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginBottom: 16,
-    gap: 8,
-  },
-  sourcesLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-  sourceTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  sourceTagText: {
-    fontSize: 11,
-  },
-  
-  // Synthesis section
-  synthesisSection: {
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  synthesisLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginBottom: 8,
-  },
-  synthesisText: {
-    fontSize: 14,
-    lineHeight: 22,
-    fontStyle: 'italic',
-  },
-  
-  // Signals list
-  signalsList: {
-    gap: 10,
-  },
-  signalsLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginBottom: 8,
-  },
-  signalRow: {
-    flexDirection: 'row',
-  },
-  signalBullet: {
-    fontSize: 14,
-    marginRight: 8,
-    marginTop: 1,
-  },
-  signalContent: {
-    flex: 1,
-  },
-  signalLabel: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  signalDetail: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  
-  // Empty state
-  emptyState: {
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-  },
-  emptyStateText: {
-    fontSize: 14,
-    lineHeight: 21,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  
-  // Bottom reflection entry
-  bottomReflection: {
-    marginTop: 32,
-    paddingTop: 24,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-  },
-  bottomReflectionTitle: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 1.5,
-    marginBottom: 8,
-  },
-  bottomReflectionSubtext: {
-    fontSize: 13,
-    lineHeight: 19,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  bottomReflectionButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  bottomReflectionButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
 });
