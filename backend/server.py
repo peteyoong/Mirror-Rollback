@@ -287,6 +287,11 @@ class JournalEntry(BaseModel):
 class JournalEntryCreate(BaseModel):
     user_id: str
     content: str
+    # Pattern metadata (optional - for entries triggered from patterns)
+    journal_source: Optional[str] = None  # "pattern_pulse", "pattern_graph", or None
+    pattern_category: Optional[str] = None
+    pattern_tension_pair: Optional[str] = None
+    prompt_text: Optional[str] = None
 
 
 class JournalEntryResponse(BaseModel):
