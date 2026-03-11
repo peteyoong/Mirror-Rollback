@@ -211,6 +211,18 @@ export default function PatternGraphScreen() {
         {/* Expanded content */}
         {isExpanded && hasSignals && (
           <View style={[styles.expandedContent, { borderTopColor: theme.border }]}>
+            {/* Pattern Reflection - LLM synthesis for recurring patterns */}
+            {category.synthesis && (
+              <View style={[styles.synthesisSection, { borderBottomColor: theme.border }]}>
+                <Text style={[styles.synthesisLabel, { color: theme.textTertiary }]}>
+                  PATTERN REFLECTION
+                </Text>
+                <Text style={[styles.synthesisText, { color: theme.textSecondary }]}>
+                  {category.synthesis}
+                </Text>
+              </View>
+            )}
+
             {/* Matched sources */}
             {category.matched_sources.length > 0 && (
               <View style={styles.sourcesRow}>
@@ -592,6 +604,24 @@ const styles = StyleSheet.create({
   },
   sourceTagText: {
     fontSize: 11,
+  },
+  
+  // Synthesis section
+  synthesisSection: {
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  synthesisLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  synthesisText: {
+    fontSize: 14,
+    lineHeight: 22,
+    fontStyle: 'italic',
   },
   
   // Signals list
