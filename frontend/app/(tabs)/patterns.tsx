@@ -144,6 +144,7 @@ export default function PatternsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
 
   // ============================================================================
   // DATA LOADING
