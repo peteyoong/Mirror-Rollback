@@ -878,6 +878,14 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             Meaning
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
+          onPress={() => setActiveTab('deep_dive')}
+        >
+          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'deep_dive' && { color: theme.text }]}>
+            Deep Dive
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
