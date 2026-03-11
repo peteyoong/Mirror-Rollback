@@ -8421,6 +8421,31 @@ async def get_pattern_graph(user_id: str):
             human_design_gates=human_design_gates
         )
         
+        # Generate synthesis for recurring/active categories
+        from services.pattern_synthesis import generate_pattern_synthesis
+        
+        categories_with_synthesis = []
+        for cat in pattern_graph.get("categories", []):
+            cat_copy = dict(cat)
+            # Only generate synthesis for active (recurring) categories
+            if cat.get("signal_strength") == "active":
+                try:
+                    synthesis = await generate_pattern_synthesis(
+                        category_id=cat.get("category_id", ""),
+                        category_name=cat.get("category_name", ""),
+                        matched_signals=cat.get("matched_signals", []),
+                        matched_sources=cat.get("matched_sources", [])
+                    )
+                    cat_copy["synthesis"] = synthesis
+                except Exception as synth_err:
+                    logger.debug(f"[PatternGraph] Synthesis error for {cat.get('category_name')}: {synth_err}")
+                    cat_copy["synthesis"] = None
+            else:
+                cat_copy["synthesis"] = None
+            categories_with_synthesis.append(cat_copy)
+        
+        pattern_graph["categories"] = categories_with_synthesis
+        
         return {
             "success": True,
             **pattern_graph
