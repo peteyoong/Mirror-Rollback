@@ -2499,4 +2499,88 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontStyle: 'italic',
   },
+  // Modal styles for Mechanic Details
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContent: {
+    borderRadius: 16,
+    maxHeight: '85%',
+    overflow: 'hidden',
+  },
+  modalScrollView: {
+    maxHeight: '100%',
+  },
+  modalScrollContent: {
+    padding: 20,
+    paddingBottom: 8,
+  },
+  modalHeader: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  modalSection: {
+    marginBottom: 20,
+  },
+  modalSectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  modalParagraph: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 10,
+  },
+  modalBulletRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    paddingRight: 8,
+  },
+  modalBullet: {
+    fontSize: 15,
+    marginRight: 8,
+    marginTop: 2,
+  },
+  modalBulletText: {
+    fontSize: 14,
+    lineHeight: 20,
+    flex: 1,
+  },
+  modalReflectionSection: {
+    padding: 14,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    marginTop: 4,
+  },
+  modalReflectionText: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontStyle: 'italic',
+  },
+  modalCloseButton: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  modalCloseText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
