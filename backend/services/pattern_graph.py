@@ -610,6 +610,14 @@ def aggregate_pattern_graph(
         for cat_id, signals in hd_signals.items():
             all_signals[cat_id].extend(signals)
     
+    # Calculate trends for all categories
+    trends = calculate_pattern_trends(
+        gene_keys_profile=gene_keys_profile,
+        journal_entries=journal_entries,
+        human_design_centers=human_design_centers,
+        human_design_gates=human_design_gates
+    )
+    
     # Build category results
     categories: List[CategoryResult] = []
     
