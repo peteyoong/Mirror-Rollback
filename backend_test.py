@@ -395,6 +395,23 @@ class PatternGraphTester:
         # Test 6: API response structure
         self.test_api_response_structure(hd_test_data)
         
+        # Pattern Timeline API Tests
+        print("\n" + "=" * 80)
+        print("PATTERN TIMELINE API TESTING")
+        print("=" * 80)
+        
+        # Test 7: Pattern Timeline Basic Endpoint
+        self.test_pattern_timeline_basic_endpoint()
+        
+        # Test 8: Pattern Timeline Time Bucket Structure
+        self.test_pattern_timeline_time_bucket_structure()
+        
+        # Test 9: Pattern Timeline Category Structure
+        self.test_pattern_timeline_category_structure()
+        
+        # Test 10: Pattern Timeline Signal Strength Language
+        self.test_pattern_timeline_signal_strength_language()
+        
         return self.print_summary()
     
     def test_pattern_timeline_basic_endpoint(self) -> bool:
