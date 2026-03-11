@@ -1024,7 +1024,14 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   // Render the Mechanic Detail Modal
   const renderMechanicDetailModal = () => {
-    if (!activeMechanicDetail || !data?.core_mechanics) return null;
+    console.log('[HumanDesignLensView] renderMechanicDetailModal called, activeMechanicDetail:', activeMechanicDetail);
+    
+    if (!activeMechanicDetail || !data?.core_mechanics) {
+      console.log('[HumanDesignLensView] Modal not rendered - activeMechanicDetail:', activeMechanicDetail, 'data?.core_mechanics:', !!data?.core_mechanics);
+      return null;
+    }
+    
+    console.log('[HumanDesignLensView] Modal WILL render for:', activeMechanicDetail);
     
     const mechanics = data.core_mechanics;
     let title = '';
