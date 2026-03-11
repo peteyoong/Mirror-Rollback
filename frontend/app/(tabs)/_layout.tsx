@@ -37,24 +37,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="life"
-        options={{
-          title: 'Life',
-          tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 22, color }}>❧</Text>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="journal"
-        options={{
-          title: 'Journal',
-          tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 22, color }}>☰</Text>
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="lenses"
         options={{
           title: 'Lenses',
@@ -69,6 +51,34 @@ export default function TabLayout() {
           title: 'Patterns',
           tabBarIcon: ({ color }) => (
             <Text style={{ fontSize: 22, color }}>⬡</Text>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="weekly"
+        options={{
+          title: 'Weekly',
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 22, color }}>▤</Text>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="journal"
+        options={{
+          title: 'Journal',
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 22, color }}>☰</Text>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="life"
+        options={{
+          href: null, // Hide this tab for now
+          title: 'Life',
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 22, color }}>❧</Text>
           ),
         }}
       />
