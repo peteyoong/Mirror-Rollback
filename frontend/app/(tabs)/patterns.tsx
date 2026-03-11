@@ -40,7 +40,16 @@ interface PatternGraphResponse {
     emerging_categories: number;
     total_signals: number;
   };
+  pattern_tensions: PatternTension[];
   updated_at: string;
+}
+
+interface PatternTension {
+  category_a: string;
+  category_b: string;
+  combined_score: number;
+  summary: string;
+  reflection_prompt: string;
 }
 
 // Timeline types
