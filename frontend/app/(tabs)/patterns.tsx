@@ -183,16 +183,8 @@ export default function PatternGraphScreen() {
     }
   };
 
-  const getTrendLabel = (trend: string) => {
-    switch (trend) {
-      case 'rising':
-        return '↑ Rising';
-      case 'fading':
-        return '↓ Fading';
-      default:
-        return '→ Steady';
-    }
-  };
+  // Trend labels removed - no longer showing arrows
+  // Signal strength is now the primary indicator
 
   const getTrendColor = (trend: string) => {
     switch (trend) {
