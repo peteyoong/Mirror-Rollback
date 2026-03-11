@@ -27,6 +27,7 @@ export default function TabLayout() {
         headerShadowVisible: false,
       }}
     >
+      {/* 1. Mirror - Default landing screen */}
       <Tabs.Screen
         name="index"
         options={{
@@ -36,42 +37,19 @@ export default function TabLayout() {
           ),
         }}
       />
+      
+      {/* 2. Life - Contextual translation of patterns */}
       <Tabs.Screen
-        name="lenses"
+        name="life"
         options={{
-          title: 'Lenses',
+          title: 'Life',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 22, color }}>◉</Text>
+            <Text style={{ fontSize: 22, color }}>❧</Text>
           ),
         }}
       />
-      <Tabs.Screen
-        name="patterns"
-        options={{
-          title: 'Patterns',
-          tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 22, color }}>⬡</Text>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="weekly"
-        options={{
-          title: 'Weekly',
-          tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 22, color }}>▤</Text>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="timeline"
-        options={{
-          title: 'Timeline',
-          tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 22, color }}>◷</Text>
-          ),
-        }}
-      />
+      
+      {/* 3. Journal - User inputs and reflections */}
       <Tabs.Screen
         name="journal"
         options={{
@@ -81,14 +59,40 @@ export default function TabLayout() {
           ),
         }}
       />
+      
+      {/* 4. Patterns - Pattern engine with Weekly/Timeline sub-views */}
       <Tabs.Screen
-        name="life"
+        name="patterns"
         options={{
-          href: null, // Hide this tab for now
-          title: 'Life',
+          title: 'Patterns',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 22, color }}>❧</Text>
+            <Text style={{ fontSize: 22, color }}>⬡</Text>
           ),
+        }}
+      />
+      
+      {/* 5. Lenses - Framework explanations */}
+      <Tabs.Screen
+        name="lenses"
+        options={{
+          title: 'Lenses',
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 22, color }}>◉</Text>
+          ),
+        }}
+      />
+      
+      {/* Hidden tabs - Weekly and Timeline moved into Patterns */}
+      <Tabs.Screen
+        name="weekly"
+        options={{
+          href: null, // Hidden - now a sub-view of Patterns
+        }}
+      />
+      <Tabs.Screen
+        name="timeline"
+        options={{
+          href: null, // Hidden - now a sub-view of Patterns
         }}
       />
     </Tabs>
