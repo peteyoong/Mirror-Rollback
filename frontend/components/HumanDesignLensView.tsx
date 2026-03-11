@@ -2158,6 +2158,13 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     opacity: 0.7,
   },
+  buildVersion: {
+    fontSize: 10,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 16,
+    opacity: 0.5,
+  },
 
   // ============================================
   // OVERVIEW TAB STYLES (Reflective Summary)
