@@ -474,6 +474,27 @@ export default function MirrorScreen() {
           <ReflectionEntry onPress={handleReflect} />
         )}
 
+        {/* Pattern Pulse - Surface one pattern insight */}
+        {patternPulse && !focusState.isLoading && (
+          <TouchableOpacity 
+            style={[styles.patternPulseCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            onPress={() => router.push('/(tabs)/patterns')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.patternPulseLabel, { color: theme.textTertiary }]}>
+              PATTERN PULSE
+            </Text>
+            <Text style={[styles.patternPulseBody, { color: theme.textSecondary }]}>
+              {patternPulse.body}
+            </Text>
+            {patternPulse.prompt && (
+              <Text style={[styles.patternPulsePrompt, { color: theme.accent }]}>
+                {patternPulse.prompt}
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
+
         {/* Loading State */}
         {isLoading && (
           <View style={styles.loadingContainer}>
