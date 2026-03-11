@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://nav-reconfig.preview.emergentagent.com/api"
+BASE_URL = "https://human-design-lens.preview.emergentagent.com/api"
 TEST_USER_ID = "6971c81f2b40fd5ef501d375"
 
 class PatternTimelineAPITester:
