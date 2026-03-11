@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface CenterData {
   center_name: string;
@@ -36,7 +44,12 @@ interface Props {
   userId: string;
 }
 
-export default function CentersView({ userId }: Props) {
+// Export handle type for parent component to use
+export interface CentersViewHandle {
+  openCenter: (centerName: string) => void;
+}
+
+const CentersView = forwardRef<CentersViewHandle, Props>(({ userId }, ref) => {
   const { theme } = useTheme();
   const [centers, setCenters] = useState<CenterData[]>([]);
   const [summary, setSummary] = useState<{ defined_count: number; undefined_count: number } | null>(null);
