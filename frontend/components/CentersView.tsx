@@ -43,6 +43,9 @@ export default function CentersView({ userId }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedCenter, setExpandedCenter] = useState<string | null>(null);
+  
+  // Parent accordion state - collapsed by default
+  const [isAccordionExpanded, setIsAccordionExpanded] = useState(false);
 
   useEffect(() => {
     loadCenters();
