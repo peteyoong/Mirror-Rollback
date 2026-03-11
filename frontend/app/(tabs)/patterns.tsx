@@ -22,7 +22,9 @@ interface MatchedSignal {
 interface PatternCategory {
   category_id: string;
   category_name: string;
-  signal_strength: 'quiet' | 'emerging' | 'active';
+  signal_strength: 'quiet' | 'present' | 'recurring';
+  pattern_score: number;
+  signal_count: number;
   matched_sources: string[];
   matched_signals: MatchedSignal[];
   summary: string;
