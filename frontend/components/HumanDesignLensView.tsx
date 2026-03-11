@@ -308,8 +308,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const TAB_DESCRIPTIONS: Record<TabType, string> = {
     summary: "Quick orientation to your chart",
     today: "Today's transit interactions",
-    deep_dive: "Deeper layers & sequences",
-    gene_keys: "Shadow → Gift → Siddhi"
+    structure: "Human Design mechanics",
+    meaning: "Gene Keys interpretation"
   };
 
   const renderTabs = () => (
@@ -332,19 +332,19 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
-          onPress={() => setActiveTab('deep_dive')}
+          style={[styles.tab, activeTab === 'structure' && styles.activeTab]}
+          onPress={() => setActiveTab('structure')}
         >
-          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'deep_dive' && { color: theme.text }]}>
-            Deep Dive
+          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'structure' && { color: theme.text }]}>
+            Structure
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'gene_keys' && styles.activeTab]}
-          onPress={() => setActiveTab('gene_keys')}
+          style={[styles.tab, activeTab === 'meaning' && styles.activeTab]}
+          onPress={() => setActiveTab('meaning')}
         >
-          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'gene_keys' && { color: theme.text }]}>
-            Gene Keys
+          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'meaning' && { color: theme.text }]}>
+            Meaning
           </Text>
         </TouchableOpacity>
       </View>
