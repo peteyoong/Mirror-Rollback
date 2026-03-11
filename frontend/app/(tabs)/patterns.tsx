@@ -186,16 +186,7 @@ export default function PatternGraphScreen() {
   // Trend labels removed - no longer showing arrows
   // Signal strength is now the primary indicator
 
-  const getTrendColor = (trend: string) => {
-    switch (trend) {
-      case 'rising':
-        return theme.accent;
-      case 'fading':
-        return theme.textTertiary;
-      default:
-        return theme.textSecondary;
-    }
-  };
+  // getTrendColor function removed - no longer needed
 
   // Get top categories by pattern_score (non-quiet only)
   const topCategories = [...categories]
