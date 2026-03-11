@@ -3806,6 +3806,127 @@ async def get_journal_entries(user_id: str, limit: int = 20):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =============================================================================
+# MIRROR INSIGHT ENDPOINTS
+# =============================================================================
+
+@api_router.post("/mirror/insight", response_model=MirrorInsightResponse)
+async def create_mirror_insight(insight: MirrorInsightCreate):
+    """
+    Create a mirror insight from a chat session.
+    This stores a distilled 1-2 sentence insight, NOT the full chat history.
+    These insights appear in the Journal Timeline alongside journal entries.
+    """
+    try:
+        insight_data = {
+            "user_id": insight.user_id,
+            "type": "mirror_insight",
+            "summary": insight.summary,
+            "domains": insight.domains,
+            "tags": insight.tags,
+            "confidence": insight.confidence,
+            "created_at": datetime.now(timezone.utc)
+        }
+        
+        result = await db.mirror_insights.insert_one(insight_data)
+        
+        logger.info(f"Mirror insight saved for user {insight.user_id}: {insight.summary[:50]}...")
+        
+        return MirrorInsightResponse(
+            id=str(result.inserted_id),
+            type="mirror_insight",
+            summary=insight.summary,
+            domains=insight.domains,
+            tags=insight.tags,
+            confidence=insight.confidence,
+            created_at=insight_data["created_at"].isoformat()
+        )
+    except Exception as e:
+        logger.error(f"Create mirror insight error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/mirror/insights/{user_id}")
+async def get_mirror_insights(user_id: str, limit: int = 20):
+    """
+    Get user's mirror insights for the Timeline.
+    Returns insights sorted by date (most recent first).
+    """
+    try:
+        insights = await db.mirror_insights.find(
+            {"user_id": user_id}
+        ).sort("created_at", -1).limit(limit).to_list(limit)
+        
+        return [
+            {
+                "id": str(insight["_id"]),
+                "type": "mirror_insight",
+                "summary": insight["summary"],
+                "domains": insight.get("domains", []),
+                "tags": insight.get("tags", []),
+                "confidence": insight.get("confidence", 0.7),
+                "created_at": insight["created_at"].isoformat()
+            }
+            for insight in insights
+        ]
+    except Exception as e:
+        logger.error(f"Get mirror insights error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/timeline/combined/{user_id}")
+async def get_combined_timeline(user_id: str, limit: int = 50):
+    """
+    Get combined timeline of journal entries AND mirror insights.
+    Returns both types interleaved by date (most recent first).
+    """
+    try:
+        # Fetch journal entries
+        journal_entries = await db.journal.find(
+            {"user_id": user_id}
+        ).sort("created_at", -1).limit(limit).to_list(limit)
+        
+        # Fetch mirror insights
+        mirror_insights = await db.mirror_insights.find(
+            {"user_id": user_id}
+        ).sort("created_at", -1).limit(limit).to_list(limit)
+        
+        # Combine and format
+        combined = []
+        
+        for entry in journal_entries:
+            combined.append({
+                "id": str(entry["_id"]),
+                "type": "journal_entry",
+                "content": entry["content"],
+                "themes": entry.get("themes", []),
+                "created_at": entry["created_at"].isoformat()
+            })
+        
+        for insight in mirror_insights:
+            combined.append({
+                "id": str(insight["_id"]),
+                "type": "mirror_insight",
+                "summary": insight["summary"],
+                "domains": insight.get("domains", []),
+                "tags": insight.get("tags", []),
+                "confidence": insight.get("confidence", 0.7),
+                "created_at": insight["created_at"].isoformat()
+            })
+        
+        # Sort combined by created_at descending
+        combined.sort(key=lambda x: x["created_at"], reverse=True)
+        
+        # Limit to requested amount
+        combined = combined[:limit]
+        
+        return {"items": combined, "total": len(combined)}
+        
+    except Exception as e:
+        logger.error(f"Get combined timeline error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 class JournalIntegrationRequest(BaseModel):
     user_id: str
     entry_id: str
