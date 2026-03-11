@@ -205,41 +205,105 @@ export default function PatternGraphScreen() {
     }
   };
 
-  const renderCategoryCard = (category: PatternCategory) => {
-    const isExpanded = expandedCategory === category.category_id;
+  // Get top categories by pattern_score (non-quiet only)
+  const topCategories = [...categories]
+    .filter(c => c.signal_strength !== 'quiet')
+    .sort((a, b) => b.pattern_score - a.pattern_score)
+    .slice(0, 3);
+
+  // Format signal label for cleaner display
+  const formatSignalLabel = (signal: MatchedSignal) => {
+    // Clean up repetitive phrasing like "Weakness (weak)" -> "Weakness"
+    let label = signal.label;
+    
+    // If it's a Gene Key pattern like "Shadow → Gift", format nicely
+    if (signal.detail && signal.detail.includes('Gene Key')) {
+      const keyMatch = signal.detail.match(/Gene Key (\d+)/);
+      if (keyMatch) {
+        return `Gene Key ${keyMatch[1]} — ${label}`;
+      }
+    }
+    
+    return label;
+  };
+
+  // Reflection prompts for categories (deterministic)
+  const getCategoryReflectionPrompt = (categoryId: string) => {
+    const prompts: Record<string, string> = {
+      'energy_vitality': 'What does your energy want you to notice right now?',
+      'emotional_landscape': 'What emotion might be asking for your attention?',
+      'identity_direction': 'What part of yourself is seeking expression?',
+      'mind_meaning': 'What is your mind trying to understand?',
+      'expression_action': 'What wants to be expressed or created through you?',
+      'relationships_boundaries': 'Where might your connections be asking for care?',
+      'growth_transformation': 'What change might be ready to happen?'
+    };
+    return prompts[categoryId] || 'What might this pattern be showing you?';
+  };
+
+  // Render a "What's Most Present" card (story-focused)
+  const renderMostPresentCard = (category: PatternCategory) => {
     const strengthColor = getStrengthColor(category.signal_strength);
-    const hasSignals = category.matched_signals.length > 0;
     const trendColor = getTrendColor(category.trend);
 
     return (
       <View
         key={category.category_id}
-        style={[styles.categoryCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+        style={[styles.presentCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
       >
-        {/* Header - always visible */}
+        <View style={styles.presentCardHeader}>
+          <Text style={[styles.presentCardName, { color: theme.text }]}>
+            {category.category_name}
+          </Text>
+          <View style={styles.presentCardMeta}>
+            <Text style={[styles.presentCardStrength, { color: strengthColor }]}>
+              {getStrengthLabel(category.signal_strength)}
+            </Text>
+            <Text style={[styles.presentCardTrendSep, { color: theme.textTertiary }]}>•</Text>
+            <Text style={[styles.presentCardTrend, { color: trendColor }]}>
+              {getTrendLabel(category.trend)}
+            </Text>
+          </View>
+        </View>
+        
+        {/* Synthesis or summary - the story */}
+        <Text style={[styles.presentCardStory, { color: theme.textSecondary }]}>
+          {category.synthesis || category.summary}
+        </Text>
+        
+        {/* Reflection prompt */}
+        <Text style={[styles.presentCardPrompt, { color: theme.accent }]}>
+          {getCategoryReflectionPrompt(category.category_id)}
+        </Text>
+      </View>
+    );
+  };
+
+  // Render an "Explore the Signals" card (evidence-focused, expandable)
+  const renderSignalsCard = (category: PatternCategory) => {
+    const isExpanded = expandedCategory === category.category_id;
+    const strengthColor = getStrengthColor(category.signal_strength);
+    const hasSignals = category.matched_signals.length > 0;
+    const trendColor = getTrendColor(category.trend);
+
+    // Skip quiet categories
+    if (category.signal_strength === 'quiet') return null;
+
+    return (
+      <View
+        key={category.category_id}
+        style={[styles.signalsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+      >
         <TouchableOpacity
-          style={styles.categoryHeader}
+          style={styles.signalsCardHeader}
           onPress={() => toggleCategory(category.category_id)}
           activeOpacity={0.7}
         >
-          <View style={styles.categoryHeaderLeft}>
-            <View style={[styles.strengthIndicator, { backgroundColor: strengthColor }]} />
-            <View style={styles.categoryHeaderInfo}>
-              <Text style={[styles.categoryName, { color: theme.text }]}>
-                {category.category_name}
-              </Text>
-              <View style={styles.categoryMetaRow}>
-                <Text style={[styles.categoryStrength, { color: strengthColor }]}>
-                  {getStrengthLabel(category.signal_strength)}
-                </Text>
-                <Text style={[styles.categoryTrendSeparator, { color: theme.textTertiary }]}>
-                  •
-                </Text>
-                <Text style={[styles.categoryTrend, { color: trendColor }]}>
-                  {getTrendLabel(category.trend)}
-                </Text>
-              </View>
-            </View>
+          <View style={styles.signalsCardLeft}>
+            <View style={[styles.signalsIndicator, { backgroundColor: strengthColor }]} />
+            <Text style={[styles.signalsCardName, { color: theme.text }]}>
+              {category.category_name}
+            </Text>
           </View>
           {hasSignals && (
             <Text style={[styles.expandIcon, { color: theme.textTertiary }]}>
@@ -248,29 +312,10 @@ export default function PatternGraphScreen() {
           )}
         </TouchableOpacity>
 
-        {/* Summary - always visible */}
-        <View style={[styles.summaryRow, { borderTopColor: theme.border }]}>
-          <Text style={[styles.summaryText, { color: theme.textSecondary }]}>
-            {category.summary}
-          </Text>
-        </View>
-
-        {/* Expanded content */}
+        {/* Expanded content - the evidence */}
         {isExpanded && hasSignals && (
-          <View style={[styles.expandedContent, { borderTopColor: theme.border }]}>
-            {/* Pattern Reflection - LLM synthesis for recurring patterns */}
-            {category.synthesis && (
-              <View style={[styles.synthesisSection, { borderBottomColor: theme.border }]}>
-                <Text style={[styles.synthesisLabel, { color: theme.textTertiary }]}>
-                  PATTERN REFLECTION
-                </Text>
-                <Text style={[styles.synthesisText, { color: theme.textSecondary }]}>
-                  {category.synthesis}
-                </Text>
-              </View>
-            )}
-
-            {/* Matched sources */}
+          <View style={[styles.signalsCardContent, { borderTopColor: theme.border }]}>
+            {/* Sources */}
             {category.matched_sources.length > 0 && (
               <View style={styles.sourcesRow}>
                 <Text style={[styles.sourcesLabel, { color: theme.textTertiary }]}>
@@ -286,17 +331,17 @@ export default function PatternGraphScreen() {
               </View>
             )}
 
-            {/* Matched signals */}
+            {/* Signal list - renamed and cleaned */}
             <View style={styles.signalsList}>
               <Text style={[styles.signalsLabel, { color: theme.textTertiary }]}>
-                Matched Patterns
+                What May Be Influencing This
               </Text>
               {category.matched_signals.map((signal, idx) => (
                 <View key={idx} style={styles.signalRow}>
                   <Text style={[styles.signalBullet, { color: theme.accent }]}>•</Text>
                   <View style={styles.signalContent}>
                     <Text style={[styles.signalLabel, { color: theme.text }]}>
-                      {signal.label}
+                      {formatSignalLabel(signal)}
                     </Text>
                     {signal.sphere_name && (
                       <Text style={[styles.signalDetail, { color: theme.textTertiary }]}>
