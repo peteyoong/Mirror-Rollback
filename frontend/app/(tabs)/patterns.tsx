@@ -565,6 +565,27 @@ export default function PatternGraphScreen() {
           </Text>
         </View>
       )}
+
+      {/* Bottom Reflection Entry */}
+      {!allQuiet && (
+        <View style={[styles.bottomReflection, { borderTopColor: theme.border }]}>
+          <Text style={[styles.bottomReflectionTitle, { color: theme.textTertiary }]}>
+            REFLECTION
+          </Text>
+          <Text style={[styles.bottomReflectionSubtext, { color: theme.textSecondary }]}>
+            If something here resonated, you can capture it.
+          </Text>
+          <TouchableOpacity
+            style={[styles.bottomReflectionButton, { borderColor: theme.border }]}
+            onPress={() => router.push('/(tabs)/journal')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.bottomReflectionButtonText, { color: theme.accent }]}>
+              Start a reflection
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </ScrollView>
   );
 }
