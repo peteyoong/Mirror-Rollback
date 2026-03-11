@@ -49,6 +49,78 @@ ENNEAGRAM_DOMAIN_MAPPING = {
 }
 
 
+# =============================================================================
+# PLANETARY TRANSIT TO PATTERN DOMAIN MAPPING
+# =============================================================================
+# Maps transit themes to the seven life domains they influence
+# This is a TIMING layer - used only to amplify existing patterns, not create new ones
+#
+# Transit themes are derived from current planetary positions:
+# - Sun: vitality, identity, expression
+# - Moon: emotions, needs, instincts  
+# - Mercury: communication, thinking, expression
+# - Venus: relationships, values, harmony
+# - Mars: energy, action, assertion
+# - Jupiter: expansion, meaning, growth
+# - Saturn: structure, discipline, boundaries
+# - Outer planets: deeper transformation themes
+
+TRANSIT_THEME_DOMAINS = {
+    # Energy/Vitality themes
+    "energy_activation": ["energy_vitality"],
+    "vitality_pressure": ["energy_vitality"],
+    "energy_drain": ["energy_vitality"],
+    "physical_renewal": ["energy_vitality"],
+    
+    # Emotional themes
+    "emotional_sensitivity": ["emotional_landscape"],
+    "emotional_permeability": ["emotional_landscape"],
+    "feeling_intensity": ["emotional_landscape"],
+    "emotional_processing": ["emotional_landscape"],
+    
+    # Identity/Direction themes
+    "identity_questioning": ["identity_direction"],
+    "direction_clarity": ["identity_direction"],
+    "self_definition": ["identity_direction"],
+    "purpose_alignment": ["identity_direction", "growth_transformation"],
+    
+    # Mind/Meaning themes
+    "mental_activity": ["mind_meaning"],
+    "seeking_understanding": ["mind_meaning"],
+    "philosophical_inquiry": ["mind_meaning", "growth_transformation"],
+    "communication_focus": ["mind_meaning", "expression_action"],
+    
+    # Expression/Action themes
+    "expression_drive": ["expression_action"],
+    "visibility_focus": ["expression_action"],
+    "creative_impulse": ["expression_action"],
+    "action_pressure": ["expression_action", "energy_vitality"],
+    
+    # Relationship/Boundary themes
+    "relationship_focus": ["relationships_boundaries"],
+    "boundary_awareness": ["relationships_boundaries"],
+    "connection_seeking": ["relationships_boundaries", "emotional_landscape"],
+    "belonging_questions": ["relationships_boundaries"],
+    
+    # Growth/Transformation themes
+    "transformation_pressure": ["growth_transformation"],
+    "growth_opportunity": ["growth_transformation"],
+    "discipline_emphasis": ["growth_transformation", "identity_direction"],
+    "structural_change": ["growth_transformation", "expression_action"],
+}
+
+# Planetary rulership mappings for determining active themes
+PLANET_THEMES = {
+    "sun": ["identity_questioning", "vitality_pressure", "expression_drive"],
+    "moon": ["emotional_sensitivity", "feeling_intensity", "connection_seeking"],
+    "mercury": ["mental_activity", "communication_focus", "seeking_understanding"],
+    "venus": ["relationship_focus", "connection_seeking", "emotional_processing"],
+    "mars": ["energy_activation", "action_pressure", "expression_drive"],
+    "jupiter": ["growth_opportunity", "philosophical_inquiry", "seeking_understanding"],
+    "saturn": ["discipline_emphasis", "boundary_awareness", "structural_change"],
+}
+
+
 # Import Human Design center mappings
 try:
     from .human_design_centers import GATE_TO_CENTER, CENTER_THEMES
