@@ -8433,6 +8433,148 @@ async def get_pattern_graph(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/pattern-graph/timeline/{user_id}")
+async def get_pattern_timeline(user_id: str):
+    """
+    Get pattern timeline showing signal activity over time buckets.
+    
+    Returns time buckets:
+    - Last 7 days
+    - Last 30 days
+    
+    Each bucket shows categories with signal strength (quiet/present/recurring).
+    
+    Gene Keys and Human Design signals are always present (birth chart based).
+    Journal signals are time-filtered to each period.
+    """
+    try:
+        from services.pattern_graph import aggregate_pattern_timeline
+        from calculations.timezone_utils import resolve_birth_utc_with_debug
+        from calculations.human_design import get_human_design_chart
+        from services.gene_keys_interpreter import build_gene_keys_profile
+        from services.human_design_centers import build_centers_profile
+        
+        # Get user
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Initialize data containers
+        gene_keys_profile = None
+        human_design_centers = None
+        human_design_gates = None
+        
+        # Try to load birth chart based data
+        try:
+            birth_date = user.get("birth_date")
+            birth_time = user.get("birth_time")
+            timezone_str = user.get("timezone", "UTC")
+            birth_location = user.get("birth_location", {})
+            
+            if isinstance(birth_location, dict):
+                lat = birth_location.get("latitude") or birth_location.get("lat")
+                lon = birth_location.get("longitude") or birth_location.get("lon") or birth_location.get("lng")
+            else:
+                lat = user.get("latitude") or user.get("birth_lat")
+                lon = user.get("longitude") or user.get("birth_lon")
+            
+            if all([birth_date, birth_time, lat, lon]):
+                if hasattr(birth_date, 'strftime'):
+                    birth_date_str = birth_date.strftime("%Y-%m-%d")
+                else:
+                    birth_date_str = str(birth_date).split(' ')[0]
+                
+                result = resolve_birth_utc_with_debug(birth_date_str, birth_time, timezone_str)
+                birth_utc = result.get('birth_utc')
+                
+                if birth_utc:
+                    hd_chart = get_human_design_chart(
+                        birth_datetime=birth_utc,
+                        lat=float(lat),
+                        lon=float(lon)
+                    )
+                    
+                    if hd_chart:
+                        personality = hd_chart.get('personality', {})
+                        design = hd_chart.get('design', {})
+                        
+                        def extract_gate_line(planet_data):
+                            gate_data = planet_data.get('gate', {})
+                            if isinstance(gate_data, dict):
+                                return gate_data.get('gate', 1), gate_data.get('line', 1)
+                            return 1, 1
+                        
+                        # Build Gene Keys profile
+                        gene_keys_profile = build_gene_keys_profile(
+                            personality_sun_gate=extract_gate_line(personality.get('Sun', {}))[0],
+                            personality_sun_line=extract_gate_line(personality.get('Sun', {}))[1],
+                            personality_earth_gate=extract_gate_line(personality.get('Earth', {}))[0],
+                            personality_earth_line=extract_gate_line(personality.get('Earth', {}))[1],
+                            design_sun_gate=extract_gate_line(design.get('Sun', {}))[0],
+                            design_sun_line=extract_gate_line(design.get('Sun', {}))[1],
+                            design_earth_gate=extract_gate_line(design.get('Earth', {}))[0],
+                            design_earth_line=extract_gate_line(design.get('Earth', {}))[1],
+                            design_moon_gate=extract_gate_line(design.get('Moon', {}))[0],
+                            design_moon_line=extract_gate_line(design.get('Moon', {}))[1],
+                            personality_mercury_gate=extract_gate_line(personality.get('Mercury', {}))[0],
+                            personality_mercury_line=extract_gate_line(personality.get('Mercury', {}))[1],
+                            design_mercury_gate=extract_gate_line(design.get('Mercury', {}))[0],
+                            design_mercury_line=extract_gate_line(design.get('Mercury', {}))[1],
+                            design_venus_gate=extract_gate_line(design.get('Venus', {}))[0],
+                            design_venus_line=extract_gate_line(design.get('Venus', {}))[1],
+                            personality_mars_gate=extract_gate_line(personality.get('Mars', {}))[0],
+                            personality_mars_line=extract_gate_line(personality.get('Mars', {}))[1],
+                            design_mars_gate=extract_gate_line(design.get('Mars', {}))[0],
+                            design_mars_line=extract_gate_line(design.get('Mars', {}))[1],
+                            personality_jupiter_gate=extract_gate_line(personality.get('Jupiter', {}))[0],
+                            personality_jupiter_line=extract_gate_line(personality.get('Jupiter', {}))[1],
+                            design_jupiter_gate=extract_gate_line(design.get('Jupiter', {}))[0],
+                            design_jupiter_line=extract_gate_line(design.get('Jupiter', {}))[1],
+                        )
+                        
+                        # Build HD centers and gates
+                        defined_centers = hd_chart.get("defined_centers", [])
+                        undefined_centers = hd_chart.get("undefined_centers", [])
+                        active_gates = hd_chart.get("active_gates", [])
+                        
+                        human_design_centers = build_centers_profile(
+                            defined_centers=defined_centers,
+                            undefined_centers=undefined_centers,
+                            active_gates=active_gates
+                        )
+                        human_design_gates = active_gates
+        except Exception as chart_err:
+            logger.debug(f"[PatternTimeline] Could not load chart data: {chart_err}")
+        
+        # Load all journal entries (will be filtered by date in aggregation)
+        journal_entries = []
+        try:
+            journal_entries = await db.journal.find(
+                {"user_id": user_id}
+            ).sort("timestamp", -1).limit(100).to_list(100)
+        except Exception as j_err:
+            logger.debug(f"[PatternTimeline] Could not load journal: {j_err}")
+        
+        # Aggregate timeline
+        timeline = aggregate_pattern_timeline(
+            gene_keys_profile=gene_keys_profile,
+            journal_entries=journal_entries,
+            human_design_centers=human_design_centers,
+            human_design_gates=human_design_gates
+        )
+        
+        return {
+            "success": True,
+            **timeline
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Pattern timeline error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # =====================================================================
 # NUMEROLOGY LENS ENDPOINTS
 # =====================================================================
