@@ -28,6 +28,23 @@ SIGNAL_WEIGHTS = {
     "human_design_centers": 1,  # Framework-based
     "human_design_gates": 1,    # Framework-based
     "human_design": 1,      # Legacy source name (backward compatibility)
+    "enneagram": 1,         # Framework-based - invisible contributor
+}
+
+
+# =============================================================================
+# ENNEAGRAM TO PATTERN DOMAIN MAPPING
+# =============================================================================
+# Maps Enneagram types to the seven life domains they most influence
+
+ENNEAGRAM_DOMAIN_MAPPING = {
+    "energy_vitality": [7, 8, 9],           # Energetic, powerful, peaceful types
+    "emotional_landscape": [2, 4, 6],       # Heart-centered, emotional depth
+    "identity_direction": [3, 4, 6],        # Identity-focused types
+    "mind_meaning": [5, 6, 7],              # Head triad, mental processing
+    "expression_action": [3, 7, 8],         # Achievement, expression, assertive
+    "relationships_boundaries": [2, 6, 9],   # Relational focus, harmony-seeking
+    "growth_transformation": [1, 4, 7],     # Growth-oriented, idealistic
 }
 
 
