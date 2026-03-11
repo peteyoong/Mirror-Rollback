@@ -391,9 +391,34 @@ export default function MirrorChat({
       setMessages(prev => [...prev, assistantMessage]);
       setSessionId(response.data.session_id);
       
-      // Store memory update if present
+      // Store memory update if present and save insight to timeline
       if (response.data.memory_update) {
-        setMemoryUpdate(response.data.memory_update);
+        const update = response.data.memory_update;
+        setMemoryUpdate(update);
+        
+        // Save insight to timeline (only once per session, and only for generalist chat)
+        // Only save if confidence is high enough to be meaningful
+        if (!insightSavedForSession && !lens && update.confidence >= 0.5) {
+          try {
+            const insightSummary = generateInsightSummary(update);
+            const domains = mapStateToDomains(update.inferred_state, update.themes);
+            const tags = [...update.themes.slice(0, 2), ...update.recurring_tensions.slice(0, 1)];
+            
+            await createMirrorInsight({
+              user_id: userId,
+              summary: insightSummary,
+              domains,
+              tags,
+              confidence: update.confidence,
+            });
+            
+            setInsightSavedForSession(true);
+            console.log('[MirrorChat] Insight saved to timeline:', insightSummary);
+          } catch (insightError) {
+            console.error('[MirrorChat] Failed to save insight:', insightError);
+            // Don't fail the chat - this is a secondary feature
+          }
+        }
       }
       
       // Update thread state from response (only for generalist chat)
