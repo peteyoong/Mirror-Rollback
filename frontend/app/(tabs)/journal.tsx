@@ -39,16 +39,6 @@ interface CachedReflection {
   textHash: string;
 }
 
-// Interface for timeline events
-interface TimelineEvent {
-  created_at_iso: string;
-  inferred_state: string;
-  confidence: number;
-  themes: string[];
-  tension: string | null;
-  event_type: string;
-}
-
 // Simple hash function for text comparison
 function hashText(text: string): string {
   const normalized = text.trim().toLowerCase().replace(/\s+/g, ' ');
