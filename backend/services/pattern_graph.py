@@ -694,7 +694,9 @@ def aggregate_pattern_graph(
     journal_entries: Optional[List[dict]] = None,
     human_design_centers: Optional[List[dict]] = None,
     human_design_gates: Optional[List[int]] = None,
-    chat_signals: Optional[List[dict]] = None  # Future: from Mirror Chat
+    chat_signals: Optional[List[dict]] = None,  # Future: from Mirror Chat
+    enneagram_type: Optional[int] = None,       # Enneagram core type (1-9)
+    enneagram_wing: Optional[int] = None        # Enneagram wing (optional)
 ) -> Dict[str, Any]:
     """Main aggregation function for Pattern Graph.
     
@@ -706,6 +708,8 @@ def aggregate_pattern_graph(
         human_design_centers: List of center interpretations from build_centers_profile()
         human_design_gates: List of active gate numbers
         chat_signals: Future - signals from Mirror Chat analysis
+        enneagram_type: User's Enneagram type (invisible contributor)
+        enneagram_wing: User's Enneagram wing (optional)
     
     Returns:
         Complete pattern graph response
@@ -734,6 +738,15 @@ def aggregate_pattern_graph(
             active_gates=human_design_gates
         )
         for cat_id, signals in hd_signals.items():
+            all_signals[cat_id].extend(signals)
+    
+    # Aggregate Enneagram signals (invisible contributor)
+    if enneagram_type:
+        ennea_signals = aggregate_enneagram_signals(
+            enneagram_type=enneagram_type,
+            enneagram_wing=enneagram_wing
+        )
+        for cat_id, signals in ennea_signals.items():
             all_signals[cat_id].extend(signals)
     
     # Calculate trends for all categories
