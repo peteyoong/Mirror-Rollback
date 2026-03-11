@@ -1412,8 +1412,6 @@ def get_transit_domain_intensities(
         domain_id: influence.get("intensity", 0)
         for domain_id, influence in transit_influence.items()
     }
-    
-    return category_signals
 
 
 def calculate_transit_amplification(
