@@ -193,32 +193,6 @@ export default function JournalScreen() {
     loadEntries();
   }, []);
 
-  // Load timeline when switching to timeline view
-  useEffect(() => {
-    if (viewMode === 'timeline' && user) {
-      loadTimeline();
-    }
-  }, [viewMode, user]);
-
-  const loadTimeline = async () => {
-    if (!user) return;
-    
-    setIsLoadingTimeline(true);
-    try {
-      const response = await api.get(`/timeline/${user.id}?days=7`);
-      setTimelineEvents(response.data.events || []);
-    } catch (err) {
-      console.error('Load timeline error:', err);
-    } finally {
-      setIsLoadingTimeline(false);
-    }
-  };
-
-  const toggleEventExpanded = (eventId: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedEventId(expandedEventId === eventId ? null : eventId);
-  };
-
   const loadEntries = async () => {
     if (!user) return;
 
