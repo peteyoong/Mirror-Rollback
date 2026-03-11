@@ -864,4 +864,34 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
+  
+  // Bottom reflection entry
+  bottomReflection: {
+    marginTop: 32,
+    paddingTop: 24,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+  },
+  bottomReflectionTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.5,
+    marginBottom: 8,
+  },
+  bottomReflectionSubtext: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  bottomReflectionButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  bottomReflectionButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
 });
