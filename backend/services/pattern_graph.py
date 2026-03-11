@@ -652,6 +652,7 @@ def aggregate_pattern_graph(
             "signal_strength": strength,
             "pattern_score": pattern_score,
             "signal_count": len(unique_signals),
+            "trend": trends.get(cat_id, "steady"),
             "matched_sources": sources,
             "matched_signals": unique_signals,
             "summary": summary
