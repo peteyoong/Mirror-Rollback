@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Weekly Pattern Synthesis Endpoint
-Testing GET /api/weekly-patterns/{user_id}
+Backend API Testing Suite for Project Mirror
+Testing Pattern Timeline API Endpoint
 """
 
 import requests
@@ -13,595 +13,487 @@ from typing import Dict, Any, List
 # Configuration
 BASE_URL = "https://mirror-lens-app.preview.emergentagent.com/api"
 TEST_USER_ID = "6971c81f2b40fd5ef501d375"
-TIMEOUT = 30
 
-def log_test(test_name: str, status: str, details: str = ""):
-    """Log test results with timestamp"""
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    print(f"[{timestamp}] {test_name}: {status}")
-    if details:
-        print(f"    {details}")
-
-class WeeklyPatternSynthesisTester:
-    """Test suite for Weekly Pattern Synthesis API endpoint."""
-    
+class PatternTimelineAPITester:
     def __init__(self):
         self.base_url = BASE_URL
         self.test_user_id = TEST_USER_ID
         self.results = []
-        self.first_response_data = None
-        self.first_response_time = 0
         
-    def log_result(self, test_name: str, passed: bool, details: str = ""):
-        """Log test result."""
-        status = "✅ PASS" if passed else "❌ FAIL"
-        print(f"{status} {test_name}")
-        if details:
-            print(f"   {details}")
-        
-        self.results.append({
+    def log_result(self, test_name: str, passed: bool, details: str = "", response_data: Dict = None):
+        """Log test result with details"""
+        result = {
             "test": test_name,
             "passed": passed,
-            "details": details
-        })
-    
-    def test_basic_response_structure(self) -> bool:
-        """Test 1: Basic Response Structure"""
+            "details": details,
+            "timestamp": datetime.now().isoformat(),
+            "response_data": response_data
+        }
+        self.results.append(result)
+        status = "✅ PASS" if passed else "❌ FAIL"
+        print(f"{status}: {test_name}")
+        if details:
+            print(f"   Details: {details}")
+        if not passed and response_data:
+            print(f"   Response: {json.dumps(response_data, indent=2)}")
+        print()
+
+    def test_basic_response_structure(self):
+        """Test Case 1: Basic Response Structure"""
         try:
-            url = f"{self.base_url}/weekly-patterns/{self.test_user_id}"
+            url = f"{self.base_url}/pattern-timeline/{self.test_user_id}"
+            response = requests.get(url, timeout=30)
             
-            start_time = time.time()
-            response = requests.get(url, timeout=TIMEOUT)
-            self.first_response_time = time.time() - start_time
-            
-            # Check HTTP status
             if response.status_code != 200:
                 self.log_result(
-                    "Basic Response Structure - HTTP Status",
-                    False,
-                    f"Expected 200, got {response.status_code}: {response.text[:200]}"
+                    "Basic Response Structure", 
+                    False, 
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code, "text": response.text}
                 )
-                return False
+                return None
             
-            # Parse JSON
             try:
                 data = response.json()
-                self.first_response_data = data
             except json.JSONDecodeError as e:
                 self.log_result(
-                    "Basic Response Structure - JSON Parse",
-                    False,
-                    f"Invalid JSON: {e}"
+                    "Basic Response Structure", 
+                    False, 
+                    f"Invalid JSON response: {e}",
+                    {"raw_response": response.text}
                 )
-                return False
+                return None
+            
+            # Check required top-level fields
+            required_fields = ["success", "timeline"]
+            missing_fields = [field for field in required_fields if field not in data]
+            
+            if missing_fields:
+                self.log_result(
+                    "Basic Response Structure", 
+                    False, 
+                    f"Missing required fields: {missing_fields}",
+                    data
+                )
+                return None
             
             # Check success field
-            if not data.get("success"):
+            if data.get("success") != True:
                 self.log_result(
-                    "Basic Response Structure - Success Flag",
-                    False,
-                    f"success: {data.get('success')}, expected True"
+                    "Basic Response Structure", 
+                    False, 
+                    f"Success field is not True: {data.get('success')}",
+                    data
                 )
-                return False
+                return None
             
-            # Check weekly_summary exists
-            weekly_summary = data.get("weekly_summary")
-            if not isinstance(weekly_summary, dict):
+            # Check timeline object exists
+            timeline = data.get("timeline")
+            if not isinstance(timeline, dict):
                 self.log_result(
-                    "Basic Response Structure - Weekly Summary",
-                    False,
-                    f"Expected dict, got {type(weekly_summary)}"
+                    "Basic Response Structure", 
+                    False, 
+                    f"Timeline is not an object: {type(timeline)}",
+                    data
                 )
-                return False
+                return None
             
-            # Check week dates
-            week_start = weekly_summary.get("week_start")
-            week_end = weekly_summary.get("week_end")
+            # Check timeline required fields
+            timeline_required = ["range_label", "weeks", "insights", "narrative_summary", "reflection_prompt"]
+            timeline_missing = [field for field in timeline_required if field not in timeline]
             
-            if not week_start or not week_end:
+            if timeline_missing:
                 self.log_result(
-                    "Basic Response Structure - Week Dates",
-                    False,
-                    f"Missing dates - start: {week_start}, end: {week_end}"
+                    "Basic Response Structure", 
+                    False, 
+                    f"Timeline missing required fields: {timeline_missing}",
+                    data
                 )
-                return False
+                return None
             
             self.log_result(
-                "Basic Response Structure",
-                True,
-                f"HTTP 200, success: true, week: {week_start} to {week_end}, response time: {self.first_response_time:.2f}s"
+                "Basic Response Structure", 
+                True, 
+                f"All required fields present. Response time: {response.elapsed.total_seconds():.2f}s",
+                {"timeline_keys": list(timeline.keys())}
             )
-            return True
+            return data
             
         except requests.exceptions.RequestException as e:
             self.log_result(
-                "Basic Response Structure",
-                False,
+                "Basic Response Structure", 
+                False, 
                 f"Request failed: {e}"
             )
-            return False
-    
-    def test_top_domains(self) -> bool:
-        """Test 2: Top Domains Structure"""
-        if not self.first_response_data:
-            self.log_result("Top Domains", False, "No response data available")
-            return False
+            return None
+
+    def test_weeks_array_structure(self, timeline_data: Dict):
+        """Test Case 2: Weeks Array Structure"""
+        if not timeline_data:
+            self.log_result("Weeks Array Structure", False, "No timeline data available")
+            return
         
-        try:
-            weekly_summary = self.first_response_data.get("weekly_summary", {})
-            top_domains = weekly_summary.get("top_domains", [])
-            
-            # Check type
-            if not isinstance(top_domains, list):
-                self.log_result(
-                    "Top Domains - Type",
-                    False,
-                    f"Expected list, got {type(top_domains)}"
-                )
-                return False
-            
-            # Check count (up to 3)
-            if len(top_domains) > 3:
-                self.log_result(
-                    "Top Domains - Count",
-                    False,
-                    f"Expected max 3, got {len(top_domains)}"
-                )
-                return False
-            
-            # Check structure of each domain
-            required_fields = ["domain", "domain_id", "trend", "weekly_score", "days_present", "timing_amplified", "evidence_summary"]
-            valid_trends = ["rising", "steady", "softening", "emerging"]
-            
-            for i, domain in enumerate(top_domains):
-                if not isinstance(domain, dict):
-                    self.log_result(
-                        f"Top Domains - Domain {i+1} Type",
-                        False,
-                        f"Expected dict, got {type(domain)}"
-                    )
-                    return False
-                
-                # Check required fields
-                missing_fields = [field for field in required_fields if field not in domain]
-                if missing_fields:
-                    self.log_result(
-                        f"Top Domains - Domain {i+1} Fields",
-                        False,
-                        f"Missing fields: {missing_fields}"
-                    )
-                    return False
-                
-                # Check trend value
-                trend = domain.get("trend")
-                if trend not in valid_trends:
-                    self.log_result(
-                        f"Top Domains - Domain {i+1} Trend",
-                        False,
-                        f"Invalid trend '{trend}', expected one of {valid_trends}"
-                    )
-                    return False
-            
-            self.log_result(
-                "Top Domains",
-                True,
-                f"{len(top_domains)} domains with all required fields and valid trends"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result(
-                "Top Domains",
-                False,
-                f"Error checking top domains: {e}"
-            )
-            return False
-    
-    def test_all_domains(self) -> bool:
-        """Test 3: All Domains Structure"""
-        if not self.first_response_data:
-            self.log_result("All Domains", False, "No response data available")
-            return False
+        timeline = timeline_data.get("timeline", {})
+        weeks = timeline.get("weeks")
         
-        try:
-            weekly_summary = self.first_response_data.get("weekly_summary", {})
-            all_domains = weekly_summary.get("all_domains", [])
-            
-            # Check type
-            if not isinstance(all_domains, list):
-                self.log_result(
-                    "All Domains - Type",
-                    False,
-                    f"Expected list, got {type(all_domains)}"
-                )
-                return False
-            
-            # Check count (should be 7 pattern domains)
-            if len(all_domains) != 7:
-                self.log_result(
-                    "All Domains - Count",
-                    False,
-                    f"Expected 7 pattern domains, got {len(all_domains)}"
-                )
-                return False
-            
-            # Check structure of each domain
-            required_fields = ["domain", "domain_id", "trend", "weekly_score", "days_present"]
-            valid_trends = ["rising", "steady", "softening", "emerging"]
-            
-            for i, domain in enumerate(all_domains):
-                if not isinstance(domain, dict):
-                    self.log_result(
-                        f"All Domains - Domain {i+1} Type",
-                        False,
-                        f"Expected dict, got {type(domain)}"
-                    )
-                    return False
-                
-                # Check required fields
-                missing_fields = [field for field in required_fields if field not in domain]
-                if missing_fields:
-                    self.log_result(
-                        f"All Domains - Domain {i+1} Fields",
-                        False,
-                        f"Missing fields: {missing_fields}"
-                    )
-                    return False
-                
-                # Check trend value
-                trend = domain.get("trend")
-                if trend not in valid_trends:
-                    self.log_result(
-                        f"All Domains - Domain {i+1} Trend",
-                        False,
-                        f"Invalid trend '{trend}', expected one of {valid_trends}"
-                    )
-                    return False
-            
+        if not isinstance(weeks, list):
             self.log_result(
-                "All Domains",
-                True,
-                f"7 domains with all required fields and valid trends"
+                "Weeks Array Structure", 
+                False, 
+                f"Weeks is not an array: {type(weeks)}"
             )
-            return True
-            
-        except Exception as e:
-            self.log_result(
-                "All Domains",
-                False,
-                f"Error checking all domains: {e}"
-            )
-            return False
-    
-    def test_narrative_and_reflection(self) -> bool:
-        """Test 4: Narrative and Reflection"""
-        if not self.first_response_data:
-            self.log_result("Narrative and Reflection", False, "No response data available")
-            return False
+            return
         
-        try:
-            weekly_summary = self.first_response_data.get("weekly_summary", {})
-            
-            # Check narrative
-            narrative = weekly_summary.get("narrative")
-            if not narrative or not isinstance(narrative, str) or len(narrative.strip()) == 0:
-                self.log_result(
-                    "Narrative and Reflection - Narrative",
-                    False,
-                    f"Empty or invalid narrative: {type(narrative)}"
-                )
-                return False
-            
-            # Check reflection prompt
-            reflection_prompt = weekly_summary.get("reflection_prompt")
-            if not reflection_prompt or not isinstance(reflection_prompt, str) or len(reflection_prompt.strip()) == 0:
-                self.log_result(
-                    "Narrative and Reflection - Reflection Prompt",
-                    False,
-                    f"Empty or invalid reflection prompt: {type(reflection_prompt)}"
-                )
-                return False
-            
+        if len(weeks) > 8:
             self.log_result(
-                "Narrative and Reflection",
-                True,
-                f"Narrative: {len(narrative)} chars, Reflection: {len(reflection_prompt)} chars"
+                "Weeks Array Structure", 
+                False, 
+                f"Too many weeks returned: {len(weeks)} (expected max 8)"
             )
-            return True
-            
-        except Exception as e:
-            self.log_result(
-                "Narrative and Reflection",
-                False,
-                f"Error checking narrative/reflection: {e}"
-            )
-            return False
-    
-    def test_cross_week_shift(self) -> bool:
-        """Test 5: Cross-Week Shift"""
-        if not self.first_response_data:
-            self.log_result("Cross-Week Shift", False, "No response data available")
-            return False
+            return
         
-        try:
-            weekly_summary = self.first_response_data.get("weekly_summary", {})
-            cross_week_shift = weekly_summary.get("cross_week_shift")
-            
-            # Should be null or string
-            if cross_week_shift is None:
-                self.log_result(
-                    "Cross-Week Shift",
-                    True,
-                    "null (as expected)"
-                )
-                return True
-            elif isinstance(cross_week_shift, str):
-                self.log_result(
-                    "Cross-Week Shift",
-                    True,
-                    f"string ({len(cross_week_shift)} chars)"
-                )
-                return True
-            else:
-                self.log_result(
-                    "Cross-Week Shift",
-                    False,
-                    f"Expected null or string, got {type(cross_week_shift)}"
-                )
-                return False
-            
-        except Exception as e:
-            self.log_result(
-                "Cross-Week Shift",
-                False,
-                f"Error checking cross-week shift: {e}"
-            )
-            return False
-    
-    def test_evidence_sources(self) -> bool:
-        """Test 6: Evidence Sources"""
-        if not self.first_response_data:
-            self.log_result("Evidence Sources", False, "No response data available")
-            return False
+        # Check each week structure
+        required_week_fields = ["week_start", "week_end", "top_domain", "secondary_domains", "trend_map"]
+        valid_trends = ["growing", "steady", "softening", "emerging"]
         
-        try:
-            weekly_summary = self.first_response_data.get("weekly_summary", {})
-            evidence_sources = weekly_summary.get("evidence_sources")
-            
-            # Check type
-            if not isinstance(evidence_sources, list):
+        for i, week in enumerate(weeks):
+            if not isinstance(week, dict):
                 self.log_result(
-                    "Evidence Sources - Type",
-                    False,
-                    f"Expected list, got {type(evidence_sources)}"
+                    "Weeks Array Structure", 
+                    False, 
+                    f"Week {i} is not an object: {type(week)}"
                 )
-                return False
+                return
             
-            # Check that all sources are strings
-            non_string_sources = [i for i, source in enumerate(evidence_sources) if not isinstance(source, str)]
-            if non_string_sources:
+            missing_fields = [field for field in required_week_fields if field not in week]
+            if missing_fields:
                 self.log_result(
-                    "Evidence Sources - Content",
-                    False,
-                    f"Non-string sources at indices: {non_string_sources}"
+                    "Weeks Array Structure", 
+                    False, 
+                    f"Week {i} missing fields: {missing_fields}"
                 )
-                return False
+                return
             
-            self.log_result(
-                "Evidence Sources",
-                True,
-                f"{len(evidence_sources)} string sources"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result(
-                "Evidence Sources",
-                False,
-                f"Error checking evidence sources: {e}"
-            )
-            return False
-    
-    def test_caching_behavior(self) -> bool:
-        """Test 7: Caching Behavior"""
-        if not self.first_response_data:
-            self.log_result("Caching Behavior", False, "No response data available")
-            return False
+            # Check trend_map values
+            trend_map = week.get("trend_map", {})
+            if isinstance(trend_map, dict):
+                for domain, trend in trend_map.items():
+                    if trend not in valid_trends:
+                        self.log_result(
+                            "Weeks Array Structure", 
+                            False, 
+                            f"Week {i} has invalid trend '{trend}' for domain '{domain}'. Valid: {valid_trends}"
+                        )
+                        return
         
+        self.log_result(
+            "Weeks Array Structure", 
+            True, 
+            f"All {len(weeks)} weeks have valid structure with proper trend mappings"
+        )
+
+    def test_timeline_insights(self, timeline_data: Dict):
+        """Test Case 3: Timeline Insights Structure"""
+        if not timeline_data:
+            self.log_result("Timeline Insights", False, "No timeline data available")
+            return
+        
+        timeline = timeline_data.get("timeline", {})
+        insights = timeline.get("insights")
+        
+        if not isinstance(insights, dict):
+            self.log_result(
+                "Timeline Insights", 
+                False, 
+                f"Insights is not an object: {type(insights)}"
+            )
+            return
+        
+        # Check required insight fields (some may be null)
+        required_insight_fields = [
+            "most_recurring_domain", 
+            "strongest_recent_domain", 
+            "volatile_domain", 
+            "stable_domain", 
+            "reemerging_domain"
+        ]
+        
+        missing_fields = [field for field in required_insight_fields if field not in insights]
+        if missing_fields:
+            self.log_result(
+                "Timeline Insights", 
+                False, 
+                f"Insights missing required fields: {missing_fields}"
+            )
+            return
+        
+        # Count non-null insights
+        non_null_insights = sum(1 for field in required_insight_fields if insights.get(field) is not None)
+        
+        self.log_result(
+            "Timeline Insights", 
+            True, 
+            f"All insight fields present. {non_null_insights}/{len(required_insight_fields)} have values"
+        )
+
+    def test_narrative_and_reflection(self, timeline_data: Dict):
+        """Test Case 4: Narrative and Reflection Content"""
+        if not timeline_data:
+            self.log_result("Narrative and Reflection", False, "No timeline data available")
+            return
+        
+        timeline = timeline_data.get("timeline", {})
+        narrative = timeline.get("narrative_summary")
+        reflection = timeline.get("reflection_prompt")
+        
+        # Check narrative_summary
+        if not isinstance(narrative, str) or len(narrative.strip()) == 0:
+            self.log_result(
+                "Narrative and Reflection", 
+                False, 
+                f"Narrative summary is not a non-empty string: {type(narrative)}, length: {len(str(narrative))}"
+            )
+            return
+        
+        # Check reflection_prompt
+        if not isinstance(reflection, str) or len(reflection.strip()) == 0:
+            self.log_result(
+                "Narrative and Reflection", 
+                False, 
+                f"Reflection prompt is not a non-empty string: {type(reflection)}, length: {len(str(reflection))}"
+            )
+            return
+        
+        self.log_result(
+            "Narrative and Reflection", 
+            True, 
+            f"Narrative: {len(narrative)} chars, Reflection: {len(reflection)} chars"
+        )
+
+    def test_partial_flag(self, timeline_data: Dict):
+        """Test Case 5: Partial Flag and Weeks Available"""
+        if not timeline_data:
+            self.log_result("Partial Flag", False, "No timeline data available")
+            return
+        
+        timeline = timeline_data.get("timeline", {})
+        is_partial = timeline.get("is_partial")
+        weeks_available = timeline.get("weeks_available")
+        weeks = timeline.get("weeks", [])
+        
+        # Check is_partial is boolean
+        if not isinstance(is_partial, bool):
+            self.log_result(
+                "Partial Flag", 
+                False, 
+                f"is_partial is not boolean: {type(is_partial)}"
+            )
+            return
+        
+        # Check weeks_available is number
+        if not isinstance(weeks_available, (int, float)):
+            self.log_result(
+                "Partial Flag", 
+                False, 
+                f"weeks_available is not a number: {type(weeks_available)}"
+            )
+            return
+        
+        # Check weeks_available matches weeks array length
+        if weeks_available != len(weeks):
+            self.log_result(
+                "Partial Flag", 
+                False, 
+                f"weeks_available ({weeks_available}) doesn't match weeks array length ({len(weeks)})"
+            )
+            return
+        
+        self.log_result(
+            "Partial Flag", 
+            True, 
+            f"is_partial: {is_partial}, weeks_available: {weeks_available} (matches array length)"
+        )
+
+    def test_caching_behavior(self):
+        """Test Case 6: Caching Behavior"""
         try:
-            # Make second request
-            url = f"{self.base_url}/weekly-patterns/{self.test_user_id}"
+            url = f"{self.base_url}/pattern-timeline/{self.test_user_id}"
             
-            start_time = time.time()
-            response2 = requests.get(url, timeout=TIMEOUT)
-            response_time2 = time.time() - start_time
+            # First call
+            response1 = requests.get(url, timeout=30)
+            if response1.status_code != 200:
+                self.log_result(
+                    "Caching Behavior", 
+                    False, 
+                    f"First call failed: HTTP {response1.status_code}"
+                )
+                return
             
+            data1 = response1.json()
+            first_cached = data1.get("cached", False)
+            
+            # Wait a moment
+            time.sleep(1)
+            
+            # Second call
+            response2 = requests.get(url, timeout=30)
             if response2.status_code != 200:
                 self.log_result(
-                    "Caching Behavior - Second Request",
-                    False,
-                    f"HTTP {response2.status_code}"
+                    "Caching Behavior", 
+                    False, 
+                    f"Second call failed: HTTP {response2.status_code}"
                 )
-                return False
+                return
             
             data2 = response2.json()
-            cached2 = data2.get("cached")
+            second_cached = data2.get("cached", False)
             
-            # Check if second call returns cached: true
-            if cached2:
+            # Second call should be cached
+            if not second_cached:
                 self.log_result(
-                    "Caching Behavior - Cached Flag",
-                    True,
-                    f"Second call returned cached: true in {response_time2:.2f}s"
+                    "Caching Behavior", 
+                    False, 
+                    f"Second call not cached. First cached: {first_cached}, Second cached: {second_cached}"
                 )
-            else:
-                self.log_result(
-                    "Caching Behavior - Cached Flag",
-                    False,
-                    f"Second call did not return cached: true (got: {cached2})"
-                )
-                return False
+                return
             
-            # Compare response content consistency
-            ws1 = self.first_response_data.get("weekly_summary", {})
-            ws2 = data2.get("weekly_summary", {})
-            
-            if (ws1.get("week_start") == ws2.get("week_start") and 
-                ws1.get("week_end") == ws2.get("week_end")):
-                self.log_result(
-                    "Caching Behavior - Consistency",
-                    True,
-                    "Identical week dates between calls"
-                )
-            else:
-                self.log_result(
-                    "Caching Behavior - Consistency",
-                    False,
-                    "Different week dates between calls"
-                )
-                return False
-            
-            return True
+            self.log_result(
+                "Caching Behavior", 
+                True, 
+                f"Caching working correctly. First: cached={first_cached}, Second: cached={second_cached}"
+            )
             
         except Exception as e:
             self.log_result(
-                "Caching Behavior",
-                False,
-                f"Error testing caching: {e}"
+                "Caching Behavior", 
+                False, 
+                f"Caching test failed: {e}"
             )
-            return False
-    
-    def test_performance(self) -> bool:
-        """Test 8: Performance"""
-        if self.first_response_time == 0:
-            self.log_result("Performance", False, "No response time data available")
-            return False
-        
+
+    def test_weeks_query_param(self):
+        """Test Case 7: Query Parameter - weeks"""
         try:
-            if self.first_response_time < 2:
-                self.log_result(
-                    "Performance",
-                    True,
-                    f"Excellent - {self.first_response_time:.2f}s (under 2s)"
-                )
-            elif self.first_response_time < 5:
-                self.log_result(
-                    "Performance",
-                    True,
-                    f"Good - {self.first_response_time:.2f}s (under 5s)"
-                )
-            else:
-                self.log_result(
-                    "Performance",
-                    False,
-                    f"Slow - {self.first_response_time:.2f}s (over 5s requirement)"
-                )
-                return False
+            # Test with weeks=4
+            url = f"{self.base_url}/pattern-timeline/{self.test_user_id}?weeks=4"
+            response = requests.get(url, timeout=30)
             
-            return True
+            if response.status_code != 200:
+                self.log_result(
+                    "Weeks Query Parameter", 
+                    False, 
+                    f"HTTP {response.status_code}: {response.text}"
+                )
+                return
+            
+            data = response.json()
+            timeline = data.get("timeline", {})
+            range_label = timeline.get("range_label", "")
+            weeks = timeline.get("weeks", [])
+            
+            # Check range_label mentions 4 weeks
+            if "4" not in range_label or "week" not in range_label.lower():
+                self.log_result(
+                    "Weeks Query Parameter", 
+                    False, 
+                    f"Range label doesn't mention 4 weeks: '{range_label}'"
+                )
+                return
+            
+            # Check at most 4 weeks returned
+            if len(weeks) > 4:
+                self.log_result(
+                    "Weeks Query Parameter", 
+                    False, 
+                    f"Too many weeks returned: {len(weeks)} (expected max 4)"
+                )
+                return
+            
+            self.log_result(
+                "Weeks Query Parameter", 
+                True, 
+                f"weeks=4 parameter working. Range: '{range_label}', Weeks returned: {len(weeks)}"
+            )
             
         except Exception as e:
             self.log_result(
-                "Performance",
-                False,
-                f"Error checking performance: {e}"
+                "Weeks Query Parameter", 
+                False, 
+                f"Query parameter test failed: {e}"
             )
-            return False
-    
+
     def run_all_tests(self):
-        """Run all Weekly Pattern Synthesis tests."""
-        print("🧪 WEEKLY PATTERN SYNTHESIS API TESTING")
-        print("=" * 80)
-        print(f"Testing endpoint: GET /api/weekly-patterns/{self.test_user_id}")
-        print(f"Backend URL: {self.base_url}")
+        """Run all Pattern Timeline API tests"""
+        print("=" * 60)
+        print("PATTERN TIMELINE API ENDPOINT TESTING")
+        print("=" * 60)
+        print(f"Base URL: {self.base_url}")
+        print(f"Test User ID: {self.test_user_id}")
+        print(f"Test Time: {datetime.now().isoformat()}")
         print()
         
         # Test 1: Basic Response Structure
-        if not self.test_basic_response_structure():
-            print("\n❌ Basic response test failed. Stopping further tests.")
-            return self.generate_summary()
+        timeline_data = self.test_basic_response_structure()
         
-        print()
+        if timeline_data:
+            # Test 2: Weeks Array Structure
+            self.test_weeks_array_structure(timeline_data)
+            
+            # Test 3: Timeline Insights
+            self.test_timeline_insights(timeline_data)
+            
+            # Test 4: Narrative and Reflection
+            self.test_narrative_and_reflection(timeline_data)
+            
+            # Test 5: Partial Flag
+            self.test_partial_flag(timeline_data)
         
-        # Test 2: Top Domains
-        self.test_top_domains()
-        
-        # Test 3: All Domains
-        self.test_all_domains()
-        
-        # Test 4: Narrative and Reflection
-        self.test_narrative_and_reflection()
-        
-        # Test 5: Cross-Week Shift
-        self.test_cross_week_shift()
-        
-        # Test 6: Evidence Sources
-        self.test_evidence_sources()
-        
-        # Test 7: Caching Behavior
+        # Test 6: Caching Behavior
         self.test_caching_behavior()
         
-        # Test 8: Performance
-        self.test_performance()
+        # Test 7: Query Parameter
+        self.test_weeks_query_param()
         
-        return self.generate_summary()
-    
-    def generate_summary(self):
-        """Generate test summary."""
-        print("\n" + "=" * 80)
-        print("📊 TEST SUMMARY")
-        print("=" * 80)
-        
-        passed_tests = [r for r in self.results if r["passed"]]
-        failed_tests = [r for r in self.results if not r["passed"]]
-        
-        print(f"✅ PASSED: {len(passed_tests)}/{len(self.results)} tests")
-        print(f"❌ FAILED: {len(failed_tests)}/{len(self.results)} tests")
-        
-        if failed_tests:
-            print("\nFAILED TESTS:")
-            for test in failed_tests:
-                print(f"  ❌ {test['test']}: {test['details']}")
-        
-        if self.first_response_data:
-            weekly_summary = self.first_response_data.get("weekly_summary", {})
-            top_domains = weekly_summary.get("top_domains", [])
-            all_domains = weekly_summary.get("all_domains", [])
-            narrative = weekly_summary.get("narrative", "")
-            evidence_sources = weekly_summary.get("evidence_sources", [])
-            
-            print(f"\nENDPOINT DETAILS:")
-            print(f"Response Time: {self.first_response_time:.2f}s")
-            print(f"Week: {weekly_summary.get('week_start')} to {weekly_summary.get('week_end')}")
-            print(f"Top Domains: {len(top_domains)}")
-            print(f"All Domains: {len(all_domains)}")
-            print(f"Narrative Length: {len(narrative)} chars")
-            print(f"Evidence Sources: {len(evidence_sources)}")
-            print(f"Cached: {self.first_response_data.get('cached')}")
-        
-        print(f"\nTesting completed at: {datetime.now().isoformat()}")
-        
-        return {
-            "total_tests": len(self.results),
-            "passed": len(passed_tests),
-            "failed": len(failed_tests),
-            "success_rate": len(passed_tests) / len(self.results) if self.results else 0,
-            "results": self.results
-        }
+        # Summary
+        self.print_summary()
 
-
-def main():
-    """Main test execution."""
-    tester = WeeklyPatternSynthesisTester()
-    summary = tester.run_all_tests()
-    
-    # Exit with appropriate code
-    if summary["failed"] > 0:
-        return 1
-    else:
-        return 0
+    def print_summary(self):
+        """Print test summary"""
+        print("=" * 60)
+        print("TEST SUMMARY")
+        print("=" * 60)
+        
+        total_tests = len(self.results)
+        passed_tests = sum(1 for result in self.results if result["passed"])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests} ✅")
+        print(f"Failed: {failed_tests} ❌")
+        print(f"Success Rate: {(passed_tests/total_tests*100):.1f}%")
+        print()
+        
+        if failed_tests > 0:
+            print("FAILED TESTS:")
+            for result in self.results:
+                if not result["passed"]:
+                    print(f"❌ {result['test']}: {result['details']}")
+            print()
+        
+        print("DETAILED RESULTS:")
+        for result in self.results:
+            status = "✅" if result["passed"] else "❌"
+            print(f"{status} {result['test']}")
+            if result["details"]:
+                print(f"   {result['details']}")
+        
+        print("\n" + "=" * 60)
+        if failed_tests == 0:
+            print("🎉 ALL TESTS PASSED! Pattern Timeline API is working correctly.")
+        else:
+            print(f"⚠️  {failed_tests} test(s) failed. Please review the issues above.")
+        print("=" * 60)
 
 
 if __name__ == "__main__":
-    exit_code = main()
-    exit(exit_code)
+    tester = PatternTimelineAPITester()
+    tester.run_all_tests()
