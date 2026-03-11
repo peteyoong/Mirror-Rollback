@@ -29,6 +29,7 @@ SIGNAL_WEIGHTS = {
     "human_design_gates": 1,    # Framework-based
     "human_design": 1,      # Legacy source name (backward compatibility)
     "enneagram": 1,         # Framework-based - invisible contributor
+    "astrology_transit": 0.5,   # Timing layer - amplifies existing patterns only
 }
 
 
