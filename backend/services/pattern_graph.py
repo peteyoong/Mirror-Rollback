@@ -1812,31 +1812,43 @@ def aggregate_journal_signals_for_period(
     
     Args:
         journal_entries: All journal entries
-        start_date: Period start (inclusive)
-        end_date: Period end (inclusive)
+        start_date: Period start (inclusive), should be timezone-aware
+        end_date: Period end (inclusive), should be timezone-aware
     
     Returns:
         Dict mapping category_id to list of matched signals
     """
+    from datetime import timezone
+    
     category_signals: Dict[str, List[MatchedSignal]] = {
         cat["id"]: [] for cat in PATTERN_CATEGORIES
     }
     
+    # Ensure start_date and end_date are timezone-aware
+    if start_date.tzinfo is None:
+        start_date = start_date.replace(tzinfo=timezone.utc)
+    if end_date.tzinfo is None:
+        end_date = end_date.replace(tzinfo=timezone.utc)
+    
     for entry in journal_entries:
-        timestamp = entry.get("timestamp")
+        # Try 'timestamp' first, then 'created_at' for journal entries
+        timestamp = entry.get("timestamp") or entry.get("created_at")
         if not timestamp:
             continue
         
-        # Convert timestamp to datetime if needed
+        # Convert timestamp to datetime if needed and ensure timezone-aware
         if isinstance(timestamp, str):
             try:
                 timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
             except:
                 continue
         
+        # Make timezone-aware if naive
+        if timestamp.tzinfo is None:
+            timestamp = timestamp.replace(tzinfo=timezone.utc)
+        
         # Check if within period
-        entry_date = timestamp.replace(tzinfo=None) if hasattr(timestamp, 'tzinfo') else timestamp
-        if not (start_date <= entry_date <= end_date):
+        if not (start_date <= timestamp <= end_date):
             continue
         
         content = entry.get("content", "").lower()
@@ -1851,7 +1863,7 @@ def aggregate_journal_signals_for_period(
                     matches_found.append(kw)
             
             if matches_found:
-                date_str = entry_date.strftime("%b %d")
+                date_str = timestamp.strftime("%b %d")
                 signal: MatchedSignal = {
                     "source": "journal",
                     "label": f"Journal ({', '.join(matches_found[:2])})",
