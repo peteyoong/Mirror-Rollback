@@ -315,12 +315,17 @@ export default function PatternsScreen() {
     const isExpanded = expandedDomain === domain.category_id;
     
     // Filter out enneagram signals for display (enneagram is invisible)
+    // Transit signals are kept but displayed subtly at the end
     const visibleSignals = domain.matched_signals?.filter(s => s.source !== 'enneagram') || [];
     const hasVisibleSignals = visibleSignals.length > 0;
     
-    // Group signals by source for display
+    // Separate transit signals from regular signals
+    const transitSignal = visibleSignals.find(s => s.source === 'astrology_transit');
+    const regularSignals = visibleSignals.filter(s => s.source !== 'astrology_transit');
+    
+    // Group regular signals by source for display
     const signalsBySource: Record<string, MatchedSignal[]> = {};
-    visibleSignals.forEach(signal => {
+    regularSignals.forEach(signal => {
       const source = signal.source;
       if (!signalsBySource[source]) {
         signalsBySource[source] = [];
@@ -330,7 +335,7 @@ export default function PatternsScreen() {
 
     // Debug log for signal counts (only once per domain on render)
     const counts = countSignalsBySource(visibleSignals);
-    console.log(`[PATTERN_CARD_RENDER] ${domain.category_name}: visibleSignals=${visibleSignals.length}, isExpanded=${isExpanded}, hasVisibleSignals=${hasVisibleSignals}, gene_keys=${counts.gene_keys || 0}, hd=${counts.human_design || 0}, journal=${counts.journal || 0}`);
+    console.log(`[PATTERN_CARD_RENDER] ${domain.category_name}: visibleSignals=${visibleSignals.length}, isExpanded=${isExpanded}, hasVisibleSignals=${hasVisibleSignals}, gene_keys=${counts.gene_keys || 0}, hd=${counts.human_design || 0}, journal=${counts.journal || 0}, transit=${transitSignal ? 1 : 0}`);
 
     return (
       <View
