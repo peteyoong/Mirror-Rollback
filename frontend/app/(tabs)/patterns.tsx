@@ -540,33 +540,6 @@ export default function PatternGraphScreen() {
           </Text>
         </View>
       )}
-
-      {/* SECTION 4: Pattern History (compact summary) */}
-      {timelineByPeriod.length > 0 && (
-        <View style={styles.historySection}>
-          <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>
-            PATTERN HISTORY
-          </Text>
-          
-          {timelineByPeriod.map((period, idx) => (
-            <View key={idx} style={styles.historyPeriod}>
-              <Text style={[styles.historyPeriodLabel, { color: theme.text }]}>
-                {period.period}
-              </Text>
-              <Text style={[styles.historyPeriodThemes, { color: theme.textSecondary }]}>
-                Recurring: {period.recurring.join(', ')}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {/* Footer note */}
-      <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: theme.textTertiary }]}>
-          This is a reflection tool, not a diagnosis. Patterns suggest themes worth noticing, not certainties.
-        </Text>
-      </View>
     </ScrollView>
   );
 }
