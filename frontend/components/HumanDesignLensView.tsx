@@ -940,41 +940,59 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         
         {/* Row 1: Type + Authority - Tappable for drill-down */}
         <View style={styles.mechanicsGrid}>
-          <TouchableOpacity 
-            style={styles.mechanicItem}
-            onPress={() => handleMechanicTap('type')}
-            activeOpacity={0.7}
+          <Pressable 
+            style={({ pressed }) => [
+              styles.mechanicItem,
+              pressed && { opacity: 0.7 }
+            ]}
+            onPress={() => {
+              console.log('[CoreMechanics] Type pressed');
+              handleMechanicTap('type');
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Text style={{ fontSize: 14, color: theme.accent }}>⚡</Text>
             <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Type</Text>
             <Text style={[styles.mechanicValue, { color: theme.text }]}>{formatMechanic(mechanics.type)}</Text>
             <Text style={[styles.mechanicDrillDown, { color: theme.accent }]}>Explore →</Text>
-          </TouchableOpacity>
+          </Pressable>
           <View style={[styles.mechanicDivider, { backgroundColor: theme.border }]} />
-          <TouchableOpacity 
-            style={styles.mechanicItem}
-            onPress={() => handleMechanicTap('authority')}
-            activeOpacity={0.7}
+          <Pressable 
+            style={({ pressed }) => [
+              styles.mechanicItem,
+              pressed && { opacity: 0.7 }
+            ]}
+            onPress={() => {
+              console.log('[CoreMechanics] Authority pressed');
+              handleMechanicTap('authority');
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Text style={{ fontSize: 14, color: theme.accent }}>◎</Text>
             <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Authority</Text>
             <Text style={[styles.mechanicValue, { color: theme.text }]}>{formatMechanic(mechanics.authority)}</Text>
             <Text style={[styles.mechanicDrillDown, { color: theme.accent }]}>Explore →</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
         
         {/* Row 2: Profile + Definition - Tappable for drill-down */}
         <View style={[styles.mechanicsGrid, { marginTop: 16 }]}>
-          <TouchableOpacity 
-            style={styles.mechanicItem}
-            onPress={() => handleMechanicTap('profile')}
-            activeOpacity={0.7}
+          <Pressable 
+            style={({ pressed }) => [
+              styles.mechanicItem,
+              pressed && { opacity: 0.7 }
+            ]}
+            onPress={() => {
+              console.log('[CoreMechanics] Profile pressed');
+              handleMechanicTap('profile');
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Text style={{ fontSize: 14, color: theme.accent }}>👤</Text>
             <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Profile</Text>
             <Text style={[styles.mechanicValue, { color: theme.text }]}>{mechanics.profile || '—'}</Text>
             <Text style={[styles.mechanicDrillDown, { color: theme.accent }]}>Explore →</Text>
-          </TouchableOpacity>
+          </Pressable>
           <View style={[styles.mechanicDivider, { backgroundColor: theme.border }]} />
           <View style={styles.mechanicItem}>
             <Text style={{ fontSize: 14, color: theme.accent }}>☰</Text>
@@ -985,17 +1003,24 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         
         {/* Row 3: Incarnation Cross - Tappable for drill-down */}
         <View style={[styles.mechanicsGrid, { marginTop: 16 }]}>
-          <TouchableOpacity 
-            style={[styles.mechanicItem, { flex: 1 }]}
-            onPress={() => handleMechanicTap('incarnation')}
-            activeOpacity={0.7}
+          <Pressable 
+            style={({ pressed }) => [
+              styles.mechanicItem,
+              { flex: 1 },
+              pressed && { opacity: 0.7 }
+            ]}
+            onPress={() => {
+              console.log('[CoreMechanics] Incarnation Cross pressed');
+              handleMechanicTap('incarnation');
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Text style={{ fontSize: 14, color: theme.accent }}>✦</Text>
             <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Incarnation Cross</Text>
             <Text style={[styles.mechanicValue, styles.mechanicValueSmall, { color: theme.text }]}>{formatCross()}</Text>
             <Text style={[styles.mechanicGates, { color: theme.textTertiary }]}>{getCrossGates()}</Text>
             <Text style={[styles.mechanicDrillDown, { color: theme.accent }]}>Explore →</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     );
