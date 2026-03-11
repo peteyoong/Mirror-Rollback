@@ -8446,9 +8446,14 @@ async def get_pattern_graph(user_id: str):
         
         pattern_graph["categories"] = categories_with_synthesis
         
+        # Detect pattern tensions between active categories
+        from services.pattern_graph import detect_pattern_tensions
+        pattern_tensions = detect_pattern_tensions(categories_with_synthesis)
+        
         return {
             "success": True,
-            **pattern_graph
+            **pattern_graph,
+            "pattern_tensions": pattern_tensions
         }
     
     except HTTPException:
