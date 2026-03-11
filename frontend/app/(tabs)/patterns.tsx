@@ -247,7 +247,13 @@ export default function PatternsScreen() {
     const newExpanded = expandedDomain === domainId ? null : domainId;
     console.log(`[PATTERN_ACCORDION_TAP] ${domainName}`);
     console.log(`[PATTERN_ACCORDION_STATE] ${domainName} expanded=${newExpanded !== null}`);
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    console.log(`[PATTERN_ACCORDION_DEBUG] Previous expandedDomain=${expandedDomain}, New=${newExpanded}`);
+    
+    // Use LayoutAnimation only on native platforms
+    if (Platform.OS !== 'web') {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
+    
     setExpandedDomain(newExpanded);
   };
 
