@@ -26,6 +26,7 @@ interface PatternCategory {
   matched_sources: string[];
   matched_signals: MatchedSignal[];
   summary: string;
+  synthesis?: string;  // LLM-generated reflective paragraph for recurring patterns
 }
 
 interface PatternGraphResponse {
