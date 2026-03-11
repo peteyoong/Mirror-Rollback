@@ -307,15 +307,21 @@ export default function PatternsScreen() {
     switch (strength) {
       case 'recurring': return 'Recurring';
       case 'present': return 'Present';
+      case 'emerging': return 'Emerging';
+      case 'stable': return 'Stable';
       case 'quiet': return 'Quiet';
+      case 'context': return 'Context';
       default: return strength;
     }
   };
 
   const getStrengthColor = (strength: string): string => {
     switch (strength) {
-      case 'recurring': return '#7dd3a0';
-      case 'present': return '#a0c4e8';
+      case 'recurring': return '#7dd3a0';  // Green - active/frequent
+      case 'emerging': return '#f5b942';   // Amber/Gold - new/rising
+      case 'present': return '#a0c4e8';    // Blue - occasional
+      case 'stable': return '#9b8ac4';     // Purple - consistent/long-term
+      case 'context': return '#c9a07d';    // Bronze/Brown - lens-activated
       case 'quiet': return theme.textTertiary;
       default: return theme.textTertiary;
     }
