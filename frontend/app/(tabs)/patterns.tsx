@@ -247,13 +247,18 @@ export default function PatternGraphScreen() {
     const humanDesignSignals: { label: string; detail?: string }[] = [];
     const journalSignals: string[] = [];
     
+    // Track seen labels to avoid duplicates
+    const seenGeneKeys = new Set<string>();
+    const seenHumanDesign = new Set<string>();
+    
     // Collect all signals from all categories
     categories.forEach(cat => {
       cat.matched_signals.forEach(signal => {
         if (signal.source === 'gene_keys') {
-          // Deduplicate Gene Keys by creating a unique key
-          const existing = geneKeysSignals.find(s => s.label === signal.label && s.sphere === signal.sphere_name);
-          if (!existing) {
+          // Create a unique key combining label and sphere
+          const key = `${signal.label}|${signal.sphere_name || ''}`;
+          if (!seenGeneKeys.has(key)) {
+            seenGeneKeys.add(key);
             geneKeysSignals.push({
               label: signal.label,
               sphere: signal.sphere_name,
@@ -261,8 +266,8 @@ export default function PatternGraphScreen() {
             });
           }
         } else if (signal.source === 'human_design' || signal.source === 'human_design_centers' || signal.source === 'human_design_gates') {
-          const existing = humanDesignSignals.find(s => s.label === signal.label);
-          if (!existing) {
+          if (!seenHumanDesign.has(signal.label)) {
+            seenHumanDesign.add(signal.label);
             humanDesignSignals.push({
               label: signal.label,
               detail: signal.detail
