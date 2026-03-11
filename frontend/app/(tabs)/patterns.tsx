@@ -728,10 +728,21 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 12,
   },
+  presentCardPromptRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
   presentCardPrompt: {
     fontSize: 13,
     lineHeight: 19,
     fontStyle: 'italic',
+  },
+  journalIcon: {
+    paddingLeft: 8,
+    paddingTop: 2,
+  },
+  journalIconText: {
+    fontSize: 14,
   },
   
   // Explore the Signals section (now source-grouped)
