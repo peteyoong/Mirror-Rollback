@@ -647,4 +647,70 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
+  
+  // Timeline section
+  timelineSection: {
+    marginTop: 32,
+    marginBottom: 16,
+  },
+  timelineSectionTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.5,
+    marginBottom: 6,
+  },
+  timelineSectionSubtext: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 16,
+  },
+  timeBucket: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 12,
+  },
+  bucketLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  bucketCategories: {
+    gap: 10,
+  },
+  timelineCategoryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  timelineCategoryLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timelineStrengthDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 10,
+  },
+  timelineCategoryName: {
+    fontSize: 14,
+  },
+  timelineStrengthLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  bucketEmpty: {
+    fontSize: 13,
+    fontStyle: 'italic',
+  },
+  timelineEmpty: {
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  timelineEmptyText: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
 });
