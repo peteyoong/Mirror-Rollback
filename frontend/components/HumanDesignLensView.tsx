@@ -394,32 +394,61 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       return mechanics.incarnation_cross_gates || '—';
     };
 
+    // Navigate to mechanic detail section
+    const handleMechanicTap = (mechanicType: string) => {
+      // Find the relevant section in data.sections and expand it
+      if (data?.sections) {
+        const section = data.sections.find((s: any) => 
+          s.title?.toLowerCase().includes(mechanicType.toLowerCase()) ||
+          s.heading?.toLowerCase().includes(mechanicType.toLowerCase())
+        );
+        if (section) {
+          setExpandedSection(expandedSection === mechanicType ? null : mechanicType);
+        }
+      }
+    };
+
     return (
       <View style={[styles.coreMechanicsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <Text style={[styles.coreMechanicsTitle, { color: theme.textTertiary }]}>CORE MECHANICS</Text>
         
-        {/* Row 1: Type + Authority */}
+        {/* Row 1: Type + Authority - Tappable for drill-down */}
         <View style={styles.mechanicsGrid}>
-          <View style={styles.mechanicItem}>
+          <TouchableOpacity 
+            style={styles.mechanicItem}
+            onPress={() => handleMechanicTap('type')}
+            activeOpacity={0.7}
+          >
             <Text style={{ fontSize: 14, color: theme.accent }}>⚡</Text>
             <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Type</Text>
             <Text style={[styles.mechanicValue, { color: theme.text }]}>{formatMechanic(mechanics.type)}</Text>
-          </View>
+            <Text style={[styles.mechanicDrillDown, { color: theme.accent }]}>Explore →</Text>
+          </TouchableOpacity>
           <View style={[styles.mechanicDivider, { backgroundColor: theme.border }]} />
-          <View style={styles.mechanicItem}>
+          <TouchableOpacity 
+            style={styles.mechanicItem}
+            onPress={() => handleMechanicTap('authority')}
+            activeOpacity={0.7}
+          >
             <Text style={{ fontSize: 14, color: theme.accent }}>◎</Text>
             <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Authority</Text>
             <Text style={[styles.mechanicValue, { color: theme.text }]}>{formatMechanic(mechanics.authority)}</Text>
-          </View>
+            <Text style={[styles.mechanicDrillDown, { color: theme.accent }]}>Explore →</Text>
+          </TouchableOpacity>
         </View>
         
-        {/* Row 2: Profile + Definition */}
+        {/* Row 2: Profile + Definition - Tappable for drill-down */}
         <View style={[styles.mechanicsGrid, { marginTop: 16 }]}>
-          <View style={styles.mechanicItem}>
+          <TouchableOpacity 
+            style={styles.mechanicItem}
+            onPress={() => handleMechanicTap('profile')}
+            activeOpacity={0.7}
+          >
             <Text style={{ fontSize: 14, color: theme.accent }}>👤</Text>
             <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Profile</Text>
             <Text style={[styles.mechanicValue, { color: theme.text }]}>{mechanics.profile || '—'}</Text>
-          </View>
+            <Text style={[styles.mechanicDrillDown, { color: theme.accent }]}>Explore →</Text>
+          </TouchableOpacity>
           <View style={[styles.mechanicDivider, { backgroundColor: theme.border }]} />
           <View style={styles.mechanicItem}>
             <Text style={{ fontSize: 14, color: theme.accent }}>☰</Text>
@@ -428,14 +457,19 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         </View>
         
-        {/* Row 3: Incarnation Cross */}
+        {/* Row 3: Incarnation Cross - Tappable for drill-down */}
         <View style={[styles.mechanicsGrid, { marginTop: 16 }]}>
-          <View style={[styles.mechanicItem, { flex: 1 }]}>
+          <TouchableOpacity 
+            style={[styles.mechanicItem, { flex: 1 }]}
+            onPress={() => handleMechanicTap('incarnation')}
+            activeOpacity={0.7}
+          >
             <Text style={{ fontSize: 14, color: theme.accent }}>✦</Text>
             <Text style={[styles.mechanicLabel, { color: theme.textTertiary }]}>Incarnation Cross</Text>
             <Text style={[styles.mechanicValue, styles.mechanicValueSmall, { color: theme.text }]}>{formatCross()}</Text>
             <Text style={[styles.mechanicGates, { color: theme.textTertiary }]}>{getCrossGates()}</Text>
-          </View>
+            <Text style={[styles.mechanicDrillDown, { color: theme.accent }]}>Explore →</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
