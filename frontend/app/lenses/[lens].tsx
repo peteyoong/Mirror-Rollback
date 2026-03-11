@@ -742,10 +742,23 @@ export default function LensDetail() {
           <Text style={[styles.loadingText, { color: theme.textTertiary }]}>
             Loading your {lensMeta.name}...
           </Text>
+          <Text style={[styles.loadingText, { color: theme.textTertiary, fontSize: 10, marginTop: 8 }]}>
+            [lens].tsx LOADING • user.id: {user?.id || 'undefined'}
+          </Text>
         </View>
       ) : (
         // OTHER LENSES: Keep original implementation (numerology, consciousness, etc.)
         <>
+          {/* DEBUG BANNER - LEGACY PATH */}
+          <View style={{ backgroundColor: '#FF5722', padding: 6, alignItems: 'center' }}>
+            <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>
+              ⚠️ LEGACY [lens].tsx RENDERING
+            </Text>
+            <Text style={{ color: '#fff', fontSize: 9 }}>
+              Lens: {lens} | User: {user?.id?.substring(0, 8) || 'undefined'}...
+            </Text>
+          </View>
+          
           {/* Tabs */}
           {renderTabs()}
 
