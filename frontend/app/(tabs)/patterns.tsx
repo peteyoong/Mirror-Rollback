@@ -67,7 +67,7 @@ interface TimelineResponse {
 
 export default function PatternGraphScreen() {
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { user } = useAppStore();
   const [categories, setCategories] = useState<PatternCategory[]>([]);
   const [summary, setSummary] = useState<{ active_categories: number; emerging_categories: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -80,11 +80,11 @@ export default function PatternGraphScreen() {
   const [timelineLoading, setTimelineLoading] = useState(false);
 
   useEffect(() => {
-    if (user?._id) {
+    if (user?.id) {
       loadPatternGraph();
       loadTimeline();
     }
-  }, [user?._id]);
+  }, [user?.id]);
 
   const loadPatternGraph = async (refresh = false) => {
     if (refresh) {
