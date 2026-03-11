@@ -391,6 +391,35 @@ export default function PatternGraphScreen() {
         </View>
       )}
 
+      {/* Pattern Tensions Section */}
+      {patternTensions.length > 0 && (
+        <View style={styles.tensionsSection}>
+          <Text style={[styles.tensionsSectionTitle, { color: theme.textTertiary }]}>
+            PATTERN TENSIONS
+          </Text>
+          <Text style={[styles.tensionsSectionSubtext, { color: theme.textSecondary }]}>
+            Sometimes two themes may be active at once, creating friction, growth, or choice.
+          </Text>
+          
+          {patternTensions.map((tension, index) => (
+            <View 
+              key={index}
+              style={[styles.tensionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            >
+              <Text style={[styles.tensionCategories, { color: theme.text }]}>
+                {tension.category_a} ↔ {tension.category_b}
+              </Text>
+              <Text style={[styles.tensionSummary, { color: theme.textSecondary }]}>
+                {tension.summary}
+              </Text>
+              <Text style={[styles.tensionPrompt, { color: theme.accent }]}>
+                {tension.reflection_prompt}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+
       {/* Categories list */}
       <View style={styles.categoriesList}>
         {categories.map(category => renderCategoryCard(category))}
