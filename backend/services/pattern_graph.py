@@ -1247,11 +1247,13 @@ def aggregate_pattern_graph(
     chat_signals: Optional[List[dict]] = None,  # Future: from Mirror Chat
     enneagram_type: Optional[int] = None,       # Enneagram core type (1-9)
     enneagram_wing: Optional[int] = None,       # Enneagram wing (optional)
-    include_transits: bool = True               # Whether to include transit amplification
+    include_transits: bool = True,              # Whether to include transit amplification
+    natal_chart: Optional[dict] = None          # User's natal chart for personalized transits
 ) -> Dict[str, Any]:
     """Main aggregation function for Pattern Graph.
     
     Combines signals from all available sources into the 7 pattern categories.
+    Uses real planetary transits (Swiss Ephemeris) as a timing/amplification layer.
     
     Args:
         gene_keys_profile: Result from build_gene_keys_profile()
@@ -1261,6 +1263,8 @@ def aggregate_pattern_graph(
         chat_signals: Future - signals from Mirror Chat analysis
         enneagram_type: User's Enneagram type (invisible contributor)
         enneagram_wing: User's Enneagram wing (optional)
+        include_transits: Whether to include transit amplification (default True)
+        natal_chart: User's natal chart for personalized transit calculations
     
     Returns:
         Complete pattern graph response
@@ -1315,18 +1319,22 @@ def aggregate_pattern_graph(
                 unique_sigs.append(sig)
         preliminary_scores[cat_id] = calculate_weighted_score(unique_sigs[:5])
     
-    # Get current transit themes and add transit signals (amplification only)
-    transit_themes = []
+    # Get real planetary transit influence and add transit signals (amplification only)
     transit_emphasized_domains = set()
+    transit_intensities: Dict[str, float] = {}
     if include_transits:
-        transit_themes = get_current_transit_themes()
-        logger.debug(f"[PatternGraph] Active transit themes: {transit_themes}")
+        logger.debug("[PatternGraph] Calculating real planetary transits...")
         
-        # Aggregate transit signals (only for domains with existing support)
+        # Aggregate transit signals using real Swiss Ephemeris calculations
+        # Pass natal chart if available for personalized transits
         transit_signals = aggregate_transit_signals(
-            transit_themes=transit_themes,
+            natal_chart=natal_chart,
             existing_domain_scores=preliminary_scores
         )
+        
+        # Also get intensity scores for amplification calculation
+        transit_intensities = get_transit_domain_intensities(natal_chart=natal_chart)
+        
         for cat_id, signals in transit_signals.items():
             if signals:  # Only if transit added signals to this domain
                 all_signals[cat_id].extend(signals)
