@@ -62,7 +62,7 @@ interface KeystoneContext {
   daily_seed: string;
 }
 
-type ViewMode = 'journal' | 'mirror';
+type ViewMode = 'journal' | 'mirror' | 'timeline';
 
 export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
