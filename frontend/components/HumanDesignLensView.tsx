@@ -988,7 +988,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                 </View>
                 
                 {/* Section 2: Centers Accordion */}
-                <CentersView userId={userId} />
+                <CentersView userId={userId} ref={centersViewRef} />
                 
                 {/* Section 3: Defined Gates Accordion */}
                 <DefinedGatesView userId={userId} />
