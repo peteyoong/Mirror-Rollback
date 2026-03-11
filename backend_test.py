@@ -397,6 +397,282 @@ class PatternGraphTester:
         
         return self.print_summary()
     
+    def test_pattern_timeline_basic_endpoint(self) -> bool:
+        """Test Pattern Timeline API - Basic Endpoint Test"""
+        try:
+            url = f"{self.base_url}/pattern-graph/timeline/{self.user_id}"
+            response = requests.get(url, timeout=30)
+            
+            # Check status code
+            if response.status_code != 200:
+                self.log_test("Pattern Timeline Basic Endpoint", False, 
+                            f"Expected 200, got {response.status_code}")
+                return False
+            
+            # Parse JSON
+            try:
+                data = response.json()
+            except json.JSONDecodeError as e:
+                self.log_test("Pattern Timeline Basic Endpoint", False, 
+                            f"Invalid JSON response: {e}")
+                return False
+            
+            # Check required fields
+            required_fields = ["success", "buckets", "has_any_activity", "generated_at"]
+            missing_fields = [field for field in required_fields if field not in data]
+            
+            if missing_fields:
+                self.log_test("Pattern Timeline Basic Endpoint", False, 
+                            f"Missing fields: {missing_fields}")
+                return False
+            
+            # Check success field
+            if data.get("success") != True:
+                self.log_test("Pattern Timeline Basic Endpoint", False, 
+                            f"success field is {data.get('success')}, expected True")
+                return False
+            
+            # Check buckets count
+            buckets = data.get("buckets", [])
+            if len(buckets) != 2:
+                self.log_test("Pattern Timeline Basic Endpoint", False, 
+                            f"Expected 2 buckets, got {len(buckets)}")
+                return False
+            
+            # Check has_any_activity is boolean
+            has_activity = data.get("has_any_activity")
+            if not isinstance(has_activity, bool):
+                self.log_test("Pattern Timeline Basic Endpoint", False, 
+                            f"has_any_activity should be boolean, got {type(has_activity)}")
+                return False
+            
+            # Check generated_at is valid timestamp
+            generated_at = data.get("generated_at")
+            try:
+                datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+            except (ValueError, AttributeError):
+                self.log_test("Pattern Timeline Basic Endpoint", False, 
+                            f"Invalid generated_at timestamp: {generated_at}")
+                return False
+            
+            self.log_test("Pattern Timeline Basic Endpoint", True, 
+                        f"Response contains all required fields with correct types")
+            return True
+            
+        except requests.RequestException as e:
+            self.log_test("Pattern Timeline Basic Endpoint", False, f"Request failed: {e}")
+            return False
+
+    def test_pattern_timeline_time_bucket_structure(self) -> bool:
+        """Test Pattern Timeline API - Time Bucket Structure"""
+        try:
+            url = f"{self.base_url}/pattern-graph/timeline/{self.user_id}"
+            response = requests.get(url, timeout=30)
+            
+            if response.status_code != 200:
+                self.log_test("Pattern Timeline Time Bucket Structure", False, 
+                            f"Endpoint failed with {response.status_code}")
+                return False
+            
+            data = response.json()
+            buckets = data.get("buckets", [])
+            
+            expected_buckets = [
+                {"name": "last_7_days", "label": "Last 7 Days"},
+                {"name": "last_30_days", "label": "Last 30 Days"}
+            ]
+            
+            for i, expected in enumerate(expected_buckets):
+                if i >= len(buckets):
+                    self.log_test("Pattern Timeline Time Bucket Structure", False, 
+                                f"Missing bucket {i}: {expected['name']}")
+                    return False
+                
+                bucket = buckets[i]
+                
+                # Check required bucket fields
+                required_fields = ["bucket_name", "bucket_label", "start_date", "end_date", "categories", "has_activity"]
+                missing_fields = [field for field in required_fields if field not in bucket]
+                
+                if missing_fields:
+                    self.log_test("Pattern Timeline Time Bucket Structure", False, 
+                                f"Bucket {i} missing fields: {missing_fields}")
+                    return False
+                
+                # Check bucket name and label
+                if bucket["bucket_name"] != expected["name"]:
+                    self.log_test("Pattern Timeline Time Bucket Structure", False, 
+                                f"Bucket {i} name: expected {expected['name']}, got {bucket['bucket_name']}")
+                    return False
+                
+                if bucket["bucket_label"] != expected["label"]:
+                    self.log_test("Pattern Timeline Time Bucket Structure", False, 
+                                f"Bucket {i} label: expected {expected['label']}, got {bucket['bucket_label']}")
+                    return False
+                
+                # Check date formats
+                try:
+                    datetime.fromisoformat(bucket["start_date"])
+                    datetime.fromisoformat(bucket["end_date"])
+                except ValueError as e:
+                    self.log_test("Pattern Timeline Time Bucket Structure", False, 
+                                f"Bucket {i} invalid date format: {e}")
+                    return False
+                
+                # Check categories count
+                categories = bucket.get("categories", [])
+                if len(categories) != 7:
+                    self.log_test("Pattern Timeline Time Bucket Structure", False, 
+                                f"Bucket {i}: expected 7 categories, got {len(categories)}")
+                    return False
+                
+                # Check has_activity is boolean
+                if not isinstance(bucket["has_activity"], bool):
+                    self.log_test("Pattern Timeline Time Bucket Structure", False, 
+                                f"Bucket {i} has_activity should be boolean")
+                    return False
+            
+            self.log_test("Pattern Timeline Time Bucket Structure", True, 
+                        "Both buckets have correct structure with 7 categories each")
+            return True
+            
+        except Exception as e:
+            self.log_test("Pattern Timeline Time Bucket Structure", False, f"Test failed: {e}")
+            return False
+
+    def test_pattern_timeline_category_structure(self) -> bool:
+        """Test Pattern Timeline API - Category Structure"""
+        try:
+            url = f"{self.base_url}/pattern-graph/timeline/{self.user_id}"
+            response = requests.get(url, timeout=30)
+            
+            if response.status_code != 200:
+                self.log_test("Pattern Timeline Category Structure", False, 
+                            f"Endpoint failed with {response.status_code}")
+                return False
+            
+            data = response.json()
+            buckets = data.get("buckets", [])
+            
+            expected_categories = [
+                "Energy & Vitality",
+                "Emotional Landscape", 
+                "Identity & Direction",
+                "Mind & Meaning",
+                "Expression & Action",
+                "Relationships & Boundaries",
+                "Growth & Transformation"
+            ]
+            
+            for bucket_idx, bucket in enumerate(buckets):
+                categories = bucket.get("categories", [])
+                
+                for cat_idx, category in enumerate(categories):
+                    # Check required category fields
+                    required_fields = ["category_id", "category_name", "signal_strength", "total_signals", "matched_sources", "summary"]
+                    missing_fields = [field for field in required_fields if field not in category]
+                    
+                    if missing_fields:
+                        self.log_test("Pattern Timeline Category Structure", False, 
+                                    f"Bucket {bucket_idx}, Category {cat_idx} missing fields: {missing_fields}")
+                        return False
+                    
+                    # Check category_id is string
+                    if not isinstance(category["category_id"], str):
+                        self.log_test("Pattern Timeline Category Structure", False, 
+                                    f"category_id should be string, got {type(category['category_id'])}")
+                        return False
+                    
+                    # Check category_name is one of expected
+                    cat_name = category["category_name"]
+                    if cat_name not in expected_categories:
+                        self.log_test("Pattern Timeline Category Structure", False, 
+                                    f"Unexpected category name: {cat_name}")
+                        return False
+                    
+                    # Check signal_strength values
+                    strength = category["signal_strength"]
+                    valid_strengths = ["quiet", "present", "recurring"]
+                    if strength not in valid_strengths:
+                        self.log_test("Pattern Timeline Category Structure", False, 
+                                    f"Invalid signal_strength '{strength}', expected one of {valid_strengths}")
+                        return False
+                    
+                    # Check total_signals is integer
+                    if not isinstance(category["total_signals"], int):
+                        self.log_test("Pattern Timeline Category Structure", False, 
+                                    f"total_signals should be integer, got {type(category['total_signals'])}")
+                        return False
+                    
+                    # Check matched_sources is array
+                    if not isinstance(category["matched_sources"], list):
+                        self.log_test("Pattern Timeline Category Structure", False, 
+                                    f"matched_sources should be array, got {type(category['matched_sources'])}")
+                        return False
+                    
+                    # Check summary is non-empty string
+                    summary = category["summary"]
+                    if not isinstance(summary, str) or len(summary.strip()) == 0:
+                        self.log_test("Pattern Timeline Category Structure", False, 
+                                    f"summary should be non-empty string, got: '{summary}'")
+                        return False
+            
+            self.log_test("Pattern Timeline Category Structure", True, 
+                        f"All categories have correct structure and valid field types")
+            return True
+            
+        except Exception as e:
+            self.log_test("Pattern Timeline Category Structure", False, f"Test failed: {e}")
+            return False
+
+    def test_pattern_timeline_signal_strength_language(self) -> bool:
+        """Test Pattern Timeline API - Signal Strength Language"""
+        try:
+            url = f"{self.base_url}/pattern-graph/timeline/{self.user_id}"
+            response = requests.get(url, timeout=30)
+            
+            if response.status_code != 200:
+                self.log_test("Pattern Timeline Signal Strength Language", False, 
+                            f"Endpoint failed with {response.status_code}")
+                return False
+            
+            data = response.json()
+            buckets = data.get("buckets", [])
+            
+            # Collect all signal strengths
+            all_strengths = []
+            forbidden_strengths = ["active", "emerging"]  # These should NOT be used
+            allowed_strengths = ["quiet", "present", "recurring"]  # These should be used
+            
+            for bucket in buckets:
+                categories = bucket.get("categories", [])
+                for category in categories:
+                    strength = category.get("signal_strength")
+                    all_strengths.append(strength)
+                    
+                    # Check for forbidden terms
+                    if strength in forbidden_strengths:
+                        self.log_test("Pattern Timeline Signal Strength Language", False, 
+                                    f"Found forbidden strength '{strength}', should use {allowed_strengths}")
+                        return False
+                    
+                    # Check for allowed terms
+                    if strength not in allowed_strengths:
+                        self.log_test("Pattern Timeline Signal Strength Language", False, 
+                                    f"Invalid strength '{strength}', must be one of {allowed_strengths}")
+                        return False
+            
+            # Count usage of each strength
+            strength_counts = {s: all_strengths.count(s) for s in allowed_strengths}
+            
+            self.log_test("Pattern Timeline Signal Strength Language", True, 
+                        f"All strengths use correct terminology: {strength_counts}")
+            return True
+            
+        except Exception as e:
+            self.log_test("Pattern Timeline Signal Strength Language", False, f"Test failed: {e}")
+            return False
+
     def print_summary(self):
         """Print test summary and return results"""
         print("\n" + "=" * 80)
