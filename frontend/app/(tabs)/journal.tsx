@@ -279,6 +279,182 @@ export default function JournalScreen() {
     </View>
   );
 
+  // Helper to format relative time for timeline
+  const formatTimelineDate = (dateStr: string): { date: string; time: string; relative: string } => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    let relative = '';
+    if (diffDays === 0) relative = 'Today';
+    else if (diffDays === 1) relative = 'Yesterday';
+    else if (diffDays < 7) relative = `${diffDays} days ago`;
+    else if (diffDays < 30) relative = `${Math.floor(diffDays / 7)} weeks ago`;
+    else relative = `${Math.floor(diffDays / 30)} months ago`;
+    
+    return {
+      date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+      time: date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      relative,
+    };
+  };
+
+  // Group entries by date for timeline
+  const groupEntriesByDate = () => {
+    const groups: { [key: string]: typeof journalEntries } = {};
+    
+    journalEntries.forEach(entry => {
+      const date = new Date(entry.created_at);
+      const dateKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(entry);
+    });
+    
+    // Sort groups by date (most recent first)
+    const sortedGroups = Object.entries(groups).sort((a, b) => {
+      const dateA = new Date(a[1][0].created_at);
+      const dateB = new Date(b[1][0].created_at);
+      return dateB.getTime() - dateA.getTime();
+    });
+    
+    return sortedGroups;
+  };
+
+  // Journal Timeline View - Chronological history of journal entries
+  if (viewMode === 'timeline') {
+    const groupedEntries = groupEntriesByDate();
+    
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        {renderModeToggle()}
+        
+        <View style={styles.timelineContainer}>
+          <View style={styles.timelineHeader}>
+            <Text style={[styles.timelineTitle, { color: theme.text }]}>Your Journal History</Text>
+            <Text style={[styles.timelineSubtitle, { color: theme.textTertiary }]}>
+              A chronological view of your reflections
+            </Text>
+          </View>
+          
+          {isLoading ? (
+            <View style={styles.centered}>
+              <ActivityIndicator size="large" color={theme.textSecondary} />
+            </View>
+          ) : journalEntries.length === 0 ? (
+            <View style={styles.timelineEmpty}>
+              <Text style={{ fontSize: 42, color: theme.textTertiary }}>📝</Text>
+              <Text style={[styles.timelineEmptyTitle, { color: theme.textSecondary }]}>
+                No entries yet
+              </Text>
+              <Text style={[styles.timelineEmptySubtext, { color: theme.textTertiary }]}>
+                Start journaling to see your reflection history here
+              </Text>
+              <TouchableOpacity
+                style={[styles.timelineStartButton, { backgroundColor: theme.accent }]}
+                onPress={() => setViewMode('journal')}
+              >
+                <Text style={[styles.timelineStartButtonText, { color: '#FFFFFF' }]}>
+                  Write Your First Entry
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <FlatList
+              data={groupedEntries}
+              keyExtractor={(item) => item[0]}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.timelineList}
+              renderItem={({ item: [dateLabel, entries] }) => (
+                <View style={styles.timelineDateGroup}>
+                  {/* Date Header */}
+                  <View style={styles.timelineDateHeader}>
+                    <View style={[styles.timelineDateDot, { backgroundColor: theme.accent }]} />
+                    <Text style={[styles.timelineDateLabel, { color: theme.text }]}>
+                      {dateLabel}
+                    </Text>
+                    <Text style={[styles.timelineEntryCount, { color: theme.textTertiary }]}>
+                      {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+                    </Text>
+                  </View>
+                  
+                  {/* Entries for this date */}
+                  <View style={[styles.timelineEntriesLine, { borderLeftColor: theme.border }]}>
+                    {entries.map((entry, index) => {
+                      const timeInfo = formatTimelineDate(entry.created_at);
+                      const preview = entry.content.length > 120 
+                        ? entry.content.substring(0, 120).trim() + '...' 
+                        : entry.content;
+                      
+                      return (
+                        <View 
+                          key={entry.id} 
+                          style={[
+                            styles.timelineEntryCard,
+                            { backgroundColor: theme.surface, borderColor: theme.border }
+                          ]}
+                        >
+                          <View style={styles.timelineEntryHeader}>
+                            <Text style={[styles.timelineEntryTime, { color: theme.textTertiary }]}>
+                              {timeInfo.time}
+                            </Text>
+                            {entry.themes && entry.themes.length > 0 && (
+                              <View style={styles.timelineThemes}>
+                                {entry.themes.slice(0, 2).map((tag, i) => (
+                                  <View 
+                                    key={i} 
+                                    style={[styles.timelineThemeChip, { backgroundColor: theme.accent + '15' }]}
+                                  >
+                                    <Text style={[styles.timelineThemeText, { color: theme.accent }]}>
+                                      {tag}
+                                    </Text>
+                                  </View>
+                                ))}
+                              </View>
+                            )}
+                          </View>
+                          
+                          <Text 
+                            style={[styles.timelineEntryPreview, { color: theme.textSecondary }]}
+                            numberOfLines={3}
+                          >
+                            {preview}
+                          </Text>
+                          
+                          <TouchableOpacity
+                            style={[styles.timelineReflectButton, { borderColor: theme.accent + '40' }]}
+                            onPress={() => handleReflect(entry.id, entry.content)}
+                          >
+                            <Text style={{ fontSize: 12, color: theme.accent }}>✦</Text>
+                            <Text style={[styles.timelineReflectText, { color: theme.accent }]}>
+                              Reflect with Mirror
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+            />
+          )}
+        </View>
+        
+        {/* Mirror Reflection Modal */}
+        <MirrorReflectionModal
+          visible={reflectionModalVisible}
+          onClose={handleCloseModal}
+          journalText={selectedJournalText}
+          chart={chart}
+        />
+      </SafeAreaView>
+    );
+  }
+
   // Mirror Chat View
   if (viewMode === 'mirror') {
     return (
