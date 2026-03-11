@@ -41,6 +41,30 @@ interface DailyKeystone {
   is_enriched?: boolean;  // True when LLM-personalized, false when deterministic
 }
 
+// Pattern Pulse interfaces
+interface PatternTension {
+  category_a: string;
+  category_b: string;
+  summary: string;
+  reflection_prompt: string;
+}
+
+interface PatternCategory {
+  category_id: string;
+  category_name: string;
+  signal_strength: string;
+  pattern_score: number;
+  synthesis?: string;
+  summary: string;
+}
+
+interface PatternPulseData {
+  type: 'tension' | 'theme';
+  title: string;
+  body: string;
+  prompt?: string;
+}
+
 // Get local date in YYYY-MM-DD format
 const getLocalDateString = (): string => {
   const now = new Date();
