@@ -413,36 +413,20 @@ export default function PatternGraphScreen() {
         </Text>
       </View>
 
-      {/* Summary stats */}
-      {summary && !allQuiet && (
-        <View style={[styles.statsRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: theme.accent }]}>
-              {summary.active_categories}
-            </Text>
-            <Text style={[styles.statLabel, { color: theme.textTertiary }]}>
-              Recurring
-            </Text>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: theme.textSecondary }]}>
-              {summary.emerging_categories}
-            </Text>
-            <Text style={[styles.statLabel, { color: theme.textTertiary }]}>
-              Present
-            </Text>
-          </View>
-        </View>
+      {/* Subtle theme indicator (replaces dashboard stats) */}
+      {!allQuiet && (
+        <Text style={[styles.themesIndicator, { color: theme.textTertiary }]}>
+          Some themes may be more active than others right now.
+        </Text>
       )}
 
-      {/* Pattern Tensions Section */}
+      {/* SECTION 1: Pattern Tensions */}
       {patternTensions.length > 0 && (
         <View style={styles.tensionsSection}>
-          <Text style={[styles.tensionsSectionTitle, { color: theme.textTertiary }]}>
+          <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>
             PATTERN TENSIONS
           </Text>
-          <Text style={[styles.tensionsSectionSubtext, { color: theme.textSecondary }]}>
+          <Text style={[styles.sectionSubtext, { color: theme.textSecondary }]}>
             Sometimes two themes may be active at once, creating friction, growth, or choice.
           </Text>
           
@@ -465,10 +449,35 @@ export default function PatternGraphScreen() {
         </View>
       )}
 
-      {/* Categories list */}
-      <View style={styles.categoriesList}>
-        {categories.map(category => renderCategoryCard(category))}
-      </View>
+      {/* SECTION 2: What's Most Present */}
+      {topCategories.length > 0 && (
+        <View style={styles.mostPresentSection}>
+          <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>
+            WHAT'S MOST PRESENT
+          </Text>
+          <Text style={[styles.sectionSubtext, { color: theme.textSecondary }]}>
+            The themes that seem to be surfacing most clearly right now.
+          </Text>
+          
+          {topCategories.map(category => renderMostPresentCard(category))}
+        </View>
+      )}
+
+      {/* SECTION 3: Explore the Signals */}
+      {categories.filter(c => c.signal_strength !== 'quiet').length > 0 && (
+        <View style={styles.exploreSection}>
+          <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>
+            EXPLORE THE SIGNALS
+          </Text>
+          <Text style={[styles.sectionSubtext, { color: theme.textSecondary }]}>
+            The underlying data behind your patterns.
+          </Text>
+          
+          <View style={styles.signalsCardList}>
+            {categories.map(category => renderSignalsCard(category))}
+          </View>
+        </View>
+      )}
 
       {/* Empty state message */}
       {allQuiet && (
