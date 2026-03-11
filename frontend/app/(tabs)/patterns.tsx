@@ -852,43 +852,35 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   
-  // Explore the Signals section
+  // Explore the Signals section (now source-grouped)
   exploreSection: {
     marginBottom: 24,
   },
-  signalsCardList: {
-    gap: 10,
-  },
-  signalsCard: {
+  sourceSection: {
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
+    padding: 16,
+    marginBottom: 12,
   },
-  signalsCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 14,
-  },
-  signalsCardLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  signalsIndicator: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 10,
-  },
-  signalsCardName: {
+  sourceTitle: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
+    marginBottom: 12,
   },
-  signalsCardContent: {
-    padding: 14,
-    paddingTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
+  sourceSignalRow: {
+    marginBottom: 10,
+  },
+  sourceSignalTitle: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  sourceSignalSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  sourceKeywords: {
+    fontSize: 13,
+    lineHeight: 19,
   },
   
   // Expand icon
