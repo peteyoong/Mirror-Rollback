@@ -892,6 +892,176 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   // Removed separate renderTabDescription - now integrated into renderTabs
 
+  // Strategy content by type
+  const STRATEGY_STORIES: { [key: string]: MechanicStory } = {
+    'Generator': {
+      explanation: [
+        'Your strategy is to Wait to Respond. This doesn\'t mean being passive—it means allowing life to bring opportunities to you rather than initiating from mental ideas.',
+        'Response happens in your body, not your mind. Something in the world catches your attention, and your sacral center responds with excitement or resistance.',
+        'When you wait for something to respond to, your decisions are aligned with your life force. When you initiate without response, you often hit resistance and frustration.'
+      ],
+      patterns: [
+        'Noticing what makes your gut respond with energy',
+        'Waiting for opportunities rather than chasing them',
+        'Responding to questions, offers, and invitations',
+        'Finding your way by trial and response rather than planning',
+        'Energy that sustains when you\'ve responded correctly'
+      ],
+      challenge: 'The biggest challenge is the cultural conditioning to initiate. You may feel lazy or passive waiting to respond, but forcing initiation leads to frustration.',
+      reflection: 'When was the last time you waited for life to bring you something to respond to? What happened when you did?'
+    },
+    'Manifesting Generator': {
+      explanation: [
+        'Your strategy is to Wait to Respond, then Inform before acting. Like Generators, you wait for something to respond to. Unlike pure Generators, once you respond, you can move fast.',
+        'The responding keeps you from wasting energy on wrong directions. The informing keeps others from resisting your sudden movements.',
+        'You may need to skip steps and pivot quickly. This isn\'t inconsistency—it\'s efficiency. Trust your response, then move.'
+      ],
+      patterns: [
+        'Waiting for genuine response before committing',
+        'Moving quickly once something resonates',
+        'Informing others before sudden changes in direction',
+        'Following energy even when it seems non-linear',
+        'Pivoting without guilt when response shifts'
+      ],
+      challenge: 'The challenge is either forcing initiation (Generator frustration) or not informing before acting (Manifestor resistance). Both strategies matter.',
+      reflection: 'When you last moved fast on something, had you truly responded to it first? Did you inform those affected by your movement?'
+    },
+    'Projector': {
+      explanation: [
+        'Your strategy is to Wait for the Invitation. This doesn\'t mean waiting passively—it means recognizing when your guidance is truly wanted.',
+        'Invitations come in many forms: being asked your opinion, being offered a role, being recognized for your insight. When invited, your guidance lands. When uninvited, it doesn\'t.',
+        'This waiting isn\'t about big life invitations only. It\'s about daily interactions—noticing when you\'re truly asked versus when you\'re imposing.'
+      ],
+      patterns: [
+        'Waiting until you\'re genuinely asked before advising',
+        'Recognizing formal and informal invitations',
+        'Guidance that lands when properly invited',
+        'Bitterness when offering unsolicited input',
+        'Success through recognition rather than self-promotion'
+      ],
+      challenge: 'The biggest challenge is seeing so clearly what others need and not being able to share it until invited. Patience and strategic positioning help.',
+      reflection: 'Where have you been offering guidance without being invited? What might happen if you waited to be asked?'
+    },
+    'Manifestor': {
+      explanation: [
+        'Your strategy is to Inform before you act. This isn\'t asking permission—it\'s letting people know what you\'re about to do so they can adjust.',
+        'Manifestors have a powerful impact on others. When you act without informing, people feel blindsided and resist. When you inform, resistance dissolves.',
+        'Informing creates peace—your signature. Not informing creates anger—both from others and eventually from you.'
+      ],
+      patterns: [
+        'Letting others know before taking significant action',
+        'Creating space for your impulses by reducing resistance',
+        'Peace that comes from proactive communication',
+        'Anger when feeling controlled or blocked',
+        'Freedom through responsibility rather than isolation'
+      ],
+      challenge: 'The biggest challenge is the impulse to just act without informing. It feels slower, but it actually speeds things up by removing resistance.',
+      reflection: 'What significant action are you about to take? Who needs to be informed before you move?'
+    },
+    'Reflector': {
+      explanation: [
+        'Your strategy is to Wait a Lunar Cycle for major decisions. With all centers undefined, you sample the energy of everyone around you.',
+        'In 28 days, the moon moves through all 64 gates, giving you the opportunity to experience a decision from every possible energetic perspective.',
+        'This isn\'t indecision—it\'s thorough evaluation. You see what others miss because you take in everything.'
+      ],
+      patterns: [
+        'Allowing 28 days for major life decisions',
+        'Experiencing different perspectives over the lunar cycle',
+        'Wisdom from thorough energetic sampling',
+        'Disappointment when rushing or when environments don\'t match potential',
+        'Clarity that emerges from patience'
+      ],
+      challenge: 'The biggest challenge is the pressure to decide quickly. Others don\'t understand your process, and you may doubt yourself for needing more time.',
+      reflection: 'What decision are you currently facing? How might your knowing change over the next 28 days?'
+    }
+  };
+
+  const getStrategyContent = (type: string | undefined): MechanicStory => {
+    return STRATEGY_STORIES[type || 'Generator'] || STRATEGY_STORIES['Generator'];
+  };
+
+  const getCentersContent = (): MechanicStory => {
+    const definedCount = Object.values(centersDefinition).filter(v => v === true).length;
+    const undefinedCount = 9 - definedCount;
+    const defType = data?.core_mechanics?.definition || 'Unknown';
+    
+    return {
+      explanation: [
+        `You have ${definedCount} defined centers and ${undefinedCount} undefined centers. Your definition type is "${defType}."`,
+        'Defined centers (colored in your chart) operate consistently—this is energy you can rely on and that others experience from you. These are your fixed traits.',
+        'Undefined centers (white in your chart) are where you take in and amplify the energy of others. These are your areas of wisdom through experience, but also where you can be conditioned.'
+      ],
+      patterns: [
+        `${definedCount} centers operating with consistent energy`,
+        `${undefinedCount} centers open to external influence`,
+        'Wisdom gained through undefined centers over time',
+        'Conditioning and amplification in open centers',
+        'Reliability and consistency from defined centers'
+      ],
+      challenge: 'The biggest challenge is mistaking the amplified energy of undefined centers for your own. What feels intense may be what you\'re taking in from others.',
+      reflection: 'Which of your undefined centers do you notice most strongly? Where might you be amplifying someone else\'s energy?'
+    };
+  };
+
+  // State for which Deep Dive accordion is expanded
+  const [expandedDeepDive, setExpandedDeepDive] = useState<string | null>(null);
+
+  const renderDeepDiveAccordion = (key: string, title: string, subtitle: string, story: MechanicStory | undefined) => {
+    const isExpanded = expandedDeepDive === key;
+    
+    if (!story) return null;
+    
+    return (
+      <View key={key} style={[styles.deepDiveAccordion, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.deepDiveHeader,
+            pressed && { opacity: 0.7 }
+          ]}
+          onPress={() => {
+            setExpandedDeepDive(isExpanded ? null : key);
+          }}
+        >
+          <View style={styles.deepDiveHeaderText}>
+            <Text style={[styles.deepDiveTitle, { color: theme.text }]}>{title}</Text>
+            <Text style={[styles.deepDiveSubtitle, { color: theme.textTertiary }]}>{subtitle}</Text>
+          </View>
+          <Text style={[styles.deepDiveChevron, { color: theme.textTertiary }]}>
+            {isExpanded ? '▲' : '▼'}
+          </Text>
+        </Pressable>
+        
+        {isExpanded && (
+          <View style={styles.deepDiveContent}>
+            {/* Explanation */}
+            {story.explanation.map((para, i) => (
+              <Text key={`exp-${i}`} style={[styles.deepDiveParagraph, { color: theme.text }]}>{para}</Text>
+            ))}
+            
+            {/* Patterns */}
+            <Text style={[styles.deepDiveSectionLabel, { color: theme.accent }]}>HOW THIS SHOWS UP</Text>
+            {story.patterns.map((pattern, i) => (
+              <View key={`pat-${i}`} style={styles.deepDiveBulletRow}>
+                <Text style={[styles.deepDiveBullet, { color: theme.textTertiary }]}>•</Text>
+                <Text style={[styles.deepDiveBulletText, { color: theme.text }]}>{pattern}</Text>
+              </View>
+            ))}
+            
+            {/* Challenge */}
+            <Text style={[styles.deepDiveSectionLabel, { color: theme.accent }]}>COMMON CHALLENGE</Text>
+            <Text style={[styles.deepDiveParagraph, { color: theme.text }]}>{story.challenge}</Text>
+            
+            {/* Reflection */}
+            <View style={[styles.deepDiveReflection, { backgroundColor: theme.background, borderLeftColor: theme.accent }]}>
+              <Text style={[styles.deepDiveSectionLabel, { color: theme.accent }]}>REFLECTION</Text>
+              <Text style={[styles.deepDiveReflectionText, { color: theme.text }]}>{story.reflection}</Text>
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   // Always render core mechanics for deep dive, even with fallback values
   const renderCoreMechanics = () => {
     // Default fallback if no data
