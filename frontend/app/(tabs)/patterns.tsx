@@ -332,29 +332,44 @@ export default function PatternsScreen() {
     if (!content) {
       return {
         synthesis: "This domain is being observed.",
-        showUp: null,
         prompt: "What do you notice here?"
       };
     }
     
+    // Map new status types to existing content
     switch (strength) {
       case 'recurring':
         return {
           synthesis: content.recurringSynthesis,
-          showUp: content.recurringShowUp || null,
+          prompt: content.reflectionPrompt
+        };
+      case 'stable':
+        // Stable uses recurring content but feels more established
+        return {
+          synthesis: content.recurringSynthesis,
+          prompt: content.reflectionPrompt
+        };
+      case 'emerging':
+        // Emerging uses present content with emphasis on newness
+        return {
+          synthesis: content.presentSynthesis,
           prompt: content.reflectionPrompt
         };
       case 'present':
         return {
           synthesis: content.presentSynthesis,
-          showUp: content.presentShowUp || null,
+          prompt: content.reflectionPrompt
+        };
+      case 'context':
+        // Context is lens-activated, use present synthesis
+        return {
+          synthesis: content.presentSynthesis,
           prompt: content.reflectionPrompt
         };
       case 'quiet':
       default:
         return {
           synthesis: content.quietSynthesis,
-          showUp: content.quietShowUp || null,
           prompt: content.reflectionPrompt
         };
     }
