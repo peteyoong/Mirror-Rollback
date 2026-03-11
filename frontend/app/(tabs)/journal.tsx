@@ -106,13 +106,28 @@ type ViewMode = 'journal' | 'mirror' | 'timeline';
 export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
   const { theme, isDark } = useTheme();
-  const params = useLocalSearchParams<{ view?: string; fromKeystone?: string }>();
+  const params = useLocalSearchParams<{ 
+    view?: string; 
+    fromKeystone?: string;
+    prefillPrompt?: string;
+    journalSource?: string;
+    category?: string;
+    tensionPair?: string;
+  }>();
   const [viewMode, setViewMode] = useState<ViewMode>('journal');
   const [newEntry, setNewEntry] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef<TextInput>(null);
+  
+  // Pattern metadata for journal entries triggered from patterns
+  const [patternMetadata, setPatternMetadata] = useState<{
+    journal_source?: string;
+    pattern_category?: string;
+    pattern_tension_pair?: string;
+    prompt_text?: string;
+  } | null>(null);
   
   // Mirror Reflection Modal state
   const [reflectionModalVisible, setReflectionModalVisible] = useState(false);
