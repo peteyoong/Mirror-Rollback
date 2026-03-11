@@ -37,14 +37,6 @@ interface PatternDomain {
   synthesis?: string;
 }
 
-interface PatternTension {
-  category_a: string;
-  category_b: string;
-  combined_score: number;
-  summary: string;
-  reflection_prompt: string;
-}
-
 interface PatternGraphResponse {
   success: boolean;
   categories: PatternDomain[];
@@ -53,22 +45,81 @@ interface PatternGraphResponse {
     emerging_categories: number;
     total_signals: number;
   };
-  pattern_tensions: PatternTension[];
+  pattern_tensions: any[];
   updated_at: string;
 }
 
 // ============================================================================
-// DOMAIN REFLECTION PROMPTS
+// DOMAIN CONTENT - Deeper synthesis and reflection prompts
 // ============================================================================
 
-const DOMAIN_REFLECTION_PROMPTS: Record<string, string> = {
-  'energy_vitality': 'What does your energy want you to notice right now?',
-  'emotional_landscape': 'What emotion might be asking for your attention?',
-  'identity_direction': 'What part of yourself is seeking expression?',
-  'mind_meaning': 'What is your mind trying to understand?',
-  'expression_action': 'What wants to be expressed or created through you?',
-  'relationships_boundaries': 'Where might your connections be asking for care?',
-  'growth_transformation': 'What change might be ready to happen?'
+interface DomainContent {
+  quietSynthesis: string;
+  quietShowUp?: string;
+  presentSynthesis: string;
+  presentShowUp?: string;
+  recurringSynthesis: string;
+  recurringShowUp?: string;
+  reflectionPrompt: string;
+}
+
+const DOMAIN_CONTENT: Record<string, DomainContent> = {
+  'energy_vitality': {
+    quietSynthesis: "Your energy may be in a quieter phase right now. This doesn't mean something is wrong—sometimes the body and spirit need rest before the next movement becomes clear.",
+    presentSynthesis: "Something around energy, vitality, or the pace of your life may be surfacing. This domain can become active when the body is asking for attention—whether through fatigue, restlessness, or a subtle sense that something needs to shift.",
+    presentShowUp: "One way this pattern can appear is through the tension between what you want to do and what your energy actually allows. It might also show up as a question about sustainability, or a feeling that you're running on something other than your own rhythm.",
+    recurringSynthesis: "A recurring theme around energy and vitality seems to be present across your reflections. This may point to a deeper question about how you sustain yourself—not just physically, but emotionally and spiritually.",
+    recurringShowUp: "This pattern can sometimes show up as cycles of depletion and recovery, or as a growing awareness that something in how you're living may need to change. It might also be an invitation to notice where your energy comes from and where it goes.",
+    reflectionPrompt: "What is your energy asking you to notice right now?"
+  },
+  'emotional_landscape': {
+    quietSynthesis: "The emotional landscape may feel quieter at the moment. This can be a time of integration, or simply a pause between waves of feeling.",
+    presentSynthesis: "Emotional themes may be moving through your inner world right now. This domain often becomes active when feelings are asking for acknowledgment—whether through intensity, numbness, or a sense that something unnamed is present.",
+    presentShowUp: "One way this can show up is through mood shifts that feel disconnected from external events, or through recurring feelings that don't quite resolve. It might also appear as a growing sensitivity to your own inner weather.",
+    recurringSynthesis: "Emotional patterns seem to be surfacing repeatedly in your reflections. This may suggest that something in your inner life is asking for deeper attention—not to be fixed, but to be witnessed and understood.",
+    recurringShowUp: "Sometimes this pattern shows up as a particular emotion that keeps returning, or as a sense that your emotional life has its own rhythm that's different from your thinking mind. It can also appear as a growing capacity to be with feelings without needing to change them.",
+    reflectionPrompt: "What emotion might be asking for your attention?"
+  },
+  'identity_direction': {
+    quietSynthesis: "Questions of identity and direction may be resting for now. This can be a period of simply being, without the pressure of becoming.",
+    presentSynthesis: "A quieter question may be surfacing around self-trust, worth, or permission to move forward. Sometimes this domain becomes active not because direction is absent, but because your sense of who you are becomes entangled with whether you feel ready, valid, or enough.",
+    presentShowUp: "One way this pattern can appear is through hesitation that feels deeper than practical uncertainty—a sense that moving forward requires something from you that feels unavailable. It might also show up as questions about authenticity, or a feeling of being caught between who you've been and who you're becoming.",
+    recurringSynthesis: "Themes around identity and direction seem to be recurring in your inner world. This may point to a deeper process of self-definition—one that isn't about finding the right path, but about learning to trust your own becoming.",
+    recurringShowUp: "This pattern can sometimes show up as a persistent question about what you really want, or as a tension between external expectations and internal truth. It might also appear as a growing willingness to be uncertain without feeling lost.",
+    reflectionPrompt: "What part of yourself is seeking expression or acknowledgment?"
+  },
+  'mind_meaning': {
+    quietSynthesis: "The mind may be in a quieter phase right now—less focused on making sense of things, more present to experience itself.",
+    presentSynthesis: "Something around thinking, understanding, or meaning-making may be active. This domain often surfaces when the mind is working through something—trying to understand, categorize, or find a framework that holds.",
+    presentShowUp: "One way this can show up is through mental restlessness, overthinking, or a sense that understanding something will bring relief. It might also appear as a hunger for insight, or a feeling that something important is just out of reach.",
+    recurringSynthesis: "Patterns around mind and meaning seem to be recurring in your reflections. This may suggest that your mind is processing something significant—not necessarily a problem to solve, but perhaps a new way of seeing that's trying to emerge.",
+    recurringShowUp: "Sometimes this pattern shows up as a persistent question that doesn't have a clear answer, or as a gradual shift in how you make sense of your experience. It can also appear as a growing awareness of the limits of thinking alone.",
+    reflectionPrompt: "What is your mind trying to understand or make sense of?"
+  },
+  'expression_action': {
+    quietSynthesis: "Expression and action may be in a quieter phase. This can be a time of gathering, preparing, or simply being without the need to produce or perform.",
+    presentSynthesis: "Something around expression, creativity, or taking action may be surfacing. This domain often becomes active when there's something inside asking to move outward—whether through words, work, or simply showing up differently in the world.",
+    presentShowUp: "One way this can show up is through creative restlessness, or a feeling that something wants to be said or made but isn't quite finding its form. It might also appear as tension between the impulse to act and the fear of being seen.",
+    recurringSynthesis: "Themes around expression and action seem to be recurring in your reflections. This may point to a deeper relationship with your own creative force—not just what you make, but how you allow yourself to be present in the world.",
+    recurringShowUp: "Sometimes this pattern shows up as a persistent question about voice, visibility, or impact. It can also appear as a growing sense that how you express yourself matters—not for external validation, but for your own sense of aliveness.",
+    reflectionPrompt: "What wants to be expressed or created through you?"
+  },
+  'relationships_boundaries': {
+    quietSynthesis: "Relational themes may be quieter right now. This can be a time of being present with yourself, without the complexity of navigating others.",
+    presentSynthesis: "Something around relationships, boundaries, or connection may be surfacing. This domain often becomes active when the space between self and other feels charged—whether through closeness, distance, or the subtle negotiations of being in relationship.",
+    presentShowUp: "One way this can show up is through a sense of being pulled between your own needs and others' expectations. It might also appear as questions about trust, dependency, or how much of yourself to reveal.",
+    recurringSynthesis: "Patterns around relationships and boundaries seem to be recurring in your reflections. This may suggest that something in how you connect with others is asking for deeper attention—not to change, necessarily, but to be understood.",
+    recurringShowUp: "Sometimes this pattern shows up as a persistent question about where you end and others begin. It can also appear as a growing awareness of your own patterns in relationship—what you seek, what you avoid, and what you're learning.",
+    reflectionPrompt: "Where might your connections be asking for care or attention?"
+  },
+  'growth_transformation': {
+    quietSynthesis: "Growth and transformation may be in a quieter phase. Sometimes the most profound changes happen invisibly, in the spaces between effort.",
+    presentSynthesis: "Something around change, growth, or transformation may be surfacing. This domain often becomes active during transitions—when the old way no longer fits, but the new way hasn't fully arrived.",
+    presentShowUp: "One way this can show up is through a sense of being between identities, or through the discomfort that comes before a shift. It might also appear as a growing willingness to let go of what once defined you.",
+    recurringSynthesis: "Themes around growth and transformation seem to be recurring in your reflections. This may point to a deeper process of becoming—one that asks for patience with your own unfolding and trust in what you can't yet see.",
+    recurringShowUp: "Sometimes this pattern shows up as a feeling of being on the edge of something new, or as a recognition that certain ways of being no longer serve you. It can also appear as a quiet knowing that something inside you is changing, even if you can't name it yet.",
+    reflectionPrompt: "What change might be ready to happen in you?"
+  }
 };
 
 // ============================================================================
@@ -82,11 +133,9 @@ export default function PatternsScreen() {
   
   // State
   const [domains, setDomains] = useState<PatternDomain[]>([]);
-  const [tensions, setTensions] = useState<PatternTension[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
 
   // ============================================================================
   // DATA LOADING
@@ -110,8 +159,6 @@ export default function PatternsScreen() {
       const response = await api.get<PatternGraphResponse>(`/pattern-graph/${user?.id}`);
       if (response.data.success) {
         setDomains(response.data.categories);
-        // Limit tensions to max 2
-        setTensions((response.data.pattern_tensions || []).slice(0, 2));
       } else {
         setError('Unable to load pattern data.');
       }
@@ -146,8 +193,34 @@ export default function PatternsScreen() {
     }
   };
 
-  const getReflectionPrompt = (domainId: string) => {
-    return DOMAIN_REFLECTION_PROMPTS[domainId] || 'What might this pattern be showing you?';
+  const getDomainContent = (domainId: string, strength: string): { synthesis: string; showUp?: string; prompt: string } => {
+    const content = DOMAIN_CONTENT[domainId];
+    if (!content) {
+      return {
+        synthesis: 'Patterns in this area may be emerging.',
+        prompt: 'What might this pattern be showing you?'
+      };
+    }
+
+    switch (strength) {
+      case 'recurring':
+        return {
+          synthesis: content.recurringSynthesis,
+          showUp: content.recurringShowUp,
+          prompt: content.reflectionPrompt
+        };
+      case 'present':
+        return {
+          synthesis: content.presentSynthesis,
+          showUp: content.presentShowUp,
+          prompt: content.reflectionPrompt
+        };
+      default:
+        return {
+          synthesis: content.quietSynthesis,
+          prompt: content.reflectionPrompt
+        };
+    }
   };
 
   const handleJournalTrigger = (domainName: string, prompt: string) => {
@@ -161,62 +234,13 @@ export default function PatternsScreen() {
     });
   };
 
-  const toggleDomain = (domainId: string) => {
-    setExpandedDomain(expandedDomain === domainId ? null : domainId);
-  };
-
-  // Extract signals grouped by source for Section 4
-  const getSignalsBySource = () => {
-    const geneKeys: { keyNumber: string; label: string; sphere?: string }[] = [];
-    const humanDesign: { label: string; detail?: string }[] = [];
-    const journal: string[] = [];
-    
-    const seenGeneKeys = new Set<string>();
-    const seenHD = new Set<string>();
-    
-    domains.forEach(domain => {
-      domain.matched_signals.forEach(signal => {
-        if (signal.source === 'gene_keys') {
-          const keyMatch = signal.detail?.match(/Gene Key (\d+)/);
-          if (keyMatch && !seenGeneKeys.has(keyMatch[1])) {
-            seenGeneKeys.add(keyMatch[1]);
-            geneKeys.push({
-              keyNumber: keyMatch[1],
-              label: signal.label,
-              sphere: signal.sphere_name
-            });
-          }
-        } else if (signal.source === 'human_design' || signal.source === 'human_design_centers' || signal.source === 'human_design_gates') {
-          if (!seenHD.has(signal.label)) {
-            seenHD.add(signal.label);
-            humanDesign.push({
-              label: signal.label,
-              detail: signal.detail
-            });
-          }
-        } else if (signal.source === 'journal' || signal.source === 'mirror_chat') {
-          if (!journal.includes(signal.label)) {
-            journal.push(signal.label);
-          }
-        }
-      });
-    });
-    
-    return { geneKeys, humanDesign, journal };
-  };
-
-  const { geneKeys, humanDesign, journal } = getSignalsBySource();
-  const hasSignals = geneKeys.length > 0 || humanDesign.length > 0 || journal.length > 0;
-
   // ============================================================================
   // RENDER: DOMAIN CARD
   // ============================================================================
 
   const renderDomainCard = (domain: PatternDomain) => {
-    const isExpanded = expandedDomain === domain.category_id;
     const strengthColor = getStrengthColor(domain.signal_strength);
-    const prompt = getReflectionPrompt(domain.category_id);
-    const hasSignals = domain.matched_signals.length > 0;
+    const { synthesis, showUp, prompt } = getDomainContent(domain.category_id, domain.signal_strength);
 
     return (
       <View
@@ -224,30 +248,26 @@ export default function PatternsScreen() {
         style={[styles.domainCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
       >
         {/* Domain Header */}
-        <TouchableOpacity
-          style={styles.domainHeader}
-          onPress={() => toggleDomain(domain.category_id)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.domainHeaderContent}>
-            <Text style={[styles.domainName, { color: theme.text }]}>
-              {domain.category_name}
-            </Text>
-            <Text style={[styles.domainStrength, { color: strengthColor }]}>
-              {getStrengthLabel(domain.signal_strength)}
-            </Text>
-          </View>
-          {hasSignals && (
-            <Text style={[styles.expandIcon, { color: theme.textTertiary }]}>
-              {isExpanded ? '▾' : '▸'}
-            </Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.domainHeader}>
+          <Text style={[styles.domainName, { color: theme.text }]}>
+            {domain.category_name}
+          </Text>
+          <Text style={[styles.domainStrength, { color: strengthColor }]}>
+            {getStrengthLabel(domain.signal_strength)}
+          </Text>
+        </View>
 
-        {/* Synthesis Text */}
+        {/* Primary Synthesis */}
         <Text style={[styles.domainSynthesis, { color: theme.textSecondary }]}>
-          {domain.synthesis || domain.summary}
+          {synthesis}
         </Text>
+
+        {/* Optional: How this may show up */}
+        {showUp && (
+          <Text style={[styles.domainShowUp, { color: theme.textSecondary }]}>
+            {showUp}
+          </Text>
+        )}
 
         {/* Reflection Prompt + Journal Trigger */}
         <View style={styles.domainPromptRow}>
@@ -264,48 +284,9 @@ export default function PatternsScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-
-        {/* Expanded: Signals contributing to this pattern */}
-        {isExpanded && hasSignals && (
-          <View style={[styles.domainExpanded, { borderTopColor: theme.border }]}>
-            <Text style={[styles.expandedTitle, { color: theme.textTertiary }]}>
-              Signals contributing to this pattern
-            </Text>
-            {domain.matched_signals.slice(0, 6).map((signal, idx) => (
-              <View key={idx} style={styles.expandedSignalRow}>
-                <Text style={[styles.expandedSignalBullet, { color: theme.accent }]}>•</Text>
-                <Text style={[styles.expandedSignalText, { color: theme.textSecondary }]}>
-                  {signal.detail || signal.label}
-                  {signal.sphere_name && ` (${signal.sphere_name})`}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
       </View>
     );
   };
-
-  // ============================================================================
-  // RENDER: INTERACTION CARD
-  // ============================================================================
-
-  const renderInteractionCard = (tension: PatternTension, index: number) => (
-    <View
-      key={index}
-      style={[styles.interactionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-    >
-      <Text style={[styles.interactionPair, { color: theme.text }]}>
-        {tension.category_a} ↔ {tension.category_b}
-      </Text>
-      <Text style={[styles.interactionSummary, { color: theme.textSecondary }]}>
-        {tension.summary}
-      </Text>
-      <Text style={[styles.interactionPrompt, { color: theme.accent }]}>
-        {tension.reflection_prompt}
-      </Text>
-    </View>
-  );
 
   // ============================================================================
   // RENDER: LOADING / ERROR STATES
@@ -352,9 +333,7 @@ export default function PatternsScreen() {
         />
       }
     >
-      {/* ================================================================== */}
-      {/* SECTION 1: INTRO */}
-      {/* ================================================================== */}
+      {/* INTRO SECTION */}
       <View style={styles.introSection}>
         <Text style={[styles.introTitle, { color: theme.text }]}>
           Pattern Graph
@@ -365,97 +344,15 @@ export default function PatternsScreen() {
         <Text style={[styles.introDescription, { color: theme.textSecondary }]}>
           This page gathers signals from your reflections, Human Design, Gene Keys and other lenses, and organizes them into seven life domains.
         </Text>
-        <Text style={[styles.introDescription, { color: theme.textTertiary, fontStyle: 'italic' }]}>
+        <Text style={[styles.introNote, { color: theme.textTertiary }]}>
           Some areas may feel quiet. Others may be more active.
         </Text>
       </View>
 
-      {/* ================================================================== */}
-      {/* SECTION 2: PATTERN DOMAINS (Primary) */}
-      {/* ================================================================== */}
+      {/* PATTERN DOMAINS - The 7 Life Domains */}
       <View style={styles.domainsSection}>
         {domains.map(domain => renderDomainCard(domain))}
       </View>
-
-      {/* ================================================================== */}
-      {/* SECTION 3: WHERE PATTERNS INTERACT */}
-      {/* ================================================================== */}
-      {tensions.length > 0 && (
-        <View style={styles.interactionsSection}>
-          <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>
-            WHERE PATTERNS INTERACT
-          </Text>
-          {tensions.map((tension, idx) => renderInteractionCard(tension, idx))}
-        </View>
-      )}
-
-      {/* ================================================================== */}
-      {/* SECTION 4: SIGNALS BEHIND THESE PATTERNS */}
-      {/* ================================================================== */}
-      {hasSignals && (
-        <View style={styles.signalsSection}>
-          <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>
-            SIGNALS BEHIND THESE PATTERNS
-          </Text>
-          <Text style={[styles.signalsDescription, { color: theme.textSecondary }]}>
-            These signals may be contributing to the patterns appearing above.
-          </Text>
-
-          {/* Gene Keys */}
-          {geneKeys.length > 0 && (
-            <View style={[styles.signalGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.signalGroupTitle, { color: theme.text }]}>
-                Gene Keys
-              </Text>
-              {geneKeys.slice(0, 6).map((gk, idx) => (
-                <View key={idx} style={styles.signalItem}>
-                  <Text style={[styles.signalItemTitle, { color: theme.textSecondary }]}>
-                    Gene Key {gk.keyNumber} — {gk.label}
-                  </Text>
-                  {gk.sphere && (
-                    <Text style={[styles.signalItemSubtitle, { color: theme.textTertiary }]}>
-                      Sphere: {gk.sphere}
-                    </Text>
-                  )}
-                </View>
-              ))}
-            </View>
-          )}
-
-          {/* Human Design */}
-          {humanDesign.length > 0 && (
-            <View style={[styles.signalGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.signalGroupTitle, { color: theme.text }]}>
-                Human Design
-              </Text>
-              {humanDesign.slice(0, 6).map((hd, idx) => (
-                <View key={idx} style={styles.signalItem}>
-                  <Text style={[styles.signalItemTitle, { color: theme.textSecondary }]}>
-                    {hd.label}
-                  </Text>
-                  {hd.detail && (
-                    <Text style={[styles.signalItemSubtitle, { color: theme.textTertiary }]}>
-                      {hd.detail}
-                    </Text>
-                  )}
-                </View>
-              ))}
-            </View>
-          )}
-
-          {/* Journal & Reflections */}
-          {journal.length > 0 && (
-            <View style={[styles.signalGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.signalGroupTitle, { color: theme.text }]}>
-                Journal & Reflections
-              </Text>
-              <Text style={[styles.signalKeywords, { color: theme.textSecondary }]}>
-                Recent keywords: {journal.slice(0, 8).join(', ')}
-              </Text>
-            </View>
-          )}
-        </View>
-      )}
     </ScrollView>
   );
 }
@@ -499,42 +396,42 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Section 1: Intro
+  // Intro Section
   introSection: {
     marginBottom: 28,
   },
   introTitle: {
     fontSize: 26,
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   introDescription: {
     fontSize: 14,
-    lineHeight: 21,
+    lineHeight: 22,
     marginBottom: 8,
   },
+  introNote: {
+    fontSize: 14,
+    lineHeight: 22,
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
 
-  // Section 2: Pattern Domains
+  // Pattern Domains Section
   domainsSection: {
-    marginBottom: 32,
+    marginBottom: 20,
   },
   domainCard: {
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 16,
-    marginBottom: 12,
+    padding: 18,
+    marginBottom: 16,
   },
   domainHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  domainHeaderContent: {
-    flex: 1,
+    marginBottom: 14,
   },
   domainName: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
     marginBottom: 4,
   },
@@ -542,23 +439,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
-  expandIcon: {
-    fontSize: 14,
-    marginLeft: 8,
-    marginTop: 2,
-  },
   domainSynthesis: {
     fontSize: 14,
-    lineHeight: 21,
+    lineHeight: 23,
     marginBottom: 12,
+  },
+  domainShowUp: {
+    fontSize: 14,
+    lineHeight: 23,
+    marginBottom: 14,
+    opacity: 0.9,
   },
   domainPromptRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.08)',
   },
   domainPrompt: {
     fontSize: 13,
-    lineHeight: 19,
+    lineHeight: 20,
     fontStyle: 'italic',
   },
   journalTrigger: {
@@ -567,99 +468,5 @@ const styles = StyleSheet.create({
   },
   journalTriggerText: {
     fontSize: 12,
-  },
-  
-  // Domain Expanded
-  domainExpanded: {
-    marginTop: 14,
-    paddingTop: 14,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  expandedTitle: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginBottom: 10,
-  },
-  expandedSignalRow: {
-    flexDirection: 'row',
-    marginBottom: 6,
-  },
-  expandedSignalBullet: {
-    fontSize: 12,
-    marginRight: 8,
-  },
-  expandedSignalText: {
-    fontSize: 13,
-    lineHeight: 18,
-    flex: 1,
-  },
-
-  // Section 3: Interactions
-  interactionsSection: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 1.5,
-    marginBottom: 14,
-  },
-  interactionCard: {
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 16,
-    marginBottom: 12,
-  },
-  interactionPair: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 10,
-  },
-  interactionSummary: {
-    fontSize: 14,
-    lineHeight: 21,
-    marginBottom: 10,
-  },
-  interactionPrompt: {
-    fontSize: 13,
-    lineHeight: 19,
-    fontStyle: 'italic',
-  },
-
-  // Section 4: Signals
-  signalsSection: {
-    marginBottom: 16,
-  },
-  signalsDescription: {
-    fontSize: 13,
-    lineHeight: 19,
-    marginBottom: 16,
-  },
-  signalGroup: {
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 16,
-    marginBottom: 12,
-  },
-  signalGroupTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  signalItem: {
-    marginBottom: 10,
-  },
-  signalItemTitle: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  signalItemSubtitle: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  signalKeywords: {
-    fontSize: 13,
-    lineHeight: 19,
   },
 });
