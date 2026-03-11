@@ -23,14 +23,16 @@ def log_test(test_name: str, status: str, details: str = ""):
         print(f"    {details}")
 
 class WeeklyPatternSynthesisTester:
-    """Test suite for Pattern Graph API with transit integration."""
+    """Test suite for Weekly Pattern Synthesis API endpoint."""
     
     def __init__(self):
-        self.base_url = BACKEND_URL
-        self.test_user_id = "6971c81f2b40fd5ef501d375"
+        self.base_url = BASE_URL
+        self.test_user_id = TEST_USER_ID
         self.results = []
+        self.first_response_data = None
+        self.first_response_time = 0
         
-    def log_result(self, test_name: str, passed: bool, details: str = "", response_data: Any = None):
+    def log_result(self, test_name: str, passed: bool, details: str = ""):
         """Log test result."""
         status = "✅ PASS" if passed else "❌ FAIL"
         print(f"{status} {test_name}")
@@ -40,458 +42,515 @@ class WeeklyPatternSynthesisTester:
         self.results.append({
             "test": test_name,
             "passed": passed,
-            "details": details,
-            "response_data": response_data
+            "details": details
         })
     
-    def test_pattern_graph_endpoint_availability(self) -> bool:
-        """Test 1: Basic endpoint availability."""
+    def test_basic_response_structure(self) -> bool:
+        """Test 1: Basic Response Structure"""
         try:
-            url = f"{self.base_url}/pattern-graph/{self.test_user_id}"
-            response = requests.get(url, timeout=30)
+            url = f"{self.base_url}/weekly-patterns/{self.test_user_id}"
             
-            if response.status_code == 200:
+            start_time = time.time()
+            response = requests.get(url, timeout=TIMEOUT)
+            self.first_response_time = time.time() - start_time
+            
+            # Check HTTP status
+            if response.status_code != 200:
+                self.log_result(
+                    "Basic Response Structure - HTTP Status",
+                    False,
+                    f"Expected 200, got {response.status_code}: {response.text[:200]}"
+                )
+                return False
+            
+            # Parse JSON
+            try:
                 data = response.json()
-                if data.get("success") is True:
-                    self.log_result(
-                        "Pattern Graph Endpoint Availability",
-                        True,
-                        f"Status: {response.status_code}, Success: {data.get('success')}"
-                    )
-                    return True
-                else:
-                    self.log_result(
-                        "Pattern Graph Endpoint Availability", 
-                        False,
-                        f"Success field is {data.get('success')}, expected True"
-                    )
-                    return False
-            else:
+                self.first_response_data = data
+            except json.JSONDecodeError as e:
                 self.log_result(
-                    "Pattern Graph Endpoint Availability",
+                    "Basic Response Structure - JSON Parse",
                     False,
-                    f"HTTP {response.status_code}: {response.text[:200]}"
-                )
-                return False
-                
-        except Exception as e:
-            self.log_result(
-                "Pattern Graph Endpoint Availability",
-                False,
-                f"Request failed: {str(e)}"
-            )
-            return False
-    
-    def test_transit_amplification_works(self, response_data: Dict) -> bool:
-        """Test 2: Transit amplification works - categories with has_transit_emphasis: true exist."""
-        try:
-            categories = response_data.get("categories", [])
-            
-            # Check if any categories have transit emphasis
-            transit_emphasized = [cat for cat in categories if cat.get("has_transit_emphasis") is True]
-            
-            if not transit_emphasized:
-                self.log_result(
-                    "Transit Amplification Works",
-                    False,
-                    "No categories found with has_transit_emphasis: true"
+                    f"Invalid JSON: {e}"
                 )
                 return False
             
-            # Check if transit-emphasized categories have higher scores
-            # Look for expected domains: Energy & Vitality, Mind & Meaning, Expression & Action
-            expected_domains = ["Energy & Vitality", "Mind & Meaning", "Expression & Action"]
-            found_expected = []
+            # Check success field
+            if not data.get("success"):
+                self.log_result(
+                    "Basic Response Structure - Success Flag",
+                    False,
+                    f"success: {data.get('success')}, expected True"
+                )
+                return False
             
-            for cat in transit_emphasized:
-                cat_name = cat.get("category_name", "")
-                pattern_score = cat.get("pattern_score", 0)
-                
-                if cat_name in expected_domains:
-                    found_expected.append(cat_name)
-                
-                # Verify pattern_score is slightly higher (should be > baseline due to 0.5 weight amplification)
-                if pattern_score <= 0:
-                    self.log_result(
-                        "Transit Amplification Works",
-                        False,
-                        f"Transit-emphasized category '{cat_name}' has pattern_score {pattern_score}, expected > 0"
-                    )
-                    return False
+            # Check weekly_summary exists
+            weekly_summary = data.get("weekly_summary")
+            if not isinstance(weekly_summary, dict):
+                self.log_result(
+                    "Basic Response Structure - Weekly Summary",
+                    False,
+                    f"Expected dict, got {type(weekly_summary)}"
+                )
+                return False
             
-            details = f"Found {len(transit_emphasized)} transit-emphasized categories"
-            if found_expected:
-                details += f", including expected domains: {', '.join(found_expected)}"
+            # Check week dates
+            week_start = weekly_summary.get("week_start")
+            week_end = weekly_summary.get("week_end")
+            
+            if not week_start or not week_end:
+                self.log_result(
+                    "Basic Response Structure - Week Dates",
+                    False,
+                    f"Missing dates - start: {week_start}, end: {week_end}"
+                )
+                return False
             
             self.log_result(
-                "Transit Amplification Works",
+                "Basic Response Structure",
                 True,
-                details
+                f"HTTP 200, success: true, week: {week_start} to {week_end}, response time: {self.first_response_time:.2f}s"
             )
             return True
             
-        except Exception as e:
+        except requests.exceptions.RequestException as e:
             self.log_result(
-                "Transit Amplification Works",
+                "Basic Response Structure",
                 False,
-                f"Error checking transit amplification: {str(e)}"
+                f"Request failed: {e}"
             )
             return False
     
-    def test_transits_dont_create_patterns_alone(self, response_data: Dict) -> bool:
-        """Test 3: Transits don't create patterns alone - domains with transit emphasis also have other signal sources."""
-        try:
-            categories = response_data.get("categories", [])
-            
-            # Find categories with transit emphasis
-            transit_emphasized = [cat for cat in categories if cat.get("has_transit_emphasis") is True]
-            
-            if not transit_emphasized:
-                # This test passes if there are no transit-emphasized categories
-                self.log_result(
-                    "Transits Don't Create Patterns Alone",
-                    True,
-                    "No transit-emphasized categories found (expected behavior if no existing support)"
-                )
-                return True
-            
-            for cat in transit_emphasized:
-                cat_name = cat.get("category_name", "")
-                matched_sources = cat.get("matched_sources", [])
-                
-                # Check that transit is not the only source
-                non_transit_sources = [src for src in matched_sources if src != "astrology_transit"]
-                
-                if not non_transit_sources:
-                    self.log_result(
-                        "Transits Don't Create Patterns Alone",
-                        False,
-                        f"Category '{cat_name}' has only transit source, no other signal sources"
-                    )
-                    return False
-            
-            self.log_result(
-                "Transits Don't Create Patterns Alone",
-                True,
-                f"All {len(transit_emphasized)} transit-emphasized categories have other signal sources"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result(
-                "Transits Don't Create Patterns Alone",
-                False,
-                f"Error checking transit isolation: {str(e)}"
-            )
+    def test_top_domains(self) -> bool:
+        """Test 2: Top Domains Structure"""
+        if not self.first_response_data:
+            self.log_result("Top Domains", False, "No response data available")
             return False
-    
-    def test_transit_signal_in_matched_signals(self, response_data: Dict) -> bool:
-        """Test 4: Transit signal in matched signals - check transit-emphasized domains include astrology_transit signal."""
+        
         try:
-            categories = response_data.get("categories", [])
+            weekly_summary = self.first_response_data.get("weekly_summary", {})
+            top_domains = weekly_summary.get("top_domains", [])
             
-            # Find categories with transit emphasis
-            transit_emphasized = [cat for cat in categories if cat.get("has_transit_emphasis") is True]
-            
-            if not transit_emphasized:
+            # Check type
+            if not isinstance(top_domains, list):
                 self.log_result(
-                    "Transit Signal in Matched Signals",
-                    True,
-                    "No transit-emphasized categories to check"
+                    "Top Domains - Type",
+                    False,
+                    f"Expected list, got {type(top_domains)}"
                 )
-                return True
+                return False
             
-            for cat in transit_emphasized:
-                cat_name = cat.get("category_name", "")
-                matched_signals = cat.get("matched_signals", [])
-                
-                # Look for transit signal
-                transit_signals = [sig for sig in matched_signals if sig.get("source") == "astrology_transit"]
-                
-                if not transit_signals:
+            # Check count (up to 3)
+            if len(top_domains) > 3:
+                self.log_result(
+                    "Top Domains - Count",
+                    False,
+                    f"Expected max 3, got {len(top_domains)}"
+                )
+                return False
+            
+            # Check structure of each domain
+            required_fields = ["domain", "domain_id", "trend", "weekly_score", "days_present", "timing_amplified", "evidence_summary"]
+            valid_trends = ["rising", "steady", "softening", "emerging"]
+            
+            for i, domain in enumerate(top_domains):
+                if not isinstance(domain, dict):
                     self.log_result(
-                        "Transit Signal in Matched Signals",
+                        f"Top Domains - Domain {i+1} Type",
                         False,
-                        f"Category '{cat_name}' has transit emphasis but no astrology_transit signal in matched_signals"
+                        f"Expected dict, got {type(domain)}"
                     )
                     return False
                 
-                # Check if transit signal has expected label
-                transit_signal = transit_signals[0]
-                expected_label = "Current transit emphasis"
-                if transit_signal.get("label") != expected_label:
-                    self.log_result(
-                        "Transit Signal in Matched Signals",
-                        False,
-                        f"Transit signal has label '{transit_signal.get('label')}', expected '{expected_label}'"
-                    )
-                    return False
-                
-                # Check if transit signal is at the end of matched_signals array
-                last_signal = matched_signals[-1] if matched_signals else None
-                if last_signal and last_signal.get("source") != "astrology_transit":
-                    print(f"   Note: Transit signal not at end for '{cat_name}' (position may vary)")
-            
-            self.log_result(
-                "Transit Signal in Matched Signals",
-                True,
-                f"All {len(transit_emphasized)} transit-emphasized categories have proper astrology_transit signals"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result(
-                "Transit Signal in Matched Signals",
-                False,
-                f"Error checking transit signals: {str(e)}"
-            )
-            return False
-    
-    def test_categories_sorted_by_score(self, response_data: Dict) -> bool:
-        """Test 5: Categories sorted by score - categories should be sorted by pattern_score in descending order."""
-        try:
-            categories = response_data.get("categories", [])
-            
-            if len(categories) < 2:
-                self.log_result(
-                    "Categories Sorted by Score",
-                    True,
-                    f"Only {len(categories)} categories, sorting not applicable"
-                )
-                return True
-            
-            # Check if categories are sorted by pattern_score in descending order
-            scores = [cat.get("pattern_score", 0) for cat in categories]
-            sorted_scores = sorted(scores, reverse=True)
-            
-            if scores != sorted_scores:
-                self.log_result(
-                    "Categories Sorted by Score",
-                    False,
-                    f"Categories not sorted by pattern_score. Actual: {scores}, Expected: {sorted_scores}"
-                )
-                return False
-            
-            # Check that top patterns have the most support + transit amplification
-            top_categories = categories[:3]  # Check top 3
-            top_details = []
-            for cat in top_categories:
-                name = cat.get("category_name", "")
-                score = cat.get("pattern_score", 0)
-                has_transit = cat.get("has_transit_emphasis", False)
-                sources = len(cat.get("matched_sources", []))
-                top_details.append(f"{name}: {score} pts, {sources} sources, transit: {has_transit}")
-            
-            self.log_result(
-                "Categories Sorted by Score",
-                True,
-                f"Categories properly sorted. Top 3: {'; '.join(top_details)}"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result(
-                "Categories Sorted by Score",
-                False,
-                f"Error checking category sorting: {str(e)}"
-            )
-            return False
-    
-    def test_enneagram_still_working(self, response_data: Dict) -> bool:
-        """Test 6: Enneagram still working - verify enneagram appears in matched_sources but remains invisible."""
-        try:
-            categories = response_data.get("categories", [])
-            
-            # Look for enneagram in matched_sources
-            enneagram_categories = []
-            personality_pattern_signals = []
-            
-            for cat in categories:
-                matched_sources = cat.get("matched_sources", [])
-                matched_signals = cat.get("matched_signals", [])
-                
-                if "enneagram" in matched_sources:
-                    enneagram_categories.append(cat.get("category_name", ""))
-                
-                # Check for "Personality pattern resonance" signals (should be invisible)
-                for signal in matched_signals:
-                    if "Personality pattern resonance" in signal.get("label", ""):
-                        personality_pattern_signals.append({
-                            "category": cat.get("category_name", ""),
-                            "label": signal.get("label", "")
-                        })
-            
-            # Enneagram should contribute to scoring but remain invisible in display
-            if enneagram_categories:
-                self.log_result(
-                    "Enneagram Still Working",
-                    True,
-                    f"Enneagram found in matched_sources for: {', '.join(enneagram_categories)}"
-                )
-            else:
-                # This might be OK if user doesn't have Enneagram data
-                self.log_result(
-                    "Enneagram Still Working",
-                    True,
-                    "No enneagram sources found (user may not have Enneagram assessment completed)"
-                )
-            
-            # Check that "Personality pattern resonance" is not visible (should be filtered out)
-            if personality_pattern_signals:
-                self.log_result(
-                    "Enneagram Still Working",
-                    False,
-                    f"Found visible 'Personality pattern resonance' signals: {personality_pattern_signals}"
-                )
-                return False
-            
-            return True
-            
-        except Exception as e:
-            self.log_result(
-                "Enneagram Still Working",
-                False,
-                f"Error checking Enneagram integration: {str(e)}"
-            )
-            return False
-    
-    def test_api_response_structure(self, response_data: Dict) -> bool:
-        """Test 7: API Response Structure - verify response includes required fields."""
-        try:
-            # Check top-level structure
-            required_top_level = ["success", "categories", "summary", "updated_at"]
-            missing_top_level = [field for field in required_top_level if field not in response_data]
-            
-            if missing_top_level:
-                self.log_result(
-                    "API Response Structure",
-                    False,
-                    f"Missing top-level fields: {missing_top_level}"
-                )
-                return False
-            
-            # Check categories structure
-            categories = response_data.get("categories", [])
-            if not categories:
-                self.log_result(
-                    "API Response Structure",
-                    False,
-                    "No categories found in response"
-                )
-                return False
-            
-            # Check category fields
-            required_category_fields = [
-                "category_id", "category_name", "signal_strength", "pattern_score",
-                "has_transit_emphasis", "matched_sources", "matched_signals"
-            ]
-            
-            for i, cat in enumerate(categories[:3]):  # Check first 3 categories
-                missing_fields = [field for field in required_category_fields if field not in cat]
+                # Check required fields
+                missing_fields = [field for field in required_fields if field not in domain]
                 if missing_fields:
                     self.log_result(
-                        "API Response Structure",
+                        f"Top Domains - Domain {i+1} Fields",
                         False,
-                        f"Category {i} missing fields: {missing_fields}"
+                        f"Missing fields: {missing_fields}"
                     )
                     return False
                 
-                # Check signal_strength values
-                signal_strength = cat.get("signal_strength")
-                valid_strengths = ["quiet", "present", "recurring"]
-                if signal_strength not in valid_strengths:
+                # Check trend value
+                trend = domain.get("trend")
+                if trend not in valid_trends:
                     self.log_result(
-                        "API Response Structure",
+                        f"Top Domains - Domain {i+1} Trend",
                         False,
-                        f"Invalid signal_strength '{signal_strength}', expected one of {valid_strengths}"
+                        f"Invalid trend '{trend}', expected one of {valid_trends}"
                     )
                     return False
-                
-                # Check matched_sources includes astrology_transit when has_transit_emphasis is True
-                has_transit = cat.get("has_transit_emphasis", False)
-                matched_sources = cat.get("matched_sources", [])
-                if has_transit and "astrology_transit" not in matched_sources:
-                    self.log_result(
-                        "API Response Structure",
-                        False,
-                        f"Category '{cat.get('category_name')}' has transit emphasis but 'astrology_transit' not in matched_sources"
-                    )
-                    return False
-            
-            # Check summary structure
-            summary = response_data.get("summary", {})
-            if not isinstance(summary, dict):
-                self.log_result(
-                    "API Response Structure",
-                    False,
-                    f"Summary should be dict, got {type(summary)}"
-                )
-                return False
             
             self.log_result(
-                "API Response Structure",
+                "Top Domains",
                 True,
-                f"All required fields present. {len(categories)} categories, summary keys: {list(summary.keys())}"
+                f"{len(top_domains)} domains with all required fields and valid trends"
             )
             return True
             
         except Exception as e:
             self.log_result(
-                "API Response Structure",
+                "Top Domains",
                 False,
-                f"Error checking response structure: {str(e)}"
+                f"Error checking top domains: {e}"
+            )
+            return False
+    
+    def test_all_domains(self) -> bool:
+        """Test 3: All Domains Structure"""
+        if not self.first_response_data:
+            self.log_result("All Domains", False, "No response data available")
+            return False
+        
+        try:
+            weekly_summary = self.first_response_data.get("weekly_summary", {})
+            all_domains = weekly_summary.get("all_domains", [])
+            
+            # Check type
+            if not isinstance(all_domains, list):
+                self.log_result(
+                    "All Domains - Type",
+                    False,
+                    f"Expected list, got {type(all_domains)}"
+                )
+                return False
+            
+            # Check count (should be 7 pattern domains)
+            if len(all_domains) != 7:
+                self.log_result(
+                    "All Domains - Count",
+                    False,
+                    f"Expected 7 pattern domains, got {len(all_domains)}"
+                )
+                return False
+            
+            # Check structure of each domain
+            required_fields = ["domain", "domain_id", "trend", "weekly_score", "days_present"]
+            valid_trends = ["rising", "steady", "softening", "emerging"]
+            
+            for i, domain in enumerate(all_domains):
+                if not isinstance(domain, dict):
+                    self.log_result(
+                        f"All Domains - Domain {i+1} Type",
+                        False,
+                        f"Expected dict, got {type(domain)}"
+                    )
+                    return False
+                
+                # Check required fields
+                missing_fields = [field for field in required_fields if field not in domain]
+                if missing_fields:
+                    self.log_result(
+                        f"All Domains - Domain {i+1} Fields",
+                        False,
+                        f"Missing fields: {missing_fields}"
+                    )
+                    return False
+                
+                # Check trend value
+                trend = domain.get("trend")
+                if trend not in valid_trends:
+                    self.log_result(
+                        f"All Domains - Domain {i+1} Trend",
+                        False,
+                        f"Invalid trend '{trend}', expected one of {valid_trends}"
+                    )
+                    return False
+            
+            self.log_result(
+                "All Domains",
+                True,
+                f"7 domains with all required fields and valid trends"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result(
+                "All Domains",
+                False,
+                f"Error checking all domains: {e}"
+            )
+            return False
+    
+    def test_narrative_and_reflection(self) -> bool:
+        """Test 4: Narrative and Reflection"""
+        if not self.first_response_data:
+            self.log_result("Narrative and Reflection", False, "No response data available")
+            return False
+        
+        try:
+            weekly_summary = self.first_response_data.get("weekly_summary", {})
+            
+            # Check narrative
+            narrative = weekly_summary.get("narrative")
+            if not narrative or not isinstance(narrative, str) or len(narrative.strip()) == 0:
+                self.log_result(
+                    "Narrative and Reflection - Narrative",
+                    False,
+                    f"Empty or invalid narrative: {type(narrative)}"
+                )
+                return False
+            
+            # Check reflection prompt
+            reflection_prompt = weekly_summary.get("reflection_prompt")
+            if not reflection_prompt or not isinstance(reflection_prompt, str) or len(reflection_prompt.strip()) == 0:
+                self.log_result(
+                    "Narrative and Reflection - Reflection Prompt",
+                    False,
+                    f"Empty or invalid reflection prompt: {type(reflection_prompt)}"
+                )
+                return False
+            
+            self.log_result(
+                "Narrative and Reflection",
+                True,
+                f"Narrative: {len(narrative)} chars, Reflection: {len(reflection_prompt)} chars"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result(
+                "Narrative and Reflection",
+                False,
+                f"Error checking narrative/reflection: {e}"
+            )
+            return False
+    
+    def test_cross_week_shift(self) -> bool:
+        """Test 5: Cross-Week Shift"""
+        if not self.first_response_data:
+            self.log_result("Cross-Week Shift", False, "No response data available")
+            return False
+        
+        try:
+            weekly_summary = self.first_response_data.get("weekly_summary", {})
+            cross_week_shift = weekly_summary.get("cross_week_shift")
+            
+            # Should be null or string
+            if cross_week_shift is None:
+                self.log_result(
+                    "Cross-Week Shift",
+                    True,
+                    "null (as expected)"
+                )
+                return True
+            elif isinstance(cross_week_shift, str):
+                self.log_result(
+                    "Cross-Week Shift",
+                    True,
+                    f"string ({len(cross_week_shift)} chars)"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Cross-Week Shift",
+                    False,
+                    f"Expected null or string, got {type(cross_week_shift)}"
+                )
+                return False
+            
+        except Exception as e:
+            self.log_result(
+                "Cross-Week Shift",
+                False,
+                f"Error checking cross-week shift: {e}"
+            )
+            return False
+    
+    def test_evidence_sources(self) -> bool:
+        """Test 6: Evidence Sources"""
+        if not self.first_response_data:
+            self.log_result("Evidence Sources", False, "No response data available")
+            return False
+        
+        try:
+            weekly_summary = self.first_response_data.get("weekly_summary", {})
+            evidence_sources = weekly_summary.get("evidence_sources")
+            
+            # Check type
+            if not isinstance(evidence_sources, list):
+                self.log_result(
+                    "Evidence Sources - Type",
+                    False,
+                    f"Expected list, got {type(evidence_sources)}"
+                )
+                return False
+            
+            # Check that all sources are strings
+            non_string_sources = [i for i, source in enumerate(evidence_sources) if not isinstance(source, str)]
+            if non_string_sources:
+                self.log_result(
+                    "Evidence Sources - Content",
+                    False,
+                    f"Non-string sources at indices: {non_string_sources}"
+                )
+                return False
+            
+            self.log_result(
+                "Evidence Sources",
+                True,
+                f"{len(evidence_sources)} string sources"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result(
+                "Evidence Sources",
+                False,
+                f"Error checking evidence sources: {e}"
+            )
+            return False
+    
+    def test_caching_behavior(self) -> bool:
+        """Test 7: Caching Behavior"""
+        if not self.first_response_data:
+            self.log_result("Caching Behavior", False, "No response data available")
+            return False
+        
+        try:
+            # Make second request
+            url = f"{self.base_url}/weekly-patterns/{self.test_user_id}"
+            
+            start_time = time.time()
+            response2 = requests.get(url, timeout=TIMEOUT)
+            response_time2 = time.time() - start_time
+            
+            if response2.status_code != 200:
+                self.log_result(
+                    "Caching Behavior - Second Request",
+                    False,
+                    f"HTTP {response2.status_code}"
+                )
+                return False
+            
+            data2 = response2.json()
+            cached2 = data2.get("cached")
+            
+            # Check if second call returns cached: true
+            if cached2:
+                self.log_result(
+                    "Caching Behavior - Cached Flag",
+                    True,
+                    f"Second call returned cached: true in {response_time2:.2f}s"
+                )
+            else:
+                self.log_result(
+                    "Caching Behavior - Cached Flag",
+                    False,
+                    f"Second call did not return cached: true (got: {cached2})"
+                )
+                return False
+            
+            # Compare response content consistency
+            ws1 = self.first_response_data.get("weekly_summary", {})
+            ws2 = data2.get("weekly_summary", {})
+            
+            if (ws1.get("week_start") == ws2.get("week_start") and 
+                ws1.get("week_end") == ws2.get("week_end")):
+                self.log_result(
+                    "Caching Behavior - Consistency",
+                    True,
+                    "Identical week dates between calls"
+                )
+            else:
+                self.log_result(
+                    "Caching Behavior - Consistency",
+                    False,
+                    "Different week dates between calls"
+                )
+                return False
+            
+            return True
+            
+        except Exception as e:
+            self.log_result(
+                "Caching Behavior",
+                False,
+                f"Error testing caching: {e}"
+            )
+            return False
+    
+    def test_performance(self) -> bool:
+        """Test 8: Performance"""
+        if self.first_response_time == 0:
+            self.log_result("Performance", False, "No response time data available")
+            return False
+        
+        try:
+            if self.first_response_time < 2:
+                self.log_result(
+                    "Performance",
+                    True,
+                    f"Excellent - {self.first_response_time:.2f}s (under 2s)"
+                )
+            elif self.first_response_time < 5:
+                self.log_result(
+                    "Performance",
+                    True,
+                    f"Good - {self.first_response_time:.2f}s (under 5s)"
+                )
+            else:
+                self.log_result(
+                    "Performance",
+                    False,
+                    f"Slow - {self.first_response_time:.2f}s (over 5s requirement)"
+                )
+                return False
+            
+            return True
+            
+        except Exception as e:
+            self.log_result(
+                "Performance",
+                False,
+                f"Error checking performance: {e}"
             )
             return False
     
     def run_all_tests(self):
-        """Run all Pattern Graph transit integration tests."""
-        print("🧪 PATTERN GRAPH TRANSIT INTEGRATION TESTING")
-        print("=" * 60)
-        print(f"Testing endpoint: GET /api/pattern-graph/{self.test_user_id}")
+        """Run all Weekly Pattern Synthesis tests."""
+        print("🧪 WEEKLY PATTERN SYNTHESIS API TESTING")
+        print("=" * 80)
+        print(f"Testing endpoint: GET /api/weekly-patterns/{self.test_user_id}")
         print(f"Backend URL: {self.base_url}")
         print()
         
-        # Test 1: Basic endpoint availability
-        if not self.test_pattern_graph_endpoint_availability():
-            print("\n❌ Basic endpoint test failed. Stopping further tests.")
-            return self.generate_summary()
-        
-        # Get response data for subsequent tests
-        try:
-            url = f"{self.base_url}/pattern-graph/{self.test_user_id}"
-            response = requests.get(url, timeout=30)
-            response_data = response.json()
-        except Exception as e:
-            print(f"\n❌ Failed to get response data for subsequent tests: {e}")
+        # Test 1: Basic Response Structure
+        if not self.test_basic_response_structure():
+            print("\n❌ Basic response test failed. Stopping further tests.")
             return self.generate_summary()
         
         print()
         
-        # Test 2: Transit amplification works
-        self.test_transit_amplification_works(response_data)
+        # Test 2: Top Domains
+        self.test_top_domains()
         
-        # Test 3: Transits don't create patterns alone
-        self.test_transits_dont_create_patterns_alone(response_data)
+        # Test 3: All Domains
+        self.test_all_domains()
         
-        # Test 4: Transit signal in matched signals
-        self.test_transit_signal_in_matched_signals(response_data)
+        # Test 4: Narrative and Reflection
+        self.test_narrative_and_reflection()
         
-        # Test 5: Categories sorted by score
-        self.test_categories_sorted_by_score(response_data)
+        # Test 5: Cross-Week Shift
+        self.test_cross_week_shift()
         
-        # Test 6: Enneagram still working
-        self.test_enneagram_still_working(response_data)
+        # Test 6: Evidence Sources
+        self.test_evidence_sources()
         
-        # Test 7: API response structure
-        self.test_api_response_structure(response_data)
+        # Test 7: Caching Behavior
+        self.test_caching_behavior()
+        
+        # Test 8: Performance
+        self.test_performance()
         
         return self.generate_summary()
     
     def generate_summary(self):
         """Generate test summary."""
-        print("\n" + "=" * 60)
+        print("\n" + "=" * 80)
         print("📊 TEST SUMMARY")
-        print("=" * 60)
+        print("=" * 80)
         
         passed_tests = [r for r in self.results if r["passed"]]
         failed_tests = [r for r in self.results if not r["passed"]]
@@ -503,6 +562,22 @@ class WeeklyPatternSynthesisTester:
             print("\nFAILED TESTS:")
             for test in failed_tests:
                 print(f"  ❌ {test['test']}: {test['details']}")
+        
+        if self.first_response_data:
+            weekly_summary = self.first_response_data.get("weekly_summary", {})
+            top_domains = weekly_summary.get("top_domains", [])
+            all_domains = weekly_summary.get("all_domains", [])
+            narrative = weekly_summary.get("narrative", "")
+            evidence_sources = weekly_summary.get("evidence_sources", [])
+            
+            print(f"\nENDPOINT DETAILS:")
+            print(f"Response Time: {self.first_response_time:.2f}s")
+            print(f"Week: {weekly_summary.get('week_start')} to {weekly_summary.get('week_end')}")
+            print(f"Top Domains: {len(top_domains)}")
+            print(f"All Domains: {len(all_domains)}")
+            print(f"Narrative Length: {len(narrative)} chars")
+            print(f"Evidence Sources: {len(evidence_sources)}")
+            print(f"Cached: {self.first_response_data.get('cached')}")
         
         print(f"\nTesting completed at: {datetime.now().isoformat()}")
         
@@ -517,15 +592,16 @@ class WeeklyPatternSynthesisTester:
 
 def main():
     """Main test execution."""
-    tester = PatternGraphTransitTester()
+    tester = WeeklyPatternSynthesisTester()
     summary = tester.run_all_tests()
     
     # Exit with appropriate code
     if summary["failed"] > 0:
-        sys.exit(1)
+        return 1
     else:
-        sys.exit(0)
+        return 0
 
 
 if __name__ == "__main__":
-    main()
+    exit_code = main()
+    exit(exit_code)
