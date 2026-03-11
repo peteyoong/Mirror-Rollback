@@ -1037,6 +1037,16 @@ def aggregate_pattern_graph(
         
         # Calculate strength using weighted scoring
         pattern_score = calculate_weighted_score(unique_signals)
+        
+        # Apply transit amplification if this domain has transit emphasis
+        has_transit = cat_id in transit_emphasized_domains
+        if has_transit and pattern_score > 0:
+            pattern_score = calculate_transit_amplification(
+                base_score=pattern_score,
+                has_transit_emphasis=True,
+                transit_weight=SIGNAL_WEIGHTS.get("astrology_transit", 0.5)
+            )
+        
         strength = calculate_signal_strength_from_score(pattern_score)
         
         # Get matched sources
@@ -1045,6 +1055,7 @@ def aggregate_pattern_graph(
         # Get summary
         summary = get_category_summary(cat, strength)
         
+        # Add transit emphasis flag for sorting/highlighting top patterns
         result: CategoryResult = {
             "category_id": cat_id,
             "category_name": cat["name"],
@@ -1054,9 +1065,14 @@ def aggregate_pattern_graph(
             "trend": trends.get(cat_id, "steady"),
             "matched_sources": sources,
             "matched_signals": unique_signals,
-            "summary": summary
+            "summary": summary,
+            "has_transit_emphasis": has_transit  # For frontend highlighting
         }
         categories.append(result)
+    
+    # Sort categories by pattern_score to prioritize top patterns
+    # Transit-amplified patterns with existing support will naturally rise to top
+    categories.sort(key=lambda c: c["pattern_score"], reverse=True)
     
     # Calculate overall stats (using new terminology)
     recurring_count = sum(1 for c in categories if c["signal_strength"] == "recurring")
