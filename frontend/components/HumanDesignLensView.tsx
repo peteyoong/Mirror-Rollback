@@ -822,35 +822,32 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                 {/* Section 1: Core Mechanics - Always expanded */}
                 {renderCoreMechanics()}
                 
+                {/* Bodygraph Visual Placeholder */}
+                <View style={[styles.bodygraphCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <View style={styles.bodygraphVisual}>
+                    {/* Simple visual representation of the bodygraph shape */}
+                    <View style={[styles.bodygraphHead, { borderColor: theme.accent + '40' }]} />
+                    <View style={[styles.bodygraphAjna, { borderColor: theme.accent + '40' }]} />
+                    <View style={[styles.bodygraphThroat, { borderColor: theme.accent + '40' }]} />
+                    <View style={[styles.bodygraphGCenter, { borderColor: theme.accent }]} />
+                    <View style={styles.bodygraphMiddle}>
+                      <View style={[styles.bodygraphHeart, { borderColor: theme.accent + '40' }]} />
+                      <View style={[styles.bodygraphSpleen, { borderColor: theme.accent + '40' }]} />
+                      <View style={[styles.bodygraphSolarPlexus, { borderColor: theme.accent }]} />
+                    </View>
+                    <View style={[styles.bodygraphSacral, { borderColor: theme.accent }]} />
+                    <View style={[styles.bodygraphRoot, { borderColor: theme.accent }]} />
+                  </View>
+                  <Text style={[styles.bodygraphCaption, { color: theme.textTertiary }]}>
+                    Defined centers (solid) have consistent energy
+                  </Text>
+                </View>
+                
                 {/* Section 2: Centers Accordion */}
                 <CentersView userId={userId} />
                 
                 {/* Section 3: Defined Gates Accordion */}
                 <DefinedGatesView userId={userId} />
-                
-                {/* Section 4: Channels - placeholder */}
-                <View style={[styles.structureAccordion, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  <TouchableOpacity 
-                    style={styles.structureAccordionHeader}
-                    onPress={() => setChannelsExpanded(!channelsExpanded)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.structureAccordionTitle, { color: theme.text }]}>
-                      Channels
-                    </Text>
-                    <Text style={[styles.structureAccordionChevron, { color: theme.textTertiary }]}>
-                      {channelsExpanded ? '▲' : '▼'}
-                    </Text>
-                  </TouchableOpacity>
-                  {channelsExpanded && (
-                    <View style={styles.structureAccordionContent}>
-                      <Text style={[styles.structureAccordionText, { color: theme.textSecondary }]}>
-                        Channels connect two Centers and represent consistent life themes.
-                        Your defined channels show where energy flows consistently.
-                      </Text>
-                    </View>
-                  )}
-                </View>
               </>
             )}
 
