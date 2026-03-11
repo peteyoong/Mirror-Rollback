@@ -776,46 +776,56 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               </>
             )}
 
-            {/* DEEP DIVE TAB - Keep existing technical depth */}
-            {activeTab === 'deep_dive' && (
+            {/* STRUCTURE TAB - Human Design mechanics in clean accordions */}
+            {activeTab === 'structure' && (
               <>
-                <Text style={[styles.title, { color: theme.text }]}>{data.title || 'Your Human Design'}</Text>
-                {renderCoreMechanics()}
-                <TouchableOpacity
-                  style={styles.expandButton}
-                  onPress={() => setExpandedSection(expandedSection ? null : 'all')}
-                >
-                  <Text style={[styles.expandButtonText, { color: theme.accent }]}>
-                    {expandedSection ? 'Collapse sections' : 'Explore your mechanics'}
-                  </Text>
-                  <Text style={{ fontSize: 14, color: theme.accent }}>
-                    {expandedSection ? '⤡' : '⤢'}
-                  </Text>
-                </TouchableOpacity>
-                {data.sections?.map((section, index) => renderSection(section, index))}
+                <Text style={[styles.title, { color: theme.text }]}>Your Design Structure</Text>
+                <Text style={[styles.structureSubtitle, { color: theme.textTertiary }]}>
+                  The mechanical blueprint of your energy
+                </Text>
                 
-                {/* Centers Section - New reflective subsection */}
+                {/* Section 1: Core Mechanics - Always expanded */}
+                {renderCoreMechanics()}
+                
+                {/* Section 2: Centers Accordion */}
                 <CentersView userId={userId} />
                 
-                {/* Defined Gates Section */}
+                {/* Section 3: Defined Gates Accordion */}
                 <DefinedGatesView userId={userId} />
                 
-                {renderGeneKeys()}
-                {data.mirror_prompt && (
-                  <View style={[styles.mirrorPromptCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
-                    <Text style={[styles.mirrorPromptText, { color: theme.text }]}>{data.mirror_prompt}</Text>
-                  </View>
-                )}
+                {/* Section 4: Channels - placeholder */}
+                <View style={[styles.structureAccordion, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <TouchableOpacity 
+                    style={styles.structureAccordionHeader}
+                    onPress={() => setChannelsExpanded(!channelsExpanded)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.structureAccordionTitle, { color: theme.text }]}>
+                      Channels
+                    </Text>
+                    <Text style={[styles.structureAccordionChevron, { color: theme.textTertiary }]}>
+                      {channelsExpanded ? '▲' : '▼'}
+                    </Text>
+                  </TouchableOpacity>
+                  {channelsExpanded && (
+                    <View style={styles.structureAccordionContent}>
+                      <Text style={[styles.structureAccordionText, { color: theme.textSecondary }]}>
+                        Channels connect two Centers and represent consistent life themes.
+                        Your defined channels show where energy flows consistently.
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </>
             )}
 
-            {/* GENE KEYS TAB - New interpretive layer */}
-            {activeTab === 'gene_keys' && (
+            {/* MEANING TAB - Gene Keys interpretation */}
+            {activeTab === 'meaning' && (
               <GeneKeysView userId={userId} />
             )}
 
-            {/* Ask Mirror Button - show on Today and Deep Dive */}
-            {(activeTab === 'today' || activeTab === 'deep_dive') && (
+            {/* Ask Mirror Button - show on Today and Structure */}
+            {(activeTab === 'today' || activeTab === 'structure') && (
               <TouchableOpacity
                 style={[styles.askMirrorButton, { backgroundColor: theme.text }]}
                 onPress={onOpenChat}
@@ -825,18 +835,18 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               </TouchableOpacity>
             )}
 
-            {/* Footer - only on Deep Dive */}
-            {activeTab === 'deep_dive' && (
+            {/* Footer - only on Structure */}
+            {activeTab === 'structure' && (
               <Text style={[styles.footer, { color: theme.textTertiary }]}>
                 A lens for understanding energy patterns, not a definition of who you are.
               </Text>
             )}
             
             {/* Version Debug Panel - only shows when DEBUG_MIRROR is enabled */}
-            {activeTab === 'deep_dive' && renderVersionDebug()}
+            {activeTab === 'structure' && renderVersionDebug()}
             
             {/* Debug Footer - only shows when DEBUG_MIRROR is enabled */}
-            {activeTab === 'deep_dive' && data.sections && (
+            {activeTab === 'structure' && data.sections && (
               <DebugFooter 
                 lens="Human Design"
                 sections={data.sections}
