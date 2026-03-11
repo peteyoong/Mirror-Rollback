@@ -420,6 +420,15 @@ export default function PatternsScreen() {
                 )}
               </View>
             ))}
+            
+            {/* Optional: Subtle transit emphasis note */}
+            {transitSignal && (
+              <View style={styles.transitNote}>
+                <Text style={[styles.transitNoteText, { color: theme.textTertiary }]}>
+                  ✦ Current timing emphasis
+                </Text>
+              </View>
+            )}
           </View>
         )}
       </View>
