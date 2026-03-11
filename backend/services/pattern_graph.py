@@ -1553,6 +1553,17 @@ def aggregate_pattern_graph(
         human_design_gates=human_design_gates
     )
     
+    # Pre-calculate signal frequency for dynamic status
+    # This helps determine emerging vs stable vs quiet patterns
+    signal_frequency_cache: Dict[str, Dict[str, int]] = {}
+    for cat in PATTERN_CATEGORIES:
+        cat_id = cat["id"]
+        signal_frequency_cache[cat_id] = calculate_domain_signal_frequency(
+            domain_id=cat_id,
+            journal_entries=journal_entries,
+            mirror_insights=None  # Will be fetched if available
+        )
+    
     # Build category results
     categories: List[CategoryResult] = []
     
@@ -1593,13 +1604,21 @@ def aggregate_pattern_graph(
                 transit_weight=SIGNAL_WEIGHTS.get("astrology_transit", 0.5)
             )
         
-        strength = calculate_signal_strength_from_score(pattern_score)
+        # Use new DYNAMIC pattern status system
+        signal_freq = signal_frequency_cache.get(cat_id, {"last_7_days": 0, "last_30_days": 0})
+        strength = calculate_dynamic_pattern_status(
+            signals=unique_signals,
+            signal_timestamps=None,  # Future enhancement
+            recent_signal_count_7d=signal_freq.get("last_7_days", 0),
+            recent_signal_count_30d=signal_freq.get("last_30_days", 0),
+            trend=trends.get(cat_id, "steady")
+        )
         
         # Get matched sources
         sources = list(set(s["source"] for s in unique_signals))
         
-        # Get summary
-        summary = get_category_summary(cat, strength)
+        # Get summary (updated to handle new status types)
+        summary = get_category_summary_dynamic(cat, strength)
         
         # Add transit emphasis flag for sorting/highlighting top patterns
         result: CategoryResult = {
