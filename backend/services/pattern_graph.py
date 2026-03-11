@@ -41,6 +41,60 @@ except ImportError:
 
 
 # =============================================================================
+# PATTERN TENSION PAIRS
+# =============================================================================
+# Curated meaningful tension pairs between pattern categories
+
+TENSION_PAIRS = [
+    {
+        "category_a_id": "energy_vitality",
+        "category_b_id": "relationships_boundaries",
+        "summary": "A tension may be appearing between energy and connection—between what you can sustain and what others may need from you.",
+        "reflection_prompt": "Where are connection and depletion touching each other right now?"
+    },
+    {
+        "category_a_id": "energy_vitality",
+        "category_b_id": "expression_action",
+        "summary": "Something may be surfacing between your energy levels and your drive to express or act—between capacity and creative output.",
+        "reflection_prompt": "What wants to be expressed, and what does your energy allow right now?"
+    },
+    {
+        "category_a_id": "emotional_landscape",
+        "category_b_id": "expression_action",
+        "summary": "A tension could be emerging between what you're feeling and what you're expressing—between inner weather and outer voice.",
+        "reflection_prompt": "Is there something your emotions are asking you to say or do?"
+    },
+    {
+        "category_a_id": "identity_direction",
+        "category_b_id": "relationships_boundaries",
+        "summary": "You might be noticing friction between your sense of self and your connections—between who you are and who others need you to be.",
+        "reflection_prompt": "Where is your identity asking for more space in your relationships?"
+    },
+    {
+        "category_a_id": "mind_meaning",
+        "category_b_id": "emotional_landscape",
+        "summary": "A tension may be appearing between thinking and feeling—between what makes sense and what moves through you.",
+        "reflection_prompt": "What is your mind trying to understand that your emotions already know?"
+    },
+    {
+        "category_a_id": "growth_transformation",
+        "category_b_id": "identity_direction",
+        "summary": "Something could be surfacing between who you're becoming and who you've been—between growth and the familiar self.",
+        "reflection_prompt": "What part of you is ready to change, and what part is asking to stay?"
+    }
+]
+
+
+class PatternTension(TypedDict):
+    """A detected tension between two active pattern categories."""
+    category_a: str
+    category_b: str
+    combined_score: int
+    summary: str
+    reflection_prompt: str
+
+
+# =============================================================================
 # THE 7 CORE PATTERN CATEGORIES
 # =============================================================================
 
