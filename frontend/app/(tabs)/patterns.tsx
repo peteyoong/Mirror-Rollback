@@ -329,10 +329,6 @@ export default function PatternGraphScreen() {
             <Text style={[styles.presentCardStrength, { color: strengthColor }]}>
               {getStrengthLabel(category.signal_strength)}
             </Text>
-            <Text style={[styles.presentCardTrendSep, { color: theme.textTertiary }]}>•</Text>
-            <Text style={[styles.presentCardTrend, { color: trendColor }]}>
-              {getTrendLabel(category.trend)}
-            </Text>
           </View>
         </View>
         
