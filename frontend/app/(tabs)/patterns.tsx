@@ -305,7 +305,6 @@ export default function PatternGraphScreen() {
   // Render a "Current Themes" card (story-focused)
   const renderMostPresentCard = (category: PatternCategory) => {
     const strengthColor = getStrengthColor(category.signal_strength);
-    const trendColor = getTrendColor(category.trend);
 
     return (
       <View
