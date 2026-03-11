@@ -57,7 +57,7 @@ async def generate_pattern_synthesis(
         1-2 sentence reflective synthesis paragraph
     """
     try:
-        from emergentintegrations.llm.chat import Chat
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
         
         EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
         if not EMERGENT_LLM_KEY:
@@ -103,15 +103,16 @@ Do not explain what the signals mean.
 Just reflect the theme back gently and suggest an experiment."""
 
         # Call LLM
-        chat = Chat(
-            name="pattern_synthesis",
+        chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
+            model="gpt-4o-mini"
         )
-        chat.with_model("openai", "gpt-4o-mini")
-        chat.with_system_prompt(system_prompt)
         
-        response = await chat.chat_async(user_prompt)
-        synthesis = response.strip()
+        response = await chat.send_async([
+            UserMessage(content=f"{system_prompt}\n\n{user_prompt}")
+        ])
+        
+        synthesis = response.content.strip() if hasattr(response, 'content') else str(response).strip()
         
         # Validate response
         if len(synthesis) < 20 or len(synthesis) > 500:
