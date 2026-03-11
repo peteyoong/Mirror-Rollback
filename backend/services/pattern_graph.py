@@ -940,3 +940,173 @@ def aggregate_pattern_timeline(
         "generated_at": now.isoformat()
     }
 
+
+
+# =============================================================================
+# PATTERN TREND DETECTION
+# =============================================================================
+
+def calculate_weighted_score_for_signals(signals: List[MatchedSignal]) -> int:
+    """Calculate weighted score for a list of signals.
+    
+    Uses SIGNAL_WEIGHTS to compute total score.
+    """
+    if not signals:
+        return 0
+    
+    total_score = 0
+    for signal in signals:
+        source = signal.get("source", "")
+        weight = SIGNAL_WEIGHTS.get(source, 1)
+        total_score += weight
+    
+    return total_score
+
+
+def calculate_category_scores_for_period(
+    gene_keys_signals: Dict[str, List[MatchedSignal]],
+    hd_signals: Dict[str, List[MatchedSignal]],
+    journal_signals: Dict[str, List[MatchedSignal]]
+) -> Dict[str, int]:
+    """Calculate weighted scores per category for a time period.
+    
+    Args:
+        gene_keys_signals: Gene Keys signals (always present)
+        hd_signals: Human Design signals (always present)
+        journal_signals: Journal signals (time-filtered)
+    
+    Returns:
+        Dict mapping category_id to weighted score
+    """
+    scores: Dict[str, int] = {}
+    
+    for cat in PATTERN_CATEGORIES:
+        cat_id = cat["id"]
+        
+        # Collect all signals for this category
+        all_signals: List[MatchedSignal] = []
+        all_signals.extend(gene_keys_signals.get(cat_id, []))
+        all_signals.extend(hd_signals.get(cat_id, []))
+        all_signals.extend(journal_signals.get(cat_id, []))
+        
+        # Deduplicate by label
+        seen_labels = set()
+        unique_signals = []
+        for sig in all_signals:
+            if sig["label"] not in seen_labels:
+                seen_labels.add(sig["label"])
+                unique_signals.append(sig)
+        
+        # Calculate weighted score
+        scores[cat_id] = calculate_weighted_score_for_signals(unique_signals)
+    
+    return scores
+
+
+def calculate_trend(score_7_days: int, score_30_days: int) -> str:
+    """Calculate trend direction by comparing 7-day and 30-day scores.
+    
+    Rules:
+    - rising: score_7_days > score_30_days
+    - fading: score_7_days < score_30_days
+    - steady: scores are approximately equal (within 1 point tolerance)
+    
+    Returns:
+        "rising", "steady", or "fading"
+    """
+    # Both scores are 0 means no activity
+    if score_7_days == 0 and score_30_days == 0:
+        return "steady"
+    
+    diff = score_7_days - score_30_days
+    
+    # Use a small tolerance for "steady" (within 1 point)
+    if abs(diff) <= 1:
+        return "steady"
+    elif diff > 0:
+        return "rising"
+    else:
+        return "fading"
+
+
+def calculate_pattern_trends(
+    gene_keys_profile: Optional[dict] = None,
+    journal_entries: Optional[List[dict]] = None,
+    human_design_centers: Optional[List[dict]] = None,
+    human_design_gates: Optional[List[int]] = None
+) -> Dict[str, str]:
+    """Calculate trend direction for each pattern category.
+    
+    Compares weighted scores between last 7 days and last 30 days.
+    
+    Args:
+        gene_keys_profile: Gene Keys profile data
+        journal_entries: All journal entries
+        human_design_centers: Human Design centers data
+        human_design_gates: Active gate numbers
+    
+    Returns:
+        Dict mapping category_id to trend ("rising", "steady", "fading")
+    """
+    now = datetime.utcnow()
+    
+    # Define time periods
+    period_7_days = {
+        "start": now - timedelta(days=7),
+        "end": now
+    }
+    period_30_days = {
+        "start": now - timedelta(days=30),
+        "end": now
+    }
+    
+    # Pre-compute static signals (Gene Keys, Human Design)
+    gk_signals: Dict[str, List[MatchedSignal]] = {}
+    if gene_keys_profile:
+        gk_signals = aggregate_gene_keys_signals(gene_keys_profile)
+    
+    hd_signals: Dict[str, List[MatchedSignal]] = {}
+    if human_design_centers or human_design_gates:
+        hd_signals = aggregate_human_design_center_signals(
+            centers_profile=human_design_centers,
+            active_gates=human_design_gates
+        )
+    
+    # Get journal signals for each period
+    journal_7_days: Dict[str, List[MatchedSignal]] = {}
+    journal_30_days: Dict[str, List[MatchedSignal]] = {}
+    
+    if journal_entries:
+        journal_7_days = aggregate_journal_signals_for_period(
+            journal_entries=journal_entries,
+            start_date=period_7_days["start"],
+            end_date=period_7_days["end"]
+        )
+        journal_30_days = aggregate_journal_signals_for_period(
+            journal_entries=journal_entries,
+            start_date=period_30_days["start"],
+            end_date=period_30_days["end"]
+        )
+    
+    # Calculate scores for each period
+    scores_7_days = calculate_category_scores_for_period(
+        gene_keys_signals=gk_signals,
+        hd_signals=hd_signals,
+        journal_signals=journal_7_days
+    )
+    
+    scores_30_days = calculate_category_scores_for_period(
+        gene_keys_signals=gk_signals,
+        hd_signals=hd_signals,
+        journal_signals=journal_30_days
+    )
+    
+    # Calculate trends for each category
+    trends: Dict[str, str] = {}
+    for cat in PATTERN_CATEGORIES:
+        cat_id = cat["id"]
+        score_7 = scores_7_days.get(cat_id, 0)
+        score_30 = scores_30_days.get(cat_id, 0)
+        trends[cat_id] = calculate_trend(score_7, score_30)
+    
+    return trends
