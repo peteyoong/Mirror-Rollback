@@ -328,11 +328,9 @@ export default function PatternsScreen() {
       signalsBySource[source].push(signal);
     });
 
-    // Log signal counts for debugging when expanded changes
-    if (isExpanded) {
-      const counts = countSignalsBySource(visibleSignals);
-      console.log(`[PATTERN_ACCORDION_SIGNALS] ${domain.category_name} gene_keys=${counts.gene_keys || 0} human_design=${counts.human_design || 0} journal=${counts.journal || 0}`);
-    }
+    // Debug log for signal counts (only once per domain on render)
+    const counts = countSignalsBySource(visibleSignals);
+    console.log(`[PATTERN_CARD_RENDER] ${domain.category_name}: visibleSignals=${visibleSignals.length}, isExpanded=${isExpanded}, hasVisibleSignals=${hasVisibleSignals}, gene_keys=${counts.gene_keys || 0}, hd=${counts.human_design || 0}, journal=${counts.journal || 0}`);
 
     return (
       <View
@@ -344,7 +342,6 @@ export default function PatternsScreen() {
           style={styles.domainHeaderTouchable}
           onPress={() => toggleExpanded(domain.category_id, domain.category_name)}
           activeOpacity={0.7}
-          disabled={!hasVisibleSignals}
         >
           <View style={styles.domainHeaderRow}>
             <Text style={[styles.domainName, { color: theme.text }]}>
