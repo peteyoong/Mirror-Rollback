@@ -1686,4 +1686,83 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
   },
+  // Bodygraph Visual Card
+  bodygraphCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  bodygraphVisual: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    gap: 4,
+  },
+  bodygraphHead: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+  },
+  bodygraphAjna: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+  },
+  bodygraphThroat: {
+    width: 28,
+    height: 24,
+    borderRadius: 4,
+    borderWidth: 2,
+  },
+  bodygraphGCenter: {
+    width: 28,
+    height: 28,
+    transform: [{ rotate: '45deg' }],
+    borderWidth: 2,
+    marginVertical: 2,
+  },
+  bodygraphMiddle: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+  },
+  bodygraphHeart: {
+    width: 20,
+    height: 20,
+    borderRadius: 3,
+    borderWidth: 2,
+  },
+  bodygraphSpleen: {
+    width: 20,
+    height: 20,
+    borderRadius: 3,
+    borderWidth: 2,
+  },
+  bodygraphSolarPlexus: {
+    width: 20,
+    height: 20,
+    borderRadius: 3,
+    borderWidth: 2,
+  },
+  bodygraphSacral: {
+    width: 28,
+    height: 24,
+    borderRadius: 4,
+    borderWidth: 2,
+  },
+  bodygraphRoot: {
+    width: 28,
+    height: 24,
+    borderRadius: 4,
+    borderWidth: 2,
+  },
+  bodygraphCaption: {
+    fontSize: 11,
+    marginTop: 12,
+    fontStyle: 'italic',
+  },
 });
