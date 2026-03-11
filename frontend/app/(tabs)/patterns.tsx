@@ -39,6 +39,32 @@ interface PatternGraphResponse {
   updated_at: string;
 }
 
+// Timeline types
+interface TimelineCategory {
+  category_id: string;
+  category_name: string;
+  signal_strength: 'quiet' | 'present' | 'recurring';
+  total_signals: number;
+  matched_sources: string[];
+  summary: string;
+}
+
+interface TimeBucket {
+  bucket_name: string;
+  bucket_label: string;
+  start_date: string;
+  end_date: string;
+  categories: TimelineCategory[];
+  has_activity: boolean;
+}
+
+interface TimelineResponse {
+  success: boolean;
+  buckets: TimeBucket[];
+  has_any_activity: boolean;
+  generated_at: string;
+}
+
 export default function PatternGraphScreen() {
   const { theme } = useTheme();
   const { user } = useAuth();
@@ -48,10 +74,15 @@ export default function PatternGraphScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  
+  // Timeline state
+  const [timeline, setTimeline] = useState<TimeBucket[]>([]);
+  const [timelineLoading, setTimelineLoading] = useState(false);
 
   useEffect(() => {
     if (user?._id) {
       loadPatternGraph();
+      loadTimeline();
     }
   }, [user?._id]);
 
@@ -77,6 +108,20 @@ export default function PatternGraphScreen() {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+    }
+  };
+
+  const loadTimeline = async () => {
+    setTimelineLoading(true);
+    try {
+      const response = await api.get<TimelineResponse>(`/pattern-graph/timeline/${user?._id}`);
+      if (response.data.success) {
+        setTimeline(response.data.buckets);
+      }
+    } catch (err: any) {
+      console.error('Timeline load error:', err);
+    } finally {
+      setTimelineLoading(false);
     }
   };
 
