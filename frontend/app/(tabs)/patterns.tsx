@@ -314,7 +314,7 @@ export default function PatternGraphScreen() {
   const timelineRecurring = getTimelineSummary();
   const hasAnySignals = geneKeysSignals.length > 0 || humanDesignSignals.length > 0 || journalSignals.length > 0 || timelineRecurring.length > 0;
 
-  // Render a "What's Most Present" card (story-focused)
+  // Render a "Current Themes" card (story-focused)
   const renderMostPresentCard = (category: PatternCategory) => {
     const strengthColor = getStrengthColor(category.signal_strength);
     const trendColor = getTrendColor(category.trend);
