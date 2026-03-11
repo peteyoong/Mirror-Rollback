@@ -600,10 +600,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
+  categoryTrendSeparator: {
+    fontSize: 12,
+    marginHorizontal: 4,
+  },
   categoryTrend: {
     fontSize: 12,
     fontWeight: '400',
-    marginLeft: 4,
   },
   expandIcon: {
     fontSize: 14,
