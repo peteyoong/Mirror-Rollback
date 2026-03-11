@@ -95,7 +95,7 @@ export default function PatternGraphScreen() {
     setError(null);
     
     try {
-      const response = await api.get<PatternGraphResponse>(`/pattern-graph/${user?._id}`);
+      const response = await api.get<PatternGraphResponse>(`/pattern-graph/${user?.id}`);
       if (response.data.success) {
         setCategories(response.data.categories);
         setSummary(response.data.summary || null);
@@ -114,7 +114,7 @@ export default function PatternGraphScreen() {
   const loadTimeline = async () => {
     setTimelineLoading(true);
     try {
-      const response = await api.get<TimelineResponse>(`/pattern-graph/timeline/${user?._id}`);
+      const response = await api.get<TimelineResponse>(`/pattern-graph/timeline/${user?.id}`);
       if (response.data.success) {
         setTimeline(response.data.buckets);
       }
