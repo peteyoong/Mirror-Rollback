@@ -133,6 +133,9 @@ export default function MirrorChat({
   const [threadState, setThreadState] = useState<ThreadState | null>(null);
   const [showThreadModal, setShowThreadModal] = useState(false);
   
+  // Track if insight has been saved for this session
+  const [insightSavedForSession, setInsightSavedForSession] = useState(false);
+  
   const flatListRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
   const insets = useSafeAreaInsets();
