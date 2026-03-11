@@ -1008,4 +1008,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  // Mirror Insight card styles
+  timelineInsightCard: {
+    borderWidth: 1,
+  },
+  insightLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  insightLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  journalLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  journalLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  timelineInsightText: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontStyle: 'italic',
+    marginBottom: 10,
+  },
 });
