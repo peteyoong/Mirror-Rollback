@@ -634,6 +634,61 @@ def get_category_summary(category: dict, strength: str) -> str:
         return category.get("active_summary", "This theme seems to be present across your reflection.")
 
 
+def aggregate_enneagram_signals(
+    enneagram_type: Optional[int] = None,
+    enneagram_wing: Optional[int] = None
+) -> Dict[str, List[MatchedSignal]]:
+    """Aggregate Enneagram signals into pattern categories.
+    
+    Maps Enneagram type to the relevant life domains it influences.
+    This is an invisible contributor - it affects scoring but doesn't
+    expose separate Enneagram UI.
+    
+    Args:
+        enneagram_type: User's core Enneagram type (1-9)
+        enneagram_wing: User's Enneagram wing (optional)
+    
+    Returns:
+        Dict mapping category_id to list of Enneagram-derived signals
+    """
+    category_signals: Dict[str, List[MatchedSignal]] = {
+        cat["id"]: [] for cat in PATTERN_CATEGORIES
+    }
+    
+    if not enneagram_type or enneagram_type < 1 or enneagram_type > 9:
+        return category_signals
+    
+    # Map the core type to relevant domains
+    for category_id, types in ENNEAGRAM_DOMAIN_MAPPING.items():
+        if enneagram_type in types:
+            # Create a subtle signal that contributes to scoring
+            # without exposing Enneagram specifics
+            signal: MatchedSignal = {
+                "source": "enneagram",
+                "label": f"Personality pattern resonance",
+                "sphere_name": None,
+                "detail": f"Core type influence on this domain"
+            }
+            category_signals[category_id].append(signal)
+    
+    # If wing is provided and different from core type, add secondary influence
+    if enneagram_wing and enneagram_wing != enneagram_type and 1 <= enneagram_wing <= 9:
+        for category_id, types in ENNEAGRAM_DOMAIN_MAPPING.items():
+            if enneagram_wing in types:
+                # Check if we already added this category from core type
+                existing_labels = [s["label"] for s in category_signals[category_id]]
+                if "Personality pattern resonance" not in existing_labels:
+                    signal: MatchedSignal = {
+                        "source": "enneagram",
+                        "label": f"Personality pattern resonance (secondary)",
+                        "sphere_name": None,
+                        "detail": f"Wing influence on this domain"
+                    }
+                    category_signals[category_id].append(signal)
+    
+    return category_signals
+
+
 def aggregate_pattern_graph(
     gene_keys_profile: Optional[dict] = None,
     journal_entries: Optional[List[dict]] = None,
