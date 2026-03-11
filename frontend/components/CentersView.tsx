@@ -283,7 +283,12 @@ const CentersView = forwardRef<CentersViewHandle, Props>(({ userId }, ref) => {
       )}
     </View>
   );
-}
+});
+
+// Add display name for debugging
+CentersView.displayName = 'CentersView';
+
+export default CentersView;
 
 const styles = StyleSheet.create({
   container: {
