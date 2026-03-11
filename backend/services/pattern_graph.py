@@ -728,6 +728,58 @@ def aggregate_pattern_graph(
     }
 
 
+def detect_pattern_tensions(categories: List[CategoryResult], max_tensions: int = 2) -> List[PatternTension]:
+    """Detect meaningful tensions between active pattern categories.
+    
+    Only considers categories with signal_strength of "present" or "recurring".
+    Uses curated TENSION_PAIRS for meaningful psychological tensions.
+    
+    Args:
+        categories: List of CategoryResult from aggregate_pattern_graph
+        max_tensions: Maximum number of tensions to return (default: 2)
+    
+    Returns:
+        List of PatternTension objects, ranked by combined_score
+    """
+    # Build lookup for active categories (present or recurring)
+    active_categories: Dict[str, CategoryResult] = {}
+    for cat in categories:
+        if cat["signal_strength"] in ("present", "recurring"):
+            active_categories[cat["category_id"]] = cat
+    
+    # No active categories means no tensions
+    if len(active_categories) < 2:
+        return []
+    
+    # Check each tension pair
+    tension_candidates: List[PatternTension] = []
+    
+    for pair in TENSION_PAIRS:
+        cat_a_id = pair["category_a_id"]
+        cat_b_id = pair["category_b_id"]
+        
+        # Both categories must be active
+        if cat_a_id in active_categories and cat_b_id in active_categories:
+            cat_a = active_categories[cat_a_id]
+            cat_b = active_categories[cat_b_id]
+            
+            combined_score = cat_a["pattern_score"] + cat_b["pattern_score"]
+            
+            tension: PatternTension = {
+                "category_a": cat_a["category_name"],
+                "category_b": cat_b["category_name"],
+                "combined_score": combined_score,
+                "summary": pair["summary"],
+                "reflection_prompt": pair["reflection_prompt"]
+            }
+            tension_candidates.append(tension)
+    
+    # Sort by combined score (highest first) and return top N
+    tension_candidates.sort(key=lambda t: t["combined_score"], reverse=True)
+    
+    return tension_candidates[:max_tensions]
+
+
 # =============================================================================
 # TIMELINE AGGREGATION
 # =============================================================================
