@@ -23,7 +23,7 @@ import { useAppStore, storage } from '../../store';
 import JournalEntryItem from '../../components/JournalEntryItem';
 import MirrorReflectionModal from '../../components/MirrorReflectionModal';
 import MirrorChat from '../../components/MirrorChat';
-import { createJournalEntry, getJournalEntries } from '../../services/api';
+import { createJournalEntry, getJournalEntries, getCombinedTimeline, TimelineItem } from '../../services/api';
 import api from '../../services/api';
 // Removed Ionicons - using text-based alternatives for web compatibility
 
