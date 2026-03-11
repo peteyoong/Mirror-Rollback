@@ -1512,6 +1512,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </>
         ) : null}
       </ScrollView>
+      
+      {/* Mechanic Detail Modal */}
+      {renderMechanicDetailModal()}
     </View>
   );
 }
