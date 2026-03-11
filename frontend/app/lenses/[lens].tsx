@@ -267,7 +267,7 @@ export default function LensDetail() {
   const lens = rawLens?.replace(/-/g, '_');
   const [activeTab, setActiveTab] = useState<'summary' | 'snapshot' | 'deep_dive'>('deep_dive');
   const [chatInput, setChatInput] = useState('');
-  const { user, chart } = useAppStore();
+  const { user, chart, isSessionRestoring } = useAppStore();
   
   // Lens Chat Modal state
   const [lensChatVisible, setLensChatVisible] = useState(false);
