@@ -777,4 +777,131 @@ const styles = StyleSheet.create({
     marginTop: 8,
     maxWidth: 250,
   },
+  // Journal Timeline styles
+  timelineContainer: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  timelineHeader: {
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  timelineTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: Colors.text,
+    letterSpacing: -0.3,
+  },
+  timelineSubtitle: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  timelineList: {
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+  },
+  timelineDateGroup: {
+    marginBottom: 24,
+  },
+  timelineDateHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  timelineDateDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  timelineDateLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    flex: 1,
+  },
+  timelineEntryCount: {
+    fontSize: 12,
+  },
+  timelineEntriesLine: {
+    borderLeftWidth: 2,
+    marginLeft: 4,
+    paddingLeft: 18,
+    gap: 12,
+  },
+  timelineEntryCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+  },
+  timelineEntryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  timelineEntryTime: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  timelineThemes: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  timelineThemeChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  timelineThemeText: {
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  timelineEntryPreview: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  timelineReflectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  timelineReflectText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  timelineEmpty: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  timelineEmptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 16,
+  },
+  timelineEmptySubtext: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  timelineStartButton: {
+    marginTop: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  timelineStartButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
 });
