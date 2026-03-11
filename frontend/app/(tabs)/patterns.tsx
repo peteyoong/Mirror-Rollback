@@ -243,32 +243,60 @@ export default function PatternsScreen() {
     });
   };
 
-  const toggleExpanded = (domainId: string) => {
+  const toggleExpanded = (domainId: string, domainName: string) => {
+    const newExpanded = expandedDomain === domainId ? null : domainId;
+    console.log(`[PATTERN_ACCORDION_TAP] ${domainName}`);
+    console.log(`[PATTERN_ACCORDION_STATE] ${domainName} expanded=${newExpanded !== null}`);
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedDomain(expandedDomain === domainId ? null : domainId);
+    setExpandedDomain(newExpanded);
   };
 
   const getSourceDisplayName = (source: string): string => {
     const sourceNames: Record<string, string> = {
       'gene_keys': 'Gene Keys',
       'human_design': 'Human Design',
-      'journal': 'Journal',
+      'journal': 'Journal & Reflections',
       'mirror_chat': 'Mirror Chat',
-      'enneagram': 'Personality Pattern',
     };
     return sourceNames[source] || source;
   };
 
   const formatSignalLabel = (signal: MatchedSignal): string => {
-    // For enneagram signals, use a simpler format since it's "invisible"
-    if (signal.source === 'enneagram') {
+    // For Gene Keys signals, format nicely
+    if (signal.source === 'gene_keys') {
+      if (signal.detail && signal.detail.includes('Gene Key')) {
+        // Extract just the gene key number
+        const match = signal.detail.match(/Gene Key (\d+)/);
+        if (match) {
+          return `Gene Key ${match[1]} — ${signal.label}`;
+        }
+      }
+      if (signal.sphere_name) {
+        return `${signal.label} · ${signal.sphere_name}`;
+      }
+    }
+    // For Human Design signals
+    if (signal.source === 'human_design') {
       return signal.label;
     }
-    // For other signals, show label and sphere if available
+    // For journal signals
+    if (signal.source === 'journal') {
+      return signal.label;
+    }
+    // Default
     if (signal.sphere_name) {
       return `${signal.label} · ${signal.sphere_name}`;
     }
     return signal.label;
+  };
+
+  // Count signals by source for debugging
+  const countSignalsBySource = (signals: MatchedSignal[]): Record<string, number> => {
+    const counts: Record<string, number> = {};
+    signals.forEach(s => {
+      counts[s.source] = (counts[s.source] || 0) + 1;
+    });
+    return counts;
   };
 
   // ============================================================================
