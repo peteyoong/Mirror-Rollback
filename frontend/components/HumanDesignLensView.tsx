@@ -1094,20 +1094,43 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         break;
     }
     
-    if (!story) return null;
+    if (!story) {
+      console.log('[HumanDesignLensView] No story found for:', activeMechanicDetail);
+      return null;
+    }
     
     const screenWidth = Dimensions.get('window').width;
+    const screenHeight = Dimensions.get('window').height;
     const modalWidth = Math.min(screenWidth - 32, 500);
+    const modalMaxHeight = screenHeight * 0.85;
+    
+    console.log('[HumanDesignLensView] Rendering modal with title:', title, 'story:', story?.explanation?.[0]?.substring(0, 50));
     
     return (
       <Modal
-        visible={!!activeMechanicDetail}
-        transparent
+        visible={true}
+        transparent={true}
         animationType="fade"
-        onRequestClose={() => setActiveMechanicDetail(null)}
+        onRequestClose={() => {
+          console.log('[Modal] onRequestClose triggered');
+          setActiveMechanicDetail(null);
+        }}
+        statusBarTranslucent={Platform.OS === 'android'}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: theme.surface, width: modalWidth }]}>
+        <Pressable 
+          style={styles.modalOverlay}
+          onPress={() => {
+            console.log('[Modal] Overlay pressed - closing');
+            setActiveMechanicDetail(null);
+          }}
+        >
+          <Pressable 
+            style={[styles.modalContent, { backgroundColor: theme.surface, width: modalWidth, maxHeight: modalMaxHeight }]}
+            onPress={(e) => {
+              // Prevent closing when tapping the modal content
+              e.stopPropagation();
+            }}
+          >
             <ScrollView 
               style={styles.modalScrollView}
               showsVerticalScrollIndicator={false}
@@ -1152,15 +1175,21 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             </ScrollView>
             
             {/* Close Button */}
-            <TouchableOpacity
-              style={[styles.modalCloseButton, { backgroundColor: theme.background, borderTopColor: theme.border }]}
-              onPress={() => setActiveMechanicDetail(null)}
-              activeOpacity={0.7}
+            <Pressable
+              style={({ pressed }) => [
+                styles.modalCloseButton, 
+                { backgroundColor: theme.background, borderTopColor: theme.border },
+                pressed && { opacity: 0.7 }
+              ]}
+              onPress={() => {
+                console.log('[Modal] Close button pressed');
+                setActiveMechanicDetail(null);
+              }}
             >
               <Text style={[styles.modalCloseText, { color: theme.text }]}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+            </Pressable>
+          </Pressable>
+        </Pressable>
       </Modal>
     );
   };
