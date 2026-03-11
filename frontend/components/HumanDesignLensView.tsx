@@ -1610,4 +1610,42 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     opacity: 0.5,
   },
+  // ============================================
+  // STRUCTURE TAB STYLES
+  // ============================================
+  structureSubtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 20,
+    fontStyle: 'italic',
+  },
+  structureAccordion: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  structureAccordionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  structureAccordionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  structureAccordionChevron: {
+    fontSize: 12,
+  },
+  structureAccordionContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    paddingTop: 4,
+  },
+  structureAccordionText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
 });
