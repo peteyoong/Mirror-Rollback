@@ -17,7 +17,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../services/api';
+import api, { createMirrorInsight } from '../services/api';
 import { storage, CHAT_SESSION_KEYS } from '../store';
 
 // Enable LayoutAnimation on Android
