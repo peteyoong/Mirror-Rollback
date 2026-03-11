@@ -924,8 +924,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
     // Navigate to mechanic detail modal
     const handleMechanicTap = (mechanicType: string) => {
+      // Debug logging
+      console.log('[HumanDesignLensView] handleMechanicTap called with:', mechanicType);
+      console.log('[HumanDesignLensView] Current activeMechanicDetail before set:', activeMechanicDetail);
       // Open the mechanics detail modal
       setActiveMechanicDetail(mechanicType);
+      console.log('[HumanDesignLensView] setActiveMechanicDetail called with:', mechanicType);
     };
 
     return (
