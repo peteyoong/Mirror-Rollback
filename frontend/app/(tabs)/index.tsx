@@ -616,6 +616,33 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
     alignItems: 'center',
   },
+  // Pattern Pulse card styles
+  patternPulseCard: {
+    marginHorizontal: 20,
+    marginTop: 12,
+    marginBottom: 4,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  patternPulseLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 1.2,
+    marginBottom: 8,
+    opacity: 0.8,
+  },
+  patternPulseBody: {
+    fontSize: 14,
+    lineHeight: 21,
+    marginBottom: 8,
+  },
+  patternPulsePrompt: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
+  },
   keystoneContainer: {
     paddingTop: 16,
     paddingBottom: 8,
