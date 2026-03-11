@@ -572,4 +572,75 @@ export const getAllLifeContexts = async (userId: string): Promise<{
 
 // Export both the raw api instance and the retry-wrapped version
 export { apiWithRetry };
+
+// =============================================================================
+// MIRROR INSIGHT API
+// =============================================================================
+
+export interface MirrorInsight {
+  id: string;
+  type: 'mirror_insight';
+  summary: string;
+  domains: string[];
+  tags: string[];
+  confidence: number;
+  created_at: string;
+}
+
+export interface CreateMirrorInsightPayload {
+  user_id: string;
+  summary: string;
+  domains?: string[];
+  tags?: string[];
+  confidence?: number;
+}
+
+export const createMirrorInsight = async (
+  payload: CreateMirrorInsightPayload
+): Promise<MirrorInsight> => {
+  const response = await apiWithRetry.post('/mirror/insight', payload);
+  return response.data;
+};
+
+export const getMirrorInsights = async (
+  userId: string,
+  limit: number = 20
+): Promise<MirrorInsight[]> => {
+  const response = await apiWithRetry.get(`/mirror/insights/${userId}`, {
+    params: { limit }
+  });
+  return response.data;
+};
+
+// Combined Timeline (Journal + Mirror Insights)
+export interface TimelineItem {
+  id: string;
+  type: 'journal_entry' | 'mirror_insight';
+  // For journal_entry
+  content?: string;
+  themes?: string[];
+  // For mirror_insight
+  summary?: string;
+  domains?: string[];
+  tags?: string[];
+  confidence?: number;
+  // Common
+  created_at: string;
+}
+
+export interface CombinedTimelineResponse {
+  items: TimelineItem[];
+  total: number;
+}
+
+export const getCombinedTimeline = async (
+  userId: string,
+  limit: number = 50
+): Promise<CombinedTimelineResponse> => {
+  const response = await apiWithRetry.get(`/timeline/combined/${userId}`, {
+    params: { limit }
+  });
+  return response.data;
+};
+
 export default api;
