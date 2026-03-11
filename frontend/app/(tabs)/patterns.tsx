@@ -566,9 +566,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 2,
   },
+  categoryMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   categoryStrength: {
     fontSize: 12,
     fontWeight: '500',
+  },
+  categoryTrend: {
+    fontSize: 12,
+    fontWeight: '400',
+    marginLeft: 4,
   },
   expandIcon: {
     fontSize: 14,
