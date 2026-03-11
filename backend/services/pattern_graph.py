@@ -1106,13 +1106,13 @@ def aggregate_transit_signals(
     natal_chart: Optional[Dict] = None,
     existing_domain_scores: Optional[Dict[str, float]] = None
 ) -> Dict[str, List[MatchedSignal]]:
-    """Aggregate transit signals into pattern categories.
+    """Aggregate transit signals into pattern categories using real planetary transits.
     
     IMPORTANT: Transits are an AMPLIFICATION layer only.
     They should boost existing patterns, not create new ones.
     
     Args:
-        transit_themes: List of active transit theme keys
+        natal_chart: Optional user's natal chart for personalized transits
         existing_domain_scores: Dict of domain_id -> score (to check for existing support)
     
     Returns:
@@ -1122,26 +1122,24 @@ def aggregate_transit_signals(
         cat["id"]: [] for cat in PATTERN_CATEGORIES
     }
     
-    if not transit_themes:
-        transit_themes = get_current_transit_themes()
+    # Get real transit influence on domains
+    transit_influence = get_transit_influenced_domains(natal_chart=natal_chart)
     
-    # Track which domains receive transit emphasis
-    domain_emphasis: Dict[str, int] = {}
-    theme_labels: Dict[str, str] = {}  # Store theme descriptions per domain
+    if not transit_influence:
+        logger.debug("[Transit] No transit influence calculated")
+        return category_signals
     
-    for theme in transit_themes:
-        if theme in TRANSIT_THEME_DOMAINS:
-            domains = TRANSIT_THEME_DOMAINS[theme]
-            for domain_id in domains:
-                domain_emphasis[domain_id] = domain_emphasis.get(domain_id, 0) + 1
-                # Store the first theme as the label
-                if domain_id not in theme_labels:
-                    # Convert theme_key to readable label
-                    readable = theme.replace("_", " ").title()
-                    theme_labels[domain_id] = readable
-    
-    # Only add transit signals to domains that have emphasis
-    for domain_id, emphasis_count in domain_emphasis.items():
+    # Only add transit signals to domains that have:
+    # 1. Transit emphasis AND
+    # 2. Existing support from other signals (amplification only)
+    for domain_id, influence in transit_influence.items():
+        intensity = influence.get("intensity", 0)
+        theme = influence.get("theme", "timing_emphasis")
+        
+        # Skip if intensity is too low
+        if intensity < 0.2:
+            continue
+        
         # Skip if this domain has no existing support (amplification only)
         if existing_domain_scores:
             existing_score = existing_domain_scores.get(domain_id, 0)
@@ -1149,14 +1147,66 @@ def aggregate_transit_signals(
                 logger.debug(f"[Transit] Skipping {domain_id} - insufficient existing support ({existing_score})")
                 continue
         
-        # Create subtle transit signal
+        # Create subtle transit signal - do NOT mention planets directly
+        # Convert theme to readable label without planet names
+        theme_labels = {
+            "activation_pressure": "activation building",
+            "discipline_fatigue": "structuring energy",
+            "vitality_focus": "vitality emphasis",
+            "emotional_cycles": "emotional currents",
+            "emotional_permeability": "heightened sensitivity",
+            "heart_opening": "heart activation",
+            "structure_testing": "structural pressure",
+            "identity_illumination": "identity clarity",
+            "deep_restructuring": "deep restructuring",
+            "direction_pull": "directional pull",
+            "mental_activation": "mental activation",
+            "sudden_insight": "insight potential",
+            "expanded_perspective": "expanded perspective",
+            "action_drive": "action momentum",
+            "expansion_opportunity": "expansion opportunity",
+            "visibility_moment": "visibility window",
+            "voice_activation": "expression activation",
+            "connection_focus": "connection focus",
+            "boundary_definition": "boundary clarity",
+            "relational_needs": "relational awareness",
+            "deep_transformation": "transformative pressure",
+            "breakthrough_pressure": "breakthrough potential",
+            "maturation_demand": "maturation pressure",
+            "growth_expansion": "growth opportunity",
+            "timing_emphasis": "current timing"
+        }
+        
+        readable_theme = theme_labels.get(theme, "current timing")
+        
         signal: MatchedSignal = {
             "source": "astrology_transit",
             "label": "Current transit emphasis",
             "sphere_name": None,
-            "detail": theme_labels.get(domain_id, "Timing resonance")
+            "detail": readable_theme
         }
         category_signals[domain_id].append(signal)
+        
+        logger.debug(f"[Transit] Added signal to {domain_id}: {readable_theme} (intensity={intensity:.2f})")
+    
+    return category_signals
+
+
+def get_transit_domain_intensities(
+    natal_chart: Optional[Dict] = None
+) -> Dict[str, float]:
+    """Get transit intensity scores for each domain.
+    
+    Used for transit amplification calculations.
+    
+    Returns:
+        Dict mapping domain_id to intensity (0-1)
+    """
+    transit_influence = get_transit_influenced_domains(natal_chart=natal_chart)
+    return {
+        domain_id: influence.get("intensity", 0)
+        for domain_id, influence in transit_influence.items()
+    }
     
     return category_signals
 
