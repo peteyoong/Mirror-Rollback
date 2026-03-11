@@ -931,13 +931,58 @@ def calculate_signal_strength(signals: List[MatchedSignal]) -> str:
 
 
 def get_category_summary(category: dict, strength: str) -> str:
-    """Get the appropriate summary text for a category and strength level."""
+    """Get the appropriate summary text for a category and strength level.
+    
+    DEPRECATED: Use get_category_summary_dynamic() for new status types.
+    Kept for backward compatibility.
+    """
     if strength == "quiet":
         return category.get("quiet_summary", "No strong signals at the moment.")
     elif strength == "present":
         return category.get("emerging_summary", "A theme may be starting to surface.")
     else:  # recurring
         return category.get("active_summary", "This theme seems to be present across your reflection.")
+
+
+def get_category_summary_dynamic(category: dict, status: str) -> str:
+    """Get appropriate summary text for dynamic pattern status.
+    
+    Handles all 6 status types:
+    - emerging: New activity detected
+    - present: Occasional activity
+    - recurring: Repeated recent activity
+    - stable: Consistent long-term pattern
+    - quiet: Little/no recent activity
+    - context: Primarily lens-activated
+    
+    Args:
+        category: The pattern category dict
+        status: Dynamic status string
+    
+    Returns:
+        Appropriate summary text for the status
+    """
+    cat_name = category.get("name", "This domain")
+    
+    # Status-specific summaries that feel more dynamic
+    summaries = {
+        "emerging": f"Something new around {cat_name.lower()} may be starting to surface. Signals have appeared recently that weren't present before.",
+        "present": f"Occasional signals around {cat_name.lower()} are showing up. This theme has some activity but isn't dominant.",
+        "recurring": f"A recurring pattern around {cat_name.lower()} is active. Multiple signals have appeared repeatedly in recent reflections.",
+        "stable": f"{cat_name} appears as a stable, consistent theme in your pattern landscape. This shows steady presence over time.",
+        "quiet": f"No strong recent signals around {cat_name.lower()}. This domain is currently quiet.",
+        "context": f"{cat_name} is activated primarily through your interpretive lenses rather than recent reflections."
+    }
+    
+    # Fall back to category-specific summaries if available
+    if status == "quiet":
+        return category.get("quiet_summary", summaries.get(status))
+    elif status == "emerging":
+        return category.get("emerging_summary", summaries.get(status))
+    elif status in ["recurring", "stable"]:
+        return category.get("active_summary", summaries.get(status))
+    
+    return summaries.get(status, "A theme may be surfacing.")
 
 
 def aggregate_enneagram_signals(
