@@ -596,6 +596,43 @@ const styles = StyleSheet.create({
     height: 32,
   },
   
+  // Pattern Tensions section
+  tensionsSection: {
+    marginBottom: 24,
+  },
+  tensionsSectionTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.5,
+    marginBottom: 6,
+  },
+  tensionsSectionSubtext: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 16,
+  },
+  tensionCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 12,
+  },
+  tensionCategories: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
+  tensionSummary: {
+    fontSize: 14,
+    lineHeight: 21,
+    marginBottom: 12,
+  },
+  tensionPrompt: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
+  },
+  
   // Categories list
   categoriesList: {
     gap: 12,
