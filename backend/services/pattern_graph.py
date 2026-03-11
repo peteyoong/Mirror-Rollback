@@ -722,6 +722,14 @@ def calculate_signal_strength_from_score(score: int) -> str:
 # DYNAMIC PATTERN STATUS SYSTEM
 # =============================================================================
 # New status calculation based on signal frequency, recency, and trend
+#
+# PRIORITY ORDER (Context is last fallback):
+# 1. Emerging - New signals recently, trend rising
+# 2. Recurring - Repeated signals in recent window  
+# 3. Stable - Consistent signals over time
+# 4. Present - Some activity, not dominant
+# 5. Quiet - Little/no signals
+# 6. Context - Only when truly lens-dominated with no other classification
 
 def calculate_dynamic_pattern_status(
     signals: List[MatchedSignal],
@@ -732,13 +740,17 @@ def calculate_dynamic_pattern_status(
 ) -> str:
     """Calculate dynamic pattern status based on signal analysis.
     
-    Status Definitions:
-    - Emerging: Signals appeared recently but were previously absent
-    - Present: Signals exist but are not dominant (occasional activity)
-    - Recurring: Signals appear repeatedly within recent time window
-    - Stable: Consistent signals across longer time windows
-    - Quiet: Little or no recent signals
-    - Context: Primarily lens/transit signals, not user reflections
+    REFINED LOGIC: Context is now a true fallback, not an early classification.
+    Status should be assigned based on signal strength and activity first,
+    with Context only appearing when there's genuinely nothing else to say.
+    
+    Priority Order:
+    1. Emerging - New activity detected, rising trend
+    2. Recurring - Frequent repeated signals
+    3. Stable - Consistent long-term pattern
+    4. Present - Occasional activity
+    5. Quiet - Little/no signals
+    6. Context - ONLY as final fallback for pure lens-activation
     
     Args:
         signals: List of matched signals for this domain
@@ -766,50 +778,99 @@ def calculate_dynamic_pattern_status(
     transit_signal_count = len(transit_signals)
     total_signals = len(signals)
     
-    # Calculate user vs context ratio
-    user_ratio = user_signal_count / total_signals if total_signals > 0 else 0
+    # Calculate signal strength indicators
+    has_user_signals = user_signal_count > 0
+    has_lens_signals = lens_signal_count > 0
+    has_transit = transit_signal_count > 0
+    is_primarily_lens = (not has_user_signals) and has_lens_signals
     
-    # Decision logic based on the PRD requirements
-    
-    # 1. CONTEXT: Primarily lens/transit signals, not user reflections
-    if user_ratio < 0.3 and lens_signal_count > 0:
-        # Domain activated by interpretive lenses rather than user activity
-        return "context"
-    
-    # 2. QUIET: Little or no signals
-    if score <= 1 or total_signals <= 1:
-        return "quiet"
-    
-    # 3. EMERGING: New signals recently, trend is rising
-    # Signals in last 7 days but few in last 30 days
-    if trend == "rising" or (recent_signal_count_7d > 0 and recent_signal_count_30d <= recent_signal_count_7d * 1.5):
-        if score >= 3 and score <= 6:
+    # =========================================================================
+    # PRIORITY 1: EMERGING
+    # New signals recently, trend is rising, or fresh activity
+    # =========================================================================
+    if trend == "rising":
+        if score >= 2:
             return "emerging"
     
-    # 4. RECURRING: Signals appear repeatedly in recent window
-    # High recent activity (multiple user signals in last 7 days)
-    if recent_signal_count_7d >= 3 and user_signal_count >= 2:
+    # Recent activity spike (more in 7 days than expected)
+    if recent_signal_count_7d > 0 and recent_signal_count_30d > 0:
+        ratio = recent_signal_count_7d / max(recent_signal_count_30d / 4, 1)
+        if ratio >= 1.5 and score >= 2:
+            return "emerging"
+    
+    # =========================================================================
+    # PRIORITY 2: RECURRING
+    # Signals appear repeatedly in recent window
+    # =========================================================================
+    if recent_signal_count_7d >= 3:
         return "recurring"
     
-    # High score with multiple user signals
-    if score >= 7 and user_signal_count >= 2:
+    if score >= 7:
         return "recurring"
     
-    # 5. STABLE: Consistent signals over longer time
-    # Good 30-day presence with steady trend
-    if recent_signal_count_30d >= 5 and trend == "steady":
+    if has_user_signals and user_signal_count >= 2 and score >= 5:
+        return "recurring"
+    
+    # =========================================================================
+    # PRIORITY 3: STABLE
+    # Consistent signals over longer time windows
+    # =========================================================================
+    if recent_signal_count_30d >= 4 and trend == "steady":
         return "stable"
     
-    # Lens context with steady presence
-    if lens_signal_count >= 2 and user_signal_count >= 1 and trend == "steady":
+    # Good lens foundation with some user activity = stable personality pattern
+    if lens_signal_count >= 2 and score >= 4 and trend != "fading":
         return "stable"
     
-    # 6. PRESENT: Signals exist but not dominant
-    # Default for moderate activity
+    # Strong framework signals indicate stable underlying pattern
+    if lens_signal_count >= 3 and score >= 3:
+        return "stable"
+    
+    # =========================================================================
+    # PRIORITY 4: PRESENT
+    # Signals exist but not dominant - moderate activity
+    # =========================================================================
     if score >= 3:
         return "present"
     
-    return "quiet"
+    if has_user_signals:
+        return "present"
+    
+    # Some lens signals = at least present
+    if lens_signal_count >= 2:
+        return "present"
+    
+    # Transit emphasis makes it present
+    if has_transit and score >= 2:
+        return "present"
+    
+    # =========================================================================
+    # PRIORITY 5: QUIET
+    # Little or no meaningful signals
+    # =========================================================================
+    if score <= 1:
+        return "quiet"
+    
+    if total_signals <= 1 and not has_user_signals:
+        return "quiet"
+    
+    # =========================================================================
+    # PRIORITY 6: CONTEXT (TRUE FALLBACK)
+    # Only when:
+    # - Primarily lens/transit activated (no user signals)
+    # - Score is minimal (1-2)
+    # - No other classification fits
+    # This should be rare, not the default
+    # =========================================================================
+    if is_primarily_lens and score <= 2 and lens_signal_count == 1:
+        return "context"
+    
+    # If we still haven't classified and it's purely lens-based with minimal score
+    if is_primarily_lens and score < 3 and not has_transit:
+        return "context"
+    
+    # Default: If we reach here, classify as present (better than context)
+    return "present"
 
 
 def analyze_signal_recency(
