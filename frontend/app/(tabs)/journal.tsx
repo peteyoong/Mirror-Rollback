@@ -246,9 +246,20 @@ export default function JournalScreen() {
     setError('');
 
     try {
-      const entry = await createJournalEntry(user.id, newEntry.trim());
+      // Include pattern metadata if present
+      const metadata = patternMetadata ? {
+        journal_source: patternMetadata.journal_source,
+        pattern_category: patternMetadata.pattern_category,
+        pattern_tension_pair: patternMetadata.pattern_tension_pair,
+        prompt_text: patternMetadata.prompt_text
+      } : undefined;
+      
+      const entry = await createJournalEntry(user.id, newEntry.trim(), metadata);
       addJournalEntry(entry);
       setNewEntry('');
+      
+      // Clear pattern metadata after successful submission
+      setPatternMetadata(null);
     } catch (err: any) {
       console.error('Create entry error:', err);
       setError('Unable to save entry. Please try again.');
