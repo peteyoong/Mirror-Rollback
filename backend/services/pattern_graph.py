@@ -841,20 +841,26 @@ def analyze_signal_recency(
     signal_count = 0
     latest_signal_date = None
     
+    def parse_datetime(dt):
+        """Parse datetime and ensure it's timezone-aware."""
+        if dt is None:
+            return None
+        if isinstance(dt, str):
+            try:
+                dt = datetime.fromisoformat(dt.replace('Z', '+00:00'))
+            except:
+                return None
+        # Make timezone-aware if naive
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    
     # Analyze journal entries
     if journal_entries:
         for entry in journal_entries:
-            entry_date = entry.get("created_at")
+            entry_date = parse_datetime(entry.get("created_at"))
             if entry_date:
-                if isinstance(entry_date, str):
-                    try:
-                        entry_date = datetime.fromisoformat(entry_date.replace('Z', '+00:00'))
-                    except:
-                        continue
-                
-                # Check if entry has themes matching this domain
-                themes = entry.get("themes", [])
-                # Map themes to domains (simplified - journal themes often relate to domains)
+                # Count all entries in window (journal entries are general signals)
                 if entry_date >= cutoff:
                     signal_count += 1
                     if latest_signal_date is None or entry_date > latest_signal_date:
@@ -863,14 +869,8 @@ def analyze_signal_recency(
     # Analyze mirror insights
     if mirror_insights:
         for insight in mirror_insights:
-            insight_date = insight.get("created_at")
+            insight_date = parse_datetime(insight.get("created_at"))
             if insight_date:
-                if isinstance(insight_date, str):
-                    try:
-                        insight_date = datetime.fromisoformat(insight_date.replace('Z', '+00:00'))
-                    except:
-                        continue
-                
                 # Check if insight domains include this domain
                 domains = insight.get("domains", [])
                 if domain_id in domains and insight_date >= cutoff:
