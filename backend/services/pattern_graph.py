@@ -497,29 +497,59 @@ def aggregate_human_design_center_signals(
     return category_signals
 
 
-def calculate_signal_strength(signals: List[MatchedSignal]) -> str:
-    """Calculate signal strength based on number and diversity of signals.
+def calculate_weighted_score(signals: List[MatchedSignal]) -> int:
+    """Calculate weighted score based on signal sources.
+    
+    Weights:
+    - journal: 3 (highest - direct user reflection)
+    - mirror_chat: 2 (user-initiated conversation)
+    - gene_keys: 1 (framework-based)
+    - human_design_*: 1 (framework-based)
     
     Returns:
-        "quiet", "emerging", or "active"
+        Total weighted score
     """
     if not signals:
+        return 0
+    
+    total_score = 0
+    for signal in signals:
+        source = signal.get("source", "")
+        weight = SIGNAL_WEIGHTS.get(source, 1)
+        total_score += weight
+    
+    return total_score
+
+
+def calculate_signal_strength_from_score(score: int) -> str:
+    """Calculate signal strength from weighted score.
+    
+    Thresholds:
+    - 0-2: Quiet
+    - 3-6: Present
+    - 7+:  Recurring
+    
+    Returns:
+        "quiet", "present", or "recurring"
+    """
+    if score <= 2:
         return "quiet"
+    elif score <= 6:
+        return "present"
+    else:
+        return "recurring"
+
+
+def calculate_signal_strength(signals: List[MatchedSignal]) -> str:
+    """Calculate signal strength based on weighted scoring.
     
-    # Count unique sources
-    sources = set(s["source"] for s in signals)
-    num_signals = len(signals)
-    num_sources = len(sources)
+    This is the main function used by aggregate_pattern_graph.
     
-    # Active: 3+ signals OR 2+ sources
-    if num_signals >= 3 or num_sources >= 2:
-        return "active"
-    
-    # Emerging: 1-2 signals from single source
-    if num_signals >= 1:
-        return "emerging"
-    
-    return "quiet"
+    Returns:
+        "quiet", "present", or "recurring"
+    """
+    score = calculate_weighted_score(signals)
+    return calculate_signal_strength_from_score(score)
 
 
 def get_category_summary(category: dict, strength: str) -> str:
