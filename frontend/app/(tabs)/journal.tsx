@@ -158,6 +158,13 @@ export default function JournalScreen() {
     loadEntries();
   }, []);
 
+  // Load combined timeline when switching to timeline view
+  useEffect(() => {
+    if (viewMode === 'timeline' && user) {
+      loadCombinedTimeline();
+    }
+  }, [viewMode, user]);
+
   const loadEntries = async () => {
     if (!user) return;
 
@@ -169,6 +176,28 @@ export default function JournalScreen() {
       console.error('Load entries error:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadCombinedTimeline = async () => {
+    if (!user) return;
+    
+    setIsLoadingTimeline(true);
+    try {
+      const response = await getCombinedTimeline(user.id, 50);
+      setTimelineItems(response.items);
+    } catch (err) {
+      console.error('Load combined timeline error:', err);
+      // Fallback to journal entries only
+      setTimelineItems(journalEntries.map(entry => ({
+        id: entry.id,
+        type: 'journal_entry' as const,
+        content: entry.content,
+        themes: entry.themes,
+        created_at: entry.created_at,
+      })));
+    } finally {
+      setIsLoadingTimeline(false);
     }
   };
 
