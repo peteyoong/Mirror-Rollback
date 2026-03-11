@@ -316,7 +316,7 @@ export default function JournalScreen() {
     );
   }
 
-  // Render the mode toggle (shared across views)
+  // Render the mode toggle (Journal | Mirror)
   const renderModeToggle = () => (
     <View style={styles.modeToggleContainer}>
       <TouchableOpacity
@@ -335,15 +335,6 @@ export default function JournalScreen() {
         <Text style={{ fontSize: 14, color: viewMode === 'mirror' ? Colors.accent : Colors.textSecondary }}>✦</Text>
         <Text style={[styles.modeButtonText, viewMode === 'mirror' && styles.modeButtonTextActive]}>
           Mirror
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.modeButton, viewMode === 'timeline' && styles.modeButtonActive]}
-        onPress={() => setViewMode('timeline')}
-      >
-        <Text style={{ fontSize: 14, color: viewMode === 'timeline' ? Colors.accent : Colors.textSecondary }}>⏱</Text>
-        <Text style={[styles.modeButtonText, viewMode === 'timeline' && styles.modeButtonTextActive]}>
-          Timeline
         </Text>
       </TouchableOpacity>
     </View>
