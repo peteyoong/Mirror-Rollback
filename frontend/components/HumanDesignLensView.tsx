@@ -279,6 +279,39 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     loadTabData(activeTab);
   }, [activeTab, userId]);
 
+  // Load centers definition for bodygraph highlighting when Structure tab is active
+  useEffect(() => {
+    if (activeTab === 'structure') {
+      loadCentersDefinition();
+    }
+  }, [activeTab, userId]);
+
+  const loadCentersDefinition = async () => {
+    try {
+      const response = await api.get(`/human-design/centers/${userId}`);
+      const centersDef: Record<string, boolean> = {};
+      response.data.centers?.forEach((c: any) => {
+        // Map center_name to boolean defined status
+        const name = c.center_name || c.name;
+        if (name) {
+          centersDef[name.toLowerCase()] = c.defined === true;
+        }
+      });
+      setCentersDefinition(centersDef);
+    } catch (err) {
+      console.error('Failed to load centers definition:', err);
+    }
+  };
+
+  // Handle bodygraph center tap - opens Centers accordion and expands specific center
+  const handleBodygraphCenterTap = (centerName: string) => {
+    // The CentersView component needs to expose a method to open a specific center
+    // For now, we'll use a callback pattern - this will be connected via props
+    if (centersViewRef.current?.openCenter) {
+      centersViewRef.current.openCenter(centerName);
+    }
+  };
+
   const loadTabData = async (tab: TabType) => {
     setIsLoading(true);
     setError(null);
