@@ -98,6 +98,10 @@ export default function JournalScreen() {
   // Cache of reflections per entry
   const [reflectionCache, setReflectionCache] = useState<Map<string, CachedReflection>>(new Map());
 
+  // Combined timeline items (journal entries + mirror insights)
+  const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
+  const [isLoadingTimeline, setIsLoadingTimeline] = useState(false);
+
   // Keystone context for Mirror Chat continuation
   const [keystoneContext, setKeystoneContext] = useState<KeystoneContext | null>(null);
 
