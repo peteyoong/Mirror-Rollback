@@ -929,8 +929,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                         <View style={[
                           styles.bodygraphHeart, 
                           centersDefinition['heart'] || centersDefinition['ego'] || centersDefinition['heart / ego']
-                            ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
-                            : { borderColor: theme.border }
+                            ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+                            : { borderColor: theme.border, borderWidth: 2 }
                         ]} />
                       </TouchableOpacity>
                       <TouchableOpacity 
@@ -940,8 +940,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                         <View style={[
                           styles.bodygraphSpleen, 
                           centersDefinition['spleen'] 
-                            ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
-                            : { borderColor: theme.border }
+                            ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+                            : { borderColor: theme.border, borderWidth: 2 }
                         ]} />
                       </TouchableOpacity>
                       <TouchableOpacity 
@@ -951,8 +951,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                         <View style={[
                           styles.bodygraphSolarPlexus, 
                           centersDefinition['solar plexus'] 
-                            ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
-                            : { borderColor: theme.border }
+                            ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+                            : { borderColor: theme.border, borderWidth: 2 }
                         ]} />
                       </TouchableOpacity>
                     </View>
@@ -965,8 +965,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                       <View style={[
                         styles.bodygraphSacral, 
                         centersDefinition['sacral'] 
-                          ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
-                          : { borderColor: theme.border }
+                          ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+                          : { borderColor: theme.border, borderWidth: 2 }
                       ]} />
                     </TouchableOpacity>
                     
@@ -978,8 +978,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                       <View style={[
                         styles.bodygraphRoot, 
                         centersDefinition['root'] 
-                          ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
-                          : { borderColor: theme.border }
+                          ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+                          : { borderColor: theme.border, borderWidth: 2 }
                       ]} />
                     </TouchableOpacity>
                   </View>
