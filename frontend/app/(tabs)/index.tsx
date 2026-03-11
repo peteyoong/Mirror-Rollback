@@ -476,23 +476,45 @@ export default function MirrorScreen() {
 
         {/* Pattern Pulse - Surface one pattern insight */}
         {patternPulse && !focusState.isLoading && (
-          <TouchableOpacity 
-            style={[styles.patternPulseCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-            onPress={() => router.push('/(tabs)/patterns')}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.patternPulseLabel, { color: theme.textTertiary }]}>
-              PATTERN PULSE
-            </Text>
-            <Text style={[styles.patternPulseBody, { color: theme.textSecondary }]}>
-              {patternPulse.body}
-            </Text>
-            {patternPulse.prompt && (
-              <Text style={[styles.patternPulsePrompt, { color: theme.accent }]}>
-                {patternPulse.prompt}
+          <View style={[styles.patternPulseCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <TouchableOpacity 
+              onPress={() => router.push('/(tabs)/patterns')}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.patternPulseLabel, { color: theme.textTertiary }]}>
+                PATTERN PULSE
               </Text>
-            )}
-          </TouchableOpacity>
+              <Text style={[styles.patternPulseBody, { color: theme.textSecondary }]}>
+                {patternPulse.body}
+              </Text>
+              {patternPulse.prompt && (
+                <Text style={[styles.patternPulsePrompt, { color: theme.accent }]}>
+                  {patternPulse.prompt}
+                </Text>
+              )}
+            </TouchableOpacity>
+            
+            {/* Journal trigger */}
+            <TouchableOpacity
+              style={styles.patternPulseAction}
+              onPress={() => {
+                router.push({
+                  pathname: '/(tabs)/journal',
+                  params: {
+                    prefillPrompt: patternPulse.prompt || '',
+                    journalSource: 'pattern_pulse',
+                    tensionPair: patternPulse.type === 'tension' ? patternPulse.title : '',
+                    category: patternPulse.type === 'theme' ? patternPulse.title : ''
+                  }
+                });
+              }}
+              activeOpacity={0.6}
+            >
+              <Text style={[styles.patternPulseActionText, { color: theme.textTertiary }]}>
+                ✏️ Reflect on this
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
 
         {/* Loading State */}
