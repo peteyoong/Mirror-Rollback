@@ -45,6 +45,9 @@ export default function DefinedGatesView({ userId }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedGate, setExpandedGate] = useState<number | null>(null);
+  
+  // Accordion state - collapsed by default
+  const [isAccordionExpanded, setIsAccordionExpanded] = useState(false);
 
   useEffect(() => {
     loadGates();
