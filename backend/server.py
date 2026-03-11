@@ -3741,6 +3741,16 @@ async def create_journal_entry(entry: JournalEntryCreate):
             "created_at": datetime.now(timezone.utc)
         }
         
+        # Add pattern metadata if present
+        if entry.journal_source:
+            entry_data["journal_source"] = entry.journal_source
+        if entry.pattern_category:
+            entry_data["pattern_category"] = entry.pattern_category
+        if entry.pattern_tension_pair:
+            entry_data["pattern_tension_pair"] = entry.pattern_tension_pair
+        if entry.prompt_text:
+            entry_data["prompt_text"] = entry.prompt_text
+        
         result = await db.journal.insert_one(entry_data)
         
         return JournalEntryResponse(
