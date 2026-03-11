@@ -912,13 +912,17 @@ def calculate_transit_amplification(
     # Strong patterns get amplified more than weak ones
     amplification = transit_weight * (base_score / 10.0)  # Normalize
     return base_score + amplification
+
+
+def aggregate_pattern_graph(
     gene_keys_profile: Optional[dict] = None,
     journal_entries: Optional[List[dict]] = None,
     human_design_centers: Optional[List[dict]] = None,
     human_design_gates: Optional[List[int]] = None,
     chat_signals: Optional[List[dict]] = None,  # Future: from Mirror Chat
     enneagram_type: Optional[int] = None,       # Enneagram core type (1-9)
-    enneagram_wing: Optional[int] = None        # Enneagram wing (optional)
+    enneagram_wing: Optional[int] = None,       # Enneagram wing (optional)
+    include_transits: bool = True               # Whether to include transit amplification
 ) -> Dict[str, Any]:
     """Main aggregation function for Pattern Graph.
     
