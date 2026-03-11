@@ -529,18 +529,6 @@ export default function PatternGraphScreen() {
               </Text>
             </View>
           )}
-          
-          {/* Timeline Activity */}
-          {timelineRecurring.length > 0 && (
-            <View style={[styles.sourceSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.sourceTitle, { color: theme.text }]}>
-                Timeline Activity
-              </Text>
-              <Text style={[styles.sourceKeywords, { color: theme.textSecondary }]}>
-                {timelineRecurring.join(', ')} {timelineRecurring.length === 1 ? 'has been' : 'have been'} recurring across the last 30 days.
-              </Text>
-            </View>
-          )}
         </View>
       )}
 
