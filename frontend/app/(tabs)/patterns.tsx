@@ -409,7 +409,7 @@ export default function PatternGraphScreen() {
           Pattern Graph
         </Text>
         <Text style={[styles.pageSubtext, { color: theme.textTertiary }]}>
-          Patterns that may be showing up across what you've explored and reflected on.
+          Patterns that may be surfacing across what you've been exploring.
         </Text>
       </View>
 
