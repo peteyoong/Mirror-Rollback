@@ -221,7 +221,7 @@ interface Props {
   onOpenChat: () => void;
 }
 
-type TabType = 'summary' | 'today' | 'deep_dive' | 'gene_keys';
+type TabType = 'summary' | 'today' | 'structure' | 'meaning';
 
 export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Theme support
@@ -232,6 +232,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  
+  // Accordion states for Structure tab
+  const [expandedCenters, setExpandedCenters] = useState<string[]>([]);
+  const [gatesExpanded, setGatesExpanded] = useState(false);
+  const [channelsExpanded, setChannelsExpanded] = useState(false);
   
   // Gene Keys expansion state
   const [expandedArc, setExpandedArc] = useState<string | null>(null);
