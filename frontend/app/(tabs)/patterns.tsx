@@ -331,7 +331,7 @@ export default function PatternGraphScreen() {
               {summary.active_categories}
             </Text>
             <Text style={[styles.statLabel, { color: theme.textTertiary }]}>
-              Active
+              Recurring
             </Text>
           </View>
           <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
@@ -340,7 +340,7 @@ export default function PatternGraphScreen() {
               {summary.emerging_categories}
             </Text>
             <Text style={[styles.statLabel, { color: theme.textTertiary }]}>
-              Emerging
+              Present
             </Text>
           </View>
         </View>
