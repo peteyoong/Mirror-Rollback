@@ -301,6 +301,26 @@ class JournalEntryResponse(BaseModel):
     created_at: str
 
 
+class MirrorInsightCreate(BaseModel):
+    """Model for creating a mirror insight from chat"""
+    user_id: str
+    summary: str  # 1-2 sentence distilled insight
+    domains: List[str] = []  # Pattern domains detected (e.g., ["energy_vitality", "emotional_landscape"])
+    tags: List[str] = []  # Optional theme tags
+    confidence: float = 0.7  # Confidence in the insight
+
+
+class MirrorInsightResponse(BaseModel):
+    """Response model for mirror insight"""
+    id: str
+    type: str = "mirror_insight"
+    summary: str
+    domains: List[str]
+    tags: List[str]
+    confidence: float
+    created_at: str
+
+
 class DailyReflection(BaseModel):
     user_id: str
     date: str
