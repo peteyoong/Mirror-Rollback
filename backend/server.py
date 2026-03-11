@@ -8404,6 +8404,7 @@ async def get_pattern_graph(user_id: str):
         # Try to load Human Design data
         human_design_centers = None
         human_design_gates = None
+        natal_chart = None  # For transit calculations
         try:
             from services.human_design_centers import build_centers_profile
             
@@ -8439,18 +8440,36 @@ async def get_pattern_graph(user_id: str):
                             active_gates=active_gates
                         )
                         human_design_gates = active_gates
+                    
+                    # Build natal chart for transit calculations
+                    try:
+                        natal_chart_data = get_full_natal_chart(
+                            birth_datetime=birth_utc,
+                            lat=lat,
+                            lon=lon
+                        )
+                        if natal_chart_data:
+                            natal_chart = {
+                                "planets": natal_chart_data.get("planets", {}),
+                                "houses": natal_chart_data.get("houses", {}),
+                                "ascendant": natal_chart_data.get("ascendant")
+                            }
+                            logger.debug(f"[PatternGraph] Loaded natal chart for transit calculations")
+                    except Exception as natal_err:
+                        logger.debug(f"[PatternGraph] Could not load natal chart: {natal_err}")
                         
         except Exception as hd_err:
             logger.debug(f"[PatternGraph] Could not load Human Design: {hd_err}")
         
-        # Aggregate pattern graph
+        # Aggregate pattern graph with real planetary transits
         pattern_graph = aggregate_pattern_graph(
             gene_keys_profile=gene_keys_profile,
             journal_entries=journal_entries,
             human_design_centers=human_design_centers,
             human_design_gates=human_design_gates,
             enneagram_type=enneagram_type,
-            enneagram_wing=enneagram_wing
+            enneagram_wing=enneagram_wing,
+            natal_chart=natal_chart  # Pass natal chart for personalized transits
         )
         
         # Generate synthesis for recurring/active categories
