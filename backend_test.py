@@ -11,7 +11,7 @@ from typing import Dict, List, Any
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://pattern-signals-4.preview.emergentagent.com/api"
+BASE_URL = "https://theme-oracle.preview.emergentagent.com/api"
 TEST_USER_ID = "697f0c6abf35c0528ff06954"
 
 class PatternGraphTester:
