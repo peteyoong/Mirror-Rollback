@@ -241,6 +241,79 @@ export default function PatternGraphScreen() {
     return prompts[categoryId] || 'What might this pattern be showing you?';
   };
 
+  // Extract and group all signals by source (for Section 3)
+  const getSignalsBySource = () => {
+    const geneKeysSignals: { label: string; sphere?: string; detail?: string }[] = [];
+    const humanDesignSignals: { label: string; detail?: string }[] = [];
+    const journalSignals: string[] = [];
+    
+    // Collect all signals from all categories
+    categories.forEach(cat => {
+      cat.matched_signals.forEach(signal => {
+        if (signal.source === 'gene_keys') {
+          // Deduplicate Gene Keys by creating a unique key
+          const existing = geneKeysSignals.find(s => s.label === signal.label && s.sphere === signal.sphere_name);
+          if (!existing) {
+            geneKeysSignals.push({
+              label: signal.label,
+              sphere: signal.sphere_name,
+              detail: signal.detail
+            });
+          }
+        } else if (signal.source === 'human_design' || signal.source === 'human_design_centers' || signal.source === 'human_design_gates') {
+          const existing = humanDesignSignals.find(s => s.label === signal.label);
+          if (!existing) {
+            humanDesignSignals.push({
+              label: signal.label,
+              detail: signal.detail
+            });
+          }
+        } else if (signal.source === 'journal' || signal.source === 'mirror_chat') {
+          if (!journalSignals.includes(signal.label)) {
+            journalSignals.push(signal.label);
+          }
+        }
+      });
+    });
+    
+    return { geneKeysSignals, humanDesignSignals, journalSignals };
+  };
+
+  // Format Gene Key signal for clean display
+  const formatGeneKeySignal = (signal: { label: string; sphere?: string; detail?: string }) => {
+    // Extract Gene Key number from detail if available
+    if (signal.detail) {
+      const keyMatch = signal.detail.match(/Gene Key (\d+)/);
+      if (keyMatch) {
+        return {
+          title: `Gene Key ${keyMatch[1]} — ${signal.label}`,
+          subtitle: signal.sphere ? `Sphere: ${signal.sphere}` : undefined
+        };
+      }
+    }
+    return {
+      title: signal.label,
+      subtitle: signal.sphere ? `Sphere: ${signal.sphere}` : undefined
+    };
+  };
+
+  // Get recurring themes from timeline for summary
+  const getTimelineSummary = () => {
+    const recurringThemes: string[] = [];
+    timeline.forEach(bucket => {
+      bucket.categories.forEach(cat => {
+        if (cat.signal_strength === 'recurring' && !recurringThemes.includes(cat.category_name)) {
+          recurringThemes.push(cat.category_name);
+        }
+      });
+    });
+    return recurringThemes;
+  };
+
+  const { geneKeysSignals, humanDesignSignals, journalSignals } = getSignalsBySource();
+  const timelineRecurring = getTimelineSummary();
+  const hasAnySignals = geneKeysSignals.length > 0 || humanDesignSignals.length > 0 || journalSignals.length > 0 || timelineRecurring.length > 0;
+
   // Render a "What's Most Present" card (story-focused)
   const renderMostPresentCard = (category: PatternCategory) => {
     const strengthColor = getStrengthColor(category.signal_strength);
