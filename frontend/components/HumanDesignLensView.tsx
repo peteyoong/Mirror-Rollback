@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   Modal,
   Dimensions,
+  Pressable,
+  Platform,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 // Removed Ionicons - using text alternatives for web compatibility
