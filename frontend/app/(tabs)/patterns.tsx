@@ -327,9 +327,23 @@ export default function PatternGraphScreen() {
   const timelineByPeriod = getTimelineByPeriod();
   const hasAnySignals = geneKeysSignals.length > 0 || humanDesignSignals.length > 0 || journalSignals.length > 0;
 
+  // Handle journal navigation from pattern prompts
+  const handleJournalFromPattern = (prompt: string, category?: string, tension?: string) => {
+    router.push({
+      pathname: '/(tabs)/journal',
+      params: {
+        prefillPrompt: prompt,
+        journalSource: 'pattern_graph',
+        category: category || '',
+        tensionPair: tension || ''
+      }
+    });
+  };
+
   // Render a "Current Themes" card (story-focused)
   const renderMostPresentCard = (category: PatternCategory) => {
     const strengthColor = getStrengthColor(category.signal_strength);
+    const prompt = getCategoryReflectionPrompt(category.category_id);
 
     return (
       <View
@@ -352,10 +366,19 @@ export default function PatternGraphScreen() {
           {category.synthesis || category.summary}
         </Text>
         
-        {/* Reflection prompt */}
-        <Text style={[styles.presentCardPrompt, { color: theme.accent }]}>
-          {getCategoryReflectionPrompt(category.category_id)}
-        </Text>
+        {/* Reflection prompt with journal icon */}
+        <View style={styles.presentCardPromptRow}>
+          <Text style={[styles.presentCardPrompt, { color: theme.accent, flex: 1 }]}>
+            {prompt}
+          </Text>
+          <TouchableOpacity
+            onPress={() => handleJournalFromPattern(prompt, category.category_name)}
+            style={styles.journalIcon}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={[styles.journalIconText, { color: theme.textTertiary }]}>✏️</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
