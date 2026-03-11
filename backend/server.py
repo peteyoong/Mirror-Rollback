@@ -8386,6 +8386,21 @@ async def get_pattern_graph(user_id: str):
         except Exception as j_err:
             logger.debug(f"[PatternGraph] Could not load journal: {j_err}")
         
+        # Try to load Enneagram data (invisible contributor to pattern scoring)
+        enneagram_type = None
+        enneagram_wing = None
+        try:
+            enneagram_result = await db.enneagram_results.find_one({"user_id": user_id})
+            if enneagram_result:
+                enneagram_type = enneagram_result.get("inferred_core")
+                wing_value = enneagram_result.get("inferred_wing")
+                # Wing can be int, "balanced", or None - only use int values
+                if isinstance(wing_value, int):
+                    enneagram_wing = wing_value
+                logger.debug(f"[PatternGraph] Loaded Enneagram: type={enneagram_type}, wing={enneagram_wing}")
+        except Exception as ennea_err:
+            logger.debug(f"[PatternGraph] Could not load Enneagram: {ennea_err}")
+        
         # Try to load Human Design data
         human_design_centers = None
         human_design_gates = None
