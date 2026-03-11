@@ -15,6 +15,22 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+# =============================================================================
+# SIGNAL WEIGHTS
+# =============================================================================
+# Life-derived signals weigh more than framework signals
+
+SIGNAL_WEIGHTS = {
+    "journal": 3,           # Highest - direct user reflection
+    "mirror_chat": 2,       # High - user-initiated conversation
+    "gene_keys": 1,         # Framework-based
+    "human_design_centers": 1,  # Framework-based
+    "human_design_gates": 1,    # Framework-based
+    "human_design": 1,      # Legacy source name (backward compatibility)
+}
+
+
 # Import Human Design center mappings
 try:
     from .human_design_centers import GATE_TO_CENTER, CENTER_THEMES
