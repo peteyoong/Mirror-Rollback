@@ -226,27 +226,39 @@ export default function PatternGraphScreen() {
 
   // Extract and group all signals by source (for Section 3)
   const getSignalsBySource = () => {
-    const geneKeysSignals: { label: string; sphere?: string; detail?: string }[] = [];
+    const geneKeysSignals: { keyNumber: string; label: string; sphere?: string }[] = [];
     const humanDesignSignals: { label: string; detail?: string }[] = [];
     const journalSignals: string[] = [];
     
-    // Track seen labels to avoid duplicates
-    const seenGeneKeys = new Set<string>();
+    // Track seen Gene Key numbers to show one entry per key
+    const seenGeneKeyNumbers = new Set<string>();
     const seenHumanDesign = new Set<string>();
     
     // Collect all signals from all categories
     categories.forEach(cat => {
       cat.matched_signals.forEach(signal => {
         if (signal.source === 'gene_keys') {
-          // Create a unique key combining label and sphere
-          const key = `${signal.label}|${signal.sphere_name || ''}`;
-          if (!seenGeneKeys.has(key)) {
-            seenGeneKeys.add(key);
-            geneKeysSignals.push({
-              label: signal.label,
-              sphere: signal.sphere_name,
-              detail: signal.detail
-            });
+          // Extract Gene Key number from detail
+          const keyMatch = signal.detail?.match(/Gene Key (\d+)/);
+          if (keyMatch) {
+            const keyNumber = keyMatch[1];
+            // Only add one entry per Gene Key number
+            if (!seenGeneKeyNumbers.has(keyNumber)) {
+              seenGeneKeyNumbers.add(keyNumber);
+              // Prefer the "Shadow → Gift" format if available
+              const isTransformation = signal.label.includes('→');
+              geneKeysSignals.push({
+                keyNumber,
+                label: signal.label,
+                sphere: signal.sphere_name
+              });
+            } else {
+              // If we already have this key, prefer the transformation label
+              const existingIdx = geneKeysSignals.findIndex(s => s.keyNumber === keyNumber);
+              if (existingIdx >= 0 && signal.label.includes('→') && !geneKeysSignals[existingIdx].label.includes('→')) {
+                geneKeysSignals[existingIdx].label = signal.label;
+              }
+            }
           }
         } else if (signal.source === 'human_design' || signal.source === 'human_design_centers' || signal.source === 'human_design_gates') {
           if (!seenHumanDesign.has(signal.label)) {
