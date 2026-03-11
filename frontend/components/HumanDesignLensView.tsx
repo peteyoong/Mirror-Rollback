@@ -864,24 +864,126 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                 {/* Section 1: Core Mechanics - Always expanded */}
                 {renderCoreMechanics()}
                 
-                {/* Bodygraph Visual Placeholder */}
+                {/* Bodygraph Visual - Interactive with correct highlighting */}
                 <View style={[styles.bodygraphCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                   <View style={styles.bodygraphVisual}>
-                    {/* Simple visual representation of the bodygraph shape */}
-                    <View style={[styles.bodygraphHead, { borderColor: theme.accent + '40' }]} />
-                    <View style={[styles.bodygraphAjna, { borderColor: theme.accent + '40' }]} />
-                    <View style={[styles.bodygraphThroat, { borderColor: theme.accent + '40' }]} />
-                    <View style={[styles.bodygraphGCenter, { borderColor: theme.accent }]} />
+                    {/* Row 1: Head */}
+                    <TouchableOpacity 
+                      onPress={() => handleBodygraphCenterTap('Head')}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[
+                        styles.bodygraphHead, 
+                        centersDefinition['head'] 
+                          ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
+                          : { borderColor: theme.border }
+                      ]} />
+                    </TouchableOpacity>
+                    
+                    {/* Row 2: Ajna */}
+                    <TouchableOpacity 
+                      onPress={() => handleBodygraphCenterTap('Ajna')}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[
+                        styles.bodygraphAjna, 
+                        centersDefinition['ajna'] 
+                          ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
+                          : { borderColor: theme.border }
+                      ]} />
+                    </TouchableOpacity>
+                    
+                    {/* Row 3: Throat */}
+                    <TouchableOpacity 
+                      onPress={() => handleBodygraphCenterTap('Throat')}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[
+                        styles.bodygraphThroat, 
+                        centersDefinition['throat'] 
+                          ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
+                          : { borderColor: theme.border }
+                      ]} />
+                    </TouchableOpacity>
+                    
+                    {/* Row 4: G Center (Identity) */}
+                    <TouchableOpacity 
+                      onPress={() => handleBodygraphCenterTap('G')}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[
+                        styles.bodygraphGCenter, 
+                        centersDefinition['g'] || centersDefinition['identity'] || centersDefinition['g center']
+                          ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
+                          : { borderColor: theme.border }
+                      ]} />
+                    </TouchableOpacity>
+                    
+                    {/* Row 5: Heart, Spleen, Solar Plexus */}
                     <View style={styles.bodygraphMiddle}>
-                      <View style={[styles.bodygraphHeart, { borderColor: theme.accent + '40' }]} />
-                      <View style={[styles.bodygraphSpleen, { borderColor: theme.accent + '40' }]} />
-                      <View style={[styles.bodygraphSolarPlexus, { borderColor: theme.accent }]} />
+                      <TouchableOpacity 
+                        onPress={() => handleBodygraphCenterTap('Heart')}
+                        activeOpacity={0.7}
+                      >
+                        <View style={[
+                          styles.bodygraphHeart, 
+                          centersDefinition['heart'] || centersDefinition['ego'] || centersDefinition['heart / ego']
+                            ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
+                            : { borderColor: theme.border }
+                        ]} />
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        onPress={() => handleBodygraphCenterTap('Spleen')}
+                        activeOpacity={0.7}
+                      >
+                        <View style={[
+                          styles.bodygraphSpleen, 
+                          centersDefinition['spleen'] 
+                            ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
+                            : { borderColor: theme.border }
+                        ]} />
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        onPress={() => handleBodygraphCenterTap('Solar Plexus')}
+                        activeOpacity={0.7}
+                      >
+                        <View style={[
+                          styles.bodygraphSolarPlexus, 
+                          centersDefinition['solar plexus'] 
+                            ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
+                            : { borderColor: theme.border }
+                        ]} />
+                      </TouchableOpacity>
                     </View>
-                    <View style={[styles.bodygraphSacral, { borderColor: theme.accent }]} />
-                    <View style={[styles.bodygraphRoot, { borderColor: theme.accent }]} />
+                    
+                    {/* Row 6: Sacral */}
+                    <TouchableOpacity 
+                      onPress={() => handleBodygraphCenterTap('Sacral')}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[
+                        styles.bodygraphSacral, 
+                        centersDefinition['sacral'] 
+                          ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
+                          : { borderColor: theme.border }
+                      ]} />
+                    </TouchableOpacity>
+                    
+                    {/* Row 7: Root */}
+                    <TouchableOpacity 
+                      onPress={() => handleBodygraphCenterTap('Root')}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[
+                        styles.bodygraphRoot, 
+                        centersDefinition['root'] 
+                          ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
+                          : { borderColor: theme.border }
+                      ]} />
+                    </TouchableOpacity>
                   </View>
                   <Text style={[styles.bodygraphCaption, { color: theme.textTertiary }]}>
-                    Defined centers (solid) have consistent energy
+                    Tap a center to explore • Defined centers (filled) have consistent energy
                   </Text>
                 </View>
                 
