@@ -279,25 +279,35 @@ export default function PatternGraphScreen() {
     return { geneKeysSignals, humanDesignSignals, journalSignals };
   };
 
-  // Format Gene Key signal for clean display
-  const formatGeneKeySignal = (signal: { label: string; sphere?: string; detail?: string }) => {
-    // Extract Gene Key number from detail if available
-    if (signal.detail) {
-      const keyMatch = signal.detail.match(/Gene Key (\d+)/);
-      if (keyMatch) {
-        return {
-          title: `Gene Key ${keyMatch[1]} — ${signal.label}`,
-          subtitle: signal.sphere ? `Sphere: ${signal.sphere}` : undefined
-        };
-      }
-    }
+  // Format Gene Key signal for clean display (one entry per key)
+  const formatGeneKeySignal = (signal: { keyNumber: string; label: string; sphere?: string }) => {
     return {
-      title: signal.label,
+      title: `Gene Key ${signal.keyNumber} — ${signal.label}`,
       subtitle: signal.sphere ? `Sphere: ${signal.sphere}` : undefined
     };
   };
 
-  // Get recurring themes from timeline for summary
+  // Get timeline data organized by period for compact display
+  const getTimelineByPeriod = () => {
+    const result: { period: string; recurring: string[] }[] = [];
+    
+    timeline.forEach(bucket => {
+      const recurring = bucket.categories
+        .filter(cat => cat.signal_strength === 'recurring')
+        .map(cat => cat.category_name);
+      
+      if (recurring.length > 0) {
+        result.push({
+          period: bucket.bucket_label,
+          recurring
+        });
+      }
+    });
+    
+    return result;
+  };
+
+  // Get recurring themes from timeline for summary (legacy)
   const getTimelineSummary = () => {
     const recurringThemes: string[] = [];
     timeline.forEach(bucket => {
@@ -312,7 +322,8 @@ export default function PatternGraphScreen() {
 
   const { geneKeysSignals, humanDesignSignals, journalSignals } = getSignalsBySource();
   const timelineRecurring = getTimelineSummary();
-  const hasAnySignals = geneKeysSignals.length > 0 || humanDesignSignals.length > 0 || journalSignals.length > 0 || timelineRecurring.length > 0;
+  const timelineByPeriod = getTimelineByPeriod();
+  const hasAnySignals = geneKeysSignals.length > 0 || humanDesignSignals.length > 0 || journalSignals.length > 0;
 
   // Render a "Current Themes" card (story-focused)
   const renderMostPresentCard = (category: PatternCategory) => {
