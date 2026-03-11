@@ -170,10 +170,33 @@ export default function PatternGraphScreen() {
     }
   };
 
+  const getTrendLabel = (trend: string) => {
+    switch (trend) {
+      case 'rising':
+        return '↑ Rising';
+      case 'fading':
+        return '↓ Fading';
+      default:
+        return '→ Steady';
+    }
+  };
+
+  const getTrendColor = (trend: string) => {
+    switch (trend) {
+      case 'rising':
+        return theme.accent;
+      case 'fading':
+        return theme.textTertiary;
+      default:
+        return theme.textSecondary;
+    }
+  };
+
   const renderCategoryCard = (category: PatternCategory) => {
     const isExpanded = expandedCategory === category.category_id;
     const strengthColor = getStrengthColor(category.signal_strength);
     const hasSignals = category.matched_signals.length > 0;
+    const trendColor = getTrendColor(category.trend);
 
     return (
       <View
@@ -196,8 +219,11 @@ export default function PatternGraphScreen() {
                 <Text style={[styles.categoryStrength, { color: strengthColor }]}>
                   {getStrengthLabel(category.signal_strength)}
                 </Text>
-                <Text style={[styles.categoryTrend, { color: theme.textTertiary }]}>
-                  • {category.trend}
+                <Text style={[styles.categoryTrendSeparator, { color: theme.textTertiary }]}>
+                  •
+                </Text>
+                <Text style={[styles.categoryTrend, { color: trendColor }]}>
+                  {getTrendLabel(category.trend)}
                 </Text>
               </View>
             </View>
