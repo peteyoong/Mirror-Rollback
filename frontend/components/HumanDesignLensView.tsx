@@ -245,7 +245,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const [activeMechanicDetail, setActiveMechanicDetail] = useState<string | null>(null);
   
   // Ref for CentersView to open a specific center
-  const centersViewRef = useRef<{ openCenter: (name: string) => void } | null>(null);
+  const centersViewRef = useRef<CentersViewHandle>(null);
   
   // Gene Keys expansion state
   const [expandedArc, setExpandedArc] = useState<string | null>(null);
