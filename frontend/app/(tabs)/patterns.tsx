@@ -345,6 +345,78 @@ export default function PatternGraphScreen() {
         </View>
       )}
 
+      {/* Timeline Section */}
+      {timeline.length > 0 && (
+        <View style={styles.timelineSection}>
+          <Text style={[styles.timelineSectionTitle, { color: theme.textTertiary }]}>
+            PATTERN TIMELINE
+          </Text>
+          <Text style={[styles.timelineSectionSubtext, { color: theme.textSecondary }]}>
+            How patterns have appeared over time.
+          </Text>
+          
+          {timeline.map((bucket) => {
+            // Only show categories that are not quiet
+            const activeCategories = bucket.categories.filter(
+              c => c.signal_strength !== 'quiet'
+            );
+            
+            if (!bucket.has_activity) return null;
+            
+            return (
+              <View 
+                key={bucket.bucket_name} 
+                style={[styles.timeBucket, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              >
+                <Text style={[styles.bucketLabel, { color: theme.text }]}>
+                  {bucket.bucket_label}
+                </Text>
+                
+                <View style={styles.bucketCategories}>
+                  {activeCategories.map((cat) => (
+                    <View key={cat.category_id} style={styles.timelineCategoryRow}>
+                      <View style={styles.timelineCategoryLeft}>
+                        <View 
+                          style={[
+                            styles.timelineStrengthDot, 
+                            { backgroundColor: cat.signal_strength === 'recurring' ? theme.accent : theme.textSecondary }
+                          ]} 
+                        />
+                        <Text style={[styles.timelineCategoryName, { color: theme.text }]}>
+                          {cat.category_name}
+                        </Text>
+                      </View>
+                      <Text 
+                        style={[
+                          styles.timelineStrengthLabel, 
+                          { color: cat.signal_strength === 'recurring' ? theme.accent : theme.textTertiary }
+                        ]}
+                      >
+                        {cat.signal_strength === 'recurring' ? 'Recurring' : 'Present'}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+                
+                {activeCategories.length === 0 && (
+                  <Text style={[styles.bucketEmpty, { color: theme.textTertiary }]}>
+                    No strong patterns during this period.
+                  </Text>
+                )}
+              </View>
+            );
+          })}
+          
+          {!timeline.some(b => b.has_activity) && (
+            <View style={styles.timelineEmpty}>
+              <Text style={[styles.timelineEmptyText, { color: theme.textTertiary }]}>
+                Patterns become clearer over time as you reflect and return.
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+
       {/* Footer note */}
       <View style={styles.footer}>
         <Text style={[styles.footerText, { color: theme.textTertiary }]}>
