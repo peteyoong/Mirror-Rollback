@@ -52,72 +52,100 @@ ENNEAGRAM_DOMAIN_MAPPING = {
 # =============================================================================
 # PLANETARY TRANSIT TO PATTERN DOMAIN MAPPING
 # =============================================================================
-# Maps transit themes to the seven life domains they influence
+# Maps real planetary transits to the seven life domains they influence
 # This is a TIMING layer - used only to amplify existing patterns, not create new ones
 #
-# Transit themes are derived from current planetary positions:
-# - Sun: vitality, identity, expression
-# - Moon: emotions, needs, instincts  
-# - Mercury: communication, thinking, expression
-# - Venus: relationships, values, harmony
-# - Mars: energy, action, assertion
-# - Jupiter: expansion, meaning, growth
-# - Saturn: structure, discipline, boundaries
-# - Outer planets: deeper transformation themes
+# Uses Swiss Ephemeris for actual planetary position calculations
 
-TRANSIT_THEME_DOMAINS = {
-    # Energy/Vitality themes
-    "energy_activation": ["energy_vitality"],
-    "vitality_pressure": ["energy_vitality"],
-    "energy_drain": ["energy_vitality"],
-    "physical_renewal": ["energy_vitality"],
-    
-    # Emotional themes
-    "emotional_sensitivity": ["emotional_landscape"],
-    "emotional_permeability": ["emotional_landscape"],
-    "feeling_intensity": ["emotional_landscape"],
-    "emotional_processing": ["emotional_landscape"],
-    
-    # Identity/Direction themes
-    "identity_questioning": ["identity_direction"],
-    "direction_clarity": ["identity_direction"],
-    "self_definition": ["identity_direction"],
-    "purpose_alignment": ["identity_direction", "growth_transformation"],
-    
-    # Mind/Meaning themes
-    "mental_activity": ["mind_meaning"],
-    "seeking_understanding": ["mind_meaning"],
-    "philosophical_inquiry": ["mind_meaning", "growth_transformation"],
-    "communication_focus": ["mind_meaning", "expression_action"],
-    
-    # Expression/Action themes
-    "expression_drive": ["expression_action"],
-    "visibility_focus": ["expression_action"],
-    "creative_impulse": ["expression_action"],
-    "action_pressure": ["expression_action", "energy_vitality"],
-    
-    # Relationship/Boundary themes
-    "relationship_focus": ["relationships_boundaries"],
-    "boundary_awareness": ["relationships_boundaries"],
-    "connection_seeking": ["relationships_boundaries", "emotional_landscape"],
-    "belonging_questions": ["relationships_boundaries"],
-    
-    # Growth/Transformation themes
-    "transformation_pressure": ["growth_transformation"],
-    "growth_opportunity": ["growth_transformation"],
-    "discipline_emphasis": ["growth_transformation", "identity_direction"],
-    "structural_change": ["growth_transformation", "expression_action"],
+# Planet-to-domain mapping: which planets influence which domains
+PLANET_DOMAIN_INFLUENCE = {
+    # Energy & Vitality - Mars (action/energy), Saturn (fatigue/discipline)
+    "energy_vitality": {
+        "primary": ["Mars"],
+        "secondary": ["Saturn", "Sun"],
+        "themes": {
+            "Mars": "activation_pressure",
+            "Saturn": "discipline_fatigue",
+            "Sun": "vitality_focus"
+        }
+    },
+    # Emotional Landscape - Moon (emotions), Neptune (sensitivity), Venus (feeling)
+    "emotional_landscape": {
+        "primary": ["Moon"],
+        "secondary": ["Neptune", "Venus"],
+        "themes": {
+            "Moon": "emotional_cycles",
+            "Neptune": "emotional_permeability",
+            "Venus": "heart_opening"
+        }
+    },
+    # Identity & Direction - Saturn (structure), Pluto (transformation), Sun (self)
+    "identity_direction": {
+        "primary": ["Saturn", "Sun"],
+        "secondary": ["Pluto", "North Node"],
+        "themes": {
+            "Saturn": "structure_testing",
+            "Sun": "identity_illumination",
+            "Pluto": "deep_restructuring",
+            "North Node": "direction_pull"
+        }
+    },
+    # Mind & Meaning - Mercury (thinking), Uranus (insight), Jupiter (meaning)
+    "mind_meaning": {
+        "primary": ["Mercury"],
+        "secondary": ["Uranus", "Jupiter"],
+        "themes": {
+            "Mercury": "mental_activation",
+            "Uranus": "sudden_insight",
+            "Jupiter": "expanded_perspective"
+        }
+    },
+    # Expression & Action - Mars (action), Jupiter (expansion), Sun (expression)
+    "expression_action": {
+        "primary": ["Mars", "Jupiter"],
+        "secondary": ["Sun", "Mercury"],
+        "themes": {
+            "Mars": "action_drive",
+            "Jupiter": "expansion_opportunity",
+            "Sun": "visibility_moment",
+            "Mercury": "voice_activation"
+        }
+    },
+    # Relationships & Boundaries - Venus (connection), Saturn (boundaries), Moon (needs)
+    "relationships_boundaries": {
+        "primary": ["Venus", "Saturn"],
+        "secondary": ["Moon"],
+        "themes": {
+            "Venus": "connection_focus",
+            "Saturn": "boundary_definition",
+            "Moon": "relational_needs"
+        }
+    },
+    # Growth & Transformation - Pluto (deep change), Uranus (disruption), Saturn (maturation)
+    "growth_transformation": {
+        "primary": ["Pluto", "Uranus"],
+        "secondary": ["Saturn", "Jupiter"],
+        "themes": {
+            "Pluto": "deep_transformation",
+            "Uranus": "breakthrough_pressure",
+            "Saturn": "maturation_demand",
+            "Jupiter": "growth_expansion"
+        }
+    }
 }
 
-# Planetary rulership mappings for determining active themes
-PLANET_THEMES = {
-    "sun": ["identity_questioning", "vitality_pressure", "expression_drive"],
-    "moon": ["emotional_sensitivity", "feeling_intensity", "connection_seeking"],
-    "mercury": ["mental_activity", "communication_focus", "seeking_understanding"],
-    "venus": ["relationship_focus", "connection_seeking", "emotional_processing"],
-    "mars": ["energy_activation", "action_pressure", "expression_drive"],
-    "jupiter": ["growth_opportunity", "philosophical_inquiry", "seeking_understanding"],
-    "saturn": ["discipline_emphasis", "boundary_awareness", "structural_change"],
+# Transit intensity thresholds (orb in degrees)
+TRANSIT_ORB_TIGHT = 3.0    # Strong influence
+TRANSIT_ORB_MEDIUM = 6.0   # Moderate influence
+TRANSIT_ORB_WIDE = 10.0    # Background influence
+
+# Aspect types that indicate activation
+ACTIVE_ASPECTS = {
+    "conjunction": 0,      # Same position - strong activation
+    "opposition": 180,     # Tension/awareness
+    "square": 90,          # Challenge/action
+    "trine": 120,          # Flow/ease
+    "sextile": 60          # Opportunity
 }
 
 
