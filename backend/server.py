@@ -8448,7 +8448,9 @@ async def get_pattern_graph(user_id: str):
             gene_keys_profile=gene_keys_profile,
             journal_entries=journal_entries,
             human_design_centers=human_design_centers,
-            human_design_gates=human_design_gates
+            human_design_gates=human_design_gates,
+            enneagram_type=enneagram_type,
+            enneagram_wing=enneagram_wing
         )
         
         # Generate synthesis for recurring/active categories
