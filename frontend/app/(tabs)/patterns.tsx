@@ -523,14 +523,29 @@ const styles = StyleSheet.create({
   domainHeader: {
     marginBottom: 14,
   },
+  domainHeaderTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   domainName: {
     fontSize: 17,
     fontWeight: '600',
     marginBottom: 4,
+    flex: 1,
   },
   domainStrength: {
     fontSize: 12,
     fontWeight: '500',
+  },
+  expandIcon: {
+    fontSize: 10,
+    marginLeft: 4,
   },
   domainSynthesis: {
     fontSize: 14,
@@ -561,5 +576,50 @@ const styles = StyleSheet.create({
   },
   journalTriggerText: {
     fontSize: 12,
+  },
+  
+  // Accordion/Signals Section
+  signalsSection: {
+    marginTop: 16,
+    paddingTop: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  signalsSectionTitle: {
+    fontSize: 11,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+    opacity: 0.7,
+  },
+  sourceGroup: {
+    marginBottom: 12,
+  },
+  sourceLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  signalItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 3,
+    paddingLeft: 4,
+  },
+  signalDot: {
+    fontSize: 10,
+    marginRight: 8,
+    marginTop: 3,
+  },
+  signalText: {
+    fontSize: 13,
+    lineHeight: 18,
+    flex: 1,
+  },
+  moreSignals: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginTop: 4,
+    paddingLeft: 16,
   },
 });
