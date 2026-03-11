@@ -1027,13 +1027,23 @@ def aggregate_pattern_graph(
         # Deduplicate signals by label
         seen_labels = set()
         unique_signals = []
+        transit_signal = None
         for sig in signals:
             if sig["label"] not in seen_labels:
                 seen_labels.add(sig["label"])
-                unique_signals.append(sig)
+                # Keep transit signal separate for later inclusion
+                if sig["source"] == "astrology_transit":
+                    transit_signal = sig
+                else:
+                    unique_signals.append(sig)
         
-        # Limit signals per category
-        unique_signals = unique_signals[:5]
+        # Limit non-transit signals per category (leave room for transit if present)
+        max_non_transit = 5 if transit_signal is None else 4
+        unique_signals = unique_signals[:max_non_transit]
+        
+        # Add transit signal at the end if present
+        if transit_signal:
+            unique_signals.append(transit_signal)
         
         # Calculate strength using weighted scoring
         pattern_score = calculate_weighted_score(unique_signals)
