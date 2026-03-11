@@ -238,6 +238,15 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const [gatesExpanded, setGatesExpanded] = useState(false);
   const [channelsExpanded, setChannelsExpanded] = useState(false);
   
+  // Centers definition data for bodygraph highlighting
+  const [centersDefinition, setCentersDefinition] = useState<Record<string, boolean>>({});
+  
+  // Mechanic detail modal state
+  const [activeMechanicDetail, setActiveMechanicDetail] = useState<string | null>(null);
+  
+  // Ref for CentersView to open a specific center
+  const centersViewRef = useRef<{ openCenter: (name: string) => void } | null>(null);
+  
   // Gene Keys expansion state
   const [expandedArc, setExpandedArc] = useState<string | null>(null);
   
