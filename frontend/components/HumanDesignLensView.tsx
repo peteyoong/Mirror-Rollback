@@ -876,8 +876,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                       <View style={[
                         styles.bodygraphHead, 
                         centersDefinition['head'] 
-                          ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
-                          : { borderColor: theme.border }
+                          ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+                          : { borderColor: theme.border, borderWidth: 2 }
                       ]} />
                     </TouchableOpacity>
                     
@@ -889,8 +889,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                       <View style={[
                         styles.bodygraphAjna, 
                         centersDefinition['ajna'] 
-                          ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
-                          : { borderColor: theme.border }
+                          ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+                          : { borderColor: theme.border, borderWidth: 2 }
                       ]} />
                     </TouchableOpacity>
                     
@@ -902,8 +902,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                       <View style={[
                         styles.bodygraphThroat, 
                         centersDefinition['throat'] 
-                          ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
-                          : { borderColor: theme.border }
+                          ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+                          : { borderColor: theme.border, borderWidth: 2 }
                       ]} />
                     </TouchableOpacity>
                     
@@ -915,8 +915,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                       <View style={[
                         styles.bodygraphGCenter, 
                         centersDefinition['g'] || centersDefinition['identity'] || centersDefinition['g center']
-                          ? { backgroundColor: theme.accent + '30', borderColor: theme.accent }
-                          : { borderColor: theme.border }
+                          ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+                          : { borderColor: theme.border, borderWidth: 2 }
                       ]} />
                     </TouchableOpacity>
                     
