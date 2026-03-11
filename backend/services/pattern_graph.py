@@ -762,7 +762,156 @@ def aggregate_enneagram_signals(
     return category_signals
 
 
-def aggregate_pattern_graph(
+# =============================================================================
+# TRANSIT INFLUENCE FUNCTIONS
+# =============================================================================
+
+def get_current_transit_themes() -> List[str]:
+    """Get current planetary transit themes based on day and planetary cycles.
+    
+    This is a simplified version that provides thematically appropriate
+    transit influences without requiring full ephemeris calculations.
+    
+    In production, this could be enhanced with actual planetary position data.
+    
+    Returns:
+        List of active transit theme keys
+    """
+    from datetime import datetime
+    
+    today = datetime.now()
+    day_of_week = today.weekday()  # 0=Monday, 6=Sunday
+    day_of_month = today.day
+    month = today.month
+    
+    active_themes = []
+    
+    # Day-of-week planetary rulerships (traditional)
+    # Monday=Moon, Tuesday=Mars, Wednesday=Mercury, Thursday=Jupiter, Friday=Venus, Saturday=Saturn, Sunday=Sun
+    day_planets = ["moon", "mars", "mercury", "jupiter", "venus", "saturn", "sun"]
+    ruling_planet = day_planets[day_of_week]
+    
+    # Add themes from ruling planet
+    if ruling_planet in PLANET_THEMES:
+        active_themes.extend(PLANET_THEMES[ruling_planet])
+    
+    # Add a secondary theme based on lunar cycle (simplified)
+    lunar_phase = (day_of_month % 28) / 28.0
+    if lunar_phase < 0.25:  # New moon / waxing
+        active_themes.append("growth_opportunity")
+    elif lunar_phase < 0.5:  # First quarter
+        active_themes.append("action_pressure")
+    elif lunar_phase < 0.75:  # Full moon / waning
+        active_themes.append("emotional_sensitivity")
+    else:  # Last quarter
+        active_themes.append("transformation_pressure")
+    
+    # Add seasonal emphasis (simplified based on month)
+    if month in [3, 4, 5]:  # Spring
+        active_themes.append("energy_activation")
+    elif month in [6, 7, 8]:  # Summer
+        active_themes.append("expression_drive")
+    elif month in [9, 10, 11]:  # Fall
+        active_themes.append("transformation_pressure")
+    else:  # Winter
+        active_themes.append("seeking_understanding")
+    
+    # Deduplicate while preserving order
+    seen = set()
+    unique_themes = []
+    for theme in active_themes:
+        if theme not in seen:
+            seen.add(theme)
+            unique_themes.append(theme)
+    
+    return unique_themes
+
+
+def aggregate_transit_signals(
+    transit_themes: Optional[List[str]] = None,
+    existing_domain_scores: Optional[Dict[str, float]] = None
+) -> Dict[str, List[MatchedSignal]]:
+    """Aggregate transit signals into pattern categories.
+    
+    IMPORTANT: Transits are an AMPLIFICATION layer only.
+    They should boost existing patterns, not create new ones.
+    
+    Args:
+        transit_themes: List of active transit theme keys
+        existing_domain_scores: Dict of domain_id -> score (to check for existing support)
+    
+    Returns:
+        Dict mapping category_id to list of transit-derived signals
+    """
+    category_signals: Dict[str, List[MatchedSignal]] = {
+        cat["id"]: [] for cat in PATTERN_CATEGORIES
+    }
+    
+    if not transit_themes:
+        transit_themes = get_current_transit_themes()
+    
+    # Track which domains receive transit emphasis
+    domain_emphasis: Dict[str, int] = {}
+    theme_labels: Dict[str, str] = {}  # Store theme descriptions per domain
+    
+    for theme in transit_themes:
+        if theme in TRANSIT_THEME_DOMAINS:
+            domains = TRANSIT_THEME_DOMAINS[theme]
+            for domain_id in domains:
+                domain_emphasis[domain_id] = domain_emphasis.get(domain_id, 0) + 1
+                # Store the first theme as the label
+                if domain_id not in theme_labels:
+                    # Convert theme_key to readable label
+                    readable = theme.replace("_", " ").title()
+                    theme_labels[domain_id] = readable
+    
+    # Only add transit signals to domains that have emphasis
+    for domain_id, emphasis_count in domain_emphasis.items():
+        # Skip if this domain has no existing support (amplification only)
+        if existing_domain_scores:
+            existing_score = existing_domain_scores.get(domain_id, 0)
+            if existing_score < 0.5:  # Minimum threshold for amplification
+                logger.debug(f"[Transit] Skipping {domain_id} - insufficient existing support ({existing_score})")
+                continue
+        
+        # Create subtle transit signal
+        signal: MatchedSignal = {
+            "source": "astrology_transit",
+            "label": "Current transit emphasis",
+            "sphere_name": None,
+            "detail": theme_labels.get(domain_id, "Timing resonance")
+        }
+        category_signals[domain_id].append(signal)
+    
+    return category_signals
+
+
+def calculate_transit_amplification(
+    base_score: float,
+    has_transit_emphasis: bool,
+    transit_weight: float = 0.5
+) -> float:
+    """Calculate amplified score for domains with transit emphasis.
+    
+    Transit amplification only applies when:
+    1. The domain already has some support (base_score > 0)
+    2. There is transit emphasis for this domain
+    
+    Args:
+        base_score: The domain's score from lived/framework data
+        has_transit_emphasis: Whether transits emphasize this domain
+        transit_weight: How much to amplify (default 0.5)
+    
+    Returns:
+        Amplified score
+    """
+    if not has_transit_emphasis or base_score <= 0:
+        return base_score
+    
+    # Amplification is proportional to existing strength
+    # Strong patterns get amplified more than weak ones
+    amplification = transit_weight * (base_score / 10.0)  # Normalize
+    return base_score + amplification
     gene_keys_profile: Optional[dict] = None,
     journal_entries: Optional[List[dict]] = None,
     human_design_centers: Optional[List[dict]] = None,
