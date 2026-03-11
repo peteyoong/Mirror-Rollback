@@ -25,6 +25,7 @@ interface PatternCategory {
   signal_strength: 'quiet' | 'present' | 'recurring';
   pattern_score: number;
   signal_count: number;
+  trend: 'rising' | 'steady' | 'fading';
   matched_sources: string[];
   matched_signals: MatchedSignal[];
   summary: string;
