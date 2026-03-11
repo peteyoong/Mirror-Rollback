@@ -791,72 +791,319 @@ def aggregate_enneagram_signals(
 
 
 # =============================================================================
-# TRANSIT INFLUENCE FUNCTIONS
+# TRANSIT INFLUENCE FUNCTIONS - Real Swiss Ephemeris Implementation
 # =============================================================================
 
-def get_current_transit_themes() -> List[str]:
-    """Get current planetary transit themes based on day and planetary cycles.
-    
-    This is a simplified version that provides thematically appropriate
-    transit influences without requiring full ephemeris calculations.
-    
-    In production, this could be enhanced with actual planetary position data.
+def calculate_current_planetary_positions() -> Dict[str, Dict]:
+    """Calculate current positions of all planets using Swiss Ephemeris.
     
     Returns:
-        List of active transit theme keys
+        Dict mapping planet names to their position data including:
+        - longitude: sidereal longitude
+        - sign: zodiac sign
+        - degree: degree within sign
+        - retrograde: whether planet is retrograde
+    """
+    try:
+        from datetime import datetime, timezone
+        from calculations.astrology import (
+            PLANETS, get_julian_day, calculate_planet_position_sidereal
+        )
+        
+        # Get current UTC time
+        now = datetime.now(timezone.utc)
+        jd = get_julian_day(
+            now.year, now.month, now.day,
+            now.hour, now.minute, now.second
+        )
+        
+        positions = {}
+        for planet_name, planet_id in PLANETS.items():
+            if planet_name == "South Node":
+                continue  # Skip, we use North Node
+            try:
+                pos = calculate_planet_position_sidereal(planet_id, jd)
+                positions[planet_name] = {
+                    "longitude": pos["longitude"],
+                    "sign": pos["sign"],
+                    "degree": pos["degree"],
+                    "retrograde": pos.get("retrograde", False),
+                    "speed": pos.get("speed", 0)
+                }
+            except Exception as e:
+                logger.debug(f"[Transit] Could not calculate {planet_name}: {e}")
+                continue
+        
+        return positions
+    except Exception as e:
+        logger.warning(f"[Transit] Swiss Ephemeris calculation failed: {e}")
+        return {}
+
+
+def calculate_transit_aspects_to_natal(
+    transit_positions: Dict[str, Dict],
+    natal_chart: Optional[Dict] = None
+) -> List[Dict]:
+    """Calculate aspects between current transits and natal chart.
+    
+    If natal chart is not provided, returns general transit activations
+    based on current planetary configurations.
+    
+    Args:
+        transit_positions: Current planetary positions from calculate_current_planetary_positions()
+        natal_chart: Optional user's natal chart data
+    
+    Returns:
+        List of active transit aspects with:
+        - transiting_planet: name of transiting planet
+        - aspect_type: conjunction, opposition, square, etc.
+        - intensity: tight, medium, wide based on orb
+        - domain_influence: list of affected domains
+    """
+    active_transits = []
+    
+    if not transit_positions:
+        return active_transits
+    
+    # If we have a natal chart, calculate transits to natal positions
+    if natal_chart and natal_chart.get("planets"):
+        natal_planets = natal_chart.get("planets", {})
+        
+        for transit_name, transit_pos in transit_positions.items():
+            if transit_name in ["Sun", "Moon", "Mercury", "Venus"]:
+                # Fast-moving planets: only tight aspects
+                max_orb = TRANSIT_ORB_TIGHT
+            elif transit_name in ["Mars", "Jupiter"]:
+                # Medium planets: medium orbs
+                max_orb = TRANSIT_ORB_MEDIUM
+            else:
+                # Outer planets: wider orbs (longer influence)
+                max_orb = TRANSIT_ORB_WIDE
+            
+            transit_lon = transit_pos.get("longitude", 0)
+            
+            # Check aspects to key natal points (Sun, Moon, Ascendant)
+            for natal_name in ["Sun", "Moon", "Mercury", "Venus", "Mars", "Saturn"]:
+                if natal_name not in natal_planets:
+                    continue
+                    
+                natal_lon = natal_planets[natal_name].get("longitude", 0)
+                if natal_lon is None:
+                    continue
+                
+                # Calculate aspect
+                diff = abs(transit_lon - natal_lon)
+                if diff > 180:
+                    diff = 360 - diff
+                
+                # Check each aspect type
+                for aspect_name, aspect_angle in ACTIVE_ASPECTS.items():
+                    orb = abs(diff - aspect_angle)
+                    if orb <= max_orb:
+                        intensity = "tight" if orb <= TRANSIT_ORB_TIGHT else "medium" if orb <= TRANSIT_ORB_MEDIUM else "wide"
+                        
+                        active_transits.append({
+                            "transiting_planet": transit_name,
+                            "natal_point": natal_name,
+                            "aspect_type": aspect_name,
+                            "orb": orb,
+                            "intensity": intensity,
+                            "retrograde": transit_pos.get("retrograde", False)
+                        })
+    else:
+        # No natal chart - use general transit weather
+        # Focus on outer planet positions and lunar phase
+        for planet_name, pos in transit_positions.items():
+            if planet_name in ["Saturn", "Jupiter", "Mars", "Pluto", "Uranus", "Neptune"]:
+                active_transits.append({
+                    "transiting_planet": planet_name,
+                    "natal_point": None,
+                    "aspect_type": "general_influence",
+                    "orb": 0,
+                    "intensity": "medium",
+                    "retrograde": pos.get("retrograde", False)
+                })
+        
+        # Add Moon position for emotional timing
+        if "Moon" in transit_positions:
+            moon_sign = transit_positions["Moon"].get("sign", "")
+            active_transits.append({
+                "transiting_planet": "Moon",
+                "natal_point": None,
+                "aspect_type": "lunar_cycle",
+                "orb": 0,
+                "intensity": "tight",
+                "sign": moon_sign
+            })
+    
+    return active_transits
+
+
+def map_transits_to_domains(
+    active_transits: List[Dict]
+) -> Dict[str, Dict]:
+    """Map active transits to pattern domains with intensity scores.
+    
+    Args:
+        active_transits: List of transit aspects from calculate_transit_aspects_to_natal()
+    
+    Returns:
+        Dict mapping domain_id to:
+        - intensity: float score (0-1)
+        - planets: list of influencing planets
+        - theme: primary theme label
+    """
+    domain_influence: Dict[str, Dict] = {}
+    
+    for domain_id, domain_config in PLANET_DOMAIN_INFLUENCE.items():
+        primary_planets = domain_config.get("primary", [])
+        secondary_planets = domain_config.get("secondary", [])
+        themes = domain_config.get("themes", {})
+        
+        domain_intensity = 0.0
+        active_planets = []
+        active_theme = None
+        
+        for transit in active_transits:
+            planet = transit.get("transiting_planet")
+            intensity_str = transit.get("intensity", "medium")
+            
+            # Calculate intensity multiplier
+            if intensity_str == "tight":
+                intensity_mult = 1.0
+            elif intensity_str == "medium":
+                intensity_mult = 0.6
+            else:
+                intensity_mult = 0.3
+            
+            # Check if this planet influences this domain
+            if planet in primary_planets:
+                domain_intensity += 0.5 * intensity_mult
+                active_planets.append(planet)
+                if not active_theme and planet in themes:
+                    active_theme = themes[planet]
+            elif planet in secondary_planets:
+                domain_intensity += 0.25 * intensity_mult
+                active_planets.append(planet)
+                if not active_theme and planet in themes:
+                    active_theme = themes[planet]
+        
+        if domain_intensity > 0:
+            domain_influence[domain_id] = {
+                "intensity": min(domain_intensity, 1.0),  # Cap at 1.0
+                "planets": list(set(active_planets)),  # Deduplicate
+                "theme": active_theme or "timing_emphasis"
+            }
+    
+    return domain_influence
+
+
+def get_transit_influenced_domains(
+    natal_chart: Optional[Dict] = None
+) -> Dict[str, Dict]:
+    """Main function to get transit influence on pattern domains.
+    
+    Uses real Swiss Ephemeris calculations when available,
+    falls back to simplified heuristics if needed.
+    
+    Args:
+        natal_chart: Optional user's natal chart for personalized transits
+    
+    Returns:
+        Dict mapping domain_id to influence data (intensity, theme, planets)
+    """
+    try:
+        # Calculate current planetary positions
+        transit_positions = calculate_current_planetary_positions()
+        
+        if not transit_positions:
+            logger.debug("[Transit] No planetary positions - falling back to basic timing")
+            return _get_fallback_transit_influence()
+        
+        # Calculate aspects to natal chart (or general influence)
+        active_transits = calculate_transit_aspects_to_natal(
+            transit_positions=transit_positions,
+            natal_chart=natal_chart
+        )
+        
+        if not active_transits:
+            logger.debug("[Transit] No active transits found")
+            return _get_fallback_transit_influence()
+        
+        # Map transits to domains
+        domain_influence = map_transits_to_domains(active_transits)
+        
+        logger.debug(f"[Transit] Real transit calculation: {len(domain_influence)} domains influenced")
+        for domain_id, influence in domain_influence.items():
+            logger.debug(f"  {domain_id}: intensity={influence['intensity']:.2f}, planets={influence['planets']}")
+        
+        return domain_influence
+        
+    except Exception as e:
+        logger.warning(f"[Transit] Error calculating transits: {e}")
+        return _get_fallback_transit_influence()
+
+
+def _get_fallback_transit_influence() -> Dict[str, Dict]:
+    """Fallback transit influence when Swiss Ephemeris is unavailable.
+    
+    Uses day-of-week and lunar cycle as basic timing indicators.
     """
     from datetime import datetime
     
     today = datetime.now()
-    day_of_week = today.weekday()  # 0=Monday, 6=Sunday
+    day_of_week = today.weekday()
     day_of_month = today.day
-    month = today.month
     
-    active_themes = []
+    # Day-of-week planetary rulerships
+    day_planets = {
+        0: "Moon",      # Monday
+        1: "Mars",      # Tuesday
+        2: "Mercury",   # Wednesday
+        3: "Jupiter",   # Thursday
+        4: "Venus",     # Friday
+        5: "Saturn",    # Saturday
+        6: "Sun"        # Sunday
+    }
+    ruling_planet = day_planets.get(day_of_week, "Sun")
     
-    # Day-of-week planetary rulerships (traditional)
-    # Monday=Moon, Tuesday=Mars, Wednesday=Mercury, Thursday=Jupiter, Friday=Venus, Saturday=Saturn, Sunday=Sun
-    day_planets = ["moon", "mars", "mercury", "jupiter", "venus", "saturn", "sun"]
-    ruling_planet = day_planets[day_of_week]
+    # Build basic influence from ruling planet
+    domain_influence = {}
+    for domain_id, domain_config in PLANET_DOMAIN_INFLUENCE.items():
+        primary = domain_config.get("primary", [])
+        secondary = domain_config.get("secondary", [])
+        themes = domain_config.get("themes", {})
+        
+        if ruling_planet in primary:
+            domain_influence[domain_id] = {
+                "intensity": 0.5,
+                "planets": [ruling_planet],
+                "theme": themes.get(ruling_planet, "timing_emphasis")
+            }
+        elif ruling_planet in secondary:
+            domain_influence[domain_id] = {
+                "intensity": 0.25,
+                "planets": [ruling_planet],
+                "theme": themes.get(ruling_planet, "timing_emphasis")
+            }
     
-    # Add themes from ruling planet
-    if ruling_planet in PLANET_THEMES:
-        active_themes.extend(PLANET_THEMES[ruling_planet])
-    
-    # Add a secondary theme based on lunar cycle (simplified)
+    # Add lunar influence to emotional landscape
     lunar_phase = (day_of_month % 28) / 28.0
-    if lunar_phase < 0.25:  # New moon / waxing
-        active_themes.append("growth_opportunity")
-    elif lunar_phase < 0.5:  # First quarter
-        active_themes.append("action_pressure")
-    elif lunar_phase < 0.75:  # Full moon / waning
-        active_themes.append("emotional_sensitivity")
-    else:  # Last quarter
-        active_themes.append("transformation_pressure")
+    if 0.4 < lunar_phase < 0.6:  # Near full moon
+        if "emotional_landscape" not in domain_influence:
+            domain_influence["emotional_landscape"] = {
+                "intensity": 0.4,
+                "planets": ["Moon"],
+                "theme": "emotional_cycles"
+            }
+        else:
+            domain_influence["emotional_landscape"]["intensity"] += 0.2
     
-    # Add seasonal emphasis (simplified based on month)
-    if month in [3, 4, 5]:  # Spring
-        active_themes.append("energy_activation")
-    elif month in [6, 7, 8]:  # Summer
-        active_themes.append("expression_drive")
-    elif month in [9, 10, 11]:  # Fall
-        active_themes.append("transformation_pressure")
-    else:  # Winter
-        active_themes.append("seeking_understanding")
-    
-    # Deduplicate while preserving order
-    seen = set()
-    unique_themes = []
-    for theme in active_themes:
-        if theme not in seen:
-            seen.add(theme)
-            unique_themes.append(theme)
-    
-    return unique_themes
+    return domain_influence
 
 
 def aggregate_transit_signals(
-    transit_themes: Optional[List[str]] = None,
+    natal_chart: Optional[Dict] = None,
     existing_domain_scores: Optional[Dict[str, float]] = None
 ) -> Dict[str, List[MatchedSignal]]:
     """Aggregate transit signals into pattern categories.
