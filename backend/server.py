@@ -14088,22 +14088,27 @@ async def get_forum_pulse(forum_id: str, user_id: str):
         
         user_name = user.get("name", "Anonymous")
         
-        # Get Human Design data
-        hd_data = await db.human_design.find_one({"user_id": user_id_member})
+        # Get Human Design data from chart computation
         hd_type = None
         hd_profile = None
         hd_authority = None
         
-        if hd_data:
-            hd_type = hd_data.get("type")
-            hd_profile = hd_data.get("profile")
-            hd_authority = hd_data.get("authority")
-            
-            if hd_type and hd_type in hd_type_counts:
-                hd_type_counts[hd_type] += 1
-            
-            if hd_authority:
-                authority_counts[hd_authority] = authority_counts.get(hd_authority, 0) + 1
+        try:
+            # Get user and their chart data
+            member_user, chart = await get_user_astrology_data(user_id_member)
+            if chart:
+                hd_data = extract_human_design_data(chart)
+                hd_type = hd_data.get("type") if hd_data.get("type") != "Unknown" else None
+                hd_profile = hd_data.get("profile") if hd_data.get("profile") != "Unknown" else None
+                hd_authority = hd_data.get("authority") if hd_data.get("authority") != "Unknown" else None
+                
+                if hd_type and hd_type in hd_type_counts:
+                    hd_type_counts[hd_type] += 1
+                
+                if hd_authority:
+                    authority_counts[hd_authority] = authority_counts.get(hd_authority, 0) + 1
+        except Exception as e:
+            logger.debug(f"[ForumPulse] Could not get HD data for {user_id_member}: {e}")
         
         # Get Enneagram data
         enneagram_type = None
