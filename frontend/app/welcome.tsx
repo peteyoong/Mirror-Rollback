@@ -146,8 +146,14 @@ export default function Welcome() {
           await setChart(result.chart);
         }
         
-        // Navigate to main app
-        router.replace('/(tabs)');
+        // Navigate based on forums redirect or default to main app
+        if (forumsRedirect === 'create') {
+          router.replace('/forums/create');
+        } else if (forumsRedirect === 'join') {
+          router.replace('/forums/join');
+        } else {
+          router.replace('/(tabs)');
+        }
       }
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || err.message || 'Login failed. Please try again.';
