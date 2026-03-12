@@ -71,6 +71,7 @@ export default function ForumHomeScreen() {
   }, [fetchData]);
 
   const handleBack = () => {
+    clearForumContext();
     router.push('/forums');
   };
 
@@ -79,8 +80,17 @@ export default function ForumHomeScreen() {
   };
 
   const handleMyMirrorProfile = () => {
-    // Navigate to the main Mirror tabs - user can access their profile and lenses
-    router.push('/(tabs)');
+    // Set forum context before navigating to Mirror
+    if (forum) {
+      setForumContext({
+        forumId: forumId,
+        forumName: forum.name,
+        exerciseId: forum.active_exercise?.id || null,
+        exerciseTitle: forum.active_exercise?.title || null,
+      });
+    }
+    // Navigate to the Lenses tab where user can browse their insights
+    router.push('/(tabs)/lenses');
   };
 
   const handleCopyInvite = async () => {
