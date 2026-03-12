@@ -7,14 +7,13 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
-import { getForum, getSharedReflections, ForumReflection, getForumExercise } from '../../services/api';
+import { getForum, getSharedReflections, ForumReflection, getForumExercise, getForumMembers, ForumMember } from '../../services/api';
 import Constants from 'expo-constants';
 
 export default function ForumHomeScreen() {
@@ -26,6 +25,7 @@ export default function ForumHomeScreen() {
   
   const [forum, setForum] = useState<any | null>(null);
   const [reflections, setReflections] = useState<ForumReflection[]>([]);
+  const [members, setMembers] = useState<ForumMember[]>([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -40,14 +40,16 @@ export default function ForumHomeScreen() {
     else setLoading(true);
     
     try {
-      const [forumData, reflectionsData, exerciseData] = await Promise.all([
+      const [forumData, reflectionsData, exerciseData, membersData] = await Promise.all([
         getForum(forumId, user.id),
         getSharedReflections(forumId, user.id),
         getForumExercise(forumId, user.id),
+        getForumMembers(forumId, user.id),
       ]);
       setForum(forumData);
       setReflections(reflectionsData.reflections);
       setHasSubmitted(exerciseData.has_submitted);
+      setMembers(membersData.members);
       setError(null);
     } catch (err: any) {
       console.error('[Forum] Error fetching data:', err);
@@ -74,6 +76,11 @@ export default function ForumHomeScreen() {
     router.push(`/forums/exercise?forumId=${forumId}`);
   };
 
+  const handleMyMirrorProfile = () => {
+    // Navigate to the main Mirror tabs - user can access their profile and lenses
+    router.push('/(tabs)');
+  };
+
   const handleCopyInvite = async () => {
     if (!forum?.invite_token) return;
     const baseUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || '';
@@ -90,6 +97,11 @@ export default function ForumHomeScreen() {
   const getPreviewText = (text: string, maxLength: number = 120) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength).trim() + '...';
+  };
+
+  // Get first name for display
+  const getFirstName = (fullName: string) => {
+    return fullName.split(' ')[0];
   };
 
   if (loading) {
@@ -156,15 +168,49 @@ export default function ForumHomeScreen() {
         {/* Forum Info */}
         <View style={styles.forumInfo}>
           <Text style={[styles.forumName, { color: theme.text }]}>{forum?.name}</Text>
-          <Text style={[styles.forumMeta, { color: theme.textTertiary }]}>
-            {forum?.member_count} {forum?.member_count === 1 ? 'member' : 'members'}
-          </Text>
           {forum?.description && (
             <Text style={[styles.forumDescription, { color: theme.textSecondary }]}>
               {forum.description}
             </Text>
           )}
         </View>
+
+        {/* Members Section */}
+        <View style={[styles.membersSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.membersSectionTitle, { color: theme.text }]}>
+            Members ({members.length})
+          </Text>
+          <View style={styles.membersList}>
+            {members.map((member, index) => (
+              <View key={member.user_id} style={styles.memberItem}>
+                <Text style={[styles.memberName, { color: theme.textSecondary }]}>
+                  {getFirstName(member.user_name)}
+                  {member.role === 'owner' && (
+                    <Text style={[styles.memberRole, { color: theme.textTertiary }]}> • host</Text>
+                  )}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* My Mirror Profile Card */}
+        <TouchableOpacity
+          style={[styles.mirrorProfileCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          onPress={handleMyMirrorProfile}
+          activeOpacity={0.7}
+        >
+          <View style={styles.mirrorProfileContent}>
+            <Text style={[styles.mirrorProfileIcon, { color: theme.accent }]}>◎</Text>
+            <View style={styles.mirrorProfileText}>
+              <Text style={[styles.mirrorProfileTitle, { color: theme.text }]}>My Mirror Profile</Text>
+              <Text style={[styles.mirrorProfileSubtitle, { color: theme.textTertiary }]}>
+                Access your lenses and insights
+              </Text>
+            </View>
+          </View>
+          <Text style={[styles.mirrorProfileChevron, { color: theme.textTertiary }]}>›</Text>
+        </TouchableOpacity>
 
         {/* Current Exercise Card */}
         {forum?.active_exercise && (
@@ -223,7 +269,7 @@ export default function ForumHomeScreen() {
                   >
                     <View style={styles.reflectionHeader}>
                       <Text style={[styles.reflectionAuthor, { color: theme.text }]}>
-                        {reflection.user_name}
+                        {getFirstName(reflection.user_name)}
                       </Text>
                       <Text style={[styles.reflectionDomain, { color: theme.accent }]}>
                         {reflection.domain_name}
@@ -276,6 +322,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
   headerRight: {
     alignItems: 'flex-end',
   },
@@ -310,21 +360,79 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   forumInfo: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   forumName: {
     fontSize: 26,
     fontWeight: '700',
     marginBottom: 4,
   },
-  forumMeta: {
-    fontSize: 13,
-    marginBottom: 8,
-  },
   forumDescription: {
     fontSize: 15,
     lineHeight: 22,
   },
+  // Members Section
+  membersSection: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 12,
+  },
+  membersSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
+  membersList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  memberItem: {
+    marginRight: 4,
+  },
+  memberName: {
+    fontSize: 14,
+  },
+  memberRole: {
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+  // My Mirror Profile Card
+  mirrorProfileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 16,
+  },
+  mirrorProfileContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  mirrorProfileIcon: {
+    fontSize: 28,
+    marginRight: 14,
+  },
+  mirrorProfileText: {
+    flex: 1,
+  },
+  mirrorProfileTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  mirrorProfileSubtitle: {
+    fontSize: 13,
+  },
+  mirrorProfileChevron: {
+    fontSize: 24,
+    marginLeft: 8,
+  },
+  // Exercise Card
   exerciseCard: {
     padding: 20,
     borderRadius: 16,
