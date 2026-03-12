@@ -741,9 +741,6 @@ export default function LensDetail() {
           <Text style={[styles.loadingText, { color: theme.textTertiary }]}>
             Loading your {lensMeta.name}...
           </Text>
-          <Text style={[styles.loadingText, { color: theme.textTertiary, fontSize: 10, marginTop: 8 }]}>
-            [lens].tsx LOADING • user.id: {user?.id || 'undefined'}
-          </Text>
         </View>
       ) : (
         // OTHER LENSES: Keep original implementation (numerology, consciousness, etc.)
