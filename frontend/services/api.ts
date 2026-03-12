@@ -853,4 +853,44 @@ export const getPatternInterpretation = async (
   return response.data;
 };
 
+// ============================================
+// FORUM PULSE
+// ============================================
+
+export interface ForumPulseMemberCard {
+  user_id: string;
+  name: string;
+  hd_type: string | null;
+  hd_profile: string | null;
+  enneagram_type: number | null;
+  active_pattern: string | null;
+}
+
+export interface ForumPulseTheme {
+  domain_id: string;
+  domain_name: string;
+  count: number;
+}
+
+export interface ForumPulseResponse {
+  success: boolean;
+  exploring_themes: ForumPulseTheme[];
+  activity_summary: {
+    reflections_7d: number;
+    active_members_7d: number;
+    total_members: number;
+    most_active_domain: string | null;
+  };
+  group_energy: Record<string, number>;
+  lens_insight: string | null;
+  member_cards: ForumPulseMemberCard[];
+}
+
+export const getForumPulse = async (forumId: string, userId: string): Promise<ForumPulseResponse> => {
+  const response = await apiWithRetry.get(`/forums/${forumId}/pulse`, {
+    params: { user_id: userId }
+  });
+  return response.data;
+};
+
 export default api;
