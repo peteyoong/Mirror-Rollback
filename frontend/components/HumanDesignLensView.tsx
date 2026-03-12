@@ -1088,11 +1088,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     // Navigate to mechanic detail modal
     const handleMechanicTap = (mechanicType: string) => {
       // Debug logging
-      console.log('[HumanDesignLensView] handleMechanicTap called with:', mechanicType);
-      console.log('[HumanDesignLensView] Current activeMechanicDetail before set:', activeMechanicDetail);
       // Open the mechanics detail modal
       setActiveMechanicDetail(mechanicType);
-      console.log('[HumanDesignLensView] setActiveMechanicDetail called with:', mechanicType);
     };
 
     return (
@@ -1107,7 +1104,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               pressed && { opacity: 0.7 }
             ]}
             onPress={() => {
-              console.log('[CoreMechanics] Type pressed');
               handleMechanicTap('type');
             }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -1124,7 +1120,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               pressed && { opacity: 0.7 }
             ]}
             onPress={() => {
-              console.log('[CoreMechanics] Authority pressed');
               handleMechanicTap('authority');
             }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -1144,7 +1139,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               pressed && { opacity: 0.7 }
             ]}
             onPress={() => {
-              console.log('[CoreMechanics] Profile pressed');
               handleMechanicTap('profile');
             }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -1171,7 +1165,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               pressed && { opacity: 0.7 }
             ]}
             onPress={() => {
-              console.log('[CoreMechanics] Incarnation Cross pressed');
               handleMechanicTap('incarnation');
             }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -1212,14 +1205,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   // Render the Mechanic Detail Modal
   const renderMechanicDetailModal = () => {
-    console.log('[HumanDesignLensView] renderMechanicDetailModal called, activeMechanicDetail:', activeMechanicDetail);
     
     if (!activeMechanicDetail || !data?.core_mechanics) {
-      console.log('[HumanDesignLensView] Modal not rendered - activeMechanicDetail:', activeMechanicDetail, 'data?.core_mechanics:', !!data?.core_mechanics);
       return null;
     }
     
-    console.log('[HumanDesignLensView] Modal WILL render for:', activeMechanicDetail);
     
     const mechanics = data.core_mechanics;
     let title = '';
@@ -1256,7 +1246,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     }
     
     if (!story) {
-      console.log('[HumanDesignLensView] No story found for:', activeMechanicDetail);
       return null;
     }
     
@@ -1265,7 +1254,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const modalWidth = Math.min(screenWidth - 32, 500);
     const modalMaxHeight = screenHeight * 0.85;
     
-    console.log('[HumanDesignLensView] Rendering modal with title:', title, 'story:', story?.explanation?.[0]?.substring(0, 50));
     
     return (
       <Modal
@@ -1273,7 +1261,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         transparent={true}
         animationType="fade"
         onRequestClose={() => {
-          console.log('[Modal] onRequestClose triggered');
           setActiveMechanicDetail(null);
         }}
         statusBarTranslucent={Platform.OS === 'android'}
@@ -1281,7 +1268,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         <Pressable 
           style={styles.modalOverlay}
           onPress={() => {
-            console.log('[Modal] Overlay pressed - closing');
             setActiveMechanicDetail(null);
           }}
         >
@@ -1343,7 +1329,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                 pressed && { opacity: 0.7 }
               ]}
               onPress={() => {
-                console.log('[Modal] Close button pressed');
                 setActiveMechanicDetail(null);
               }}
             >
