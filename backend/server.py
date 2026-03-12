@@ -14034,9 +14034,13 @@ async def get_forum_pulse(forum_id: str, user_id: str):
         
         # Check if within last 7 days
         created_at = r.get("created_at")
-        if created_at and created_at >= seven_days_ago:
-            recent_reflections += 1
-            active_members_set.add(r.get("user_id"))
+        if created_at:
+            # Handle timezone-aware and naive datetime comparison
+            if created_at.tzinfo is None:
+                created_at = created_at.replace(tzinfo=timezone.utc)
+            if created_at >= seven_days_ago:
+                recent_reflections += 1
+                active_members_set.add(r.get("user_id"))
     
     # Map domain IDs to names and sort by count
     domain_name_map = {d["id"]: d["name"] for d in PATTERN_DOMAINS}
