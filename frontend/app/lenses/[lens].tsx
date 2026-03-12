@@ -270,20 +270,6 @@ export default function LensDetail() {
   const [chatInput, setChatInput] = useState('');
   const { user, chart } = useAppStore();
   
-  // Debug: Log rendering decision
-  const renderingHumanDesignLensView = lens === 'human_design' && !!user?.id;
-  const renderingLoading = (lens === 'astrology' || lens === 'human_design') && !user?.id;
-  const renderingLegacy = !renderingHumanDesignLensView && !renderingLoading && lens !== 'astrology' && lens !== 'numerology' && lens !== 'enneagram';
-  
-  console.log('[LensScreen] Rendering decision:', {
-    lens,
-    userId: user?.id,
-    hasUser: !!user,
-    renderingHumanDesignLensView,
-    renderingLoading,
-    renderingLegacy
-  });
-  
   // Lens Chat Modal state
   const [lensChatVisible, setLensChatVisible] = useState(false);
   
