@@ -507,4 +507,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     paddingHorizontal: 4,
   },
+  
+  // Reflect button container
+  reflectContainer: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+  },
 });
