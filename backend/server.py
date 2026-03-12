@@ -13974,6 +13974,218 @@ async def get_pattern_domains():
     return {"domains": PATTERN_DOMAINS}
 
 
+@api_router.get("/forums/{forum_id}/pulse")
+async def get_forum_pulse(forum_id: str, user_id: str):
+    """
+    Get Forum Pulse data - collective patterns and lens dynamics across members.
+    
+    Returns:
+    - exploring_themes: Top 2-3 active pattern domains
+    - activity_summary: Reflections and member stats for last 7 days
+    - group_energy: HD type distribution
+    - lens_insight: Generated insight based on aggregate lens data
+    - member_cards: Member details with lens data
+    """
+    logger.info(f"[ForumPulse] Getting pulse for forum: {forum_id}")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    
+    # Check membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    # Get all active members
+    members_cursor = db.forum_members.find({
+        "forum_id": forum_id,
+        "status": "active"
+    })
+    
+    member_user_ids = []
+    async for m in members_cursor:
+        member_user_ids.append(m["user_id"])
+    
+    # Calculate date threshold for 7-day stats
+    seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    
+    # =========================================================
+    # 1. Exploring Themes - Count reflections by domain
+    # =========================================================
+    domain_counts = {}
+    reflections_cursor = db.forum_reflections.find({
+        "forum_id": forum_id,
+        "is_shared": True
+    })
+    
+    total_reflections = 0
+    recent_reflections = 0
+    active_members_set = set()
+    
+    async for r in reflections_cursor:
+        total_reflections += 1
+        domain = r.get("selected_domain", "unknown")
+        domain_counts[domain] = domain_counts.get(domain, 0) + 1
+        
+        # Check if within last 7 days
+        created_at = r.get("created_at")
+        if created_at and created_at >= seven_days_ago:
+            recent_reflections += 1
+            active_members_set.add(r.get("user_id"))
+    
+    # Map domain IDs to names and sort by count
+    domain_name_map = {d["id"]: d["name"] for d in PATTERN_DOMAINS}
+    exploring_themes = []
+    for domain_id, count in sorted(domain_counts.items(), key=lambda x: -x[1])[:3]:
+        exploring_themes.append({
+            "domain_id": domain_id,
+            "domain_name": domain_name_map.get(domain_id, domain_id),
+            "count": count
+        })
+    
+    # Most active domain
+    most_active_domain = exploring_themes[0] if exploring_themes else None
+    
+    # =========================================================
+    # 2. Activity Summary
+    # =========================================================
+    activity_summary = {
+        "reflections_7d": recent_reflections,
+        "active_members_7d": len(active_members_set),
+        "total_members": len(member_user_ids),
+        "most_active_domain": most_active_domain["domain_name"] if most_active_domain else None
+    }
+    
+    # =========================================================
+    # 3. Group Energy (Human Design types)
+    # =========================================================
+    hd_type_counts = {
+        "Manifestor": 0,
+        "Generator": 0,
+        "Manifesting Generator": 0,
+        "Projector": 0,
+        "Reflector": 0
+    }
+    
+    authority_counts = {}
+    profile_counts = {}
+    member_cards = []
+    
+    for user_id_member in member_user_ids:
+        # Get user basic info
+        user = await db.users.find_one({"_id": ObjectId(user_id_member)})
+        if not user:
+            continue
+        
+        user_name = user.get("name", "Anonymous")
+        
+        # Get Human Design data
+        hd_data = await db.human_design.find_one({"user_id": user_id_member})
+        hd_type = None
+        hd_profile = None
+        hd_authority = None
+        
+        if hd_data:
+            hd_type = hd_data.get("type")
+            hd_profile = hd_data.get("profile")
+            hd_authority = hd_data.get("authority")
+            
+            if hd_type and hd_type in hd_type_counts:
+                hd_type_counts[hd_type] += 1
+            
+            if hd_authority:
+                authority_counts[hd_authority] = authority_counts.get(hd_authority, 0) + 1
+        
+        # Get Enneagram data
+        enneagram_type = None
+        enneagram_data = await db.enneagram.find_one({"user_id": user_id_member})
+        if enneagram_data:
+            enneagram_type = enneagram_data.get("type")
+        
+        # Get current active pattern domain (from most recent pattern_cache)
+        active_pattern = None
+        pattern_cache = await db.pattern_cache.find_one({
+            "user_id": user_id_member,
+            "cache_type": "pattern_graph"
+        })
+        if pattern_cache and pattern_cache.get("categories"):
+            # Find the highest signal strength category
+            categories = pattern_cache.get("categories", [])
+            active_cats = [c for c in categories if c.get("signal_strength") in ["active", "emerging"]]
+            if active_cats:
+                # Sort by signal strength (active > emerging)
+                active_cats.sort(key=lambda c: 0 if c.get("signal_strength") == "active" else 1)
+                active_pattern = active_cats[0].get("category_name")
+        
+        member_cards.append({
+            "user_id": user_id_member,
+            "name": user_name,
+            "hd_type": hd_type,
+            "hd_profile": hd_profile,
+            "enneagram_type": enneagram_type,
+            "active_pattern": active_pattern
+        })
+    
+    # Filter out zero counts from HD types
+    group_energy = {k: v for k, v in hd_type_counts.items() if v > 0}
+    
+    # =========================================================
+    # 4. Lens Insight - Generate based on aggregate data
+    # =========================================================
+    lens_insight = None
+    
+    # Find most common authority
+    most_common_authority = None
+    if authority_counts:
+        most_common_authority = max(authority_counts.items(), key=lambda x: x[1])
+    
+    # Generate insight based on data
+    insights = []
+    
+    if most_common_authority and most_common_authority[1] >= 2:
+        authority_name = most_common_authority[0]
+        authority_insights = {
+            "Emotional": "Several members have Emotional Authority. The group may process clarity emotionally, requiring time before decisions.",
+            "Sacral": "A number of members have Sacral Authority. The group may respond well to gut instincts and in-the-moment decisions.",
+            "Splenic": "Some members share Splenic Authority. There may be intuitive knowing that guides the group in subtle ways.",
+            "Ego": "Members with Ego Authority are present. Willpower and commitment may be strong themes for this group.",
+            "Self-Projected": "Self-Projected Authority appears in this group. Speaking aloud may help members find clarity together.",
+            "Mental": "Mental Authority influences some members. External perspective and discussion may support decision-making.",
+            "Lunar": "Reflectors are present. The group may benefit from patient, cyclical reflection processes."
+        }
+        if authority_name in authority_insights:
+            insights.append(authority_insights[authority_name])
+    
+    # Insight based on type distribution
+    dominant_type = max(group_energy.items(), key=lambda x: x[1]) if group_energy else None
+    if dominant_type and dominant_type[1] >= 2:
+        type_insights = {
+            "Generator": "Generators form a significant presence. The group likely has sustained energy for what truly engages them.",
+            "Manifesting Generator": "Manifesting Generators bring multi-passionate energy. The group may thrive with variety and quick pivots.",
+            "Projector": "Projectors contribute wisdom and guidance. The group may excel at seeing systems and directing energy.",
+            "Manifestor": "Manifestors initiate new directions. The group may have catalytic energy for starting new things.",
+            "Reflector": "Reflectors mirror the group's health. Pay attention to how Reflectors feel—it may reflect the collective."
+        }
+        if dominant_type[0] in type_insights and not insights:
+            insights.append(type_insights[dominant_type[0]])
+    
+    lens_insight = insights[0] if insights else "This group brings diverse perspectives and energies together."
+    
+    return {
+        "success": True,
+        "exploring_themes": exploring_themes,
+        "activity_summary": activity_summary,
+        "group_energy": group_energy,
+        "lens_insight": lens_insight,
+        "member_cards": member_cards
+    }
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
