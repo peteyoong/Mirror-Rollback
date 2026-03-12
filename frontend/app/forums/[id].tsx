@@ -1105,4 +1105,174 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontStyle: 'italic',
   },
+  
+  // ============================================
+  // Modal Styles
+  // ============================================
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 360,
+    borderRadius: 20,
+    padding: 20,
+    maxHeight: '70%',
+  },
+  modalLarge: {
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  modalClose: {
+    fontSize: 20,
+    fontWeight: '300',
+    padding: 4,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    marginBottom: 16,
+  },
+  modalScrollContent: {
+    maxHeight: 400,
+  },
+  
+  // Member Profile Modal
+  memberProfileContent: {
+    alignItems: 'center',
+    paddingTop: 8,
+  },
+  memberProfileAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  memberProfileInitial: {
+    fontSize: 26,
+    fontWeight: '600',
+  },
+  memberProfileName: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  memberProfileDetails: {
+    width: '100%',
+    gap: 12,
+  },
+  profileRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  profileLabel: {
+    fontSize: 14,
+  },
+  profileValue: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  profileEmpty: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 16,
+    fontStyle: 'italic',
+  },
+  
+  // Domain Reflections Modal
+  modalReflectionCard: {
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  modalReflectionAuthor: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  modalReflectionText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  
+  // Type Members Modal
+  typeMembersList: {
+    gap: 4,
+  },
+  typeMemberItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  typeMemberAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  typeMemberInitial: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  typeMemberInfo: {
+    flex: 1,
+  },
+  typeMemberName: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  typeMemberProfile: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  
+  // Lens Insight Modal
+  insightContent: {
+    gap: 16,
+  },
+  insightMainText: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  insightNote: {
+    padding: 14,
+    borderRadius: 12,
+  },
+  insightNoteText: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  insightDisclaimer: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  
+  // Lens Insight Hint
+  lensInsightHint: {
+    fontSize: 11,
+    marginTop: 6,
+    fontStyle: 'italic',
+  },
 });
