@@ -129,6 +129,14 @@ export default function ForumHomeScreen() {
     return fullName.split(' ')[0];
   };
 
+  // Handle member card press - navigate to their Mirror profile
+  const handleMemberPress = (memberId: string) => {
+    // For now, we could show a modal with member info
+    // In future, this could navigate to a read-only view of their profile
+    console.log('[Forum] Member card pressed:', memberId);
+    // TODO: Navigate to member's public profile when implemented
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
