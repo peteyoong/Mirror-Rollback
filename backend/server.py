@@ -8655,6 +8655,172 @@ async def get_pattern_graph(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/pattern-interpretation/{user_id}/{domain_id}")
+async def get_pattern_interpretation(user_id: str, domain_id: str):
+    """
+    Get or generate rich interpretation for a pattern domain.
+    
+    Returns cached interpretation if available and fresh.
+    Generates new interpretation via LLM if:
+    - No cache exists
+    - Cache is stale (signals changed or TTL expired)
+    
+    Returns:
+    - story: Short narrative of what the pattern feels like
+    - pattern: Underlying dynamic explanation
+    - challenge: Common difficulties
+    - genius: Embedded gift/strength
+    - experiments: 3-4 practical suggestions
+    """
+    try:
+        from services.pattern_interpretation import (
+            generate_pattern_interpretation,
+            compute_signal_hash,
+            is_interpretation_stale,
+            get_fallback_interpretation
+        )
+        
+        # Domain ID to name mapping
+        DOMAIN_NAMES = {
+            "energy_vitality": "Energy & Vitality",
+            "emotional_landscape": "Emotional Landscape",
+            "identity_direction": "Identity & Direction",
+            "mind_meaning": "Mind & Meaning",
+            "expression_action": "Expression & Action",
+            "relationships_boundaries": "Relationships & Boundaries",
+            "growth_transformation": "Growth & Transformation"
+        }
+        
+        if domain_id not in DOMAIN_NAMES:
+            raise HTTPException(status_code=400, detail=f"Invalid domain_id: {domain_id}")
+        
+        domain_name = DOMAIN_NAMES[domain_id]
+        
+        # Get user to verify they exist
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get current pattern graph to get signals
+        from services.pattern_graph import aggregate_pattern_graph
+        
+        # Simplified signal fetch - just get the domain data
+        pattern_graph = await db.pattern_cache.find_one({
+            "user_id": user_id,
+            "cache_type": "pattern_graph"
+        })
+        
+        # Find the domain in pattern graph
+        current_domain = None
+        if pattern_graph and pattern_graph.get("categories"):
+            for cat in pattern_graph.get("categories", []):
+                if cat.get("category_id") == domain_id:
+                    current_domain = cat
+                    break
+        
+        # If no pattern graph data, use defaults
+        if not current_domain:
+            current_domain = {
+                "category_id": domain_id,
+                "category_name": domain_name,
+                "signal_strength": "quiet",
+                "matched_signals": [],
+                "matched_sources": []
+            }
+        
+        signal_strength = current_domain.get("signal_strength", "quiet")
+        matched_signals = current_domain.get("matched_signals", [])
+        matched_sources = current_domain.get("matched_sources", [])
+        
+        # Compute signal hash for staleness check
+        signal_hash = compute_signal_hash(matched_signals, signal_strength)
+        
+        # Check cache
+        cached = await db.pattern_interpretations.find_one({
+            "user_id": user_id,
+            "domain_id": domain_id
+        })
+        
+        # Return cached if fresh
+        if cached and not is_interpretation_stale(cached, signal_hash):
+            logger.info(f"[PatternInterpretation] Cache hit for {domain_name}")
+            return {
+                "success": True,
+                "domain_id": domain_id,
+                "domain_name": domain_name,
+                "signal_strength": signal_strength,
+                "interpretation": {
+                    "story": cached.get("story"),
+                    "pattern": cached.get("pattern"),
+                    "challenge": cached.get("challenge"),
+                    "genius": cached.get("genius"),
+                    "experiments": cached.get("experiments", [])
+                },
+                "from_cache": True,
+                "created_at": cached.get("created_at")
+            }
+        
+        # Generate new interpretation
+        logger.info(f"[PatternInterpretation] Generating for {domain_name} (strength: {signal_strength})")
+        
+        interpretation = await generate_pattern_interpretation(
+            domain_id=domain_id,
+            domain_name=domain_name,
+            signal_strength=signal_strength,
+            matched_signals=matched_signals,
+            matched_sources=matched_sources
+        )
+        
+        # Cache the interpretation
+        cache_doc = {
+            "user_id": user_id,
+            "domain_id": domain_id,
+            "domain_name": domain_name,
+            "signal_hash": signal_hash,
+            "signal_strength": signal_strength,
+            "story": interpretation.get("story"),
+            "pattern": interpretation.get("pattern"),
+            "challenge": interpretation.get("challenge"),
+            "genius": interpretation.get("genius"),
+            "experiments": interpretation.get("experiments", []),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.pattern_interpretations.update_one(
+            {"user_id": user_id, "domain_id": domain_id},
+            {"$set": cache_doc},
+            upsert=True
+        )
+        
+        return {
+            "success": True,
+            "domain_id": domain_id,
+            "domain_name": domain_name,
+            "signal_strength": signal_strength,
+            "interpretation": interpretation,
+            "from_cache": False,
+            "created_at": cache_doc["created_at"]
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[PatternInterpretation] Error: {e}")
+        # Return fallback on error
+        from services.pattern_interpretation import get_fallback_interpretation
+        fallback = get_fallback_interpretation(domain_id)
+        return {
+            "success": True,
+            "domain_id": domain_id,
+            "domain_name": DOMAIN_NAMES.get(domain_id, domain_id),
+            "signal_strength": "quiet",
+            "interpretation": fallback,
+            "from_cache": False,
+            "error": str(e)
+        }
+
+
 @api_router.get("/pattern-graph/timeline/{user_id}")
 async def get_pattern_timeline(user_id: str):
     """
