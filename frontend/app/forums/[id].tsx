@@ -310,9 +310,11 @@ export default function ForumHomeScreen() {
                 <Text style={[styles.pulseBlockLabel, { color: theme.textTertiary }]}>EXPLORING THEMES</Text>
                 <View style={styles.themeTags}>
                   {pulse.exploring_themes.map((theme_item, index) => (
-                    <View 
+                    <TouchableOpacity 
                       key={theme_item.domain_id} 
                       style={[styles.themeTag, { backgroundColor: theme.accent + '15', borderColor: theme.accent + '30' }]}
+                      onPress={() => handleThemePress(theme_item.domain_id, theme_item.domain_name)}
+                      activeOpacity={0.7}
                     >
                       <Text style={[styles.themeTagText, { color: theme.accent }]}>
                         {theme_item.domain_name}
@@ -320,7 +322,7 @@ export default function ForumHomeScreen() {
                       <Text style={[styles.themeTagCount, { color: theme.textTertiary }]}>
                         {theme_item.count}
                       </Text>
-                    </View>
+                    </TouchableOpacity>
                   ))}
                 </View>
               </View>
