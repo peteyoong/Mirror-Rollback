@@ -22,8 +22,7 @@ import {
   getForumMembers, 
   ForumMember,
   getForumPulse,
-  ForumPulseResponse,
-  ForumPulseMemberCard
+  ForumPulseResponse
 } from '../../services/api';
 import Constants from 'expo-constants';
 
