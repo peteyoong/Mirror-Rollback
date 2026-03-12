@@ -200,6 +200,20 @@ export default function DefinedGatesView({ userId }: Props) {
                 </View>
               </View>
             </View>
+
+            {/* Reflect Button */}
+            <View style={styles.reflectContainer}>
+              <ReflectButton
+                sourceLens="human-design"
+                sourceType={`gate_${gate.gate_number}`}
+                sourceName={`Gate ${gate.gate_number}: ${gate.gate_name}`}
+                sourceValue={gate.center_name}
+                theme={gate.what_this_means}
+                strength={gate.your_genius}
+                challenge={gate.your_challenge}
+                guidance={gate.practical_experiments.join('\n')}
+              />
+            </View>
           </View>
         )}
       </View>
