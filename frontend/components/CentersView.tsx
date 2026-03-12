@@ -219,6 +219,20 @@ const CentersView = forwardRef<CentersViewHandle, Props>(({ userId }, ref) => {
                 {center.remember}
               </Text>
             </View>
+
+            {/* Reflect Button */}
+            <View style={styles.reflectContainer}>
+              <ReflectButton
+                sourceLens="human-design"
+                sourceType={`center_${center.center_name.toLowerCase().replace(/\s+/g, '_')}`}
+                sourceName={center.display_name}
+                sourceValue={center.defined ? 'Defined' : 'Undefined'}
+                theme={center.what_this_means}
+                strength={center.your_genius}
+                challenge={center.your_challenge}
+                guidance={center.practical_experiments.join('\n')}
+              />
+            </View>
           </View>
         )}
       </View>
