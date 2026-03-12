@@ -1640,25 +1640,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* UNMISTAKABLE DEBUG BANNER - LARGE AND VISIBLE */}
-      <View style={{ 
-        backgroundColor: '#E91E63', 
-        padding: 12, 
-        alignItems: 'center',
-        borderBottomWidth: 3,
-        borderBottomColor: '#880E4F'
-      }}>
-        <Text style={{ color: '#FFEB3B', fontSize: 14, fontWeight: 'bold' }}>
-          🔧 BUILD: 2024-MAR-11-v3 🔧
-        </Text>
-        <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>
-          COMPONENT: HumanDesignLensView
-        </Text>
-        <Text style={{ color: '#fff', fontSize: 10 }}>
-          COMMIT: 60b46103 | User: {userId?.substring(0, 8) || 'none'}
-        </Text>
-      </View>
-      
       {renderTabs()}
 
       <ScrollView
