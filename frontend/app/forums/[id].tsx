@@ -578,6 +578,12 @@ export default function ForumHomeScreen() {
                       <Text style={[styles.profileValue, { color: theme.text }]}>{memberModal.member.hd_profile}</Text>
                     </View>
                   )}
+                  {memberModal.member.hd_authority && (
+                    <View style={styles.profileRow}>
+                      <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Authority</Text>
+                      <Text style={[styles.profileValue, { color: theme.text }]}>{memberModal.member.hd_authority}</Text>
+                    </View>
+                  )}
                   {memberModal.member.enneagram_type && (
                     <View style={styles.profileRow}>
                       <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Enneagram</Text>
