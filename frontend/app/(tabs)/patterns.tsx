@@ -194,10 +194,14 @@ const DOMAIN_CONTENT: Record<string, DomainContent> = {
 
 type TabType = 'patterns' | 'weekly' | 'timeline';
 
+// Expanded section tracking for accordion sections within a domain
+type ExpandedSection = 'story' | 'pattern' | 'challenge' | 'genius' | 'experiments' | null;
+
 export default function PatternsScreen() {
   const { theme } = useTheme();
   const { user } = useAppStore();
   const router = useRouter();
+  const { isInForumContext, forumId, forumName } = useForumContext();
   
   // Tab State
   const [activeTab, setActiveTab] = useState<TabType>('patterns');
@@ -208,6 +212,11 @@ export default function PatternsScreen() {
   const [patternsRefreshing, setPatternsRefreshing] = useState(false);
   const [patternsError, setPatternsError] = useState<string | null>(null);
   const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
+  
+  // New: Pattern interpretation cache
+  const [interpretations, setInterpretations] = useState<Record<string, PatternInterpretation>>({});
+  const [loadingInterpretation, setLoadingInterpretation] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Record<string, Set<string>>>({});
   
   // Weekly State
   const [weeklySummary, setWeeklySummary] = useState<WeeklySummary | null>(null);
