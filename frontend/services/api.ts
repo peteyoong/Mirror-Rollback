@@ -643,4 +643,159 @@ export const getCombinedTimeline = async (
   return response.data;
 };
 
+// =============================================================================
+// FORUMS API
+// =============================================================================
+
+export interface Forum {
+  id: string;
+  name: string;
+  description: string | null;
+  invite_token: string;
+  created_by: string;
+  member_count: number;
+  created_at: string;
+}
+
+export interface ForumExercise {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  prompts: string[];
+}
+
+export interface PatternDomain {
+  id: string;
+  name: string;
+}
+
+export interface ForumReflection {
+  id: string;
+  forum_id: string;
+  exercise_id: string;
+  user_id: string;
+  user_name: string;
+  selected_domain: string;
+  domain_name: string;
+  reflection_text: string;
+  is_shared: boolean;
+  created_at: string;
+}
+
+export interface ForumMember {
+  user_id: string;
+  user_name: string;
+  role: string;
+  joined_at: string;
+}
+
+// Create a new forum
+export const createForum = async (data: {
+  name: string;
+  description?: string;
+  user_id: string;
+}): Promise<Forum> => {
+  const response = await apiWithRetry.post('/forums', data);
+  return response.data;
+};
+
+// Get user's forums
+export const getUserForums = async (userId: string): Promise<{ forums: Forum[] }> => {
+  const response = await apiWithRetry.get(`/forums/user/${userId}`);
+  return response.data;
+};
+
+// Get forum by ID
+export const getForum = async (forumId: string, userId: string): Promise<Forum & { active_exercise: ForumExercise | null }> => {
+  const response = await apiWithRetry.get(`/forums/${forumId}`, {
+    params: { user_id: userId }
+  });
+  return response.data;
+};
+
+// Get forum by invite token (for preview)
+export const getForumByInvite = async (inviteToken: string): Promise<{
+  id: string;
+  name: string;
+  description: string | null;
+  member_count: number;
+  created_at: string;
+}> => {
+  const response = await apiWithRetry.get(`/forums/invite/${inviteToken}`);
+  return response.data;
+};
+
+// Join forum via invite token
+export const joinForum = async (inviteToken: string, userId: string): Promise<{
+  message: string;
+  forum_id: string;
+  already_member: boolean;
+}> => {
+  const response = await apiWithRetry.post(`/forums/join/${inviteToken}`, { user_id: userId });
+  return response.data;
+};
+
+// Get active exercise for a forum
+export const getForumExercise = async (forumId: string, userId: string): Promise<{
+  exercise: ForumExercise | null;
+  domains: PatternDomain[];
+  has_submitted: boolean;
+  user_reflection_id: string | null;
+}> => {
+  const response = await apiWithRetry.get(`/forums/${forumId}/exercise`, {
+    params: { user_id: userId }
+  });
+  return response.data;
+};
+
+// Submit a reflection
+export const submitForumReflection = async (
+  forumId: string,
+  data: {
+    user_id: string;
+    selected_domain: string;
+    reflection_text: string;
+    is_shared: boolean;
+  }
+): Promise<{
+  id: string;
+  forum_id: string;
+  exercise_id: string;
+  selected_domain: string;
+  domain_name: string;
+  is_shared: boolean;
+  created_at: string;
+}> => {
+  const response = await apiWithRetry.post(`/forums/${forumId}/reflections`, data);
+  return response.data;
+};
+
+// Get shared reflections
+export const getSharedReflections = async (forumId: string, userId: string): Promise<{
+  reflections: ForumReflection[];
+  exercise: { id: string; title: string } | null;
+}> => {
+  const response = await apiWithRetry.get(`/forums/${forumId}/reflections/shared`, {
+    params: { user_id: userId }
+  });
+  return response.data;
+};
+
+// Get forum members
+export const getForumMembers = async (forumId: string, userId: string): Promise<{
+  members: ForumMember[];
+}> => {
+  const response = await apiWithRetry.get(`/forums/${forumId}/members`, {
+    params: { user_id: userId }
+  });
+  return response.data;
+};
+
+// Get pattern domains list
+export const getPatternDomains = async (): Promise<{ domains: PatternDomain[] }> => {
+  const response = await apiWithRetry.get('/forums/domains/list');
+  return response.data;
+};
+
 export default api;
