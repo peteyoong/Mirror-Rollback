@@ -840,7 +840,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     summary: "Quick orientation to your chart",
     today: "Today's transit interactions",
     structure: "Human Design mechanics",
-    meaning: "Gene Keys interpretation"
+    meaning: "Gene Keys interpretation",
+    deep_dive: "Explore your mechanics in depth"
   };
 
   const renderTabs = () => (
