@@ -156,7 +156,9 @@ const errorStyles = StyleSheet.create({
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <ThemedRootLayout />
+      <ForumContextProvider>
+        <ThemedRootLayout />
+      </ForumContextProvider>
     </ThemeProvider>
   );
 }
