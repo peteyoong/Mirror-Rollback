@@ -596,4 +596,33 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     marginBottom: 4,
   },
+  // Forums quick access styles
+  forumsSection: {
+    width: '100%',
+    maxWidth: 300,
+    marginTop: 24,
+    paddingTop: 24,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+  },
+  forumsSectionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.5,
+    marginBottom: 12,
+  },
+  forumsButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  forumButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  forumButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
 });
