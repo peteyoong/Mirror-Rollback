@@ -1285,6 +1285,74 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
+  
+  // New Section Accordion Styles (for Story, Pattern, Challenge, Genius, Experiments)
+  loadingInterpretation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  loadingInterpretationText: {
+    fontSize: 13,
+    fontStyle: 'italic',
+  },
+  sectionAccordion: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    marginBottom: 0,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  sectionChevron: {
+    fontSize: 16,
+    fontWeight: '600',
+    width: 24,
+    textAlign: 'center',
+  },
+  sectionContent: {
+    paddingBottom: 14,
+    paddingRight: 8,
+  },
+  sectionText: {
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  experimentsList: {
+    gap: 10,
+  },
+  experimentItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  experimentBullet: {
+    fontSize: 16,
+    marginRight: 10,
+    marginTop: -1,
+  },
+  experimentText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  reflectButtonContainer: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+  },
+  
+  // Legacy styles below
   accordionNarrative: {
     fontSize: 14,
     lineHeight: 22,
