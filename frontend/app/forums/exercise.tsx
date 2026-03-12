@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
+import { useForumContext } from '../../contexts/ForumContext';
 import { getForumExercise, submitForumReflection, PatternDomain, getHumanDesignMechanics, HumanDesignMechanics } from '../../services/api';
 
 // Step types for the exercise flow
