@@ -11,9 +11,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useForumContext } from '../../contexts/ForumContext';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import ChatBot from '../../components/ChatBot';
+import { ForumContextBanner } from '../../components/ForumContextBanner';
 import { getLenses } from '../../services/api';
 // Removed Ionicons - using text-based alternatives for web compatibility
 
