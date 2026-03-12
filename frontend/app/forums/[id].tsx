@@ -537,31 +537,173 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
   },
-  // Members Section
+  // Members Quick List
   membersSection: {
     padding: 16,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     marginBottom: 12,
   },
-  membersSectionTitle: {
-    fontSize: 14,
+  membersTitle: {
+    fontSize: 11,
     fontWeight: '600',
-    marginBottom: 10,
+    letterSpacing: 1,
+    marginBottom: 12,
   },
   membersList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 12,
   },
   memberItem: {
-    marginRight: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  memberAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  memberInitial: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   memberName: {
     fontSize: 14,
+    fontWeight: '500',
   },
   memberRole: {
     fontSize: 12,
+    fontStyle: 'italic',
+  },
+  // Forum Pulse Styles
+  pulseSection: {
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 20,
+  },
+  pulseSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  pulseBlock: {
+    marginBottom: 16,
+  },
+  pulseBlockLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  themeTags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  themeTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 6,
+  },
+  themeTagText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  themeTagCount: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  activityStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  statLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  statDivider: {
+    width: 1,
+    height: 32,
+  },
+  hdTypesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  hdTypeItem: {
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  hdTypeName: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  hdTypeCount: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  lensInsightBlock: {
+    padding: 16,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    marginTop: 4,
+  },
+  lensInsightText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  // Member Lens Cards
+  memberCardsGrid: {
+    gap: 12,
+  },
+  memberLensCard: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  memberLensName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  memberLensDetails: {
+    gap: 4,
+  },
+  memberLensType: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  memberLensEnneagram: {
+    fontSize: 13,
+  },
+  memberLensActive: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  memberLensEmpty: {
+    fontSize: 13,
     fontStyle: 'italic',
   },
   // My Mirror Profile Card
