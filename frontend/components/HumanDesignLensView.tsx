@@ -789,6 +789,72 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     }
   };
 
+  // Handle "Reflect in Forum" from a specific HD insight
+  const handleReflectInForum = (insightId: string, insightName: string, insightValue: string) => {
+    if (!isInForumContext || !forumId) return;
+    
+    // Get guidance content based on insight type
+    const getInsightGuidance = (id: string, value: string) => {
+      const typeGuidance: Record<string, { theme: string; strength: string; challenge: string; guidance: string }> = {
+        'type': {
+          theme: TYPE_ENERGY_PATTERNS[value] || 'Your unique energy pattern shapes how you engage with the world.',
+          strength: TYPE_MANIFESTATIONS[value]?.work || 'Unique gifts that emerge when you are aligned.',
+          challenge: TYPE_MANIFESTATIONS[value]?.energy?.split(';')[1]?.trim() || 'Patterns that arise when out of alignment.',
+          guidance: STRATEGY_TRANSLATIONS[data?.core_mechanics?.strategy || ''] || 'Follow your natural rhythm.',
+        },
+        'strategy': {
+          theme: STRATEGY_TRANSLATIONS[value] || 'Your natural way of engaging with life.',
+          strength: 'Following this approach brings flow and reduces resistance.',
+          challenge: 'Acting against this strategy creates friction and frustration.',
+          guidance: 'Notice when you naturally follow this pattern vs. when you override it.',
+        },
+        'authority': {
+          theme: AUTHORITY_TRANSLATIONS[value]?.expanded || 'Your unique way of arriving at clarity.',
+          strength: 'Reliable clarity when you follow your process.',
+          challenge: 'Not trusting your natural decision-making process.',
+          guidance: AUTHORITY_TRANSLATIONS[value]?.short || 'Honor your unique clarity process.',
+        },
+        'profile': {
+          theme: 'Your life theme and way of learning.',
+          strength: 'Embracing your profile brings natural fulfillment.',
+          challenge: 'Resisting it creates friction with your purpose.',
+          guidance: 'Consider how this profile shapes your relationships and work.',
+        },
+        'incarnation_cross': {
+          theme: 'Your life purpose and contribution.',
+          strength: 'Living aligned with this theme brings deep satisfaction.',
+          challenge: 'Ignoring it leads to a sense of meaninglessness.',
+          guidance: 'Reflect on how this purpose shows up in your current life chapter.',
+        },
+      };
+      return typeGuidance[id] || {
+        theme: 'An aspect of your Human Design.',
+        strength: 'Gifts that emerge when aligned.',
+        challenge: 'Patterns when out of alignment.',
+        guidance: 'Honor your unique design.',
+      };
+    };
+
+    const guidance = getInsightGuidance(insightId, insightValue);
+    
+    // Set the prefilled source
+    const source: PrefilledSource = {
+      sourceType: 'mirror',
+      lens: 'human-design',
+      insightId,
+      insightName,
+      insightValue,
+      theme: guidance.theme,
+      strength: guidance.strength,
+      challenge: guidance.challenge,
+      guidance: guidance.guidance,
+    };
+    setPrefilledSource(source);
+    
+    // Navigate to exercise with prefilled flag
+    router.push(`/forums/exercise?forumId=${forumId}&prefilled=true`);
+  };
+
   const loadTabData = async (tab: TabType) => {
     setIsLoading(true);
     setError(null);
