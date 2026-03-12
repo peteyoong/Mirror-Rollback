@@ -853,34 +853,4 @@ export const getPatternInterpretation = async (
   return response.data;
 };
 
-// ============================================
-// PRIVATE JOURNAL (Reflect button support)
-// ============================================
-
-export interface CreateJournalEntryParams {
-  user_id: string;
-  content: string;
-  journal_source?: string;
-  pattern_category?: string;
-  prompt_text?: string;
-  source_lens?: string;
-  source_domain?: string;
-  source_name?: string;
-  source_value?: string;
-}
-
-export interface JournalEntryResponse {
-  id: string;
-  content: string;
-  themes: string[];
-  created_at: string;
-}
-
-export const createJournalEntry = async (
-  params: CreateJournalEntryParams
-): Promise<JournalEntryResponse> => {
-  const response = await apiWithRetry.post('/journal', params);
-  return response.data;
-};
-
 export default api;
