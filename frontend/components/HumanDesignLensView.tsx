@@ -12,6 +12,8 @@ import {
   Platform,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
+import { useForumContext, PrefilledSource } from '../contexts/ForumContext';
+import { useRouter } from 'expo-router';
 // Removed Ionicons - using text alternatives for web compatibility
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
@@ -27,6 +29,7 @@ import {
 import GeneKeysView from './GeneKeysView';
 import CentersView, { CentersViewHandle } from './CentersView';
 import DefinedGatesView from './DefinedGatesView';
+import { ForumContextBanner } from './ForumContextBanner';
 
 // Build info for debugging
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
