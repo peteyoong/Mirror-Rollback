@@ -766,7 +766,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           centersDef[name.toLowerCase()] = c.defined === true;
         }
       });
-      console.log('[HumanDesignLensView] Centers definition loaded:', JSON.stringify(centersDef));
+      
       setCentersDefinition(centersDef);
     } catch (err) {
       console.error('Failed to load centers definition:', err);
