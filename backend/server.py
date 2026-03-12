@@ -13227,6 +13227,572 @@ async def get_gene_key(gate: int, line: int):
     return interpretation
 
 
+# =====================================================================
+# FORUMS API - Lightweight Trusted-Circle Reflection Feature
+# =====================================================================
+
+# Pattern domains available for reflection exercises
+PATTERN_DOMAINS = [
+    {"id": "energy_vitality", "name": "Energy & Vitality"},
+    {"id": "emotional_landscape", "name": "Emotional Landscape"},
+    {"id": "identity_direction", "name": "Identity & Direction"},
+    {"id": "mind_meaning", "name": "Mind & Meaning"},
+    {"id": "expression_action", "name": "Expression & Action"},
+    {"id": "relationships_boundaries", "name": "Relationships & Boundaries"},
+    {"id": "growth_transformation", "name": "Growth & Transformation"},
+]
+
+# Pydantic Models for Forums
+class ForumCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    user_id: str
+
+
+class ForumResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str]
+    invite_token: str
+    created_by: str
+    member_count: int
+    created_at: str
+
+
+class ForumJoinRequest(BaseModel):
+    user_id: str
+
+
+class ForumReflectionCreate(BaseModel):
+    user_id: str
+    selected_domain: str
+    reflection_text: str
+    is_shared: bool = False
+
+
+class ForumReflectionResponse(BaseModel):
+    id: str
+    forum_id: str
+    exercise_id: str
+    user_id: str
+    user_name: Optional[str]
+    selected_domain: str
+    domain_name: str
+    reflection_text: str
+    is_shared: bool
+    created_at: str
+
+
+def generate_invite_token() -> str:
+    """Generate a unique invite token for a forum."""
+    return hashlib.sha256(f"{uuid.uuid4()}{datetime.now(timezone.utc).isoformat()}".encode()).hexdigest()[:12]
+
+
+@api_router.post("/forums")
+async def create_forum(data: ForumCreate):
+    """
+    Create a new forum.
+    
+    Returns the forum with its invite token for sharing.
+    """
+    logger.info(f"[Forums] Creating forum: {data.name} by user {data.user_id[:8]}...")
+    
+    # Validate user exists
+    if not ObjectId.is_valid(data.user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    user = await db.users.find_one({"_id": ObjectId(data.user_id)})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Create the forum
+    invite_token = generate_invite_token()
+    forum_doc = {
+        "name": data.name,
+        "description": data.description,
+        "created_by": data.user_id,
+        "invite_token": invite_token,
+        "created_at": datetime.now(timezone.utc),
+    }
+    
+    result = await db.forums.insert_one(forum_doc)
+    forum_id = str(result.inserted_id)
+    
+    # Add creator as first member with 'owner' role
+    member_doc = {
+        "forum_id": forum_id,
+        "user_id": data.user_id,
+        "role": "owner",
+        "status": "active",
+        "invited_at": datetime.now(timezone.utc),
+        "joined_at": datetime.now(timezone.utc),
+    }
+    await db.forum_members.insert_one(member_doc)
+    
+    # Create the default exercise: "The Pattern Running Me"
+    exercise_doc = {
+        "forum_id": forum_id,
+        "slug": "pattern-running-me",
+        "title": "The Pattern Running Me",
+        "description": "This exercise helps surface one pattern that may currently be shaping how you lead, relate, or respond to life.",
+        "prompts": [
+            "Where is this pattern showing up in your life right now?",
+            "What situation from the last 30–60 days best represents it?",
+            "How has this pattern helped you succeed?",
+            "Where might this same pattern now be limiting you?",
+            "If this pattern softened by 10%, what might change?"
+        ],
+        "is_active": True,
+        "created_at": datetime.now(timezone.utc),
+    }
+    await db.forum_exercises.insert_one(exercise_doc)
+    
+    logger.info(f"[Forums] Forum created: {forum_id} with invite token: {invite_token}")
+    
+    return {
+        "id": forum_id,
+        "name": data.name,
+        "description": data.description,
+        "invite_token": invite_token,
+        "created_by": data.user_id,
+        "member_count": 1,
+        "created_at": forum_doc["created_at"].isoformat(),
+    }
+
+
+@api_router.get("/forums/user/{user_id}")
+async def get_user_forums(user_id: str):
+    """
+    Get all forums a user is a member of.
+    """
+    logger.info(f"[Forums] Getting forums for user: {user_id[:8]}...")
+    
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    # Get all forum memberships for this user
+    memberships = await db.forum_members.find({
+        "user_id": user_id,
+        "status": "active"
+    }).to_list(100)
+    
+    forum_ids = [m["forum_id"] for m in memberships]
+    
+    if not forum_ids:
+        return {"forums": []}
+    
+    # Get forum details
+    forums = []
+    for forum_id in forum_ids:
+        forum = await db.forums.find_one({"_id": ObjectId(forum_id)})
+        if forum:
+            # Get member count
+            member_count = await db.forum_members.count_documents({
+                "forum_id": forum_id,
+                "status": "active"
+            })
+            
+            forums.append({
+                "id": str(forum["_id"]),
+                "name": forum["name"],
+                "description": forum.get("description"),
+                "invite_token": forum["invite_token"],
+                "created_by": forum["created_by"],
+                "member_count": member_count,
+                "created_at": forum["created_at"].isoformat(),
+            })
+    
+    return {"forums": forums}
+
+
+@api_router.get("/forums/{forum_id}")
+async def get_forum(forum_id: str, user_id: str):
+    """
+    Get a single forum's details.
+    User must be a member.
+    """
+    logger.info(f"[Forums] Getting forum: {forum_id}")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    
+    # Check membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    forum = await db.forums.find_one({"_id": ObjectId(forum_id)})
+    if not forum:
+        raise HTTPException(status_code=404, detail="Forum not found")
+    
+    # Get member count
+    member_count = await db.forum_members.count_documents({
+        "forum_id": forum_id,
+        "status": "active"
+    })
+    
+    # Get active exercise
+    exercise = await db.forum_exercises.find_one({
+        "forum_id": forum_id,
+        "is_active": True
+    })
+    
+    return {
+        "id": str(forum["_id"]),
+        "name": forum["name"],
+        "description": forum.get("description"),
+        "invite_token": forum["invite_token"],
+        "created_by": forum["created_by"],
+        "member_count": member_count,
+        "created_at": forum["created_at"].isoformat(),
+        "active_exercise": {
+            "id": str(exercise["_id"]),
+            "slug": exercise["slug"],
+            "title": exercise["title"],
+            "description": exercise["description"],
+            "prompts": exercise["prompts"],
+        } if exercise else None,
+    }
+
+
+@api_router.get("/forums/invite/{invite_token}")
+async def get_forum_by_invite(invite_token: str):
+    """
+    Get forum info by invite token (for join preview).
+    """
+    logger.info(f"[Forums] Looking up forum by invite token: {invite_token}")
+    
+    forum = await db.forums.find_one({"invite_token": invite_token})
+    if not forum:
+        raise HTTPException(status_code=404, detail="Invalid invite link")
+    
+    # Get member count
+    forum_id = str(forum["_id"])
+    member_count = await db.forum_members.count_documents({
+        "forum_id": forum_id,
+        "status": "active"
+    })
+    
+    return {
+        "id": forum_id,
+        "name": forum["name"],
+        "description": forum.get("description"),
+        "member_count": member_count,
+        "created_at": forum["created_at"].isoformat(),
+    }
+
+
+@api_router.post("/forums/join/{invite_token}")
+async def join_forum(invite_token: str, data: ForumJoinRequest):
+    """
+    Join a forum using an invite token.
+    """
+    logger.info(f"[Forums] User {data.user_id[:8]}... joining forum with token: {invite_token}")
+    
+    if not ObjectId.is_valid(data.user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    # Find forum by invite token
+    forum = await db.forums.find_one({"invite_token": invite_token})
+    if not forum:
+        raise HTTPException(status_code=404, detail="Invalid invite link")
+    
+    forum_id = str(forum["_id"])
+    
+    # Check if already a member
+    existing = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": data.user_id,
+    })
+    
+    if existing:
+        if existing["status"] == "active":
+            return {"message": "Already a member", "forum_id": forum_id, "already_member": True}
+        else:
+            # Reactivate membership
+            await db.forum_members.update_one(
+                {"_id": existing["_id"]},
+                {"$set": {"status": "active", "joined_at": datetime.now(timezone.utc)}}
+            )
+            return {"message": "Membership reactivated", "forum_id": forum_id, "already_member": False}
+    
+    # Add new member
+    member_doc = {
+        "forum_id": forum_id,
+        "user_id": data.user_id,
+        "role": "member",
+        "status": "active",
+        "invited_at": datetime.now(timezone.utc),
+        "joined_at": datetime.now(timezone.utc),
+    }
+    await db.forum_members.insert_one(member_doc)
+    
+    logger.info(f"[Forums] User {data.user_id[:8]}... joined forum {forum_id}")
+    
+    return {"message": "Joined forum successfully", "forum_id": forum_id, "already_member": False}
+
+
+@api_router.get("/forums/{forum_id}/exercise")
+async def get_active_exercise(forum_id: str, user_id: str):
+    """
+    Get the active exercise for a forum.
+    """
+    logger.info(f"[Forums] Getting active exercise for forum: {forum_id}")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    
+    # Check membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    exercise = await db.forum_exercises.find_one({
+        "forum_id": forum_id,
+        "is_active": True
+    })
+    
+    if not exercise:
+        return {"exercise": None}
+    
+    # Check if user has already submitted a reflection
+    user_reflection = await db.forum_reflections.find_one({
+        "forum_id": forum_id,
+        "exercise_id": str(exercise["_id"]),
+        "user_id": user_id,
+    })
+    
+    return {
+        "exercise": {
+            "id": str(exercise["_id"]),
+            "slug": exercise["slug"],
+            "title": exercise["title"],
+            "description": exercise["description"],
+            "prompts": exercise["prompts"],
+        },
+        "domains": PATTERN_DOMAINS,
+        "has_submitted": user_reflection is not None,
+        "user_reflection_id": str(user_reflection["_id"]) if user_reflection else None,
+    }
+
+
+@api_router.post("/forums/{forum_id}/reflections")
+async def submit_reflection(forum_id: str, data: ForumReflectionCreate):
+    """
+    Submit a reflection for the active exercise.
+    """
+    logger.info(f"[Forums] User {data.user_id[:8]}... submitting reflection for forum {forum_id}")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    if not ObjectId.is_valid(data.user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    # Check membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": data.user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    # Get active exercise
+    exercise = await db.forum_exercises.find_one({
+        "forum_id": forum_id,
+        "is_active": True
+    })
+    
+    if not exercise:
+        raise HTTPException(status_code=404, detail="No active exercise found")
+    
+    exercise_id = str(exercise["_id"])
+    
+    # Check for existing reflection
+    existing = await db.forum_reflections.find_one({
+        "forum_id": forum_id,
+        "exercise_id": exercise_id,
+        "user_id": data.user_id,
+    })
+    
+    if existing:
+        # Update existing reflection
+        await db.forum_reflections.update_one(
+            {"_id": existing["_id"]},
+            {"$set": {
+                "selected_domain": data.selected_domain,
+                "reflection_text": data.reflection_text,
+                "is_shared": data.is_shared,
+                "updated_at": datetime.now(timezone.utc),
+            }}
+        )
+        reflection_id = str(existing["_id"])
+        logger.info(f"[Forums] Updated reflection {reflection_id}")
+    else:
+        # Create new reflection
+        reflection_doc = {
+            "forum_id": forum_id,
+            "exercise_id": exercise_id,
+            "user_id": data.user_id,
+            "selected_domain": data.selected_domain,
+            "reflection_text": data.reflection_text,
+            "is_shared": data.is_shared,
+            "created_at": datetime.now(timezone.utc),
+        }
+        result = await db.forum_reflections.insert_one(reflection_doc)
+        reflection_id = str(result.inserted_id)
+        logger.info(f"[Forums] Created reflection {reflection_id}")
+    
+    # Get domain name
+    domain_name = next(
+        (d["name"] for d in PATTERN_DOMAINS if d["id"] == data.selected_domain),
+        data.selected_domain
+    )
+    
+    return {
+        "id": reflection_id,
+        "forum_id": forum_id,
+        "exercise_id": exercise_id,
+        "selected_domain": data.selected_domain,
+        "domain_name": domain_name,
+        "is_shared": data.is_shared,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@api_router.get("/forums/{forum_id}/reflections/shared")
+async def get_shared_reflections(forum_id: str, user_id: str):
+    """
+    Get all shared reflections for a forum.
+    """
+    logger.info(f"[Forums] Getting shared reflections for forum: {forum_id}")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    
+    # Check membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    # Get active exercise
+    exercise = await db.forum_exercises.find_one({
+        "forum_id": forum_id,
+        "is_active": True
+    })
+    
+    if not exercise:
+        return {"reflections": [], "exercise": None}
+    
+    exercise_id = str(exercise["_id"])
+    
+    # Get shared reflections
+    reflections_cursor = db.forum_reflections.find({
+        "forum_id": forum_id,
+        "exercise_id": exercise_id,
+        "is_shared": True,
+    }).sort("created_at", -1)
+    
+    reflections = []
+    async for r in reflections_cursor:
+        # Get user info
+        user = await db.users.find_one({"_id": ObjectId(r["user_id"])})
+        user_name = user.get("name", "Anonymous") if user else "Anonymous"
+        
+        # Get domain name
+        domain_name = next(
+            (d["name"] for d in PATTERN_DOMAINS if d["id"] == r["selected_domain"]),
+            r["selected_domain"]
+        )
+        
+        reflections.append({
+            "id": str(r["_id"]),
+            "forum_id": r["forum_id"],
+            "exercise_id": r["exercise_id"],
+            "user_id": r["user_id"],
+            "user_name": user_name,
+            "selected_domain": r["selected_domain"],
+            "domain_name": domain_name,
+            "reflection_text": r["reflection_text"],
+            "is_shared": r["is_shared"],
+            "created_at": r["created_at"].isoformat(),
+        })
+    
+    return {
+        "reflections": reflections,
+        "exercise": {
+            "id": str(exercise["_id"]),
+            "title": exercise["title"],
+        },
+    }
+
+
+@api_router.get("/forums/{forum_id}/members")
+async def get_forum_members(forum_id: str, user_id: str):
+    """
+    Get members of a forum.
+    """
+    logger.info(f"[Forums] Getting members for forum: {forum_id}")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    
+    # Check membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    # Get all members
+    members_cursor = db.forum_members.find({
+        "forum_id": forum_id,
+        "status": "active"
+    }).sort("joined_at", 1)
+    
+    members = []
+    async for m in members_cursor:
+        # Get user info
+        user = await db.users.find_one({"_id": ObjectId(m["user_id"])})
+        user_name = user.get("name", "Anonymous") if user else "Anonymous"
+        
+        members.append({
+            "user_id": m["user_id"],
+            "user_name": user_name,
+            "role": m["role"],
+            "joined_at": m["joined_at"].isoformat(),
+        })
+    
+    return {"members": members}
+
+
+@api_router.get("/forums/domains/list")
+async def get_pattern_domains():
+    """
+    Get list of available pattern domains for reflection exercises.
+    """
+    return {"domains": PATTERN_DOMAINS}
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
