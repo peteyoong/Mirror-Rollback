@@ -99,17 +99,6 @@ export function ReflectButton({
     router.push(`/forums/exercise?forumId=${forumId}&prefilled=true`);
   };
 
-  const getLensDisplayName = (lens: string): string => {
-    const names: Record<string, string> = {
-      'human-design': 'Human Design',
-      'enneagram': 'Enneagram',
-      'astrology': 'Astrology',
-      'numerology': 'Numerology',
-      'patterns': 'Patterns',
-    };
-    return names[lens] || lens;
-  };
-
   return (
     <>
       <TouchableOpacity
