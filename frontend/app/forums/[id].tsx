@@ -401,7 +401,7 @@ export default function ForumHomeScreen() {
             
             {hasSubmitted && (
               <Text style={[styles.submittedNote, { color: theme.success }]}>
-                ✓ You've submitted a reflection
+                ✓ You&apos;ve submitted a reflection
               </Text>
             )}
           </View>
