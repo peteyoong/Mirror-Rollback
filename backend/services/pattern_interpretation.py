@@ -252,14 +252,15 @@ Remember:
 
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
-            model="gpt-4o-mini"
+            session_id=f"pattern_interpretation_{domain_id}"
+        )
+        chat.with_model("openai", "gpt-4o-mini")
+        
+        response = await chat.send_message(
+            UserMessage(text=f"{system_prompt}\n\n{user_prompt}")
         )
         
-        response = await chat.send_async([
-            UserMessage(content=f"{system_prompt}\n\n{user_prompt}")
-        ])
-        
-        response_text = response.content.strip() if hasattr(response, 'content') else str(response).strip()
+        response_text = response.strip() if isinstance(response, str) else str(response).strip()
         
         # Clean up response - remove markdown code blocks if present
         if response_text.startswith("```"):
