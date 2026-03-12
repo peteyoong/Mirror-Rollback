@@ -404,7 +404,7 @@ export default function ForumHomeScreen() {
                 <TouchableOpacity 
                   key={member.user_id}
                   style={[styles.memberLensCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                  onPress={() => handleMemberPress(member.user_id)}
+                  onPress={() => handleMemberPress(member)}
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.memberLensName, { color: theme.text }]}>{member.name}</Text>
