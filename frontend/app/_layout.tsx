@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { View, Text, ActivityIndicator, StyleSheet, Platform, useWindowDimensions, TouchableOpacity, ScrollView } from 'react-native';
 import { useAppStore } from '../store';
 import { ThemeProvider, useTheme, LightTheme, DarkTheme } from '../contexts/ThemeContext';
+import { ForumContextProvider } from '../contexts/ForumContext';
 import { DebugViewportOverlay } from '../components/DebugViewportOverlay';
 import { AddToHomeScreenBanner } from '../components/AddToHomeScreenBanner';
 
