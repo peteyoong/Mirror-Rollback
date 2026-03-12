@@ -3006,4 +3006,17 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontStyle: 'italic',
   },
+  // Forum context: Reflect in Forum button
+  reflectInForumButton: {
+    marginTop: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  reflectInForumText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
 });
