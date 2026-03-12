@@ -71,6 +71,12 @@ export default function ForumHomeScreen() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [expandedReflection, setExpandedReflection] = useState<string | null>(null);
+  
+  // Modal states for interactive Forum Pulse
+  const [memberModal, setMemberModal] = useState<MemberProfileModal>({ visible: false, member: null });
+  const [domainModal, setDomainModal] = useState<DomainReflectionsModal>({ visible: false, domainId: '', domainName: '', reflections: [] });
+  const [typeModal, setTypeModal] = useState<TypeMembersModal>({ visible: false, typeName: '', members: [] });
+  const [insightModal, setInsightModal] = useState<InsightModal>({ visible: false, insight: '' });
 
   const fetchData = useCallback(async (showRefresh = false) => {
     if (!user?.id || !forumId) return;
