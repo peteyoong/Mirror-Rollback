@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
+import { ReflectButton } from './ReflectButton';
 
 interface GateData {
   gate_number: number;
