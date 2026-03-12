@@ -260,12 +260,17 @@ export const getChart = async (userId: string) => {
 };
 
 // Journal APIs
-// Pattern metadata for journal entries
+// Pattern and source metadata for journal entries
 export interface PatternJournalMetadata {
-  journal_source?: 'pattern_pulse' | 'pattern_graph';
+  journal_source?: string;  // 'pattern_pulse' | 'pattern_graph' | 'patterns' | 'mirror' etc.
   pattern_category?: string;
   pattern_tension_pair?: string;
   prompt_text?: string;
+  // Source metadata for reflection tracking
+  source_lens?: string;
+  source_domain?: string;
+  source_name?: string;
+  source_value?: string;
 }
 
 export const createJournalEntry = async (
