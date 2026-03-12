@@ -208,15 +208,20 @@ export default function ForumHomeScreen() {
           )}
         </View>
 
-        {/* Members Section */}
+        {/* Members Quick List */}
         <View style={[styles.membersSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.membersSectionTitle, { color: theme.text }]}>
-            Members ({members.length})
+          <Text style={[styles.membersTitle, { color: theme.textTertiary }]}>
+            {members.length} {members.length === 1 ? 'MEMBER' : 'MEMBERS'}
           </Text>
           <View style={styles.membersList}>
-            {members.map((member, index) => (
+            {members.slice(0, 5).map((member, index) => (
               <View key={member.user_id} style={styles.memberItem}>
-                <Text style={[styles.memberName, { color: theme.textSecondary }]}>
+                <View style={[styles.memberAvatar, { backgroundColor: theme.accent + '20' }]}>
+                  <Text style={[styles.memberInitial, { color: theme.accent }]}>
+                    {member.user_name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <Text style={[styles.memberName, { color: theme.text }]}>
                   {getFirstName(member.user_name)}
                   {member.role === 'owner' && (
                     <Text style={[styles.memberRole, { color: theme.textTertiary }]}> • host</Text>
@@ -226,6 +231,134 @@ export default function ForumHomeScreen() {
             ))}
           </View>
         </View>
+
+        {/* ============================================
+            FORUM PULSE - Collective Patterns & Lens Dynamics
+            ============================================ */}
+        {pulse && (
+          <View style={[styles.pulseSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.pulseSectionTitle, { color: theme.text }]}>Forum Pulse</Text>
+            
+            {/* Exploring Themes */}
+            {pulse.exploring_themes.length > 0 && (
+              <View style={styles.pulseBlock}>
+                <Text style={[styles.pulseBlockLabel, { color: theme.textTertiary }]}>EXPLORING THEMES</Text>
+                <View style={styles.themeTags}>
+                  {pulse.exploring_themes.map((theme_item, index) => (
+                    <View 
+                      key={theme_item.domain_id} 
+                      style={[styles.themeTag, { backgroundColor: theme.accent + '15', borderColor: theme.accent + '30' }]}
+                    >
+                      <Text style={[styles.themeTagText, { color: theme.accent }]}>
+                        {theme_item.domain_name}
+                      </Text>
+                      <Text style={[styles.themeTagCount, { color: theme.textTertiary }]}>
+                        {theme_item.count}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+            
+            {/* Activity Summary */}
+            <View style={styles.pulseBlock}>
+              <Text style={[styles.pulseBlockLabel, { color: theme.textTertiary }]}>ACTIVITY (7 DAYS)</Text>
+              <View style={styles.activityStats}>
+                <View style={styles.statItem}>
+                  <Text style={[styles.statNumber, { color: theme.text }]}>
+                    {pulse.activity_summary.reflections_7d}
+                  </Text>
+                  <Text style={[styles.statLabel, { color: theme.textTertiary }]}>reflections</Text>
+                </View>
+                <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
+                <View style={styles.statItem}>
+                  <Text style={[styles.statNumber, { color: theme.text }]}>
+                    {pulse.activity_summary.active_members_7d}
+                  </Text>
+                  <Text style={[styles.statLabel, { color: theme.textTertiary }]}>active</Text>
+                </View>
+                {pulse.activity_summary.most_active_domain && (
+                  <>
+                    <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
+                    <View style={[styles.statItem, { flex: 2 }]}>
+                      <Text style={[styles.statNumber, { color: theme.accent, fontSize: 13 }]} numberOfLines={1}>
+                        {pulse.activity_summary.most_active_domain}
+                      </Text>
+                      <Text style={[styles.statLabel, { color: theme.textTertiary }]}>most active</Text>
+                    </View>
+                  </>
+                )}
+              </View>
+            </View>
+            
+            {/* Group Energy (HD Types) */}
+            {Object.keys(pulse.group_energy).length > 0 && (
+              <View style={styles.pulseBlock}>
+                <Text style={[styles.pulseBlockLabel, { color: theme.textTertiary }]}>GROUP ENERGY</Text>
+                <View style={styles.hdTypesGrid}>
+                  {Object.entries(pulse.group_energy).map(([type, count]) => (
+                    <View key={type} style={styles.hdTypeItem}>
+                      <Text style={[styles.hdTypeName, { color: theme.textSecondary }]}>{type}</Text>
+                      <Text style={[styles.hdTypeCount, { color: theme.text }]}>{count}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+            
+            {/* Lens Insight */}
+            {pulse.lens_insight && (
+              <View style={[styles.lensInsightBlock, { backgroundColor: theme.accent + '08', borderLeftColor: theme.accent }]}>
+                <Text style={[styles.lensInsightText, { color: theme.textSecondary }]}>
+                  {pulse.lens_insight}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Member Lens Cards */}
+        {pulse && pulse.member_cards.length > 0 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Members</Text>
+            <View style={styles.memberCardsGrid}>
+              {pulse.member_cards.map((member) => (
+                <TouchableOpacity 
+                  key={member.user_id}
+                  style={[styles.memberLensCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                  onPress={() => handleMemberPress(member.user_id)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.memberLensName, { color: theme.text }]}>{member.name}</Text>
+                  <View style={styles.memberLensDetails}>
+                    {member.hd_type && (
+                      <Text style={[styles.memberLensType, { color: theme.textSecondary }]}>
+                        {member.hd_type}
+                        {member.hd_profile && ` • ${member.hd_profile}`}
+                      </Text>
+                    )}
+                    {member.enneagram_type && (
+                      <Text style={[styles.memberLensEnneagram, { color: theme.textTertiary }]}>
+                        Enneagram {member.enneagram_type}
+                      </Text>
+                    )}
+                    {member.active_pattern && (
+                      <Text style={[styles.memberLensActive, { color: theme.accent }]}>
+                        Active: {member.active_pattern}
+                      </Text>
+                    )}
+                    {!member.hd_type && !member.enneagram_type && (
+                      <Text style={[styles.memberLensEmpty, { color: theme.textTertiary }]}>
+                        Profile not set up yet
+                      </Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* My Mirror Profile Card */}
         <TouchableOpacity
