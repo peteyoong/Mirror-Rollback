@@ -25,7 +25,7 @@ const BUILD_ID = 'icon-fix-v4';
 const BUILD_DATE = '2026-03-10';
 
 // Debug mode - set to true to show debug panel
-const SHOW_DEBUG_PANEL = __DEV__ || true; // Always show for now to debug production
+const SHOW_DEBUG_PANEL = false; // Disabled for production
 
 /**
  * Welcome Page - The Psychological Orientation Layer
