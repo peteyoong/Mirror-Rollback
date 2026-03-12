@@ -517,6 +517,26 @@ export default function MirrorScreen() {
           </View>
         )}
 
+        {/* Forums Entry Point */}
+        {!focusState.isLoading && (
+          <TouchableOpacity 
+            style={[styles.forumsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            onPress={() => router.push('/forums')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.forumsCardContent}>
+              <Text style={[styles.forumsIcon, { color: theme.accent }]}>◎</Text>
+              <View style={styles.forumsTextContent}>
+                <Text style={[styles.forumsTitle, { color: theme.text }]}>Forums</Text>
+                <Text style={[styles.forumsSubtitle, { color: theme.textTertiary }]}>
+                  Reflect with your trusted circle
+                </Text>
+              </View>
+            </View>
+            <Text style={[styles.forumsChevron, { color: theme.textTertiary }]}>›</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Loading State */}
         {isLoading && (
           <View style={styles.loadingContainer}>
