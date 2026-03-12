@@ -93,6 +93,7 @@ export function ReflectButton({
       'enneagram': 'Enneagram',
       'astrology': 'Astrology',
       'numerology': 'Numerology',
+      'patterns': 'Patterns',
     };
     return names[lens] || lens;
   };
