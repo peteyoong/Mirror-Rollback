@@ -203,7 +203,8 @@ export default function ExerciseScreen() {
   const { theme } = useTheme();
   const { user } = useAppStore();
   const router = useRouter();
-  const { forumId } = useLocalSearchParams();
+  const { forumId, prefilled } = useLocalSearchParams();
+  const { prefilledSource, setPrefilledSource } = useForumContext();
   
   // Exercise state
   const [step, setStep] = useState<Step>('intro');
@@ -227,6 +228,30 @@ export default function ExerciseScreen() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [loadingHD, setLoadingHD] = useState(false);
+
+  // Handle prefilled source from forum context
+  useEffect(() => {
+    if (prefilled === 'true' && prefilledSource) {
+      // Set up the exercise with the prefilled source
+      setSourceType(prefilledSource.sourceType);
+      if (prefilledSource.lens) {
+        setMirrorLens(prefilledSource.lens);
+      }
+      // Create an HD insight from the prefilled source
+      const prefilledInsight: HDInsight = {
+        id: prefilledSource.insightId,
+        name: prefilledSource.insightName,
+        value: prefilledSource.insightValue,
+        theme: prefilledSource.theme,
+        strength: prefilledSource.strength,
+        challenge: prefilledSource.challenge,
+        guidance: prefilledSource.guidance,
+      };
+      setSelectedHDInsight(prefilledInsight);
+      // Skip directly to guidance step
+      setStep('guidance');
+    }
+  }, [prefilled, prefilledSource]);
 
   const fetchExercise = useCallback(async () => {
     if (!user?.id || !forumId) return;
