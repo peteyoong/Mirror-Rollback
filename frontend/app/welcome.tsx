@@ -36,6 +36,7 @@ const SHOW_DEBUG_PANEL = false; // Disabled for production
  */
 export default function Welcome() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const { theme, isDark, themeMode } = useTheme();
   const { user, setUser, setChart } = useAppStore();
   
@@ -43,6 +44,7 @@ export default function Welcome() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [forumsRedirect, setForumsRedirect] = useState<ForumsRedirect>(null);
   const [debugInfo, setDebugInfo] = useState<{
     storedTheme: string | null;
     effectiveTheme: string;
