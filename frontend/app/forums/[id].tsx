@@ -13,6 +13,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
+import { useForumContext } from '../../contexts/ForumContext';
 import { getForum, getSharedReflections, ForumReflection, getForumExercise, getForumMembers, ForumMember } from '../../services/api';
 import Constants from 'expo-constants';
 
@@ -22,6 +23,7 @@ export default function ForumHomeScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const forumId = id as string;
+  const { setForumContext, clearForumContext } = useForumContext();
   
   const [forum, setForum] = useState<any | null>(null);
   const [reflections, setReflections] = useState<ForumReflection[]>([]);
