@@ -743,24 +743,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Track mount count for debugging
   const mountCount = useRef(0);
 
-  // Debug logging on mount
-  useEffect(() => {
-    mountCount.current += 1;
-    console.log('[HumanDesignLensView] MOUNTED (count:', mountCount.current, ')');
-    console.log('[HumanDesignLensView] Build:', BUILD_VERSION, BUILD_ID);
-    console.log('[HumanDesignLensView] userId:', userId);
-    console.log('[HumanDesignLensView] Initial activeTab:', activeTab);
-    
-    return () => {
-      console.log('[HumanDesignLensView] UNMOUNTING');
-    };
-  }, []);
-
-  // Log tab changes
-  useEffect(() => {
-    console.log('[HumanDesignLensView] Tab changed to:', activeTab);
-  }, [activeTab]);
-
   // Load data when tab or user changes
   useEffect(() => {
     loadTabData(activeTab);
