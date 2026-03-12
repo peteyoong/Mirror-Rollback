@@ -360,6 +360,27 @@ export default function Welcome() {
             <Text style={[styles.secondaryButtonSubtext, { color: theme.textTertiary }]}>Sign in with email</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Forums Quick Access */}
+        <View style={[styles.forumsSection, { borderTopColor: theme.border }]}>
+          <Text style={[styles.forumsSectionLabel, { color: theme.textTertiary }]}>FORUMS</Text>
+          <View style={styles.forumsButtons}>
+            <TouchableOpacity 
+              style={[styles.forumButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={handleCreateForum}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.forumButtonText, { color: theme.text }]}>Create Forum</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.forumButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={handleJoinForum}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.forumButtonText, { color: theme.text }]}>Join Forum</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         
         {/* Exit Permission */}
         <Text style={[styles.exitPermission, { color: theme.textTertiary }]}>You can leave at any time.</Text>
