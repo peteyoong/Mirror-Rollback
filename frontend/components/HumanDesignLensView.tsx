@@ -2227,6 +2227,13 @@ const styles = StyleSheet.create({
     color: "inherit",
     marginTop: 12,
   },
+  sectionReflectContainer: {
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'flex-start',
+  },
   mirrorPromptCard: {
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 12,
