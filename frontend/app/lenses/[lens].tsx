@@ -268,7 +268,7 @@ export default function LensDetail() {
   const lens = rawLens?.replace(/-/g, '_');
   const [activeTab, setActiveTab] = useState<'summary' | 'snapshot' | 'deep_dive'>('deep_dive');
   const [chatInput, setChatInput] = useState('');
-  const { user, chart, isSessionRestoring } = useAppStore();
+  const { user, chart } = useAppStore();
   
   // Debug: Log rendering decision
   const renderingHumanDesignLensView = lens === 'human_design' && !!user?.id;
@@ -279,7 +279,6 @@ export default function LensDetail() {
     lens,
     userId: user?.id,
     hasUser: !!user,
-    isSessionRestoring,
     renderingHumanDesignLensView,
     renderingLoading,
     renderingLegacy
