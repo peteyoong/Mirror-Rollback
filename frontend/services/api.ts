@@ -816,4 +816,66 @@ export const getHumanDesignMechanics = async (userId: string): Promise<HumanDesi
   return response.data;
 };
 
+// ============================================
+// PATTERN INTERPRETATION
+// ============================================
+
+export interface PatternInterpretation {
+  story: string;
+  pattern: string;
+  challenge: string;
+  genius: string;
+  experiments: string[];
+}
+
+export interface PatternInterpretationResponse {
+  success: boolean;
+  domain_id: string;
+  domain_name: string;
+  signal_strength: string;
+  interpretation: PatternInterpretation;
+  from_cache: boolean;
+  created_at: string;
+  error?: string;
+}
+
+// Get or generate pattern interpretation for a domain
+export const getPatternInterpretation = async (
+  userId: string,
+  domainId: string
+): Promise<PatternInterpretationResponse> => {
+  const response = await apiWithRetry.get(`/pattern-interpretation/${userId}/${domainId}`);
+  return response.data;
+};
+
+// ============================================
+// PRIVATE JOURNAL (Reflect button support)
+// ============================================
+
+export interface CreateJournalEntryParams {
+  user_id: string;
+  content: string;
+  journal_source?: string;
+  pattern_category?: string;
+  prompt_text?: string;
+  source_lens?: string;
+  source_domain?: string;
+  source_name?: string;
+  source_value?: string;
+}
+
+export interface JournalEntryResponse {
+  id: string;
+  content: string;
+  themes: string[];
+  created_at: string;
+}
+
+export const createJournalEntry = async (
+  params: CreateJournalEntryParams
+): Promise<JournalEntryResponse> => {
+  const response = await apiWithRetry.post('/journal', params);
+  return response.data;
+};
+
 export default api;
