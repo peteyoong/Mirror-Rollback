@@ -12,12 +12,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAppStore } from '../store';
 import { useTheme } from '../contexts/ThemeContext';
 import { loginUser } from '../services/api';
 import { Colors } from '../constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Forums redirect target type
+type ForumsRedirect = 'create' | 'join' | null;
 
 // Build info - bump this to force cache refresh
 const BUILD_VERSION = '2.2.0';
