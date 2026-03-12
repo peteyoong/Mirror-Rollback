@@ -748,35 +748,6 @@ export default function LensDetail() {
       ) : (
         // OTHER LENSES: Keep original implementation (numerology, consciousness, etc.)
         <>
-          {/* DEBUG BANNER - LEGACY PATH */}
-          <View style={{ backgroundColor: '#FF5722', padding: 6, alignItems: 'center' }}>
-            <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>
-              ⚠️ LEGACY [lens].tsx RENDERING
-            </Text>
-            <Text style={{ color: '#fff', fontSize: 9 }}>
-              Lens: {lens} | User: {user?.id?.substring(0, 8) || 'undefined'}...
-            </Text>
-          </View>
-          
-          {/* LARGE UNMISTAKABLE LEGACY BANNER */}
-          <View style={{ 
-            backgroundColor: '#F44336', 
-            padding: 12, 
-            alignItems: 'center',
-            borderBottomWidth: 3,
-            borderBottomColor: '#B71C1C'
-          }}>
-            <Text style={{ color: '#FFEB3B', fontSize: 14, fontWeight: 'bold' }}>
-              ⚠️ LEGACY BUILD - OLD CODE ⚠️
-            </Text>
-            <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>
-              WRONG COMPONENT: [lens].tsx fallback
-            </Text>
-            <Text style={{ color: '#fff', fontSize: 10 }}>
-              Expected: HumanDesignLensView | Lens: {lens}
-            </Text>
-          </View>
-          
           {/* Tabs */}
           {renderTabs()}
 
