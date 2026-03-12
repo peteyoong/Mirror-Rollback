@@ -1680,6 +1680,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* Forum Context Banner - shows when user came from a forum */}
+      <ForumContextBanner />
+      
       {renderTabs()}
 
       <ScrollView
