@@ -288,10 +288,15 @@ class JournalEntryCreate(BaseModel):
     user_id: str
     content: str
     # Pattern metadata (optional - for entries triggered from patterns)
-    journal_source: Optional[str] = None  # "pattern_pulse", "pattern_graph", or None
+    journal_source: Optional[str] = None  # "pattern_pulse", "pattern_graph", "patterns", "mirror", etc.
     pattern_category: Optional[str] = None
     pattern_tension_pair: Optional[str] = None
     prompt_text: Optional[str] = None
+    # Source metadata for reflection tracking (used by Reflect button)
+    source_lens: Optional[str] = None  # e.g., "patterns", "human-design", "enneagram"
+    source_domain: Optional[str] = None  # e.g., "energy_vitality" or specific insight ID
+    source_name: Optional[str] = None  # Human-readable name of the source
+    source_value: Optional[str] = None  # The specific value being reflected on
 
 
 class JournalEntryResponse(BaseModel):
