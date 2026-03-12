@@ -252,12 +252,13 @@ Remember:
 
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
-            session_id=f"pattern_interpretation_{domain_id}"
+            session_id=f"pattern_interpretation_{domain_id}",
+            system_message=system_prompt
         )
         chat.with_model("openai", "gpt-4o-mini")
         
         response = await chat.send_message(
-            UserMessage(text=f"{system_prompt}\n\n{user_prompt}")
+            UserMessage(text=user_prompt)
         )
         
         response_text = response.strip() if isinstance(response, str) else str(response).strip()
