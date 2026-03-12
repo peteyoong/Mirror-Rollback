@@ -1067,6 +1067,18 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const isExpanded = expandedDeepDive === key;
     
     if (!story) return null;
+
+    // Get the source value for the Reflect button
+    const getSourceValue = () => {
+      switch (key) {
+        case 'type': return data?.core_mechanics?.type || '';
+        case 'strategy': return data?.core_mechanics?.strategy || '';
+        case 'authority': return data?.core_mechanics?.authority || '';
+        case 'profile': return data?.core_mechanics?.profile || '';
+        case 'cross': return data?.core_mechanics?.incarnation_cross || '';
+        default: return '';
+      }
+    };
     
     return (
       <View key={key} style={[styles.deepDiveAccordion, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -1113,6 +1125,20 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               <Text style={[styles.deepDiveSectionLabel, { color: theme.accent }]}>REFLECTION</Text>
               <Text style={[styles.deepDiveReflectionText, { color: theme.text }]}>{story.reflection}</Text>
             </View>
+
+            {/* Reflect Button */}
+            {key !== 'centers' && (
+              <ReflectButton
+                sourceLens="human-design"
+                sourceType={key}
+                sourceName={title}
+                sourceValue={getSourceValue()}
+                theme={story.explanation[0] || ''}
+                strength={story.patterns.join(' ')}
+                challenge={story.challenge}
+                guidance={story.reflection}
+              />
+            )}
           </View>
         )}
       </View>
