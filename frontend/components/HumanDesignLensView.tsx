@@ -717,6 +717,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Theme support
   const { theme, isDark } = useTheme();
   
+  // Forum context for bidirectional integration
+  const { isInForumContext, forumId, forumName, setPrefilledSource } = useForumContext();
+  const router = useRouter();
+  
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [data, setData] = useState<HumanDesignData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
