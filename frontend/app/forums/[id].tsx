@@ -533,6 +533,196 @@ export default function ForumHomeScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* ============================================
+          MODALS - Interactive Forum Pulse Components
+          ============================================ */}
+      
+      {/* Member Profile Modal */}
+      <Modal
+        visible={memberModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeAllModals}
+      >
+        <Pressable style={styles.modalOverlay} onPress={closeAllModals}>
+          <Pressable style={[styles.modalContent, { backgroundColor: theme.surface }]} onPress={() => {}}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Member Profile</Text>
+              <TouchableOpacity onPress={closeAllModals} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Text style={[styles.modalClose, { color: theme.textTertiary }]}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {memberModal.member && (
+              <View style={styles.memberProfileContent}>
+                <View style={[styles.memberProfileAvatar, { backgroundColor: theme.accent + '20' }]}>
+                  <Text style={[styles.memberProfileInitial, { color: theme.accent }]}>
+                    {memberModal.member.name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <Text style={[styles.memberProfileName, { color: theme.text }]}>
+                  {memberModal.member.name}
+                </Text>
+                
+                <View style={styles.memberProfileDetails}>
+                  {memberModal.member.hd_type && (
+                    <View style={styles.profileRow}>
+                      <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Type</Text>
+                      <Text style={[styles.profileValue, { color: theme.text }]}>{memberModal.member.hd_type}</Text>
+                    </View>
+                  )}
+                  {memberModal.member.hd_profile && (
+                    <View style={styles.profileRow}>
+                      <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Profile</Text>
+                      <Text style={[styles.profileValue, { color: theme.text }]}>{memberModal.member.hd_profile}</Text>
+                    </View>
+                  )}
+                  {memberModal.member.enneagram_type && (
+                    <View style={styles.profileRow}>
+                      <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Enneagram</Text>
+                      <Text style={[styles.profileValue, { color: theme.text }]}>Type {memberModal.member.enneagram_type}</Text>
+                    </View>
+                  )}
+                  {memberModal.member.active_pattern && (
+                    <View style={styles.profileRow}>
+                      <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Active Pattern</Text>
+                      <Text style={[styles.profileValue, { color: theme.accent }]}>{memberModal.member.active_pattern}</Text>
+                    </View>
+                  )}
+                </View>
+                
+                {!memberModal.member.hd_type && !memberModal.member.enneagram_type && (
+                  <Text style={[styles.profileEmpty, { color: theme.textTertiary }]}>
+                    This member hasn't set up their profile yet.
+                  </Text>
+                )}
+              </View>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Domain Reflections Modal */}
+      <Modal
+        visible={domainModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeAllModals}
+      >
+        <Pressable style={styles.modalOverlay} onPress={closeAllModals}>
+          <Pressable style={[styles.modalContent, styles.modalLarge, { backgroundColor: theme.surface }]} onPress={() => {}}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>{domainModal.domainName}</Text>
+              <TouchableOpacity onPress={closeAllModals} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Text style={[styles.modalClose, { color: theme.textTertiary }]}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <Text style={[styles.modalSubtitle, { color: theme.textTertiary }]}>
+              {domainModal.reflections.length} reflection{domainModal.reflections.length !== 1 ? 's' : ''} shared
+            </Text>
+            
+            <ScrollView style={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
+              {domainModal.reflections.length === 0 ? (
+                <Text style={[styles.emptyText, { color: theme.textTertiary }]}>
+                  No reflections shared in this domain yet.
+                </Text>
+              ) : (
+                domainModal.reflections.map((reflection) => (
+                  <View key={reflection.id} style={[styles.modalReflectionCard, { borderBottomColor: theme.border }]}>
+                    <Text style={[styles.modalReflectionAuthor, { color: theme.text }]}>
+                      {reflection.user_name}
+                    </Text>
+                    <Text style={[styles.modalReflectionText, { color: theme.textSecondary }]}>
+                      {reflection.reflection_text}
+                    </Text>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Type Members Modal */}
+      <Modal
+        visible={typeModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeAllModals}
+      >
+        <Pressable style={styles.modalOverlay} onPress={closeAllModals}>
+          <Pressable style={[styles.modalContent, { backgroundColor: theme.surface }]} onPress={() => {}}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>{typeModal.typeName}s</Text>
+              <TouchableOpacity onPress={closeAllModals} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Text style={[styles.modalClose, { color: theme.textTertiary }]}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <Text style={[styles.modalSubtitle, { color: theme.textTertiary }]}>
+              {typeModal.members.length} member{typeModal.members.length !== 1 ? 's' : ''} with this type
+            </Text>
+            
+            <View style={styles.typeMembersList}>
+              {typeModal.members.map((member) => (
+                <View key={member.user_id} style={[styles.typeMemberItem, { borderBottomColor: theme.border }]}>
+                  <View style={[styles.typeMemberAvatar, { backgroundColor: theme.accent + '20' }]}>
+                    <Text style={[styles.typeMemberInitial, { color: theme.accent }]}>
+                      {member.name.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={styles.typeMemberInfo}>
+                    <Text style={[styles.typeMemberName, { color: theme.text }]}>{member.name}</Text>
+                    {member.hd_profile && (
+                      <Text style={[styles.typeMemberProfile, { color: theme.textTertiary }]}>
+                        Profile {member.hd_profile}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              ))}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Lens Insight Modal */}
+      <Modal
+        visible={insightModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeAllModals}
+      >
+        <Pressable style={styles.modalOverlay} onPress={closeAllModals}>
+          <Pressable style={[styles.modalContent, { backgroundColor: theme.surface }]} onPress={() => {}}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Lens Insight</Text>
+              <TouchableOpacity onPress={closeAllModals} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Text style={[styles.modalClose, { color: theme.textTertiary }]}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.insightContent}>
+              <Text style={[styles.insightMainText, { color: theme.text }]}>
+                {insightModal.insight}
+              </Text>
+              
+              <View style={[styles.insightNote, { backgroundColor: theme.accent + '08' }]}>
+                <Text style={[styles.insightNoteText, { color: theme.textSecondary }]}>
+                  This insight is generated based on the lens data shared by forum members. 
+                  It reflects tendencies that may be present in the group, not predictions or prescriptions.
+                </Text>
+              </View>
+              
+              <Text style={[styles.insightDisclaimer, { color: theme.textTertiary }]}>
+                Human Design describes energy patterns. How these show up in practice varies for each person.
+              </Text>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
