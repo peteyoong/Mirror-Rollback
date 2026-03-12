@@ -14,7 +14,17 @@ import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import { useForumContext } from '../../contexts/ForumContext';
-import { getForum, getSharedReflections, ForumReflection, getForumExercise, getForumMembers, ForumMember } from '../../services/api';
+import { 
+  getForum, 
+  getSharedReflections, 
+  ForumReflection, 
+  getForumExercise, 
+  getForumMembers, 
+  ForumMember,
+  getForumPulse,
+  ForumPulseResponse,
+  ForumPulseMemberCard
+} from '../../services/api';
 import Constants from 'expo-constants';
 
 export default function ForumHomeScreen() {
