@@ -7,6 +7,8 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -22,9 +24,34 @@ import {
   getForumMembers, 
   ForumMember,
   getForumPulse,
-  ForumPulseResponse
+  ForumPulseResponse,
+  ForumPulseMemberCard
 } from '../../services/api';
 import Constants from 'expo-constants';
+
+// Types for modal states
+interface MemberProfileModal {
+  visible: boolean;
+  member: ForumPulseMemberCard | null;
+}
+
+interface DomainReflectionsModal {
+  visible: boolean;
+  domainId: string;
+  domainName: string;
+  reflections: ForumReflection[];
+}
+
+interface TypeMembersModal {
+  visible: boolean;
+  typeName: string;
+  members: ForumPulseMemberCard[];
+}
+
+interface InsightModal {
+  visible: boolean;
+  insight: string;
+}
 
 export default function ForumHomeScreen() {
   const { theme } = useTheme();
