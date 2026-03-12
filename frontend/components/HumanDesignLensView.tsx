@@ -1729,6 +1729,20 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>{section.body}</Text>
             {/* Debug: Show section-level metrics */}
             <SectionDebug label={section.label} body={section.body} index={index} />
+            
+            {/* Reflect Button for deep dive sections */}
+            {activeTab === 'deep_dive' && (
+              <View style={styles.sectionReflectContainer}>
+                <ReflectButton
+                  sourceLens="human-design"
+                  sourceType={`deep_dive_${section.label.toLowerCase().replace(/\s+/g, '_')}`}
+                  sourceName={section.label}
+                  sourceValue={data?.core_mechanics?.type || 'Human Design'}
+                  theme={section.body?.slice(0, 200) + '...'}
+                  compact={true}
+                />
+              </View>
+            )}
           </>
         )}
       </View>
