@@ -1584,6 +1584,14 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {TYPE_ENERGY_PATTERNS[hdType] || TYPE_ENERGY_PATTERNS['Generator']}
           </Text>
+          {isInForumContext && (
+            <TouchableOpacity
+              style={[styles.reflectInForumButton, { borderColor: theme.accent }]}
+              onPress={() => handleReflectInForum('type', 'Type', hdType)}
+            >
+              <Text style={[styles.reflectInForumText, { color: theme.accent }]}>Reflect in Forum</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* How You Engage Card (Strategy) */}
@@ -1592,6 +1600,14 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {strategyTranslation}
           </Text>
+          {isInForumContext && (
+            <TouchableOpacity
+              style={[styles.reflectInForumButton, { borderColor: theme.accent }]}
+              onPress={() => handleReflectInForum('strategy', 'Strategy', data?.core_mechanics?.strategy || '')}
+            >
+              <Text style={[styles.reflectInForumText, { color: theme.accent }]}>Reflect in Forum</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* How Clarity Comes Card (Authority) */}
@@ -1601,6 +1617,14 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {authorityData.expanded}
           </Text>
+          {isInForumContext && (
+            <TouchableOpacity
+              style={[styles.reflectInForumButton, { borderColor: theme.accent }]}
+              onPress={() => handleReflectInForum('authority', 'Authority', data?.core_mechanics?.authority || '')}
+            >
+              <Text style={[styles.reflectInForumText, { color: theme.accent }]}>Reflect in Forum</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Where This Helps Card */}
