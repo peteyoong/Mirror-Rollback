@@ -161,12 +161,45 @@ export default function ForumHomeScreen() {
     return fullName.split(' ')[0];
   };
 
-  // Handle member card press - navigate to their Mirror profile
-  const handleMemberPress = (memberId: string) => {
-    // For now, we could show a modal with member info
-    // In future, this could navigate to a read-only view of their profile
-    console.log('[Forum] Member card pressed:', memberId);
-    // TODO: Navigate to member's public profile when implemented
+  // =============================================
+  // Modal Handlers for Interactive Forum Pulse
+  // =============================================
+  
+  // Open member profile modal
+  const handleMemberPress = (member: ForumPulseMemberCard) => {
+    setMemberModal({ visible: true, member });
+  };
+  
+  // Open domain reflections modal
+  const handleThemePress = (domainId: string, domainName: string) => {
+    const domainReflections = reflections.filter(r => r.selected_domain === domainId);
+    setDomainModal({ 
+      visible: true, 
+      domainId, 
+      domainName, 
+      reflections: domainReflections 
+    });
+  };
+  
+  // Open type members modal
+  const handleTypePress = (typeName: string) => {
+    if (!pulse) return;
+    const typeMembers = pulse.member_cards.filter(m => m.hd_type === typeName);
+    setTypeModal({ visible: true, typeName, members: typeMembers });
+  };
+  
+  // Open lens insight explanation modal
+  const handleInsightPress = () => {
+    if (!pulse?.lens_insight) return;
+    setInsightModal({ visible: true, insight: pulse.lens_insight });
+  };
+  
+  // Close all modals
+  const closeAllModals = () => {
+    setMemberModal({ visible: false, member: null });
+    setDomainModal({ visible: false, domainId: '', domainName: '', reflections: [] });
+    setTypeModal({ visible: false, typeName: '', members: [] });
+    setInsightModal({ visible: false, insight: '' });
   };
 
   if (loading) {
