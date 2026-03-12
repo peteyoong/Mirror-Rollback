@@ -14136,6 +14136,7 @@ async def get_forum_pulse(forum_id: str, user_id: str):
             "name": user_name,
             "hd_type": hd_type,
             "hd_profile": hd_profile,
+            "hd_authority": hd_authority,
             "enneagram_type": enneagram_type,
             "active_pattern": active_pattern
         })
