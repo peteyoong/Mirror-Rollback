@@ -413,12 +413,54 @@ export default function PatternsScreen() {
     return counts;
   };
 
+  // Fetch interpretation when expanding a domain
+  const fetchInterpretation = useCallback(async (domainId: string) => {
+    if (!user?.id || interpretations[domainId]) return;
+    
+    setLoadingInterpretation(domainId);
+    try {
+      const response = await getPatternInterpretation(user.id, domainId);
+      if (response.success && response.interpretation) {
+        setInterpretations(prev => ({
+          ...prev,
+          [domainId]: response.interpretation
+        }));
+      }
+    } catch (err) {
+      console.error('[Patterns] Error fetching interpretation:', err);
+    } finally {
+      setLoadingInterpretation(null);
+    }
+  }, [user?.id, interpretations]);
+
   const toggleExpanded = (domainId: string, domainName: string) => {
     const newExpanded = expandedDomain === domainId ? null : domainId;
     if (Platform.OS !== 'web') {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     }
     setExpandedDomain(newExpanded);
+    
+    // Fetch interpretation when expanding
+    if (newExpanded) {
+      fetchInterpretation(domainId);
+    }
+  };
+
+  // Toggle section within a domain card
+  const toggleSection = (domainId: string, section: string) => {
+    if (Platform.OS !== 'web') {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
+    setExpandedSections(prev => {
+      const domainSections = prev[domainId] || new Set();
+      const newSet = new Set(domainSections);
+      if (newSet.has(section)) {
+        newSet.delete(section);
+      } else {
+        newSet.add(section);
+      }
+      return { ...prev, [domainId]: newSet };
+    });
   };
 
   const handleJournalTrigger = (domainName: string, prompt: string) => {
