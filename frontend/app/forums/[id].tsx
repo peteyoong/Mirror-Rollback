@@ -365,10 +365,15 @@ export default function ForumHomeScreen() {
                 <Text style={[styles.pulseBlockLabel, { color: theme.textTertiary }]}>GROUP ENERGY</Text>
                 <View style={styles.hdTypesGrid}>
                   {Object.entries(pulse.group_energy).map(([type, count]) => (
-                    <View key={type} style={styles.hdTypeItem}>
+                    <TouchableOpacity 
+                      key={type} 
+                      style={styles.hdTypeItem}
+                      onPress={() => handleTypePress(type)}
+                      activeOpacity={0.7}
+                    >
                       <Text style={[styles.hdTypeName, { color: theme.textSecondary }]}>{type}</Text>
                       <Text style={[styles.hdTypeCount, { color: theme.text }]}>{count}</Text>
-                    </View>
+                    </TouchableOpacity>
                   ))}
                 </View>
               </View>
@@ -376,11 +381,16 @@ export default function ForumHomeScreen() {
             
             {/* Lens Insight */}
             {pulse.lens_insight && (
-              <View style={[styles.lensInsightBlock, { backgroundColor: theme.accent + '08', borderLeftColor: theme.accent }]}>
+              <TouchableOpacity 
+                style={[styles.lensInsightBlock, { backgroundColor: theme.accent + '08', borderLeftColor: theme.accent }]}
+                onPress={handleInsightPress}
+                activeOpacity={0.8}
+              >
                 <Text style={[styles.lensInsightText, { color: theme.textSecondary }]}>
                   {pulse.lens_insight}
                 </Text>
-              </View>
+                <Text style={[styles.lensInsightHint, { color: theme.textTertiary }]}>Tap to learn more</Text>
+              </TouchableOpacity>
             )}
           </View>
         )}
