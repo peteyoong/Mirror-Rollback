@@ -759,6 +759,25 @@ export default function LensDetail() {
             </Text>
           </View>
           
+          {/* LARGE UNMISTAKABLE LEGACY BANNER */}
+          <View style={{ 
+            backgroundColor: '#F44336', 
+            padding: 12, 
+            alignItems: 'center',
+            borderBottomWidth: 3,
+            borderBottomColor: '#B71C1C'
+          }}>
+            <Text style={{ color: '#FFEB3B', fontSize: 14, fontWeight: 'bold' }}>
+              ⚠️ LEGACY BUILD - OLD CODE ⚠️
+            </Text>
+            <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>
+              WRONG COMPONENT: [lens].tsx fallback
+            </Text>
+            <Text style={{ color: '#fff', fontSize: 10 }}>
+              Expected: HumanDesignLensView | Lens: {lens}
+            </Text>
+          </View>
+          
           {/* Tabs */}
           {renderTabs()}
 
