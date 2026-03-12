@@ -106,6 +106,25 @@ export default function Welcome() {
     router.replace('/(tabs)');
   };
 
+  // Forums quick access handlers
+  const handleCreateForum = () => {
+    if (hasExistingSession) {
+      router.push('/forums/create');
+    } else {
+      setForumsRedirect('create');
+      setShowLogin(true);
+    }
+  };
+
+  const handleJoinForum = () => {
+    if (hasExistingSession) {
+      router.push('/forums/join');
+    } else {
+      setForumsRedirect('join');
+      setShowLogin(true);
+    }
+  };
+
   const handleLogin = async () => {
     if (!email.trim()) {
       setError('Please enter your email');
