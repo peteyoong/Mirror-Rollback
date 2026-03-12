@@ -3776,6 +3776,16 @@ async def create_journal_entry(entry: JournalEntryCreate):
         if entry.prompt_text:
             entry_data["prompt_text"] = entry.prompt_text
         
+        # Add source metadata for reflection tracking
+        if entry.source_lens:
+            entry_data["source_lens"] = entry.source_lens
+        if entry.source_domain:
+            entry_data["source_domain"] = entry.source_domain
+        if entry.source_name:
+            entry_data["source_name"] = entry.source_name
+        if entry.source_value:
+            entry_data["source_value"] = entry.source_value
+        
         result = await db.journal.insert_one(entry_data)
         
         return JournalEntryResponse(
