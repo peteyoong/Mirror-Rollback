@@ -862,6 +862,7 @@ export interface ForumPulseMemberCard {
   name: string;
   hd_type: string | null;
   hd_profile: string | null;
+  hd_authority: string | null;
   enneagram_type: number | null;
   active_pattern: string | null;
 }
