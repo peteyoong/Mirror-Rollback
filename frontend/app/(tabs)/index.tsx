@@ -694,6 +694,43 @@ const styles = StyleSheet.create({
   patternPulseActionText: {
     fontSize: 13,
   },
+  // Forums card styles
+  forumsCard: {
+    marginHorizontal: 20,
+    marginTop: 12,
+    marginBottom: 4,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  forumsCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  forumsIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  forumsTextContent: {
+    flex: 1,
+  },
+  forumsTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  forumsSubtitle: {
+    fontSize: 12,
+  },
+  forumsChevron: {
+    fontSize: 22,
+    marginLeft: 8,
+  },
   keystoneContainer: {
     paddingTop: 16,
     paddingBottom: 8,
