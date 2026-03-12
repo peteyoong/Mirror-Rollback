@@ -557,29 +557,71 @@ export default function PatternsScreen() {
   );
 
   // ============================================================================
-  // RENDER: PATTERNS TAB (Compact Accordion Cards)
+  // RENDER: PATTERNS TAB - New 5-Section Accordion Structure
   // ============================================================================
+
+  // Helper to render a collapsible section
+  const renderCollapsibleSection = (
+    domainId: string,
+    sectionKey: string,
+    title: string,
+    content: string | string[] | undefined,
+    isLoading: boolean
+  ) => {
+    const domainSections = expandedSections[domainId] || new Set();
+    const isOpen = domainSections.has(sectionKey);
+    
+    // Handle array content (experiments)
+    const isArray = Array.isArray(content);
+    
+    return (
+      <TouchableOpacity
+        key={sectionKey}
+        style={[styles.sectionAccordion, { borderBottomColor: theme.border }]}
+        onPress={() => toggleSection(domainId, sectionKey)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{title}</Text>
+          <Text style={[styles.sectionChevron, { color: theme.textTertiary }]}>
+            {isOpen ? '−' : '+'}
+          </Text>
+        </View>
+        
+        {isOpen && (
+          <View style={styles.sectionContent}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color={theme.textTertiary} />
+            ) : isArray ? (
+              <View style={styles.experimentsList}>
+                {(content as string[]).map((experiment, idx) => (
+                  <View key={idx} style={styles.experimentItem}>
+                    <Text style={[styles.experimentBullet, { color: theme.accent }]}>•</Text>
+                    <Text style={[styles.experimentText, { color: theme.textSecondary }]}>
+                      {experiment}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Text style={[styles.sectionText, { color: theme.textSecondary }]}>
+                {content || 'Loading...'}
+              </Text>
+            )}
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   const renderDomainCard = (domain: PatternDomain) => {
     const strengthColor = getStrengthColor(domain.signal_strength);
-    const { synthesis, prompt } = getDomainContent(domain.category_id, domain.signal_strength);
     const isExpanded = expandedDomain === domain.category_id;
+    const interpretation = interpretations[domain.category_id];
+    const isLoadingThis = loadingInterpretation === domain.category_id;
     
-    const visibleSignals = domain.matched_signals?.filter(s => s.source !== 'enneagram') || [];
-    const hasVisibleSignals = visibleSignals.length > 0;
-    
-    // Group signals by source for the contributing signals section
-    const transitSignal = visibleSignals.find(s => s.source === 'astrology_transit');
-    const regularSignals = visibleSignals.filter(s => s.source !== 'astrology_transit');
-    
-    // Count unique signal sources for compact display
-    const uniqueSources = new Set(regularSignals.map(s => s.source));
-    const hasJournal = uniqueSources.has('journal') || uniqueSources.has('mirror_chat');
-    const hasLensContext = uniqueSources.has('gene_keys') || uniqueSources.has('human_design');
-    const hasTiming = !!transitSignal;
-
     return (
-      <TouchableOpacity
+      <View
         key={domain.category_id}
         style={[
           styles.accordionCard, 
@@ -588,11 +630,13 @@ export default function PatternsScreen() {
             borderColor: isExpanded ? theme.accent + '40' : theme.border 
           }
         ]}
-        onPress={() => toggleExpanded(domain.category_id, domain.category_name)}
-        activeOpacity={0.7}
       >
-        {/* Collapsed View - Always Visible */}
-        <View style={styles.accordionHeader}>
+        {/* Domain Header - Click to expand */}
+        <TouchableOpacity
+          style={styles.accordionHeader}
+          onPress={() => toggleExpanded(domain.category_id, domain.category_name)}
+          activeOpacity={0.7}
+        >
           <View style={styles.accordionLeft}>
             <Text style={[styles.accordionTitle, { color: theme.text }]}>
               {domain.category_name}
@@ -608,77 +652,83 @@ export default function PatternsScreen() {
               {isExpanded ? '▲' : '▼'}
             </Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
-        {/* Expanded View */}
+        {/* Expanded Content - 5 Collapsible Sections */}
         {isExpanded && (
           <View style={[styles.accordionBody, { borderTopColor: theme.border }]}>
-            {/* Short Narrative (2-3 sentences) */}
-            <Text style={[styles.accordionNarrative, { color: theme.textSecondary }]}>
-              {synthesis}
-            </Text>
-
-            {/* Contributing Signals - Compact List */}
-            {(hasJournal || hasLensContext || hasTiming) && (
-              <View style={styles.signalsCompact}>
-                <Text style={[styles.signalsCompactLabel, { color: theme.textTertiary }]}>
-                  Signals contributing:
+            {/* Loading indicator when fetching interpretation */}
+            {isLoadingThis && !interpretation && (
+              <View style={styles.loadingInterpretation}>
+                <ActivityIndicator size="small" color={theme.accent} />
+                <Text style={[styles.loadingInterpretationText, { color: theme.textTertiary }]}>
+                  Loading pattern insight...
                 </Text>
-                <View style={styles.signalsCompactList}>
-                  {hasJournal && (
-                    <View style={styles.signalChip}>
-                      <Text style={[styles.signalChipDot, { color: theme.textTertiary }]}>•</Text>
-                      <Text style={[styles.signalChipText, { color: theme.textSecondary }]}>
-                        Journal reflections
-                      </Text>
-                    </View>
-                  )}
-                  {uniqueSources.has('mirror_chat') && !hasJournal && (
-                    <View style={styles.signalChip}>
-                      <Text style={[styles.signalChipDot, { color: theme.textTertiary }]}>•</Text>
-                      <Text style={[styles.signalChipText, { color: theme.textSecondary }]}>
-                        Mirror insights
-                      </Text>
-                    </View>
-                  )}
-                  {hasTiming && (
-                    <View style={styles.signalChip}>
-                      <Text style={[styles.signalChipDot, { color: theme.textTertiary }]}>•</Text>
-                      <Text style={[styles.signalChipText, { color: theme.textSecondary }]}>
-                        Timing influence
-                      </Text>
-                    </View>
-                  )}
-                  {hasLensContext && (
-                    <View style={styles.signalChip}>
-                      <Text style={[styles.signalChipDot, { color: theme.textTertiary }]}>•</Text>
-                      <Text style={[styles.signalChipText, { color: theme.textSecondary }]}>
-                        Lens context
-                      </Text>
-                    </View>
-                  )}
-                </View>
               </View>
             )}
-
-            {/* Reflection Prompt */}
-            <View style={[styles.accordionPromptSection, { backgroundColor: theme.accent + '08' }]}>
-              <Text style={[styles.accordionPromptText, { color: theme.accent }]}>
-                "{prompt}"
-              </Text>
-              <TouchableOpacity
-                onPress={() => handleJournalTrigger(domain.category_name, prompt)}
-                style={[styles.reflectButton, { borderColor: theme.accent + '40' }]}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Text style={[styles.reflectButtonText, { color: theme.accent }]}>
-                  ✏️ Reflect
-                </Text>
-              </TouchableOpacity>
+            
+            {/* Section 1: Story */}
+            {renderCollapsibleSection(
+              domain.category_id,
+              'story',
+              'Story',
+              interpretation?.story,
+              isLoadingThis && !interpretation
+            )}
+            
+            {/* Section 2: Pattern */}
+            {renderCollapsibleSection(
+              domain.category_id,
+              'pattern',
+              'Pattern',
+              interpretation?.pattern,
+              isLoadingThis && !interpretation
+            )}
+            
+            {/* Section 3: Challenge */}
+            {renderCollapsibleSection(
+              domain.category_id,
+              'challenge',
+              'Challenge',
+              interpretation?.challenge,
+              isLoadingThis && !interpretation
+            )}
+            
+            {/* Section 4: Genius */}
+            {renderCollapsibleSection(
+              domain.category_id,
+              'genius',
+              'Genius',
+              interpretation?.genius,
+              isLoadingThis && !interpretation
+            )}
+            
+            {/* Section 5: Practical Experiments */}
+            {renderCollapsibleSection(
+              domain.category_id,
+              'experiments',
+              'Practical Experiments',
+              interpretation?.experiments,
+              isLoadingThis && !interpretation
+            )}
+            
+            {/* Reflect Button at Bottom */}
+            <View style={styles.reflectButtonContainer}>
+              <ReflectButton
+                sourceLens="patterns"
+                sourceType={domain.category_id}
+                sourceName={domain.category_name}
+                sourceValue={getStrengthLabel(domain.signal_strength)}
+                theme={interpretation?.story}
+                strength={interpretation?.genius}
+                challenge={interpretation?.challenge}
+                guidance={interpretation?.experiments?.join('\n')}
+                compact={false}
+              />
             </View>
           </View>
         )}
-      </TouchableOpacity>
+      </View>
     );
   };
 
