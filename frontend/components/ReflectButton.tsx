@@ -6,8 +6,8 @@ import { useForumContext, PrefilledSource } from '../contexts/ForumContext';
 
 interface ReflectButtonProps {
   // Source identification
-  sourceLens: 'human-design' | 'enneagram' | 'astrology' | 'numerology';
-  sourceType: string;  // e.g., 'type', 'authority', 'center_sacral', 'gate_1'
+  sourceLens: 'human-design' | 'enneagram' | 'astrology' | 'numerology' | 'patterns';
+  sourceType: string;  // e.g., 'type', 'authority', 'center_sacral', 'gate_1', or domain_id for patterns
   sourceName: string;  // Human-readable name e.g., 'Emotional Authority'
   sourceValue?: string; // The actual value e.g., 'Manifestor'
   
