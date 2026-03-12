@@ -798,4 +798,22 @@ export const getPatternDomains = async (): Promise<{ domains: PatternDomain[] }>
   return response.data;
 };
 
+// Get Human Design mechanics for reflection source
+export interface HumanDesignMechanics {
+  core_mechanics: {
+    type: string;
+    strategy: string;
+    authority: string;
+    profile: string;
+    definition: string;
+    incarnation_cross: string;
+    incarnation_cross_gates: string;
+  };
+}
+
+export const getHumanDesignMechanics = async (userId: string): Promise<HumanDesignMechanics> => {
+  const response = await apiWithRetry.get(`/human-design/mechanics/${userId}`);
+  return response.data;
+};
+
 export default api;
