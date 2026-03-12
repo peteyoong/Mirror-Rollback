@@ -1585,14 +1585,16 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {TYPE_ENERGY_PATTERNS[hdType] || TYPE_ENERGY_PATTERNS['Generator']}
           </Text>
-          {isInForumContext && (
-            <TouchableOpacity
-              style={[styles.reflectInForumButton, { borderColor: theme.accent }]}
-              onPress={() => handleReflectInForum('type', 'Type', hdType)}
-            >
-              <Text style={[styles.reflectInForumText, { color: theme.accent }]}>Reflect in Forum</Text>
-            </TouchableOpacity>
-          )}
+          <ReflectButton
+            sourceLens="human-design"
+            sourceType="type"
+            sourceName="Type"
+            sourceValue={hdType}
+            theme={TYPE_ENERGY_PATTERNS[hdType] || 'Your unique energy pattern.'}
+            strength={TYPE_MANIFESTATIONS[hdType]?.work || 'Gifts that emerge when aligned.'}
+            challenge={TYPE_MANIFESTATIONS[hdType]?.energy?.split(';')[1]?.trim() || 'Patterns when out of alignment.'}
+            guidance={STRATEGY_TRANSLATIONS[data?.core_mechanics?.strategy || ''] || 'Follow your natural rhythm.'}
+          />
         </View>
 
         {/* How You Engage Card (Strategy) */}
@@ -1601,14 +1603,16 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {strategyTranslation}
           </Text>
-          {isInForumContext && (
-            <TouchableOpacity
-              style={[styles.reflectInForumButton, { borderColor: theme.accent }]}
-              onPress={() => handleReflectInForum('strategy', 'Strategy', data?.core_mechanics?.strategy || '')}
-            >
-              <Text style={[styles.reflectInForumText, { color: theme.accent }]}>Reflect in Forum</Text>
-            </TouchableOpacity>
-          )}
+          <ReflectButton
+            sourceLens="human-design"
+            sourceType="strategy"
+            sourceName="Strategy"
+            sourceValue={data?.core_mechanics?.strategy || ''}
+            theme={strategyTranslation}
+            strength="Following this approach brings flow and reduces resistance."
+            challenge="Acting against this strategy creates friction and frustration."
+            guidance="Notice when you naturally follow this pattern vs. when you override it."
+          />
         </View>
 
         {/* How Clarity Comes Card (Authority) */}
@@ -1618,14 +1622,16 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {authorityData.expanded}
           </Text>
-          {isInForumContext && (
-            <TouchableOpacity
-              style={[styles.reflectInForumButton, { borderColor: theme.accent }]}
-              onPress={() => handleReflectInForum('authority', 'Authority', data?.core_mechanics?.authority || '')}
-            >
-              <Text style={[styles.reflectInForumText, { color: theme.accent }]}>Reflect in Forum</Text>
-            </TouchableOpacity>
-          )}
+          <ReflectButton
+            sourceLens="human-design"
+            sourceType="authority"
+            sourceName="Authority"
+            sourceValue={data?.core_mechanics?.authority || ''}
+            theme={authorityData.expanded}
+            strength="Reliable clarity when you follow your process."
+            challenge="Not trusting your natural decision-making process."
+            guidance={authorityData.short}
+          />
         </View>
 
         {/* Where This Helps Card */}
