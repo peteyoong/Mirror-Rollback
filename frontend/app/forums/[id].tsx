@@ -38,6 +38,7 @@ export default function ForumHomeScreen() {
   const [forum, setForum] = useState<any | null>(null);
   const [reflections, setReflections] = useState<ForumReflection[]>([]);
   const [members, setMembers] = useState<ForumMember[]>([]);
+  const [pulse, setPulse] = useState<ForumPulseResponse | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -52,16 +53,18 @@ export default function ForumHomeScreen() {
     else setLoading(true);
     
     try {
-      const [forumData, reflectionsData, exerciseData, membersData] = await Promise.all([
+      const [forumData, reflectionsData, exerciseData, membersData, pulseData] = await Promise.all([
         getForum(forumId, user.id),
         getSharedReflections(forumId, user.id),
         getForumExercise(forumId, user.id),
         getForumMembers(forumId, user.id),
+        getForumPulse(forumId, user.id),
       ]);
       setForum(forumData);
       setReflections(reflectionsData.reflections);
       setHasSubmitted(exerciseData.has_submitted);
       setMembers(membersData.members);
+      setPulse(pulseData);
       setError(null);
     } catch (err: any) {
       console.error('[Forum] Error fetching data:', err);
