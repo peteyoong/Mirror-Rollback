@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
+import { ReflectButton } from './ReflectButton';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
