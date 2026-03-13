@@ -1026,17 +1026,41 @@ export default function PatternsScreen() {
                   </View>
                 )}
 
-                {/* Enhanced Energy Note */}
-                {hasTransitEmphasis && (
-                  <View style={[styles.enhancedEnergyNote, { backgroundColor: theme.accent + '08', borderLeftColor: theme.accent }]}>
-                    <Text style={[styles.enhancedEnergyTitle, { color: theme.accent }]}>
-                      ✨ Timing Influence Active
-                    </Text>
-                    <Text style={[styles.enhancedEnergyText, { color: theme.textSecondary }]}>
-                      Current planetary transits may be temporarily amplifying this pattern. This is natural and part of ongoing cycles.
-                    </Text>
-                  </View>
-                )}
+                {/* Enhanced Energy Note with Transit Symbols */}
+                {hasTransitEmphasis && (() => {
+                  // Get the transit signal with its transit_data
+                  const transitSignal = domain.matched_signals?.find(s => s.source === 'astrology_transit');
+                  const transits = transitSignal?.transit_data || [];
+                  const topTransits = transits.slice(0, 3); // Show top 2-3 transits
+                  
+                  return (
+                    <View style={[styles.enhancedEnergyNote, { backgroundColor: theme.accent + '08', borderLeftColor: theme.accent }]}>
+                      <Text style={[styles.enhancedEnergyTitle, { color: theme.accent }]}>
+                        ✨ Timing Influence Active
+                      </Text>
+                      
+                      {/* Transit Symbols Display */}
+                      {topTransits.length > 0 && (
+                        <View style={styles.transitSymbolsContainer}>
+                          {topTransits.map((transit, idx) => (
+                            <View key={idx} style={styles.transitSymbolRow}>
+                              <Text style={[styles.transitSymbolText, { color: theme.text }]}>
+                                {formatTransitSymbol(transit)}
+                              </Text>
+                              <Text style={[styles.transitDescText, { color: theme.textTertiary }]}>
+                                {getTransitDescription(transit)}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                      
+                      <Text style={[styles.enhancedEnergyText, { color: theme.textSecondary }]}>
+                        These transits may be temporarily amplifying this pattern. This is natural and part of ongoing cycles.
+                      </Text>
+                    </View>
+                  );
+                })()}
 
                 {/* Signal Sources Summary */}
                 {domain.matched_sources && domain.matched_sources.length > 0 && (
