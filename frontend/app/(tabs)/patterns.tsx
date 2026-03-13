@@ -1818,9 +1818,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 6,
   },
+  transitSymbolsContainer: {
+    marginVertical: 10,
+    gap: 8,
+  },
+  transitSymbolRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  transitSymbolText: {
+    fontSize: 18,
+    fontWeight: '500',
+    minWidth: 70,
+  },
+  transitDescText: {
+    fontSize: 12,
+    flex: 1,
+  },
   enhancedEnergyText: {
     fontSize: 13,
     lineHeight: 19,
+    marginTop: 8,
   },
   sourcesSummary: {
     marginTop: 16,
