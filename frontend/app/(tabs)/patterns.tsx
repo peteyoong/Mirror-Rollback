@@ -483,6 +483,87 @@ export default function PatternsScreen() {
   // SIGNAL FORMATTING HELPERS - Human-readable signal descriptions
   // ============================================================================
 
+  // Astrological symbol mappings
+  const PLANET_SYMBOLS: Record<string, string> = {
+    'Sun': '☉',
+    'Moon': '☽',
+    'Mercury': '☿',
+    'Venus': '♀',
+    'Mars': '♂',
+    'Jupiter': '♃',
+    'Saturn': '♄',
+    'Uranus': '♅',
+    'Neptune': '♆',
+    'Pluto': '♇',
+    'North Node': '☊',
+    'South Node': '☋',
+  };
+
+  const ASPECT_SYMBOLS: Record<string, string> = {
+    'conjunction': '☌',
+    'opposition': '☍',
+    'square': '□',
+    'trine': '△',
+    'sextile': '⚹',
+  };
+
+  const SIGN_SYMBOLS: Record<string, string> = {
+    'Aries': '♈',
+    'Taurus': '♉',
+    'Gemini': '♊',
+    'Cancer': '♋',
+    'Leo': '♌',
+    'Virgo': '♍',
+    'Libra': '♎',
+    'Scorpio': '♏',
+    'Sagittarius': '♐',
+    'Capricorn': '♑',
+    'Aquarius': '♒',
+    'Pisces': '♓',
+  };
+
+  // Format transit data into readable symbol string
+  const formatTransitSymbol = (transit: any): string => {
+    const planet = PLANET_SYMBOLS[transit.planet] || transit.planet;
+    const aspect = transit.aspect ? ASPECT_SYMBOLS[transit.aspect] : null;
+    const target = transit.target ? PLANET_SYMBOLS[transit.target] || transit.target : null;
+    const sign = transit.sign ? SIGN_SYMBOLS[transit.sign] : null;
+
+    if (aspect && target) {
+      // Transit to natal: ☉ ☌ ♄ (Sun conjunct natal Saturn)
+      return `${planet} ${aspect} ${target}`;
+    } else if (sign) {
+      // Planet in sign: ☽ in ♋ (Moon in Cancer)
+      return `${planet} in ${sign}`;
+    } else {
+      // Just the planet
+      return planet;
+    }
+  };
+
+  // Get human-readable transit description
+  const getTransitDescription = (transit: any): string => {
+    const planet = transit.planet;
+    const aspect = transit.aspect;
+    const target = transit.target;
+    const sign = transit.sign;
+
+    if (aspect && target) {
+      const aspectWords: Record<string, string> = {
+        'conjunction': 'meeting',
+        'opposition': 'facing',
+        'square': 'challenging',
+        'trine': 'flowing with',
+        'sextile': 'supporting',
+      };
+      return `${planet} ${aspectWords[aspect] || aspect} natal ${target}`;
+    } else if (sign) {
+      return `${planet} moving through ${sign}`;
+    } else {
+      return `${planet} influence`;
+    }
+  };
+
   // Format a single signal into human-readable text
   const formatSignalDescription = (signal: MatchedSignal): { title: string; description: string } => {
     const source = signal.source;
