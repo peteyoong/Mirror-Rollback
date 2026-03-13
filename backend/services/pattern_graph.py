@@ -1416,12 +1416,24 @@ def aggregate_transit_signals(
         logger.debug("[Transit] No transit influence calculated")
         return category_signals
     
+    # Get current positions for detailed transit data
+    try:
+        transit_positions = calculate_current_planetary_positions()
+        active_transits = calculate_transit_aspects_to_natal(
+            transit_positions=transit_positions,
+            natal_chart=natal_chart
+        )
+    except Exception as e:
+        logger.debug(f"[Transit] Could not get detailed transit data: {e}")
+        active_transits = []
+    
     # Only add transit signals to domains that have:
     # 1. Transit emphasis AND
     # 2. Existing support from other signals (amplification only)
     for domain_id, influence in transit_influence.items():
         intensity = influence.get("intensity", 0)
         theme = influence.get("theme", "timing_emphasis")
+        planets = influence.get("planets", [])
         
         # Skip if intensity is too low
         if intensity < 0.2:
@@ -1466,15 +1478,39 @@ def aggregate_transit_signals(
         
         readable_theme = theme_labels.get(theme, "current timing")
         
+        # Build transit details list for this domain
+        transit_details = []
+        for transit in active_transits:
+            t_planet = transit.get("transiting_planet")
+            if t_planet in planets:
+                natal_point = transit.get("natal_point")
+                aspect = transit.get("aspect_type", "")
+                sign = transit.get("sign", "")
+                
+                transit_info = {
+                    "planet": t_planet,
+                    "aspect": aspect if aspect != "general_influence" else None,
+                    "target": natal_point,
+                    "sign": sign
+                }
+                
+                # Only add if not duplicate
+                if transit_info not in transit_details:
+                    transit_details.append(transit_info)
+        
+        # Limit to top 3 transits
+        transit_details = transit_details[:3]
+        
         signal: MatchedSignal = {
             "source": "astrology_transit",
             "label": "Current transit emphasis",
             "sphere_name": None,
-            "detail": readable_theme
+            "detail": readable_theme,
+            "transit_data": transit_details  # Add detailed transit info
         }
         category_signals[domain_id].append(signal)
         
-        logger.debug(f"[Transit] Added signal to {domain_id}: {readable_theme} (intensity={intensity:.2f})")
+        logger.debug(f"[Transit] Added signal to {domain_id}: {readable_theme} (intensity={intensity:.2f}, transits={len(transit_details)})")
     
     return category_signals
 
