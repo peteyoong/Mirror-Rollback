@@ -466,6 +466,136 @@ export default function PatternsScreen() {
     });
   };
 
+  // Toggle inner tab for domain card (interpretation vs signals)
+  const toggleDomainInnerTab = (domainId: string, tab: 'interpretation' | 'signals') => {
+    if (Platform.OS !== 'web') {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
+    setDomainInnerTab(prev => ({ ...prev, [domainId]: tab }));
+  };
+
+  // Get the current inner tab for a domain (default: interpretation)
+  const getDomainInnerTab = (domainId: string): 'interpretation' | 'signals' => {
+    return domainInnerTab[domainId] || 'interpretation';
+  };
+
+  // ============================================================================
+  // SIGNAL FORMATTING HELPERS - Human-readable signal descriptions
+  // ============================================================================
+
+  // Format a single signal into human-readable text
+  const formatSignalDescription = (signal: MatchedSignal): { title: string; description: string } => {
+    const source = signal.source;
+    const label = signal.label || '';
+    const detail = signal.detail || '';
+    const sphere = signal.sphere_name;
+
+    switch (source) {
+      case 'journal':
+        return {
+          title: 'Journal',
+          description: `Recent reflections suggest themes around ${label.replace('Journal reflection (', '').replace(')', '').replace(/, /g, ' and ')}.`
+        };
+      
+      case 'mirror_chat':
+        return {
+          title: 'Mirror',
+          description: `Reflections point to processing around ${detail || 'this theme'}.`
+        };
+      
+      case 'gene_keys':
+        if (sphere) {
+          return {
+            title: 'Lens Context',
+            description: `${label}${sphere ? ` (${sphere})` : ''} — a quality in your design that may resonate with this pattern.`
+          };
+        }
+        return {
+          title: 'Lens Context',
+          description: `${label} appears in your chart, suggesting a natural sensitivity to this area.`
+        };
+      
+      case 'human_design':
+        const hdDetail = detail || label;
+        return {
+          title: 'Lens Context',
+          description: `${hdDetail} in your Human Design connects to themes in this domain.`
+        };
+      
+      case 'astrology_transit':
+        return {
+          title: 'Enhanced Energy',
+          description: `A current timing influence may be amplifying ${detail || 'this pattern'}. This is temporary and part of natural cycles.`
+        };
+      
+      case 'pattern_memory':
+        return {
+          title: 'Pattern Memory',
+          description: `This domain has recurred over recent weeks, suggesting an ongoing process.`
+        };
+      
+      case 'enneagram':
+        return {
+          title: 'Lens Context',
+          description: `Your Enneagram type shows a natural relationship with ${detail || 'this area'}.`
+        };
+      
+      default:
+        return {
+          title: 'Signal',
+          description: label || detail || 'A signal was detected in this area.'
+        };
+    }
+  };
+
+  // Group signals by type for cleaner presentation
+  const groupSignalsByType = (signals: MatchedSignal[]): Record<string, MatchedSignal[]> => {
+    const groups: Record<string, MatchedSignal[]> = {};
+    
+    signals.forEach(signal => {
+      let groupKey = 'Other';
+      
+      switch (signal.source) {
+        case 'journal':
+          groupKey = 'Journal';
+          break;
+        case 'mirror_chat':
+          groupKey = 'Mirror';
+          break;
+        case 'gene_keys':
+        case 'human_design':
+        case 'enneagram':
+          groupKey = 'Lens Context';
+          break;
+        case 'astrology_transit':
+          groupKey = 'Enhanced Energy';
+          break;
+        case 'pattern_memory':
+          groupKey = 'Pattern Memory';
+          break;
+      }
+      
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(signal);
+    });
+    
+    return groups;
+  };
+
+  // Get signal group icon
+  const getSignalGroupIcon = (groupKey: string): string => {
+    switch (groupKey) {
+      case 'Journal': return '📝';
+      case 'Mirror': return '💭';
+      case 'Lens Context': return '🔮';
+      case 'Enhanced Energy': return '✨';
+      case 'Pattern Memory': return '🔄';
+      default: return '•';
+    }
+  };
+
   const handleJournalTrigger = (domainName: string, prompt: string) => {
     router.push({
       pathname: '/(tabs)/journal',
