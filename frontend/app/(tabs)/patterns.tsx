@@ -218,6 +218,9 @@ export default function PatternsScreen() {
   const [loadingInterpretation, setLoadingInterpretation] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, Set<string>>>({});
   
+  // New: Track which inner tab is active for each domain (interpretation vs signals)
+  const [domainInnerTab, setDomainInnerTab] = useState<Record<string, 'interpretation' | 'signals'>>({});
+  
   // Weekly State
   const [weeklySummary, setWeeklySummary] = useState<WeeklySummary | null>(null);
   const [weeklyLoading, setWeeklyLoading] = useState(true);
