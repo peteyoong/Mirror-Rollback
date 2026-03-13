@@ -752,6 +752,11 @@ export default function PatternsScreen() {
     const isExpanded = expandedDomain === domain.category_id;
     const interpretation = interpretations[domain.category_id];
     const isLoadingThis = loadingInterpretation === domain.category_id;
+    const currentInnerTab = getDomainInnerTab(domain.category_id);
+    
+    // Group signals for the Signals tab
+    const signalGroups = groupSignalsByType(domain.matched_signals || []);
+    const hasTransitEmphasis = domain.matched_signals?.some(s => s.source === 'astrology_transit');
     
     return (
       <View
@@ -787,65 +792,183 @@ export default function PatternsScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* Expanded Content - 5 Collapsible Sections */}
+        {/* Expanded Content */}
         {isExpanded && (
           <View style={[styles.accordionBody, { borderTopColor: theme.border }]}>
-            {/* Loading indicator when fetching interpretation */}
-            {isLoadingThis && !interpretation && (
-              <View style={styles.loadingInterpretation}>
-                <ActivityIndicator size="small" color={theme.accent} />
-                <Text style={[styles.loadingInterpretationText, { color: theme.textTertiary }]}>
-                  Loading pattern insight...
+            
+            {/* Inner Tab Control: Interpretation | Signals */}
+            <View style={[styles.innerTabControl, { borderBottomColor: theme.border }]}>
+              <TouchableOpacity
+                style={[
+                  styles.innerTab,
+                  currentInnerTab === 'interpretation' && styles.innerTabActive,
+                  currentInnerTab === 'interpretation' && { borderBottomColor: theme.accent }
+                ]}
+                onPress={() => toggleDomainInnerTab(domain.category_id, 'interpretation')}
+              >
+                <Text style={[
+                  styles.innerTabText,
+                  { color: currentInnerTab === 'interpretation' ? theme.accent : theme.textTertiary }
+                ]}>
+                  Interpretation
                 </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.innerTab,
+                  currentInnerTab === 'signals' && styles.innerTabActive,
+                  currentInnerTab === 'signals' && { borderBottomColor: theme.accent }
+                ]}
+                onPress={() => toggleDomainInnerTab(domain.category_id, 'signals')}
+              >
+                <Text style={[
+                  styles.innerTabText,
+                  { color: currentInnerTab === 'signals' ? theme.accent : theme.textTertiary }
+                ]}>
+                  Signals
+                </Text>
+                {(domain.matched_signals?.length || 0) > 0 && (
+                  <View style={[styles.signalBadge, { backgroundColor: theme.accent + '20' }]}>
+                    <Text style={[styles.signalBadgeText, { color: theme.accent }]}>
+                      {domain.matched_signals?.length || 0}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* INTERPRETATION TAB CONTENT */}
+            {currentInnerTab === 'interpretation' && (
+              <View style={styles.innerTabContent}>
+                {/* Loading indicator when fetching interpretation */}
+                {isLoadingThis && !interpretation && (
+                  <View style={styles.loadingInterpretation}>
+                    <ActivityIndicator size="small" color={theme.accent} />
+                    <Text style={[styles.loadingInterpretationText, { color: theme.textTertiary }]}>
+                      Loading pattern insight...
+                    </Text>
+                  </View>
+                )}
+                
+                {/* Section 1: Story */}
+                {renderCollapsibleSection(
+                  domain.category_id,
+                  'story',
+                  'Story',
+                  interpretation?.story,
+                  isLoadingThis && !interpretation
+                )}
+                
+                {/* Section 2: Pattern */}
+                {renderCollapsibleSection(
+                  domain.category_id,
+                  'pattern',
+                  'Pattern',
+                  interpretation?.pattern,
+                  isLoadingThis && !interpretation
+                )}
+                
+                {/* Section 3: Challenge */}
+                {renderCollapsibleSection(
+                  domain.category_id,
+                  'challenge',
+                  'Challenge',
+                  interpretation?.challenge,
+                  isLoadingThis && !interpretation
+                )}
+                
+                {/* Section 4: Genius */}
+                {renderCollapsibleSection(
+                  domain.category_id,
+                  'genius',
+                  'Genius',
+                  interpretation?.genius,
+                  isLoadingThis && !interpretation
+                )}
+                
+                {/* Section 5: Practical Experiments */}
+                {renderCollapsibleSection(
+                  domain.category_id,
+                  'experiments',
+                  'Practical Experiments',
+                  interpretation?.experiments,
+                  isLoadingThis && !interpretation
+                )}
+              </View>
+            )}
+
+            {/* SIGNALS TAB CONTENT */}
+            {currentInnerTab === 'signals' && (
+              <View style={styles.innerTabContent}>
+                {/* Why This Pattern Section */}
+                <Text style={[styles.signalsIntro, { color: theme.textSecondary }]}>
+                  Here's what may be contributing to this pattern surfacing:
+                </Text>
+
+                {/* Signal Groups */}
+                {Object.keys(signalGroups).length === 0 ? (
+                  <Text style={[styles.noSignalsText, { color: theme.textTertiary }]}>
+                    No specific signals detected yet. This domain may become active as you journal and reflect.
+                  </Text>
+                ) : (
+                  <View style={styles.signalGroupsContainer}>
+                    {Object.entries(signalGroups).map(([groupKey, signals]) => (
+                      <View key={groupKey} style={styles.signalGroup}>
+                        <View style={styles.signalGroupHeader}>
+                          <Text style={styles.signalGroupIcon}>{getSignalGroupIcon(groupKey)}</Text>
+                          <Text style={[styles.signalGroupTitle, { color: theme.text }]}>
+                            {groupKey}
+                          </Text>
+                        </View>
+                        <View style={styles.signalGroupItems}>
+                          {signals.map((signal, idx) => {
+                            const formatted = formatSignalDescription(signal);
+                            return (
+                              <View key={idx} style={[styles.signalItem, { borderLeftColor: theme.accent + '40' }]}>
+                                <Text style={[styles.signalItemText, { color: theme.textSecondary }]}>
+                                  {formatted.description}
+                                </Text>
+                              </View>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {/* Enhanced Energy Note */}
+                {hasTransitEmphasis && (
+                  <View style={[styles.enhancedEnergyNote, { backgroundColor: theme.accent + '08', borderLeftColor: theme.accent }]}>
+                    <Text style={[styles.enhancedEnergyTitle, { color: theme.accent }]}>
+                      ✨ Timing Influence Active
+                    </Text>
+                    <Text style={[styles.enhancedEnergyText, { color: theme.textSecondary }]}>
+                      Current planetary transits may be temporarily amplifying this pattern. This is natural and part of ongoing cycles.
+                    </Text>
+                  </View>
+                )}
+
+                {/* Signal Sources Summary */}
+                {domain.matched_sources && domain.matched_sources.length > 0 && (
+                  <View style={[styles.sourcesSummary, { borderTopColor: theme.border }]}>
+                    <Text style={[styles.sourcesSummaryLabel, { color: theme.textTertiary }]}>
+                      Sources: {domain.matched_sources.map(s => 
+                        s === 'journal' ? 'Journal' :
+                        s === 'mirror_chat' ? 'Mirror' :
+                        s === 'gene_keys' ? 'Gene Keys' :
+                        s === 'human_design' ? 'Human Design' :
+                        s === 'astrology_transit' ? 'Transits' :
+                        s === 'enneagram' ? 'Enneagram' :
+                        s
+                      ).join(' • ')}
+                    </Text>
+                  </View>
+                )}
               </View>
             )}
             
-            {/* Section 1: Story */}
-            {renderCollapsibleSection(
-              domain.category_id,
-              'story',
-              'Story',
-              interpretation?.story,
-              isLoadingThis && !interpretation
-            )}
-            
-            {/* Section 2: Pattern */}
-            {renderCollapsibleSection(
-              domain.category_id,
-              'pattern',
-              'Pattern',
-              interpretation?.pattern,
-              isLoadingThis && !interpretation
-            )}
-            
-            {/* Section 3: Challenge */}
-            {renderCollapsibleSection(
-              domain.category_id,
-              'challenge',
-              'Challenge',
-              interpretation?.challenge,
-              isLoadingThis && !interpretation
-            )}
-            
-            {/* Section 4: Genius */}
-            {renderCollapsibleSection(
-              domain.category_id,
-              'genius',
-              'Genius',
-              interpretation?.genius,
-              isLoadingThis && !interpretation
-            )}
-            
-            {/* Section 5: Practical Experiments */}
-            {renderCollapsibleSection(
-              domain.category_id,
-              'experiments',
-              'Practical Experiments',
-              interpretation?.experiments,
-              isLoadingThis && !interpretation
-            )}
-            
-            {/* Reflect Button at Bottom */}
+            {/* Reflect Button at Bottom - Always visible */}
             <View style={styles.reflectButtonContainer}>
               <ReflectButton
                 sourceLens="patterns"
