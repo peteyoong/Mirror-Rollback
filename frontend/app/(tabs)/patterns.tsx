@@ -1608,6 +1608,117 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   
+  // ============================================
+  // Inner Tab Control (Interpretation | Signals)
+  // ============================================
+  innerTabControl: {
+    flexDirection: 'row',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    marginBottom: 12,
+  },
+  innerTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+    gap: 6,
+  },
+  innerTabActive: {
+    // Border color applied inline
+  },
+  innerTabText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  signalBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  signalBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  innerTabContent: {
+    // Container for tab content
+  },
+  
+  // ============================================
+  // Signals Tab Styles
+  // ============================================
+  signalsIntro: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+    fontStyle: 'italic',
+  },
+  noSignalsText: {
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
+  signalGroupsContainer: {
+    gap: 16,
+  },
+  signalGroup: {
+    gap: 8,
+  },
+  signalGroupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  signalGroupIcon: {
+    fontSize: 14,
+  },
+  signalGroupTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  signalGroupItems: {
+    gap: 8,
+    paddingLeft: 22,
+  },
+  signalItem: {
+    borderLeftWidth: 2,
+    paddingLeft: 12,
+    paddingVertical: 4,
+  },
+  signalItemText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  enhancedEnergyNote: {
+    marginTop: 16,
+    borderRadius: 10,
+    padding: 14,
+    borderLeftWidth: 3,
+  },
+  enhancedEnergyTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  enhancedEnergyText: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  sourcesSummary: {
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  sourcesSummaryLabel: {
+    fontSize: 11,
+    textAlign: 'center',
+  },
+  
   // Legacy styles below
   accordionNarrative: {
     fontSize: 14,
