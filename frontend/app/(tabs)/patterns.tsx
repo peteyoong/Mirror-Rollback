@@ -28,11 +28,19 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 // INTERFACES
 // ============================================================================
 
+interface TransitDetail {
+  planet: string;
+  aspect: string;
+  target: string;
+  sign: string;
+}
+
 interface MatchedSignal {
   source: string;
   label: string;
   sphere_name?: string;
   detail?: string;
+  transit_data?: TransitDetail[];
 }
 
 interface PatternDomain {
