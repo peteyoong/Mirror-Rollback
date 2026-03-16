@@ -742,31 +742,85 @@ export default function LifelineGuidedFlow({
               />
             </View>
             
-            {/* Impact score */}
+            {/* Task 61: Emotional Valence Scale */}
             <View style={styles.fieldGroup}>
-              <Text style={[styles.label, { color: theme.text }]}>How much impact?</Text>
-              <View style={styles.impactRow}>
-                {IMPACT_LEVELS.map((level) => (
-                  <TouchableOpacity
-                    key={level.value}
-                    style={[
-                      styles.impactButton,
-                      { 
-                        borderColor: moment.impactScore === level.value ? level.color : theme.border,
-                        backgroundColor: moment.impactScore === level.value ? `${level.color}20` : 'transparent',
-                      }
-                    ]}
-                    onPress={() => setMoment(prev => ({ ...prev, impactScore: level.value }))}
-                  >
-                    <View style={[styles.impactDot, { backgroundColor: level.color }]} />
-                    <Text style={[
-                      styles.impactText, 
-                      { color: moment.impactScore === level.value ? theme.text : theme.textSecondary }
-                    ]}>
-                      {level.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+              <Text style={[styles.label, { color: theme.text }]}>How did this period feel overall?</Text>
+              <View style={styles.scaleGuidance}>
+                <Text style={[styles.scaleGuideText, { color: theme.textTertiary }]}>Very difficult</Text>
+                <Text style={[styles.scaleGuideArrow, { color: theme.textTertiary }]}>← 1 · · · · 5 · · · · 10 →</Text>
+                <Text style={[styles.scaleGuideText, { color: theme.textTertiary }]}>Very positive</Text>
+              </View>
+              <View style={styles.scaleRow}>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => {
+                  const getValenceColor = (val: number) => {
+                    if (val <= 3) return '#E57373';
+                    if (val <= 6) return '#FFB74D';
+                    return '#81C784';
+                  };
+                  const isSelected = moment.emotionalValence === score;
+                  const scoreColor = getValenceColor(score);
+                  return (
+                    <TouchableOpacity
+                      key={score}
+                      style={[
+                        styles.scaleButton,
+                        { borderColor: isSelected ? scoreColor : theme.border },
+                        isSelected && { backgroundColor: `${scoreColor}25` },
+                      ]}
+                      onPress={() => setMoment(prev => ({ ...prev, emotionalValence: score }))}
+                    >
+                      <Text style={[
+                        styles.scaleText, 
+                        { color: isSelected ? scoreColor : theme.textSecondary }
+                      ]}>
+                        {score}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <View style={styles.scaleCalibration}>
+                <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>1 = Very difficult</Text>
+                <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>5 = Mixed</Text>
+                <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>10 = Very positive</Text>
+              </View>
+            </View>
+
+            {/* Task 61: Significance Scale */}
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.label, { color: theme.text }]}>How much did this shape your life?</Text>
+              <View style={styles.scaleGuidance}>
+                <Text style={[styles.scaleGuideText, { color: theme.textTertiary }]}>Very low</Text>
+                <Text style={[styles.scaleGuideArrow, { color: theme.textTertiary }]}>← 1 · · · · 5 · · · · 10 →</Text>
+                <Text style={[styles.scaleGuideText, { color: theme.textTertiary }]}>Very high</Text>
+              </View>
+              <View style={styles.scaleRow}>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => {
+                  const isSelected = moment.significanceScore === score;
+                  return (
+                    <TouchableOpacity
+                      key={score}
+                      style={[
+                        styles.scaleButton,
+                        { borderColor: isSelected ? theme.accent : theme.border },
+                        isSelected && { backgroundColor: `${theme.accent}20` },
+                      ]}
+                      onPress={() => setMoment(prev => ({ ...prev, significanceScore: score }))}
+                    >
+                      <Text style={[
+                        styles.scaleText, 
+                        { color: isSelected ? theme.accent : theme.textSecondary }
+                      ]}>
+                        {score}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <View style={styles.scaleCalibration}>
+                <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>1 = Very low</Text>
+                <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>5 = Meaningful</Text>
+                <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>10 = Life-changing</Text>
               </View>
             </View>
           </Animated.View>
