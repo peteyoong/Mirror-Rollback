@@ -2746,4 +2746,81 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
+  
+  // Signals Tab Styles
+  signalsSection: {
+    gap: 16,
+  },
+  signalSourceCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 12,
+  },
+  signalSourceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  signalSourceIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  signalSourceTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+  },
+  signalCountBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  signalCountText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  signalSourceItems: {
+    gap: 12,
+  },
+  signalSourceItem: {
+    borderLeftWidth: 3,
+    paddingLeft: 12,
+    paddingVertical: 8,
+  },
+  signalItemHeader: {
+    marginBottom: 6,
+  },
+  signalDomainTag: {
+    fontSize: 11,
+    fontWeight: '500',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  signalItemDescription: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  transitDetails: {
+    marginTop: 8,
+    gap: 4,
+  },
+  transitDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  transitSymbol: {
+    fontSize: 14,
+    fontWeight: '600',
+    minWidth: 60,
+  },
+  transitDescription: {
+    fontSize: 12,
+    flex: 1,
+  },
 });
