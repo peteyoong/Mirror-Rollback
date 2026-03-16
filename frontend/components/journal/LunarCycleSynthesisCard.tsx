@@ -1,11 +1,10 @@
 /**
- * Lunar Cycle Synthesis Card - Task 55
+ * Lunar Cycle Synthesis Card - Task 69: Mirror Cycle Intelligence Engine
  * 
- * Displays an observational synthesis of the Reflector's journal entries
- * across a lunar cycle. Shows patterns, shifts, and notable moments.
+ * Displays structured insights from the Reflector's journal entries
+ * across a lunar cycle. Shows patterns, emotional signals, and notable gates.
  * 
- * This component appears before the cycle completion modal to help
- * the user see their process before deciding to close or continue.
+ * IMPORTANT: This should only appear AFTER cycle completion, not during observation.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -20,34 +19,69 @@ import { useTheme } from '../../contexts/ThemeContext';
 import api from '../../services/api';
 
 // =============================================================================
-// TYPES
+// TYPES - Task 69
 // =============================================================================
+
+interface EmotionalSignals {
+  dominant_tone: 'excitement_dominant' | 'hesitation_dominant' | 'mixed' | 'neutral';
+  excitement_count: number;
+  hesitation_count: number;
+  summary: string;
+}
+
+interface EmotionalThemes {
+  excitement_themes: string[];
+  hesitation_themes: string[];
+}
+
+interface StrongestGate {
+  gate: number;
+  title: string;
+  insight: string;
+  entry_count: number;
+  longest_entry_preview?: string;
+}
 
 interface SynthesisData {
   success: boolean;
   has_synthesis: boolean;
+  is_low_data?: boolean;
   consideration_topic?: string;
+  cycle_completed?: boolean;
+  
+  // Cycle Overview
   entry_count?: number;
   days_observed?: number;
-  consistent_theme?: string;
+  gates_touched?: number;
+  
+  // Emotional Analysis
+  emotional_signals?: EmotionalSignals;
+  emotional_themes?: EmotionalThemes;
+  
+  // Gate Analysis
+  strongest_gate?: StrongestGate;
+  gate_significance_text?: string;
+  
+  // Pattern Insight
+  pattern_insight?: string;
   top_themes?: string[];
-  perspective_shifts?: string;
-  clarity_trend?: string;
-  clarity_direction?: string;
-  notable_gate_text?: string;
-  notable_gates?: Array<{
-    gate: number;
-    title: string;
-    entry_count: number;
-  }>;
-  reflection_summary?: string;
-  suggested_question?: string;
+  
+  // Reflection
+  reflection_question?: string;
+  
+  // Low data scenario
+  low_data_message?: string;
+  suggestion?: string;
+  
+  // Legacy fields for backward compatibility
+  consistent_theme?: string;
   message?: string;
 }
 
 interface LunarCycleSynthesisCardProps {
   userId: string;
   considerationId: string;
+  cycleCompleted?: boolean;
   onSynthesisLoaded?: (synthesis: SynthesisData | null) => void;
 }
 
@@ -59,16 +93,19 @@ const LUNAR_COLORS = {
   moonlight: '#C0C8D4',
   silver: '#A8B2C0',
   glow: 'rgba(192, 200, 212, 0.12)',
-  dimGlow: 'rgba(192, 200, 212, 0.08)',
+  dimGlow: 'rgba(192, 200, 212, 0.06)',
+  excitement: 'rgba(129, 199, 132, 0.15)',
+  hesitation: 'rgba(239, 154, 154, 0.15)',
 };
 
 // =============================================================================
-// COMPONENT
+// COMPONENT - Task 69
 // =============================================================================
 
 export default function LunarCycleSynthesisCard({
   userId,
   considerationId,
+  cycleCompleted = false,
   onSynthesisLoaded,
 }: LunarCycleSynthesisCardProps) {
   const { theme } = useTheme();
@@ -117,7 +154,7 @@ export default function LunarCycleSynthesisCard({
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={LUNAR_COLORS.moonlight} />
           <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-            Generating synthesis...
+            Generating insights...
           </Text>
         </View>
       </View>
@@ -125,7 +162,45 @@ export default function LunarCycleSynthesisCard({
   }
 
   if (error || !synthesis || !synthesis.has_synthesis) {
-    return null; // Don't show anything if there's no synthesis
+    return null;
+  }
+
+  // Low data scenario
+  if (synthesis.is_low_data) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <TouchableOpacity 
+          style={styles.header}
+          onPress={() => setExpanded(!expanded)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerIcon}>✦</Text>
+            <Text style={[styles.headerTitle, { color: LUNAR_COLORS.moonlight }]}>
+              OBSERVATION SUMMARY
+            </Text>
+          </View>
+          <Text style={[styles.expandIcon, { color: theme.textTertiary }]}>
+            {expanded ? '▲' : '▼'}
+          </Text>
+        </TouchableOpacity>
+
+        {expanded && (
+          <View style={styles.lowDataContent}>
+            <Text style={[styles.lowDataMessage, { color: theme.text }]}>
+              {synthesis.low_data_message}
+            </Text>
+            {synthesis.suggestion && (
+              <View style={[styles.suggestionBox, { backgroundColor: LUNAR_COLORS.dimGlow }]}>
+                <Text style={[styles.suggestionText, { color: theme.textSecondary }]}>
+                  💡 {synthesis.suggestion}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+      </View>
+    );
   }
 
   return (
@@ -148,131 +223,146 @@ export default function LunarCycleSynthesisCard({
       </TouchableOpacity>
 
       {expanded && (
-        <>
-          {/* Stats Row */}
-          <View style={[styles.statsRow, { borderBottomColor: theme.border }]}>
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: theme.text }]}>
-                {synthesis.entry_count}
-              </Text>
-              <Text style={[styles.statLabel, { color: theme.textTertiary }]}>
-                entries
-              </Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: theme.text }]}>
-                {synthesis.days_observed}
-              </Text>
-              <Text style={[styles.statLabel, { color: theme.textTertiary }]}>
-                days observed
-              </Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: theme.text }]}>
-                {synthesis.notable_gates?.length || 0}
-              </Text>
-              <Text style={[styles.statLabel, { color: theme.textTertiary }]}>
-                gates touched
-              </Text>
+        <View style={styles.synthesisContent}>
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 1: CYCLE OVERVIEW
+              ═══════════════════════════════════════════════════════════════ */}
+          <View style={[styles.overviewSection, { borderBottomColor: theme.border }]}>
+            <Text style={[styles.sectionLabel, { color: LUNAR_COLORS.silver }]}>
+              CYCLE OVERVIEW
+            </Text>
+            <Text style={[styles.overviewText, { color: theme.text }]}>
+              You observed this decision across:
+            </Text>
+            <View style={styles.overviewStats}>
+              <View style={styles.overviewStat}>
+                <Text style={[styles.overviewStatValue, { color: theme.text }]}>
+                  {synthesis.entry_count}
+                </Text>
+                <Text style={[styles.overviewStatLabel, { color: theme.textTertiary }]}>
+                  reflections
+                </Text>
+              </View>
+              <View style={[styles.overviewStatDivider, { backgroundColor: LUNAR_COLORS.dimGlow }]} />
+              <View style={styles.overviewStat}>
+                <Text style={[styles.overviewStatValue, { color: theme.text }]}>
+                  {synthesis.days_observed}
+                </Text>
+                <Text style={[styles.overviewStatLabel, { color: theme.textTertiary }]}>
+                  days
+                </Text>
+              </View>
+              <View style={[styles.overviewStatDivider, { backgroundColor: LUNAR_COLORS.dimGlow }]} />
+              <View style={styles.overviewStat}>
+                <Text style={[styles.overviewStatValue, { color: theme.text }]}>
+                  {synthesis.gates_touched}
+                </Text>
+                <Text style={[styles.overviewStatLabel, { color: theme.textTertiary }]}>
+                  lunar gates
+                </Text>
+              </View>
             </View>
           </View>
 
-          {/* Synthesis Sections */}
-          <View style={styles.synthesisContent}>
-            {/* What stayed consistent */}
-            {synthesis.consistent_theme && (
-              <View style={styles.section}>
-                <Text style={[styles.sectionLabel, { color: LUNAR_COLORS.silver }]}>
-                  WHAT STAYED CONSISTENT
-                </Text>
-                <Text style={[styles.sectionText, { color: theme.text }]}>
-                  {synthesis.consistent_theme}
-                </Text>
-              </View>
-            )}
-
-            {/* What shifted */}
-            {synthesis.perspective_shifts && (
-              <View style={styles.section}>
-                <Text style={[styles.sectionLabel, { color: LUNAR_COLORS.silver }]}>
-                  WHAT SHIFTED ACROSS THE CYCLE
-                </Text>
-                <Text style={[styles.sectionText, { color: theme.text }]}>
-                  {synthesis.perspective_shifts}
-                </Text>
-              </View>
-            )}
-
-            {/* Clarity trend */}
-            {synthesis.clarity_trend && (
-              <View style={styles.section}>
-                <Text style={[styles.sectionLabel, { color: LUNAR_COLORS.silver }]}>
-                  CLARITY
-                </Text>
-                <Text style={[styles.sectionText, { color: theme.text }]}>
-                  {synthesis.clarity_trend}
-                </Text>
-              </View>
-            )}
-
-            {/* Notable gates */}
-            {synthesis.notable_gates && synthesis.notable_gates.length > 0 && (
-              <View style={styles.section}>
-                <Text style={[styles.sectionLabel, { color: LUNAR_COLORS.silver }]}>
-                  NOTABLE GATES
-                </Text>
-                <Text style={[styles.sectionText, { color: theme.text }]}>
-                  {synthesis.notable_gate_text}
-                </Text>
-                <View style={styles.gatesRow}>
-                  {synthesis.notable_gates.map((gate) => (
-                    <View 
-                      key={gate.gate}
-                      style={[styles.gateBadge, { backgroundColor: LUNAR_COLORS.glow }]}
-                    >
-                      <Text style={[styles.gateBadgeNumber, { color: LUNAR_COLORS.moonlight }]}>
-                        {gate.gate}
-                      </Text>
-                      <Text style={[styles.gateBadgeTitle, { color: theme.textSecondary }]}>
-                        {gate.title}
-                      </Text>
-                    </View>
-                  ))}
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 2: EMOTIONAL SIGNALS
+              ═══════════════════════════════════════════════════════════════ */}
+          {synthesis.emotional_signals && (
+            <View style={[styles.section, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.sectionLabel, { color: LUNAR_COLORS.silver }]}>
+                EMOTIONAL SIGNALS
+              </Text>
+              <Text style={[styles.sectionText, { color: theme.text }]}>
+                {synthesis.emotional_signals.summary}
+              </Text>
+              
+              {/* Excitement Themes */}
+              {synthesis.emotional_themes?.excitement_themes && synthesis.emotional_themes.excitement_themes.length > 0 && (
+                <View style={styles.themeRow}>
+                  <View style={[styles.themeBadge, { backgroundColor: LUNAR_COLORS.excitement }]}>
+                    <Text style={[styles.themeBadgeLabel, { color: '#4CAF50' }]}>Excitement themes</Text>
+                  </View>
+                  <Text style={[styles.themeList, { color: theme.textSecondary }]}>
+                    {synthesis.emotional_themes.excitement_themes.join(', ')}
+                  </Text>
                 </View>
-              </View>
-            )}
+              )}
+              
+              {/* Hesitation Themes */}
+              {synthesis.emotional_themes?.hesitation_themes && synthesis.emotional_themes.hesitation_themes.length > 0 && (
+                <View style={styles.themeRow}>
+                  <View style={[styles.themeBadge, { backgroundColor: LUNAR_COLORS.hesitation }]}>
+                    <Text style={[styles.themeBadgeLabel, { color: '#EF5350' }]}>Hesitation themes</Text>
+                  </View>
+                  <Text style={[styles.themeList, { color: theme.textSecondary }]}>
+                    {synthesis.emotional_themes.hesitation_themes.join(', ')}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
 
-            {/* Summary */}
-            {synthesis.reflection_summary && (
-              <View style={[styles.summarySection, { backgroundColor: LUNAR_COLORS.dimGlow }]}>
-                <Text style={[styles.summaryText, { color: theme.text }]}>
-                  {synthesis.reflection_summary}
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 3: NOTABLE GATE
+              ═══════════════════════════════════════════════════════════════ */}
+          {synthesis.strongest_gate && (
+            <View style={[styles.section, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.sectionLabel, { color: LUNAR_COLORS.silver }]}>
+                NOTABLE GATE
+              </Text>
+              <View style={[styles.gateCard, { backgroundColor: LUNAR_COLORS.dimGlow }]}>
+                <Text style={[styles.gateTitle, { color: theme.text }]}>
+                  Gate {synthesis.strongest_gate.gate} — {synthesis.strongest_gate.title}
                 </Text>
+                <Text style={[styles.gateInsight, { color: theme.textSecondary }]}>
+                  {synthesis.strongest_gate.insight}
+                </Text>
+                {synthesis.strongest_gate.longest_entry_preview && (
+                  <View style={styles.gateQuoteBox}>
+                    <Text style={[styles.gateQuote, { color: theme.textTertiary }]}>
+                      Your reflection: "{synthesis.strongest_gate.longest_entry_preview}"
+                    </Text>
+                  </View>
+                )}
               </View>
-            )}
+            </View>
+          )}
 
-            {/* Reflection Question */}
-            {synthesis.suggested_question && (
-              <View style={[styles.questionSection, { borderTopColor: theme.border }]}>
-                <Text style={[styles.questionLabel, { color: LUNAR_COLORS.silver }]}>
-                  REFLECTION
-                </Text>
-                <Text style={[styles.questionText, { color: theme.textSecondary }]}>
-                  {synthesis.suggested_question}
-                </Text>
-              </View>
-            )}
-          </View>
-        </>
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 4: PATTERN INSIGHT
+              ═══════════════════════════════════════════════════════════════ */}
+          {synthesis.pattern_insight && (
+            <View style={[styles.section, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.sectionLabel, { color: LUNAR_COLORS.silver }]}>
+                PATTERN INSIGHT
+              </Text>
+              <Text style={[styles.patternText, { color: theme.text }]}>
+                {synthesis.pattern_insight}
+              </Text>
+            </View>
+          )}
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 5: REFLECTION QUESTION
+              ═══════════════════════════════════════════════════════════════ */}
+          {synthesis.reflection_question && (
+            <View style={styles.questionSection}>
+              <Text style={[styles.sectionLabel, { color: LUNAR_COLORS.silver }]}>
+                REFLECTION
+              </Text>
+              <Text style={[styles.questionText, { color: theme.textSecondary }]}>
+                {synthesis.reflection_question}
+              </Text>
+            </View>
+          )}
+        </View>
       )}
     </View>
   );
 }
 
 // =============================================================================
-// STYLES
+// STYLES - Task 69
 // =============================================================================
 
 const styles = StyleSheet.create({
@@ -313,89 +403,139 @@ const styles = StyleSheet.create({
   expandIcon: {
     fontSize: 10,
   },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    marginHorizontal: 16,
+  synthesisContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
-  statItem: {
+  
+  // Overview Section
+  overviewSection: {
+    paddingBottom: 16,
+    marginBottom: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  overviewText: {
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  overviewStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  statValue: {
-    fontSize: 18,
+  overviewStat: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  overviewStatValue: {
+    fontSize: 22,
     fontWeight: '600',
   },
-  statLabel: {
+  overviewStatLabel: {
     fontSize: 11,
     marginTop: 2,
   },
-  statDivider: {
+  overviewStatDivider: {
     width: 1,
-    backgroundColor: 'rgba(192, 200, 212, 0.2)',
+    height: 30,
   },
-  synthesisContent: {
-    padding: 16,
-    paddingTop: 12,
-  },
+  
+  // Section styles
   section: {
+    paddingBottom: 16,
     marginBottom: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   sectionLabel: {
     fontSize: 10,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   sectionText: {
     fontSize: 14,
     lineHeight: 21,
   },
-  gatesRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 10,
+  
+  // Emotional themes
+  themeRow: {
+    marginTop: 12,
   },
-  gateBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignItems: 'center',
+  themeBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
   },
-  gateBadgeNumber: {
-    fontSize: 14,
+  themeBadgeLabel: {
+    fontSize: 11,
     fontWeight: '600',
   },
-  gateBadgeTitle: {
-    fontSize: 10,
-    marginTop: 2,
+  themeList: {
+    fontSize: 13,
+    lineHeight: 18,
   },
-  summarySection: {
-    padding: 14,
+  
+  // Gate card
+  gateCard: {
     borderRadius: 10,
-    marginBottom: 16,
+    padding: 14,
   },
-  summaryText: {
-    fontSize: 14,
-    lineHeight: 21,
+  gateTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  gateInsight: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  gateQuoteBox: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(192, 200, 212, 0.2)',
+  },
+  gateQuote: {
+    fontSize: 12,
+    lineHeight: 17,
     fontStyle: 'italic',
   },
-  questionSection: {
-    paddingTop: 14,
-    borderTopWidth: StyleSheet.hairlineWidth,
+  
+  // Pattern
+  patternText: {
+    fontSize: 14,
+    lineHeight: 21,
   },
-  questionLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginBottom: 8,
+  
+  // Question
+  questionSection: {
+    paddingTop: 4,
   },
   questionText: {
     fontSize: 15,
     lineHeight: 23,
     fontStyle: 'italic',
+  },
+  
+  // Low data scenario
+  lowDataContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  lowDataMessage: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  suggestionBox: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 8,
+  },
+  suggestionText: {
+    fontSize: 13,
+    lineHeight: 18,
   },
 });
 
