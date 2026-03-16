@@ -835,38 +835,140 @@ export default function JournalScreen() {
     // Task 64: Decision-first tracker UX with multiple decisions support
     // Task 65: Use activeDecision as single source of truth for all lunar components
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // TASK 70: Single Source of Truth for Cycle Day
-    // ═══════════════════════════════════════════════════════════════════════
-    // Compute a single, canonical cycle day value that ALL UI components use.
-    // Priority: activeDecision.days_in_cycle > calculated from cycle_start > lunarStatus.lunar_day > 1
-    const canonicalCycleDay = (() => {
-      // First, try to use activeDecision's days_in_cycle (most accurate for this decision)
-      if (activeDecision?.days_in_cycle && activeDecision.days_in_cycle > 0) {
-        return Math.round(activeDecision.days_in_cycle);
-      }
-      // Fallback: calculate from cycle_start if available
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TASK 70 FIX: SINGLE RESOLVED CYCLE STATE OBJECT
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ALL Lunar UI components MUST read from this single resolved state object.
+    // This eliminates inconsistencies between different data sources.
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    interface ResolvedCycleState {
+      decision_id: string | null;
+      decision_topic: string | null;
+      cycle_start_date: string | null;
+      cycle_length: number;
+      cycle_day: number;
+      phase: 'observation' | 'nearing_completion' | 'completed';
+      today_gate: number | null;
+      today_line: number | null;
+      completion_eligible: boolean;
+      completion_reason: string | null;
+      source_debug: {
+        cycle_day_source: string;
+        used_days_in_cycle: number | null;
+        used_cycle_start: string | null;
+        used_lunar_day: number | null;
+        decision_status: string | null;
+      };
+    }
+
+    // Compute the single resolved cycle state
+    const resolvedCycleState: ResolvedCycleState = (() => {
+      const CYCLE_LENGTH = 29.53;
+      
+      // Debug tracking
+      const sourceDebug: ResolvedCycleState['source_debug'] = {
+        cycle_day_source: 'default',
+        used_days_in_cycle: activeDecision?.days_in_cycle || null,
+        used_cycle_start: activeDecision?.cycle_start || null,
+        used_lunar_day: lunarStatus?.lunar_day || null,
+        decision_status: null,
+      };
+      
+      // Find decision status from active_considerations
+      const decisionFromList = lunarStatus?.active_considerations?.find(
+        (d: any) => d.id === activeDecision?.id
+      );
+      sourceDebug.decision_status = decisionFromList?.status || activeDecision?.status || null;
+      
+      // Step 1: Determine cycle_day from the DECISION's perspective
+      // Priority: calculated from cycle_start > days_in_cycle > fallback to 1
+      let cycle_day = 1;
+      
+      // BEST: Calculate from decision's cycle_start (most accurate)
       if (activeDecision?.cycle_start) {
         const startDate = new Date(activeDecision.cycle_start);
         const now = new Date();
         const diffMs = now.getTime() - startDate.getTime();
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
-        return Math.min(Math.max(diffDays, 1), 30); // Clamp between 1 and 30
+        cycle_day = Math.min(Math.max(diffDays, 1), 30);
+        sourceDebug.cycle_day_source = 'calculated_from_cycle_start';
       }
-      // Fallback: use lunarStatus.lunar_day (global lunar day, less specific)
-      if (lunarStatus?.lunar_day) {
-        return Math.round(lunarStatus.lunar_day);
+      // FALLBACK: Use days_in_cycle from activeDecision (may be stale)
+      else if (activeDecision?.days_in_cycle && activeDecision.days_in_cycle > 0) {
+        cycle_day = Math.round(activeDecision.days_in_cycle);
+        sourceDebug.cycle_day_source = 'activeDecision.days_in_cycle';
       }
-      // Default
-      return 1;
+      // LAST RESORT: Default to 1 for new decisions
+      else {
+        cycle_day = 1;
+        sourceDebug.cycle_day_source = 'default_new_decision';
+      }
+      
+      // Step 2: Determine phase based ONLY on cycle_day and explicit completion status
+      let phase: ResolvedCycleState['phase'] = 'observation';
+      let completion_eligible = false;
+      let completion_reason: string | null = null;
+      
+      // Check if explicitly completed
+      const isExplicitlyCompleted = sourceDebug.decision_status === 'completed';
+      
+      if (isExplicitlyCompleted) {
+        phase = 'completed';
+        completion_eligible = false; // Already completed
+        completion_reason = 'Decision cycle has been completed';
+      } else if (cycle_day >= 21) {
+        phase = 'nearing_completion';
+        completion_eligible = true;
+        completion_reason = `Day ${cycle_day} of ~29 - eligible for completion reflection`;
+      } else {
+        phase = 'observation';
+        completion_eligible = false;
+        completion_reason = `Day ${cycle_day} - continue observing until Day 21+`;
+      }
+      
+      // Step 3: Get today's gate from lunarStatus (this is global/astronomical, which is correct)
+      const today_gate = lunarStatus?.current_gate || null;
+      const today_line = lunarStatus?.current_line || null;
+      
+      return {
+        decision_id: activeDecision?.id || null,
+        decision_topic: activeDecision?.topic || null,
+        cycle_start_date: activeDecision?.cycle_start || null,
+        cycle_length: CYCLE_LENGTH,
+        cycle_day,
+        phase,
+        today_gate,
+        today_line,
+        completion_eligible,
+        completion_reason,
+        source_debug: sourceDebug,
+      };
     })();
 
-    // Get gate explanation for today's gate
-    const currentGate = lunarStatus?.current_gate || null;
-    const gateExplanation = getGateExplanation(currentGate);
+    // Log resolved state for debugging
+    console.log('[Lunar] Resolved Cycle State:', {
+      cycle_day: resolvedCycleState.cycle_day,
+      phase: resolvedCycleState.phase,
+      completion_eligible: resolvedCycleState.completion_eligible,
+      source: resolvedCycleState.source_debug.cycle_day_source,
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // DERIVED VALUES FROM RESOLVED STATE (all UI must use these)
+    // ═══════════════════════════════════════════════════════════════════════════
+    const gateExplanation = getGateExplanation(resolvedCycleState.today_gate);
     
     // Task 68: Show instruction card only when user has few reflections
     const hasReflections = activeDecision?.entry_count && activeDecision.entry_count > 0;
+    
+    // Historical view state (separate from today state)
+    // Used when user taps a historical segment or reflection entry
+    const [selectedHistoricalEntry, setSelectedHistoricalEntry] = useState<{
+      cycle_day: number;
+      gate: number | null;
+      entry_id: string;
+    } | null>(null);
 
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
