@@ -106,7 +106,44 @@ const LUNAR_COLORS = {
   dimGlow: 'rgba(192, 200, 212, 0.06)',
   excitement: 'rgba(129, 199, 132, 0.15)',
   hesitation: 'rgba(239, 154, 154, 0.15)',
+  // Momentum colors (Task 70)
+  momentumPositive: '#4CAF50',
+  momentumMixed: '#FFA726',
+  momentumResistant: '#EF5350',
+  momentumUnclear: '#A8B2C0',
 };
+
+// =============================================================================
+// HELPER FUNCTIONS - Task 70
+// =============================================================================
+
+function getMomentumColor(state: string, level: number): string {
+  switch (state) {
+    case 'strong_positive':
+    case 'positive':
+      return LUNAR_COLORS.momentumPositive;
+    case 'mixed':
+      return LUNAR_COLORS.momentumMixed;
+    case 'resistant':
+      return LUNAR_COLORS.momentumResistant;
+    default:
+      return LUNAR_COLORS.momentumUnclear;
+  }
+}
+
+function getMomentumTextColor(state: string): string {
+  switch (state) {
+    case 'strong_positive':
+    case 'positive':
+      return '#81C784'; // Lighter green for text
+    case 'mixed':
+      return '#FFB74D'; // Lighter orange
+    case 'resistant':
+      return '#EF9A9A'; // Lighter red
+    default:
+      return LUNAR_COLORS.silver;
+  }
+}
 
 // =============================================================================
 // COMPONENT - Task 69
