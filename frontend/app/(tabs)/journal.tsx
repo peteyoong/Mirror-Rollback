@@ -122,6 +122,16 @@ const getGateExplanation = (gateNumber: number | null): GateExplanation | null =
 };
 
 // Helper to get cycle phase description
+const getCyclePhase = (day: number): string => {
+  if (day <= 3) return 'Beginning of observation cycle';
+  if (day <= 7) return 'Early observation phase';
+  if (day <= 14) return 'First half of cycle';
+  if (day <= 21) return 'Deepening observation';
+  if (day <= 26) return 'Approaching clarity';
+  return 'Cycle completion approaching';
+};
+
+// Helper to get cycle phase description
 const getCyclePhase = (dayInCycle: number): string => {
   if (dayInCycle <= 7) return 'New Moon Phase';
   if (dayInCycle <= 14) return 'Waxing Phase';
