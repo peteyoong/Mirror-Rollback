@@ -203,6 +203,15 @@ export default function LunarDecisionWheel({
   };
 
   // Render wheel segments
+  // ═══════════════════════════════════════════════════════════════════════════
+  // THREE VISUAL STATES:
+  // A. Today's Gate - STRONGEST highlight (bright border, active fill)
+  //    Only ONE segment should have this - resolvedCycleState.today_gate
+  // B. Historical Entry Marker - SUBTLE dot only (no segment highlight)
+  //    Just indicates a past reflection exists
+  // C. Selected Historical - Secondary muted highlight (only when user taps)
+  //    Distinct from today's style
+  // ═══════════════════════════════════════════════════════════════════════════
   const renderSegments = () => {
     const segments = [];
     const anglePerDay = 360 / TOTAL_DAYS;
@@ -211,33 +220,65 @@ export default function LunarDecisionWheel({
     for (let day = 1; day <= TOTAL_DAYS; day++) {
       const startAngle = (day - 1) * anglePerDay;
       const endAngle = day * anglePerDay;
-      const isCurrentDay = day === currentDayRounded;
       const hasEntries = entriesByDay.has(day);
       const entryCount = entriesByDay.get(day)?.length || 0;
       const isPast = day < currentDayRounded;
       
       const gateInfo = GATE_SEQUENCE[day] || { gate: 0, title: '' };
       
-      // TASK 70 FIX: Highlight today's segment based on currentGate prop, not just day
-      // The wheel shows GATE numbers - so highlight segment where gateInfo.gate matches currentGate
-      const isCurrentGateSegment = currentGate !== null && gateInfo.gate === currentGate;
+      // ═══════════════════════════════════════════════════════════════════════
+      // STATE A: Today's Gate (ONLY highlight for currentGate)
+      // This is the ONLY segment that should be strongly highlighted
+      // ═══════════════════════════════════════════════════════════════════════
+      const isTodayGate = currentGate !== null && gateInfo.gate === currentGate;
       
-      // Segment fill color - prioritize current gate highlight
+      // ═══════════════════════════════════════════════════════════════════════
+      // STATE C: Selected Historical (when user tapped this segment)
+      // Visually distinct from today - muted highlight
+      // ═══════════════════════════════════════════════════════════════════════
+      const isSelectedHistorical = selectedDay === day && !isTodayGate;
+      
+      // ═══════════════════════════════════════════════════════════════════════
+      // SEGMENT FILL COLOR
+      // - Today gate: bright glow (strongest)
+      // - Selected historical: very subtle glow (secondary)
+      // - Past days: barely visible
+      // - Historical entries: NO special fill (dots only indicate entries)
+      // ═══════════════════════════════════════════════════════════════════════
       let fillColor = theme.surface;
-      if (isCurrentDay || isCurrentGateSegment) {
-        fillColor = LUNAR_COLORS.glow;
-      } else if (hasEntries) {
-        fillColor = LUNAR_COLORS.dimGlow;
+      if (isTodayGate) {
+        fillColor = LUNAR_COLORS.glow; // Strongest - today's gate
+      } else if (isSelectedHistorical) {
+        fillColor = 'rgba(192, 200, 212, 0.08)'; // Muted - selected historical
       } else if (isPast) {
-        fillColor = 'rgba(255,255,255,0.02)';
+        fillColor = 'rgba(255,255,255,0.02)'; // Very subtle past
       }
+      // NOTE: Historical entries with reflections do NOT get special fill
+      // They only get the dot marker below
 
       // Calculate label position
       const midAngle = startAngle + anglePerDay / 2;
       const labelPos = polarToCartesian(CENTER, CENTER, GATE_LABEL_RADIUS, midAngle);
 
-      // Highlight stroke if current gate
-      const isHighlighted = isCurrentDay || isCurrentGateSegment;
+      // ═══════════════════════════════════════════════════════════════════════
+      // STROKE STYLING
+      // - Today gate: bright border (2px, moonlight color)
+      // - Selected historical: muted border (1.5px, silver)
+      // - All others: minimal border (0.5px)
+      // ═══════════════════════════════════════════════════════════════════════
+      let strokeColor = theme.border;
+      let strokeWidth = 0.5;
+      if (isTodayGate) {
+        strokeColor = LUNAR_COLORS.moonlight;
+        strokeWidth = 2;
+      } else if (isSelectedHistorical) {
+        strokeColor = LUNAR_COLORS.silver;
+        strokeWidth = 1.5;
+      }
+
+      // Text styling - only today gate gets bright text
+      const textColor = isTodayGate ? LUNAR_COLORS.moonlight : theme.textTertiary;
+      const textWeight = isTodayGate ? '700' : '500';
 
       segments.push(
         <G key={day}>
@@ -245,8 +286,8 @@ export default function LunarDecisionWheel({
           <Path
             d={describeArc(CENTER, CENTER, OUTER_RADIUS, INNER_RADIUS, startAngle, endAngle)}
             fill={fillColor}
-            stroke={isHighlighted ? LUNAR_COLORS.moonlight : theme.border}
-            strokeWidth={isHighlighted ? 2 : 0.5}
+            stroke={strokeColor}
+            strokeWidth={strokeWidth}
             onPress={() => handleDayPress(day)}
           />
           
@@ -254,31 +295,35 @@ export default function LunarDecisionWheel({
           <SvgText
             x={labelPos.x}
             y={labelPos.y - 6}
-            fill={isHighlighted ? LUNAR_COLORS.moonlight : theme.textTertiary}
+            fill={textColor}
             fontSize={9}
-            fontWeight={isHighlighted ? '700' : '500'}
+            fontWeight={textWeight}
             textAnchor="middle"
           >
             {gateInfo.gate}
           </SvgText>
           
-          {/* Entry Marker */}
+          {/* ═══════════════════════════════════════════════════════════════
+              STATE B: Historical Entry Marker (SUBTLE DOT ONLY)
+              This indicates a reflection exists on this day
+              Does NOT make the segment look "active" or "highlighted"
+              ═══════════════════════════════════════════════════════════════ */}
           {hasEntries && (
             <Circle
               cx={labelPos.x}
               cy={labelPos.y + 10}
-              r={entryCount > 1 ? 8 : 5}
-              fill={LUNAR_COLORS.moonlight}
+              r={entryCount > 1 ? 6 : 4}
+              fill={isTodayGate ? LUNAR_COLORS.moonlight : 'rgba(168, 178, 192, 0.6)'}
             />
           )}
           
-          {/* Entry Count Badge */}
+          {/* Entry Count Badge (subtle) */}
           {entryCount > 1 && (
             <SvgText
               x={labelPos.x}
-              y={labelPos.y + 13}
-              fill="#1A1D24"
-              fontSize={8}
+              y={labelPos.y + 12}
+              fill={isTodayGate ? '#1A1D24' : '#1A1D24'}
+              fontSize={7}
               fontWeight="700"
               textAnchor="middle"
             >
