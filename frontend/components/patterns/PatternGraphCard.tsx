@@ -647,13 +647,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   sourcePillText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  noSourcesText: {
     fontSize: 12,
-    fontWeight: '500',
+    marginBottom: 8,
   },
   stubNote: {
     fontSize: 11,
     fontStyle: 'italic',
-    marginTop: 4,
+    marginTop: 8,
   },
 
   // Debug
