@@ -76,14 +76,6 @@ const HINT_CHIPS = [
   'Crisis',
 ];
 
-// Impact levels
-const IMPACT_LEVELS = [
-  { value: 3, label: 'Minor', color: '#90A4AE' },
-  { value: 5, label: 'Moderate', color: '#FFB74D' },
-  { value: 7, label: 'Significant', color: '#64B5F6' },
-  { value: 10, label: 'Life-changing', color: '#81C784' },
-];
-
 // =============================================================================
 // TYPES
 // =============================================================================
