@@ -594,6 +594,31 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   
+  // Decision Momentum (Task 70)
+  momentumContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 12,
+  },
+  momentumIndicator: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  momentumDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  momentumLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  momentumDescription: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  
   // Question
   questionSection: {
     paddingTop: 4,
