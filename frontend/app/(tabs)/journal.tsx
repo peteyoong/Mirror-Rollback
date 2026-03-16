@@ -1129,20 +1129,20 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 9: CYCLE COMPLETION BANNER (Task 67)
+                  SECTION 9: CYCLE COMPLETION BANNER (Task 68: Improved copy)
                   Only shows when cycle is eligible for completion.
                   User must explicitly tap to open completion modal.
                   ═══════════════════════════════════════════════════════════════ */}
               {lunarStatus?.is_near_new_moon && activeDecision && lunarStatus?.show_cycle_completion && (
-                <View style={[styles.cycleCompletionBanner, { backgroundColor: 'rgba(192, 200, 212, 0.1)', borderColor: theme.border }]}>
+                <View style={[styles.cycleCompletionBanner, { backgroundColor: 'rgba(192, 200, 212, 0.08)', borderColor: theme.border }]}>
                   <View style={styles.cycleCompletionBannerContent}>
                     <Text style={[styles.cycleCompletionBannerIcon]}>🌑</Text>
                     <View style={styles.cycleCompletionBannerText}>
                       <Text style={[styles.cycleCompletionBannerTitle, { color: theme.text }]}>
-                        Lunar Cycle Completing
+                        Cycle Nearing Completion
                       </Text>
                       <Text style={[styles.cycleCompletionBannerSubtitle, { color: theme.textSecondary }]}>
-                        Day {Math.round(lunarStatus.lunar_day || 27)} of 29.5 • Ready for synthesis
+                        You are approaching the end of this lunar observation cycle.
                       </Text>
                     </View>
                   </View>
@@ -1153,7 +1153,7 @@ export default function JournalScreen() {
                       setShowCycleCompletion(true);
                     }}
                   >
-                    <Text style={styles.cycleCompletionBannerButtonText}>Complete Cycle</Text>
+                    <Text style={styles.cycleCompletionBannerButtonText}>Complete Cycle Reflection</Text>
                   </TouchableOpacity>
                 </View>
               )}
