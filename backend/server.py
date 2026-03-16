@@ -20110,6 +20110,61 @@ async def get_lunar_cycle_synthesis(user_id: str, consideration_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Task 70: Pattern Engine Debug Endpoint
+@api_router.get("/lunar-journal/{user_id}/pattern-debug/{consideration_id}")
+async def get_pattern_debug(user_id: str, consideration_id: str, debug_key: str = None):
+    """
+    Get debug information about pattern analysis for a decision.
+    Developer-facing only - requires debug key.
+    """
+    # Simple dev check - in production this would be more secure
+    if debug_key != "mirror-dev-2026":
+        raise HTTPException(status_code=403, detail="Debug access requires valid key")
+    
+    if not ObjectId.is_valid(user_id) or not ObjectId.is_valid(consideration_id):
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    try:
+        from services.pattern_engine import get_debug_pattern_analysis
+        result = await get_debug_pattern_analysis(db, user_id, consideration_id)
+        return result
+    except Exception as e:
+        logger.error(f"[PatternDebug] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Task 70: Pattern Snapshot Endpoint
+@api_router.get("/lunar-journal/{user_id}/pattern-snapshot/{consideration_id}")
+async def get_pattern_snapshot(user_id: str, consideration_id: str):
+    """
+    Get lightweight pattern snapshot for a decision.
+    """
+    if not ObjectId.is_valid(user_id) or not ObjectId.is_valid(consideration_id):
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    try:
+        from services.pattern_engine import get_decision_pattern_snapshot
+        snapshot = await get_decision_pattern_snapshot(db, user_id, consideration_id)
+        return {
+            "success": True,
+            "decision_id": snapshot.decision_id,
+            "decision_topic": snapshot.decision_topic,
+            "data_sufficiency": snapshot.data_sufficiency,
+            "entry_count": snapshot.entry_count,
+            "days_observed": snapshot.days_observed,
+            "dominant_signals": snapshot.dominant_signals,
+            "repeated_tags": snapshot.repeated_tags,
+            "strongest_gate": snapshot.strongest_gate,
+            "momentum": snapshot.momentum,
+            "excitement_score": snapshot.excitement_score,
+            "hesitation_score": snapshot.hesitation_score,
+            "confidence": snapshot.confidence,
+        }
+    except Exception as e:
+        logger.error(f"[PatternSnapshot] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
