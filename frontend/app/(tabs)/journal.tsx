@@ -1695,4 +1695,129 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
   },
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Task 63: Decision-First Lunar UX Styles
+  // ═══════════════════════════════════════════════════════════════════════════
+  decisionsSectionHeader: {
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  decisionsSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 4,
+    letterSpacing: -0.3,
+  },
+  decisionsSectionSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  decisionCard: {
+    borderRadius: 12,
+    borderWidth: 1.5,
+    padding: 14,
+    marginBottom: 12,
+  },
+  decisionCardActive: {
+    borderWidth: 1.5,
+  },
+  decisionCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  decisionCardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(192, 200, 212, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  decisionCardText: {
+    flex: 1,
+  },
+  decisionCardTopic: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  decisionCardDays: {
+    fontSize: 12,
+  },
+  decisionCardBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  decisionCardBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#81C784',
+  },
+  decisionCardProgress: {
+    height: 3,
+    borderRadius: 1.5,
+    marginTop: 12,
+    overflow: 'hidden',
+  },
+  decisionCardProgressFill: {
+    height: '100%',
+    backgroundColor: '#C0C8D4',
+    borderRadius: 1.5,
+  },
+  noDecisionsCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 24,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  noDecisionsTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  noDecisionsText: {
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+  },
+  addDecisionSection: {
+    marginBottom: 8,
+  },
+  decisionLimitNote: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginBottom: 16,
+  },
+  decisionLimitNoteText: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    lineHeight: 17,
+  },
+  selectedDecisionCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 16,
+  },
+  selectedDecisionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  selectedDecisionTopic: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 6,
+    lineHeight: 22,
+  },
+  selectedDecisionDays: {
+    fontSize: 13,
+    fontStyle: 'italic',
+  },
 });
