@@ -865,21 +865,30 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 1: DECISION SELECTOR (Compact)
+                  SECTION 1: DECISION SELECTOR (Task 68: Improved pill row)
                   ═══════════════════════════════════════════════════════════════ */}
               {lunarStatus?.active_considerations && lunarStatus.active_considerations.length > 1 && (
                 <View style={styles.decisionSelectorSection}>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.decisionSelectorScroll}>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false} 
+                    style={styles.decisionSelectorScroll}
+                    contentContainerStyle={styles.decisionSelectorScrollContent}
+                  >
                     {lunarStatus.active_considerations.map((decision: any) => {
                       const isSelected = decision.id === activeDecision?.id;
+                      const displayText = decision.topic.length > 28 
+                        ? decision.topic.substring(0, 28) + '…' 
+                        : decision.topic;
                       return (
                         <TouchableOpacity
                           key={decision.id}
                           style={[
                             styles.decisionSelectorPill,
                             { 
-                              backgroundColor: isSelected ? 'rgba(192, 200, 212, 0.2)' : theme.surface,
+                              backgroundColor: isSelected ? 'rgba(192, 200, 212, 0.25)' : theme.surface,
                               borderColor: isSelected ? '#C0C8D4' : theme.border,
+                              borderWidth: isSelected ? 1.5 : 1,
                             },
                           ]}
                           onPress={() => setSelectedDecisionId(decision.id)}
@@ -887,11 +896,13 @@ export default function JournalScreen() {
                         >
                           <Text style={[
                             styles.decisionSelectorText,
-                            { color: isSelected ? '#C0C8D4' : theme.textSecondary }
+                            { 
+                              color: isSelected ? '#E8EBF0' : theme.textSecondary,
+                              fontWeight: isSelected ? '600' : '400',
+                            }
                           ]} numberOfLines={1}>
-                            {decision.topic.length > 25 ? decision.topic.substring(0, 25) + '...' : decision.topic}
+                            {displayText}
                           </Text>
-                          {isSelected && <Text style={styles.decisionSelectorDot}>●</Text>}
                         </TouchableOpacity>
                       );
                     })}
