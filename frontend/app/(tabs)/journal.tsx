@@ -1141,7 +1141,7 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 8: ADD ANOTHER DECISION
+                  SECTION 9: ADD ANOTHER DECISION
                   ═══════════════════════════════════════════════════════════════ */}
               {activeDecision && (
                 <View style={styles.addAnotherSection}>
@@ -1159,37 +1159,7 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 9: CYCLE COMPLETION BANNER (Task 68: Improved copy)
-                  Only shows when cycle is eligible for completion.
-                  User must explicitly tap to open completion modal.
-                  ═══════════════════════════════════════════════════════════════ */}
-              {lunarStatus?.is_near_new_moon && activeDecision && lunarStatus?.show_cycle_completion && (
-                <View style={[styles.cycleCompletionBanner, { backgroundColor: 'rgba(192, 200, 212, 0.08)', borderColor: theme.border }]}>
-                  <View style={styles.cycleCompletionBannerContent}>
-                    <Text style={[styles.cycleCompletionBannerIcon]}>🌑</Text>
-                    <View style={styles.cycleCompletionBannerText}>
-                      <Text style={[styles.cycleCompletionBannerTitle, { color: theme.text }]}>
-                        Cycle Nearing Completion
-                      </Text>
-                      <Text style={[styles.cycleCompletionBannerSubtitle, { color: theme.textSecondary }]}>
-                        You are approaching the end of this lunar observation cycle.
-                      </Text>
-                    </View>
-                  </View>
-                  <TouchableOpacity
-                    style={[styles.cycleCompletionBannerButton, { backgroundColor: '#C0C8D4' }]}
-                    onPress={() => {
-                      console.log('[Lunar] User tapped Complete Cycle button');
-                      setShowCycleCompletion(true);
-                    }}
-                  >
-                    <Text style={styles.cycleCompletionBannerButtonText}>Complete Cycle Reflection</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 10: LUNAR CYCLE SYNTHESIS (Task 69)
+                  SECTION 10: LUNAR CYCLE SYNTHESIS (Task 70: Enhanced)
                   Only shows AFTER cycle completion, NOT during observation phase.
                   Phase 1 (Day 1-20): No synthesis
                   Phase 2 (Day 21-29): Only show completion banner
