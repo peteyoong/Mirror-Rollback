@@ -76,6 +76,51 @@ interface KeystoneContext {
 
 type ViewMode = 'journal' | 'mirror' | 'timeline' | 'lunar' | 'lunar-history';
 
+// =============================================================================
+// GATE EXPLANATIONS - Human Design Gate Meanings for Lunar Cycle
+// =============================================================================
+interface GateExplanation {
+  gate: number;
+  title: string;
+  theme: string;
+  observation: string;
+  reflectionQuestion: string;
+}
+
+const GATE_EXPLANATIONS: { [key: number]: GateExplanation } = {
+  1: { gate: 1, title: 'Self-Expression', theme: 'Creative individuality and self-expression.', observation: 'Notice any urges to express yourself authentically around this decision.', reflectionQuestion: 'What unique perspective do I bring to this choice?' },
+  2: { gate: 2, title: 'The Direction of Self', theme: 'Receptivity and knowing your own direction.', observation: 'Notice what direction feels natural without forcing.', reflectionQuestion: 'What direction am I naturally drawn to?' },
+  3: { gate: 3, title: 'Ordering', theme: 'Innovation through chaos and new beginnings.', observation: 'Notice what needs to be ordered or organized in this decision.', reflectionQuestion: 'What new order wants to emerge?' },
+  13: { gate: 13, title: 'The Listener', theme: 'Listening and collecting experiences.', observation: 'Notice what stories or experiences inform this decision.', reflectionQuestion: 'What have I learned from past experiences that applies here?' },
+  17: { gate: 17, title: 'Opinions', theme: 'Following and sharing opinions.', observation: 'Notice what opinions you hold about this decision.', reflectionQuestion: 'What opinions am I holding, and are they truly mine?' },
+  19: { gate: 19, title: 'Wanting', theme: 'Sensitivity to needs and resources.', observation: 'Notice what you truly need from this decision.', reflectionQuestion: 'What do I genuinely need, versus what do I think I should want?' },
+  21: { gate: 21, title: 'The Hunter', theme: 'Control and biting through obstacles.', observation: 'Notice what obstacles stand in the way of this decision.', reflectionQuestion: 'What am I willing to fight for?' },
+  22: { gate: 22, title: 'Openness', theme: 'Grace and emotional openness.', observation: 'Notice how emotionally open you feel about this decision.', reflectionQuestion: 'Can I approach this with grace and openness?' },
+  25: { gate: 25, title: 'Innocence', theme: 'Universal love and innocence.', observation: 'Notice what feels innocent or pure about this choice.', reflectionQuestion: 'What would I choose if I had no fear?' },
+  27: { gate: 27, title: 'Caring', theme: 'Nourishment and caring for others.', observation: 'Notice who else is affected by this decision.', reflectionQuestion: 'How does this decision impact those I care for?' },
+  30: { gate: 30, title: 'Feelings', theme: 'Recognition of feelings and desire for new experience.', observation: 'Notice the feelings this decision brings up.', reflectionQuestion: 'What new experiences am I longing for?' },
+  36: { gate: 36, title: 'Crisis', theme: 'Emotional exploration through crisis.', observation: 'Notice any sense of crisis or urgency around this decision.', reflectionQuestion: 'Is this truly urgent, or can I wait for clarity?' },
+  37: { gate: 37, title: 'Friendship', theme: 'Family and community bonds.', observation: 'Notice how this decision affects your community and relationships.', reflectionQuestion: 'How does this align with my values around family and friendship?' },
+  41: { gate: 41, title: 'Contraction', theme: 'Beginning of a new experiential cycle.', observation: 'Notice what desires or imagined experiences arise around this decision.', reflectionQuestion: 'What future experience do I imagine this decision might create?' },
+  42: { gate: 42, title: 'Growth', theme: 'Completion and growth through experience.', observation: 'Notice what cycle is completing or growing.', reflectionQuestion: 'What is ready to be completed before I move forward?' },
+  49: { gate: 49, title: 'Principles', theme: 'Revolution and principles.', observation: 'Notice what principles guide this decision.', reflectionQuestion: 'What principles am I unwilling to compromise?' },
+  51: { gate: 51, title: 'Shock', theme: 'Initiative and shock of the new.', observation: 'Notice what feels shocking or initiating about this choice.', reflectionQuestion: 'Am I ready to initiate something new?' },
+  55: { gate: 55, title: 'Spirit', theme: 'Emotional abundance and spirit.', observation: 'Notice the emotional energy around this decision.', reflectionQuestion: 'Does this choice fill my spirit or deplete it?' },
+  63: { gate: 63, title: 'Doubt', theme: 'Logical doubt and pressure to know.', observation: 'Notice what doubts arise and whether they serve you.', reflectionQuestion: 'What questions need answering before I can decide?' },
+};
+
+// Helper to get gate explanation
+const getGateExplanation = (gateNumber: number | null): GateExplanation | null => {
+  if (!gateNumber) return null;
+  return GATE_EXPLANATIONS[gateNumber] || {
+    gate: gateNumber,
+    title: `Gate ${gateNumber}`,
+    theme: 'A unique perspective in the Human Design system.',
+    observation: 'Notice how you feel about this decision today.',
+    reflectionQuestion: 'What insights arise as you observe this decision?',
+  };
+};
+
 export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
   const { theme, isDark } = useTheme();
