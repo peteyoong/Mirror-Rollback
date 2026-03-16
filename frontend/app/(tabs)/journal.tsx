@@ -1235,10 +1235,13 @@ export default function JournalScreen() {
                     <Text style={[styles.cycleCompletionBannerIcon]}>🌑</Text>
                     <View style={styles.cycleCompletionBannerText}>
                       <Text style={[styles.cycleCompletionBannerTitle, { color: theme.text }]}>
-                        Cycle Nearing Completion
+                        Cycle nearing completion
                       </Text>
                       <Text style={[styles.cycleCompletionBannerSubtitle, { color: theme.textSecondary }]}>
-                        Day {resolvedCycleState.cycle_day} of ~29 • Ready to reflect on this cycle
+                        Day {resolvedCycleState.cycle_day} of {resolvedCycleState.cycle_length.toFixed(1)}
+                      </Text>
+                      <Text style={[styles.cycleCompletionBannerBody, { color: theme.textTertiary }]}>
+                        You're approaching the end of this observation cycle.
                       </Text>
                     </View>
                   </View>
