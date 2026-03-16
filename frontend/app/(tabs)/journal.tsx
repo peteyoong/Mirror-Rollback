@@ -1158,12 +1158,19 @@ export default function JournalScreen() {
                 </View>
               )}
 
-              {/* Lunar Cycle Synthesis - show when near cycle completion */}
-              {lunarStatus?.is_near_new_moon && activeDecision && (
+              {/* ═══════════════════════════════════════════════════════════════
+                  SECTION 10: LUNAR CYCLE SYNTHESIS (Task 69)
+                  Only shows AFTER cycle completion, NOT during observation phase.
+                  Phase 1 (Day 1-20): No synthesis
+                  Phase 2 (Day 21-29): Only show completion banner
+                  Phase 3 (After completion): Show full synthesis
+                  ═══════════════════════════════════════════════════════════════ */}
+              {activeDecision && (activeDecision.days_in_cycle >= 29 || lunarStatus?.active_consideration?.status === 'completed') && (
                 <View style={styles.lunarSynthesisSection}>
                   <LunarCycleSynthesisCard
                     userId={user?.id || ''}
                     considerationId={activeDecision.id}
+                    cycleCompleted={lunarStatus?.active_consideration?.status === 'completed'}
                   />
                 </View>
               )}
