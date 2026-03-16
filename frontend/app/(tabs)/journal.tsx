@@ -2281,4 +2281,42 @@ const styles = StyleSheet.create({
   reflectionEntryDate: {
     fontSize: 12,
   },
+  // Task 67: Cycle Completion Banner styles
+  cycleCompletionBanner: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 16,
+  },
+  cycleCompletionBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cycleCompletionBannerIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  cycleCompletionBannerText: {
+    flex: 1,
+  },
+  cycleCompletionBannerTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  cycleCompletionBannerSubtitle: {
+    fontSize: 13,
+  },
+  cycleCompletionBannerButton: {
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cycleCompletionBannerButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1A1D24',
+  },
 });
