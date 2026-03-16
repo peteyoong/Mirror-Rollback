@@ -105,6 +105,8 @@ export default function JournalScreen() {
   // Task 60: Track if lunar data has been fetched to prevent re-fetch loops
   const [lunarDataFetched, setLunarDataFetched] = useState(false);
   const lunarFetchInProgress = useRef(false);
+  // Task 64: Selected decision for multi-decision support
+  const [selectedDecisionId, setSelectedDecisionId] = useState<string | null>(null);
   
   // Pattern metadata for journal entries triggered from patterns
   const [patternMetadata, setPatternMetadata] = useState<{
