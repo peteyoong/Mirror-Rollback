@@ -1193,7 +1193,7 @@ export default function JournalScreen() {
                   Phase 2 (Day 21-29): Only show completion banner
                   Phase 3 (After completion): Show full synthesis
                   ═══════════════════════════════════════════════════════════════ */}
-              {activeDecision && (activeDecision.days_in_cycle >= 29 || lunarStatus?.active_consideration?.status === 'completed') && (
+              {activeDecision && (canonicalCycleDay >= 29 || lunarStatus?.active_consideration?.status === 'completed') && (
                 <View style={styles.lunarSynthesisSection}>
                   <LunarCycleSynthesisCard
                     userId={user?.id || ''}
