@@ -1016,14 +1016,20 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 4: LUNAR WHEEL (Task 65: Uses activeDecision.days_in_cycle)
+                  SECTION 6: LUNAR WHEEL (History & Navigation Tool)
                   ═══════════════════════════════════════════════════════════════ */}
               {activeDecision && (
                 <View style={styles.lunarWheelSection}>
+                  <Text style={[styles.lunarWheelSectionLabel, { color: '#A8B2C0' }]}>
+                    OBSERVATION TIMELINE
+                  </Text>
+                  <Text style={[styles.lunarWheelSectionHint, { color: theme.textTertiary }]}>
+                    Tap any day to view that gate's reflection
+                  </Text>
                   <LunarDecisionWheel
                     currentLunarDay={activeDecision.days_in_cycle}
-                    currentGate={lunarStatus?.current_gate || null}
-                    currentGateTitle={lunarStatus?.gate_title || null}
+                    currentGate={currentGate}
+                    currentGateTitle={gateExplanation?.title || null}
                     cycleProgress={(activeDecision.days_in_cycle / 29.5) * 100}
                     timeline={activeDecision.timeline || []}
                     activeTopic={activeDecision.topic}
@@ -1034,9 +1040,6 @@ export default function JournalScreen() {
                       inputRef.current?.focus();
                     }}
                   />
-                  <Text style={[styles.lunarWheelInstruction, { color: theme.textTertiary }]}>
-                    Tap any day to view reflections from that gate.
-                  </Text>
                 </View>
               )}
 
