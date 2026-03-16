@@ -218,9 +218,13 @@ export default function LunarDecisionWheel({
       
       const gateInfo = GATE_SEQUENCE[day] || { gate: 0, title: '' };
       
-      // Segment fill color
+      // TASK 70 FIX: Highlight today's segment based on currentGate prop, not just day
+      // The wheel shows GATE numbers - so highlight segment where gateInfo.gate matches currentGate
+      const isCurrentGateSegment = currentGate !== null && gateInfo.gate === currentGate;
+      
+      // Segment fill color - prioritize current gate highlight
       let fillColor = theme.surface;
-      if (isCurrentDay) {
+      if (isCurrentDay || isCurrentGateSegment) {
         fillColor = LUNAR_COLORS.glow;
       } else if (hasEntries) {
         fillColor = LUNAR_COLORS.dimGlow;
@@ -232,14 +236,17 @@ export default function LunarDecisionWheel({
       const midAngle = startAngle + anglePerDay / 2;
       const labelPos = polarToCartesian(CENTER, CENTER, GATE_LABEL_RADIUS, midAngle);
 
+      // Highlight stroke if current gate
+      const isHighlighted = isCurrentDay || isCurrentGateSegment;
+
       segments.push(
         <G key={day}>
           {/* Segment Path */}
           <Path
             d={describeArc(CENTER, CENTER, OUTER_RADIUS, INNER_RADIUS, startAngle, endAngle)}
             fill={fillColor}
-            stroke={isCurrentDay ? LUNAR_COLORS.moonlight : theme.border}
-            strokeWidth={isCurrentDay ? 2 : 0.5}
+            stroke={isHighlighted ? LUNAR_COLORS.moonlight : theme.border}
+            strokeWidth={isHighlighted ? 2 : 0.5}
             onPress={() => handleDayPress(day)}
           />
           
@@ -247,9 +254,9 @@ export default function LunarDecisionWheel({
           <SvgText
             x={labelPos.x}
             y={labelPos.y - 6}
-            fill={isCurrentDay ? LUNAR_COLORS.moonlight : theme.textTertiary}
+            fill={isHighlighted ? LUNAR_COLORS.moonlight : theme.textTertiary}
             fontSize={9}
-            fontWeight={isCurrentDay ? '700' : '500'}
+            fontWeight={isHighlighted ? '700' : '500'}
             textAnchor="middle"
           >
             {gateInfo.gate}
