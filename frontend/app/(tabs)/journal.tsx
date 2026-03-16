@@ -1300,18 +1300,16 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 10: LUNAR CYCLE SYNTHESIS (Task 70: Enhanced)
-                  Only shows AFTER cycle completion, NOT during observation phase.
-                  Phase 1 (Day 1-20): No synthesis
-                  Phase 2 (Day 21-29): Only show completion banner
-                  Phase 3 (After completion): Show full synthesis
+                  SECTION 10: LUNAR CYCLE SYNTHESIS
+                  Only shows AFTER cycle completion (phase === 'completed')
+                  OR when cycle_day >= 29 (full cycle observed)
                   ═══════════════════════════════════════════════════════════════ */}
-              {activeDecision && (canonicalCycleDay >= 29 || lunarStatus?.active_consideration?.status === 'completed') && (
+              {activeDecision && (resolvedCycleState.phase === 'completed' || resolvedCycleState.cycle_day >= 29) && (
                 <View style={styles.lunarSynthesisSection}>
                   <LunarCycleSynthesisCard
                     userId={user?.id || ''}
                     considerationId={activeDecision.id}
-                    cycleCompleted={lunarStatus?.active_consideration?.status === 'completed'}
+                    cycleCompleted={resolvedCycleState.phase === 'completed'}
                   />
                 </View>
               )}
