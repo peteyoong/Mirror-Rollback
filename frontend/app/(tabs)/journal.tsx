@@ -971,17 +971,17 @@ export default function JournalScreen() {
               </View>
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 4: LUNAR WHEEL
+                  SECTION 4: LUNAR WHEEL (Task 65: Uses activeDecision.days_in_cycle)
                   ═══════════════════════════════════════════════════════════════ */}
-              {lunarStatus && lunarTimelineData && (
+              {activeDecision && (
                 <View style={styles.lunarWheelSection}>
                   <LunarDecisionWheel
-                    currentLunarDay={lunarStatus.lunar_day}
-                    currentGate={lunarStatus.current_gate}
-                    currentGateTitle={lunarStatus.gate_title}
-                    cycleProgress={lunarStatus.cycle_progress}
-                    timeline={lunarTimelineData.timeline || []}
-                    activeTopic={selectedDecision?.topic || null}
+                    currentLunarDay={activeDecision.days_in_cycle}
+                    currentGate={lunarStatus?.current_gate || null}
+                    currentGateTitle={lunarStatus?.gate_title || null}
+                    cycleProgress={(activeDecision.days_in_cycle / 29.5) * 100}
+                    timeline={activeDecision.timeline || []}
+                    activeTopic={activeDecision.topic}
                     onDayPress={(day, entries) => {
                       console.log('[LunarWheel] Day pressed:', day, 'entries:', entries.length);
                     }}
