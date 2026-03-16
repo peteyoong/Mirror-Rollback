@@ -339,7 +339,45 @@ export default function LunarCycleSynthesisCard({
           )}
 
           {/* ═══════════════════════════════════════════════════════════════
-              SECTION 4: PATTERN INSIGHT
+              SECTION 4: DECISION MOMENTUM (Task 70 - NEW)
+              ═══════════════════════════════════════════════════════════════ */}
+          {synthesis.momentum && synthesis.momentum.state !== 'unclear' && (
+            <View style={[styles.section, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.sectionLabel, { color: LUNAR_COLORS.silver }]}>
+                DECISION MOMENTUM
+              </Text>
+              <View style={styles.momentumContainer}>
+                {/* Momentum Indicator */}
+                <View style={styles.momentumIndicator}>
+                  {[1, 2, 3, 4, 5].map((level) => {
+                    const isActive = level <= (synthesis.momentum?.score || 0);
+                    const color = getMomentumColor(synthesis.momentum?.state || 'unclear', level);
+                    return (
+                      <View
+                        key={level}
+                        style={[
+                          styles.momentumDot,
+                          { 
+                            backgroundColor: isActive ? color : 'rgba(168, 178, 192, 0.2)',
+                            opacity: isActive ? 1 : 0.4,
+                          }
+                        ]}
+                      />
+                    );
+                  })}
+                </View>
+                <Text style={[styles.momentumLabel, { color: getMomentumTextColor(synthesis.momentum?.state || 'unclear') }]}>
+                  {synthesis.momentum.label}
+                </Text>
+              </View>
+              <Text style={[styles.momentumDescription, { color: theme.textSecondary }]}>
+                {synthesis.momentum.description}
+              </Text>
+            </View>
+          )}
+
+          {/* ═══════════════════════════════════════════════════════════════
+              SECTION 5: PATTERN INSIGHT
               ═══════════════════════════════════════════════════════════════ */}
           {synthesis.pattern_insight && (
             <View style={[styles.section, { borderBottomColor: theme.border }]}>
