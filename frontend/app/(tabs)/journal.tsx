@@ -2579,6 +2579,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1A1D24',
   },
+  cycleCompletionBannerBody: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 4,
+  },
   // Task 70: Debug Panel styles
   debugPanel: {
     borderRadius: 12,
