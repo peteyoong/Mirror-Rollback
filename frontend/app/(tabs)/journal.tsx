@@ -131,14 +131,6 @@ const getCyclePhase = (day: number): string => {
   return 'Cycle completion approaching';
 };
 
-// Helper to get cycle phase description
-const getCyclePhase = (dayInCycle: number): string => {
-  if (dayInCycle <= 7) return 'New Moon Phase';
-  if (dayInCycle <= 14) return 'Waxing Phase';
-  if (dayInCycle <= 21) return 'Full Moon Phase';
-  return 'Waning Phase';
-};
-
 export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
   const { theme, isDark } = useTheme();
