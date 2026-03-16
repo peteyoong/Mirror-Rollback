@@ -313,11 +313,12 @@ export default function JournalScreen() {
 
   // Task 60: Stable callback for creating lunar entry
   // Task 64: Updated to use selectedDecisionId for multi-decision support
+  // Task 65: Use activeDecision.id as the source of truth
   const handleCreateLunarEntry = useCallback(async () => {
     if (!newEntry.trim() || !user || isCreatingLunarEntry) return;
     
-    // Use selectedDecisionId if available, otherwise fall back to active_consideration
-    const considerationId = selectedDecisionId || lunarStatus?.active_consideration?.id || null;
+    // Use activeDecision.id as the single source of truth
+    const considerationId = activeDecision?.id || selectedDecisionId || lunarStatus?.active_consideration?.id || null;
     
     setIsCreatingLunarEntry(true);
     try {
@@ -328,23 +329,23 @@ export default function JournalScreen() {
       
       setNewEntry('');
       Keyboard.dismiss();
-      // Refresh the lunar status and timeline to update entry count
-      const [statusRes, timelineRes] = await Promise.all([
-        api.get(`/lunar-journal/${user.id}/status`),
-        api.get(`/lunar-journal/${user.id}/timeline`)
-      ]);
+      
+      // Refresh the lunar status
+      const statusRes = await api.get(`/lunar-journal/${user.id}/status`);
       if (statusRes.data?.success) {
         setLunarStatus(statusRes.data);
       }
-      if (timelineRes.data?.success) {
-        setLunarTimelineData(timelineRes.data);
+      
+      // Task 65: Refresh activeDecision data to show the new entry
+      if (considerationId) {
+        await fetchDecisionData(considerationId);
       }
     } catch (err) {
       console.error('[LunarJournal] Error creating entry:', err);
     } finally {
       setIsCreatingLunarEntry(false);
     }
-  }, [newEntry, user, isCreatingLunarEntry, selectedDecisionId, lunarStatus?.active_consideration?.id]);
+  }, [newEntry, user, isCreatingLunarEntry, activeDecision?.id, selectedDecisionId, lunarStatus?.active_consideration?.id, fetchDecisionData]);
 
   const loadEntries = async () => {
     if (!user) return;
