@@ -102,6 +102,9 @@ export default function JournalScreen() {
   const [lunarTimelineData, setLunarTimelineData] = useState<any>(null);
   // Task 54: Success message for cycle completion
   const [lunarSuccessMessage, setLunarSuccessMessage] = useState<string | null>(null);
+  // Task 60: Track if lunar data has been fetched to prevent re-fetch loops
+  const [lunarDataFetched, setLunarDataFetched] = useState(false);
+  const lunarFetchInProgress = useRef(false);
   
   // Pattern metadata for journal entries triggered from patterns
   const [patternMetadata, setPatternMetadata] = useState<{
