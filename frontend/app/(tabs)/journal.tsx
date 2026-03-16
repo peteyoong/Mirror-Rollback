@@ -2122,6 +2122,11 @@ const styles = StyleSheet.create({
   decisionSelectorScroll: {
     paddingHorizontal: 4,
   },
+  // Task 68: Improved scroll content styling
+  decisionSelectorScrollContent: {
+    paddingLeft: 16,
+    paddingRight: 12,
+  },
   decisionSelectorPill: {
     paddingHorizontal: 16,
     paddingVertical: 8,
