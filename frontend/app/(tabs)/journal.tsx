@@ -901,16 +901,16 @@ export default function JournalScreen() {
               {/* ═══════════════════════════════════════════════════════════════
                   SECTION 2: SELECTED DECISION DETAILS
                   ═══════════════════════════════════════════════════════════════ */}
-              {selectedDecision && (
+              {activeDecision && (
                 <View style={[styles.selectedDecisionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                   <Text style={[styles.selectedDecisionLabel, { color: '#A8B2C0' }]}>
                     OBSERVING DECISION
                   </Text>
                   <Text style={[styles.selectedDecisionTopic, { color: theme.text }]}>
-                    "{selectedDecision.topic}"
+                    "{activeDecision.topic}"
                   </Text>
                   <Text style={[styles.selectedDecisionDays, { color: theme.textSecondary }]}>
-                    Day {selectedDecision.days_in_cycle || Math.round(lunarStatus?.lunar_day || 0)} of your lunar observation cycle
+                    Day {activeDecision.days_in_cycle} of your lunar observation cycle
                   </Text>
                 </View>
               )}
