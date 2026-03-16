@@ -2231,7 +2231,15 @@ const styles = StyleSheet.create({
   todaysLensGate: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 6,
+    marginBottom: 4,
+  },
+  // Task 68: Gate/Line styling
+  todaysLensGateRow: {
+    marginBottom: 8,
+  },
+  todaysLensLine: {
+    fontSize: 12,
+    marginTop: 2,
   },
   todaysLensTheme: {
     fontSize: 14,
