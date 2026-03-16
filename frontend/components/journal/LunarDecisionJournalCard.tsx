@@ -96,8 +96,6 @@ export default function LunarDecisionJournalCard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Cycle completion modal state
-  const [showCycleCompletion, setShowCycleCompletion] = useState(false);
-
   // Fetch lunar journal status
   // Task 60: Use ref for onStatusLoaded to prevent dependency loop
   const onStatusLoadedRef = useRef(onStatusLoaded);
