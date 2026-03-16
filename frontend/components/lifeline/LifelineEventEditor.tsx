@@ -346,56 +346,84 @@ export default function LifelineEventEditor({ visible, event, prefillYear, onClo
             )}
           </View>
 
-          {/* Emotional Tone */}
+          {/* Emotional Valence - TASK 59: New scale for how the period felt */}
           <View style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>How did it feel?</Text>
-            <View style={styles.toneRow}>
-              {EMOTIONAL_TONES.map((tone) => (
-                <TouchableOpacity
-                  key={tone.value}
-                  style={[
-                    styles.toneButton,
-                    { borderColor: emotionalTone === tone.value ? tone.color : theme.border },
-                    emotionalTone === tone.value && { backgroundColor: `${tone.color}20` },
-                  ]}
-                  onPress={() => setEmotionalTone(tone.value)}
-                >
-                  <View style={[styles.toneDot, { backgroundColor: tone.color }]} />
-                  <Text style={[styles.toneText, { color: emotionalTone === tone.value ? theme.text : theme.textSecondary }]}>
-                    {tone.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <Text style={[styles.label, { color: theme.text }]}>How did this period feel overall?</Text>
+            <View style={styles.scaleGuidance}>
+              <Text style={[styles.scaleGuideText, { color: theme.textTertiary }]}>Very difficult</Text>
+              <Text style={[styles.scaleGuideArrow, { color: theme.textTertiary }]}>← 1 · · · · 5 · · · · 10 →</Text>
+              <Text style={[styles.scaleGuideText, { color: theme.textTertiary }]}>Very positive</Text>
+            </View>
+            <View style={styles.scaleRow}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => {
+                // Color gradient from red (1) through yellow (5) to green (10)
+                const getValenceColor = (val: number) => {
+                  if (val <= 3) return '#E57373'; // Red - difficult
+                  if (val <= 6) return '#FFB74D'; // Orange/Yellow - mixed
+                  return '#81C784'; // Green - positive
+                };
+                const isSelected = emotionalValence === score;
+                const scoreColor = getValenceColor(score);
+                return (
+                  <TouchableOpacity
+                    key={score}
+                    style={[
+                      styles.scaleButton,
+                      { borderColor: isSelected ? scoreColor : theme.border },
+                      isSelected && { backgroundColor: `${scoreColor}25` },
+                    ]}
+                    onPress={() => setEmotionalValence(score)}
+                  >
+                    <Text style={[
+                      styles.scaleText, 
+                      { color: isSelected ? scoreColor : theme.textSecondary }
+                    ]}>
+                      {score}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <View style={styles.scaleCalibration}>
+              <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>1 = Very difficult</Text>
+              <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>5 = Mixed / neutral</Text>
+              <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>10 = Very positive</Text>
             </View>
           </View>
 
-          {/* Impact Score */}
+          {/* Significance Score - TASK 59: New scale for how life-shaping */}
           <View style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: theme.text }]}>How significant was this moment?</Text>
-            <View style={styles.impactGuidance}>
-              <Text style={[styles.impactGuideText, { color: theme.textTertiary }]}>Minor</Text>
-              <Text style={[styles.impactGuideArrow, { color: theme.textTertiary }]}>← 1 2 3 4 5 6 7 8 9 10 →</Text>
-              <Text style={[styles.impactGuideText, { color: theme.textTertiary }]}>Life-changing</Text>
+            <Text style={[styles.label, { color: theme.text }]}>How much did this shape your life?</Text>
+            <View style={styles.scaleGuidance}>
+              <Text style={[styles.scaleGuideText, { color: theme.textTertiary }]}>Very low</Text>
+              <Text style={[styles.scaleGuideArrow, { color: theme.textTertiary }]}>← 1 · · · · 5 · · · · 10 →</Text>
+              <Text style={[styles.scaleGuideText, { color: theme.textTertiary }]}>Very high</Text>
             </View>
-            <View style={styles.impactRow}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
-                <TouchableOpacity
-                  key={score}
-                  style={[
-                    styles.impactButton,
-                    { borderColor: impactScore === score ? theme.accent : theme.border },
-                    impactScore === score && { backgroundColor: `${theme.accent}20` },
-                  ]}
-                  onPress={() => setImpactScore(score)}
-                >
-                  <Text style={[styles.impactText, { color: impactScore === score ? theme.accent : theme.textSecondary }]}>
-                    {score}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <View style={styles.scaleRow}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => {
+                const isSelected = significanceScore === score;
+                return (
+                  <TouchableOpacity
+                    key={score}
+                    style={[
+                      styles.scaleButton,
+                      { borderColor: isSelected ? theme.accent : theme.border },
+                      isSelected && { backgroundColor: `${theme.accent}20` },
+                    ]}
+                    onPress={() => setSignificanceScore(score)}
+                  >
+                    <Text style={[
+                      styles.scaleText, 
+                      { color: isSelected ? theme.accent : theme.textSecondary }
+                    ]}>
+                      {score}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-            <View style={styles.impactCalibration}>
-              <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>1 = Minor</Text>
+            <View style={styles.scaleCalibration}>
+              <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>1 = Very low</Text>
               <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>5 = Meaningful</Text>
               <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>10 = Life-changing</Text>
             </View>
