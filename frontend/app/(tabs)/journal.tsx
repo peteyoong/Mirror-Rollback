@@ -1099,6 +1099,36 @@ export default function JournalScreen() {
                 </View>
               )}
 
+              {/* ═══════════════════════════════════════════════════════════════
+                  SECTION 9: CYCLE COMPLETION BANNER (Task 67)
+                  Only shows when cycle is eligible for completion.
+                  User must explicitly tap to open completion modal.
+                  ═══════════════════════════════════════════════════════════════ */}
+              {lunarStatus?.is_near_new_moon && activeDecision && lunarStatus?.show_cycle_completion && (
+                <View style={[styles.cycleCompletionBanner, { backgroundColor: 'rgba(192, 200, 212, 0.1)', borderColor: theme.border }]}>
+                  <View style={styles.cycleCompletionBannerContent}>
+                    <Text style={[styles.cycleCompletionBannerIcon]}>🌑</Text>
+                    <View style={styles.cycleCompletionBannerText}>
+                      <Text style={[styles.cycleCompletionBannerTitle, { color: theme.text }]}>
+                        Lunar Cycle Completing
+                      </Text>
+                      <Text style={[styles.cycleCompletionBannerSubtitle, { color: theme.textSecondary }]}>
+                        Day {Math.round(lunarStatus.lunar_day || 27)} of 29.5 • Ready for synthesis
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.cycleCompletionBannerButton, { backgroundColor: '#C0C8D4' }]}
+                    onPress={() => {
+                      console.log('[Lunar] User tapped Complete Cycle button');
+                      setShowCycleCompletion(true);
+                    }}
+                  >
+                    <Text style={styles.cycleCompletionBannerButtonText}>Complete Cycle</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
               {/* Lunar Cycle Synthesis - show when near cycle completion */}
               {lunarStatus?.is_near_new_moon && activeDecision && (
                 <View style={styles.lunarSynthesisSection}>
