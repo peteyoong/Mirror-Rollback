@@ -1512,4 +1512,122 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#81C784',
   },
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Task 62: Lunar Tab UX Restructure Styles
+  // ═══════════════════════════════════════════════════════════════════════════
+  lunarIntroCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 16,
+  },
+  lunarIntroTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    letterSpacing: -0.3,
+  },
+  lunarIntroText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  lunarWheelSection: {
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  lunarWheelInstruction: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  lunarReflectionCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 16,
+  },
+  lunarReflectionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  lunarReflectionGateInfo: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 10,
+  },
+  lunarReflectionGate: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  lunarReflectionGateTitle: {
+    fontSize: 14,
+    marginLeft: 4,
+  },
+  lunarReflectionPrompt: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontStyle: 'italic',
+  },
+  lunarJournalInputSection: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 16,
+  },
+  lunarJournalInputLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  lunarJournalInputPrompt: {
+    fontSize: 13,
+    marginBottom: 12,
+  },
+  lunarJournalInputContainer: {
+    gap: 10,
+  },
+  lunarJournalInput: {
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 12,
+    fontSize: 14,
+    lineHeight: 20,
+    minHeight: 80,
+  },
+  lunarJournalSubmitButton: {
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-end',
+  },
+  lunarTimelineSection: {
+    marginBottom: 16,
+  },
+  lunarTimelineSectionTitle: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  lunarSynthesisSection: {
+    marginBottom: 16,
+  },
+  lunarLimitNote: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 20,
+  },
+  lunarLimitNoteText: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
 });
