@@ -1121,7 +1121,7 @@ export default function JournalScreen() {
                         Cycle Nearing Completion
                       </Text>
                       <Text style={[styles.cycleCompletionBannerSubtitle, { color: theme.textSecondary }]}>
-                        Day {Math.round(activeDecision.days_in_cycle)} of ~29 • Ready to reflect on this cycle
+                        Day {canonicalCycleDay} of ~29 • Ready to reflect on this cycle
                       </Text>
                     </View>
                   </View>
