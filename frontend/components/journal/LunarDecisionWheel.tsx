@@ -293,8 +293,11 @@ export default function LunarDecisionWheel({
   };
 
   // Render progress arc
+  // cycleProgress is a 0-1 ratio (e.g., 0.949 for 94.9%)
   const renderProgressArc = () => {
-    const progressAngle = cycleProgress * 360;
+    // Clamp cycleProgress to 0-1 range just in case
+    const clampedProgress = Math.min(Math.max(cycleProgress, 0), 1);
+    const progressAngle = clampedProgress * 360;
     const progressRadius = OUTER_RADIUS + 4;
     
     const start = polarToCartesian(CENTER, CENTER, progressRadius, 0);
