@@ -203,7 +203,7 @@ const DOMAIN_CONTENT: Record<string, DomainContent> = {
 // MAIN COMPONENT
 // ============================================================================
 
-type TabType = 'patterns' | 'weekly' | 'timeline';
+type TabType = 'patterns' | 'weekly' | 'timeline' | 'signals';
 
 // Expanded section tracking for accordion sections within a domain
 type ExpandedSection = 'story' | 'pattern' | 'challenge' | 'genius' | 'experiments' | null;
