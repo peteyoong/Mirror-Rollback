@@ -1080,31 +1080,33 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 7: REFLECTION TIMELINE (Past Entries)
+                  SECTION 7: REFLECTION TIMELINE (Task 68: Improved card formatting)
                   ═══════════════════════════════════════════════════════════════ */}
               {activeDecision?.entries && activeDecision.entries.length > 0 && (
                 <View style={styles.reflectionTimelineSection}>
                   <Text style={[styles.reflectionTimelineTitle, { color: '#A8B2C0' }]}>
                     YOUR REFLECTIONS
                   </Text>
-                  {activeDecision.entries.slice(0, 5).map((entry: any, index: number) => (
-                    <View 
-                      key={entry.id || index}
-                      style={[styles.reflectionEntry, { borderBottomColor: theme.border }]}
-                    >
-                      <View style={styles.reflectionEntryHeader}>
-                        <Text style={[styles.reflectionEntryDay, { color: theme.textSecondary }]}>
-                          Day {Math.round(entry.lunar_day || 1)} • Gate {entry.moon_gate || '—'}
-                        </Text>
-                        <Text style={[styles.reflectionEntryDate, { color: theme.textTertiary }]}>
-                          {entry.created_at ? new Date(entry.created_at).toLocaleDateString() : ''}
+                  {activeDecision.entries.slice(0, 5).map((entry: any, index: number) => {
+                    const entryDate = entry.created_at 
+                      ? new Date(entry.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                      : '';
+                    return (
+                      <View 
+                        key={entry.id || index}
+                        style={[styles.reflectionEntryCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                      >
+                        <View style={styles.reflectionEntryHeader}>
+                          <Text style={[styles.reflectionEntryMeta, { color: theme.textSecondary }]}>
+                            Day {Math.round(entry.lunar_day || 1)} • Gate {entry.moon_gate || '—'} • {entryDate}
+                          </Text>
+                        </View>
+                        <Text style={[styles.reflectionEntryContent, { color: theme.text }]} numberOfLines={4}>
+                          "{entry.content}"
                         </Text>
                       </View>
-                      <Text style={[styles.reflectionEntryContent, { color: theme.text }]} numberOfLines={3}>
-                        {entry.content}
-                      </Text>
-                    </View>
-                  ))}
+                    );
+                  })}
                 </View>
               )}
 
