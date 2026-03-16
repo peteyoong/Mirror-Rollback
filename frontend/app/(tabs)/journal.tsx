@@ -1313,6 +1313,36 @@ export default function JournalScreen() {
                   />
                 </View>
               )}
+
+              {/* ═══════════════════════════════════════════════════════════════
+                  DEBUG PANEL (Task 70: Development/QA only)
+                  Shows resolved cycle state vs raw inputs for debugging
+                  Enable via EXPO_PUBLIC_DEBUG_MIRROR=true
+                  ═══════════════════════════════════════════════════════════════ */}
+              {process.env.EXPO_PUBLIC_DEBUG_MIRROR === 'true' && activeDecision && (
+                <View style={[styles.debugPanel, { backgroundColor: 'rgba(255, 165, 0, 0.1)', borderColor: '#FFA500' }]}>
+                  <Text style={[styles.debugPanelTitle, { color: '#FFA500' }]}>
+                    🐛 DEBUG: Resolved Cycle State
+                  </Text>
+                  <Text style={[styles.debugPanelText, { color: theme.textSecondary }]}>
+                    cycle_day: {resolvedCycleState.cycle_day}{'\n'}
+                    phase: {resolvedCycleState.phase}{'\n'}
+                    today_gate: {resolvedCycleState.today_gate}{'\n'}
+                    completion_eligible: {String(resolvedCycleState.completion_eligible)}{'\n'}
+                    completion_reason: {resolvedCycleState.completion_reason}{'\n'}
+                    source: {resolvedCycleState.source_debug.cycle_day_source}
+                  </Text>
+                  <Text style={[styles.debugPanelSubtitle, { color: '#FFA500' }]}>
+                    Raw Inputs:
+                  </Text>
+                  <Text style={[styles.debugPanelText, { color: theme.textSecondary }]}>
+                    activeDecision.days_in_cycle: {resolvedCycleState.source_debug.used_days_in_cycle ?? 'null'}{'\n'}
+                    activeDecision.cycle_start: {resolvedCycleState.source_debug.used_cycle_start ?? 'null'}{'\n'}
+                    lunarStatus.lunar_day: {resolvedCycleState.source_debug.used_lunar_day ?? 'null'}{'\n'}
+                    decision_status: {resolvedCycleState.source_debug.decision_status ?? 'null'}
+                  </Text>
+                </View>
+              )}
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
