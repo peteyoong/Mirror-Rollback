@@ -760,10 +760,14 @@ async def get_decision_pattern_snapshot(
         
         # Check if entry is recent
         entry_time = entry.get("created_at")
-        if isinstance(entry_time, str):
-            entry_time = datetime.fromisoformat(entry_time.replace('Z', '+00:00'))
-        if entry_time and entry_time >= recent_cutoff:
-            recent_entry_count += 1
+        if entry_time:
+            if isinstance(entry_time, str):
+                entry_time = datetime.fromisoformat(entry_time.replace('Z', '+00:00'))
+            # Ensure timezone-aware comparison
+            if entry_time.tzinfo is None:
+                entry_time = entry_time.replace(tzinfo=timezone.utc)
+            if entry_time >= recent_cutoff:
+                recent_entry_count += 1
     
     distinct_days = len(observation_days)
     unique_days = distinct_days  # Backward compatibility alias
