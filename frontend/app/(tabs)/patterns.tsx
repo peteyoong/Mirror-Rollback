@@ -1698,52 +1698,11 @@ export default function PatternsScreen() {
   // ============================================================================
   // RENDER: SIGNALS TAB
   // ============================================================================
+  // SIGNALS TAB - Summary-First Design (v0.15)
+  // All detail sections are collapsed by default via PatternGraphCard accordions
+  // ============================================================================
 
   const renderSignalsTab = () => {
-    if (patternsLoading) {
-      return (
-        <View style={[styles.centeredContent]}>
-          <ActivityIndicator size="large" color={theme.accent} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-            Loading signals...
-          </Text>
-        </View>
-      );
-    }
-
-    if (patternsError || domains.length === 0) {
-      return (
-        <View style={[styles.centeredContent]}>
-          <Text style={[styles.errorText, { color: theme.textSecondary }]}>
-            {patternsError || 'No signals found'}
-          </Text>
-          <TouchableOpacity
-            style={[styles.retryButton, { borderColor: theme.border }]}
-            onPress={() => fetchPatterns()}
-          >
-            <Text style={[styles.retryText, { color: theme.accent }]}>Try Again</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
-    // Collect all signals from all domains
-    const allSignals: Array<MatchedSignal & { domainName: string; domainId: string }> = [];
-    domains.forEach(domain => {
-      if (domain.matched_signals) {
-        domain.matched_signals.forEach(signal => {
-          allSignals.push({
-            ...signal,
-            domainName: domain.category_name,
-            domainId: domain.category_id
-          });
-        });
-      }
-    });
-
-    // Group signals by source
-    const signalsBySource = groupSignalsByType(allSignals);
-
     return (
       <ScrollView
         style={styles.tabContent}
@@ -1757,84 +1716,22 @@ export default function PatternsScreen() {
           />
         }
       >
-        {/* Pattern Graph v0.1 Card */}
-        <PatternGraphCard />
-        
-        <View style={styles.introSection}>
-          <Text style={[styles.introDescription, { color: theme.textSecondary }]}>
+        {/* Short intro copy */}
+        <View style={styles.signalsIntroContainer}>
+          <Text style={[styles.signalsIntroText, { color: theme.textSecondary }]}>
             A live view of the signals shaping your patterns.
           </Text>
         </View>
 
-        {allSignals.length === 0 ? (
-          <View style={[styles.centeredContent]}>
-            <Text style={styles.emptyIcon}>📡</Text>
-            <Text style={[styles.emptyTitle, { color: theme.text }]}>
-              No signals detected yet
-            </Text>
-            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
-              Continue journaling and reflecting to see signals emerge across your patterns.
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.signalsSection}>
-            {Object.entries(signalsBySource).map(([groupKey, signals]) => (
-              <View key={groupKey} style={[styles.signalSourceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <View style={styles.signalSourceHeader}>
-                  <Text style={styles.signalSourceIcon}>{getSignalGroupIcon(groupKey)}</Text>
-                  <Text style={[styles.signalSourceTitle, { color: theme.text }]}>
-                    {groupKey}
-                  </Text>
-                  <View style={[styles.signalCountBadge, { backgroundColor: theme.accent + '20' }]}>
-                    <Text style={[styles.signalCountText, { color: theme.accent }]}>
-                      {signals.length}
-                    </Text>
-                  </View>
-                </View>
-                
-                <View style={styles.signalSourceItems}>
-                  {signals.map((signal, idx) => {
-                    const formatted = formatSignalDescription(signal);
-                    const extendedSignal = signal as MatchedSignal & { domainName: string; domainId: string };
-                    
-                    return (
-                      <View key={idx} style={[styles.signalSourceItem, { borderLeftColor: theme.accent + '40' }]}>
-                        <View style={styles.signalItemHeader}>
-                          <Text style={[styles.signalDomainTag, { color: theme.textTertiary, backgroundColor: theme.accent + '10' }]}>
-                            {extendedSignal.domainName}
-                          </Text>
-                        </View>
-                        <Text style={[styles.signalItemDescription, { color: theme.textSecondary }]}>
-                          {formatted.description}
-                        </Text>
-                        
-                        {/* Show transit details for astrology signals */}
-                        {signal.source === 'astrology_transit' && signal.transit_data && signal.transit_data.length > 0 && (
-                          <View style={styles.transitDetails}>
-                            {signal.transit_data.slice(0, 2).map((transit, transitIdx) => (
-                              <View key={transitIdx} style={styles.transitDetailRow}>
-                                <Text style={[styles.transitSymbol, { color: theme.text }]}>
-                                  {formatTransitSymbol(transit)}
-                                </Text>
-                                <Text style={[styles.transitDescription, { color: theme.textTertiary }]}>
-                                  {getTransitDescription(transit)}
-                                </Text>
-                              </View>
-                            ))}
-                          </View>
-                        )}
-                      </View>
-                    );
-                  })}
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
+        {/* Pattern Graph Summary Card - handles all data, loading, errors internally */}
+        {/* All detail sections (domains, signals, themes, sources) are collapsed by default */}
+        <PatternGraphCard />
       </ScrollView>
     );
   };
 
+  // ============================================================================
+  // MAIN RENDER
   // ============================================================================
   // MAIN RENDER
   // ============================================================================
