@@ -18699,7 +18699,10 @@ class LifelineEventCreate(BaseModel):
     age: Optional[int] = None
     category: Optional[str] = None
     emotional_tone: Optional[str] = "neutral"
-    impact_score: Optional[int] = 5  # 1-10 scale
+    impact_score: Optional[int] = 5  # 1-10 scale (backward compatibility)
+    # TASK 59: New separate scales for valence and significance
+    emotional_valence: Optional[int] = 5  # 1-10: 1=very difficult, 5=mixed, 10=very positive
+    significance_score: Optional[int] = 5  # 1-10: 1=very low, 5=meaningful, 10=life-changing
     tags: Optional[List[str]] = []
     photos: Optional[List[str]] = []
     privacy_level: Optional[str] = "private"
@@ -18714,6 +18717,8 @@ class LifelineEventCreate(BaseModel):
                 "category": "Career",
                 "emotional_tone": "positive",
                 "impact_score": 8,
+                "emotional_valence": 8,
+                "significance_score": 8,
                 "tags": ["career", "milestone", "growth"],
                 "privacy_level": "private"
             }
