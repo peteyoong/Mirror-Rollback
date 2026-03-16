@@ -303,13 +303,20 @@ export default function JournalScreen() {
     }
   }, [user, lunarStatus?.active_considerations]);
 
-  // Task 65: Update activeDecision when selection changes
+  // Task 65: Update activeDecision when selection changes or lunarStatus loads
   useEffect(() => {
-    const decisionId = selectedDecisionId || lunarStatus?.active_consideration?.id;
-    if (decisionId && viewMode === 'lunar') {
-      fetchDecisionData(decisionId);
+    // Get decisionId from: 1) explicit selection, 2) active_consideration, 3) first in list
+    const decisionId = selectedDecisionId 
+      || lunarStatus?.active_consideration?.id 
+      || lunarStatus?.active_considerations?.[0]?.id;
+    
+    if (decisionId && viewMode === 'lunar' && !isLoadingDecisionData) {
+      // Only fetch if we don't already have this decision loaded
+      if (!activeDecision || activeDecision.id !== decisionId) {
+        fetchDecisionData(decisionId);
+      }
     }
-  }, [selectedDecisionId, lunarStatus?.active_consideration?.id, viewMode, fetchDecisionData]);
+  }, [selectedDecisionId, lunarStatus?.active_consideration?.id, lunarStatus?.active_considerations, viewMode, activeDecision, isLoadingDecisionData, fetchDecisionData]);
 
   // Task 60: Stable callback for creating lunar entry
   // Task 64: Updated to use selectedDecisionId for multi-decision support
