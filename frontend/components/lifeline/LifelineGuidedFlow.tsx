@@ -91,7 +91,9 @@ interface MomentData {
   year: string;
   age: string;
   description: string;
-  impactScore: number;
+  // Task 61: New two-scale rating model
+  emotionalValence: number;  // 1-10: 1=very difficult, 5=mixed, 10=very positive
+  significanceScore: number; // 1-10: 1=very low, 5=meaningful, 10=life-changing
 }
 
 // =============================================================================
