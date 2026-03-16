@@ -168,7 +168,8 @@ export default function LifelineGuidedFlow({
       year: '',
       age: '',
       description: '',
-      impactScore: 7,
+      emotionalValence: 5,
+      significanceScore: 7,
     });
     setError('');
   };
