@@ -826,6 +826,11 @@ export default function JournalScreen() {
     // Task 64: Decision-first tracker UX with multiple decisions support
     // Task 65: Use activeDecision as single source of truth for all lunar components
 
+    // Get gate explanation for today's gate
+    const currentGate = lunarStatus?.current_gate || null;
+    const gateExplanation = getGateExplanation(currentGate);
+    const hasReflections = activeDecision?.entry_count && activeDecision.entry_count > 0;
+
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
         <StatusBar style={isDark ? 'light' : 'dark'} />
@@ -837,27 +842,6 @@ export default function JournalScreen() {
           <View style={styles.content}>
             {renderModeToggle()}
 
-            {/* Lunar Sub-navigation */}
-            <View style={styles.lunarSubNav}>
-              <TouchableOpacity
-                style={[styles.lunarSubNavButton, viewMode === 'lunar' && styles.lunarSubNavButtonActive]}
-                onPress={() => setViewMode('lunar')}
-              >
-                <Text style={[styles.lunarSubNavText, viewMode === 'lunar' && styles.lunarSubNavTextActive]}>
-                  Decisions
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.lunarSubNavButton, viewMode === 'lunar-history' && styles.lunarSubNavButtonActive]}
-                onPress={() => setViewMode('lunar-history')}
-              >
-                <Text style={[styles.lunarSubNavText, viewMode === 'lunar-history' && styles.lunarSubNavTextActive]}>
-                  History
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Task 64: Decision Tracker Content */}
             <ScrollView 
               style={{ flex: 1 }}
               contentContainerStyle={{ paddingBottom: 120 }}
@@ -872,85 +856,73 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 1: YOUR DECISIONS LIST
+                  SECTION 1: DECISION SELECTOR (Compact)
                   ═══════════════════════════════════════════════════════════════ */}
-              <View style={styles.decisionsSectionHeader}>
-                <Text style={[styles.decisionsSectionTitle, { color: theme.text }]}>
-                  Your Decisions
-                </Text>
-              </View>
-
-              {/* Decision Cards */}
-              {lunarStatus?.active_considerations && lunarStatus.active_considerations.length > 0 ? (
-                lunarStatus.active_considerations.map((decision: any) => {
-                  // Task 65: Use activeDecision.id as the source of truth for selection
-                  const isSelected = decision.id === activeDecision?.id;
-                  return (
-                    <TouchableOpacity
-                      key={decision.id}
-                      style={[
-                        styles.decisionCard,
-                        { backgroundColor: theme.surface, borderColor: isSelected ? '#C0C8D4' : theme.border },
-                        isSelected && styles.decisionCardActive,
-                      ]}
-                      onPress={() => setSelectedDecisionId(decision.id)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.decisionCardContent}>
-                        <View style={[styles.decisionCardIcon, { backgroundColor: isSelected ? 'rgba(192, 200, 212, 0.2)' : 'rgba(192, 200, 212, 0.1)' }]}>
-                          <Text style={{ fontSize: 16 }}>🌙</Text>
-                        </View>
-                        <View style={styles.decisionCardText}>
-                          <Text style={[styles.decisionCardTopic, { color: theme.text }]} numberOfLines={2}>
-                            {decision.topic}
+              {lunarStatus?.active_considerations && lunarStatus.active_considerations.length > 1 && (
+                <View style={styles.decisionSelectorSection}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.decisionSelectorScroll}>
+                    {lunarStatus.active_considerations.map((decision: any) => {
+                      const isSelected = decision.id === activeDecision?.id;
+                      return (
+                        <TouchableOpacity
+                          key={decision.id}
+                          style={[
+                            styles.decisionSelectorPill,
+                            { 
+                              backgroundColor: isSelected ? 'rgba(192, 200, 212, 0.2)' : theme.surface,
+                              borderColor: isSelected ? '#C0C8D4' : theme.border,
+                            },
+                          ]}
+                          onPress={() => setSelectedDecisionId(decision.id)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[
+                            styles.decisionSelectorText,
+                            { color: isSelected ? '#C0C8D4' : theme.textSecondary }
+                          ]} numberOfLines={1}>
+                            {decision.topic.length > 25 ? decision.topic.substring(0, 25) + '...' : decision.topic}
                           </Text>
-                          <Text style={[styles.decisionCardDays, { color: theme.textSecondary }]}>
-                            Day {decision.days_in_cycle} of cycle • {decision.entry_count || 0} reflections
-                          </Text>
-                        </View>
-                        {isSelected && (
-                          <View style={[styles.decisionCardBadge, { backgroundColor: 'rgba(129, 199, 132, 0.15)' }]}>
-                            <Text style={styles.decisionCardBadgeText}>Selected</Text>
-                          </View>
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })
-              ) : (
-                <View style={[styles.noDecisionsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  <Text style={{ fontSize: 24, marginBottom: 12 }}>🌑</Text>
-                  <Text style={[styles.noDecisionsTitle, { color: theme.text }]}>
-                    No Decisions Yet
-                  </Text>
-                  <Text style={[styles.noDecisionsText, { color: theme.textSecondary }]}>
-                    Track important decisions across the lunar cycle (~29 days) to observe how your perspective shifts.
-                  </Text>
+                          {isSelected && <Text style={styles.decisionSelectorDot}>●</Text>}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
                 </View>
               )}
 
-              {/* Add New Decision Button - Simplified when decisions already exist */}
-              {lunarStatus?.active_considerations && lunarStatus.active_considerations.length > 0 ? (
-                <View style={styles.addDecisionSection}>
-                  <TouchableOpacity
-                    style={[styles.simpleAddButton, { borderColor: '#C0C8D4' }]}
-                    onPress={() => {
-                      // Navigate or show modal to add new decision
-                      // For now, we'll use the LunarDecisionJournalCard's flow
-                    }}
-                  >
-                    <Text style={[styles.simpleAddButtonText, { color: '#C0C8D4' }]}>
-                      + Add Another Decision
-                    </Text>
-                  </TouchableOpacity>
+              {/* ═══════════════════════════════════════════════════════════════
+                  SECTION 2: DECISION HEADER CARD (Primary Focus)
+                  ═══════════════════════════════════════════════════════════════ */}
+              {activeDecision ? (
+                <View style={[styles.decisionHeaderCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Text style={[styles.decisionHeaderLabel, { color: '#A8B2C0' }]}>
+                    OBSERVING DECISION
+                  </Text>
+                  <Text style={[styles.decisionHeaderTopic, { color: theme.text }]}>
+                    "{activeDecision.topic}"
+                  </Text>
+                  <Text style={[styles.decisionHeaderStatus, { color: theme.textSecondary }]}>
+                    Day {activeDecision.days_in_cycle} of 29.5 • {getCyclePhase(activeDecision.days_in_cycle)}
+                  </Text>
+                  <View style={[styles.decisionHeaderDivider, { backgroundColor: theme.border }]} />
+                  <Text style={[styles.decisionHeaderDescription, { color: theme.textTertiary }]}>
+                    You are observing this decision across a full lunar cycle before making a choice.
+                  </Text>
                 </View>
               ) : (
-                <View style={styles.addDecisionSection}>
+                /* No Decision Selected - Show Creation Card */
+                <View style={[styles.noDecisionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Text style={{ fontSize: 32, marginBottom: 12 }}>🌙</Text>
+                  <Text style={[styles.noDecisionTitle, { color: theme.text }]}>
+                    Start Observing a Decision
+                  </Text>
+                  <Text style={[styles.noDecisionText, { color: theme.textSecondary }]}>
+                    Track important decisions across a lunar cycle (~29 days) and observe how your perspective shifts day by day.
+                  </Text>
                   <LunarDecisionJournalCard
                     userId={user?.id || ''}
                     onStatusLoaded={handleLunarStatusLoaded}
                     onConsiderationCreated={() => {
-                      // Refresh status after creating consideration
                       if (user) {
                         api.get(`/lunar-journal/${user.id}/status`).then(res => {
                           if (res.data?.success) setLunarStatus(res.data);
@@ -958,23 +930,6 @@ export default function JournalScreen() {
                       }
                     }}
                   />
-                </View>
-              )}
-
-              {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 2: SELECTED DECISION DETAILS
-                  ═══════════════════════════════════════════════════════════════ */}
-              {activeDecision && (
-                <View style={[styles.selectedDecisionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  <Text style={[styles.selectedDecisionLabel, { color: '#A8B2C0' }]}>
-                    OBSERVING DECISION
-                  </Text>
-                  <Text style={[styles.selectedDecisionTopic, { color: theme.text }]}>
-                    "{activeDecision.topic}"
-                  </Text>
-                  <Text style={[styles.selectedDecisionDays, { color: theme.textSecondary }]}>
-                    Day {activeDecision.days_in_cycle} of your lunar observation cycle
-                  </Text>
                 </View>
               )}
 
