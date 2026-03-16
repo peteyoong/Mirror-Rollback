@@ -11074,6 +11074,126 @@ async def get_pattern_timeline(user_id: str):
 
 
 # =====================================================================
+# PATTERN ENGINE v0.1 ENDPOINTS - Signal-Based Pattern Graph
+# =====================================================================
+
+@api_router.get("/pattern-engine/graph/{user_id}")
+async def get_pattern_engine_graph(user_id: str, include_debug: bool = False):
+    """
+    Get Pattern Graph v0.1 snapshot.
+    
+    This endpoint returns the signal-based pattern graph that aggregates
+    signals from Lunar reflections (and future: journal, chat, HD, enneagram).
+    
+    Returns:
+    - active_domains: List of domains with signal counts and dominant signals
+    - strongest_signals: Top 5 signals by intensity
+    - recent_signals: Last 10 signals
+    - repeated_tags: Most common tags across all signals
+    - overall_momentum: User's overall direction (positive/mixed/resistant/unclear)
+    - source_breakdown: Count of signals by source type
+    """
+    try:
+        from services.pattern_engine import get_pattern_graph_snapshot
+        
+        snapshot = await get_pattern_graph_snapshot(db, user_id, include_debug)
+        
+        return {
+            "success": True,
+            **snapshot
+        }
+    except Exception as e:
+        logger.error(f"[PatternEngine] Graph error for {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/pattern-engine/decision/{user_id}/{decision_id}")
+async def get_pattern_engine_decision(user_id: str, decision_id: str):
+    """
+    Get Decision-specific Pattern Snapshot.
+    
+    Returns pattern analysis for a specific lunar decision including:
+    - data_sufficiency
+    - dominant_signals
+    - repeated_tags
+    - strongest_gate
+    - momentum state
+    - excitement vs hesitation scores
+    """
+    try:
+        from services.pattern_engine import get_decision_pattern_snapshot, get_momentum_description, MomentumState
+        from dataclasses import asdict
+        
+        snapshot = await get_decision_pattern_snapshot(db, user_id, decision_id)
+        
+        # Convert dataclass to dict
+        result = asdict(snapshot)
+        
+        # Add momentum description
+        result["momentum_description"] = get_momentum_description(
+            MomentumState(snapshot.momentum),
+            snapshot.decision_topic
+        )
+        
+        return {
+            "success": True,
+            **result
+        }
+    except Exception as e:
+        logger.error(f"[PatternEngine] Decision snapshot error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/pattern-engine/ingest/{user_id}")
+async def ingest_pattern_signals(user_id: str, decision_id: Optional[str] = None):
+    """
+    Ingest signals from Lunar reflections into the Pattern Graph.
+    
+    This extracts pattern signals from Lunar journal entries and stores them
+    for the Pattern Graph snapshot.
+    
+    Args:
+        user_id: User ID
+        decision_id: Optional specific decision to ingest (all if not provided)
+    
+    Returns:
+        Summary of ingested signals
+    """
+    try:
+        from services.pattern_engine import ingest_lunar_signals_to_graph
+        
+        result = await ingest_lunar_signals_to_graph(db, user_id, decision_id)
+        
+        return {
+            "success": True,
+            **result
+        }
+    except Exception as e:
+        logger.error(f"[PatternEngine] Ingest error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/pattern-engine/debug/{user_id}/{decision_id}")
+async def get_pattern_engine_debug(user_id: str, decision_id: str):
+    """
+    Get detailed debug information about pattern analysis.
+    Developer-facing endpoint for inspecting pattern extraction.
+    """
+    try:
+        from services.pattern_engine import get_debug_pattern_analysis
+        
+        debug_data = await get_debug_pattern_analysis(db, user_id, decision_id)
+        
+        return {
+            "success": True,
+            **debug_data
+        }
+    except Exception as e:
+        logger.error(f"[PatternEngine] Debug error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =====================================================================
 # WEEKLY PATTERN SYNTHESIS ENDPOINT
 # =====================================================================
 
