@@ -2152,6 +2152,15 @@ const styles = StyleSheet.create({
   // ============================================
   // Signals Tab Styles
   // ============================================
+  signalsIntroContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 12,
+  },
+  signalsIntroText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
   signalsIntro: {
     fontSize: 14,
     lineHeight: 20,
