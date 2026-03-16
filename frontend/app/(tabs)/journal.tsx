@@ -974,24 +974,34 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 4: TODAY'S LENS CARD (Gate Activation)
+                  SECTION 4: TODAY'S LENS CARD (Task 68: Improved gate/line clarity)
                   ═══════════════════════════════════════════════════════════════ */}
               {activeDecision && gateExplanation && (
                 <View style={[styles.todaysLensCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                   <Text style={[styles.todaysLensLabel, { color: '#A8B2C0' }]}>
                     TODAY'S LENS
                   </Text>
-                  <Text style={[styles.todaysLensGate, { color: theme.text }]}>
-                    Gate {lunarStatus?.gate_formatted || currentGate} — {gateExplanation.title}
-                  </Text>
+                  <View style={styles.todaysLensGateRow}>
+                    <Text style={[styles.todaysLensGate, { color: theme.text }]}>
+                      Gate {currentGate} — {gateExplanation.title}
+                    </Text>
+                    {lunarStatus?.current_line && (
+                      <Text style={[styles.todaysLensLine, { color: theme.textTertiary }]}>
+                        Line {lunarStatus.current_line}
+                      </Text>
+                    )}
+                  </View>
                   <Text style={[styles.todaysLensTheme, { color: theme.textSecondary }]}>
                     {gateExplanation.theme}
                   </Text>
                   <View style={[styles.todaysLensDivider, { backgroundColor: theme.border }]} />
-                  <Text style={[styles.todaysLensObservation, { color: theme.textTertiary }]}>
-                    💡 {gateExplanation.observation}
-                  </Text>
-                  <View style={[styles.todaysLensPromptBox, { backgroundColor: 'rgba(192, 200, 212, 0.08)' }]}>
+                  <View style={styles.todaysLensObservationRow}>
+                    <Text style={styles.todaysLensObservationIcon}>💡</Text>
+                    <Text style={[styles.todaysLensObservation, { color: theme.textTertiary }]}>
+                      {gateExplanation.observation}
+                    </Text>
+                  </View>
+                  <View style={[styles.todaysLensPromptBox, { backgroundColor: 'rgba(192, 200, 212, 0.06)' }]}>
                     <Text style={[styles.todaysLensPromptLabel, { color: '#A8B2C0' }]}>
                       REFLECTION PROMPT
                     </Text>
