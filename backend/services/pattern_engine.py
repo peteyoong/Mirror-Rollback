@@ -207,6 +207,29 @@ TAG_KEYWORDS = {
     "authenticity": ["authentic", "true", "real", "genuine", "honest", "self"],
 }
 
+# Human Design Gate Insights for synthesis
+GATE_INSIGHTS = {
+    1: {"title": "Self-Expression", "insight": "This gate may have invited you to explore how this decision relates to your unique self-expression."},
+    2: {"title": "The Direction of Self", "insight": "This gate may have helped you sense the natural direction for this decision."},
+    3: {"title": "Ordering", "insight": "This gate may have shown what needs to be ordered or restructured around this decision."},
+    13: {"title": "The Listener", "insight": "This gate may have helped you gather experiences and stories relevant to this decision."},
+    17: {"title": "Opinions", "insight": "This gate may have surfaced opinions you hold about this decision."},
+    19: {"title": "Wanting", "insight": "This gate may have revealed what you truly need from this decision."},
+    21: {"title": "The Hunter", "insight": "This gate may have shown what obstacles you're willing to bite through."},
+    22: {"title": "Openness", "insight": "This gate may have invited emotional openness in considering this decision."},
+    25: {"title": "Innocence", "insight": "This gate may have connected you to what feels pure and innocent about this choice."},
+    27: {"title": "Caring", "insight": "This gate may have revealed how this decision impacts those you care for."},
+    30: {"title": "Feelings", "insight": "This gate may have surfaced desires for new experiences related to this decision."},
+    36: {"title": "Crisis", "insight": "This gate may have brought urgency or crisis energy to your consideration."},
+    37: {"title": "Friendship", "insight": "This gate may have revealed how this decision relates to your community."},
+    41: {"title": "Contraction", "insight": "This gate may have sparked imagined futures related to this decision."},
+    42: {"title": "Growth", "insight": "This gate may have shown what cycle needs completing before moving forward."},
+    49: {"title": "Principles", "insight": "This gate may have clarified what principles guide this decision."},
+    51: {"title": "Shock", "insight": "This gate may have brought initiating energy to your consideration."},
+    55: {"title": "Spirit", "insight": "This gate may have shown how this decision affects your spirit."},
+    63: {"title": "Doubt", "insight": "This gate may have surfaced important doubts and questions to address."},
+}
+
 
 def compute_weighted_emotional_score(text: str) -> Dict[str, Any]:
     """
