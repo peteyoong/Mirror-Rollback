@@ -821,7 +821,8 @@ export default function JournalScreen() {
               {/* Decision Cards */}
               {lunarStatus?.active_considerations && lunarStatus.active_considerations.length > 0 ? (
                 lunarStatus.active_considerations.map((decision: any) => {
-                  const isSelected = decision.id === (selectedDecisionId || lunarStatus?.active_consideration?.id);
+                  // Task 65: Use activeDecision.id as the source of truth for selection
+                  const isSelected = decision.id === activeDecision?.id;
                   return (
                     <TouchableOpacity
                       key={decision.id}
