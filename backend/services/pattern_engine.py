@@ -1415,8 +1415,7 @@ async def ingest_lunar_signals_to_graph(
     """
     Ingest lunar reflections into the pattern signal store.
     
-    This is the primary ingestion function for v0.1.
-    Call this after a user adds a new lunar reflection.
+    v0.15: Enhanced with idempotent storage - re-running will update, not duplicate.
     
     Args:
         db: Database connection
@@ -1424,7 +1423,7 @@ async def ingest_lunar_signals_to_graph(
         decision_id: Optional specific decision to ingest
     
     Returns:
-        Summary of ingested signals
+        Summary of ingested signals including insert/update counts
     """
     # Build query
     query = {"user_id": user_id}
@@ -1441,8 +1440,11 @@ async def ingest_lunar_signals_to_graph(
     consideration_map = {str(c["_id"]): c.get("topic", "Unknown") for c in considerations}
     
     # Extract and store signals
-    total_signals = 0
+    total_inserted = 0
+    total_updated = 0
     signals_by_type = Counter()
+    signals_by_domain = Counter()
+    all_signals = []
     
     for entry in entries:
         consideration_id = entry.get("consideration_id", "")
@@ -1451,18 +1453,27 @@ async def ingest_lunar_signals_to_graph(
         signals = extract_pattern_signals_from_lunar(
             entry, user_id, consideration_id, decision_topic
         )
-        
-        stored = await store_pattern_signals(db, signals)
-        total_signals += stored
+        all_signals.extend(signals)
         
         for signal in signals:
             signals_by_type[signal.signal_type] += 1
+            signals_by_domain[signal.domain] += 1
     
-    logger.info(f"[PatternEngine] Ingested {total_signals} signals for user {user_id[:8]}...")
+    # Store all signals (idempotent)
+    if all_signals:
+        inserted, updated = await store_pattern_signals(db, all_signals)
+        total_inserted = inserted
+        total_updated = updated
+    
+    logger.info(f"[PatternEngine] Ingested signals for user {user_id[:8]}...: {total_inserted} new, {total_updated} updated")
     
     return {
         "user_id": user_id,
         "entries_processed": len(entries),
-        "signals_created": total_signals,
+        "signals_total": len(all_signals),
+        "signals_inserted": total_inserted,
+        "signals_updated": total_updated,
         "signals_by_type": dict(signals_by_type),
+        "signals_by_domain": dict(signals_by_domain),
+        "idempotent": True,
     }
