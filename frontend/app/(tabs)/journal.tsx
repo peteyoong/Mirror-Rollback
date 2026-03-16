@@ -1104,7 +1104,8 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 4: TODAY'S LENS CARD (Task 68: Improved gate/line clarity)
+                  SECTION 4: TODAY'S LENS CARD 
+                  Uses resolvedCycleState.today_gate for current gate
                   ═══════════════════════════════════════════════════════════════ */}
               {activeDecision && gateExplanation && (
                 <View style={[styles.todaysLensCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -1113,11 +1114,11 @@ export default function JournalScreen() {
                   </Text>
                   <View style={styles.todaysLensGateRow}>
                     <Text style={[styles.todaysLensGate, { color: theme.text }]}>
-                      Gate {currentGate} — {gateExplanation.title}
+                      Gate {resolvedCycleState.today_gate} — {gateExplanation.title}
                     </Text>
-                    {lunarStatus?.current_line && (
+                    {resolvedCycleState.today_line && (
                       <Text style={[styles.todaysLensLine, { color: theme.textTertiary }]}>
-                        Line {lunarStatus.current_line}
+                        Line {resolvedCycleState.today_line}
                       </Text>
                     )}
                   </View>
