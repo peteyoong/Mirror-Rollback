@@ -18733,7 +18733,10 @@ class LifelineEventUpdate(BaseModel):
     age: Optional[int] = None
     category: Optional[str] = None
     emotional_tone: Optional[str] = None
-    impact_score: Optional[int] = None
+    impact_score: Optional[int] = None  # Backward compatibility
+    # TASK 59: New separate scales for valence and significance
+    emotional_valence: Optional[int] = None  # 1-10: 1=very difficult, 5=mixed, 10=very positive
+    significance_score: Optional[int] = None  # 1-10: 1=very low, 5=meaningful, 10=life-changing
     tags: Optional[List[str]] = None
     photos: Optional[List[str]] = None
     privacy_level: Optional[str] = None
