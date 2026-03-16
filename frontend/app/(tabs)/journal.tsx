@@ -1185,6 +1185,7 @@ export default function JournalScreen() {
               {/* ═══════════════════════════════════════════════════════════════
                   SECTION 6: LUNAR WHEEL (History & Navigation Tool)
                   Uses resolvedCycleState for today state
+                  cycleProgress is a ratio (0-1), not a percentage
                   ═══════════════════════════════════════════════════════════════ */}
               {activeDecision && (
                 <View style={styles.lunarWheelSection}>
@@ -1198,7 +1199,7 @@ export default function JournalScreen() {
                     currentLunarDay={resolvedCycleState.cycle_day}
                     currentGate={resolvedCycleState.today_gate}
                     currentGateTitle={gateExplanation?.title || null}
-                    cycleProgress={(resolvedCycleState.cycle_day / 29.5) * 100}
+                    cycleProgress={resolvedCycleState.cycle_day / resolvedCycleState.cycle_length}
                     timeline={activeDecision.timeline || []}
                     activeTopic={activeDecision.topic}
                     onDayPress={(day, entries) => {
