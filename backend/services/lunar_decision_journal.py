@@ -139,8 +139,8 @@ async def get_all_active_considerations(db, user_id: str) -> List[Dict[str, Any]
         
         considerations = []
         async for consideration in cursor:
-            # Get entry count for this consideration
-            entry_count = await db.lunar_journal_entries.count_documents({
+            # Get entry count for this consideration (entries are stored in lunar_journal collection)
+            entry_count = await db.lunar_journal.count_documents({
                 "user_id": user_id,
                 "consideration_id": str(consideration["_id"])
             })
