@@ -1,0 +1,645 @@
+/**
+ * LifelineEventEditor
+ * 
+ * Modal form for creating and editing lifeline events.
+ * Supports all event fields with validation.
+ */
+
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../../constants/colors';
+import { useTheme } from '../../contexts/ThemeContext';
+import { LifelineEvent } from './LifelineEventCard';
+
+const CATEGORIES = [
+  'Family',
+  'Relationships',
+  'Career',
+  'Health',
+  'Money',
+  'Spirituality',
+  'Turning Point',
+  'Loss',
+  'Achievement',
+  'Move',
+  'Identity',
+];
+
+const EMOTIONAL_TONES = [
+  { value: 'positive', label: 'Positive', color: '#4CAF50' },
+  { value: 'negative', label: 'Difficult', color: '#E57373' },
+  { value: 'mixed', label: 'Mixed', color: '#FFB74D' },
+  { value: 'neutral', label: 'Neutral', color: '#90A4AE' },
+];
+
+interface Props {
+  visible: boolean;
+  event?: LifelineEvent | null;
+  prefillYear?: number | null;
+  onClose: () => void;
+  onSave: (eventData: Partial<LifelineEvent>) => Promise<void>;
+  onDelete?: (eventId: string) => Promise<void>;
+}
+
+export default function LifelineEventEditor({ visible, event, prefillYear, onClose, onSave, onDelete }: Props) {
+  const { theme } = useTheme();
+  const isEditing = !!event;
+
+  // Form state
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [year, setYear] = useState('');
+  const [age, setAge] = useState('');
+  const [category, setCategory] = useState('');
+  const [emotionalTone, setEmotionalTone] = useState<string>('neutral');
+  const [impactScore, setImpactScore] = useState(5);
+  const [tags, setTags] = useState('');
+  const [privacyLevel, setPrivacyLevel] = useState<'private' | 'shareable'>('private');
+
+  // UI state
+  const [isSaving, setIsSaving] = useState(false);
+  const [showCategories, setShowCategories] = useState(false);
+  const [error, setError] = useState('');
+
+  // Initialize form when event changes
+  useEffect(() => {
+    if (event) {
+      setTitle(event.title || '');
+      setDescription(event.description || '');
+      setYear(event.year?.toString() || '');
+      setAge(event.age?.toString() || '');
+      setCategory(event.category || '');
+      setEmotionalTone(event.emotional_tone || 'neutral');
+      setImpactScore(event.impact_score || 5);
+      setTags(event.tags?.join(', ') || '');
+      setPrivacyLevel(event.privacy_level || 'private');
+    } else {
+      resetForm();
+      // If prefillYear is provided (from gap prompt), prefill the year field
+      if (prefillYear) {
+        setYear(prefillYear.toString());
+      }
+    }
+  }, [event, visible, prefillYear]);
+
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setYear('');
+    setAge('');
+    setCategory('');
+    setEmotionalTone('neutral');
+    setImpactScore(5);
+    setTags('');
+    setPrivacyLevel('private');
+    setError('');
+  };
+
+  const handleSave = async () => {
+    // Validation
+    if (!title.trim()) {
+      setError('Please add a title for this moment');
+      return;
+    }
+
+    const yearNum = year ? parseInt(year, 10) : undefined;
+    const ageNum = age ? parseInt(age, 10) : undefined;
+
+    if (year && (isNaN(yearNum!) || yearNum! < 1900 || yearNum! > 2100)) {
+      setError('Please enter a valid year (1900-2100)');
+      return;
+    }
+
+    if (age && (isNaN(ageNum!) || ageNum! < 0 || ageNum! > 120)) {
+      setError('Please enter a valid age (0-120)');
+      return;
+    }
+
+    setError('');
+    setIsSaving(true);
+
+    try {
+      const eventData: Partial<LifelineEvent> = {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        year: yearNum,
+        age: ageNum,
+        category: category || undefined,
+        emotional_tone: emotionalTone as LifelineEvent['emotional_tone'],
+        impact_score: impactScore,
+        tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+        privacy_level: privacyLevel,
+      };
+
+      if (isEditing && event?.id) {
+        eventData.id = event.id;
+      }
+
+      await onSave(eventData);
+      onClose();
+    } catch (err: any) {
+      setError(err.message || 'Failed to save. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = () => {
+    if (!event?.id || !onDelete) return;
+
+    Alert.alert(
+      'Delete this moment?',
+      'This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setIsSaving(true);
+            try {
+              await onDelete(event.id);
+              onClose();
+            } catch (err: any) {
+              setError(err.message || 'Failed to delete');
+            } finally {
+              setIsSaving(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <KeyboardAvoidingView
+        style={[styles.container, { backgroundColor: theme.background }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        {/* Header */}
+        <View style={[styles.header, { borderBottomColor: theme.border }]}>
+          <TouchableOpacity onPress={onClose} style={styles.headerButton}>
+            <Text style={[styles.cancelText, { color: theme.textSecondary }]}>Cancel</Text>
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>
+            {isEditing ? 'Edit Moment' : 'Add Moment'}
+          </Text>
+          <TouchableOpacity
+            onPress={handleSave}
+            style={styles.headerButton}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator size="small" color={theme.accent} />
+            ) : (
+              <Text style={[styles.saveText, { color: theme.accent }]}>Save</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Error Message */}
+          {error ? (
+            <View style={[styles.errorBox, { backgroundColor: `${Colors.error}15` }]}>
+              <Text style={[styles.errorText, { color: Colors.error }]}>{error}</Text>
+            </View>
+          ) : null}
+
+          {/* Title */}
+          <View style={styles.fieldGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>What happened? *</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+              value={title}
+              onChangeText={setTitle}
+              placeholder="e.g., Started my first job"
+              placeholderTextColor={theme.textTertiary}
+              maxLength={100}
+            />
+          </View>
+
+          {/* Description */}
+          <View style={styles.fieldGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>More details</Text>
+            <TextInput
+              style={[styles.textArea, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+              value={description}
+              onChangeText={setDescription}
+              placeholder="What made this moment significant?"
+              placeholderTextColor={theme.textTertiary}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              maxLength={500}
+            />
+          </View>
+
+          {/* Year / Age */}
+          <View style={styles.rowFields}>
+            <View style={[styles.fieldGroup, { flex: 1 }]}>
+              <Text style={[styles.label, { color: theme.text }]}>Year</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+                value={year}
+                onChangeText={setYear}
+                placeholder="2015"
+                placeholderTextColor={theme.textTertiary}
+                keyboardType="number-pad"
+                maxLength={4}
+              />
+            </View>
+            <View style={[styles.fieldGroup, { flex: 1 }]}>
+              <Text style={[styles.label, { color: theme.text }]}>Or Age</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+                value={age}
+                onChangeText={setAge}
+                placeholder="25"
+                placeholderTextColor={theme.textTertiary}
+                keyboardType="number-pad"
+                maxLength={3}
+              />
+            </View>
+          </View>
+
+          {/* Category */}
+          <View style={styles.fieldGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>Category</Text>
+            <TouchableOpacity
+              style={[styles.selectButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => setShowCategories(!showCategories)}
+            >
+              <Text style={[styles.selectText, { color: category ? theme.text : theme.textTertiary }]}>
+                {category || 'Select category'}
+              </Text>
+              <Ionicons name={showCategories ? 'chevron-up' : 'chevron-down'} size={18} color={theme.textTertiary} />
+            </TouchableOpacity>
+            {showCategories && (
+              <View style={[styles.optionsList, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                {CATEGORIES.map((cat) => (
+                  <TouchableOpacity
+                    key={cat}
+                    style={[styles.optionItem, category === cat && { backgroundColor: `${theme.accent}15` }]}
+                    onPress={() => {
+                      setCategory(cat);
+                      setShowCategories(false);
+                    }}
+                  >
+                    <Text style={[styles.optionText, { color: theme.text }]}>{cat}</Text>
+                    {category === cat && <Ionicons name="checkmark" size={18} color={theme.accent} />}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Emotional Tone */}
+          <View style={styles.fieldGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>How did it feel?</Text>
+            <View style={styles.toneRow}>
+              {EMOTIONAL_TONES.map((tone) => (
+                <TouchableOpacity
+                  key={tone.value}
+                  style={[
+                    styles.toneButton,
+                    { borderColor: emotionalTone === tone.value ? tone.color : theme.border },
+                    emotionalTone === tone.value && { backgroundColor: `${tone.color}20` },
+                  ]}
+                  onPress={() => setEmotionalTone(tone.value)}
+                >
+                  <View style={[styles.toneDot, { backgroundColor: tone.color }]} />
+                  <Text style={[styles.toneText, { color: emotionalTone === tone.value ? theme.text : theme.textSecondary }]}>
+                    {tone.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Impact Score */}
+          <View style={styles.fieldGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>How significant was this moment?</Text>
+            <View style={styles.impactGuidance}>
+              <Text style={[styles.impactGuideText, { color: theme.textTertiary }]}>Minor</Text>
+              <Text style={[styles.impactGuideArrow, { color: theme.textTertiary }]}>← 1 2 3 4 5 6 7 8 9 10 →</Text>
+              <Text style={[styles.impactGuideText, { color: theme.textTertiary }]}>Life-changing</Text>
+            </View>
+            <View style={styles.impactRow}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+                <TouchableOpacity
+                  key={score}
+                  style={[
+                    styles.impactButton,
+                    { borderColor: impactScore === score ? theme.accent : theme.border },
+                    impactScore === score && { backgroundColor: `${theme.accent}20` },
+                  ]}
+                  onPress={() => setImpactScore(score)}
+                >
+                  <Text style={[styles.impactText, { color: impactScore === score ? theme.accent : theme.textSecondary }]}>
+                    {score}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={styles.impactCalibration}>
+              <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>1 = Minor</Text>
+              <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>5 = Meaningful</Text>
+              <Text style={[styles.calibrationText, { color: theme.textTertiary }]}>10 = Life-changing</Text>
+            </View>
+          </View>
+
+          {/* Tags */}
+          <View style={styles.fieldGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>Tags</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+              value={tags}
+              onChangeText={setTags}
+              placeholder="growth, family, milestone (comma-separated)"
+              placeholderTextColor={theme.textTertiary}
+              autoCapitalize="none"
+            />
+          </View>
+
+          {/* Privacy */}
+          <View style={styles.fieldGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>Privacy</Text>
+            <View style={styles.privacyRow}>
+              <TouchableOpacity
+                style={[
+                  styles.privacyButton,
+                  { borderColor: privacyLevel === 'private' ? theme.accent : theme.border },
+                  privacyLevel === 'private' && { backgroundColor: `${theme.accent}15` },
+                ]}
+                onPress={() => setPrivacyLevel('private')}
+              >
+                <Ionicons name="lock-closed-outline" size={16} color={privacyLevel === 'private' ? theme.accent : theme.textSecondary} />
+                <Text style={[styles.privacyText, { color: privacyLevel === 'private' ? theme.accent : theme.textSecondary }]}>Private</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.privacyButton,
+                  { borderColor: privacyLevel === 'shareable' ? theme.accent : theme.border },
+                  privacyLevel === 'shareable' && { backgroundColor: `${theme.accent}15` },
+                ]}
+                onPress={() => setPrivacyLevel('shareable')}
+              >
+                <Ionicons name="people-outline" size={16} color={privacyLevel === 'shareable' ? theme.accent : theme.textSecondary} />
+                <Text style={[styles.privacyText, { color: privacyLevel === 'shareable' ? theme.accent : theme.textSecondary }]}>Shareable</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Delete Button (for editing) */}
+          {isEditing && onDelete && (
+            <TouchableOpacity
+              style={[styles.deleteButton, { borderColor: Colors.error }]}
+              onPress={handleDelete}
+            >
+              <Ionicons name="trash-outline" size={18} color={Colors.error} />
+              <Text style={[styles.deleteText, { color: Colors.error }]}>Delete this moment</Text>
+            </TouchableOpacity>
+          )}
+
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  headerButton: {
+    minWidth: 60,
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  cancelText: {
+    fontSize: 16,
+  },
+  saveText: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'right',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+  },
+  errorBox: {
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  errorText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  fieldGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+  },
+  textArea: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    minHeight: 100,
+  },
+  rowFields: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  selectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  selectText: {
+    fontSize: 16,
+  },
+  optionsList: {
+    borderWidth: 1,
+    borderRadius: 10,
+    marginTop: 8,
+    overflow: 'hidden',
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  optionText: {
+    fontSize: 15,
+  },
+  toneRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  toneButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 6,
+  },
+  toneDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  toneText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  impactRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  impactGuidance: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 2,
+  },
+  impactGuideText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  impactGuideArrow: {
+    fontSize: 11,
+    letterSpacing: 0.5,
+  },
+  impactCalibration: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingHorizontal: 2,
+  },
+  calibrationText: {
+    fontSize: 11,
+  },
+  // Task 54: Success banner styles
+  lunarSuccessBanner: {
+    marginBottom: 16,
+    padding: 12,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lunarSuccessText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#81C784',
+  },
+  impactButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  impactText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  privacyRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  privacyButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: 8,
+  },
+  privacyText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginTop: 20,
+    gap: 8,
+  },
+  deleteText: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  bottomSpacer: {
+    height: 40,
+  },
+});

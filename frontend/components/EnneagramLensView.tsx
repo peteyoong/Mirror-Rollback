@@ -14,6 +14,7 @@ import {
 import { useTheme, ThemeColors } from '../contexts/ThemeContext';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { InlineReflectButton } from './UniversalReflectButton';
 import { 
   sendEnneagramChat, 
   getEnneagramTraits,
@@ -1071,6 +1072,16 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <Text style={[styles.overviewCardBody, { color: theme.text }]}>
             {CORE_PATTERNS[core]}
           </Text>
+          <InlineReflectButton
+            source={{
+              lens: 'enneagram',
+              type: 'core_pattern',
+              name: `Type ${core} Core Pattern`,
+              value: TYPE_NAMES[core],
+              id: `enneagram_type_${core}_core`,
+            }}
+            prompt={`Reflect on your core pattern: ${CORE_PATTERNS[core]}`}
+          />
         </View>
 
         {/* What Drives This Card */}
@@ -1079,6 +1090,16 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <Text style={[styles.overviewCardBody, { color: theme.text }]}>
             {PATTERN_DRIVERS[core]}
           </Text>
+          <InlineReflectButton
+            source={{
+              lens: 'enneagram',
+              type: 'driver',
+              name: `Type ${core} Driver`,
+              value: TYPE_NAMES[core],
+              id: `enneagram_type_${core}_driver`,
+            }}
+            prompt={`What drives your pattern: ${PATTERN_DRIVERS[core]}`}
+          />
         </View>
 
         {/* Where This Shows Up Card */}
@@ -1102,6 +1123,16 @@ export default function EnneagramLensView({ result, userId }: Props) {
               <Text style={[styles.manifestationText, { color: theme.textSecondary }]}>{manifestations.stress}</Text>
             </View>
           </View>
+          <InlineReflectButton
+            source={{
+              lens: 'enneagram',
+              type: 'manifestation',
+              name: `Type ${core} Manifestations`,
+              value: TYPE_NAMES[core],
+              id: `enneagram_type_${core}_manifest`,
+            }}
+            prompt="Where do you notice this pattern showing up most in your life right now?"
+          />
         </View>
 
         {/* Reflection Prompt Card */}
@@ -1110,6 +1141,16 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <Text style={[styles.reflectionText, { color: theme.text }]}>
             "{OVERVIEW_REFLECTIONS[core]}"
           </Text>
+          <InlineReflectButton
+            source={{
+              lens: 'enneagram',
+              type: 'reflection',
+              name: `Type ${core} Reflection`,
+              value: TYPE_NAMES[core],
+              id: `enneagram_type_${core}_reflect`,
+            }}
+            prompt={OVERVIEW_REFLECTIONS[core]}
+          />
         </View>
 
         {/* Subtle CTA */}

@@ -17,7 +17,9 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import api, { getPatternInterpretation, PatternInterpretation } from '../../services/api';
 import { useForumContext } from '../../contexts/ForumContext';
-import { ReflectButton } from '../../components/ReflectButton';
+import { InlineReflectButton } from '../../components/UniversalReflectButton';
+import { FullSynthesis, SynthesisData } from '../../components/CrossLensSynthesis';
+import { ChartResonanceSection, PatternResonanceSummary } from '../../components/lifeline/ChartResonance';
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -241,6 +243,36 @@ export default function PatternsScreen() {
   const [timelineRefreshing, setTimelineRefreshing] = useState(false);
   const [timelineError, setTimelineError] = useState<string | null>(null);
   const [expandedWeek, setExpandedWeek] = useState<string | null>(null);
+  
+  // Cross-Lens Synthesis State
+  const [synthesis, setSynthesis] = useState<SynthesisData | null>(null);
+  const [synthesisLoading, setSynthesisLoading] = useState(true);
+  
+  // Chart Resonance State (for Pattern Lens section)
+  const [chartResonances, setChartResonances] = useState<PatternResonanceSummary[]>([]);
+  
+  // Lunar Cycle State (for Reflectors - Task 49 & 50)
+  const [lunarCycle, setLunarCycle] = useState<{
+    is_reflector: boolean;
+    moon_phase: string;
+    moon_icon: string;
+    lunar_day: number;
+    phase_energy: string;
+    pattern_lens_message?: string;
+    reflection_message?: string;
+    reflective_question?: string;
+    days_until_new_moon: number;
+    cycle_progress: number;
+    // Task 50: Lunar Gate data
+    current_moon_gate?: number;
+    gate_line?: number;
+    gate_formatted?: string;
+    gate_title?: string;
+    gate_theme?: string;
+    center?: string;
+    gate_reflection_message?: string;
+    gate_reflective_question?: string;
+  } | null>(null);
 
   // ============================================================================
   // DATA LOADING
@@ -253,12 +285,36 @@ export default function PatternsScreen() {
     else setPatternsLoading(true);
     
     try {
-      const response = await api.get<PatternGraphResponse>(`/pattern-graph/${user.id}`);
-      if (response.data?.success) {
-        setDomains(response.data.categories || []);
+      // Fetch patterns and resonances in parallel
+      const [patternsRes, resonancesRes] = await Promise.all([
+        api.get<PatternGraphResponse>(`/pattern-graph/${user.id}`),
+        api.get<{
+          success: boolean;
+          pattern_summary: PatternResonanceSummary[];
+        }>(`/lifeline/${user.id}/resonances`).catch(() => ({ data: { success: false, pattern_summary: [] } })),
+      ]);
+      
+      if (patternsRes.data?.success) {
+        setDomains(patternsRes.data.categories || []);
         setPatternsError(null);
       } else {
         setPatternsError('Failed to load patterns');
+      }
+      
+      // Store chart resonance summary for Pattern Lens section
+      if (resonancesRes.data?.success && resonancesRes.data.pattern_summary) {
+        setChartResonances(resonancesRes.data.pattern_summary);
+      }
+      
+      // Fetch lunar cycle data for Reflectors (Task 49)
+      try {
+        const lunarRes = await api.get(`/lunar-cycle/${user.id}`);
+        if (lunarRes.data) {
+          setLunarCycle(lunarRes.data);
+          console.log('[Patterns] Lunar cycle:', lunarRes.data.is_reflector ? 'Reflector user' : 'Non-Reflector');
+        }
+      } catch (lunarErr) {
+        console.log('[Patterns] Lunar cycle fetch failed:', lunarErr);
       }
     } catch (err) {
       console.error('[Patterns] Error:', err);
@@ -315,10 +371,28 @@ export default function PatternsScreen() {
     }
   };
 
+  const fetchSynthesis = async () => {
+    if (!user?.id) return;
+    setSynthesisLoading(true);
+    
+    try {
+      const response = await api.get(`/synthesis/${user.id}`);
+      if (response.data) {
+        setSynthesis(response.data);
+      }
+    } catch (err) {
+      console.log('[Synthesis] Failed to load:', err);
+      setSynthesis(null);
+    } finally {
+      setSynthesisLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchPatterns();
     fetchWeekly();
     fetchTimeline();
+    fetchSynthesis();
   }, [user?.id]);
 
   // ============================================================================
@@ -436,9 +510,33 @@ export default function PatternsScreen() {
           ...prev,
           [domainId]: response.interpretation
         }));
+      } else {
+        // Handle case where API returns success=false or no interpretation
+        console.warn('[Patterns] No interpretation in response for', domainId);
+        setInterpretations(prev => ({
+          ...prev,
+          [domainId]: {
+            story: 'This pattern insight is currently unavailable. Please try again later.',
+            pattern: '',
+            challenge: '',
+            genius: '',
+            experiments: []
+          }
+        }));
       }
     } catch (err) {
       console.error('[Patterns] Error fetching interpretation:', err);
+      // Set a fallback interpretation on error so it doesn't stay stuck on loading
+      setInterpretations(prev => ({
+        ...prev,
+        [domainId]: {
+          story: 'Unable to load this insight right now. Please check your connection and try again.',
+          pattern: '',
+          challenge: '',
+          genius: '',
+          experiments: []
+        }
+      }));
     } finally {
       setLoadingInterpretation(null);
     }
@@ -795,6 +893,7 @@ export default function PatternsScreen() {
     
     // Handle array content (experiments)
     const isArray = Array.isArray(content);
+    const hasContent = content && (isArray ? content.length > 0 : content.trim() !== '');
     
     return (
       <TouchableOpacity
@@ -814,7 +913,7 @@ export default function PatternsScreen() {
           <View style={styles.sectionContent}>
             {isLoading ? (
               <ActivityIndicator size="small" color={theme.textTertiary} />
-            ) : isArray ? (
+            ) : isArray && hasContent ? (
               <View style={styles.experimentsList}>
                 {(content as string[]).map((experiment, idx) => (
                   <View key={idx} style={styles.experimentItem}>
@@ -825,9 +924,13 @@ export default function PatternsScreen() {
                   </View>
                 ))}
               </View>
-            ) : (
+            ) : hasContent ? (
               <Text style={[styles.sectionText, { color: theme.textSecondary }]}>
-                {content || 'Loading...'}
+                {content as string}
+              </Text>
+            ) : (
+              <Text style={[styles.sectionText, { color: theme.textTertiary, fontStyle: 'italic' }]}>
+                Not available for this pattern.
               </Text>
             )}
           </View>
@@ -1083,16 +1186,15 @@ export default function PatternsScreen() {
             
             {/* Reflect Button at Bottom - Always visible */}
             <View style={styles.reflectButtonContainer}>
-              <ReflectButton
-                sourceLens="patterns"
-                sourceType={domain.category_id}
-                sourceName={domain.category_name}
-                sourceValue={getStrengthLabel(domain.signal_strength)}
-                theme={interpretation?.story}
-                strength={interpretation?.genius}
-                challenge={interpretation?.challenge}
-                guidance={interpretation?.experiments?.join('\n')}
-                compact={false}
+              <InlineReflectButton
+                source={{
+                  lens: 'patterns',
+                  type: 'domain',
+                  name: domain.category_name,
+                  id: domain.category_id,
+                  value: getStrengthLabel(domain.signal_strength),
+                }}
+                prompt={interpretation?.story}
               />
             </View>
           </View>
@@ -1137,11 +1239,19 @@ export default function PatternsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={patternsRefreshing}
-            onRefresh={() => fetchPatterns(true)}
+            onRefresh={() => {
+              fetchPatterns(true);
+              fetchSynthesis();
+            }}
             tintColor={theme.textSecondary}
           />
         }
       >
+        {/* Cross-Lens Synthesis - Shown at top when available */}
+        {(synthesis || synthesisLoading) && (
+          <FullSynthesis synthesis={synthesis} isLoading={synthesisLoading} />
+        )}
+
         <View style={styles.introSection}>
           <Text style={[styles.introDescription, { color: theme.textSecondary }]}>
             Patterns can emerge across different parts of life. This view gathers signals from your reflections and interpretive lenses.
@@ -1151,6 +1261,110 @@ export default function PatternsScreen() {
         <View style={styles.domainsSection}>
           {domains.map(domain => renderDomainCard(domain))}
         </View>
+        
+        {/* Chart Resonance Section */}
+        {chartResonances.length > 0 && (
+          <View style={[styles.resonanceSection, { paddingHorizontal: 16 }]}>
+            <ChartResonanceSection resonances={chartResonances} />
+          </View>
+        )}
+        
+        {/* Lunar Reflection Cycle Section - Task 49 & 50 (Reflectors Only) */}
+        {lunarCycle?.is_reflector && (
+          <View style={[styles.lunarCycleSection, { paddingHorizontal: 16 }]}>
+            <View style={[styles.lunarCycleCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              {/* Header */}
+              <View style={styles.lunarCycleHeader}>
+                <Text style={styles.lunarMoonIcon}>{lunarCycle.moon_icon}</Text>
+                <Text style={[styles.lunarCycleTitle, { color: '#C0C8D4' }]}>
+                  LUNAR REFLECTION CYCLE
+                </Text>
+              </View>
+              
+              {/* Phase Badge */}
+              <View style={[styles.lunarPhaseBadge, { backgroundColor: 'rgba(192, 200, 212, 0.15)' }]}>
+                <Text style={[styles.lunarPhaseBadgeText, { color: '#C0C8D4' }]}>
+                  {lunarCycle.moon_phase} • Day {Math.round(lunarCycle.lunar_day)}
+                </Text>
+              </View>
+              
+              {/* Cycle Progress */}
+              <View style={styles.lunarProgressContainer}>
+                <View style={[styles.lunarProgressTrack, { backgroundColor: 'rgba(192, 200, 212, 0.2)' }]}>
+                  <View 
+                    style={[
+                      styles.lunarProgressFill, 
+                      { width: `${lunarCycle.cycle_progress * 100}%`, backgroundColor: '#C0C8D4' }
+                    ]} 
+                  />
+                </View>
+                <View style={styles.lunarProgressLabels}>
+                  <Text style={[styles.lunarProgressLabel, { color: theme.textTertiary }]}>New</Text>
+                  <Text style={[styles.lunarProgressLabel, { color: theme.textTertiary }]}>Full</Text>
+                  <Text style={[styles.lunarProgressLabel, { color: theme.textTertiary }]}>New</Text>
+                </View>
+              </View>
+              
+              {/* Task 50: Current Lunar Gate Section */}
+              {lunarCycle.current_moon_gate && (
+                <View style={[styles.lunarGateSection, { borderTopColor: theme.border }]}>
+                  <Text style={[styles.lunarGateSectionTitle, { color: '#A8B2C0' }]}>
+                    CURRENT LUNAR GATE
+                  </Text>
+                  <View style={styles.lunarGateHeader}>
+                    <Text style={[styles.lunarGateNumber, { color: '#C0C8D4' }]}>
+                      Gate {lunarCycle.gate_formatted}
+                    </Text>
+                    <Text style={[styles.lunarGateTitle, { color: theme.text }]}>
+                      {lunarCycle.gate_title}
+                    </Text>
+                  </View>
+                  {lunarCycle.gate_theme && (
+                    <Text style={[styles.lunarGateTheme, { color: theme.textTertiary }]}>
+                      {lunarCycle.gate_theme}
+                    </Text>
+                  )}
+                  {lunarCycle.center && (
+                    <Text style={[styles.lunarGateCenter, { color: theme.textTertiary }]}>
+                      {lunarCycle.center}
+                    </Text>
+                  )}
+                </View>
+              )}
+              
+              {/* Pattern Lens Message */}
+              {lunarCycle.pattern_lens_message && (
+                <Text style={[styles.lunarPatternMessage, { color: theme.textSecondary }]}>
+                  {lunarCycle.pattern_lens_message}
+                </Text>
+              )}
+              
+              {/* Timing Info */}
+              <View style={[styles.lunarTimingRow, { borderTopColor: theme.border }]}>
+                <View style={styles.lunarTimingItem}>
+                  <Text style={[styles.lunarTimingValue, { color: '#C0C8D4' }]}>
+                    {Math.round(lunarCycle.days_until_new_moon)}d
+                  </Text>
+                  <Text style={[styles.lunarTimingLabel, { color: theme.textTertiary }]}>
+                    to New Moon
+                  </Text>
+                </View>
+              </View>
+              
+              {/* Reflective Question - now gate-based when available */}
+              {(lunarCycle.gate_reflective_question || lunarCycle.reflective_question) && (
+                <View style={[styles.lunarQuestionBlock, { borderTopColor: theme.border }]}>
+                  <Text style={[styles.lunarQuestionLabel, { color: '#A8B2C0' }]}>
+                    TO NOTICE
+                  </Text>
+                  <Text style={[styles.lunarQuestionText, { color: theme.textSecondary }]}>
+                    {lunarCycle.gate_reflective_question || lunarCycle.reflective_question}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
       </ScrollView>
     );
   };
@@ -1547,7 +1761,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: 120, // Extra padding for PWA banner overlay
   },
   
   // Centered Content
@@ -1607,6 +1821,143 @@ const styles = StyleSheet.create({
   // Domain Cards (Patterns)
   domainsSection: {
     marginBottom: 20,
+  },
+  resonanceSection: {
+    marginBottom: 32,
+    marginTop: 8,
+  },
+  
+  // Lunar Cycle Section Styles - Task 49
+  lunarCycleSection: {
+    marginBottom: 32,
+    marginTop: 8,
+  },
+  lunarCycleCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 18,
+  },
+  lunarCycleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 14,
+  },
+  lunarMoonIcon: {
+    fontSize: 22,
+  },
+  lunarCycleTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+  },
+  lunarPhaseBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    marginBottom: 16,
+  },
+  lunarPhaseBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  lunarProgressContainer: {
+    marginBottom: 18,
+  },
+  lunarProgressTrack: {
+    height: 6,
+    borderRadius: 3,
+    marginBottom: 8,
+  },
+  lunarProgressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  lunarProgressLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  lunarProgressLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  lunarPatternMessage: {
+    fontSize: 15,
+    lineHeight: 24,
+    marginBottom: 16,
+    fontStyle: 'italic',
+  },
+  lunarTimingRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingTop: 14,
+    marginTop: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  lunarTimingItem: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  lunarTimingValue: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  lunarTimingLabel: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+  lunarQuestionBlock: {
+    paddingTop: 16,
+    marginTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  lunarQuestionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  lunarQuestionText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  // Task 50: Lunar Gate Styles
+  lunarGateSection: {
+    paddingTop: 14,
+    marginTop: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  lunarGateSectionTitle: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  lunarGateHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 10,
+    marginBottom: 6,
+  },
+  lunarGateNumber: {
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  lunarGateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    flex: 1,
+  },
+  lunarGateTheme: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    marginBottom: 4,
+  },
+  lunarGateCenter: {
+    fontSize: 12,
+    marginBottom: 8,
   },
   
   // New Accordion Card Styles

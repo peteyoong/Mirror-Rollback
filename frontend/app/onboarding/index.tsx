@@ -10,7 +10,6 @@ import {
   Platform,
   ActivityIndicator,
   FlatList,
-  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -55,7 +54,7 @@ export default function Onboarding() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Refs for time inputs - to enforce focus on tap
+  // Refs for time inputs
   const hourInputRef = useRef<TextInput>(null);
   const minuteInputRef = useRef<TextInput>(null);
 
@@ -63,22 +62,6 @@ export default function Onboarding() {
   const justSelectedRef = useRef(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSearchQueryRef = useRef<string>('');
-
-  // Handler to focus hour input
-  const handleHourPress = useCallback(() => {
-    if (DEBUG_TOUCHES) {
-      console.log('[ONBOARDING] HH pressed - focusing hour input');
-    }
-    hourInputRef.current?.focus();
-  }, []);
-
-  // Handler to focus minute input
-  const handleMinutePress = useCallback(() => {
-    if (DEBUG_TOUCHES) {
-      console.log('[ONBOARDING] MM pressed - focusing minute input');
-    }
-    minuteInputRef.current?.focus();
-  }, []);
 
   const handleSearchLocation = useCallback(async (query: string) => {
     // If we just selected a location, don't search again
@@ -363,15 +346,12 @@ export default function Onboarding() {
               </View>
 
               {/* Birth Time - Separate HH:MM with AM/PM */}
-              {/* Wrapped in Pressables to ensure taps reach the inputs on iOS */}
+              {/* Task 45: Fixed native input - removed Pressable wrappers that were blocking touches */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Birth Time (optional)</Text>
                 <View style={styles.timeRow}>
-                  {/* Hour input with Pressable wrapper for reliable focus */}
-                  <Pressable 
-                    style={styles.timeInputContainer}
-                    onPress={handleHourPress}
-                  >
+                  {/* Hour input - no wrapper, direct TextInput for reliable native focus */}
+                  <View style={styles.timeInputContainer}>
                     <TextInput
                       ref={hourInputRef}
                       style={styles.timeInput}
@@ -383,16 +363,14 @@ export default function Onboarding() {
                       maxLength={2}
                       returnKeyType="next"
                       onSubmitEditing={() => minuteInputRef.current?.focus()}
-                      pointerEvents="auto"
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      selectTextOnFocus={true}
                     />
                     <Text style={styles.dateLabel}>Hour</Text>
-                  </Pressable>
+                  </View>
                   <Text style={styles.timeSeparator}>:</Text>
-                  {/* Minute input with Pressable wrapper for reliable focus */}
-                  <Pressable 
-                    style={styles.timeInputContainer}
-                    onPress={handleMinutePress}
-                  >
+                  {/* Minute input - no wrapper, direct TextInput for reliable native focus */}
+                  <View style={styles.timeInputContainer}>
                     <TextInput
                       ref={minuteInputRef}
                       style={styles.timeInput}
@@ -403,20 +381,23 @@ export default function Onboarding() {
                       keyboardType="number-pad"
                       maxLength={2}
                       returnKeyType="done"
-                      pointerEvents="auto"
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      selectTextOnFocus={true}
                     />
                     <Text style={styles.dateLabel}>Min</Text>
-                  </Pressable>
+                  </View>
                   <View style={styles.amPmContainer}>
                     <TouchableOpacity
                       style={[styles.amPmButton, amPm === 'AM' && styles.amPmButtonActive]}
                       onPress={() => setAmPm('AM')}
+                      activeOpacity={0.7}
                     >
                       <Text style={[styles.amPmText, amPm === 'AM' && styles.amPmTextActive]}>AM</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.amPmButton, amPm === 'PM' && styles.amPmButtonActive]}
                       onPress={() => setAmPm('PM')}
+                      activeOpacity={0.7}
                     >
                       <Text style={[styles.amPmText, amPm === 'PM' && styles.amPmTextActive]}>PM</Text>
                     </TouchableOpacity>
@@ -674,13 +655,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     marginTop: 14,
   },
-  // Time fields
+  // Time fields - Task 45: Increased touch target for reliable native input
   timeRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
   timeInputContainer: {
-    width: 70,
+    width: 80, // Increased from 70 for better touch target
   },
   timeInput: {
     backgroundColor: Colors.surface,
@@ -692,7 +673,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     textAlign: 'center',
-    minHeight: 52,
+    minHeight: 56, // Increased from 52 for better touch target (min 44pt + padding)
   },
   timeSeparator: {
     fontSize: 24,

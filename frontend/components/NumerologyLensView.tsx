@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
+import { InlineReflectButton } from './UniversalReflectButton';
 import axios from 'axios';
 import Constants from 'expo-constants';
 import api from '../services/api';
@@ -53,16 +54,18 @@ function getBackendBaseUrl(): string {
     // Check if hostname indicates local dev or preview environment
     const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
     const isLocalDev = hostname === 'localhost' || hostname === '127.0.0.1';
-    const isPreview = hostname.includes('preview') || hostname.includes('emergent');
+    // Only use dev fallback for actual localhost, NOT for deployed .emergent.host domains
+    const isDevPreview = hostname.includes('.preview.emergentagent.com');
     
-    if (isLocalDev || isPreview) {
-      // Use direct backend URL to bypass unreliable proxy
+    if (isLocalDev) {
+      // Local development only - use direct backend URL
       if (__DEV__) {
         console.log('[NumerologyLensView] Using DEV_BACKEND_FALLBACK:', DEV_BACKEND_FALLBACK);
       }
       return DEV_BACKEND_FALLBACK;
     }
-    // Production web: use relative URL (proxy should work)
+    // Production/deployed web (including .emergent.host): use relative URL
+    // The ingress/proxy will route /api/* to the backend
     return '';
   }
   
@@ -327,7 +330,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
         onPress={() => setActiveTab('today')}
       >
         <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'today' && { color: theme.text }]}>
-          Today's Snapshot
+          Today&apos;s Snapshot
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -457,6 +460,16 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
             <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>{section.body}</Text>
             {/* Debug: Show section-level metrics */}
             <SectionDebug label={section.label} body={section.body} index={index} />
+            {/* Reflect Button */}
+            <InlineReflectButton
+              source={{
+                lens: 'numerology',
+                type: section.label.toLowerCase().replace(/\s+/g, '_'),
+                name: section.label,
+                id: `numerology_${section.label.toLowerCase().replace(/\s+/g, '_')}`,
+              }}
+              prompt={`Reflect on ${section.label}: ${section.body.slice(0, 100)}...`}
+            />
           </>
         )}
       </View>
@@ -711,13 +724,22 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
                     return (
                       <TextInput
                         style={styles.nameInput}
-                        placeholder="Enter your full birth name"
+                        placeholder="e.g., John Michael Smith"
                         placeholderTextColor={theme.textTertiary}
                         value={modalInputName}
-                        onChangeText={setModalInputName}
+                        onChangeText={(text) => {
+                          // Preserve the full text including spaces
+                          setModalInputName(text);
+                        }}
                         autoCapitalize="words"
                         autoCorrect={false}
                         autoFocus={true}
+                        multiline={false}
+                        returnKeyType="done"
+                        blurOnSubmit={true}
+                        onSubmitEditing={handleUnlockSubmit}
+                        maxLength={100}
+                        textContentType="name"
                       />
                     );
                   })()}

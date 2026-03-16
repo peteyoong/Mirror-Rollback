@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
-import { ReflectButton } from './ReflectButton';
+import { InlineReflectButton } from './UniversalReflectButton';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -222,15 +222,15 @@ const CentersView = forwardRef<CentersViewHandle, Props>(({ userId }, ref) => {
 
             {/* Reflect Button */}
             <View style={styles.reflectContainer}>
-              <ReflectButton
-                sourceLens="human-design"
-                sourceType={`center_${center.center_name.toLowerCase().replace(/\s+/g, '_')}`}
-                sourceName={center.display_name}
-                sourceValue={center.defined ? 'Defined' : 'Undefined'}
-                theme={center.what_this_means}
-                strength={center.your_genius}
-                challenge={center.your_challenge}
-                guidance={center.practical_experiments.join('\n')}
+              <InlineReflectButton
+                source={{
+                  lens: 'human_design',
+                  type: 'center',
+                  name: center.display_name,
+                  value: center.defined ? 'Defined' : 'Undefined',
+                  id: `hd_center_${center.center_name.toLowerCase().replace(/\s+/g, '_')}`,
+                }}
+                prompt={center.what_this_means}
               />
             </View>
           </View>

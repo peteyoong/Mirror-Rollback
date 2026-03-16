@@ -13,6 +13,7 @@ import {
   TouchableWithoutFeedback,
   LayoutAnimation,
   UIManager,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -25,6 +26,17 @@ import MirrorReflectionModal from '../../components/MirrorReflectionModal';
 import MirrorChat from '../../components/MirrorChat';
 import { createJournalEntry, getJournalEntries, getCombinedTimeline, TimelineItem } from '../../services/api';
 import api from '../../services/api';
+// Task 51: Lunar Decision Journal Components
+import LunarDecisionJournalCard, { LunarJournalStatus } from '../../components/journal/LunarDecisionJournalCard';
+import LunarTimelineView from '../../components/journal/LunarTimelineView';
+import LunarHistoryView from '../../components/journal/LunarHistoryView';
+import CycleCompletionModal from '../../components/journal/CycleCompletionModal';
+// Task 52: Lunar Gate Timeline
+import LunarGateTimeline from '../../components/journal/LunarGateTimeline';
+// Task 53: Lunar Decision Wheel
+import LunarDecisionWheel from '../../components/journal/LunarDecisionWheel';
+// Task 55: Lunar Cycle Synthesis
+import LunarCycleSynthesisCard from '../../components/journal/LunarCycleSynthesisCard';
 // Removed Ionicons - using text-based alternatives for web compatibility
 
 // Enable LayoutAnimation on Android
@@ -62,7 +74,7 @@ interface KeystoneContext {
   daily_seed: string;
 }
 
-type ViewMode = 'journal' | 'mirror' | 'timeline';
+type ViewMode = 'journal' | 'mirror' | 'timeline' | 'lunar' | 'lunar-history';
 
 export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
@@ -81,6 +93,15 @@ export default function JournalScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef<TextInput>(null);
+  
+  // Task 51: Lunar Decision Journal state
+  const [lunarStatus, setLunarStatus] = useState<LunarJournalStatus | null>(null);
+  const [showCycleCompletion, setShowCycleCompletion] = useState(false);
+  const [isCreatingLunarEntry, setIsCreatingLunarEntry] = useState(false);
+  // Task 52: Lunar timeline data for LunarGateTimeline
+  const [lunarTimelineData, setLunarTimelineData] = useState<any>(null);
+  // Task 54: Success message for cycle completion
+  const [lunarSuccessMessage, setLunarSuccessMessage] = useState<string | null>(null);
   
   // Pattern metadata for journal entries triggered from patterns
   const [patternMetadata, setPatternMetadata] = useState<{
@@ -157,6 +178,22 @@ export default function JournalScreen() {
   useEffect(() => {
     loadEntries();
   }, []);
+
+  // Task 51: Load lunar journal status on mount to detect if user is Reflector
+  useEffect(() => {
+    const loadLunarStatus = async () => {
+      if (!user) return;
+      try {
+        const response = await api.get(`/lunar-journal/${user.id}/status`);
+        if (response.data?.success) {
+          setLunarStatus(response.data);
+        }
+      } catch (err) {
+        console.log('[Journal] Could not load lunar status (may not be Reflector)');
+      }
+    };
+    loadLunarStatus();
+  }, [user]);
 
   // Load combined timeline when switching to timeline view
   useEffect(() => {
@@ -280,37 +317,54 @@ export default function JournalScreen() {
   }
 
   // Render the mode toggle (Journal | Mirror | Timeline)
-  const renderModeToggle = () => (
-    <View style={styles.modeToggleContainer}>
-      <TouchableOpacity
-        style={[styles.modeButton, viewMode === 'journal' && styles.modeButtonActive]}
-        onPress={() => setViewMode('journal')}
-      >
-        <Text style={{ fontSize: 14, color: viewMode === 'journal' ? Colors.accent : Colors.textSecondary }}>☰</Text>
-        <Text style={[styles.modeButtonText, viewMode === 'journal' && styles.modeButtonTextActive]}>
-          Journal
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.modeButton, viewMode === 'mirror' && styles.modeButtonActive]}
-        onPress={() => setViewMode('mirror')}
-      >
-        <Text style={{ fontSize: 14, color: viewMode === 'mirror' ? Colors.accent : Colors.textSecondary }}>✦</Text>
-        <Text style={[styles.modeButtonText, viewMode === 'mirror' && styles.modeButtonTextActive]}>
-          Mirror
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.modeButton, viewMode === 'timeline' && styles.modeButtonActive]}
-        onPress={() => setViewMode('timeline')}
-      >
-        <Text style={{ fontSize: 14, color: viewMode === 'timeline' ? Colors.accent : Colors.textSecondary }}>⏱</Text>
-        <Text style={[styles.modeButtonText, viewMode === 'timeline' && styles.modeButtonTextActive]}>
-          Timeline
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const renderModeToggle = () => {
+    // Check if user is a Reflector based on lunar status
+    const isReflector = lunarStatus?.is_reflector === true;
+    
+    return (
+      <View style={styles.modeToggleContainer}>
+        <TouchableOpacity
+          style={[styles.modeButton, viewMode === 'journal' && styles.modeButtonActive]}
+          onPress={() => setViewMode('journal')}
+        >
+          <Text style={{ fontSize: 14, color: viewMode === 'journal' ? Colors.accent : Colors.textSecondary }}>☰</Text>
+          <Text style={[styles.modeButtonText, viewMode === 'journal' && styles.modeButtonTextActive]}>
+            Journal
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.modeButton, viewMode === 'mirror' && styles.modeButtonActive]}
+          onPress={() => setViewMode('mirror')}
+        >
+          <Text style={{ fontSize: 14, color: viewMode === 'mirror' ? Colors.accent : Colors.textSecondary }}>✦</Text>
+          <Text style={[styles.modeButtonText, viewMode === 'mirror' && styles.modeButtonTextActive]}>
+            Mirror
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.modeButton, viewMode === 'timeline' && styles.modeButtonActive]}
+          onPress={() => setViewMode('timeline')}
+        >
+          <Text style={{ fontSize: 14, color: viewMode === 'timeline' ? Colors.accent : Colors.textSecondary }}>⏱</Text>
+          <Text style={[styles.modeButtonText, viewMode === 'timeline' && styles.modeButtonTextActive]}>
+            Timeline
+          </Text>
+        </TouchableOpacity>
+        {/* Task 51: Lunar Journal tab for Reflectors */}
+        {isReflector && (
+          <TouchableOpacity
+            style={[styles.modeButton, (viewMode === 'lunar' || viewMode === 'lunar-history') && styles.modeButtonActive]}
+            onPress={() => setViewMode('lunar')}
+          >
+            <Text style={{ fontSize: 14, color: (viewMode === 'lunar' || viewMode === 'lunar-history') ? '#C0C8D4' : Colors.textSecondary }}>🌙</Text>
+            <Text style={[styles.modeButtonText, (viewMode === 'lunar' || viewMode === 'lunar-history') && { color: '#C0C8D4' }]}>
+              Lunar
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
 
   // Helper to format relative time for timeline
   const formatTimelineDate = (dateStr: string): { date: string; time: string; relative: string } => {
@@ -555,6 +609,295 @@ export default function JournalScreen() {
           journalText={selectedJournalText}
           chart={chart}
         />
+      </SafeAreaView>
+    );
+  }
+
+  // Task 51: Lunar Journal View (Reflectors Only)
+  if (viewMode === 'lunar') {
+    const handleLunarStatusLoaded = (status: LunarJournalStatus | null) => {
+      setLunarStatus(status);
+      // Show cycle completion modal if near new moon with active consideration
+      if (status?.show_cycle_completion && status?.active_consideration) {
+        setShowCycleCompletion(true);
+      }
+    };
+
+    // Task 52: Fetch timeline data for LunarGateTimeline
+    const fetchLunarTimeline = async () => {
+      if (!user) return;
+      try {
+        const response = await api.get(`/lunar-journal/${user.id}/timeline`);
+        if (response.data?.success) {
+          setLunarTimelineData(response.data);
+        }
+      } catch (err) {
+        console.log('[Journal] Error fetching lunar timeline');
+      }
+    };
+
+    // Fetch timeline data when entering lunar view
+    if (!lunarTimelineData && user) {
+      fetchLunarTimeline();
+    }
+
+    const handleCreateLunarEntry = async () => {
+      if (!newEntry.trim() || !user || isCreatingLunarEntry) return;
+      
+      setIsCreatingLunarEntry(true);
+      try {
+        await api.post(`/lunar-journal/${user.id}/entry`, {
+          content: newEntry.trim(),
+          consideration_id: lunarStatus?.active_consideration?.id || null,
+        });
+        
+        setNewEntry('');
+        Keyboard.dismiss();
+        // Refresh the lunar status and timeline to update entry count
+        const [statusRes, timelineRes] = await Promise.all([
+          api.get(`/lunar-journal/${user.id}/status`),
+          api.get(`/lunar-journal/${user.id}/timeline`)
+        ]);
+        if (statusRes.data?.success) {
+          setLunarStatus(statusRes.data);
+        }
+        if (timelineRes.data?.success) {
+          setLunarTimelineData(timelineRes.data);
+        }
+      } catch (err) {
+        console.error('[LunarJournal] Error creating entry:', err);
+      } finally {
+        setIsCreatingLunarEntry(false);
+      }
+    };
+
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        >
+          <View style={styles.content}>
+            {renderModeToggle()}
+
+            {/* Lunar Sub-navigation */}
+            <View style={styles.lunarSubNav}>
+              <TouchableOpacity
+                style={[styles.lunarSubNavButton, viewMode === 'lunar' && styles.lunarSubNavButtonActive]}
+                onPress={() => setViewMode('lunar')}
+              >
+                <Text style={[styles.lunarSubNavText, viewMode === 'lunar' && styles.lunarSubNavTextActive]}>
+                  Current Cycle
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.lunarSubNavButton, viewMode === 'lunar-history' && styles.lunarSubNavButtonActive]}
+                onPress={() => setViewMode('lunar-history')}
+              >
+                <Text style={[styles.lunarSubNavText, viewMode === 'lunar-history' && styles.lunarSubNavTextActive]}>
+                  History
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Scrollable content with Wheel, Timeline, and Journal */}
+            <ScrollView 
+              style={{ flex: 1 }}
+              contentContainerStyle={{ paddingBottom: 20 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* Task 54: Success Message Banner */}
+              {lunarSuccessMessage && (
+                <View style={[styles.lunarSuccessBanner, { backgroundColor: 'rgba(129, 199, 132, 0.15)' }]}>
+                  <Text style={styles.lunarSuccessText}>✓ {lunarSuccessMessage}</Text>
+                </View>
+              )}
+
+              {/* Task 55: Lunar Cycle Synthesis - show when near cycle completion */}
+              {lunarStatus?.is_near_new_moon && lunarStatus?.active_consideration && (
+                <LunarCycleSynthesisCard
+                  userId={user?.id || ''}
+                  considerationId={lunarStatus.active_consideration.id}
+                />
+              )}
+
+              {/* Task 53: Lunar Decision Wheel */}
+              {lunarStatus && lunarTimelineData && (
+                <LunarDecisionWheel
+                  currentLunarDay={lunarStatus.lunar_day}
+                  currentGate={lunarStatus.current_gate}
+                  currentGateTitle={lunarStatus.gate_title}
+                  cycleProgress={lunarStatus.cycle_progress}
+                  timeline={lunarTimelineData.timeline || []}
+                  activeTopic={lunarStatus.active_consideration?.topic || null}
+                  onDayPress={(day, entries) => {
+                    console.log('[LunarWheel] Day pressed:', day, 'entries:', entries.length);
+                  }}
+                  onAddEntry={() => {
+                    // Focus the input field
+                    inputRef.current?.focus();
+                  }}
+                />
+              )}
+
+              {/* Lunar Decision Journal Card */}
+              <LunarDecisionJournalCard
+                userId={user?.id || ''}
+                onStatusLoaded={handleLunarStatusLoaded}
+                onConsiderationCreated={() => {
+                  // Refresh status after creating consideration
+                  if (user) {
+                    api.get(`/lunar-journal/${user.id}/status`).then(res => {
+                      if (res.data?.success) setLunarStatus(res.data);
+                    });
+                  }
+                }}
+              />
+
+              {/* Task 52: Lunar Gate Timeline */}
+              {lunarStatus && lunarTimelineData && (
+                <LunarGateTimeline
+                  currentLunarDay={lunarStatus.lunar_day}
+                  currentGate={lunarStatus.current_gate}
+                  currentGateTitle={lunarStatus.gate_title}
+                  timeline={lunarTimelineData.timeline || []}
+                  cycleProgress={lunarStatus.cycle_progress}
+                  onEntryPress={(entry) => {
+                    console.log('[LunarGateTimeline] Entry pressed:', entry.id);
+                  }}
+                />
+              )}
+
+              {/* Daily Prompt */}
+              {lunarStatus?.daily_prompt && (
+                <View style={[styles.lunarPromptCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Text style={[styles.lunarPromptLabel, { color: '#A8B2C0' }]}>
+                    TODAY'S REFLECTION
+                  </Text>
+                  <Text style={[styles.lunarPromptText, { color: theme.textSecondary }]}>
+                    {lunarStatus.daily_prompt}
+                  </Text>
+                </View>
+              )}
+
+              {/* Lunar Journal Entry Input */}
+              <View style={styles.inputSection}>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    ref={inputRef}
+                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text }]}
+                    value={newEntry}
+                    onChangeText={setNewEntry}
+                    placeholder={lunarStatus?.has_active_consideration 
+                      ? "What do you notice about your consideration today?" 
+                      : "What's present for you right now?"}
+                    placeholderTextColor={theme.textTertiary}
+                    multiline
+                    maxLength={2000}
+                    editable={!isCreatingLunarEntry}
+                  />
+                  <View style={styles.inputActions}>
+                    <TouchableOpacity
+                      style={[
+                        styles.submitButton,
+                        { backgroundColor: '#C0C8D4' },
+                        (!newEntry.trim() || isCreatingLunarEntry) && styles.submitButtonDisabled,
+                      ]}
+                      onPress={handleCreateLunarEntry}
+                      disabled={!newEntry.trim() || isCreatingLunarEntry}
+                    >
+                      {isCreatingLunarEntry ? (
+                        <ActivityIndicator size="small" color="#1A1D24" />
+                      ) : (
+                        <Text style={{ fontSize: 18, color: '#1A1D24' }}>✓</Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* Lunar Timeline Entry List */}
+              <LunarTimelineView
+                userId={user?.id || ''}
+                considerationId={lunarStatus?.active_consideration?.id}
+                considerationTopic={lunarStatus?.active_consideration?.topic}
+              />
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+
+        {/* Cycle Completion Modal */}
+        {lunarStatus?.active_consideration && lunarStatus?.cycle_completion_prompts && (
+          <CycleCompletionModal
+            visible={showCycleCompletion}
+            userId={user?.id || ''}
+            considerationId={lunarStatus.active_consideration.id}
+            considerationTopic={lunarStatus.active_consideration.topic}
+            cycleCompletionPrompts={lunarStatus.cycle_completion_prompts}
+            onClose={() => setShowCycleCompletion(false)}
+            onComplete={(message) => {
+              console.log('[Journal] Cycle completion success:', message);
+              setShowCycleCompletion(false);
+              
+              // Show success message
+              if (message) {
+                setLunarSuccessMessage(message);
+                // Auto-hide after 4 seconds
+                setTimeout(() => setLunarSuccessMessage(null), 4000);
+              }
+              
+              // Refresh status and timeline
+              if (user) {
+                Promise.all([
+                  api.get(`/lunar-journal/${user.id}/status`),
+                  api.get(`/lunar-journal/${user.id}/timeline`)
+                ]).then(([statusRes, timelineRes]) => {
+                  if (statusRes.data?.success) setLunarStatus(statusRes.data);
+                  if (timelineRes.data?.success) setLunarTimelineData(timelineRes.data);
+                });
+              }
+            }}
+          />
+        )}
+      </SafeAreaView>
+    );
+  }
+
+  // Task 51: Lunar History View (Reflectors Only)
+  if (viewMode === 'lunar-history') {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <View style={styles.content}>
+          {renderModeToggle()}
+
+          {/* Lunar Sub-navigation */}
+          <View style={styles.lunarSubNav}>
+            <TouchableOpacity
+              style={[styles.lunarSubNavButton]}
+              onPress={() => setViewMode('lunar')}
+            >
+              <Text style={[styles.lunarSubNavText]}>
+                Current Cycle
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.lunarSubNavButton, styles.lunarSubNavButtonActive]}
+            >
+              <Text style={[styles.lunarSubNavText, styles.lunarSubNavTextActive]}>
+                History
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Lunar History View */}
+          <View style={{ flex: 1 }}>
+            <LunarHistoryView userId={user?.id || ''} />
+          </View>
+        </View>
       </SafeAreaView>
     );
   }
@@ -860,7 +1203,7 @@ const styles = StyleSheet.create({
     color: Colors.error,
   },
   listContent: {
-    paddingBottom: 24,
+    paddingBottom: 120, // Extra padding for PWA banner overlay
   },
   emptyContainer: {
     flex: 1,
@@ -1037,5 +1380,59 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontStyle: 'italic',
     marginBottom: 10,
+  },
+  // Task 51: Lunar Decision Journal Styles
+  lunarSubNav: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  lunarSubNavButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 2,
+  },
+  lunarSubNavButtonActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#C0C8D4',
+  },
+  lunarSubNavText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  lunarSubNavTextActive: {
+    color: '#C0C8D4',
+    fontWeight: '600',
+  },
+  lunarPromptCard: {
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+    marginBottom: 16,
+  },
+  lunarPromptLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  lunarPromptText: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontStyle: 'italic',
+  },
+  // Task 54: Success banner styles
+  lunarSuccessBanner: {
+    marginBottom: 16,
+    padding: 12,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lunarSuccessText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#81C784',
   },
 });

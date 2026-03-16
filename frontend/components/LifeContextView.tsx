@@ -8,18 +8,26 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { getLifeContext, LifeContextResponse, LifeContextType } from '../services/api';
+import { InlineReflectButton } from './UniversalReflectButton';
+import { LifelineTimeline } from './lifeline';
 
 interface Props {
   userId: string;
   initialContext?: LifeContextType;
+  onEventCountChange?: (count: number) => void;
 }
 
+// Extended context config to include Lifeline
 const CONTEXT_CONFIG = {
+  lifeline: {
+    icon: 'time-outline' as const,
+    label: 'Lifeline',
+    description: 'Your story',
+  },
   relationships: {
     icon: 'heart-outline' as const,
     label: 'Relationships',
@@ -44,10 +52,11 @@ const SECTION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   'Reflect': 'create-outline',
 };
 
-export default function LifeContextView({ userId, initialContext = 'relationships' }: Props) {
-  const router = useRouter();
+type ExtendedContextType = LifeContextType | 'lifeline';
+
+export default function LifeContextView({ userId, initialContext = 'lifeline', onEventCountChange }: Props) {
   const { theme, isDark } = useTheme();
-  const [activeContext, setActiveContext] = useState<LifeContextType>(initialContext);
+  const [activeContext, setActiveContext] = useState<ExtendedContextType>(initialContext);
   const [data, setData] = useState<LifeContextResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -55,7 +64,12 @@ export default function LifeContextView({ userId, initialContext = 'relationship
   const [expandedSection, setExpandedSection] = useState<string | null>('Overview');
 
   useEffect(() => {
-    loadContextData();
+    if (activeContext !== 'lifeline') {
+      loadContextData();
+    } else {
+      // Lifeline has its own loading logic
+      setIsLoading(false);
+    }
   }, [activeContext, userId]);
 
   const loadContextData = async (forceRefresh = false) => {
@@ -83,9 +97,18 @@ export default function LifeContextView({ userId, initialContext = 'relationship
     loadContextData(true);
   };
 
+  // Get the current section label for metadata
+  const getCurrentSection = (sectionLabel: string): string => {
+    if (sectionLabel === 'Overview') return 'overview';
+    if (sectionLabel === 'Today') return 'today';
+    if (sectionLabel === 'Explore') return 'explore';
+    if (sectionLabel === 'Reflect') return 'reflect';
+    return sectionLabel.toLowerCase();
+  };
+
   const renderContextTabs = () => (
     <View style={styles.contextTabsContainer}>
-      {(Object.keys(CONTEXT_CONFIG) as LifeContextType[]).map((ctx) => {
+      {(Object.keys(CONTEXT_CONFIG) as ExtendedContextType[]).map((ctx) => {
         const config = CONTEXT_CONFIG[ctx];
         const isActive = activeContext === ctx;
         return (
@@ -109,14 +132,6 @@ export default function LifeContextView({ userId, initialContext = 'relationship
       })}
     </View>
   );
-
-  const handleSaveToJournal = (prompt: string) => {
-    // Navigate to journal with pre-filled prompt
-    router.push({
-      pathname: '/(tabs)/journal',
-      params: { prefill: prompt }
-    });
-  };
 
   const renderSection = (section: { label: string; body: string }, index: number) => {
     const isExpanded = expandedSection === section.label;
@@ -144,14 +159,17 @@ export default function LifeContextView({ userId, initialContext = 'relationship
           <View style={styles.sectionContent}>
             <Text style={styles.sectionBody}>{section.body}</Text>
             {isReflect && (
-              <TouchableOpacity
-                style={styles.journalCTA}
-                onPress={() => handleSaveToJournal(section.body)}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="book-outline" size={16} color={Colors.accent} />
-                <Text style={styles.journalCTAText}>Save this reflection to your Journal</Text>
-              </TouchableOpacity>
+              <InlineReflectButton
+                source={{
+                  lens: 'life',
+                  area: activeContext,
+                  section: getCurrentSection(section.label),
+                  name: CONTEXT_CONFIG[activeContext].label,
+                  type: activeContext,
+                  id: `life_${activeContext}_${getCurrentSection(section.label)}`,
+                }}
+                prompt={section.body}
+              />
             )}
           </View>
         )}
@@ -159,64 +177,84 @@ export default function LifeContextView({ userId, initialContext = 'relationship
     );
   };
 
-  if (isLoading) {
-    return (
-      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.textTertiary} />
-        <Text style={[styles.loadingText, { color: theme.text }]}>Generating your Life context...</Text>
-        <Text style={[styles.loadingSubtext, { color: theme.textTertiary }]}>This may take a moment</Text>
-      </View>
-    );
+  // Only show loading/error for non-lifeline tabs (lifeline handles its own state)
+  if (activeContext !== 'lifeline') {
+    if (isLoading) {
+      return (
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+          {renderContextTabs()}
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.textTertiary} />
+            <Text style={[styles.loadingText, { color: theme.text }]}>Generating your Life context...</Text>
+            <Text style={[styles.loadingSubtext, { color: theme.textTertiary }]}>This may take a moment</Text>
+          </View>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+          {renderContextTabs()}
+          <View style={styles.errorContainer}>
+            <Ionicons name="alert-circle-outline" size={48} color={theme.textTertiary} />
+            <Text style={[styles.errorText, { color: theme.textSecondary }]}>{error}</Text>
+            <TouchableOpacity style={[styles.retryButton, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => loadContextData()}>
+              <Text style={[styles.retryButtonText, { color: theme.text }]}>Try Again</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
   }
 
-  if (error) {
-    return (
-      <View style={[styles.errorContainer, { backgroundColor: theme.background }]}>
-        <Ionicons name="alert-circle-outline" size={48} color={theme.textTertiary} />
-        <Text style={[styles.errorText, { color: theme.textSecondary }]}>{error}</Text>
-        <TouchableOpacity style={[styles.retryButton, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => loadContextData()}>
-          <Text style={[styles.retryButtonText, { color: theme.text }]}>Try Again</Text>
-        </TouchableOpacity>
+  // Render the Lifeline tab content
+  const renderLifelineTab = () => (
+    <LifelineTimeline userId={userId} />
+  );
+
+  // Render other context tabs (Relationships, Work, Self)
+  const renderOtherContextTab = () => (
+    <ScrollView
+      style={styles.scrollContainer}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          tintColor={Colors.textTertiary}
+        />
+      }
+    >
+      {/* Context Header */}
+      <View style={styles.headerContainer}>
+        <Text style={styles.title}>{data?.title || 'Life'}</Text>
+        <Text style={styles.contextDescription}>
+          {CONTEXT_CONFIG[activeContext].description}
+        </Text>
       </View>
-    );
-  }
+
+      {/* Sections */}
+      <View style={styles.sectionsContainer}>
+        {data?.sections.map((section, index) => renderSection(section, index))}
+      </View>
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          This isn&apos;t a rule. It&apos;s a pattern you can notice and work with.
+        </Text>
+      </View>
+    </ScrollView>
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {renderContextTabs()}
-
-      <ScrollView
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={Colors.textTertiary}
-          />
-        }
-      >
-        {/* Context Header */}
-        <View style={styles.headerContainer}>
-          <Text style={styles.title}>{data?.title || 'Life'}</Text>
-          <Text style={styles.contextDescription}>
-            {CONTEXT_CONFIG[activeContext].description}
-          </Text>
-        </View>
-
-        {/* Sections */}
-        <View style={styles.sectionsContainer}>
-          {data?.sections.map((section, index) => renderSection(section, index))}
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            This isn't a rule. It's a pattern you can notice and work with.
-          </Text>
-        </View>
-      </ScrollView>
+      
+      {/* Conditional rendering based on active tab */}
+      {activeContext === 'lifeline' ? renderLifelineTab() : renderOtherContextTab()}
     </View>
   );
 }
@@ -308,7 +346,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 24,
-    paddingBottom: 40,
+    paddingBottom: 120, // Extra padding for PWA banner overlay
   },
   headerContainer: {
     marginBottom: 24,
@@ -391,5 +429,70 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
     lineHeight: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  optionsContainer: {
+    gap: 12,
+    marginBottom: 20,
+  },
+  optionPrimary: {
+    backgroundColor: Colors.accent,
+    borderRadius: 12,
+    padding: 16,
+  },
+  optionSecondary: {
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 4,
+  },
+  optionPrimaryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  optionSecondaryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  optionHint: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+  },
+  cancelButton: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  cancelText: {
+    fontSize: 16,
+    color: Colors.textTertiary,
   },
 });

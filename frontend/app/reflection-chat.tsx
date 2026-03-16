@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -214,15 +215,17 @@ export default function ReflectionChat() {
       <KeyboardAvoidingView 
         style={styles.chatContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 20}
       >
         <ScrollView
           ref={scrollViewRef}
           style={styles.messagesContainer}
           contentContainerStyle={styles.messagesContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
           onContentSizeChange={() => {
-            scrollViewRef.current?.scrollToEnd({ animated: false });
+            scrollViewRef.current?.scrollToEnd({ animated: true });
           }}
         >
           {messages.map((message) => {
@@ -263,8 +266,11 @@ export default function ReflectionChat() {
           })}
           
           {isLoading && (
-            <View style={[styles.messageBubble, styles.assistantBubble]}>
-              <ActivityIndicator size="small" color={Colors.textTertiary} />
+            <View style={styles.loadingBubbleContainer}>
+              <View style={styles.loadingBubble}>
+                <ActivityIndicator size="small" color={Colors.accent} />
+                <Text style={styles.loadingText}>Reflecting…</Text>
+              </View>
             </View>
           )}
         </ScrollView>
@@ -396,6 +402,27 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
+  },
+  // Loading state styles
+  loadingBubbleContainer: {
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  loadingBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  loadingText: {
+    marginLeft: 10,
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
   },
   // Micro-Reflection Prompt styles
   microPromptContainer: {

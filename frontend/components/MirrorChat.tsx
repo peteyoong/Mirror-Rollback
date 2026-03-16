@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   UIManager,
   Modal,
   TextInputProps,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
@@ -185,9 +186,62 @@ export default function MirrorChat({
   // Track if insight has been saved for this session
   const [insightSavedForSession, setInsightSavedForSession] = useState(false);
   
+  // Keyboard state for better scroll handling
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  
+  // Animation for loading indicator
+  const loadingOpacity = useRef(new Animated.Value(0)).current;
+  
   const flatListRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
   const insets = useSafeAreaInsets();
+
+  // Track keyboard visibility for better UX
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+        // Scroll to end when keyboard appears
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    );
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
+
+  // Animate loading indicator
+  useEffect(() => {
+    if (isLoading) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(loadingOpacity, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(loadingOpacity, {
+            toValue: 0.4,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      loadingOpacity.setValue(0);
+    }
+  }, [isLoading]);
 
   // Load or create persistent session ID
   useEffect(() => {
@@ -341,9 +395,14 @@ export default function MirrorChat({
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const sentText = inputText.trim();
     setInputText('');
     setIsLoading(true);
-    Keyboard.dismiss();
+    
+    // Scroll to end after sending, don't dismiss keyboard immediately
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
 
     // ============================================
     // DEBUG LOGGING - MIRROR CHAT REQUEST
@@ -681,11 +740,18 @@ export default function MirrorChat({
 
   const canSend = inputText.trim().length > 0 && !isLoading && sessionId;
 
+  // Scroll to end helper
+  const scrollToEnd = useCallback(() => {
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, []);
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
     >
       {/* Header */}
       <View style={styles.header}>
@@ -722,21 +788,37 @@ export default function MirrorChat({
         data={messages}
         keyExtractor={(item) => item.id}
         renderItem={renderMessage}
-        contentContainerStyle={styles.messagesContainer}
+        contentContainerStyle={[
+          styles.messagesContainer,
+          { paddingBottom: 16 }
+        ]}
         showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        onContentSizeChange={scrollToEnd}
+        onLayout={scrollToEnd}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         ListFooterComponent={
           isLoading ? (
-            <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Reflecting…</Text>
-            </View>
+            <Animated.View style={[styles.loadingContainer, { opacity: loadingOpacity }]}>
+              <View style={styles.loadingBubble}>
+                <View style={styles.loadingDots}>
+                  <View style={[styles.loadingDot, styles.loadingDot1]} />
+                  <View style={[styles.loadingDot, styles.loadingDot2]} />
+                  <View style={[styles.loadingDot, styles.loadingDot3]} />
+                </View>
+                <Text style={styles.loadingText}>Mirror is reflecting…</Text>
+              </View>
+            </Animated.View>
           ) : null
         }
-        style={{ flex: 1 }}
+        style={styles.messagesList}
       />
 
-      {/* Input Bar - NOT absolute positioned for proper touch handling */}
-      <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      {/* Input Bar - Improved for keyboard handling */}
+      <View style={[
+        styles.inputBar, 
+        { paddingBottom: Math.max(insets.bottom, 8) }
+      ]}>
         {/* Transparency line (only in generalist Mirror Chat, not lens modals) */}
         {!lens && (
           <Text style={styles.transparencyLine}>
@@ -748,13 +830,7 @@ export default function MirrorChat({
             ref={inputRef}
             style={styles.input}
             value={inputText}
-            onChangeText={(text) => {
-              console.log('[MIRROR_INPUT_CHANGE]', text.length);
-              setInputText(text);
-            }}
-            onFocus={() => console.log('[MIRROR_INPUT_FOCUS]')}
-            onBlur={() => console.log('[MIRROR_INPUT_BLUR]')}
-            onPressIn={() => console.log('[MIRROR_INPUT_PRESS_IN]')}
+            onChangeText={setInputText}
             placeholder={placeholder}
             placeholderTextColor={Colors.textTertiary}
             multiline
@@ -764,6 +840,7 @@ export default function MirrorChat({
             blurOnSubmit={false}
             textAlignVertical="top"
             returnKeyType="default"
+            scrollEnabled={true}
           />
           <TouchableOpacity
             style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
@@ -1039,6 +1116,10 @@ const styles = StyleSheet.create({
   messagesContainer: {
     paddingHorizontal: 16,
     paddingTop: 8,
+    flexGrow: 1,
+  },
+  messagesList: {
+    flex: 1,
   },
   messageWrapper: {
     marginBottom: 10,
@@ -1096,21 +1177,55 @@ const styles = StyleSheet.create({
 
   // Loading
   loadingContainer: {
-    paddingVertical: 12,
+    paddingVertical: 16,
     paddingHorizontal: 4,
+    alignSelf: 'flex-start',
+  },
+  loadingBubble: {
+    backgroundColor: '#FDFCFA',
+    borderRadius: 18,
+    borderBottomLeftRadius: 6,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  loadingDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  loadingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.textTertiary,
+    marginHorizontal: 2,
+  },
+  loadingDot1: {
+    opacity: 0.4,
+  },
+  loadingDot2: {
+    opacity: 0.6,
+  },
+  loadingDot3: {
+    opacity: 0.8,
   },
   loadingText: {
     fontSize: 14,
-    color: Colors.textTertiary,
+    color: Colors.textSecondary,
     fontStyle: 'italic',
-    opacity: 0.8,
   },
 
   // Input Bar - Use relative positioning for proper touch handling on iOS
   inputBar: {
     backgroundColor: Colors.background,
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.border,
   },
@@ -1122,6 +1237,7 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     paddingRight: 6,
     paddingVertical: 6,
+    minHeight: 48,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -1130,13 +1246,13 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.text,
-    maxHeight: 100,
-    minHeight: 40,
+    maxHeight: 120,
+    minHeight: 36,
     paddingVertical: 8,
-    paddingTop: 10,
-    lineHeight: 20,
+    paddingTop: Platform.OS === 'ios' ? 10 : 8,
+    lineHeight: 22,
   },
   sendButton: {
     width: 34,

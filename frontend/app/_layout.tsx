@@ -5,7 +5,7 @@ import { useAppStore } from '../store';
 import { ThemeProvider, useTheme, LightTheme, DarkTheme } from '../contexts/ThemeContext';
 import { ForumContextProvider } from '../contexts/ForumContext';
 import { DebugViewportOverlay } from '../components/DebugViewportOverlay';
-import { AddToHomeScreenBanner } from '../components/AddToHomeScreenBanner';
+import { AddToHomeScreenBanner, BannerProvider } from '../components/AddToHomeScreenBanner';
 
 // Build info from environment
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
@@ -213,14 +213,16 @@ function ThemedRootLayout() {
 
   return (
     <AppErrorBoundary>
-      <Stack screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: theme.background },
-      }} />
-      {/* iOS Add to Home Screen Banner (browser only) */}
-      {Platform.OS === 'web' && <AddToHomeScreenBanner />}
-      {/* Debug viewport overlay for web - always present when debug enabled */}
-      {Platform.OS === 'web' && <DebugViewportOverlay />}
+      <BannerProvider>
+        <Stack screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: theme.background },
+        }} />
+        {/* iOS Add to Home Screen Banner (browser only) */}
+        {Platform.OS === 'web' && <AddToHomeScreenBanner />}
+        {/* Debug viewport overlay for web - always present when debug enabled */}
+        {Platform.OS === 'web' && <DebugViewportOverlay />}
+      </BannerProvider>
     </AppErrorBoundary>
   );
 }

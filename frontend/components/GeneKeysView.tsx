@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
+import { InlineReflectButton } from './UniversalReflectButton';
 import api from '../services/api';
 
 interface SphereData {
@@ -319,6 +320,18 @@ export default function GeneKeysView({ userId }: Props) {
               {selectedSphere.remember}
             </Text>
           </View>
+
+          {/* Reflect Button */}
+          <InlineReflectButton
+            source={{
+              lens: 'gene_keys',
+              type: selectedSphere.sphere_name.toLowerCase().replace(/\s+/g, '_'),
+              name: `Gene Key ${selectedSphere.gene_key} - ${selectedSphere.sphere_name}`,
+              value: `${selectedSphere.shadow} → ${selectedSphere.gift} → ${selectedSphere.siddhi}`,
+              id: `gene_key_${selectedSphere.gene_key}_${selectedSphere.sphere_name.toLowerCase().replace(/\s+/g, '_')}`,
+            }}
+            prompt={selectedSphere.remember}
+          />
         </View>
       )}
 

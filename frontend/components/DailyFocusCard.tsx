@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import { getDailyFocus, DailyFocusResponse } from '../services/api';
+import { InlineReflectButton } from './UniversalReflectButton';
 
 interface DailyFocusCardProps {
   userId: string;
@@ -173,6 +174,20 @@ export default function DailyFocusCard({ userId, onStateChange }: DailyFocusCard
             </Text>
           </View>
         )}
+
+        {/* Reflect Button */}
+        <View style={styles.reflectButtonContainer}>
+          <InlineReflectButton
+            source={{
+              lens: 'daily_mirror',
+              type: 'daily_focus',
+              name: "Today's Mirror",
+              value: dailyFocus.context || 'general',
+              id: `daily_focus_${new Date().toISOString().split('T')[0]}`,
+            }}
+            prompt={dailyFocus.ambient_line}
+          />
+        </View>
       </View>
     </View>
   );
@@ -242,5 +257,11 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     marginTop: 4,
     fontStyle: 'italic',
+  },
+  reflectButtonContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
   },
 });

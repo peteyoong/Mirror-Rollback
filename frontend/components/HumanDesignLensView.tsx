@@ -30,7 +30,7 @@ import GeneKeysView from './GeneKeysView';
 import CentersView, { CentersViewHandle } from './CentersView';
 import DefinedGatesView from './DefinedGatesView';
 import { ForumContextBanner } from './ForumContextBanner';
-import { ReflectButton } from './ReflectButton';
+import { InlineReflectButton } from './UniversalReflectButton';
 
 // Build info for debugging
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
@@ -1128,15 +1128,15 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
             {/* Reflect Button */}
             {key !== 'centers' && (
-              <ReflectButton
-                sourceLens="human-design"
-                sourceType={key}
-                sourceName={title}
-                sourceValue={getSourceValue()}
-                theme={story.explanation[0] || ''}
-                strength={story.patterns.join(' ')}
-                challenge={story.challenge}
-                guidance={story.reflection}
+              <InlineReflectButton
+                source={{
+                  lens: 'human_design',
+                  type: key,
+                  name: title,
+                  value: getSourceValue(),
+                  id: `hd_${key}`,
+                }}
+                prompt={story.reflection}
               />
             )}
           </View>
@@ -1611,15 +1611,15 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {TYPE_ENERGY_PATTERNS[hdType] || TYPE_ENERGY_PATTERNS['Generator']}
           </Text>
-          <ReflectButton
-            sourceLens="human-design"
-            sourceType="type"
-            sourceName="Type"
-            sourceValue={hdType}
-            theme={TYPE_ENERGY_PATTERNS[hdType] || 'Your unique energy pattern.'}
-            strength={TYPE_MANIFESTATIONS[hdType]?.work || 'Gifts that emerge when aligned.'}
-            challenge={TYPE_MANIFESTATIONS[hdType]?.energy?.split(';')[1]?.trim() || 'Patterns when out of alignment.'}
-            guidance={STRATEGY_TRANSLATIONS[data?.core_mechanics?.strategy || ''] || 'Follow your natural rhythm.'}
+          <InlineReflectButton
+            source={{
+              lens: 'human_design',
+              type: 'type',
+              name: 'Energy Type',
+              value: hdType,
+              id: 'hd_type',
+            }}
+            prompt={TYPE_ENERGY_PATTERNS[hdType] || 'Your unique energy pattern.'}
           />
         </View>
 
@@ -1629,15 +1629,15 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {strategyTranslation}
           </Text>
-          <ReflectButton
-            sourceLens="human-design"
-            sourceType="strategy"
-            sourceName="Strategy"
-            sourceValue={data?.core_mechanics?.strategy || ''}
-            theme={strategyTranslation}
-            strength="Following this approach brings flow and reduces resistance."
-            challenge="Acting against this strategy creates friction and frustration."
-            guidance="Notice when you naturally follow this pattern vs. when you override it."
+          <InlineReflectButton
+            source={{
+              lens: 'human_design',
+              type: 'strategy',
+              name: 'Strategy',
+              value: data?.core_mechanics?.strategy || '',
+              id: 'hd_strategy',
+            }}
+            prompt={strategyTranslation}
           />
         </View>
 
@@ -1648,15 +1648,15 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {authorityData.expanded}
           </Text>
-          <ReflectButton
-            sourceLens="human-design"
-            sourceType="authority"
-            sourceName="Authority"
-            sourceValue={data?.core_mechanics?.authority || ''}
-            theme={authorityData.expanded}
-            strength="Reliable clarity when you follow your process."
-            challenge="Not trusting your natural decision-making process."
-            guidance={authorityData.short}
+          <InlineReflectButton
+            source={{
+              lens: 'human_design',
+              type: 'authority',
+              name: 'Authority',
+              value: data?.core_mechanics?.authority || '',
+              id: 'hd_authority',
+            }}
+            prompt={authorityData.expanded}
           />
         </View>
 
@@ -1733,13 +1733,15 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             {/* Reflect Button for deep dive sections */}
             {activeTab === 'deep_dive' && (
               <View style={styles.sectionReflectContainer}>
-                <ReflectButton
-                  sourceLens="human-design"
-                  sourceType={`deep_dive_${section.label.toLowerCase().replace(/\s+/g, '_')}`}
-                  sourceName={section.label}
-                  sourceValue={data?.core_mechanics?.type || 'Human Design'}
-                  theme={section.body?.slice(0, 200) + '...'}
-                  compact={true}
+                <InlineReflectButton
+                  source={{
+                    lens: 'human_design',
+                    type: `deep_dive_${section.label.toLowerCase().replace(/\s+/g, '_')}`,
+                    name: section.label,
+                    value: data?.core_mechanics?.type || 'Human Design',
+                    id: `hd_deep_dive_${section.label.toLowerCase().replace(/\s+/g, '_')}`,
+                  }}
+                  prompt={section.body?.slice(0, 200) + '...'}
                 />
               </View>
             )}

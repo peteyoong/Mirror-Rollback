@@ -16,7 +16,18 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import { useForumContext } from '../../contexts/ForumContext';
-import { getForumExercise, submitForumReflection, PatternDomain, getHumanDesignMechanics, HumanDesignMechanics } from '../../services/api';
+import { 
+  getForumExercise, 
+  submitForumReflection, 
+  PatternDomain, 
+  getHumanDesignMechanics, 
+  HumanDesignMechanics,
+  getPatternGraph,
+  PatternGraphCategory,
+  getPatternInterpretation,
+  PatternInterpretationResponse,
+  createJournalEntry
+} from '../../services/api';
 
 // Step types for the exercise flow
 type Step = 'intro' | 'source' | 'domain' | 'mirror-lens' | 'mirror-insight' | 'guidance' | 'prompts' | 'privacy' | 'complete';
@@ -224,10 +235,16 @@ export default function ExerciseScreen() {
   
   // Reflection state
   const [reflectionText, setReflectionText] = useState('');
-  const [isShared, setIsShared] = useState(false);
+  const [isShared, setIsShared] = useState(true); // Default: share with forum
+  const [saveToJournal, setSaveToJournal] = useState(false); // Default: don't save to journal
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [loadingHD, setLoadingHD] = useState(false);
+  
+  // Pattern Graph state (live pattern data)
+  const [patternCategories, setPatternCategories] = useState<PatternGraphCategory[]>([]);
+  const [patternInterpretation, setPatternInterpretation] = useState<PatternInterpretationResponse | null>(null);
+  const [loadingInterpretation, setLoadingInterpretation] = useState(false);
 
   // Handle prefilled source from forum context
   useEffect(() => {
@@ -258,9 +275,19 @@ export default function ExerciseScreen() {
     
     setLoading(true);
     try {
-      const data = await getForumExercise(forumId as string, user.id);
-      setExercise(data.exercise);
-      setDomains(data.domains);
+      // Fetch exercise and pattern graph data in parallel
+      const [exerciseData, patternData] = await Promise.all([
+        getForumExercise(forumId as string, user.id),
+        getPatternGraph(user.id).catch(() => null)
+      ]);
+      
+      setExercise(exerciseData.exercise);
+      setDomains(exerciseData.domains);
+      
+      // Map pattern graph categories to the same order as domains
+      if (patternData?.categories) {
+        setPatternCategories(patternData.categories);
+      }
     } catch (err) {
       console.error('[Exercise] Error fetching exercise:', err);
       Alert.alert('Error', 'Unable to load exercise.');
@@ -323,6 +350,12 @@ export default function ExerciseScreen() {
   const handleSubmit = async () => {
     if (!user?.id || !forumId) return;
     
+    // Must have at least one destination selected
+    if (!isShared && !saveToJournal) {
+      Alert.alert('No destination', 'Please select at least one destination for your reflection.');
+      return;
+    }
+    
     // Determine domain to submit
     let domainToSubmit = selectedDomain || '';
     let domainNameToSubmit = selectedDomainName;
@@ -334,12 +367,33 @@ export default function ExerciseScreen() {
     
     setSubmitting(true);
     try {
-      await submitForumReflection(forumId as string, {
-        user_id: user.id,
-        selected_domain: domainToSubmit,
-        reflection_text: reflectionText,
-        is_shared: isShared,
-      });
+      const promises: Promise<any>[] = [];
+      
+      // Save to Forum if selected
+      if (isShared) {
+        promises.push(
+          submitForumReflection(forumId as string, {
+            user_id: user.id,
+            selected_domain: domainToSubmit,
+            reflection_text: reflectionText,
+            is_shared: true, // Always shared when saving to forum
+          })
+        );
+      }
+      
+      // Save to Journal if selected
+      if (saveToJournal) {
+        promises.push(
+          createJournalEntry(user.id, reflectionText, {
+            journal_source: 'forum_exercise',
+            pattern_category: domainToSubmit,
+            source_domain: domainNameToSubmit,
+            source_name: exercise?.title || 'Forum Exercise',
+          })
+        );
+      }
+      
+      await Promise.all(promises);
       setStep('complete');
     } catch (err) {
       console.error('[Exercise] Error submitting reflection:', err);
@@ -400,8 +454,66 @@ export default function ExerciseScreen() {
     );
   };
 
-  // INTRO STEP
+  // INTRO STEP - Now shows live pattern landscape preview with interpretive summaries
   if (step === 'intro') {
+    // Helper to get pattern status and summary for intro
+    // Note: API returns 'active', 'recurring', 'stable' (not 'emerging', 'quiet')
+    const getIntroPatternData = (domainId: string): { status: string; color: string; summary: string | null } => {
+      const category = patternCategories.find(c => c.category_id === domainId);
+      if (!category) return { status: 'Stable', color: theme.textTertiary, summary: null };
+      
+      const signalStrength = category.signal_strength;
+      if (signalStrength === 'active') {
+        return { status: 'Active', color: theme.accent, summary: category.summary };
+      } else if (signalStrength === 'recurring' || signalStrength === 'emerging') {
+        return { status: 'Recurring', color: '#F59E0B', summary: category.summary };
+      } else {
+        // 'stable', 'quiet', or any other value
+        return { status: 'Stable', color: theme.textTertiary, summary: category.summary };
+      }
+    };
+
+    // Count active patterns - check for both 'recurring' and 'emerging' for compatibility
+    const activeCount = patternCategories.filter(c => c.signal_strength === 'active').length;
+    const recurringCount = patternCategories.filter(c => 
+      c.signal_strength === 'recurring' || c.signal_strength === 'emerging'
+    ).length;
+
+    // Sort domains to show active/recurring first
+    const sortedDomains = [...domains].sort((a, b) => {
+      const aCategory = patternCategories.find(c => c.category_id === a.id);
+      const bCategory = patternCategories.find(c => c.category_id === b.id);
+      // Handle both API formats: 'recurring'/'stable' and 'emerging'/'quiet'
+      const getOrder = (strength: string | undefined) => {
+        if (strength === 'active') return 0;
+        if (strength === 'recurring' || strength === 'emerging') return 1;
+        return 2; // stable, quiet, or undefined
+      };
+      const aOrder = aCategory ? getOrder(aCategory.signal_strength) : 2;
+      const bOrder = bCategory ? getOrder(bCategory.signal_strength) : 2;
+      return aOrder - bOrder;
+    });
+
+    // Handle domain selection on intro screen
+    const handleIntroDomainSelect = async (domainId: string, domainName: string) => {
+      setSelectedDomain(domainId);
+      setSelectedDomainName(domainName);
+      setPatternInterpretation(null);
+      setSourceType('patterns');
+      
+      if (user?.id) {
+        setLoadingInterpretation(true);
+        try {
+          const interpretation = await getPatternInterpretation(user.id, domainId);
+          setPatternInterpretation(interpretation);
+        } catch (err) {
+          console.error('[Exercise] Error fetching interpretation:', err);
+        } finally {
+          setLoadingInterpretation(false);
+        }
+      }
+    };
+
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
         <View style={styles.header}>
@@ -411,40 +523,215 @@ export default function ExerciseScreen() {
         </View>
 
         <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-          {renderStepIndicator()}
-          
           <Text style={[styles.title, { color: theme.text }]}>
             {exercise?.title || 'The Pattern Running Me'}
           </Text>
           
-          <Text style={[styles.introText, { color: theme.textSecondary }]}>
-            {exercise?.description || 'This exercise helps surface one pattern that may currently be shaping how you lead, relate, or respond to life.'}
-          </Text>
-          
-          <View style={[styles.infoBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.infoTitle, { color: theme.text }]}>What you'll do</Text>
-            <Text style={[styles.infoItem, { color: theme.textSecondary }]}>
-              • Choose a reflection source (Patterns or Mirror insights)
+          {/* Different intro text based on selection state */}
+          {!selectedDomain ? (
+            <Text style={[styles.introText, { color: theme.textSecondary }]}>
+              Select a pattern domain below to explore its meaning before reflecting.
             </Text>
-            <Text style={[styles.infoItem, { color: theme.textSecondary }]}>
-              • Review guidance for your selected insight
+          ) : (
+            <Text style={[styles.introText, { color: theme.textSecondary }]}>
+              Review the interpretation below, then continue to write your reflection.
             </Text>
-            <Text style={[styles.infoItem, { color: theme.textSecondary }]}>
-              • Write your reflection
-            </Text>
-            <Text style={[styles.infoItem, { color: theme.textSecondary }]}>
-              • Decide if you want to share with the group
-            </Text>
+          )}
+
+          {/* Live Pattern Landscape */}
+          <View style={styles.patternLandscapeSection}>
+            <View style={styles.landscapeHeaderRow}>
+              <Text style={[styles.landscapeSectionTitle, { color: theme.text }]}>Your Pattern Landscape</Text>
+              {selectedDomain && (
+                <TouchableOpacity 
+                  onPress={() => {
+                    setSelectedDomain(null);
+                    setSelectedDomainName('');
+                    setPatternInterpretation(null);
+                  }}
+                  style={styles.changeSelectionButton}
+                >
+                  <Text style={[styles.changeSelectionText, { color: theme.accent }]}>Change</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            
+            {loading ? (
+              <View style={[styles.landscapeLoadingCard, { backgroundColor: theme.surface }]}>
+                <ActivityIndicator size="small" color={theme.accent} />
+                <Text style={[styles.landscapeLoadingText, { color: theme.textTertiary }]}>
+                  Loading your patterns...
+                </Text>
+              </View>
+            ) : (
+              <>
+                {/* Status summary pills */}
+                {(activeCount > 0 || recurringCount > 0) && (
+                  <View style={styles.landscapeSummaryRow}>
+                    {activeCount > 0 && (
+                      <View style={[styles.statusPill, { backgroundColor: theme.accent + '20' }]}>
+                        <Text style={[styles.statusPillText, { color: theme.accent }]}>
+                          {activeCount} Active
+                        </Text>
+                      </View>
+                    )}
+                    {recurringCount > 0 && (
+                      <View style={[styles.statusPill, { backgroundColor: '#F59E0B20' }]}>
+                        <Text style={[styles.statusPillText, { color: '#F59E0B' }]}>
+                          {recurringCount} Recurring
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {/* Pattern domain cards - with inline preview below selected card */}
+                <View style={styles.landscapeDomainCards}>
+                  {sortedDomains.slice(0, 7).map((domain) => {
+                    const data = getIntroPatternData(domain.id);
+                    const isHighlighted = data.status === 'Active' || data.status === 'Recurring';
+                    const isSelected = selectedDomain === domain.id;
+                    
+                    return (
+                      <React.Fragment key={domain.id}>
+                        <TouchableOpacity 
+                          style={[
+                            styles.landscapeDomainCard,
+                            { 
+                              backgroundColor: theme.surface,
+                              borderColor: isSelected ? theme.accent : (isHighlighted ? data.color + '40' : theme.border),
+                              borderWidth: isSelected ? 2 : StyleSheet.hairlineWidth,
+                              borderLeftWidth: isSelected ? 2 : (isHighlighted ? 3 : StyleSheet.hairlineWidth),
+                              borderLeftColor: isSelected ? theme.accent : (isHighlighted ? data.color : theme.border),
+                            }
+                          ]}
+                          onPress={() => handleIntroDomainSelect(domain.id, domain.name)}
+                          activeOpacity={0.7}
+                        >
+                          <View style={styles.landscapeDomainHeader}>
+                            <Text style={[styles.landscapeDomainName, { color: theme.text }]}>
+                              {domain.name}
+                            </Text>
+                            <View style={styles.landscapeDomainHeaderRight}>
+                              <View style={[styles.landscapeStatusBadge, { backgroundColor: data.color + '15' }]}>
+                                <Text style={[styles.landscapeStatusText, { color: data.color }]}>
+                                  {data.status}
+                                </Text>
+                              </View>
+                              {isSelected && (
+                                <Text style={[styles.selectedCheckmark, { color: theme.accent }]}>✓</Text>
+                              )}
+                            </View>
+                          </View>
+                          {/* Only show summary if NOT selected - interpretation replaces it */}
+                          {!isSelected && data.summary && (
+                            <Text 
+                              style={[styles.landscapeDomainSummary, { color: theme.textSecondary }]}
+                              numberOfLines={2}
+                            >
+                              {data.summary}
+                            </Text>
+                          )}
+                        </TouchableOpacity>
+
+                        {/* Interpretation Preview - renders directly below selected card */}
+                        {isSelected && (
+                          <View style={[styles.inlineInterpretationPreview, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
+                            {loadingInterpretation ? (
+                              <View style={styles.interpretationLoading}>
+                                <ActivityIndicator size="small" color={theme.accent} />
+                                <Text style={[styles.interpretationLoadingText, { color: theme.textTertiary }]}>
+                                  Loading pattern insights...
+                                </Text>
+                              </View>
+                            ) : patternInterpretation?.interpretation ? (
+                              <>
+                                {/* Story Section */}
+                                {patternInterpretation.interpretation.story && (
+                                  <View style={styles.inlineInterpretationSection}>
+                                    <Text style={[styles.inlineInterpretationTitle, { color: theme.text }]}>
+                                      Story
+                                    </Text>
+                                    <Text style={[styles.inlineInterpretationText, { color: theme.textSecondary }]}>
+                                      {patternInterpretation.interpretation.story}
+                                    </Text>
+                                  </View>
+                                )}
+                                
+                                {/* Challenge Section */}
+                                {patternInterpretation.interpretation.challenge && (
+                                  <View style={[styles.inlineInterpretationSection, { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth, marginTop: 12, paddingTop: 12 }]}>
+                                    <Text style={[styles.inlineInterpretationTitle, { color: theme.text }]}>
+                                      Challenge
+                                    </Text>
+                                    <Text style={[styles.inlineInterpretationText, { color: theme.textSecondary }]}>
+                                      {patternInterpretation.interpretation.challenge}
+                                    </Text>
+                                  </View>
+                                )}
+                                
+                                {/* Genius Section */}
+                                {patternInterpretation.interpretation.genius && (
+                                  <View style={[styles.inlineInterpretationSection, { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth, marginTop: 12, paddingTop: 12 }]}>
+                                    <Text style={[styles.inlineInterpretationTitle, { color: theme.text }]}>
+                                      Genius
+                                    </Text>
+                                    <Text style={[styles.inlineInterpretationText, { color: theme.textSecondary }]}>
+                                      {patternInterpretation.interpretation.genius}
+                                    </Text>
+                                  </View>
+                                )}
+                                
+                                {/* Why This May Be Active */}
+                                {patternInterpretation.signal_strength && (patternInterpretation.signal_strength === 'active' || patternInterpretation.signal_strength === 'recurring') && (
+                                  <View style={[styles.inlineWhyActive, { backgroundColor: theme.accent + '10', marginTop: 12 }]}>
+                                    <Text style={[styles.inlineWhyActiveText, { color: theme.accent }]}>
+                                      This pattern has signals showing up across your reflections right now.
+                                    </Text>
+                                  </View>
+                                )}
+
+                                {/* Continue Button - inside the preview card */}
+                                <TouchableOpacity
+                                  style={[styles.inlineContinueButton, { backgroundColor: theme.buttonPrimaryBg, marginTop: 16 }]}
+                                  onPress={() => {
+                                    setStep('guidance');
+                                  }}
+                                >
+                                  <Text style={[styles.inlineContinueButtonText, { color: theme.buttonPrimaryText }]}>
+                                    Continue to Reflection
+                                  </Text>
+                                </TouchableOpacity>
+                              </>
+                            ) : (
+                              <Text style={[styles.interpretationEmpty, { color: theme.textTertiary }]}>
+                                Unable to load interpretation
+                              </Text>
+                            )}
+                          </View>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </View>
+              </>
+            )}
           </View>
 
-          <TouchableOpacity
-            style={[styles.primaryButton, { backgroundColor: theme.buttonPrimaryBg }]}
-            onPress={() => setStep('source')}
-          >
-            <Text style={[styles.primaryButtonText, { color: theme.buttonPrimaryText }]}>
-              Begin Exercise
-            </Text>
-          </TouchableOpacity>
+          {/* Mirror insights alternative - only show if no domain selected */}
+          {!selectedDomain && (
+            <TouchableOpacity
+              style={styles.alternateOption}
+              onPress={() => {
+                setSourceType('mirror');
+                setStep('mirror-lens');
+              }}
+            >
+              <Text style={[styles.alternateOptionText, { color: theme.textTertiary }]}>
+                Or reflect from Mirror insights instead →
+              </Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
       </SafeAreaView>
     );
@@ -537,7 +824,45 @@ export default function ExerciseScreen() {
   }
 
   // DOMAIN SELECTION STEP (for Patterns source)
+  // Now shows live pattern status like the Patterns page
   if (step === 'domain') {
+    // Helper to get pattern status from pattern graph
+    const getPatternStatus = (domainId: string): { status: string; color: string; summary?: string } => {
+      const category = patternCategories.find(c => c.category_id === domainId);
+      if (!category) return { status: '', color: theme.textTertiary };
+      
+      const signalStrength = category.signal_strength;
+      switch (signalStrength) {
+        case 'active':
+          return { status: 'Active', color: theme.accent, summary: category.summary };
+        case 'emerging':
+          return { status: 'Recurring', color: '#F59E0B', summary: category.summary };
+        case 'quiet':
+          return { status: 'Stable', color: theme.textTertiary, summary: category.summary };
+        default:
+          return { status: '', color: theme.textTertiary };
+      }
+    };
+
+    // Fetch interpretation when domain is selected
+    const handleDomainSelect = async (domainId: string, domainName: string) => {
+      setSelectedDomain(domainId);
+      setSelectedDomainName(domainName);
+      setPatternInterpretation(null);
+      
+      if (user?.id) {
+        setLoadingInterpretation(true);
+        try {
+          const interpretation = await getPatternInterpretation(user.id, domainId);
+          setPatternInterpretation(interpretation);
+        } catch (err) {
+          console.error('[Exercise] Error fetching interpretation:', err);
+        } finally {
+          setLoadingInterpretation(false);
+        }
+      }
+    };
+
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
         <View style={styles.header}>
@@ -550,37 +875,138 @@ export default function ExerciseScreen() {
           {renderStepIndicator()}
           
           <Text style={[styles.stepTitle, { color: theme.textTertiary }]}>STEP 2</Text>
-          <Text style={[styles.title, { color: theme.text }]}>Choose a pattern domain</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Your Pattern Landscape</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Which area of life feels most active or charged for you right now?
+            Choose the domain that feels most present for you right now. These are your live pattern signals.
           </Text>
 
           <View style={styles.domainsList}>
-            {domains.map((domain) => (
-              <TouchableOpacity
-                key={domain.id}
-                style={[
-                  styles.domainCard,
-                  { 
-                    backgroundColor: theme.surface, 
-                    borderColor: selectedDomain === domain.id ? theme.accent : theme.border,
-                    borderWidth: selectedDomain === domain.id ? 2 : StyleSheet.hairlineWidth,
-                  }
-                ]}
-                onPress={() => {
-                  setSelectedDomain(domain.id);
-                  setSelectedDomainName(domain.name);
-                }}
-              >
-                <Text style={[styles.domainName, { color: theme.text }]}>
-                  {domain.name}
-                </Text>
-                {selectedDomain === domain.id && (
-                  <Text style={[styles.checkmark, { color: theme.accent }]}>✓</Text>
-                )}
-              </TouchableOpacity>
-            ))}
+            {domains.map((domain) => {
+              const patternStatus = getPatternStatus(domain.id);
+              const isSelected = selectedDomain === domain.id;
+              
+              return (
+                <TouchableOpacity
+                  key={domain.id}
+                  style={[
+                    styles.domainCardLive,
+                    { 
+                      backgroundColor: theme.surface, 
+                      borderColor: isSelected ? theme.accent : theme.border,
+                      borderWidth: isSelected ? 2 : StyleSheet.hairlineWidth,
+                    }
+                  ]}
+                  onPress={() => handleDomainSelect(domain.id, domain.name)}
+                >
+                  <View style={styles.domainCardHeader}>
+                    <Text style={[styles.domainName, { color: theme.text }]}>
+                      {domain.name}
+                    </Text>
+                    {patternStatus.status ? (
+                      <View style={[styles.statusBadge, { backgroundColor: patternStatus.color + '20' }]}>
+                        <Text style={[styles.statusText, { color: patternStatus.color }]}>
+                          {patternStatus.status}
+                        </Text>
+                      </View>
+                    ) : null}
+                    {isSelected && (
+                      <Text style={[styles.checkmark, { color: theme.accent }]}>✓</Text>
+                    )}
+                  </View>
+                  {patternStatus.summary && (
+                    <Text style={[styles.domainSummary, { color: theme.textSecondary }]} numberOfLines={2}>
+                      {patternStatus.summary}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
+
+          {/* Show interpretation preview when domain selected */}
+          {selectedDomain && (
+            <View style={[styles.interpretationPreview, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              {loadingInterpretation ? (
+                <View style={styles.interpretationLoading}>
+                  <ActivityIndicator size="small" color={theme.accent} />
+                  <Text style={[styles.interpretationLoadingText, { color: theme.textTertiary }]}>
+                    Loading pattern insights...
+                  </Text>
+                </View>
+              ) : patternInterpretation?.interpretation ? (
+                <>
+                  <View style={styles.interpretationHeader}>
+                    <Text style={[styles.interpretationLabel, { color: theme.textTertiary }]}>
+                      ABOUT THIS PATTERN
+                    </Text>
+                    {patternInterpretation.signal_strength && (
+                      <View style={[
+                        styles.signalStrengthBadge, 
+                        { backgroundColor: patternInterpretation.signal_strength === 'active' ? theme.accent + '20' : '#F59E0B20' }
+                      ]}>
+                        <Text style={[
+                          styles.signalStrengthText, 
+                          { color: patternInterpretation.signal_strength === 'active' ? theme.accent : '#F59E0B' }
+                        ]}>
+                          {patternInterpretation.signal_strength === 'active' ? 'Active' : 
+                           patternInterpretation.signal_strength === 'emerging' ? 'Recurring' : 'Stable'}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  
+                  {/* Story Section */}
+                  {patternInterpretation.interpretation.story && (
+                    <View style={styles.interpretationSection}>
+                      <Text style={[styles.interpretationSectionTitle, { color: theme.text }]}>
+                        Story
+                      </Text>
+                      <Text style={[styles.interpretationSectionText, { color: theme.textSecondary }]}>
+                        {patternInterpretation.interpretation.story}
+                      </Text>
+                    </View>
+                  )}
+                  
+                  {/* Challenge Section */}
+                  {patternInterpretation.interpretation.challenge && (
+                    <View style={[styles.interpretationSection, { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
+                      <Text style={[styles.interpretationSectionTitle, { color: theme.text }]}>
+                        Challenge
+                      </Text>
+                      <Text style={[styles.interpretationSectionText, { color: theme.textSecondary }]}>
+                        {patternInterpretation.interpretation.challenge}
+                      </Text>
+                    </View>
+                  )}
+                  
+                  {/* Genius Section */}
+                  {patternInterpretation.interpretation.genius && (
+                    <View style={[styles.interpretationSection, { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
+                      <Text style={[styles.interpretationSectionTitle, { color: theme.text }]}>
+                        Genius
+                      </Text>
+                      <Text style={[styles.interpretationSectionText, { color: theme.textSecondary }]}>
+                        {patternInterpretation.interpretation.genius}
+                      </Text>
+                    </View>
+                  )}
+                  
+                  {/* Why This May Be Active - Signals hint */}
+                  {patternInterpretation.signal_strength && (patternInterpretation.signal_strength === 'active' || patternInterpretation.signal_strength === 'recurring') && (
+                    <View style={[styles.whyActiveHint, { backgroundColor: theme.accent + '10' }]}>
+                      <Text style={[styles.whyActiveHintText, { color: theme.accent }]}>
+                        This pattern has signals showing up across your reflections right now.
+                      </Text>
+                    </View>
+                  )}
+                </>
+              ) : (
+                <Text style={[styles.interpretationEmpty, { color: theme.textTertiary }]}>
+                  Tap Continue to reflect on {selectedDomainName}
+                </Text>
+              )}
+            </View>
+          )}
 
           <TouchableOpacity
             style={[
@@ -901,7 +1327,7 @@ export default function ExerciseScreen() {
           <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
             {renderStepIndicator()}
             
-            <Text style={[styles.stepTitle, { color: theme.textTertiary }]}>STEP {sourceType === 'mirror' ? '4' : '3'}</Text>
+            <Text style={[styles.stepTitle, { color: theme.textTertiary }]}>FINAL STEP</Text>
             <Text style={[styles.title, { color: theme.text }]}>Reflect</Text>
             <View style={[styles.guidanceBadge, { backgroundColor: theme.accent + '20' }]}>
               <Text style={[styles.guidanceBadgeText, { color: theme.accent }]}>
@@ -933,33 +1359,119 @@ export default function ExerciseScreen() {
               numberOfLines={8}
               textAlignVertical="top"
             />
-
-            <TouchableOpacity
-              style={[
-                styles.primaryButton, 
-                { backgroundColor: reflectionText.trim().length > 20 ? theme.buttonPrimaryBg : theme.border }
-              ]}
-              onPress={() => setStep('privacy')}
-              disabled={reflectionText.trim().length < 20}
-            >
-              <Text style={[styles.primaryButtonText, { color: theme.buttonPrimaryText }]}>
-                Continue
-              </Text>
-            </TouchableOpacity>
             
             {reflectionText.trim().length > 0 && reflectionText.trim().length < 20 && (
               <Text style={[styles.hint, { color: theme.textTertiary }]}>
                 Please write at least 20 characters
               </Text>
             )}
+
+            {/* Destination Selection */}
+            <Text style={[styles.label, { color: theme.text, marginTop: 24 }]}>Save To</Text>
+            
+            <View style={styles.destinationOptions}>
+              {/* This Forum checkbox */}
+              <TouchableOpacity
+                style={[
+                  styles.destinationOption,
+                  { 
+                    backgroundColor: theme.surface, 
+                    borderColor: isShared ? theme.accent : theme.border,
+                    borderWidth: isShared ? 2 : StyleSheet.hairlineWidth,
+                  }
+                ]}
+                onPress={() => setIsShared(!isShared)}
+                activeOpacity={0.7}
+              >
+                <View style={[
+                  styles.checkbox,
+                  { 
+                    borderColor: isShared ? theme.accent : theme.border,
+                    backgroundColor: isShared ? theme.accent : 'transparent'
+                  }
+                ]}>
+                  {isShared && (
+                    <Text style={styles.checkboxCheck}>✓</Text>
+                  )}
+                </View>
+                <View style={styles.destinationTextContainer}>
+                  <Text style={[styles.destinationOptionTitle, { color: theme.text }]}>
+                    This Forum
+                  </Text>
+                  <Text style={[styles.destinationOptionDesc, { color: theme.textSecondary }]}>
+                    Share with other forum members
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* My Journal checkbox */}
+              <TouchableOpacity
+                style={[
+                  styles.destinationOption,
+                  { 
+                    backgroundColor: theme.surface, 
+                    borderColor: saveToJournal ? theme.accent : theme.border,
+                    borderWidth: saveToJournal ? 2 : StyleSheet.hairlineWidth,
+                  }
+                ]}
+                onPress={() => setSaveToJournal(!saveToJournal)}
+                activeOpacity={0.7}
+              >
+                <View style={[
+                  styles.checkbox,
+                  { 
+                    borderColor: saveToJournal ? theme.accent : theme.border,
+                    backgroundColor: saveToJournal ? theme.accent : 'transparent'
+                  }
+                ]}>
+                  {saveToJournal && (
+                    <Text style={styles.checkboxCheck}>✓</Text>
+                  )}
+                </View>
+                <View style={styles.destinationTextContainer}>
+                  <Text style={[styles.destinationOptionTitle, { color: theme.text }]}>
+                    My Journal
+                  </Text>
+                  <Text style={[styles.destinationOptionDesc, { color: theme.textSecondary }]}>
+                    Save privately for personal reflection
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {!isShared && !saveToJournal && (
+              <Text style={[styles.hint, { color: theme.warning || '#F59E0B' }]}>
+                Please select at least one destination
+              </Text>
+            )}
+
+            <TouchableOpacity
+              style={[
+                styles.primaryButton, 
+                { backgroundColor: (reflectionText.trim().length >= 20 && (isShared || saveToJournal)) ? theme.buttonPrimaryBg : theme.border }
+              ]}
+              onPress={handleSubmit}
+              disabled={reflectionText.trim().length < 20 || (!isShared && !saveToJournal) || submitting}
+            >
+              {submitting ? (
+                <ActivityIndicator color={theme.buttonPrimaryText} />
+              ) : (
+                <Text style={[styles.primaryButtonText, { color: theme.buttonPrimaryText }]}>
+                  Submit Reflection
+                </Text>
+              )}
+            </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }
 
-  // PRIVACY STEP
+  // PRIVACY STEP - Kept for backwards compatibility but no longer used in main flow
+  // PRIVACY STEP - Now uses checkboxes for destination selection
   if (step === 'privacy') {
+    const canSubmit = (isShared || saveToJournal) && reflectionText.trim().length >= 20;
+    
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
         <View style={styles.header}>
@@ -972,61 +1484,94 @@ export default function ExerciseScreen() {
           {renderStepIndicator()}
           
           <Text style={[styles.stepTitle, { color: theme.textTertiary }]}>FINAL STEP</Text>
-          <Text style={[styles.title, { color: theme.text }]}>Privacy Choice</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Save Your Reflection</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Would you like to share your reflection with the forum?
+            Choose where to save your reflection. You can select one or both.
           </Text>
 
-          <View style={styles.privacyOptions}>
+          <View style={styles.destinationOptions}>
+            {/* This Forum checkbox */}
             <TouchableOpacity
               style={[
-                styles.privacyOption,
-                { 
-                  backgroundColor: theme.surface, 
-                  borderColor: !isShared ? theme.accent : theme.border,
-                  borderWidth: !isShared ? 2 : StyleSheet.hairlineWidth,
-                }
-              ]}
-              onPress={() => setIsShared(false)}
-            >
-              <Text style={[styles.privacyOptionTitle, { color: theme.text }]}>
-                Keep Private
-              </Text>
-              <Text style={[styles.privacyOptionDesc, { color: theme.textSecondary }]}>
-                Only you can see your reflection. Perfect for personal processing.
-              </Text>
-              {!isShared && (
-                <Text style={[styles.checkmark, { color: theme.accent }]}>✓</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.privacyOption,
+                styles.destinationOption,
                 { 
                   backgroundColor: theme.surface, 
                   borderColor: isShared ? theme.accent : theme.border,
                   borderWidth: isShared ? 2 : StyleSheet.hairlineWidth,
                 }
               ]}
-              onPress={() => setIsShared(true)}
+              onPress={() => setIsShared(!isShared)}
+              activeOpacity={0.7}
             >
-              <Text style={[styles.privacyOptionTitle, { color: theme.text }]}>
-                Share with Forum
-              </Text>
-              <Text style={[styles.privacyOptionDesc, { color: theme.textSecondary }]}>
-                Other forum members can read your reflection. Builds trust and connection.
-              </Text>
-              {isShared && (
-                <Text style={[styles.checkmark, { color: theme.accent }]}>✓</Text>
-              )}
+              <View style={[
+                styles.checkbox,
+                { 
+                  borderColor: isShared ? theme.accent : theme.border,
+                  backgroundColor: isShared ? theme.accent : 'transparent'
+                }
+              ]}>
+                {isShared && (
+                  <Text style={styles.checkboxCheck}>✓</Text>
+                )}
+              </View>
+              <View style={styles.destinationTextContainer}>
+                <Text style={[styles.destinationOptionTitle, { color: theme.text }]}>
+                  This Forum
+                </Text>
+                <Text style={[styles.destinationOptionDesc, { color: theme.textSecondary }]}>
+                  Share with other forum members. Builds trust and connection.
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* My Journal checkbox */}
+            <TouchableOpacity
+              style={[
+                styles.destinationOption,
+                { 
+                  backgroundColor: theme.surface, 
+                  borderColor: saveToJournal ? theme.accent : theme.border,
+                  borderWidth: saveToJournal ? 2 : StyleSheet.hairlineWidth,
+                }
+              ]}
+              onPress={() => setSaveToJournal(!saveToJournal)}
+              activeOpacity={0.7}
+            >
+              <View style={[
+                styles.checkbox,
+                { 
+                  borderColor: saveToJournal ? theme.accent : theme.border,
+                  backgroundColor: saveToJournal ? theme.accent : 'transparent'
+                }
+              ]}>
+                {saveToJournal && (
+                  <Text style={styles.checkboxCheck}>✓</Text>
+                )}
+              </View>
+              <View style={styles.destinationTextContainer}>
+                <Text style={[styles.destinationOptionTitle, { color: theme.text }]}>
+                  My Journal
+                </Text>
+                <Text style={[styles.destinationOptionDesc, { color: theme.textSecondary }]}>
+                  Save privately for personal reflection. Only you can see it.
+                </Text>
+              </View>
             </TouchableOpacity>
           </View>
 
+          {!isShared && !saveToJournal && (
+            <Text style={[styles.hint, { color: theme.warning || '#F59E0B' }]}>
+              Please select at least one destination
+            </Text>
+          )}
+
           <TouchableOpacity
-            style={[styles.primaryButton, { backgroundColor: theme.buttonPrimaryBg }]}
+            style={[
+              styles.primaryButton, 
+              { backgroundColor: canSubmit ? theme.buttonPrimaryBg : theme.border }
+            ]}
             onPress={handleSubmit}
-            disabled={submitting}
+            disabled={!canSubmit || submitting}
           >
             {submitting ? (
               <ActivityIndicator color={theme.buttonPrimaryText} />
@@ -1043,6 +1588,16 @@ export default function ExerciseScreen() {
 
   // COMPLETE STEP
   if (step === 'complete') {
+    // Build completion message based on destinations
+    let completionMessage = '';
+    if (isShared && saveToJournal) {
+      completionMessage = 'Your reflection has been shared with the forum and saved to your journal.';
+    } else if (isShared) {
+      completionMessage = 'Your reflection has been shared with the forum.';
+    } else if (saveToJournal) {
+      completionMessage = 'Your reflection has been saved to your journal.';
+    }
+
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
         <View style={styles.completeContent}>
@@ -1051,9 +1606,7 @@ export default function ExerciseScreen() {
             Reflection Submitted
           </Text>
           <Text style={[styles.completeSubtitle, { color: theme.textSecondary }]}>
-            {isShared 
-              ? 'Your reflection has been shared with the forum.' 
-              : 'Your reflection has been saved privately.'}
+            {completionMessage}
           </Text>
           
           <TouchableOpacity
@@ -1138,6 +1691,196 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 24,
   },
+  // Pattern Landscape Preview (Intro screen)
+  patternLandscapePreview: {
+    padding: 20,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 20,
+  },
+  landscapeTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  landscapeLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+  },
+  landscapeLoadingText: {
+    fontSize: 14,
+  },
+  landscapeSummary: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  statusPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  statusPillText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  landscapeQuiet: {
+    fontSize: 14,
+    fontStyle: 'italic',
+  },
+  // New card-based pattern landscape styles
+  patternLandscapeSection: {
+    marginBottom: 20,
+  },
+  landscapeHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  landscapeSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  changeSelectionButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  changeSelectionText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  landscapeLoadingCard: {
+    padding: 24,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  landscapeSummaryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  landscapeDomainCards: {
+    gap: 10,
+  },
+  landscapeDomainCard: {
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  landscapeDomainHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  landscapeDomainHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  selectedCheckmark: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  landscapeDomainSummary: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
+  },
+  // Intro screen interpretation preview (legacy - kept for compatibility)
+  introInterpretationPreview: {
+    marginTop: 20,
+    padding: 20,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  interpretationDomainTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  // Inline interpretation preview - directly below selected card
+  inlineInterpretationPreview: {
+    marginTop: 4,
+    marginBottom: 10,
+    marginLeft: 8,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderTopWidth: 0,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+  },
+  inlineInterpretationSection: {
+    marginBottom: 4,
+  },
+  inlineInterpretationTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  inlineInterpretationText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  inlineWhyActive: {
+    padding: 10,
+    borderRadius: 8,
+  },
+  inlineWhyActiveText: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  inlineContinueButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  inlineContinueButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  // Legacy styles (kept for compatibility)
+  landscapeDomains: {
+    gap: 8,
+  },
+  landscapeDomainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  landscapeDomainName: {
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+  },
+  landscapeStatusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  landscapeStatusText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  alternateOption: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  alternateOptionText: {
+    fontSize: 14,
+  },
   infoBox: {
     padding: 20,
     borderRadius: 14,
@@ -1207,9 +1950,127 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  domainCardLive: {
+    padding: 16,
+    borderRadius: 12,
+  },
+  domainCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
   domainName: {
     fontSize: 16,
     fontWeight: '500',
+    flex: 1,
+  },
+  domainSummary: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 8,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  // Interpretation Preview
+  interpretationPreview: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 24,
+  },
+  interpretationLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 8,
+  },
+  interpretationLoadingText: {
+    fontSize: 13,
+  },
+  interpretationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  interpretationLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+  },
+  signalStrengthBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  signalStrengthText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  interpretationText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  // Story/Challenge/Genius sections
+  interpretationSection: {
+    paddingTop: 14,
+    marginTop: 14,
+  },
+  interpretationSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  interpretationSectionText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  whyActiveHint: {
+    marginTop: 16,
+    padding: 12,
+    borderRadius: 8,
+  },
+  whyActiveHintText: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  whyActiveSection: {
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  whyActiveLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+  },
+  whyActiveText: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
+  },
+  interpretationSignal: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 10,
+  },
+  interpretationEmpty: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    paddingVertical: 8,
   },
   // Lens selection
   lensOptions: {
@@ -1351,6 +2212,44 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     paddingRight: 24,
+  },
+  // Destination checkboxes (new)
+  destinationOptions: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  destinationOption: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 16,
+    borderRadius: 14,
+    gap: 14,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  checkboxCheck: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  destinationTextContainer: {
+    flex: 1,
+  },
+  destinationOptionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  destinationOptionDesc: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   // Complete
   completeContent: {

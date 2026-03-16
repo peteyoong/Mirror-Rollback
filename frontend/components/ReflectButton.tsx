@@ -1,3 +1,12 @@
+/**
+ * @deprecated This component has been replaced by UniversalReflectButton and UniversalReflectionModal.
+ * Please use those components instead. This file will be removed in a future cleanup.
+ * 
+ * Migration guide:
+ * - Import { InlineReflectButton } from './UniversalReflectButton'
+ * - Replace <ReflectButton sourceLens="..." sourceName="..." .../>
+ *   with <InlineReflectButton source={{ lens: "...", name: "...", type: "..." }} />
+ */
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';

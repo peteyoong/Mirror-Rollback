@@ -9,6 +9,7 @@ import {
   Modal,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
+import { InlineReflectButton } from './UniversalReflectButton';
 // Removed Ionicons - using text alternatives for web compatibility
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
@@ -235,6 +236,16 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
             <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>{section.body}</Text>
             {/* Debug: Show section-level metrics */}
             <SectionDebug label={section.label} body={section.body} index={index} />
+            {/* Reflect Button */}
+            <InlineReflectButton
+              source={{
+                lens: 'astrology',
+                type: section.label.toLowerCase().replace(/\s+/g, '_'),
+                name: section.label,
+                id: `astrology_${section.label.toLowerCase().replace(/\s+/g, '_')}`,
+              }}
+              prompt={`Reflect on ${section.label}: ${section.body.slice(0, 100)}...`}
+            />
           </>
         )}
       </View>

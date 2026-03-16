@@ -1,18 +1,23 @@
 """Pattern Interpretation Service
 
 Generates rich, cached pattern interpretations for the 7 Mirror domains.
-Each interpretation includes:
-- Story: Short narrative of what the pattern may feel like
-- Pattern: Explanation of the underlying dynamic
-- Challenge: Common ways this can become difficult or limiting
+Each interpretation follows the standardized Mirror Language Structure:
+- What may be happening: Observable pattern or situation
+- How this may feel: Emotional/experiential context
+- What to notice: Specific observation prompt
+- Reflection question: Single clear self-inquiry prompt
+
+Also includes:
+- Challenge: Common ways this can become difficult
 - Genius: The strength or gift embedded in this pattern
-- Practical Experiments: 3-4 reflective suggestions or behavioral experiments
+- Practical Experiments: 3-4 reflective suggestions
 
 Philosophy (aligned with Mirror):
 - Grounded, reflective tone
 - Non-deterministic language
 - Tentative phrasing: "may", "might", "could"
 - Never prescriptive or identity-defining
+- Concrete behavioral language (not vague spiritual terms)
 """
 
 import os
@@ -21,6 +26,13 @@ import logging
 import hashlib
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, Optional, List
+from services.mirror_language import (
+    clean_interpretation_text,
+    validate_language,
+    get_reflection_question,
+    get_domain_interpretation,
+    DOMAIN_TEMPLATES
+)
 
 logger = logging.getLogger(__name__)
 
@@ -73,9 +85,12 @@ def is_interpretation_stale(
     return False
 
 
-# Fallback templates when LLM is unavailable
+# Fallback templates when LLM is unavailable - now using standardized structure
 FALLBACK_INTERPRETATIONS = {
     "energy_vitality": {
+        "what_happening": "You may be feeling a persistent pull on your energy—either too much demand or not enough outlet.",
+        "how_feels": "This can show up as restlessness, fatigue, or a sense of running on empty.",
+        "what_notice": "Notice what activities leave you feeling more alive versus depleted.",
         "story": "There may be days when energy flows easily, and days when it feels scarce. This pattern often emerges around questions of pace, sustainability, and what truly nourishes you.",
         "pattern": "The dynamic here involves how life force moves through you—when it rises, when it depletes, and what conditions seem to influence the ebb and flow.",
         "challenge": "A common difficulty is pushing through when rest is needed, or over-committing to prove vitality when the body signals otherwise.",
@@ -88,6 +103,9 @@ FALLBACK_INTERPRETATIONS = {
         ]
     },
     "emotional_landscape": {
+        "what_happening": "A familiar emotional pattern may be surfacing—something that keeps returning.",
+        "how_feels": "This can feel like being caught in a loop, or like the same feeling finding different triggers.",
+        "what_notice": "Notice what situation keeps activating this emotional response.",
         "story": "Emotions may move through you like weather—sometimes clear, sometimes stormy, sometimes still. This pattern often appears when feelings are asking for attention or integration.",
         "pattern": "The dynamic here involves the texture of your inner emotional life—how feelings arise, how they're processed, and how they inform your experience.",
         "challenge": "A common difficulty is either over-identifying with emotions or suppressing them entirely, losing the wisdom they carry.",
@@ -99,6 +117,85 @@ FALLBACK_INTERPRETATIONS = {
             "Track what triggered your strongest emotional response today"
         ]
     },
+    "relationships_connection": {
+        "what_happening": "Something in your relational world keeps asking for attention.",
+        "how_feels": "This might show up as tension, longing, or a persistent question about connection.",
+        "what_notice": "Notice which relationship or dynamic keeps coming to mind.",
+        "story": "Connection may feel layered right now—some relationships pulling closer, others asking for space. This pattern often emerges when something in your relational world is shifting.",
+        "pattern": "The dynamic here involves how you connect, how you maintain boundaries, and what you need from others versus what you offer.",
+        "challenge": "A common difficulty is either merging too completely or isolating too defensively, losing the balance that allows genuine intimacy.",
+        "genius": "The gift embedded here is relational awareness—a capacity to sense what connections need and to navigate complexity with care.",
+        "experiments": [
+            "Reach out to someone you've been thinking about but haven't contacted",
+            "Notice one relationship where you're holding back something true",
+            "Experiment with asking for something you need instead of hinting",
+            "Observe how you feel after different social interactions today"
+        ]
+    },
+    "work_purpose": {
+        "what_happening": "Questions about work or purpose keep surfacing.",
+        "how_feels": "This might feel like restlessness, dissatisfaction, or a pull toward something more meaningful.",
+        "what_notice": "Notice what kind of contribution feels important to you right now.",
+        "story": "The question of contribution may feel alive—what's worth doing, what matters, what you're building. This pattern often emerges when alignment between effort and meaning needs attention.",
+        "pattern": "The dynamic here involves the gap (or harmony) between what you spend energy on and what actually matters to you.",
+        "challenge": "A common difficulty is either over-identifying with productivity or losing touch with what makes effort feel meaningful.",
+        "genius": "The gift embedded here is a capacity for purposeful work—when aligned, your effort carries genuine intention.",
+        "experiments": [
+            "Identify one task that feels genuinely meaningful and do it first today",
+            "Notice where your work energy flows naturally without forcing",
+            "Ask yourself: 'What would I still do even if no one noticed?'",
+            "Experiment with doing one thing slowly and thoroughly instead of quickly"
+        ]
+    },
+    "growth_transformation": {
+        "what_happening": "Something in you may be ready for change.",
+        "how_feels": "This can feel like pressure, anticipation, or discomfort with the status quo.",
+        "what_notice": "Notice what part of your life feels too small or outdated.",
+        "story": "Something in you may be ready to shift—an old pattern loosening, a new possibility emerging. Growth often feels uncomfortable precisely because it's real.",
+        "pattern": "The dynamic here involves the tension between what was and what's becoming—the discomfort of transformation.",
+        "challenge": "A common difficulty is either forcing change before it's ready or resisting it so hard that pressure builds.",
+        "genius": "The gift embedded here is the capacity for genuine transformation—not just surface change but real evolution.",
+        "experiments": [
+            "Identify one habit or pattern that no longer serves you",
+            "Notice what you're resisting that might be ready to shift",
+            "Ask yourself: 'What am I afraid will happen if I change?'",
+            "Experiment with doing one familiar thing in a completely different way"
+        ]
+    },
+    "intuition_inner_knowing": {
+        "what_happening": "Your inner knowing may be trying to get your attention.",
+        "how_feels": "This can show up as a persistent sense that something is off, or a quiet certainty you keep ignoring.",
+        "what_notice": "Notice what your gut has been telling you that you haven't acted on.",
+        "story": "There may be a quieter voice trying to reach you—not loud like thought, more like a persistent sense of something important. Intuition often speaks when we slow down enough to notice.",
+        "pattern": "The dynamic here involves the relationship between thinking and knowing—how you access deeper intelligence beyond analysis.",
+        "challenge": "A common difficulty is dismissing intuition as irrational, or conversely, confusing wishful thinking for genuine knowing.",
+        "genius": "The gift embedded here is direct knowing—access to insight that doesn't require deliberation.",
+        "experiments": [
+            "Before making a decision today, pause and notice your first instinct",
+            "Track a hunch you have and see how it plays out",
+            "Ask yourself a question and notice the immediate body response",
+            "Experiment with following a quiet inner prompt without analyzing it first"
+        ]
+    },
+    "identity_expression": {
+        "what_happening": "Questions about who you are or how you express yourself keep returning.",
+        "how_feels": "This might feel like uncertainty, a desire for authenticity, or friction between inner and outer selves.",
+        "what_notice": "Notice where you feel most like yourself, and where you feel constrained.",
+        "story": "The question of who you are may feel present—not an identity crisis, but a quiet inquiry. This pattern often emerges when authentic expression wants more space.",
+        "pattern": "The dynamic here involves the alignment between inner experience and outer presentation—how fully you allow yourself to be seen.",
+        "challenge": "A common difficulty is either hiding behind a constructed persona or oversharing without discernment.",
+        "genius": "The gift embedded here is authentic presence—the capacity to show up as who you actually are.",
+        "experiments": [
+            "Notice one way you're performing today instead of just being",
+            "Share something true about yourself that you usually keep private",
+            "Ask yourself: 'Where am I pretending to be different than I am?'",
+            "Experiment with dropping one small mask for one hour"
+        ]
+    },
+}
+
+# Old fallback interpretations for legacy domain IDs
+LEGACY_FALLBACK_INTERPRETATIONS = {
     "identity_direction": {
         "story": "Questions about who you are and where you're going may be surfacing. This pattern often appears at crossroads, transitions, or when something about your current path feels uncertain.",
         "pattern": "The dynamic here involves the relationship between self-concept and life direction—how your sense of identity shapes your choices and vice versa.",
@@ -163,18 +260,40 @@ FALLBACK_INTERPRETATIONS = {
 
 
 def get_fallback_interpretation(domain_id: str) -> Dict[str, Any]:
-    """Get fallback interpretation when LLM is unavailable."""
-    return FALLBACK_INTERPRETATIONS.get(domain_id, {
-        "story": "A pattern may be emerging in this area of your life. You might notice what feels familiar about this theme.",
-        "pattern": "The dynamic here involves recurring themes that may be asking for your attention.",
-        "challenge": "A common difficulty is not seeing the pattern clearly while you're inside of it.",
-        "genius": "The gift embedded here may only become visible when you stop trying to fix it.",
-        "experiments": [
-            "Notice when this theme appears in your daily life",
-            "Experiment with observing rather than solving",
-            "Track what triggers this pattern to intensify"
-        ]
-    })
+    """Get fallback interpretation when LLM is unavailable.
+    
+    Now returns the standardized Mirror Language Structure.
+    """
+    base = FALLBACK_INTERPRETATIONS.get(domain_id)
+    if not base:
+        # Check legacy fallbacks
+        base = LEGACY_FALLBACK_INTERPRETATIONS.get(domain_id, {
+            "what_happening": "A pattern may be emerging in this area of your life.",
+            "how_feels": "You might notice what feels familiar about this theme.",
+            "what_notice": "Notice when this theme appears in your daily life.",
+            "story": "A pattern may be emerging in this area of your life. You might notice what feels familiar about this theme.",
+            "pattern": "The dynamic here involves recurring themes that may be asking for your attention.",
+            "challenge": "A common difficulty is not seeing the pattern clearly while you're inside of it.",
+            "genius": "The gift embedded here may only become visible when you stop trying to fix it.",
+            "experiments": [
+                "Notice when this theme appears in your daily life",
+                "Experiment with observing rather than solving",
+                "Track what triggers this pattern to intensify",
+                "Try naming the pattern out loud when you catch it"
+            ]
+        })
+    
+    # Ensure all required fields are present
+    return {
+        "what_happening": base.get("what_happening", base.get("story", "")[:100] + "..." if len(base.get("story", "")) > 100 else base.get("story", "")),
+        "how_feels": base.get("how_feels", ""),
+        "what_notice": base.get("what_notice", ""),
+        "story": base.get("story", ""),
+        "pattern": base.get("pattern", ""),
+        "challenge": base.get("challenge", ""),
+        "genius": base.get("genius", ""),
+        "experiments": base.get("experiments", [])
+    }
 
 
 async def generate_pattern_interpretation(
@@ -267,7 +386,7 @@ Remember:
         if response_text.startswith("```"):
             lines = response_text.split("\n")
             # Remove first line (```json) and last line (```)
-            lines = [l for l in lines if not l.startswith("```")]
+            lines = [line for line in lines if not line.startswith("```")]
             response_text = "\n".join(lines)
         
         # Parse JSON

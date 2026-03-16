@@ -1,10 +1,41 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, createContext, useContext, useCallback } from 'react';
 import { Platform, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 
 const BANNER_DISMISSED_KEY = 'pwa_banner_dismissed';
+
+// Banner height constant for consistent spacing
+export const PWA_BANNER_HEIGHT = 70;
+
+// ============================================================================
+// BANNER CONTEXT - Allows screens to know if banner is visible
+// ============================================================================
+
+interface BannerContextType {
+  isBannerVisible: boolean;
+  bannerHeight: number;
+  dismissBanner: () => void;
+}
+
+const BannerContext = createContext<BannerContextType>({
+  isBannerVisible: false,
+  bannerHeight: 0,
+  dismissBanner: () => {},
+});
+
+/**
+ * Hook to get banner visibility and safe bottom padding
+ * Use this in scroll views to add proper bottom spacing
+ */
+export function useBannerSafeArea(): { bottomPadding: number; isBannerVisible: boolean } {
+  const { isBannerVisible, bannerHeight } = useContext(BannerContext);
+  return {
+    bottomPadding: isBannerVisible ? bannerHeight : 0,
+    isBannerVisible,
+  };
+}
 
 /**
  * Check if running in standalone mode (PWA installed)
@@ -58,38 +89,52 @@ function useIsMobileBrowser(): boolean {
 }
 
 /**
- * iOS Add to Home Screen Banner
- * Shows on mobile browsers when not installed as PWA
+ * Banner Provider - Wrap your app with this to enable banner-aware layouts
  */
-export function AddToHomeScreenBanner() {
-  const [visible, setVisible] = useState(false);
-  const [showAlways, setShowAlways] = useState(true); // For debugging - always show initially
+export function BannerProvider({ children }: { children: React.ReactNode }) {
+  const [isBannerVisible, setIsBannerVisible] = useState(false);
+  const [bannerHeight, setBannerHeight] = useState(0);
   const isMobileBrowser = useIsMobileBrowser();
   const isStandalone = useIsStandalone();
   
   useEffect(() => {
-    // Only check visibility on web
     if (Platform.OS !== 'web') {
-      setVisible(false);
+      setIsBannerVisible(false);
+      setBannerHeight(0);
       return;
     }
     
     // Check if banner was dismissed
     AsyncStorage.getItem(BANNER_DISMISSED_KEY).then((dismissed) => {
-      // Show if not dismissed AND on mobile browser AND not standalone
-      if (dismissed !== 'true' && isMobileBrowser && !isStandalone) {
-        setVisible(true);
-      }
+      const shouldShow = dismissed !== 'true' && isMobileBrowser && !isStandalone;
+      setIsBannerVisible(shouldShow);
+      setBannerHeight(shouldShow ? PWA_BANNER_HEIGHT : 0);
     });
   }, [isMobileBrowser, isStandalone]);
   
-  const handleDismiss = async () => {
-    setVisible(false);
+  const dismissBanner = useCallback(async () => {
+    setIsBannerVisible(false);
+    setBannerHeight(0);
     await AsyncStorage.setItem(BANNER_DISMISSED_KEY, 'true');
-  };
+  }, []);
   
-  // Don't render on native or if already standalone
-  if (Platform.OS !== 'web' || !visible || isStandalone) {
+  return (
+    <BannerContext.Provider value={{ isBannerVisible, bannerHeight, dismissBanner }}>
+      {children}
+    </BannerContext.Provider>
+  );
+}
+
+/**
+ * iOS Add to Home Screen Banner
+ * Shows on mobile browsers when not installed as PWA
+ */
+export function AddToHomeScreenBanner() {
+  const { isBannerVisible, dismissBanner } = useContext(BannerContext);
+  const isStandalone = useIsStandalone();
+  
+  // Don't render on native or if already standalone or if dismissed
+  if (Platform.OS !== 'web' || !isBannerVisible || isStandalone) {
     return null;
   }
   
@@ -109,7 +154,7 @@ export function AddToHomeScreenBanner() {
             }
           </Text>
         </View>
-        <TouchableOpacity onPress={handleDismiss} style={styles.closeButton}>
+        <TouchableOpacity onPress={dismissBanner} style={styles.closeButton} accessibilityLabel="Dismiss banner">
           <Ionicons name="close" size={24} color={Colors.textTertiary} />
         </TouchableOpacity>
       </View>

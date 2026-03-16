@@ -25,14 +25,19 @@ import {
   ForumMember,
   getForumPulse,
   ForumPulseResponse,
-  ForumPulseMemberCard
+  ForumPulseMemberCard,
+  getForumMemberLens,
+  ForumMemberLensData
 } from '../../services/api';
+import ForumChatView from '../../components/ForumChatView';
 import Constants from 'expo-constants';
 
 // Types for modal states
 interface MemberProfileModal {
   visible: boolean;
   member: ForumPulseMemberCard | null;
+  lensData: ForumMemberLensData | null;
+  loading: boolean;
 }
 
 interface DomainReflectionsModal {
@@ -72,8 +77,13 @@ export default function ForumHomeScreen() {
   const [copied, setCopied] = useState(false);
   const [expandedReflection, setExpandedReflection] = useState<string | null>(null);
   
+  // Forum Chat state
+  const [showForumChat, setShowForumChat] = useState(false);
+  const [forumChatInitialMode, setForumChatInitialMode] = useState<'self' | 'member' | 'forum'>('self');
+  const [forumChatInitialMember, setForumChatInitialMember] = useState<ForumPulseMemberCard | null>(null);
+  
   // Modal states for interactive Forum Pulse
-  const [memberModal, setMemberModal] = useState<MemberProfileModal>({ visible: false, member: null });
+  const [memberModal, setMemberModal] = useState<MemberProfileModal>({ visible: false, member: null, lensData: null, loading: false });
   const [domainModal, setDomainModal] = useState<DomainReflectionsModal>({ visible: false, domainId: '', domainName: '', reflections: [] });
   const [typeModal, setTypeModal] = useState<TypeMembersModal>({ visible: false, typeName: '', members: [] });
   const [insightModal, setInsightModal] = useState<InsightModal>({ visible: false, insight: '' });
@@ -121,7 +131,9 @@ export default function ForumHomeScreen() {
   };
 
   const handleBeginReflection = () => {
-    router.push(`/forums/exercise?forumId=${forumId}`);
+    // Navigate to the Patterns page with forum context
+    // This shows the EXACT same Patterns experience as personal Mirror
+    router.push(`/forums/patterns?forumId=${forumId}&forumName=${encodeURIComponent(forum?.name || 'Forum')}`);
   };
 
   const handleMyMirrorProfile = () => {
@@ -165,9 +177,24 @@ export default function ForumHomeScreen() {
   // Modal Handlers for Interactive Forum Pulse
   // =============================================
   
-  // Open member profile modal
-  const handleMemberPress = (member: ForumPulseMemberCard) => {
-    setMemberModal({ visible: true, member });
+  // Open member profile modal and fetch full lens data
+  const handleMemberPress = async (member: ForumPulseMemberCard) => {
+    if (!user?.id) return;
+    
+    // Show modal immediately with basic data while loading full lens data
+    setMemberModal({ visible: true, member, lensData: null, loading: true });
+    
+    try {
+      const response = await getForumMemberLens(forumId, member.user_id, user.id);
+      setMemberModal(prev => ({ 
+        ...prev, 
+        lensData: response.lens_data, 
+        loading: false 
+      }));
+    } catch (error) {
+      console.error('[Forum] Error fetching member lens data:', error);
+      setMemberModal(prev => ({ ...prev, loading: false }));
+    }
   };
   
   // Open domain reflections modal
@@ -196,10 +223,32 @@ export default function ForumHomeScreen() {
   
   // Close all modals
   const closeAllModals = () => {
-    setMemberModal({ visible: false, member: null });
+    setMemberModal({ visible: false, member: null, lensData: null, loading: false });
     setDomainModal({ visible: false, domainId: '', domainName: '', reflections: [] });
     setTypeModal({ visible: false, typeName: '', members: [] });
     setInsightModal({ visible: false, insight: '' });
+  };
+
+  // Open Forum Chat in member mode with a specific member selected
+  const openForumChatWithMember = (member: ForumPulseMemberCard) => {
+    closeAllModals();
+    setForumChatInitialMode('member');
+    setForumChatInitialMember(member);
+    setShowForumChat(true);
+  };
+
+  // Open Forum Chat in default mode (self)
+  const openForumChat = () => {
+    setForumChatInitialMode('self');
+    setForumChatInitialMember(null);
+    setShowForumChat(true);
+  };
+
+  // Close Forum Chat and reset initial state
+  const closeForumChat = () => {
+    setShowForumChat(false);
+    setForumChatInitialMode('self');
+    setForumChatInitialMember(null);
   };
 
   if (loading) {
@@ -296,6 +345,76 @@ export default function ForumHomeScreen() {
             ))}
           </View>
         </View>
+
+        {/* Ask Mirror Button */}
+        <TouchableOpacity
+          style={[styles.askMirrorSection, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}
+          onPress={openForumChat}
+          activeOpacity={0.7}
+        >
+          <View style={styles.askMirrorContent}>
+            <View style={[styles.askMirrorIcon, { backgroundColor: theme.accent + '20' }]}>
+              <Text style={{ fontSize: 20 }}>✨</Text>
+            </View>
+            <View style={styles.askMirrorTextContainer}>
+              <Text style={[styles.askMirrorTitle, { color: theme.text }]}>Ask Mirror</Text>
+              <Text style={[styles.askMirrorSubtitle, { color: theme.textSecondary }]}>
+                Explore yourself, members, or forum dynamics
+              </Text>
+            </View>
+          </View>
+          <Text style={[styles.askMirrorArrow, { color: theme.accent }]}>→</Text>
+        </TouchableOpacity>
+
+        {/* Forum Story Card */}
+        <TouchableOpacity
+          style={[styles.forumStoryCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          onPress={() => router.push({ pathname: '/forums/story', params: { forumId } })}
+          activeOpacity={0.7}
+        >
+          <View style={styles.forumStoryContent}>
+            <View style={[styles.forumStoryIcon, { backgroundColor: theme.accent + '15' }]}>
+              <Text style={{ fontSize: 20 }}>🌀</Text>
+            </View>
+            <View style={styles.forumStoryTextContainer}>
+              <Text style={[styles.forumStoryTitle, { color: theme.text }]}>Forum Story</Text>
+              <Text style={[styles.forumStorySubtitle, { color: theme.textSecondary }]}>
+                A reflective view of what this group composition may bring
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={[styles.forumStoryButton, { backgroundColor: theme.accent + '15' }]}
+            onPress={() => router.push({ pathname: '/forums/story', params: { forumId } })}
+          >
+            <Text style={[styles.forumStoryButtonText, { color: theme.accent }]}>Explore</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
+
+        {/* Forum Dynamics Card */}
+        <TouchableOpacity
+          style={[styles.forumDynamicsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          onPress={() => router.push({ pathname: '/forums/dynamics', params: { forumId } })}
+          activeOpacity={0.7}
+        >
+          <View style={styles.forumDynamicsContent}>
+            <View style={[styles.forumDynamicsIcon, { backgroundColor: theme.accent + '15' }]}>
+              <Text style={{ fontSize: 20 }}>🔮</Text>
+            </View>
+            <View style={styles.forumDynamicsTextContainer}>
+              <Text style={[styles.forumDynamicsTitle, { color: theme.text }]}>Forum Dynamics</Text>
+              <Text style={[styles.forumDynamicsSubtitle, { color: theme.textSecondary }]}>
+                A view of the patterns and diversity within this circle
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={[styles.forumDynamicsButton, { backgroundColor: theme.accent + '15' }]}
+            onPress={() => router.push({ pathname: '/forums/dynamics', params: { forumId } })}
+          >
+            <Text style={[styles.forumDynamicsButtonText, { color: theme.accent }]}>Explore</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
 
         {/* ============================================
             FORUM PULSE - Collective Patterns & Lens Dynamics
@@ -409,17 +528,26 @@ export default function ForumHomeScreen() {
                 >
                   <Text style={[styles.memberLensName, { color: theme.text }]}>{member.name}</Text>
                   <View style={styles.memberLensDetails}>
+                    {/* HD Type • Profile */}
                     {member.hd_type && (
                       <Text style={[styles.memberLensType, { color: theme.textSecondary }]}>
                         {member.hd_type}
                         {member.hd_profile && ` • ${member.hd_profile}`}
                       </Text>
                     )}
+                    {/* Authority */}
+                    {member.hd_authority && (
+                      <Text style={[styles.memberLensAuthority, { color: theme.textTertiary }]}>
+                        {member.hd_authority} Authority
+                      </Text>
+                    )}
+                    {/* Enneagram core */}
                     {member.enneagram_type && (
                       <Text style={[styles.memberLensEnneagram, { color: theme.textTertiary }]}>
                         Enneagram {member.enneagram_type}
                       </Text>
                     )}
+                    {/* Active Pattern Domain */}
                     {member.active_pattern && (
                       <Text style={[styles.memberLensActive, { color: theme.accent }]}>
                         Active: {member.active_pattern}
@@ -538,7 +666,7 @@ export default function ForumHomeScreen() {
           MODALS - Interactive Forum Pulse Components
           ============================================ */}
       
-      {/* Member Profile Modal */}
+      {/* Member Lens Profile Modal */}
       <Modal
         visible={memberModal.visible}
         transparent
@@ -546,64 +674,328 @@ export default function ForumHomeScreen() {
         onRequestClose={closeAllModals}
       >
         <Pressable style={styles.modalOverlay} onPress={closeAllModals}>
-          <Pressable style={[styles.modalContent, { backgroundColor: theme.surface }]} onPress={() => {}}>
+          <Pressable style={[styles.modalContent, styles.modalLarge, { backgroundColor: theme.surface }]} onPress={() => {}}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Member Profile</Text>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Member Lens Profile</Text>
               <TouchableOpacity onPress={closeAllModals} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                 <Text style={[styles.modalClose, { color: theme.textTertiary }]}>✕</Text>
               </TouchableOpacity>
             </View>
             
             {memberModal.member && (
-              <View style={styles.memberProfileContent}>
-                <View style={[styles.memberProfileAvatar, { backgroundColor: theme.accent + '20' }]}>
-                  <Text style={[styles.memberProfileInitial, { color: theme.accent }]}>
-                    {memberModal.member.name.charAt(0).toUpperCase()}
+              <ScrollView style={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
+                {/* Header with name */}
+                <View style={styles.memberProfileContent}>
+                  <View style={[styles.memberProfileAvatar, { backgroundColor: theme.accent + '20' }]}>
+                    <Text style={[styles.memberProfileInitial, { color: theme.accent }]}>
+                      {memberModal.member.name.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text style={[styles.memberProfileName, { color: theme.text }]}>
+                    {memberModal.member.name}
                   </Text>
                 </View>
-                <Text style={[styles.memberProfileName, { color: theme.text }]}>
-                  {memberModal.member.name}
-                </Text>
                 
-                <View style={styles.memberProfileDetails}>
-                  {memberModal.member.hd_type && (
-                    <View style={styles.profileRow}>
-                      <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Type</Text>
-                      <Text style={[styles.profileValue, { color: theme.text }]}>{memberModal.member.hd_type}</Text>
-                    </View>
-                  )}
-                  {memberModal.member.hd_profile && (
-                    <View style={styles.profileRow}>
-                      <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Profile</Text>
-                      <Text style={[styles.profileValue, { color: theme.text }]}>{memberModal.member.hd_profile}</Text>
-                    </View>
-                  )}
-                  {memberModal.member.hd_authority && (
-                    <View style={styles.profileRow}>
-                      <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Authority</Text>
-                      <Text style={[styles.profileValue, { color: theme.text }]}>{memberModal.member.hd_authority}</Text>
-                    </View>
-                  )}
-                  {memberModal.member.enneagram_type && (
-                    <View style={styles.profileRow}>
-                      <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Enneagram</Text>
-                      <Text style={[styles.profileValue, { color: theme.text }]}>Type {memberModal.member.enneagram_type}</Text>
-                    </View>
-                  )}
-                  {memberModal.member.active_pattern && (
-                    <View style={styles.profileRow}>
-                      <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Active Pattern</Text>
-                      <Text style={[styles.profileValue, { color: theme.accent }]}>{memberModal.member.active_pattern}</Text>
-                    </View>
-                  )}
-                </View>
-                
-                {!memberModal.member.hd_type && !memberModal.member.enneagram_type && (
-                  <Text style={[styles.profileEmpty, { color: theme.textTertiary }]}>
-                    This member hasn't set up their profile yet.
-                  </Text>
+                {memberModal.loading ? (
+                  <View style={styles.lensLoadingContainer}>
+                    <ActivityIndicator size="small" color={theme.accent} />
+                    <Text style={[styles.lensLoadingText, { color: theme.textTertiary }]}>Loading lens data...</Text>
+                  </View>
+                ) : memberModal.lensData ? (
+                  <View style={styles.lensDataContainer}>
+                    {/* Human Design Section */}
+                    {(memberModal.lensData.human_design.type || memberModal.lensData.human_design.authority) && (
+                      <View style={[styles.lensSection, { borderTopColor: theme.border }]}>
+                        <Text style={[styles.lensSectionTitle, { color: theme.text }]}>Human Design</Text>
+                        {memberModal.lensData.human_design.type && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Type</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.human_design.type}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.human_design.strategy && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Strategy</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.human_design.strategy}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.human_design.authority && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Authority</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.human_design.authority}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.human_design.profile && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Profile</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.human_design.profile}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.human_design.definition && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Definition</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.human_design.definition}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.human_design.incarnation_cross && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Incarnation Cross</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.human_design.incarnation_cross}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.human_design.centers_defined.length > 0 && (
+                          <View style={styles.lensRowVertical}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Defined Centers</Text>
+                            <Text style={[styles.lensValueSmall, { color: theme.text }]}>
+                              {memberModal.lensData.human_design.centers_defined.join(', ')}
+                            </Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.human_design.centers_undefined.length > 0 && (
+                          <View style={styles.lensRowVertical}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Open Centers</Text>
+                            <Text style={[styles.lensValueSmall, { color: theme.textSecondary }]}>
+                              {memberModal.lensData.human_design.centers_undefined.join(', ')}
+                            </Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.human_design.active_channels.length > 0 && (
+                          <View style={styles.lensRowVertical}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Key Channels</Text>
+                            <Text style={[styles.lensValueSmall, { color: theme.text }]}>
+                              {memberModal.lensData.human_design.active_channels.join(' • ')}
+                            </Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.human_design.active_gates.length > 0 && (
+                          <View style={styles.lensRowVertical}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Key Gates</Text>
+                            <Text style={[styles.lensValueSmall, { color: theme.textSecondary }]}>
+                              {memberModal.lensData.human_design.active_gates.slice(0, 10).join(', ')}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                    
+                    {/* Enneagram Section */}
+                    {memberModal.lensData.enneagram.core_type && (
+                      <View style={[styles.lensSection, { borderTopColor: theme.border }]}>
+                        <Text style={[styles.lensSectionTitle, { color: theme.text }]}>Enneagram</Text>
+                        <View style={styles.lensRow}>
+                          <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Core Type</Text>
+                          <Text style={[styles.lensValue, { color: theme.text }]}>Type {memberModal.lensData.enneagram.core_type}</Text>
+                        </View>
+                        {memberModal.lensData.enneagram.wing && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Wing</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.enneagram.wing}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.enneagram.center && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Center</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.enneagram.center}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.enneagram.hornevian_group && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Hornevian Group</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.enneagram.hornevian_group}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.enneagram.harmonic_group && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Harmonic Group</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.enneagram.harmonic_group}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.enneagram.growth_direction && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Growth Direction</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>→ Type {memberModal.lensData.enneagram.growth_direction}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.enneagram.stress_direction && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Stress Direction</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>→ Type {memberModal.lensData.enneagram.stress_direction}</Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                    
+                    {/* Astrology Section */}
+                    {(memberModal.lensData.astrology.sun || memberModal.lensData.astrology.moon || memberModal.lensData.astrology.rising) && (
+                      <View style={[styles.lensSection, { borderTopColor: theme.border }]}>
+                        <Text style={[styles.lensSectionTitle, { color: theme.text }]}>Astrology</Text>
+                        {memberModal.lensData.astrology.sun && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Sun</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.astrology.sun}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.astrology.moon && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Moon</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.astrology.moon}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.astrology.rising && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Rising</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.astrology.rising}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.astrology.dominant_element && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Dominant Element</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.astrology.dominant_element}</Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.astrology.dominant_modality && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Dominant Modality</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.astrology.dominant_modality}</Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                    
+                    {/* Numerology Section */}
+                    {memberModal.lensData.numerology.life_path && (
+                      <View style={[styles.lensSection, { borderTopColor: theme.border }]}>
+                        <Text style={[styles.lensSectionTitle, { color: theme.text }]}>Numerology</Text>
+                        <View style={styles.lensRow}>
+                          <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Life Path</Text>
+                          <Text style={[styles.lensValue, { color: theme.text }]}>
+                            {typeof memberModal.lensData.numerology.life_path === 'object' 
+                              ? memberModal.lensData.numerology.life_path.number 
+                              : memberModal.lensData.numerology.life_path}
+                          </Text>
+                        </View>
+                        {memberModal.lensData.numerology.expression && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Expression</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>
+                              {typeof memberModal.lensData.numerology.expression === 'object'
+                                ? memberModal.lensData.numerology.expression.number
+                                : memberModal.lensData.numerology.expression}
+                            </Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.numerology.soul_urge && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Soul Urge</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>
+                              {typeof memberModal.lensData.numerology.soul_urge === 'object'
+                                ? memberModal.lensData.numerology.soul_urge.number
+                                : memberModal.lensData.numerology.soul_urge}
+                            </Text>
+                          </View>
+                        )}
+                        {memberModal.lensData.numerology.personality && (
+                          <View style={styles.lensRow}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Personality</Text>
+                            <Text style={[styles.lensValue, { color: theme.text }]}>
+                              {typeof memberModal.lensData.numerology.personality === 'object'
+                                ? memberModal.lensData.numerology.personality.number
+                                : memberModal.lensData.numerology.personality}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                    
+                    {/* Patterns Section */}
+                    {(memberModal.lensData.patterns.active_domains.length > 0 || 
+                      memberModal.lensData.patterns.recurring_domains.length > 0) && (
+                      <View style={[styles.lensSection, { borderTopColor: theme.border }]}>
+                        <Text style={[styles.lensSectionTitle, { color: theme.text }]}>Patterns</Text>
+                        {memberModal.lensData.patterns.active_domains.length > 0 && (
+                          <View style={styles.lensRowVertical}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Active Domains</Text>
+                            <View style={styles.patternTags}>
+                              {memberModal.lensData.patterns.active_domains.map((domain, idx) => (
+                                <View key={idx} style={[styles.patternTag, { backgroundColor: theme.accent + '20' }]}>
+                                  <Text style={[styles.patternTagText, { color: theme.accent }]}>{domain}</Text>
+                                </View>
+                              ))}
+                            </View>
+                          </View>
+                        )}
+                        {memberModal.lensData.patterns.recurring_domains.length > 0 && (
+                          <View style={styles.lensRowVertical}>
+                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Recurring Domains</Text>
+                            <View style={styles.patternTags}>
+                              {memberModal.lensData.patterns.recurring_domains.map((domain, idx) => (
+                                <View key={idx} style={[styles.patternTag, { backgroundColor: theme.border }]}>
+                                  <Text style={[styles.patternTagText, { color: theme.textSecondary }]}>{domain}</Text>
+                                </View>
+                              ))}
+                            </View>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                    
+                    {/* Ask Mirror Button */}
+                    <TouchableOpacity
+                      style={[styles.askMirrorButton, { backgroundColor: theme.accent + '15', borderColor: theme.accent + '40' }]}
+                      activeOpacity={0.7}
+                      onPress={() => {
+                        if (memberModal.member) {
+                          openForumChatWithMember(memberModal.member);
+                        }
+                      }}
+                    >
+                      <Text style={[styles.askMirrorButtonText, { color: theme.accent }]}>
+                        Ask Mirror About This Member
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  // Fallback to basic data from member card
+                  <View style={styles.memberProfileDetails}>
+                    {memberModal.member.hd_type && (
+                      <View style={styles.profileRow}>
+                        <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Type</Text>
+                        <Text style={[styles.profileValue, { color: theme.text }]}>{memberModal.member.hd_type}</Text>
+                      </View>
+                    )}
+                    {memberModal.member.hd_profile && (
+                      <View style={styles.profileRow}>
+                        <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Profile</Text>
+                        <Text style={[styles.profileValue, { color: theme.text }]}>{memberModal.member.hd_profile}</Text>
+                      </View>
+                    )}
+                    {memberModal.member.hd_authority && (
+                      <View style={styles.profileRow}>
+                        <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Authority</Text>
+                        <Text style={[styles.profileValue, { color: theme.text }]}>{memberModal.member.hd_authority}</Text>
+                      </View>
+                    )}
+                    {memberModal.member.enneagram_type && (
+                      <View style={styles.profileRow}>
+                        <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Enneagram</Text>
+                        <Text style={[styles.profileValue, { color: theme.text }]}>Type {memberModal.member.enneagram_type}</Text>
+                      </View>
+                    )}
+                    {memberModal.member.active_pattern && (
+                      <View style={styles.profileRow}>
+                        <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Active Pattern</Text>
+                        <Text style={[styles.profileValue, { color: theme.accent }]}>{memberModal.member.active_pattern}</Text>
+                      </View>
+                    )}
+                    
+                    {!memberModal.member.hd_type && !memberModal.member.enneagram_type && (
+                      <Text style={[styles.profileEmpty, { color: theme.textTertiary }]}>
+                        This member hasn't set up their profile yet.
+                      </Text>
+                    )}
+                  </View>
                 )}
-              </View>
+              </ScrollView>
             )}
           </Pressable>
         </Pressable>
@@ -729,6 +1121,24 @@ export default function ForumHomeScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* Forum Chat Full Screen Modal */}
+      <Modal
+        visible={showForumChat}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={closeForumChat}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }} edges={['top']}>
+          <ForumChatView
+            forumId={forumId}
+            members={pulse?.member_cards || []}
+            onClose={closeForumChat}
+            initialMode={forumChatInitialMode}
+            initialMember={forumChatInitialMember}
+          />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -851,6 +1261,129 @@ const styles = StyleSheet.create({
   memberRole: {
     fontSize: 12,
     fontStyle: 'italic',
+  },
+  // Ask Mirror Button
+  askMirrorSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 20,
+  },
+  askMirrorContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  askMirrorIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  askMirrorTextContainer: {
+    flex: 1,
+  },
+  askMirrorTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  askMirrorSubtitle: {
+    fontSize: 13,
+  },
+  askMirrorArrow: {
+    fontSize: 18,
+    fontWeight: '600',
+    paddingLeft: 8,
+  },
+  // Forum Story Card
+  forumStoryCard: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 16,
+  },
+  forumStoryContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 12,
+  },
+  forumStoryIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  forumStoryTextContainer: {
+    flex: 1,
+  },
+  forumStoryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  forumStorySubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  forumStoryButton: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  forumStoryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  // Forum Dynamics Card Styles
+  forumDynamicsCard: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 16,
+  },
+  forumDynamicsContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 12,
+  },
+  forumDynamicsIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  forumDynamicsTextContainer: {
+    flex: 1,
+  },
+  forumDynamicsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  forumDynamicsSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  forumDynamicsButton: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  forumDynamicsButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   // Forum Pulse Styles
   pulseSection: {
@@ -977,6 +1510,91 @@ const styles = StyleSheet.create({
   },
   memberLensEmpty: {
     fontSize: 13,
+    fontStyle: 'italic',
+  },
+  memberLensAuthority: {
+    fontSize: 12,
+  },
+  // Lens Data Loading
+  lensLoadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    gap: 12,
+  },
+  lensLoadingText: {
+    fontSize: 13,
+    fontStyle: 'italic',
+  },
+  // Lens Data Container
+  lensDataContainer: {
+    paddingTop: 8,
+  },
+  lensSection: {
+    paddingVertical: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    marginTop: 8,
+  },
+  lensSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  lensRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: 6,
+  },
+  lensRowVertical: {
+    paddingVertical: 8,
+  },
+  lensLabel: {
+    fontSize: 13,
+    flex: 1,
+  },
+  lensValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1.5,
+    textAlign: 'right',
+  },
+  lensValueSmall: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  patternTags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  patternTag: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  patternTagText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  askMirrorButton: {
+    marginTop: 20,
+    marginBottom: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  askMirrorButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  askMirrorHint: {
+    fontSize: 11,
+    marginTop: 4,
     fontStyle: 'italic',
   },
   // My Mirror Profile Card

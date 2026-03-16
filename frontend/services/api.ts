@@ -216,6 +216,24 @@ export const getDailyFocus = async (userId: string): Promise<DailyFocusResponse>
   return response.data;
 };
 
+// Daily Pattern Signal API (Task 43)
+export interface DailyPatternSignalResponse {
+  success: boolean;
+  signal_title: string;
+  insight_text: string;
+  past_reflection: string | null;
+  reflective_question: string;
+  pattern_type: string | null; // "arc", "cycle", "phase", or null
+  pattern_name: string | null;
+  confidence: number;
+  generated_at: string;
+}
+
+export const getDailyPatternSignal = async (userId: string): Promise<DailyPatternSignalResponse> => {
+  const response = await apiWithRetry.get(`/daily-pattern-signal/${userId}`);
+  return response.data;
+};
+
 // User APIs
 export const createUser = async (data: {
   name?: string;
@@ -383,6 +401,30 @@ export interface PatternDriftResponse {
 
 export const getPatternDrift = async (userId: string): Promise<PatternDriftResponse> => {
   const response = await apiWithRetry.get(`/insights/pattern-drift/${userId}`);
+  return response.data;
+};
+
+// Pattern Graph API - Get live pattern signals
+export interface PatternGraphCategory {
+  category_id: string;
+  category_name: string;
+  description: string;
+  signal_strength: 'quiet' | 'emerging' | 'active' | 'stable' | 'recurring';
+  summary: string;
+  signals: any[];
+}
+
+export interface PatternGraphResponse {
+  success: boolean;
+  user_id: string;
+  categories: PatternGraphCategory[];
+  total_signals: number;
+  generated_at: string;
+  from_cache: boolean;
+}
+
+export const getPatternGraph = async (userId: string): Promise<PatternGraphResponse> => {
+  const response = await apiWithRetry.get(`/pattern-graph/${userId}`);
   return response.data;
 };
 
@@ -867,6 +909,66 @@ export interface ForumPulseMemberCard {
   active_pattern: string | null;
 }
 
+// Extended Forum Member Lens Data (full lens profile)
+export interface ForumMemberLensData {
+  user_id: string;
+  name: string | null;
+  human_design: {
+    type: string | null;
+    strategy: string | null;
+    authority: string | null;
+    profile: string | null;
+    definition: string | null;
+    incarnation_cross: string | null;
+    centers_defined: string[];
+    centers_undefined: string[];
+    active_gates: number[];
+    active_channels: string[];  // Formatted as "35-36", "37-40" etc.
+  };
+  enneagram: {
+    core_type: number | null;
+    wing: number | null;
+    center: string | null;
+    hornevian_group: string | null;
+    harmonic_group: string | null;
+    growth_direction: number | null;
+    stress_direction: number | null;
+  };
+  astrology: {
+    sun: string | null;
+    moon: string | null;
+    rising: string | null;
+    dominant_element: string | null;
+    dominant_modality: string | null;
+  };
+  numerology: {
+    life_path: number | { number: number; description: string } | null;
+    expression: number | { number: number; description: string } | null;
+    soul_urge: number | { number: number; description: string } | null;
+    personality: number | { number: number; description: string } | null;
+  };
+  patterns: {
+    active_domains: string[];
+    recurring_domains: string[];
+  };
+}
+
+// Forum Dynamics Context for AI interpretation
+export interface ForumDynamicsContext {
+  forum_members: ForumMemberLensData[];
+  member_count: number;
+  hd_type_distribution: Record<string, number>;
+  hd_authority_distribution: Record<string, number>;
+  hd_profile_distribution: Record<string, number>;
+  enneagram_distribution: Record<number, number>;
+  astrology_elements: Record<string, number>;
+  astrology_modalities: Record<string, number>;
+  numerology_life_paths: Record<number, number>;
+  active_pattern_domains: { domain: string; count: number }[];
+  defined_centers_coverage: Record<string, number>;
+  undefined_centers_coverage: Record<string, number>;
+}
+
 export interface ForumPulseTheme {
   domain_id: string;
   domain_name: string;
@@ -890,6 +992,120 @@ export interface ForumPulseResponse {
 export const getForumPulse = async (forumId: string, userId: string): Promise<ForumPulseResponse> => {
   const response = await apiWithRetry.get(`/forums/${forumId}/pulse`, {
     params: { user_id: userId }
+  });
+  return response.data;
+};
+
+// Get detailed lens data for a specific forum member
+export const getForumMemberLens = async (
+  forumId: string,
+  memberUserId: string,
+  userId: string
+): Promise<{ success: boolean; lens_data: ForumMemberLensData }> => {
+  const response = await apiWithRetry.get(`/forums/${forumId}/member-lens/${memberUserId}`, {
+    params: { user_id: userId }
+  });
+  return response.data;
+};
+
+// Get forum dynamics context (for future Forum Chat integration)
+export const getForumDynamicsContext = async (
+  forumId: string,
+  userId: string
+): Promise<{ success: boolean; context: ForumDynamicsContext }> => {
+  const response = await apiWithRetry.get(`/forums/${forumId}/dynamics-context`, {
+    params: { user_id: userId }
+  });
+  return response.data;
+};
+
+// =====================================================
+// FORUM CHAT TYPES & API
+// =====================================================
+
+export type ForumChatMode = 'self' | 'member' | 'forum';
+
+export interface ForumChatMessage {
+  id: string;
+  mode: ForumChatMode;
+  target_member_id: string | null;
+  target_member_name: string | null;
+  message: string;
+  response: string;
+  timestamp: string;
+}
+
+export interface ForumChatRequest {
+  user_id: string;
+  message: string;
+  mode: ForumChatMode;
+  target_member_id?: string;
+}
+
+export interface ForumChatResponse {
+  success: boolean;
+  message_id: string;
+  response: string;
+  timestamp: string;
+}
+
+// Get forum chat history
+export const getForumChatHistory = async (
+  forumId: string,
+  userId: string,
+  limit: number = 50
+): Promise<{ success: boolean; messages: ForumChatMessage[] }> => {
+  const response = await apiWithRetry.get(`/forums/${forumId}/chat/history`, {
+    params: { user_id: userId, limit }
+  });
+  return response.data;
+};
+
+// Send forum chat message
+export const sendForumChatMessage = async (
+  forumId: string,
+  request: ForumChatRequest
+): Promise<ForumChatResponse> => {
+  const response = await apiWithRetry.post(`/forums/${forumId}/chat`, request);
+  return response.data;
+};
+
+// Forum Story API
+export interface ForumStoryResponse {
+  success: boolean;
+  story: string;
+  generated_at: string;
+  from_cache: boolean;
+}
+
+export const getForumStory = async (
+  forumId: string,
+  userId: string
+): Promise<ForumStoryResponse> => {
+  const response = await apiWithRetry.get(`/forums/${forumId}/story`, {
+    params: { user_id: userId }
+  });
+  return response.data;
+};
+
+// Pairwise Dynamics API
+export interface PairwiseDynamicsResponse {
+  success: boolean;
+  member_a: { id: string; name: string };
+  member_b: { id: string; name: string };
+  reflection: string;
+}
+
+export const getPairwiseDynamics = async (
+  forumId: string,
+  userId: string,
+  memberAId: string,
+  memberBId: string
+): Promise<PairwiseDynamicsResponse> => {
+  const response = await apiWithRetry.post(`/forums/${forumId}/pairwise-dynamics`, {
+    user_id: userId,
+    member_a_id: memberAId,
+    member_b_id: memberBId
   });
   return response.data;
 };

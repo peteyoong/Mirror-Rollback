@@ -1,13 +1,14 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any, Union
 from pydantic import BaseModel, Field
 from bson import ObjectId
+from enum import Enum
 import os
 import logging
 import traceback
@@ -53,6 +54,18 @@ from pattern_drift import (
     ENNEAGRAM_DRIFT_MAP,
     TYPE_NAMES as DRIFT_TYPE_NAMES
 )
+
+# Import Lifeline Pattern Intelligence
+from services.lifeline_patterns import generate_lifeline_patterns, generate_full_lifeline_analysis
+
+# Import BaZi Engine
+from services.bazi_engine import compute_bazi_chart, get_element_description
+
+# Import Cross-Lens Synthesis
+from services.cross_lens_synthesis import generate_cross_lens_synthesis, condense_synthesis_for_homepage
+
+# Import Lifeline Import Service
+from services.lifeline_import import process_lifeline_import, SUPPORTED_EXTENSIONS, MAX_FILE_SIZE
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -4505,6 +4518,13 @@ async def get_lenses():
                 "icon": "git-branch"
             },
             {
+                "name": "BaZi",
+                "description": "A Chinese metaphysical system based on the Four Pillars of Destiny",
+                "helps_with": "Understanding elemental balance, energy patterns, and natural tendencies",
+                "does_not": "Predict your fate or determine fixed outcomes — it's a map of tendencies, not commands",
+                "icon": "apps"
+            },
+            {
                 "name": "Levels of Consciousness",
                 "description": "A map of emotional and spiritual development (Hawkins Scale)",
                 "helps_with": "Understanding where you are and what might shift",
@@ -4543,13 +4563,17 @@ async def mirror_chat(request: MirrorChatRequest):
     - lens="human_design": Constrained to Human Design lens
     - lens="numerology": Constrained to numerology lens
     """
+    import time
+    request_start = time.time()
+    logger.info(f"[MIRROR_CHAT] === REQUEST RECEIVED === user_id={request.user_id}, lens={request.lens}, message_length={len(request.message) if request.message else 0}")
+    
     is_lens = request.lens is not None
     
     # ===== RATE LIMITING =====
     if not check_rate_limit(request.user_id, is_lens):
         remaining = get_rate_limit_remaining(request.user_id, is_lens)
         limit_type = "lens" if is_lens else "mirror"
-        logger.warning(f"Rate limit exceeded for user {request.user_id}, type={limit_type}")
+        logger.warning(f"[MIRROR_CHAT] Rate limit exceeded for user {request.user_id}, type={limit_type}")
         raise HTTPException(
             status_code=429, 
             detail="Mirror needs a pause. Try again in a little while."
@@ -4557,17 +4581,24 @@ async def mirror_chat(request: MirrorChatRequest):
     
     try:
         if not EMERGENT_LLM_KEY:
+            logger.error("[MIRROR_CHAT] EMERGENT_LLM_KEY not configured!")
             raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        logger.info(f"[MIRROR_CHAT] EMERGENT_LLM_KEY present: {bool(EMERGENT_LLM_KEY)}, length: {len(EMERGENT_LLM_KEY) if EMERGENT_LLM_KEY else 0}")
         
         # Generate or use existing session ID
         session_id = request.session_id or str(uuid.uuid4())
         
         # Get user's chart data for context
+        logger.info(f"[MIRROR_CHAT] Fetching user and chart data...")
         user = await db.users.find_one({"_id": ObjectId(request.user_id)})
         chart = await db.charts.find_one({"user_id": request.user_id})
         
         if not user:
+            logger.error(f"[MIRROR_CHAT] User not found: {request.user_id}")
             raise HTTPException(status_code=404, detail="User not found")
+        
+        logger.info(f"[MIRROR_CHAT] User found: {user.get('name', 'Unknown')}, chart exists: {chart is not None}")
         
         # Auto-migrate chart if needed (e.g., missing nodes)
         if chart and (request.lens == "astrology" or request.lens is None):
@@ -4976,8 +5007,10 @@ async def mirror_chat(request: MirrorChatRequest):
         
         # ===== LLM CALL VIA EMERGENT CONTRACT =====
         from emergent_contract import emergent_generate, validate_emergent_output, log_contract_event
+        import asyncio
         
         response_text = None
+        llm_start = time.time()
         try:
             # Determine mode based on lens
             if request.lens == "astrology":
@@ -4991,6 +5024,8 @@ async def mirror_chat(request: MirrorChatRequest):
             else:
                 mode = "reflection_chat"
             
+            logger.info(f"[MIRROR_CHAT] Starting LLM call: mode={mode}, user={request.user_id}")
+            
             # Build context for emergent_generate
             emit_context = {
                 "lens": request.lens or "generalist",
@@ -5001,22 +5036,35 @@ async def mirror_chat(request: MirrorChatRequest):
                 emit_context["thread_tone"] = thread_state.get("tone", "unclear")
                 emit_context["thread_remaining"] = thread_state.get("remaining_turns", 0)
             
-            # Use centralized contract-enforced generation
-            response_text = await emergent_generate(
-                mode=mode,
-                user_message=request.message,
-                endpoint="mirror_chat",
-                user_id=request.user_id,
-                context=emit_context,
-                additional_system_prompt=system_prompt,  # Pass the full system prompt we built
-                model="gpt-5.2"
-            )
+            # Use centralized contract-enforced generation with timeout
+            try:
+                response_text = await asyncio.wait_for(
+                    emergent_generate(
+                        mode=mode,
+                        user_message=request.message,
+                        endpoint="mirror_chat",
+                        user_id=request.user_id,
+                        context=emit_context,
+                        additional_system_prompt=system_prompt,
+                        model="gpt-5.2"
+                    ),
+                    timeout=90.0  # 90 second timeout for LLM call
+                )
+                llm_duration = time.time() - llm_start
+                logger.info(f"[MIRROR_CHAT] LLM call completed: duration={llm_duration:.2f}s, response_length={len(response_text) if response_text else 0}")
+            except asyncio.TimeoutError:
+                llm_duration = time.time() - llm_start
+                logger.error(f"[MIRROR_CHAT] LLM call TIMEOUT after {llm_duration:.2f}s for user {request.user_id}")
+                raise HTTPException(status_code=504, detail="Mirror is taking too long to respond. Please try again.")
             
             # Log request (no user text)
             logger.info(f"Mirror chat via emergent_generate: user={request.user_id}, lens={request.lens or 'generalist'}, mode={mode}")
             
+        except HTTPException:
+            raise  # Re-raise HTTP exceptions (like timeout)
         except Exception as llm_error:
-            logger.error(f"LLM call failed for user {request.user_id}: {type(llm_error).__name__}")
+            llm_duration = time.time() - llm_start
+            logger.error(f"[MIRROR_CHAT] LLM call FAILED after {llm_duration:.2f}s for user {request.user_id}: {type(llm_error).__name__}: {str(llm_error)}")
             from emergent_contract import get_safe_fallback
             response_text = get_safe_fallback(mode if 'mode' in dir() else "reflection_chat")
         
@@ -5178,6 +5226,9 @@ async def mirror_chat(request: MirrorChatRequest):
             if new_remaining == 0:
                 logger.info(f"[Thread] Thread completed for user {request.user_id}")
         
+        request_duration = time.time() - request_start
+        logger.info(f"[MIRROR_CHAT] === REQUEST COMPLETED === user_id={request.user_id}, duration={request_duration:.2f}s, response_length={len(response_text) if response_text else 0}")
+        
         return MirrorChatResponse(
             response=response_text,
             session_id=session_id,
@@ -5186,14 +5237,17 @@ async def mirror_chat(request: MirrorChatRequest):
             thread=thread_metadata
         )
         
-    except HTTPException:
-        # Re-raise HTTP exceptions (like rate limiting)
+    except HTTPException as http_exc:
+        # Re-raise HTTP exceptions (like rate limiting, timeouts)
+        request_duration = time.time() - request_start
+        logger.error(f"[MIRROR_CHAT] === REQUEST FAILED (HTTPException) === user_id={request.user_id}, duration={request_duration:.2f}s, status={http_exc.status_code}, detail={http_exc.detail}")
         raise
     except Exception as e:
+        request_duration = time.time() - request_start
         error_type = type(e).__name__
         error_msg = str(e)
-        logger.error(f"[MIRROR_BACKEND_ERROR] type={error_type}, message={error_msg}")
-        logger.error(f"[MIRROR_BACKEND_ERROR] traceback: {traceback.format_exc()}")
+        logger.error(f"[MIRROR_CHAT] === REQUEST FAILED (Exception) === user_id={request.user_id}, duration={request_duration:.2f}s, type={error_type}, message={error_msg}")
+        logger.error(f"[MIRROR_CHAT] traceback: {traceback.format_exc()}")
         
         # Return structured error instead of exposing raw exception
         raise HTTPException(
@@ -5280,52 +5334,56 @@ async def get_user_timeline(user_id: str, days: int = 7):
 # =====================================================================
 
 KEYSTONE_VARIANT_TEMPLATES = [
-    # Each template shapes the structure subtly differently
+    # =========================================================================
+    # UPGRADED HERO RESONANCE FRAMEWORK
+    # Structure: Pattern → Tension → Real-life moment
+    # Goal: Behavioral resonance over somatic/meditation language
+    # =========================================================================
     {
-        "id": "recognition_first",
-        "opening": "recognition",
-        "structure": "Notice what's underneath → Name the tension → Offer opening"
+        "id": "decision_point",
+        "opening": "pattern",
+        "structure": "Name a recognizable pattern in decision-making → Identify the pull between two directions → Ground in a specific moment (before sending a message, making a choice, starting something)"
     },
     {
-        "id": "tension_first", 
+        "id": "timing_tension", 
         "opening": "tension",
-        "structure": "Name the pull between two parts → Recognize what's present → Gentle possibility"
+        "structure": "Name the tension between moving forward and waiting → Recognize what's familiar about this pull → Anchor in a real moment (when to speak, when to act, when to hold back)"
     },
     {
-        "id": "body_anchored",
-        "opening": "somatic",
-        "structure": "Start with body/felt sense → Move to inner landscape → End with breath/pause"
+        "id": "clarity_seeking",
+        "opening": "pattern",
+        "structure": "Name a pattern around needing clarity before acting → Identify the pull between analyzing more vs trusting what's already known → Ground in a concrete situation (a conversation, a decision, a next step)"
     },
     {
-        "id": "time_aware",
-        "opening": "temporal",
-        "structure": "Reference the arc of recent days → What seems to be shifting → What remains steady"
+        "id": "expression_holding",
+        "opening": "tension",
+        "structure": "Name the tension between expressing something and holding it back → Recognize what makes this familiar → Anchor in a real-life moment (something unsaid, an idea not yet shared, a boundary not yet named)"
     },
     {
-        "id": "quiet_witness",
-        "opening": "observer",
-        "structure": "Describe as if watching from the outside → Name what's visible → Note what's underneath"
+        "id": "momentum_vs_pause",
+        "opening": "pattern",
+        "structure": "Name a pattern of wanting to push forward → Identify what's pulling toward slowing down → Ground in something specific (a project, a relationship step, a commitment)"
     },
     {
-        "id": "permission_giver",
-        "opening": "allowing",
-        "structure": "Acknowledge what might feel hard to allow → Normalize the tension → Open space"
+        "id": "recognition_tension",
+        "opening": "pattern",
+        "structure": "Name a pattern around seeking validation or recognition → Identify the pull between self-trust and external confirmation → Anchor in a recognizable moment (waiting for a response, seeking feedback, doubting a direction)"
     },
     {
-        "id": "threshold_moment",
-        "opening": "threshold",
-        "structure": "Mark this moment as a pause → Notice what's been carried → What can be set down"
+        "id": "control_release",
+        "opening": "tension",
+        "structure": "Name the tension between trying to control an outcome and letting it unfold → Recognize the familiar pull → Ground in a concrete situation (a relationship dynamic, a work situation, a personal goal)"
     },
     {
-        "id": "parts_dialogue",
+        "id": "parts_in_tension",
         "opening": "multiplicity",
-        "structure": "A part of you X, another part Y → They can coexist → No need to resolve"
+        "structure": "A part of you wants X (specific action), another part wants Y (opposite action) → Name what each part is protecting or seeking → Ground in a real decision or conversation"
     }
 ]
 
 DAILY_KEYSTONE_PROMPT = """You are Mirror generating a Daily Emotional Keystone.
 
-ROLE: Create a moment of "quiet recognition" — the user should feel seen without being labeled.
+ROLE: Create a moment of recognition — the user should feel "that's exactly where I am" within 10 seconds.
 
 TODAY'S VARIANT: {variant_template}
 STRUCTURAL APPROACH: {variant_structure}
@@ -5338,40 +5396,54 @@ RECENT LIVED EXPERIENCE (if available):
 
 CURRENT TONE GUIDANCE: {tone_guidance}
 
+=== HERO RESONANCE FRAMEWORK ===
+
+Your keystone must follow this structure:
+1. PATTERN: Name a recognizable behavioral pattern (not body sensation)
+2. TENSION: What's pulling in two directions
+3. REAL-LIFE MOMENT: Ground it in something concrete (a decision, a conversation, a message, a next step)
+
 === OUTPUT REQUIREMENTS ===
 
 You must return ONLY valid JSON in this exact format:
 {{
-  "title": "3-6 word poetic title (no punctuation except comma)",
-  "keystone": "2-3 sentences following the structural approach. Sentence 1: Recognition. Sentence 2: Tension. Sentence 3 (optional): Opening.",
-  "reflect_question": "One gentle question inviting self-inquiry (not advice-seeking)",
-  "micro_affirmation": "8-14 words, non-prescriptive, grounding statement"
+  "title": "3-6 word title capturing the tension or pattern",
+  "keystone": "2-3 sentences following Pattern → Tension → Real-life moment structure. Be specific and behavioral.",
+  "reflect_question": "One question about a real decision, conversation, or action — not abstract self-inquiry",
+  "micro_affirmation": "8-14 words, grounding permission that relates to the specific tension"
 }}
 
-=== LANGUAGE GUARDRAILS (MUST ENFORCE) ===
+=== LANGUAGE RULES (CRITICAL) ===
+
+STRONGLY PREFER these anchors:
+- Decisions: "before deciding", "when making a choice", "the moment before committing"
+- Conversations: "before sending that message", "something you haven't said yet", "a conversation you're avoiding"
+- Hesitation: "what's making you pause", "the gap between knowing and doing"
+- Action vs waiting: "wanting to move forward", "not quite trusting the timing", "ready but not yet acting"
+- Expression: "something you're holding back", "an idea not yet shared", "a boundary not yet named"
+
+PREFERRED WORDS:
+- tension, pattern, moment, pause, decide, push forward, hold back, clarity, signal, timing
+- almost ready, not quite, familiar pull, recognizable
+
+AVOID AS PRIMARY (can use sparingly as secondary):
+- body, breath, shoulders, jaw, nervous system, somatic, felt sense
+- meditation-style language: "notice your breath", "feel into your body"
+- generic therapy language: "sit with that", "honor your feelings"
+- vague mysticism: "the universe", "meant to be", "your journey"
 
 NEVER USE:
 - Predictions: "will", "going to happen", "this means you'll"
 - Prescriptions: "you should", "you need to", "try to"
-- Diagnoses or labels
-- Identity locks: "you are X" → instead use "you may notice", "it can feel like", "a part of you"
-- System names: NO "astrology", "Human Design", "numerology", "Pisces", "Manifestor", "life path", etc.
-- Spiritual jargon: "meant to", "purpose", "destiny", "lesson", "universe wants"
+- System names: NO "astrology", "Human Design", "numerology", "Pisces", "Manifestor", etc.
+- Identity locks: "you are X" → use "a part of you", "there may be"
 
-ALWAYS USE:
-- Present-tense, observational language
-- Archetypal phrasing: "a part of you moves first", "a part of you needs time", "something in you seeks wide horizons"
-- Noticing language: "there may be", "it can feel like", "something seems to"
-- Gentle uncertainty: "perhaps", "it might be", "you may notice"
+=== RESONANCE TEST ===
 
-=== STRUCTURE FOR KEYSTONE ===
-
-Sentence 1 (Recognition): What seems present underneath the surface — name it without explaining
-Sentence 2 (Tension): Two pulls that may coexist — honor both without resolving
-Sentence 3 (Opening, optional): A doorway or possibility — not advice, just space
-
-The question should invite reflection, not action.
-The micro_affirmation grounds without directing.
+Before outputting, verify:
+1. Would an analytical, pattern-seeking person feel recognized (not just somatic/feeler types)?
+2. Does it name a specific moment that could happen today (not abstract)?
+3. Is there a tension that feels familiar and lived (not theoretical)?
 
 Generate the JSON now."""
 
@@ -5397,128 +5469,1934 @@ class MirrorHomeResponse(BaseModel):
 # =====================================================================
 # DETERMINISTIC KEYSTONE TEMPLATES
 # =====================================================================
-# These provide instant, complete keystones based on computed chart data.
-# They feel intentional and reflective, not placeholder-like.
+# UPGRADED: Pattern → Tension → Real-life moment framework
+# Focus: Behavioral resonance, less somatic, more pattern-driven
 
 DETERMINISTIC_KEYSTONE_TEMPLATES = {
     # Fire emphasis (Aries, Leo, Sagittarius sun/moon)
     "fire": [
         {
-            "title": "The Quiet Before Movement",
-            "keystone": "There's an impulse rising, something that wants to begin. Before acting, there's a moment—brief, easy to miss—where you can feel what's underneath the momentum.",
-            "reflect_question": "What feels ready to move, and what might benefit from one more breath?",
-            "micro_affirmation": "The spark knows its timing."
+            "title": "The Moment Before Moving",
+            "keystone": "There's a familiar pattern here—wanting to start before having all the pieces. Today may bring a tension between trusting your instinct to act and waiting for one more signal. It might show up before sending a message, making a decision, or committing to something.",
+            "reflect_question": "What are you almost ready to say or do—but haven't quite?",
+            "micro_affirmation": "Readiness doesn't always announce itself clearly."
         },
         {
-            "title": "Heat and Patience",
-            "keystone": "Energy wants to flow outward today. The tension isn't whether to move, but how to let the fire warm without consuming.",
-            "reflect_question": "Where could your intensity become invitation rather than force?",
-            "micro_affirmation": "Warmth travels further than flame."
+            "title": "Momentum and Pause",
+            "keystone": "You may notice a pull to push something forward today. There's also a quieter signal suggesting the timing matters as much as the action. This tension could appear in a conversation you want to have or a next step you're weighing.",
+            "reflect_question": "Where might waiting one beat actually strengthen your move?",
+            "micro_affirmation": "Intensity and timing can work together."
         }
     ],
     # Earth emphasis (Taurus, Virgo, Capricorn)
     "earth": [
         {
-            "title": "What Remains",
-            "keystone": "Beneath the day's demands, there's something steady. Not resistant to change—rooted through it. Today might ask you to notice what holds without gripping.",
-            "reflect_question": "What foundation are you standing on, even when everything else shifts?",
-            "micro_affirmation": "Steadiness is not stillness."
+            "title": "Almost Certain",
+            "keystone": "There's a pattern of wanting more information before deciding. Today may bring tension between what you already know and what you think you still need. It might surface in something you've been considering for a while—a commitment, a boundary, a next step.",
+            "reflect_question": "What decision are you treating as more complex than it actually is?",
+            "micro_affirmation": "Sometimes 'enough' information arrived days ago."
         },
         {
-            "title": "The Work Underneath",
-            "keystone": "There's a quiet satisfaction in tending to what grows slowly. Today might reveal where patient effort has been building something you couldn't see.",
-            "reflect_question": "What are you building that won't be visible for a while?",
-            "micro_affirmation": "Some things mature in the dark."
+            "title": "Holding vs Moving",
+            "keystone": "You may notice resistance to changing something that's been steady. The tension today is between protecting what works and taking a step that feels risky but necessary. This could show up in a conversation you've been postponing.",
+            "reflect_question": "What would you do if stability wasn't at stake?",
+            "micro_affirmation": "Steadiness can include movement."
         }
     ],
     # Air emphasis (Gemini, Libra, Aquarius)
     "air": [
         {
-            "title": "Between Thoughts",
-            "keystone": "The mind is quick today, connecting dots, seeing patterns. Somewhere in that activity is a quieter question waiting to be noticed.",
-            "reflect_question": "What idea keeps returning, even when you're thinking about something else?",
-            "micro_affirmation": "Insight arrives between intentions."
+            "title": "Thinking vs Deciding",
+            "keystone": "A familiar pattern: gathering more perspectives before committing. Today may bring tension between understanding all angles and simply choosing. It might show up in a message you're drafting in your head or a response you're weighing too carefully.",
+            "reflect_question": "What would you decide if you had to choose in the next hour?",
+            "micro_affirmation": "Clarity often follows action, not the other way around."
         },
         {
-            "title": "The Weight of Lightness",
-            "keystone": "There's freedom in how quickly you can shift perspective. And sometimes, a gentle pull toward staying with one view long enough to see what it reveals.",
-            "reflect_question": "What would it mean to stay curious about one thing today?",
-            "micro_affirmation": "Depth and movement can coexist."
+            "title": "The Almost-Ready Idea",
+            "keystone": "There may be something you want to say or share but haven't found the right moment for. The tension is between refining it more and putting it out imperfectly. This could show up in a conversation, a project, or something you've been sitting on.",
+            "reflect_question": "What idea is waiting for you to stop editing it?",
+            "micro_affirmation": "Imperfect expression often lands better than perfect silence."
         }
     ],
     # Water emphasis (Cancer, Scorpio, Pisces)
     "water": [
         {
-            "title": "Undercurrents",
-            "keystone": "Something is moving beneath the surface today. Not demanding attention—just present, like water finding its level. You might feel more than you can name.",
-            "reflect_question": "What emotion is asking to be acknowledged, not solved?",
-            "micro_affirmation": "Feelings know their own timing."
+            "title": "What's Not Being Said",
+            "keystone": "There may be a familiar pattern of sensing more than you're expressing. Today's tension could be between naming something and letting it stay unspoken. It might surface in a relationship, a boundary, or something you've noticed but haven't addressed.",
+            "reflect_question": "What are you holding back that the other person might actually need to hear?",
+            "micro_affirmation": "Naming something doesn't have to be confrontational."
         },
         {
-            "title": "The Tide's Teaching",
-            "keystone": "There's a pull inward today, an invitation to feel what's here before deciding what to do with it. Not withdrawal—receptivity.",
-            "reflect_question": "What would it mean to receive today rather than produce?",
-            "micro_affirmation": "Sensitivity is a form of strength."
+            "title": "Trusting What You Know",
+            "keystone": "You may be picking up signals that don't have clear evidence yet. The tension is between trusting what you sense and waiting for confirmation. This could show up in a decision where the 'logical' choice doesn't quite feel right.",
+            "reflect_question": "What do you already know that you're waiting for someone else to validate?",
+            "micro_affirmation": "Your signals don't need external proof to be real."
         }
     ],
     # Generator/MG types
     "generator": [
         {
-            "title": "Response Rising",
-            "keystone": "Your energy today is waiting to respond to something that genuinely calls you. The question isn't what to do—it's what lights up when you encounter it.",
-            "reflect_question": "What made your body say yes before your mind caught up?",
-            "micro_affirmation": "Your response is your compass."
+            "title": "Waiting for the Right Yes",
+            "keystone": "There may be a familiar pull to commit to something that sounds good but doesn't quite light you up. Today's tension is between saying yes to keep things moving and holding out for something that genuinely energizes you. This could show up in a request, an opportunity, or a commitment someone is asking for.",
+            "reflect_question": "What recent yes felt more like obligation than genuine interest?",
+            "micro_affirmation": "A clear no protects the space for a real yes."
         }
     ],
     # Projector types
     "projector": [
         {
-            "title": "The Art of Waiting",
-            "keystone": "Your clarity comes in a different rhythm than action. Today might offer moments where being recognized matters more than being busy.",
-            "reflect_question": "Where are you being invited that you haven't fully noticed?",
-            "micro_affirmation": "Your seeing is your gift."
+            "title": "Before Being Asked",
+            "keystone": "There may be insight you want to share but haven't been invited to give. Today's tension is between offering what you see and waiting until it's genuinely wanted. This could show up in a meeting, a relationship, or feedback you're considering giving.",
+            "reflect_question": "Where are you about to offer guidance that wasn't requested?",
+            "micro_affirmation": "Being seen often matters more than being heard first."
         }
     ],
     # Manifestor types
     "manifestor": [
         {
-            "title": "Before the Initiation",
-            "keystone": "Something in you knows when it's time to begin. Today might be about letting others know what's moving, creating the space for your impact to land.",
-            "reflect_question": "Who needs to know what you're about to do?",
-            "micro_affirmation": "Informing is freeing."
+            "title": "The Heads-Up",
+            "keystone": "There may be something you're about to do that will affect others. Today's tension is between moving forward independently and giving people a heads-up first. This could show up in a decision you're making or a change you're about to implement.",
+            "reflect_question": "Who would benefit from knowing what you're about to do—before you do it?",
+            "micro_affirmation": "Informing isn't asking permission—it's building trust."
         }
     ],
     # Reflector types
     "reflector": [
         {
-            "title": "The Mirror's Patience",
-            "keystone": "You're sampling today's energy, not defined by it. What you notice about your environment tells you something important—about them, and about what you're becoming.",
-            "reflect_question": "What does today's environment reveal that yesterday's didn't?",
-            "micro_affirmation": "Your openness is your wisdom."
+            "title": "Today vs Yesterday",
+            "keystone": "You may notice you feel differently about something today than you did recently. The tension is between trusting today's perspective and wondering if it's just temporary. This could show up in a decision you're reconsidering or a person you feel differently about.",
+            "reflect_question": "What has shifted in how you see something—and what might that be telling you?",
+            "micro_affirmation": "Changing your mind can be wisdom, not inconsistency."
         }
     ],
     # Default/fallback
     "default": [
         {
-            "title": "A Moment of Arrival",
-            "keystone": "Something in you brought you here today. That small act of pausing—even for a moment—is itself a form of attention worth honoring.",
-            "reflect_question": "What feels most present right now, underneath the surface?",
-            "micro_affirmation": "You don't have to have it figured out to be here."
+            "title": "The Familiar Pull",
+            "keystone": "There may be a tension between wanting to move forward and not quite trusting the timing yet. This pattern might show up today in a decision you're weighing, a message you haven't sent, or a conversation you're putting off.",
+            "reflect_question": "What are you almost ready to do—but keep finding reasons to wait?",
+            "micro_affirmation": "Hesitation isn't always fear. Sometimes it's signal."
         },
         {
-            "title": "Today's Texture",
-            "keystone": "Each day arrives with its own quality, its own invitation. Before the tasks and the thinking, there's a felt sense of what this day is asking.",
-            "reflect_question": "What quality does today seem to carry?",
-            "micro_affirmation": "Noticing is enough."
+            "title": "Something Unfinished",
+            "keystone": "Today may bring a familiar feeling of something lingering—a conversation not quite had, a decision not quite made, something not quite expressed. The tension is between addressing it now and letting it sit longer.",
+            "reflect_question": "What would change if you simply finished that thing today?",
+            "micro_affirmation": "Completion doesn't require perfection."
         },
         {
-            "title": "The Space Between",
-            "keystone": "Between what happened yesterday and what comes next, there's this moment. Not empty—full of something quieter than thought.",
-            "reflect_question": "What's here in the pause?",
-            "micro_affirmation": "Presence needs no justification."
+            "title": "Clarity vs Action",
+            "keystone": "There may be a pull to understand something more fully before acting on it. Today's tension is between wanting certainty and accepting that clarity sometimes comes through doing. This could show up in a choice you've been circling.",
+            "reflect_question": "What would you do if you stopped waiting to feel more certain?",
+            "micro_affirmation": "Sometimes the next step reveals more than more thinking."
         }
     ]
 }
+
+
+# =====================================================================
+# PERSONAL ECHO GENERATION (Hero Resonance) - v2 with Confidence Gating
+# =====================================================================
+# Maps keystone patterns to lifeline categories for personal echoes
+# Only shows echoes when confidence is high enough
+
+KEYSTONE_TO_LIFELINE_MAPPING = {
+    # Fire patterns → action-oriented life events
+    "fire": ["Career", "Achievement", "Turning Point"],
+    # Earth patterns → stability/building events  
+    "earth": ["Career", "Move", "Family"],
+    # Air patterns → communication/ideas
+    "air": ["Relationships", "Career", "Identity"],
+    # Water patterns → emotional/relational
+    "water": ["Relationships", "Family", "Loss", "Identity"],
+    # Human Design types
+    "generator": ["Career", "Achievement", "Turning Point"],
+    "projector": ["Relationships", "Career", "Identity"],
+    "manifestor": ["Career", "Turning Point", "Achievement"],
+    "reflector": ["Identity", "Relationships", "Turning Point"],
+    # Default
+    "default": ["Turning Point", "Career", "Relationships", "Identity"],
+}
+
+# Pattern themes for echo matching - maps keystone keywords to lifeline categories
+PATTERN_ECHO_THEMES = {
+    "decision": ["Turning Point", "Career", "Move"],
+    "timing": ["Turning Point", "Career"],
+    "expression": ["Relationships", "Identity"],
+    "clarity": ["Turning Point", "Identity", "Career"],
+    "hesitation": ["Turning Point", "Relationships", "Career"],
+    "momentum": ["Career", "Achievement"],
+    "waiting": ["Career", "Relationships"],
+    "holding back": ["Relationships", "Identity"],
+    "push forward": ["Career", "Achievement", "Turning Point"],
+    "message": ["Relationships", "Career"],
+    "conversation": ["Relationships", "Family"],
+}
+
+# Confidence threshold for showing echoes (out of 10)
+ECHO_CONFIDENCE_THRESHOLD = 5
+
+# Category to moment type mapping for sharper echo wording
+CATEGORY_MOMENT_TYPES = {
+    "Career": ["work transitions", "career pivots", "professional turning points"],
+    "Turning Point": ["pivotal moments", "turning points", "crossroads"],
+    "Relationships": ["relationship shifts", "connection moments", "relational turning points"],
+    "Identity": ["identity shifts", "moments of self-definition", "times of becoming"],
+    "Loss": ["difficult passages", "moments of loss", "times of letting go"],
+    "Achievement": ["breakthrough moments", "milestones", "accomplishments"],
+    "Family": ["family moments", "home transitions", "family shifts"],
+    "Move": ["life transitions", "moves", "relocations"],
+    "Health": ["health turning points", "body-related shifts"],
+    "Spirituality": ["inner turning points", "spiritual shifts"],
+    "Money": ["financial turning points", "resource shifts"],
+}
+
+
+def _calculate_echo_confidence(
+    matching_events: List[Dict],
+    relevant_categories: List[str],
+    keystone_text: str,
+    template_key: str
+) -> Dict[str, Any]:
+    """
+    Calculate confidence score for personal echo.
+    
+    Scoring factors (total possible ~10):
+    - Category overlap strength: 0-3 points
+    - Matching event count: 0-3 points
+    - Turning point / high-impact presence: 0-2 points
+    - Tag/theme resonance: 0-2 points
+    
+    Returns dict with score, breakdown, and qualified categories.
+    """
+    score = 0
+    breakdown = {}
+    qualified_categories = []
+    
+    if not matching_events:
+        return {"score": 0, "breakdown": {}, "qualified_categories": []}
+    
+    # 1. Category overlap strength (0-3 points)
+    # How well do the matched events align with primary relevant categories?
+    primary_category_matches = [
+        e for e in matching_events 
+        if e.get('category') in relevant_categories[:2]  # Top 2 relevant categories
+    ]
+    if len(primary_category_matches) >= 3:
+        score += 3
+        breakdown["category_overlap"] = 3
+    elif len(primary_category_matches) >= 2:
+        score += 2
+        breakdown["category_overlap"] = 2
+    elif len(primary_category_matches) >= 1:
+        score += 1
+        breakdown["category_overlap"] = 1
+    else:
+        breakdown["category_overlap"] = 0
+    
+    # 2. Matching event count (0-3 points)
+    event_count = len(matching_events)
+    if event_count >= 4:
+        score += 3
+        breakdown["event_count"] = 3
+    elif event_count >= 2:
+        score += 2
+        breakdown["event_count"] = 2
+    elif event_count >= 1:
+        score += 1
+        breakdown["event_count"] = 1
+    else:
+        breakdown["event_count"] = 0
+    
+    # 3. Turning point / high-impact presence (0-2 points)
+    turning_points = [e for e in matching_events if e.get('category') == 'Turning Point']
+    high_impact = [e for e in matching_events if e.get('impact_score', 5) >= 8]
+    
+    if turning_points and high_impact:
+        score += 2
+        breakdown["significance"] = 2
+    elif turning_points or high_impact:
+        score += 1
+        breakdown["significance"] = 1
+    else:
+        breakdown["significance"] = 0
+    
+    # 4. Tag/theme resonance (0-2 points)
+    # Check if event tags match keystone themes
+    keystone_lower = keystone_text.lower()
+    theme_keywords = ["decision", "timing", "hesitation", "momentum", "waiting", 
+                      "clarity", "expression", "holding", "push", "message", "conversation"]
+    
+    all_tags = []
+    for e in matching_events:
+        tags = e.get('tags', [])
+        if tags:
+            all_tags.extend([t.lower() for t in tags])
+    
+    tag_matches = 0
+    for keyword in theme_keywords:
+        if keyword in keystone_lower:
+            # Check if any tags relate to this keyword
+            for tag in all_tags:
+                if keyword in tag or tag in keyword:
+                    tag_matches += 1
+                    break
+    
+    # Also check for common resonant tags
+    resonant_tags = ["turning point", "milestone", "growth", "change", "decision", "transition"]
+    for tag in all_tags:
+        if any(rt in tag for rt in resonant_tags):
+            tag_matches += 1
+    
+    if tag_matches >= 3:
+        score += 2
+        breakdown["tag_resonance"] = 2
+    elif tag_matches >= 1:
+        score += 1
+        breakdown["tag_resonance"] = 1
+    else:
+        breakdown["tag_resonance"] = 0
+    
+    # Identify qualified categories (categories with strong presence)
+    category_counts = {}
+    for e in matching_events:
+        cat = e.get('category')
+        if cat:
+            category_counts[cat] = category_counts.get(cat, 0) + 1
+    
+    # Only include categories with 2+ events or that are Turning Point
+    for cat, count in category_counts.items():
+        if count >= 2 or cat == 'Turning Point':
+            qualified_categories.append(cat)
+    
+    return {
+        "score": score,
+        "breakdown": breakdown,
+        "qualified_categories": qualified_categories,
+    }
+
+
+def _generate_sharper_echo_text(
+    years: List[int],
+    qualified_categories: List[str],
+    keystone_text: str,
+    confidence_score: int
+) -> str:
+    """
+    Generate recognition-focused echo wording with moment type when possible.
+    
+    Prioritizes:
+    1. Recognition language ("You may have seen", "A similar tension")
+    2. Moment type context when category is clear
+    3. Short, single-line format
+    """
+    keystone_lower = keystone_text.lower()
+    
+    # Format years
+    if len(years) == 1:
+        years_text = str(years[0])
+    elif len(years) == 2:
+        years_text = f"{years[0]} and {years[-1]}"
+    else:
+        if years[-1] - years[0] <= 5:
+            years_text = f"{years[0]} to {years[-1]}"
+        else:
+            years_text = f"{years[0]}, {years[len(years)//2]}, and {years[-1]}"
+    
+    # Determine primary moment type from qualified categories
+    moment_type = None
+    primary_category = None
+    
+    # Prioritize Turning Point, then Career, then others
+    priority_order = ["Turning Point", "Career", "Relationships", "Identity", "Loss", "Achievement"]
+    for cat in priority_order:
+        if cat in qualified_categories:
+            primary_category = cat
+            moment_types = CATEGORY_MOMENT_TYPES.get(cat, [])
+            if moment_types:
+                # Select based on years for determinism
+                moment_type = moment_types[years[0] % len(moment_types)]
+            break
+    
+    # Detect tension type from keystone for sharper wording
+    tension_type = None
+    if "hesitation" in keystone_lower or "holding back" in keystone_lower:
+        tension_type = "hesitation"
+    elif "decision" in keystone_lower or "deciding" in keystone_lower:
+        tension_type = "decision"
+    elif "timing" in keystone_lower or "waiting" in keystone_lower:
+        tension_type = "timing"
+    elif "expression" in keystone_lower or "saying" in keystone_lower:
+        tension_type = "expression"
+    elif "momentum" in keystone_lower or "push" in keystone_lower:
+        tension_type = "momentum"
+    
+    # Build echo templates based on what we know
+    templates = []
+    
+    # High confidence + moment type + tension type (best case)
+    if confidence_score >= 7 and moment_type and tension_type:
+        if tension_type == "hesitation":
+            templates.append(f"You may have felt this same hesitation during {moment_type} around {{years}}.")
+        elif tension_type == "decision":
+            templates.append(f"A similar decision tension showed up during {moment_type} around {{years}}.")
+        elif tension_type == "timing":
+            templates.append(f"This same timing question may have appeared during {moment_type} around {{years}}.")
+        elif tension_type == "expression":
+            templates.append(f"You've navigated similar expression moments during {moment_type} around {{years}}.")
+        elif tension_type == "momentum":
+            templates.append(f"A similar push-forward tension surfaced during {moment_type} around {{years}}.")
+    
+    # High confidence + moment type (good case)
+    if confidence_score >= 6 and moment_type:
+        templates.append(f"A similar pattern appeared during {moment_type} around {{years}}.")
+        templates.append(f"You may have seen this during {moment_type} around {{years}}.")
+    
+    # Medium confidence + moment type
+    if confidence_score >= 5 and moment_type:
+        templates.append(f"This tension echoes {moment_type} around {{years}}.")
+        templates.append(f"Similar moments surfaced during {moment_type} around {{years}}.")
+    
+    # Fallback with category context (when moment type isn't clear)
+    if primary_category == "Turning Point":
+        templates.append(f"A similar tension showed up at turning points around {{years}}.")
+        templates.append(f"You may have navigated this during pivotal moments around {{years}}.")
+    elif primary_category == "Career":
+        templates.append(f"This pattern echoes work moments around {{years}}.")
+        templates.append(f"A similar tension surfaced in your career around {{years}}.")
+    elif primary_category == "Relationships":
+        templates.append(f"You may have felt this in relationship moments around {{years}}.")
+    elif primary_category == "Identity":
+        templates.append(f"This echoes times of self-definition around {{years}}.")
+    
+    # Generic fallback (still recognition-focused)
+    templates.append(f"You may have seen this pattern before—around {{years}}.")
+    templates.append(f"A similar tension appeared in your timeline around {{years}}.")
+    
+    # Select template deterministically
+    idx = (years[0] + confidence_score) % len(templates)
+    return templates[idx].format(years=years_text)
+
+
+async def generate_personal_echo(
+    user_id: str, 
+    template_key: str,
+    keystone_text: str = ""
+) -> Optional[Dict[str, Any]]:
+    """
+    Generate a personal echo from the user's Lifeline that resonates with today's pattern.
+    
+    v2: Now includes confidence gating - only returns echo when confidence is high enough.
+    
+    Returns None if:
+    - User has no lifeline events
+    - No meaningful overlap exists
+    - Confidence score is below threshold
+    
+    Returns dict with:
+    - echo_text: The short echo line (recognition-focused)
+    - source_years: Years referenced
+    - source_categories: Categories matched
+    - confidence: Confidence score and breakdown
+    """
+    try:
+        # Fetch user's lifeline events
+        events = await db.lifeline_events.find({"user_id": user_id}).to_list(length=500)
+        
+        if not events or len(events) < 2:
+            logger.debug(f"[PersonalEcho] Not enough events for {user_id}")
+            return None
+        
+        # Get relevant categories for this keystone pattern
+        relevant_categories = KEYSTONE_TO_LIFELINE_MAPPING.get(
+            template_key, 
+            KEYSTONE_TO_LIFELINE_MAPPING["default"]
+        )
+        
+        # Also check for theme-based matches from keystone text
+        keystone_lower = keystone_text.lower()
+        for theme, categories in PATTERN_ECHO_THEMES.items():
+            if theme in keystone_lower:
+                relevant_categories = list(set(relevant_categories + categories))
+        
+        # Filter events that match relevant categories
+        matching_events = [
+            e for e in events 
+            if e.get('category') in relevant_categories
+        ]
+        
+        # Also include high-impact events and turning points
+        for e in events:
+            if e not in matching_events:
+                if e.get('category') == 'Turning Point' or e.get('impact_score', 5) >= 8:
+                    matching_events.append(e)
+        
+        if not matching_events:
+            logger.debug(f"[PersonalEcho] No matching events for {user_id}")
+            return None
+        
+        # Filter to events with years
+        events_with_years = [e for e in matching_events if e.get('year')]
+        
+        if not events_with_years:
+            logger.debug(f"[PersonalEcho] No events with years for {user_id}")
+            return None
+        
+        # Calculate confidence score
+        confidence = _calculate_echo_confidence(
+            events_with_years,
+            relevant_categories,
+            keystone_text,
+            template_key
+        )
+        
+        # CONFIDENCE GATING: Only show echo if confidence is high enough
+        if confidence["score"] < ECHO_CONFIDENCE_THRESHOLD:
+            logger.info(f"[PersonalEcho] Confidence too low for {user_id}: {confidence['score']}/{ECHO_CONFIDENCE_THRESHOLD} - {confidence['breakdown']}")
+            return None
+        
+        # Extract years
+        years = sorted(set(e.get('year') for e in events_with_years))
+        
+        # Get qualified categories
+        qualified_categories = confidence["qualified_categories"]
+        if not qualified_categories:
+            # Fallback to any categories found
+            qualified_categories = list(set(e.get('category') for e in events_with_years if e.get('category')))
+        
+        # Generate sharper echo text
+        echo_text = _generate_sharper_echo_text(
+            years,
+            qualified_categories,
+            keystone_text,
+            confidence["score"]
+        )
+        
+        logger.info(f"[PersonalEcho] Generated for {user_id}: confidence={confidence['score']}, years={years}, categories={qualified_categories}")
+        
+        return {
+            "echo_text": echo_text,
+            "source_years": years,
+            "source_categories": qualified_categories,
+            "confidence": confidence,
+        }
+        
+    except Exception as e:
+        logger.warning(f"[PersonalEcho] Failed to generate for {user_id}: {e}")
+        return None
+
+
+# =====================================================================
+# CAUSE LAYER GENERATION (Why This Pattern Keeps Returning)
+# =====================================================================
+# Uses cross-lens synthesis to explain deeper tendencies behind patterns.
+# Only shows when 2+ data sources show meaningful overlap.
+
+CAUSE_LAYER_CONFIDENCE_THRESHOLD = 2  # Must have at least 2 overlapping sources
+
+# Element tendencies for BaZi synthesis
+ELEMENT_TENDENCIES = {
+    "Wood": {
+        "positive": "growth-seeking and expansive",
+        "tension": "wanting to push forward before conditions are ready",
+        "pattern": "starting quickly, then reassessing",
+    },
+    "Fire": {
+        "positive": "passionate and transformative",
+        "tension": "intensity that can burn through situations before they settle",
+        "pattern": "lighting up with ideas, then moving on",
+    },
+    "Earth": {
+        "positive": "stable and grounding",
+        "tension": "needing certainty before moving, which can become hesitation",
+        "pattern": "building slowly, sometimes too slowly",
+    },
+    "Metal": {
+        "positive": "precise and discerning",
+        "tension": "high standards that create internal pressure around timing",
+        "pattern": "refining until something feels 'right enough'",
+    },
+    "Water": {
+        "positive": "adaptable and intuitive",
+        "tension": "sensing multiple directions without committing fully",
+        "pattern": "waiting for emotional clarity before acting",
+    },
+}
+
+# Day Master strength tendencies
+DAY_MASTER_STRENGTH_TENDENCIES = {
+    "strong": {
+        "tendency": "self-reliance that can resist external input",
+        "pattern": "trusting your own timing over others' suggestions",
+    },
+    "balanced": {
+        "tendency": "flexibility that can become indecision at pivot points",
+        "pattern": "seeing multiple valid paths and weighing them carefully",
+    },
+    "weak": {
+        "tendency": "sensitivity to environment that can delay action",
+        "pattern": "waiting for conditions to feel supportive before moving",
+    },
+}
+
+# Pattern domain to tendency mapping
+PATTERN_DOMAIN_TENDENCIES = {
+    "emotional": {
+        "core": "emotional processing",
+        "tendency": "feelings need to settle before decisions feel solid",
+    },
+    "relational": {
+        "core": "connection and relationships",
+        "tendency": "awareness of how choices affect others",
+    },
+    "achievement": {
+        "core": "goals and accomplishment",
+        "tendency": "push toward outcomes that can outpace readiness",
+    },
+    "expression": {
+        "core": "communication and self-expression",
+        "tendency": "internal drafting before external sharing",
+    },
+    "identity": {
+        "core": "sense of self",
+        "tendency": "need for internal coherence before committing",
+    },
+    "security": {
+        "core": "safety and stability",
+        "tendency": "risk assessment that can become hesitation",
+    },
+}
+
+# Lifeline category to tendency mapping
+LIFELINE_CATEGORY_TENDENCIES = {
+    "Career": "work and professional life have been significant turning points",
+    "Turning Point": "pivotal moments tend to cluster around similar themes",
+    "Relationships": "connections with others have shaped major decisions",
+    "Identity": "questions of who you are have driven important shifts",
+    "Loss": "endings have taught you about beginnings",
+    "Achievement": "milestones have marked your path forward",
+    "Family": "family dynamics have influenced your patterns",
+    "Move": "transitions and relocations have been formative",
+}
+
+
+async def generate_cause_layer(
+    user_id: str,
+    keystone_text: str,
+    template_key: str,
+    echo_data: Optional[Dict] = None
+) -> Optional[Dict[str, Any]]:
+    """
+    Generate a cause layer explaining WHY a pattern keeps returning.
+    
+    Uses cross-lens synthesis from:
+    - Pattern Engine (recurring domains)
+    - Lifeline (repeated categories)
+    - BaZi (Day Master tendencies, element balance)
+    
+    Returns None if:
+    - Not enough overlapping data sources
+    - Confidence is below threshold
+    
+    Returns dict with:
+    - cause_text: The short explanation sentence
+    - sources_used: Which data sources contributed
+    - confidence: Confidence score
+    """
+    try:
+        sources_active = []
+        synthesis_signals = []
+        
+        # =====================================================================
+        # 1. GATHER PATTERN ENGINE DATA
+        # =====================================================================
+        pattern_tendency = None
+        try:
+            import httpx
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"http://localhost:8001/api/pattern-graph/{user_id}", 
+                    timeout=5.0
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('success') and data.get('domains'):
+                        domains = data.get('domains', [])
+                        # Find top recurring domain
+                        if domains:
+                            top_domain = max(domains, key=lambda d: d.get('active_patterns', 0))
+                            domain_name = top_domain.get('name', '').lower()
+                            
+                            for pattern_key, tendency in PATTERN_DOMAIN_TENDENCIES.items():
+                                if pattern_key in domain_name:
+                                    pattern_tendency = tendency
+                                    sources_active.append("pattern_engine")
+                                    synthesis_signals.append({
+                                        "source": "pattern_engine",
+                                        "domain": domain_name,
+                                        "tendency": tendency["tendency"],
+                                    })
+                                    break
+        except Exception as e:
+            logger.debug(f"[CauseLayer] Pattern engine fetch failed: {e}")
+        
+        # =====================================================================
+        # 2. GATHER LIFELINE DATA
+        # =====================================================================
+        lifeline_tendency = None
+        try:
+            events = await db.lifeline_events.find({"user_id": user_id}).to_list(length=100)
+            if events and len(events) >= 2:
+                # Count categories
+                category_counts = {}
+                for e in events:
+                    cat = e.get('category')
+                    if cat:
+                        category_counts[cat] = category_counts.get(cat, 0) + 1
+                
+                # Find most repeated category
+                if category_counts:
+                    top_category = max(category_counts.items(), key=lambda x: x[1])
+                    if top_category[1] >= 2:  # At least 2 events in category
+                        cat_name = top_category[0]
+                        if cat_name in LIFELINE_CATEGORY_TENDENCIES:
+                            lifeline_tendency = LIFELINE_CATEGORY_TENDENCIES[cat_name]
+                            sources_active.append("lifeline")
+                            synthesis_signals.append({
+                                "source": "lifeline",
+                                "category": cat_name,
+                                "count": top_category[1],
+                                "tendency": lifeline_tendency,
+                            })
+        except Exception as e:
+            logger.debug(f"[CauseLayer] Lifeline fetch failed: {e}")
+        
+        # =====================================================================
+        # 3. GATHER BAZI DATA
+        # =====================================================================
+        bazi_tendency = None
+        element_tendency = None
+        strength_tendency = None
+        try:
+            user = await db.users.find_one({"_id": ObjectId(user_id)})
+            if user and user.get("birth_date"):
+                chart = compute_bazi_chart(
+                    birth_date=user.get("birth_date"),
+                    birth_time=user.get("birth_time"),
+                    timezone=user.get("timezone")
+                )
+                if chart:
+                    # Get Day Master element tendency
+                    day_master = chart.get("day_master", {})
+                    element = day_master.get("element")
+                    if element and element in ELEMENT_TENDENCIES:
+                        element_tendency = ELEMENT_TENDENCIES[element]
+                    
+                    # Get strength tendency
+                    summary = chart.get("summary", {})
+                    strength = summary.get("day_master_strength", "balanced")
+                    if strength in DAY_MASTER_STRENGTH_TENDENCIES:
+                        strength_tendency = DAY_MASTER_STRENGTH_TENDENCIES[strength]
+                    
+                    if element_tendency or strength_tendency:
+                        sources_active.append("bazi")
+                        bazi_tendency = {
+                            "element": element,
+                            "element_tendency": element_tendency,
+                            "strength": strength,
+                            "strength_tendency": strength_tendency,
+                        }
+                        synthesis_signals.append({
+                            "source": "bazi",
+                            "element": element,
+                            "strength": strength,
+                            "tendency": element_tendency.get("tension") if element_tendency else None,
+                        })
+        except Exception as e:
+            logger.debug(f"[CauseLayer] BaZi fetch failed: {e}")
+        
+        # =====================================================================
+        # 4. CONFIDENCE GATING
+        # =====================================================================
+        confidence_score = len(sources_active)
+        
+        if confidence_score < CAUSE_LAYER_CONFIDENCE_THRESHOLD:
+            logger.debug(f"[CauseLayer] Not enough sources for {user_id}: {sources_active}")
+            return None
+        
+        # =====================================================================
+        # 5. GENERATE CAUSE LAYER TEXT
+        # =====================================================================
+        cause_text = _generate_cause_text(
+            keystone_text,
+            pattern_tendency,
+            lifeline_tendency,
+            bazi_tendency,
+            sources_active
+        )
+        
+        if not cause_text:
+            return None
+        
+        logger.info(f"[CauseLayer] Generated for {user_id}: sources={sources_active}, confidence={confidence_score}")
+        
+        return {
+            "cause_text": cause_text,
+            "sources_used": sources_active,
+            "confidence": confidence_score,
+            "signals": synthesis_signals,
+        }
+        
+    except Exception as e:
+        logger.warning(f"[CauseLayer] Failed to generate for {user_id}: {e}")
+        return None
+
+
+# =============================================================================
+# DECISION REPLAY GENERATION
+# =============================================================================
+
+# Decision replay templates - grounded, non-judgmental, reflective
+DECISION_REPLAY_TEMPLATES = {
+    # Action-based: stepping back, pausing, withdrawing
+    "stepped_back": [
+        "Last time this appeared, you stepped back rather than pushing forward.",
+        "When this showed up before, you paused and waited for clarity.",
+        "A similar moment in {year} led you to withdraw before committing.",
+    ],
+    # Action-based: bold moves, leaps, commitments
+    "bold_action": [
+        "Last time, you took the leap despite the uncertainty.",
+        "When this pattern appeared in {year}, you committed and moved forward.",
+        "A similar moment led you to act decisively rather than wait.",
+    ],
+    # Action-based: confronting, speaking up, addressing directly
+    "confronted": [
+        "Last time this appeared, you spoke up instead of staying silent.",
+        "When this showed up before, you addressed it directly.",
+        "A similar moment led you to confront rather than avoid.",
+    ],
+    # Action-based: changing direction, pivoting
+    "pivoted": [
+        "Last time, you changed direction rather than pushing harder.",
+        "When this pattern appeared in {year}, you pivoted instead of persisting.",
+        "A similar moment led you to take a different path.",
+    ],
+    # Action-based: waiting, holding, letting unfold
+    "waited": [
+        "Last time this appeared, you waited until the pressure clarified itself.",
+        "When this showed up before, you held off and let things unfold.",
+        "A similar moment led you to pause rather than force a decision.",
+    ],
+    # Action-based: leaving, walking away, letting go
+    "left": [
+        "Last time, you walked away from what wasn't working.",
+        "When this pattern appeared in {year}, you chose to let go.",
+        "A similar moment led you to leave rather than hold on.",
+    ],
+    # Action-based: restructuring, reorganizing
+    "restructured": [
+        "Last time this appeared, you restructured how things were organized.",
+        "When this showed up before, you reorganized your approach.",
+        "A similar moment led you to rebuild from the ground up.",
+    ],
+    # Relationship-focused: prioritizing people, connection
+    "relationship_focus": [
+        "Last time, you prioritized the people over the outcome.",
+        "When this appeared before, you focused on how it would affect others.",
+        "A similar moment led you to put the relationship first.",
+    ],
+    # Career-specific: job changes, professional pivots
+    "career_action": [
+        "Last time, you made a career move you'd been avoiding.",
+        "When this pattern appeared in {year}, you took the professional risk.",
+        "A similar moment led to a job change that shifted things.",
+    ],
+    # Generic with action summary - only if we have a concrete action
+    "with_action": [
+        "Last time this appeared, you {action}.",
+        "When this showed up in {year}, you {action}.",
+        "A similar moment led you to {action}.",
+    ],
+}
+
+# Action verbs to detect in decision text (prioritized for concreteness)
+ACTION_VERB_PATTERNS = {
+    "stepped_back": ["stepped back", "pulled back", "took a step back", "backed off", "backed away"],
+    "waited": ["waited", "held off", "paused", "took my time", "didn't rush", "held back", "let it sit"],
+    "left": ["left", "walked away", "quit", "resigned", "let go", "ended", "stopped"],
+    "pivoted": ["pivoted", "changed direction", "shifted", "turned around", "took a different"],
+    "bold_action": ["took the leap", "went for it", "committed", "jumped in", "said yes", "moved forward", "acted", "did it"],
+    "confronted": ["spoke up", "confronted", "addressed", "brought it up", "told them", "had the conversation", "faced"],
+    "restructured": ["restructured", "reorganized", "rebuilt", "started over", "changed how", "redesigned"],
+}
+
+# Words that indicate vague/generic language (should be avoided or trigger suppression)
+VAGUE_LANGUAGE_MARKERS = [
+    "transformed", "changed my life", "important", "meaningful", "significant",
+    "grew", "learned", "realized", "understood", "saw things differently",
+    "moved through", "worked through", "processed", "dealt with",
+    "affected me", "impacted me", "shaped me", "influenced me",
+]
+
+
+# =============================================================================
+# PATTERN PHASE DETECTION
+# =============================================================================
+
+# Pattern arc phases - defines the stages within each pattern type
+PATTERN_ARC_PHASES = {
+    "career_growth": {
+        "phases": [
+            {
+                "name": "momentum",
+                "display": "Momentum Phase",
+                "description": "This stage often appears when ambition is building and forward movement feels natural.",
+                "signals": ["ambition", "goal", "drive", "motivation", "opportunity", "growth", "progress", "building"],
+            },
+            {
+                "name": "pressure",
+                "display": "Pressure Phase", 
+                "description": "This stage often appears when ambition meets resistance and decisions begin to feel unavoidable.",
+                "signals": ["pressure", "stress", "deadline", "tension", "decision", "stuck", "blocked", "overwhelm", "choice"],
+            },
+            {
+                "name": "transformation",
+                "display": "Transformation Phase",
+                "description": "This stage often appears when pressure gives way to change and a new direction begins to emerge.",
+                "signals": ["change", "shift", "pivot", "new", "different", "letting go", "release", "clarity", "breakthrough"],
+            },
+        ],
+        "sequence_labels": ["Ambition", "Pressure", "Transformation"],
+    },
+    "identity_shift": {
+        "phases": [
+            {
+                "name": "stability",
+                "display": "Stability Phase",
+                "description": "This stage often appears when identity feels settled and the ground seems solid.",
+                "signals": ["stable", "secure", "comfortable", "familiar", "routine", "settled", "known"],
+            },
+            {
+                "name": "disruption",
+                "display": "Disruption Phase",
+                "description": "This stage often appears when something shakes the foundation and old certainties begin to shift.",
+                "signals": ["disruption", "change", "uncertainty", "question", "doubt", "crisis", "shake", "destabilize", "unknown"],
+            },
+            {
+                "name": "reinvention",
+                "display": "Reinvention Phase",
+                "description": "This stage often appears when disruption gives way to rebuilding and a new sense of self begins to form.",
+                "signals": ["rebuild", "reinvent", "new identity", "becoming", "emerging", "transform", "evolve", "integrate"],
+            },
+        ],
+        "sequence_labels": ["Stability", "Disruption", "Reinvention"],
+    },
+    "relationship_turning": {
+        "phases": [
+            {
+                "name": "connection",
+                "display": "Connection Phase",
+                "description": "This stage often appears when relationship energy is flowing and bonds are deepening.",
+                "signals": ["connection", "closeness", "bond", "intimacy", "love", "together", "harmony", "understanding"],
+            },
+            {
+                "name": "tension",
+                "display": "Tension Phase",
+                "description": "This stage often appears when relational dynamics become strained and unspoken needs surface.",
+                "signals": ["tension", "conflict", "distance", "misunderstanding", "frustration", "space", "hurt", "need"],
+            },
+            {
+                "name": "clarity",
+                "display": "Clarity Phase",
+                "description": "This stage often appears when tension resolves into deeper understanding or necessary change.",
+                "signals": ["clarity", "truth", "honesty", "boundary", "resolution", "acceptance", "decision", "letting go"],
+            },
+        ],
+        "sequence_labels": ["Connection", "Tension", "Clarity"],
+    },
+    "momentum_pressure": {
+        "phases": [
+            {
+                "name": "momentum",
+                "display": "Momentum Phase",
+                "description": "This stage often appears when energy is building and movement feels effortless.",
+                "signals": ["momentum", "flow", "energy", "progress", "moving", "building", "expanding", "growth"],
+            },
+            {
+                "name": "pressure",
+                "display": "Pressure Phase",
+                "description": "This stage often appears when forward motion meets resistance and recalibration becomes necessary.",
+                "signals": ["pressure", "resistance", "friction", "slowdown", "obstacle", "challenge", "block", "reassess"],
+            },
+            {
+                "name": "reinvention",
+                "display": "Reinvention Phase",
+                "description": "This stage often appears when pressure transforms into new direction and adaptation.",
+                "signals": ["reinvent", "adapt", "change", "new approach", "different way", "pivot", "adjust", "evolve"],
+            },
+        ],
+        "sequence_labels": ["Momentum", "Pressure", "Reinvention"],
+    },
+    "expression_hesitation": {
+        "phases": [
+            {
+                "name": "clarity",
+                "display": "Clarity Phase",
+                "description": "This stage often appears when you know what needs to be said but haven't said it yet.",
+                "signals": ["clarity", "knowing", "clear", "certain", "truth", "insight", "realization", "understanding"],
+            },
+            {
+                "name": "hesitation",
+                "display": "Hesitation Phase",
+                "description": "This stage often appears when the right words exist but something holds them back.",
+                "signals": ["hesitation", "waiting", "holding back", "unsure", "timing", "doubt", "fear", "silence"],
+            },
+            {
+                "name": "expression",
+                "display": "Expression Phase",
+                "description": "This stage often appears when hesitation gives way to speaking and action follows knowing.",
+                "signals": ["expression", "speaking", "voice", "saying", "action", "moving", "doing", "committing"],
+            },
+        ],
+        "sequence_labels": ["Clarity", "Hesitation", "Expression"],
+    },
+    "default": {
+        "phases": [
+            {
+                "name": "beginning",
+                "display": "Beginning Phase",
+                "description": "This stage often appears when a familiar pattern is just starting to emerge.",
+                "signals": ["start", "beginning", "new", "emerging", "noticing", "recognizing"],
+            },
+            {
+                "name": "challenge",
+                "display": "Challenge Phase",
+                "description": "This stage often appears when the pattern's characteristic tension becomes present.",
+                "signals": ["challenge", "difficulty", "tension", "struggle", "effort", "working through"],
+            },
+            {
+                "name": "integration",
+                "display": "Integration Phase",
+                "description": "This stage often appears when the pattern begins to resolve and learning integrates.",
+                "signals": ["integration", "resolution", "completion", "understanding", "moving on", "clarity"],
+            },
+        ],
+        "sequence_labels": ["Beginning", "Challenge", "Integration"],
+    },
+}
+
+# Phase line templates for the hero - grounded, observational language
+PHASE_LINE_TEMPLATES = {
+    "momentum": [
+        "You may be entering a momentum phase of this pattern.",
+        "This seems like the building phase you've seen before.",
+    ],
+    "pressure": [
+        "You may be entering a familiar pressure phase.",
+        "This seems like the tension stage of a pattern you know.",
+        "You may be in the pressure phase where decisions begin to feel unavoidable.",
+    ],
+    "transformation": [
+        "You may be entering a transformation phase.",
+        "This seems like the turning point stage of this pattern.",
+    ],
+    "stability": [
+        "You may be in a stability phase before the next shift.",
+        "This seems like the grounded stage of a familiar pattern.",
+    ],
+    "disruption": [
+        "You may be entering a disruption phase.",
+        "This seems like the uncertainty stage you've experienced before.",
+    ],
+    "reinvention": [
+        "You may be entering a reinvention phase.",
+        "This seems like the rebuilding stage of this pattern.",
+    ],
+    "connection": [
+        "You may be in a connection phase of this relational pattern.",
+        "This seems like the bonding stage you know.",
+    ],
+    "tension": [
+        "You may be entering a tension phase in relationships.",
+        "This seems like the strain stage of a familiar pattern.",
+    ],
+    "clarity": [
+        "You may be entering a clarity phase.",
+        "This seems like the resolution stage of this pattern.",
+    ],
+    "hesitation": [
+        "You may be in the hesitation phase before expression.",
+        "This seems like the waiting stage you've experienced before.",
+    ],
+    "expression": [
+        "You may be entering an expression phase.",
+        "This seems like the speaking stage of this pattern.",
+    ],
+    "beginning": [
+        "You may be at the beginning of a familiar pattern.",
+        "This seems like the emergence stage you know.",
+    ],
+    "challenge": [
+        "You may be in the challenge phase of this pattern.",
+        "This seems like the tension stage you've navigated before.",
+    ],
+    "integration": [
+        "You may be entering an integration phase.",
+        "This seems like the resolution stage of this pattern.",
+    ],
+}
+
+
+async def detect_pattern_phase(
+    user_id: str,
+    arc_key: str = "default",
+    keystone_text: str = "",
+    recent_signals: Optional[Dict] = None
+) -> Optional[Dict[str, Any]]:
+    """
+    Detect which phase of a recurring pattern the user may currently be experiencing.
+    
+    Uses:
+    - Recent lifeline events
+    - Journal entries
+    - Keystone pattern signals
+    - Pattern arc definition
+    
+    Returns None if confidence is too low.
+    
+    Returns dict with:
+    - phase: phase name
+    - display: display name
+    - description: phase description
+    - confidence: 0-1 score
+    - reason: why this phase was detected
+    - phase_line: optional line for hero
+    """
+    import hashlib
+    
+    try:
+        arc_phases = PATTERN_ARC_PHASES.get(arc_key, PATTERN_ARC_PHASES["default"])
+        phases = arc_phases["phases"]
+        
+        # =====================================================================
+        # GATHER SIGNAL SOURCES
+        # =====================================================================
+        all_text = keystone_text.lower()
+        
+        # Get recent lifeline events (last 2 years)
+        try:
+            current_year = 2026
+            recent_events = await db.lifeline_events.find({
+                "user_id": user_id,
+                "year": {"$gte": current_year - 2}
+            }).to_list(length=10)
+            
+            for event in recent_events:
+                all_text += f" {event.get('title', '')} {event.get('description', '')} "
+                all_text += f" {event.get('decision_text', '')} {event.get('decision_reflection', '')} "
+        except Exception:
+            pass
+        
+        # Get recent journal entries
+        try:
+            recent_journals = await db.journal_entries.find({
+                "user_id": user_id
+            }).sort("created_at", -1).limit(5).to_list(length=5)
+            
+            for entry in recent_journals:
+                all_text += f" {entry.get('content', '')} "
+        except Exception:
+            pass
+        
+        all_text = all_text.lower()
+        
+        # =====================================================================
+        # SCORE EACH PHASE
+        # =====================================================================
+        phase_scores = []
+        
+        for phase in phases:
+            score = 0
+            matched_signals = []
+            
+            for signal in phase["signals"]:
+                if signal in all_text:
+                    score += 1
+                    matched_signals.append(signal)
+                    
+                    # Boost for multiple occurrences
+                    occurrences = all_text.count(signal)
+                    if occurrences > 1:
+                        score += min(occurrences - 1, 2) * 0.5
+            
+            # Boost if signal appears in keystone (most recent/relevant)
+            keystone_lower = keystone_text.lower()
+            for signal in matched_signals:
+                if signal in keystone_lower:
+                    score += 1.5
+            
+            phase_scores.append({
+                "phase": phase,
+                "score": score,
+                "matched_signals": matched_signals,
+            })
+        
+        # Sort by score
+        phase_scores.sort(key=lambda x: x["score"], reverse=True)
+        
+        # =====================================================================
+        # CHECK CONFIDENCE
+        # =====================================================================
+        if not phase_scores or phase_scores[0]["score"] < 2:
+            # Not enough signal
+            return None
+        
+        top_phase = phase_scores[0]
+        second_phase = phase_scores[1] if len(phase_scores) > 1 else None
+        
+        # Calculate confidence
+        total_score = sum(p["score"] for p in phase_scores)
+        if total_score > 0:
+            raw_confidence = top_phase["score"] / total_score
+        else:
+            raw_confidence = 0
+        
+        # Need clear winner
+        if second_phase and top_phase["score"] - second_phase["score"] < 1:
+            # Scores too close, ambiguous
+            raw_confidence *= 0.7
+        
+        # Minimum threshold
+        if raw_confidence < 0.35:
+            return None
+        
+        # Normalize confidence to 0-1
+        confidence = min(raw_confidence * 1.2, 1.0)
+        
+        # =====================================================================
+        # GENERATE PHASE LINE
+        # =====================================================================
+        phase_name = top_phase["phase"]["name"]
+        templates = PHASE_LINE_TEMPLATES.get(phase_name, PHASE_LINE_TEMPLATES.get("challenge", []))
+        
+        # Select template consistently
+        seed = f"{user_id}:{arc_key}:{phase_name}"
+        text_hash = int(hashlib.sha256(seed.encode()).hexdigest()[:8], 16)
+        phase_line = templates[text_hash % len(templates)] if templates else None
+        
+        # Build reason
+        matched = top_phase["matched_signals"][:3]
+        reason = f"signals suggest {phase_name}: {', '.join(matched)}" if matched else f"pattern suggests {phase_name} phase"
+        
+        return {
+            "phase": phase_name,
+            "display": top_phase["phase"]["display"],
+            "description": top_phase["phase"]["description"],
+            "confidence": round(confidence, 2),
+            "reason": reason,
+            "phase_line": phase_line,
+            "arc_key": arc_key,
+            "sequence_labels": arc_phases["sequence_labels"],
+        }
+        
+    except Exception as e:
+        logger.warning(f"[PatternPhase] Detection failed for {user_id}: {e}")
+        return None
+
+
+# =============================================================================
+# DECISION AWARENESS GENERATION
+# =============================================================================
+
+# Decision style types with detection patterns and reflective prompts
+DECISION_STYLE_TYPES = {
+    "pause_and_wait": {
+        "patterns": ["stepped back", "paused", "waited", "held back", "took my time", "didn't rush", "gave it time", "sat with it"],
+        "display": "Pause and Wait",
+        "prompts": [
+            "Last time this tension appeared, you paused before acting.\nYou might notice whether that instinct appears again.",
+            "When this pattern showed up before, you waited for clarity.\nYou may notice if that same impulse returns.",
+            "A similar moment once led you to step back and reflect.\nYou might notice whether that option feels relevant now.",
+        ],
+    },
+    "bold_leap": {
+        "patterns": ["took the leap", "went for it", "jumped in", "committed", "said yes", "moved forward", "acted decisively", "made the move"],
+        "display": "Bold Leap",
+        "prompts": [
+            "When this pattern appeared before, you moved decisively.\nYou may notice whether that impulse returns.",
+            "Last time this showed up, you took the leap despite uncertainty.\nYou might notice if that instinct arises again.",
+            "A similar moment once led you to act boldly.\nYou may notice whether that option appears now.",
+        ],
+    },
+    "withdraw": {
+        "patterns": ["left", "quit", "walked away", "stepped away", "let go", "ended", "stopped", "removed myself"],
+        "display": "Withdraw",
+        "prompts": [
+            "A similar moment once led you to step away.\nYou might notice how that option feels now.",
+            "When this pattern appeared before, you chose to let go.\nYou may notice whether that instinct returns.",
+            "Last time this showed up, you walked away from what wasn't working.\nYou might notice if that possibility appears again.",
+        ],
+    },
+    "speak_up": {
+        "patterns": ["spoke up", "told them", "addressed it", "confronted", "had the conversation", "said what I was thinking", "brought it up", "expressed"],
+        "display": "Speak Up",
+        "prompts": [
+            "When this pattern appeared before, you chose to address it directly.\nYou may notice whether that instinct arises again.",
+            "Last time this showed up, you spoke up.\nYou might notice if that impulse returns.",
+            "A similar moment once led you to say what needed to be said.\nYou may notice whether that option appears now.",
+        ],
+    },
+    "pivot": {
+        "patterns": ["pivoted", "changed direction", "took a different path", "shifted", "tried something new", "changed approach", "redirected"],
+        "display": "Pivot",
+        "prompts": [
+            "The last time this appeared, you changed direction rather than pushing forward.\nYou might notice if that possibility appears again.",
+            "When this pattern showed up before, you pivoted to a new approach.\nYou may notice whether that instinct returns.",
+            "A similar moment once led you to shift direction.\nYou might notice how that option feels now.",
+        ],
+    },
+    "commit": {
+        "patterns": ["committed", "stayed", "doubled down", "pushed through", "kept going", "saw it through", "stuck with it", "persisted"],
+        "display": "Commit",
+        "prompts": [
+            "When this pattern appeared before, you committed and stayed the course.\nYou may notice whether that instinct returns.",
+            "Last time this showed up, you pushed through rather than stepping back.\nYou might notice if that impulse arises again.",
+            "A similar moment once led you to stay committed.\nYou may notice whether that option feels relevant now.",
+        ],
+    },
+    "restructure": {
+        "patterns": ["restructured", "reorganized", "rebuilt", "redesigned", "started fresh", "changed how", "reimagined", "reworked"],
+        "display": "Restructure",
+        "prompts": [
+            "When this pattern appeared before, you restructured how things worked.\nYou may notice whether that instinct returns.",
+            "Last time this showed up, you rebuilt rather than continued.\nYou might notice if that possibility appears again.",
+            "A similar moment once led you to reorganize your approach.\nYou may notice how that option feels now.",
+        ],
+    },
+}
+
+
+async def generate_decision_awareness(
+    user_id: str,
+    decision_replay_data: Optional[Dict] = None,
+    pattern_phase_data: Optional[Dict] = None,
+    keystone_text: str = ""
+) -> Optional[Dict[str, Any]]:
+    """
+    Generate a decision awareness prompt that surfaces the user's past decision
+    style and invites reflection.
+    
+    Connects: pattern → past decision → present awareness
+    
+    Returns None if:
+    - No decision replay data exists
+    - Decision style cannot be detected
+    - Confidence is too low
+    
+    Returns dict with:
+    - style: decision style key
+    - style_display: human-readable style name
+    - prompt: reflective prompt text
+    - confidence: confidence score
+    """
+    import hashlib
+    
+    try:
+        # =====================================================================
+        # REQUIRE DECISION REPLAY DATA
+        # =====================================================================
+        if not decision_replay_data:
+            return None
+        
+        source_event = decision_replay_data.get("source_event", {})
+        replay_text = decision_replay_data.get("replay_text", "")
+        
+        if not source_event:
+            return None
+        
+        # =====================================================================
+        # GET DECISION TEXT FROM SOURCE EVENT
+        # =====================================================================
+        event_id = source_event.get("id")
+        decision_text = ""
+        decision_reflection = ""
+        
+        if event_id:
+            try:
+                from bson import ObjectId
+                event = await db.lifeline_events.find_one({"_id": ObjectId(event_id)})
+                if event:
+                    decision_text = event.get("decision_text", "")
+                    decision_reflection = event.get("decision_reflection", "")
+            except Exception:
+                pass
+        
+        combined_text = f"{decision_text} {decision_reflection} {replay_text}".lower()
+        
+        if len(combined_text.strip()) < 10:
+            return None
+        
+        # =====================================================================
+        # DETECT DECISION STYLE
+        # =====================================================================
+        detected_style = None
+        best_match_count = 0
+        
+        for style_key, style_data in DECISION_STYLE_TYPES.items():
+            match_count = 0
+            for pattern in style_data["patterns"]:
+                if pattern in combined_text:
+                    match_count += 1
+            
+            if match_count > best_match_count:
+                best_match_count = match_count
+                detected_style = style_key
+        
+        if not detected_style or best_match_count < 1:
+            # Try fallback: use replay_text verb detection
+            detected_style = _detect_style_from_replay(replay_text)
+        
+        if not detected_style:
+            return None
+        
+        # =====================================================================
+        # GENERATE REFLECTIVE PROMPT
+        # =====================================================================
+        style_data = DECISION_STYLE_TYPES[detected_style]
+        prompts = style_data["prompts"]
+        
+        # Select prompt consistently based on user and style
+        seed = f"{user_id}:{detected_style}:{source_event.get('year', '')}"
+        text_hash = int(hashlib.sha256(seed.encode()).hexdigest()[:8], 16)
+        prompt = prompts[text_hash % len(prompts)]
+        
+        # Calculate confidence based on match strength and data quality
+        confidence = min(0.5 + (best_match_count * 0.15), 1.0)
+        if decision_replay_data.get("confidence"):
+            confidence = (confidence + decision_replay_data["confidence"]) / 2
+        
+        return {
+            "style": detected_style,
+            "style_display": style_data["display"],
+            "prompt": prompt,
+            "confidence": round(confidence, 2),
+            "source_year": source_event.get("year"),
+        }
+        
+    except Exception as e:
+        logger.warning(f"[DecisionAwareness] Generation failed for {user_id}: {e}")
+        return None
+
+
+def _detect_style_from_replay(replay_text: str) -> Optional[str]:
+    """
+    Fallback detection: extract decision style from replay line text.
+    """
+    replay_lower = replay_text.lower()
+    
+    # Check for style indicators in the replay text
+    if any(w in replay_lower for w in ["stepped back", "paused", "waited", "held"]):
+        return "pause_and_wait"
+    elif any(w in replay_lower for w in ["leap", "committed", "moved forward", "acted"]):
+        return "bold_leap"
+    elif any(w in replay_lower for w in ["let go", "walked away", "left", "quit"]):
+        return "withdraw"
+    elif any(w in replay_lower for w in ["spoke", "addressed", "confronted", "told"]):
+        return "speak_up"
+    elif any(w in replay_lower for w in ["pivoted", "changed direction", "shifted"]):
+        return "pivot"
+    elif any(w in replay_lower for w in ["stayed", "pushed through", "committed", "persisted"]):
+        return "commit"
+    elif any(w in replay_lower for w in ["restructured", "rebuilt", "reorganized"]):
+        return "restructure"
+    
+    return None
+
+
+async def generate_decision_replay(
+    user_id: str,
+    keystone_text: str,
+    template_key: str,
+    echo_data: Optional[Dict] = None,
+    cause_data: Optional[Dict] = None
+) -> Optional[Dict[str, Any]]:
+    """
+    Generate a decision replay line referencing how the user responded 
+    the last time a similar pattern appeared.
+    
+    Uses:
+    - Lifeline events with decision_text or decision_reflection
+    - Pattern matching from echo_data and cause_data
+    
+    Returns None if:
+    - No events with decision reflections exist
+    - Pattern match confidence is too low
+    - Decision reflection is too weak or unclear
+    
+    Returns dict with:
+    - replay_text: The short decision replay line
+    - source_event: The event that was used
+    - confidence: Confidence score
+    """
+    try:
+        # =====================================================================
+        # 1. GET LIFELINE EVENTS WITH DECISION REFLECTIONS
+        # =====================================================================
+        events_with_decisions = []
+        try:
+            events = await db.lifeline_events.find({
+                "user_id": user_id,
+                "$or": [
+                    {"decision_text": {"$exists": True, "$ne": None, "$ne": ""}},
+                    {"decision_reflection": {"$exists": True, "$ne": None, "$ne": ""}}
+                ]
+            }).to_list(length=50)
+            
+            for e in events:
+                decision_text = e.get('decision_text', '')
+                decision_reflection = e.get('decision_reflection', '')
+                
+                # Must have at least some content
+                if decision_text and len(decision_text.strip()) >= 5:
+                    events_with_decisions.append(e)
+                elif decision_reflection and len(decision_reflection.strip()) >= 5:
+                    events_with_decisions.append(e)
+        except Exception as e:
+            logger.debug(f"[DecisionReplay] Lifeline fetch failed: {e}")
+        
+        if not events_with_decisions:
+            return None
+        
+        # =====================================================================
+        # 2. FIND BEST MATCHING EVENT
+        # =====================================================================
+        best_event = None
+        best_score = 0
+        
+        keystone_lower = keystone_text.lower()
+        keystone_themes = _extract_decision_themes(keystone_lower)
+        
+        # Get themes from echo if available
+        echo_themes = set()
+        if echo_data and echo_data.get("source_categories"):
+            echo_themes = set(echo_data.get("source_categories", []))
+        
+        for event in events_with_decisions:
+            score = 0
+            
+            # Category match with template
+            category = event.get('category', '').lower()
+            if category:
+                if template_key in ["generator", "manifestor"] and category in ["career", "achievement"]:
+                    score += 2
+                elif template_key in ["projector", "reflector"] and category in ["relationships", "identity"]:
+                    score += 2
+                elif category in echo_themes:
+                    score += 3
+            
+            # Theme match with keystone
+            event_text = f"{event.get('decision_text', '')} {event.get('decision_reflection', '')}".lower()
+            event_themes = _extract_decision_themes(event_text)
+            theme_overlap = keystone_themes.intersection(event_themes)
+            score += len(theme_overlap) * 2
+            
+            # Recency bonus (more recent events are more relevant)
+            year = event.get('year')
+            if year:
+                years_ago = 2026 - year
+                if years_ago <= 3:
+                    score += 2
+                elif years_ago <= 7:
+                    score += 1
+            
+            # Quality of reflection
+            decision_text = event.get('decision_text', '')
+            decision_reflection = event.get('decision_reflection', '')
+            if len(decision_text) > 20:
+                score += 1
+            if len(decision_reflection) > 30:
+                score += 2
+            
+            if score > best_score:
+                best_score = score
+                best_event = event
+        
+        # =====================================================================
+        # 3. CHECK CONFIDENCE THRESHOLD
+        # =====================================================================
+        # Need at least a moderate match
+        if best_score < 2:
+            logger.debug(f"[DecisionReplay] Score too low ({best_score}) for {user_id}")
+            return None
+        
+        if not best_event:
+            return None
+        
+        # =====================================================================
+        # 4. GENERATE REPLAY TEXT
+        # =====================================================================
+        replay_text = _generate_replay_text(
+            event=best_event,
+            keystone_text=keystone_text,
+            template_key=template_key
+        )
+        
+        if not replay_text:
+            return None
+        
+        return {
+            "replay_text": replay_text,
+            "source_event": {
+                "id": str(best_event.get("_id", "")),
+                "year": best_event.get("year"),
+                "title": best_event.get("title"),
+                "category": best_event.get("category"),
+            },
+            "confidence": min(best_score / 8.0, 1.0),  # Normalize to 0-1
+        }
+        
+    except Exception as e:
+        logger.warning(f"[DecisionReplay] Failed to generate for {user_id}: {e}")
+        return None
+
+
+def _extract_decision_themes(text: str) -> set:
+    """Extract thematic keywords from text for matching."""
+    themes = set()
+    
+    # Action themes
+    if any(w in text for w in ["wait", "pause", "hold", "step back", "delay"]):
+        themes.add("waiting")
+    if any(w in text for w in ["move", "act", "decide", "push", "go", "start", "bold"]):
+        themes.add("action")
+    if any(w in text for w in ["change", "shift", "pivot", "transform", "new direction"]):
+        themes.add("transformation")
+    
+    # Domain themes
+    if any(w in text for w in ["career", "job", "work", "professional", "business"]):
+        themes.add("career")
+    if any(w in text for w in ["relationship", "family", "partner", "friend", "connection"]):
+        themes.add("relationship")
+    if any(w in text for w in ["identity", "self", "who i am", "purpose", "meaning"]):
+        themes.add("identity")
+    
+    # Quality themes
+    if any(w in text for w in ["certain", "clear", "sure", "confident"]):
+        themes.add("clarity")
+    if any(w in text for w in ["uncertain", "doubt", "unclear", "hesitat"]):
+        themes.add("uncertainty")
+    if any(w in text for w in ["pressure", "stress", "urgent", "deadline"]):
+        themes.add("pressure")
+    
+    return themes
+
+
+def _generate_replay_text(
+    event: Dict,
+    keystone_text: str,
+    template_key: str
+) -> Optional[str]:
+    """
+    Generate the decision replay sentence based on the matched event.
+    
+    Prioritizes:
+    1. Concrete action verbs (stepped back, left, pivoted, etc.)
+    2. Direct extractions from user's decision_text
+    3. Suppression of vague/generic language
+    
+    Uses Mirror language (grounded, non-judgmental, reflective).
+    """
+    import hashlib
+    
+    decision_text = event.get('decision_text', '').strip()
+    decision_reflection = event.get('decision_reflection', '').strip()
+    category = event.get('category', '').lower()
+    year = event.get('year')
+    
+    combined_text = f"{decision_text} {decision_reflection}".lower()
+    
+    # =========================================================================
+    # STEP 1: Check for vague language - suppress if too generic
+    # =========================================================================
+    vague_count = sum(1 for marker in VAGUE_LANGUAGE_MARKERS if marker in combined_text)
+    if vague_count >= 2 and len(combined_text) < 100:
+        # Too much vague language relative to content, suppress
+        return None
+    
+    # =========================================================================
+    # STEP 2: Detect concrete action from decision text
+    # =========================================================================
+    detected_action = None
+    template_category = None
+    
+    # Check each action pattern category
+    for action_cat, patterns in ACTION_VERB_PATTERNS.items():
+        for pattern in patterns:
+            if pattern in combined_text:
+                detected_action = pattern
+                template_category = action_cat
+                break
+        if detected_action:
+            break
+    
+    # =========================================================================
+    # STEP 3: Try to extract a concrete action phrase if not detected
+    # =========================================================================
+    if not detected_action:
+        extracted_action = _extract_concrete_action(decision_text, decision_reflection)
+        if extracted_action:
+            detected_action = extracted_action
+            template_category = "with_action"
+    
+    # =========================================================================
+    # STEP 4: Fall back to category-based template
+    # =========================================================================
+    if not template_category:
+        if category in ["career", "achievement"]:
+            template_category = "career_action"
+        elif category in ["relationships", "family"]:
+            template_category = "relationship_focus"
+        elif "wait" in combined_text or "pause" in combined_text:
+            template_category = "waited"
+        else:
+            # No concrete action found, suppress rather than use vague language
+            return None
+    
+    # =========================================================================
+    # STEP 5: Select and format template
+    # =========================================================================
+    templates = DECISION_REPLAY_TEMPLATES.get(template_category)
+    if not templates:
+        return None
+    
+    # Use hash for consistent selection
+    seed = f"{event.get('_id', '')}:{keystone_text[:20]}"
+    text_hash = int(hashlib.sha256(seed.encode()).hexdigest()[:8], 16)
+    template = templates[text_hash % len(templates)]
+    
+    # Format template with event data
+    if "{year}" in template:
+        if year:
+            template = template.replace("{year}", str(year))
+        else:
+            template = template.replace(" in {year}", "")
+    
+    if "{action}" in template:
+        if detected_action:
+            template = template.replace("{action}", detected_action)
+        else:
+            # Can't fill action, use a different template
+            alt_templates = DECISION_REPLAY_TEMPLATES.get("waited", [])
+            if alt_templates:
+                template = alt_templates[text_hash % len(alt_templates)]
+                if "{year}" in template:
+                    template = template.replace("{year}", str(year)) if year else template.replace(" in {year}", "")
+    
+    return template
+
+
+def _extract_concrete_action(decision_text: str, decision_reflection: str) -> Optional[str]:
+    """
+    Extract a concrete action phrase from the user's decision text.
+    
+    Looks for verb-based phrases that describe what the user actually did.
+    Returns None if no concrete action can be extracted.
+    """
+    import re
+    
+    # Prefer decision_text as it's more direct
+    text = decision_text.strip() if decision_text else decision_reflection.strip()
+    
+    if not text or len(text) < 5:
+        return None
+    
+    text_lower = text.lower()
+    
+    # Action extraction patterns (order matters - more specific first)
+    action_patterns = [
+        # Direct verb patterns
+        r"i (left|quit|resigned|walked away|ended|stopped)\b",
+        r"i (started|began|launched|initiated|created)\b",
+        r"i (told|said|spoke|confronted|addressed)\b",
+        r"i (took|made|gave|chose|decided)\b[\w\s]{0,20}",
+        r"i (waited|paused|held off|stepped back)\b",
+        r"i (moved|went|left|stayed|returned)\b",
+        r"i (accepted|rejected|declined|agreed)\b",
+        r"i (changed|shifted|pivoted|switched)\b",
+        # Past tense patterns
+        r"(left|quit|resigned from|walked away from)\b[\w\s]{0,15}",
+        r"(started|began|launched)\b[\w\s]{0,15}",
+        r"(took the|made the|gave)\b[\w\s]{0,20}",
+    ]
+    
+    for pattern in action_patterns:
+        match = re.search(pattern, text_lower)
+        if match:
+            action = match.group(0).strip()
+            # Clean up the action
+            action = action.replace("i ", "")
+            # Ensure it's not too long
+            if len(action) > 40:
+                # Truncate at natural break
+                for sep in [",", " and ", " but ", " which "]:
+                    if sep in action:
+                        action = action[:action.index(sep)]
+                        break
+                else:
+                    action = action[:37] + "..."
+            if len(action) >= 5:
+                return action
+    
+    # =========================================================================
+    # Fallback: Try to extract a short action phrase manually
+    # =========================================================================
+    # Remove filler phrases
+    cleaned = text_lower
+    filler_phrases = [
+        "i decided to ", "i chose to ", "i made the choice to ",
+        "my decision was to ", "i finally ", "i eventually ",
+        "after much thought, i ", "in the end, i ",
+    ]
+    for filler in filler_phrases:
+        cleaned = cleaned.replace(filler, "")
+    
+    cleaned = cleaned.strip()
+    
+    # Take first meaningful chunk
+    if cleaned and len(cleaned) >= 5:
+        # Find first natural break
+        for sep in [".", ",", " and ", " but ", " because ", " which ", " when "]:
+            if sep in cleaned[:50]:
+                cleaned = cleaned[:cleaned.index(sep)]
+                break
+        
+        cleaned = cleaned.strip()
+        if len(cleaned) > 35:
+            cleaned = cleaned[:32] + "..."
+        
+        # Only return if it starts with a verb or action-like word
+        action_starters = ["took", "made", "left", "quit", "started", "began", "changed",
+                          "moved", "spoke", "told", "accepted", "rejected", "waited",
+                          "paused", "stepped", "walked", "focused", "prioritized"]
+        
+        first_word = cleaned.split()[0] if cleaned.split() else ""
+        if first_word in action_starters:
+            return cleaned
+    
+    return None
+
+
+def _generate_cause_text(
+    keystone_text: str,
+    pattern_tendency: Optional[Dict],
+    lifeline_tendency: Optional[str],
+    bazi_tendency: Optional[Dict],
+    sources_active: List[str]
+) -> Optional[str]:
+    """
+    Generate the cause layer sentence based on available data.
+    
+    Prioritizes synthesis over single-source statements.
+    Uses Mirror language (may, tends to, one reason may be).
+    """
+    keystone_lower = keystone_text.lower()
+    
+    # Detect tension type from keystone
+    is_hesitation = any(w in keystone_lower for w in ["hesitation", "holding back", "wait", "hover"])
+    is_timing = any(w in keystone_lower for w in ["timing", "ready", "not yet", "too soon"])
+    is_decision = any(w in keystone_lower for w in ["decision", "deciding", "choose", "commit"])
+    is_expression = any(w in keystone_lower for w in ["say", "message", "express", "send"])
+    is_momentum = any(w in keystone_lower for w in ["push", "forward", "move", "start"])
+    
+    templates = []
+    
+    # =========================================================================
+    # THREE-SOURCE SYNTHESIS (highest quality)
+    # =========================================================================
+    if len(sources_active) >= 3:
+        element = bazi_tendency.get("element") if bazi_tendency else None
+        element_data = ELEMENT_TENDENCIES.get(element, {}) if element else {}
+        
+        if is_hesitation and element_data.get("tension"):
+            templates.append(f"One reason this may keep returning is {element_data['tension']}, meeting moments that ask for action before certainty arrives.")
+        
+        if is_timing and lifeline_tendency:
+            templates.append(f"A deeper tendency here may be the interplay between inner timing and external pressure—something that has surfaced in {lifeline_tendency.lower()}.")
+        
+        if is_decision:
+            templates.append("This may repeat when the need for inner clarity meets moments that can't wait for complete certainty.")
+        
+        if is_expression and pattern_tendency:
+            templates.append(f"One reason this returns may be {pattern_tendency['tendency']}, combined with high internal standards for how things land.")
+    
+    # =========================================================================
+    # TWO-SOURCE SYNTHESIS
+    # =========================================================================
+    if len(sources_active) >= 2:
+        # BaZi + Pattern Engine
+        if "bazi" in sources_active and "pattern_engine" in sources_active:
+            element = bazi_tendency.get("element") if bazi_tendency else None
+            element_data = ELEMENT_TENDENCIES.get(element, {}) if element else {}
+            
+            if element_data and pattern_tendency:
+                if is_hesitation:
+                    templates.append(f"This may repeat when your {element_data['positive']} nature meets moments requiring {pattern_tendency['tendency']}.")
+                else:
+                    templates.append(f"A deeper pattern here may be {element_data['tension']}, intersecting with {pattern_tendency['core']}.")
+        
+        # BaZi + Lifeline
+        if "bazi" in sources_active and "lifeline" in sources_active:
+            element = bazi_tendency.get("element") if bazi_tendency else None
+            element_data = ELEMENT_TENDENCIES.get(element, {}) if element else {}
+            
+            if element_data and lifeline_tendency:
+                templates.append(f"One reason this keeps returning may be a {element_data['positive']} approach meeting contexts where {lifeline_tendency.lower()}.")
+        
+        # Pattern Engine + Lifeline
+        if "pattern_engine" in sources_active and "lifeline" in sources_active:
+            if pattern_tendency and lifeline_tendency:
+                templates.append(f"This may repeat because {pattern_tendency['tendency']}, especially in areas where {lifeline_tendency.lower()}.")
+    
+    # =========================================================================
+    # SINGLE-SOURCE FALLBACKS (used only when synthesis isn't possible)
+    # =========================================================================
+    if bazi_tendency and bazi_tendency.get("element_tendency"):
+        element_data = bazi_tendency["element_tendency"]
+        if is_hesitation:
+            templates.append(f"One reason this may keep returning is {element_data['tension']}.")
+        elif is_timing:
+            templates.append(f"A tendency here may be {element_data['pattern']}.")
+        elif is_momentum:
+            templates.append(f"This may repeat when the {element_data['positive']} part of you meets moments requiring patience.")
+    
+    if pattern_tendency:
+        templates.append(f"A deeper theme here may be {pattern_tendency['tendency']}.")
+    
+    if lifeline_tendency:
+        templates.append(f"This may connect to a recurring theme: {lifeline_tendency.lower()}.")
+    
+    # =========================================================================
+    # GENERIC FALLBACKS (grounded, non-deterministic)
+    # =========================================================================
+    if is_hesitation:
+        templates.append("One reason this may keep returning is the pull between acting decisively and waiting for inner clarity to catch up.")
+    if is_timing:
+        templates.append("A deeper tendency here may be the tension between readiness and perfect timing.")
+    if is_decision:
+        templates.append("This may repeat when decisions carry weight and certainty feels just out of reach.")
+    if is_expression:
+        templates.append("One reason this returns may be high internal standards for how your words land.")
+    
+    # Select template deterministically
+    if not templates:
+        return None
+    
+    # Use hash of keystone text for consistent selection
+    import hashlib
+    text_hash = int(hashlib.sha256(keystone_text.encode()).hexdigest()[:8], 16)
+    idx = text_hash % len(templates)
+    
+    return templates[idx]
 
 
 def generate_deterministic_keystone(user_id: str, date_str: str, chart_data: Optional[dict] = None) -> dict:
@@ -5763,14 +7641,26 @@ RECENT LIVED EXPERIENCE (if available):
 
 CURRENT TONE GUIDANCE: {tone}
 
+=== HERO RESONANCE FRAMEWORK ===
+Your keystone must follow this structure:
+1. PATTERN: Name a recognizable behavioral pattern (not body sensation)
+2. TENSION: What's pulling in two directions  
+3. REAL-LIFE MOMENT: Ground it in something concrete (a decision, a conversation, a message, a next step)
+
 === OUTPUT REQUIREMENTS ===
 Return ONLY valid JSON:
 {{
-  "title": "3-6 word poetic title",
-  "keystone": "2-3 sentences. Recognition, Tension, Opening.",
-  "reflect_question": "One gentle question inviting self-inquiry",
-  "micro_affirmation": "8-14 words, non-prescriptive, grounding"
+  "title": "3-6 word title capturing the tension or pattern",
+  "keystone": "2-3 sentences. Pattern → Tension → Real-life moment. Be specific and behavioral.",
+  "reflect_question": "One question about a real decision, conversation, or action",
+  "micro_affirmation": "8-14 words, grounding permission that relates to the specific tension"
 }}
+
+=== LANGUAGE RULES ===
+PREFER: decisions, conversations, hesitation, action vs waiting, expression vs holding back
+WORDS: tension, pattern, moment, pause, decide, push forward, hold back, clarity, signal, timing
+AVOID AS PRIMARY: body, breath, shoulders, jaw, nervous system (can be secondary)
+NEVER: predictions, prescriptions, system names, identity locks
 """
         
         user_prompt = f"Generate the Daily Keystone for {user_name} on {date_str}. Return ONLY valid JSON."
@@ -6199,12 +8089,104 @@ async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_ref
             })
             if cached:
                 logger.info(f"[Keystone] Returning cached ENRICHED keystone for {user_id} on {date_str}")
+                
+                # Always regenerate personal echo with latest algorithm
+                # (Echo generation is fast and ensures we use latest confidence/wording)
+                personal_echo = None
+                template_key = cached.get("source_signals", {}).get("used", ["default"])
+                if isinstance(template_key, list) and len(template_key) > 1:
+                    template_key = template_key[1]  # Second item is usually the pattern type
+                else:
+                    template_key = "default"
+                
+                echo_data = await generate_personal_echo(
+                    user_id, 
+                    template_key,
+                    cached.get("keystone", "")
+                )
+                if echo_data:
+                    personal_echo = echo_data.get("echo_text")
+                
+                # Generate cause layer (cross-lens synthesis)
+                cause_layer = None
+                cause_data = await generate_cause_layer(
+                    user_id,
+                    cached.get("keystone", ""),
+                    template_key,
+                    echo_data
+                )
+                if cause_data:
+                    cause_layer = cause_data.get("cause_text")
+                
+                # Generate decision replay (if past decisions exist)
+                decision_replay = None
+                replay_data = await generate_decision_replay(
+                    user_id,
+                    cached.get("keystone", ""),
+                    template_key,
+                    echo_data,
+                    cause_data
+                )
+                if replay_data:
+                    decision_replay = replay_data.get("replay_text")
+                    logger.info(f"[Keystone] Added decision replay for {user_id}: source_year={replay_data.get('source_event', {}).get('year')}")
+                
+                # Generate pattern phase detection
+                pattern_phase_line = None
+                pattern_phase = None
+                # Determine arc_key from cached template_key
+                phase_arc_key = "career_growth" if template_key in ["generator", "manifestor"] else \
+                               "identity_shift" if template_key == "projector" else \
+                               "expression_hesitation" if template_key == "reflector" else "default"
+                
+                phase_data = await detect_pattern_phase(
+                    user_id,
+                    arc_key=phase_arc_key,
+                    keystone_text=cached.get("keystone", "")
+                )
+                if phase_data and phase_data.get("confidence", 0) >= 0.4:
+                    pattern_phase_line = phase_data.get("phase_line")
+                    pattern_phase = {
+                        "phase": phase_data.get("phase"),
+                        "display": phase_data.get("display"),
+                        "description": phase_data.get("description"),
+                        "confidence": phase_data.get("confidence"),
+                        "sequence_labels": phase_data.get("sequence_labels", []),
+                    }
+                    logger.info(f"[Keystone] Added pattern phase for {user_id}: {phase_data.get('display')} (confidence={phase_data.get('confidence')})")
+                
+                # Generate decision awareness prompt (if replay data exists)
+                decision_awareness_prompt = None
+                decision_awareness = None
+                if replay_data:
+                    awareness_data = await generate_decision_awareness(
+                        user_id,
+                        decision_replay_data=replay_data,
+                        pattern_phase_data=phase_data,
+                        keystone_text=cached.get("keystone", "")
+                    )
+                    if awareness_data and awareness_data.get("confidence", 0) >= 0.4:
+                        decision_awareness_prompt = awareness_data.get("prompt")
+                        decision_awareness = {
+                            "style": awareness_data.get("style"),
+                            "style_display": awareness_data.get("style_display"),
+                            "confidence": awareness_data.get("confidence"),
+                        }
+                        logger.info(f"[Keystone] Added decision awareness for {user_id}: {awareness_data.get('style_display')}")
+                
                 return {
                     "date": cached["date"],
                     "title": cached["title"],
                     "keystone": cached["keystone"],
                     "reflect_question": cached["reflect_question"],
                     "micro_affirmation": cached["micro_affirmation"],
+                    "personal_echo": personal_echo,
+                    "cause_layer": cause_layer,
+                    "decision_replay": decision_replay,
+                    "pattern_phase_line": pattern_phase_line,
+                    "pattern_phase": pattern_phase,
+                    "decision_awareness_prompt": decision_awareness_prompt,
+                    "decision_awareness": decision_awareness,
                     "source_signals": cached["source_signals"],
                     "daily_seed": cached.get("daily_seed", daily_seed),
                     "reflection": cached["keystone"],
@@ -6224,6 +8206,108 @@ async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_ref
         # Generate deterministic keystone (no LLM, instant)
         deterministic_response = generate_deterministic_keystone(user_id, date_str, chart)
         deterministic_response["daily_seed"] = daily_seed
+        
+        # =====================================================================
+        # GENERATE PERSONAL ECHO FROM LIFELINE (if available)
+        # =====================================================================
+        template_key = deterministic_response.get("source_signals", {}).get("used", ["deterministic", "default"])
+        if isinstance(template_key, list) and len(template_key) > 1:
+            template_key = template_key[1]
+        else:
+            template_key = "default"
+        
+        echo_data = await generate_personal_echo(
+            user_id,
+            template_key,
+            deterministic_response.get("keystone", "")
+        )
+        if echo_data:
+            deterministic_response["personal_echo"] = echo_data.get("echo_text")
+            logger.info(f"[Keystone] Added personal echo for {user_id}: {echo_data.get('source_years')}")
+        else:
+            deterministic_response["personal_echo"] = None
+        
+        # =====================================================================
+        # GENERATE CAUSE LAYER FROM CROSS-LENS SYNTHESIS (if available)
+        # =====================================================================
+        cause_data = await generate_cause_layer(
+            user_id,
+            deterministic_response.get("keystone", ""),
+            template_key,
+            echo_data
+        )
+        if cause_data:
+            deterministic_response["cause_layer"] = cause_data.get("cause_text")
+            logger.info(f"[Keystone] Added cause layer for {user_id}: sources={cause_data.get('sources_used')}")
+        else:
+            deterministic_response["cause_layer"] = None
+        
+        # =====================================================================
+        # GENERATE DECISION REPLAY FROM PAST REFLECTIONS (if available)
+        # =====================================================================
+        replay_data = await generate_decision_replay(
+            user_id,
+            deterministic_response.get("keystone", ""),
+            template_key,
+            echo_data,
+            cause_data
+        )
+        if replay_data:
+            deterministic_response["decision_replay"] = replay_data.get("replay_text")
+            logger.info(f"[Keystone] Added decision replay for {user_id}: source_year={replay_data.get('source_event', {}).get('year')}")
+        else:
+            deterministic_response["decision_replay"] = None
+        
+        # =====================================================================
+        # GENERATE PATTERN PHASE DETECTION (if available)
+        # =====================================================================
+        phase_arc_key = "career_growth" if template_key in ["generator", "manifestor"] else \
+                       "identity_shift" if template_key == "projector" else \
+                       "expression_hesitation" if template_key == "reflector" else "default"
+        
+        phase_data = await detect_pattern_phase(
+            user_id,
+            arc_key=phase_arc_key,
+            keystone_text=deterministic_response.get("keystone", "")
+        )
+        if phase_data and phase_data.get("confidence", 0) >= 0.4:
+            deterministic_response["pattern_phase_line"] = phase_data.get("phase_line")
+            deterministic_response["pattern_phase"] = {
+                "phase": phase_data.get("phase"),
+                "display": phase_data.get("display"),
+                "description": phase_data.get("description"),
+                "confidence": phase_data.get("confidence"),
+                "sequence_labels": phase_data.get("sequence_labels", []),
+            }
+            logger.info(f"[Keystone] Added pattern phase for {user_id}: {phase_data.get('display')} (confidence={phase_data.get('confidence')})")
+        else:
+            deterministic_response["pattern_phase_line"] = None
+            deterministic_response["pattern_phase"] = None
+        
+        # =====================================================================
+        # GENERATE DECISION AWARENESS PROMPT (if replay data exists)
+        # =====================================================================
+        if replay_data:
+            awareness_data = await generate_decision_awareness(
+                user_id,
+                decision_replay_data=replay_data,
+                pattern_phase_data=phase_data,
+                keystone_text=deterministic_response.get("keystone", "")
+            )
+            if awareness_data and awareness_data.get("confidence", 0) >= 0.4:
+                deterministic_response["decision_awareness_prompt"] = awareness_data.get("prompt")
+                deterministic_response["decision_awareness"] = {
+                    "style": awareness_data.get("style"),
+                    "style_display": awareness_data.get("style_display"),
+                    "confidence": awareness_data.get("confidence"),
+                }
+                logger.info(f"[Keystone] Added decision awareness for {user_id}: {awareness_data.get('style_display')}")
+            else:
+                deterministic_response["decision_awareness_prompt"] = None
+                deterministic_response["decision_awareness"] = None
+        else:
+            deterministic_response["decision_awareness_prompt"] = None
+            deterministic_response["decision_awareness"] = None
         
         # =====================================================================
         # TRIGGER BACKGROUND LLM ENRICHMENT (if not already running)
@@ -8617,12 +10701,23 @@ async def get_pattern_graph(user_id: str):
         except Exception as hd_err:
             logger.debug(f"[PatternGraph] Could not load Human Design: {hd_err}")
         
+        # Load Mirror Chat insights
+        mirror_insights = []
+        try:
+            mirror_insights = await db.mirror_insights.find(
+                {"user_id": user_id}
+            ).sort("created_at", -1).limit(15).to_list(15)
+            logger.debug(f"[PatternGraph] Loaded {len(mirror_insights)} mirror insights")
+        except Exception as mi_err:
+            logger.debug(f"[PatternGraph] Could not load mirror insights: {mi_err}")
+        
         # Aggregate pattern graph with real planetary transits
         pattern_graph = aggregate_pattern_graph(
             gene_keys_profile=gene_keys_profile,
             journal_entries=journal_entries,
             human_design_centers=human_design_centers,
             human_design_gates=human_design_gates,
+            mirror_insights=mirror_insights,  # Include mirror insights
             enneagram_type=enneagram_type,
             enneagram_wing=enneagram_wing,
             natal_chart=natal_chart  # Pass natal chart for personalized transits
@@ -10292,6 +12387,12 @@ async def unlock_numerology_name(user_id: str, request: NumerologyUnlockRequest)
     Calculates Expression, Soul Urge, and Personality from the full birth name.
     
     This is consent-based and entirely optional.
+    
+    Accepts full multi-word names including:
+    - Multiple middle names (e.g., "John Michael David Smith")
+    - Hyphenated names (e.g., "Jean-Claude Van Damme")
+    - Asian name formats (e.g., "Chen Wei Ming")
+    - International characters (handled safely)
     """
     from calculations.numerology import (
         calculate_expression_number,
@@ -10309,9 +12410,21 @@ async def unlock_numerology_name(user_id: str, request: NumerologyUnlockRequest)
         if not chart:
             raise HTTPException(status_code=404, detail="Chart not found")
         
+        # Normalize: strip leading/trailing whitespace, preserve internal spaces
         full_name = request.full_birth_name.strip()
-        if not full_name or len(full_name) < 2:
-            raise HTTPException(status_code=400, detail="Please provide a valid name")
+        
+        # Validation: must have content
+        if not full_name:
+            raise HTTPException(status_code=400, detail="Please provide your full birth name")
+        
+        # Validation: must have at least one letter for numerology calculation
+        letter_count = sum(1 for c in full_name if c.isalpha())
+        if letter_count < 2:
+            raise HTTPException(status_code=400, detail="Name must contain at least 2 letters")
+        
+        # Log the incoming name for debugging (masked for privacy)
+        name_parts = full_name.split()
+        logger.info(f"[Numerology] Processing name with {len(name_parts)} parts, {letter_count} letters for user {user_id}")
         
         # Calculate name-based numbers
         expression = calculate_expression_number(full_name)
@@ -10380,6 +12493,842 @@ async def unlock_numerology_name(user_id: str, request: NumerologyUnlockRequest)
     except Exception as e:
         logger.error(f"Numerology unlock error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# =====================================================================
+# BAZI (FOUR PILLARS) ENDPOINTS
+# =====================================================================
+
+@api_router.get("/bazi/{user_id}")
+async def get_bazi_chart(user_id: str):
+    """
+    Get the BaZi (Four Pillars of Destiny) chart for a user.
+    
+    BaZi is a Chinese metaphysical system based on:
+    - Year pillar
+    - Month pillar  
+    - Day pillar
+    - Hour pillar
+    
+    Each pillar has a Heavenly Stem and Earthly Branch.
+    
+    Returns:
+        Complete BaZi chart with pillars, day master, five elements,
+        ten gods, and element analysis.
+    """
+    try:
+        # Get user data
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check for required birth data
+        birth_date = user.get("birth_date")
+        if not birth_date:
+            raise HTTPException(
+                status_code=400, 
+                detail="Birth date is required for BaZi calculation. Please complete onboarding."
+            )
+        
+        # Get birth time (optional but recommended)
+        birth_time = user.get("birth_time")
+        timezone = user.get("timezone")
+        
+        # Compute BaZi chart
+        chart = compute_bazi_chart(
+            birth_date=birth_date,
+            birth_time=birth_time,
+            timezone=timezone
+        )
+        
+        # Add element descriptions for the day master
+        day_master_element = chart["day_master"]["element"]
+        chart["element_descriptions"] = {
+            day_master_element: get_element_description(day_master_element)
+        }
+        
+        # Add dominant element description if different
+        dominant_element = chart["summary"]["dominant_element"]
+        if dominant_element != day_master_element:
+            chart["element_descriptions"][dominant_element] = get_element_description(dominant_element)
+        
+        logger.info(f"[BaZi] Generated chart for user {user_id}: Day Master = {chart['day_master']['stem_pinyin']} {day_master_element}")
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "has_birth_time": birth_time is not None,
+            "chart": chart,
+        }
+    
+    except HTTPException:
+        raise
+    except ValueError as e:
+        logger.error(f"[BaZi] Calculation error for user {user_id}: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"[BaZi] Unexpected error for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to compute BaZi chart")
+
+
+@api_router.get("/bazi/{user_id}/summary")
+async def get_bazi_summary(user_id: str):
+    """
+    Get a condensed BaZi summary for dashboard display.
+    
+    Returns key information without full chart details.
+    """
+    try:
+        # Get user data
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        birth_date = user.get("birth_date")
+        if not birth_date:
+            return {
+                "success": True,
+                "user_id": user_id,
+                "has_bazi": False,
+                "message": "Birth date required for BaZi calculation",
+            }
+        
+        birth_time = user.get("birth_time")
+        timezone = user.get("timezone")
+        
+        chart = compute_bazi_chart(
+            birth_date=birth_date,
+            birth_time=birth_time,
+            timezone=timezone
+        )
+        
+        # Return condensed summary
+        return {
+            "success": True,
+            "user_id": user_id,
+            "has_bazi": True,
+            "has_birth_time": birth_time is not None,
+            "summary": {
+                "day_master": chart["summary"]["day_master_description"],
+                "day_master_element": chart["day_master"]["element"],
+                "day_master_polarity": chart["day_master"]["polarity"],
+                "dominant_element": chart["summary"]["dominant_element"],
+                "weak_element": chart["summary"]["weak_element"],
+                "balance_status": chart["summary"]["balance_status"],
+                "day_master_strength": chart["summary"]["day_master_strength"],
+                "chinese_zodiac": chart["pillars"]["year_pillar"]["animal"],
+                "year_pillar": f"{chart['pillars']['year_pillar']['stem']}{chart['pillars']['year_pillar']['branch']}",
+            },
+            "five_elements": chart["five_elements"],
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[BaZi] Summary error for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get BaZi summary")
+
+
+# =====================================================================
+# CROSS-LENS SYNTHESIS ENDPOINTS
+# =====================================================================
+
+@api_router.get("/synthesis/{user_id}")
+async def get_cross_lens_synthesis(user_id: str, condensed: bool = False):
+    """
+    Generate cross-lens synthesis connecting Lifeline, Pattern Engine, and BaZi.
+    
+    This endpoint aggregates data from multiple sources to surface insights
+    that connect patterns across the user's different lenses.
+    
+    Args:
+        user_id: The user ID
+        condensed: If True, return a shorter version suitable for homepage teaser
+        
+    Returns:
+        Synthesis object with headline, summary, signals_used, and insights
+    """
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Gather data from all three sources in parallel
+        
+        # 1. Lifeline summary
+        lifeline_summary = None
+        try:
+            events = await db.lifeline_events.find({"user_id": user_id}).to_list(length=500)
+            if events:
+                from services.lifeline_patterns import generate_full_lifeline_analysis
+                events_for_patterns = [{**e, '_id': str(e['_id'])} for e in events]
+                lifeline_summary = {
+                    "has_lifeline": True,
+                    "event_count": len(events),
+                    "patterns": generate_full_lifeline_analysis(events_for_patterns),
+                }
+            else:
+                lifeline_summary = {"has_lifeline": False, "event_count": 0}
+        except Exception as e:
+            logger.warning(f"[Synthesis] Failed to get lifeline for {user_id}: {e}")
+        
+        # 2. Pattern graph - call the existing endpoint handler logic
+        pattern_graph = None
+        try:
+            # We'll use a simplified approach - just get the API response
+            import httpx
+            async with httpx.AsyncClient() as client:
+                response = await client.get(f"http://localhost:8001/api/pattern-graph/{user_id}", timeout=10.0)
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('success'):
+                        pattern_graph = data
+        except Exception as e:
+            logger.warning(f"[Synthesis] Failed to get pattern graph for {user_id}: {e}")
+        
+        # 3. BaZi summary
+        bazi_summary = None
+        try:
+            birth_date = user.get("birth_date")
+            if birth_date:
+                chart = compute_bazi_chart(
+                    birth_date=birth_date,
+                    birth_time=user.get("birth_time"),
+                    timezone=user.get("timezone")
+                )
+                bazi_summary = {
+                    "has_bazi": True,
+                    "summary": chart.get("summary", {}),
+                    "five_elements": chart.get("five_elements", {}),
+                }
+            else:
+                bazi_summary = {"has_bazi": False}
+        except Exception as e:
+            logger.warning(f"[Synthesis] Failed to get BaZi for {user_id}: {e}")
+        
+        # Generate synthesis
+        synthesis = await generate_cross_lens_synthesis(
+            user_id=user_id,
+            lifeline_summary=lifeline_summary,
+            pattern_graph=pattern_graph,
+            bazi_summary=bazi_summary,
+        )
+        
+        # Return condensed version if requested
+        if condensed:
+            synthesis = condense_synthesis_for_homepage(synthesis)
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            **synthesis,
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Synthesis] Error for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate synthesis")
+
+
+@api_router.get("/synthesis/{user_id}/teaser")
+async def get_cross_lens_synthesis_teaser(user_id: str):
+    """
+    Get a condensed synthesis teaser for the homepage.
+    
+    Returns a shorter version of the synthesis suitable for a homepage card.
+    """
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Gather data from all three sources in parallel
+        
+        # 1. Lifeline summary
+        lifeline_summary = None
+        try:
+            events = await db.lifeline_events.find({"user_id": user_id}).to_list(length=500)
+            if events:
+                from services.lifeline_patterns import generate_full_lifeline_analysis
+                events_for_patterns = [{**e, '_id': str(e['_id'])} for e in events]
+                lifeline_summary = {
+                    "has_lifeline": True,
+                    "event_count": len(events),
+                    "patterns": generate_full_lifeline_analysis(events_for_patterns),
+                }
+            else:
+                lifeline_summary = {"has_lifeline": False, "event_count": 0}
+        except Exception as e:
+            logger.warning(f"[Synthesis Teaser] Failed to get lifeline for {user_id}: {e}")
+        
+        # 2. Pattern graph
+        pattern_graph = None
+        try:
+            import httpx
+            async with httpx.AsyncClient() as client:
+                response = await client.get(f"http://localhost:8001/api/pattern-graph/{user_id}", timeout=10.0)
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('success'):
+                        pattern_graph = data
+        except Exception as e:
+            logger.warning(f"[Synthesis Teaser] Failed to get pattern graph for {user_id}: {e}")
+        
+        # 3. BaZi summary
+        bazi_summary = None
+        try:
+            birth_date = user.get("birth_date")
+            if birth_date:
+                chart = compute_bazi_chart(
+                    birth_date=birth_date,
+                    birth_time=user.get("birth_time"),
+                    timezone=user.get("timezone")
+                )
+                bazi_summary = {
+                    "has_bazi": True,
+                    "summary": chart.get("summary", {}),
+                    "five_elements": chart.get("five_elements", {}),
+                }
+            else:
+                bazi_summary = {"has_bazi": False}
+        except Exception as e:
+            logger.warning(f"[Synthesis Teaser] Failed to get BaZi for {user_id}: {e}")
+        
+        # Generate synthesis
+        synthesis = await generate_cross_lens_synthesis(
+            user_id=user_id,
+            lifeline_summary=lifeline_summary,
+            pattern_graph=pattern_graph,
+            bazi_summary=bazi_summary,
+        )
+        
+        # Condense for teaser
+        teaser = condense_synthesis_for_homepage(synthesis)
+        
+        return teaser
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Synthesis Teaser] Error for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate synthesis teaser")
+
+
+@api_router.get("/synthesis/{user_id}/pattern-lens")
+async def get_pattern_lens_data(user_id: str):
+    """
+    Get Pattern Lens data for deep reflection on a detected life pattern.
+    
+    Returns structured data for the Pattern Lens reflection screen:
+    - pattern_sequence: The detected pattern arc (e.g., Momentum → Pressure → Reinvention)
+    - years: Years where the pattern appeared
+    - challenge: What makes this pattern difficult
+    - genius: The embedded gift/strength in this pattern
+    - tips: Practical reflection prompts
+    """
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Gather cross-lens data
+        lifeline_data = None
+        pattern_data = None
+        bazi_data = None
+        
+        # 1. Lifeline summary with patterns
+        try:
+            events = await db.lifeline_events.find({"user_id": user_id}).to_list(length=500)
+            if events and len(events) >= 3:
+                from services.lifeline_patterns import generate_full_lifeline_analysis
+                events_for_patterns = [{**e, '_id': str(e['_id'])} for e in events]
+                patterns = generate_full_lifeline_analysis(events_for_patterns)
+                
+                # Extract pattern sequence from lifeline
+                categories = {}
+                years_by_category = {}
+                for e in events:
+                    cat = e.get('category')
+                    year = e.get('year')
+                    if cat:
+                        categories[cat] = categories.get(cat, 0) + 1
+                        if year:
+                            if cat not in years_by_category:
+                                years_by_category[cat] = []
+                            years_by_category[cat].append(year)
+                
+                # Sort by count to find dominant categories
+                sorted_cats = sorted(categories.items(), key=lambda x: x[1], reverse=True)
+                
+                # Collect event details for timeline visualization
+                events_with_details = []
+                for e in events:
+                    if e.get('year'):
+                        events_with_details.append({
+                            "id": str(e.get('_id', '')),
+                            "year": e.get('year'),
+                            "title": e.get('title') or e.get('description', '')[:50],
+                            "description": e.get('description', ''),
+                            "category": e.get('category', 'Other'),
+                            "decision_text": e.get('decision_text'),
+                            "decision_reflection": e.get('decision_reflection'),
+                        })
+                # Sort by year
+                events_with_details.sort(key=lambda x: x['year'])
+                
+                lifeline_data = {
+                    "categories": sorted_cats[:4],
+                    "years_by_category": years_by_category,
+                    "event_count": len(events),
+                    "patterns": patterns,
+                    "events_with_details": events_with_details,
+                }
+        except Exception as e:
+            logger.warning(f"[PatternLens] Failed to get lifeline for {user_id}: {e}")
+        
+        # 2. Pattern Engine data
+        try:
+            import httpx
+            async with httpx.AsyncClient() as client:
+                response = await client.get(f"http://localhost:8001/api/pattern-graph/{user_id}", timeout=5.0)
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('success'):
+                        pattern_data = data
+        except Exception as e:
+            logger.warning(f"[PatternLens] Failed to get patterns for {user_id}: {e}")
+        
+        # 3. BaZi data
+        try:
+            birth_date = user.get("birth_date")
+            if birth_date:
+                chart = compute_bazi_chart(
+                    birth_date=birth_date,
+                    birth_time=user.get("birth_time"),
+                    timezone=user.get("timezone")
+                )
+                bazi_data = {
+                    "day_master": chart.get("day_master", {}),
+                    "element_analysis": chart.get("element_analysis", {}),
+                    "summary": chart.get("summary", {}),
+                }
+        except Exception as e:
+            logger.warning(f"[PatternLens] Failed to get BaZi for {user_id}: {e}")
+        
+        # Generate pattern lens content
+        result = _generate_pattern_lens_content(
+            user_id=user_id,
+            lifeline_data=lifeline_data,
+            pattern_data=pattern_data,
+            bazi_data=bazi_data,
+        )
+        
+        # Add pattern phase detection
+        arc_key = result.get("arc_key", "default")
+        phase_data = await detect_pattern_phase(
+            user_id=user_id,
+            arc_key=arc_key,
+            keystone_text=""  # No keystone here, use lifeline/journal signals
+        )
+        if phase_data and phase_data.get("confidence", 0) >= 0.30:  # Lower threshold for Pattern Lens
+            result["pattern_phase"] = {
+                "phase": phase_data.get("phase"),
+                "display": phase_data.get("display"),
+                "description": phase_data.get("description"),
+                "confidence": phase_data.get("confidence"),
+                "sequence_labels": phase_data.get("sequence_labels", []),
+            }
+            logger.info(f"[PatternLens] Added phase for {user_id}: {phase_data.get('display')}")
+        else:
+            logger.debug(f"[PatternLens] Phase detection skipped for {user_id}: confidence={phase_data.get('confidence') if phase_data else 0}")
+        
+        # Add decision awareness prompt
+        try:
+            # First generate decision replay data (required for awareness)
+            replay_data = await generate_decision_replay(
+                user_id=user_id,
+                keystone_text="",  # No keystone for Pattern Lens
+                template_key=arc_key,
+                echo_data=None,
+                cause_data=None
+            )
+            
+            if replay_data and replay_data.get("confidence", 0) >= 0.30:
+                # Generate decision awareness using replay data
+                awareness_data = await generate_decision_awareness(
+                    user_id=user_id,
+                    decision_replay_data=replay_data,
+                    pattern_phase_data=phase_data,
+                    keystone_text=""
+                )
+                
+                if awareness_data and awareness_data.get("confidence", 0) >= 0.30:
+                    result["decision_awareness"] = {
+                        "style": awareness_data.get("style"),
+                        "style_display": awareness_data.get("style_display"),
+                        "prompt": awareness_data.get("prompt"),
+                        "confidence": awareness_data.get("confidence"),
+                        "source_year": awareness_data.get("source_year"),
+                    }
+                    logger.info(f"[PatternLens] Added decision awareness for {user_id}: style={awareness_data.get('style_display')}")
+                else:
+                    logger.debug(f"[PatternLens] Decision awareness skipped for {user_id}: low confidence")
+            else:
+                logger.debug(f"[PatternLens] Decision replay not available for awareness: {user_id}")
+        except Exception as e:
+            logger.warning(f"[PatternLens] Failed to generate decision awareness for {user_id}: {e}")
+        
+        logger.info(f"[PatternLens] Generated data for {user_id}: sequence={result.get('pattern_sequence')}")
+        
+        return result
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[PatternLens] Error for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate pattern lens data")
+
+
+# =============================================================================
+# PATTERN CYCLE DETECTION
+# =============================================================================
+
+# Cycle summary templates based on pattern arc
+CYCLE_SUMMARY_TEMPLATES = {
+    "career_growth": [
+        "Ambition built before a significant career shift.",
+        "Pressure mounted before a turning point emerged.",
+        "A familiar career arc appeared during this period.",
+    ],
+    "identity_shift": [
+        "Stability gave way to disruption before reinvention.",
+        "An identity pattern unfolded during these years.",
+        "A similar self-discovery arc appeared here.",
+    ],
+    "relationship_turning": [
+        "Connection deepened before tension brought clarity.",
+        "Relational patterns emerged during this period.",
+        "A familiar relational arc appeared here.",
+    ],
+    "momentum_pressure": [
+        "Momentum built before pressure prompted recalibration.",
+        "A pattern of forward motion and pause appeared.",
+        "This cycle moved from momentum into reflection.",
+    ],
+    "expression_hesitation": [
+        "Clarity emerged before hesitation delayed expression.",
+        "A pattern of knowing and waiting appeared here.",
+        "This cycle moved from insight toward expression.",
+    ],
+    "default": [
+        "A similar sequence appeared during this period.",
+        "This cycle echoes a familiar pattern.",
+        "Pressure built before a change in direction.",
+    ],
+}
+
+
+def _generate_pattern_cycles(
+    events: List[Dict],
+    pattern_sequence: List[str],
+    arc_key: str = "default"
+) -> List[Dict[str, Any]]:
+    """
+    Generate pattern cycles by grouping timeline events into coherent cycles.
+    
+    Uses heuristics based on:
+    - Chronology (year gaps)
+    - Category continuity
+    - Number of events
+    
+    Returns a list of cycle objects with label, years, events, and summary.
+    """
+    import random
+    
+    if not events or len(events) < 2:
+        return []
+    
+    # Sort events by year
+    sorted_events = sorted(events, key=lambda e: e.get('year', 0))
+    
+    # Get summaries for this arc type
+    summaries = CYCLE_SUMMARY_TEMPLATES.get(arc_key, CYCLE_SUMMARY_TEMPLATES["default"])
+    
+    cycles = []
+    current_cycle_events = []
+    cycle_number = 1
+    
+    for i, event in enumerate(sorted_events):
+        current_year = event.get('year', 0)
+        
+        if not current_cycle_events:
+            # Start a new cycle
+            current_cycle_events.append(event)
+        else:
+            # Check if this event should start a new cycle
+            prev_year = current_cycle_events[-1].get('year', 0)
+            year_gap = current_year - prev_year
+            
+            # Heuristic: gaps of 4+ years usually indicate a new cycle
+            # Also start new cycle if we have 3+ events in current cycle
+            should_start_new_cycle = (
+                year_gap >= 4 or 
+                (len(current_cycle_events) >= 3 and year_gap >= 2)
+            )
+            
+            if should_start_new_cycle:
+                # Finalize current cycle if it has enough events
+                if len(current_cycle_events) >= 2:
+                    cycle = _build_cycle_object(
+                        cycle_number=cycle_number,
+                        events=current_cycle_events,
+                        summaries=summaries,
+                        pattern_sequence=pattern_sequence
+                    )
+                    cycles.append(cycle)
+                    cycle_number += 1
+                
+                # Start new cycle
+                current_cycle_events = [event]
+            else:
+                # Add to current cycle
+                current_cycle_events.append(event)
+    
+    # Finalize the last cycle
+    if len(current_cycle_events) >= 2:
+        cycle = _build_cycle_object(
+            cycle_number=cycle_number,
+            events=current_cycle_events,
+            summaries=summaries,
+            pattern_sequence=pattern_sequence
+        )
+        cycles.append(cycle)
+    elif len(current_cycle_events) == 1 and cycles:
+        # If only 1 event left, append it to the previous cycle
+        cycles[-1]["events"].append(current_cycle_events[0])
+        cycles[-1]["years"].append(current_cycle_events[0].get('year', 0))
+        cycles[-1]["years"] = sorted(set(cycles[-1]["years"]))
+    
+    # Only return cycles if we have meaningful groupings
+    # At least 1 cycle with 2+ events
+    if not cycles:
+        # Fall back: if we have 3+ events total, create a single cycle
+        if len(sorted_events) >= 3:
+            cycles = [_build_cycle_object(
+                cycle_number=1,
+                events=sorted_events[:4],  # Limit to 4 events
+                summaries=summaries,
+                pattern_sequence=pattern_sequence
+            )]
+    
+    return cycles
+
+
+def _build_cycle_object(
+    cycle_number: int,
+    events: List[Dict],
+    summaries: List[str],
+    pattern_sequence: List[str]
+) -> Dict[str, Any]:
+    """Build a cycle object from a list of events."""
+    import random
+    
+    years = sorted(set(e.get('year', 0) for e in events if e.get('year')))
+    
+    # Select appropriate summary based on cycle position
+    summary_index = min(cycle_number - 1, len(summaries) - 1)
+    summary = summaries[summary_index]
+    
+    # Build events list for the cycle (simplified, max 3)
+    cycle_events = []
+    for e in events[:3]:
+        cycle_events.append({
+            "id": e.get("id", ""),
+            "year": e.get("year"),
+            "title": e.get("title", ""),
+            "category": e.get("category", "Other"),
+            "decision_text": e.get("decision_text"),
+            "decision_reflection": e.get("decision_reflection"),
+        })
+    
+    return {
+        "label": f"Cycle {cycle_number}",
+        "years": years,
+        "events": cycle_events,
+        "summary": summary,
+        "event_count": len(events),  # Total events in cycle
+    }
+
+
+def _generate_pattern_lens_content(
+    user_id: str,
+    lifeline_data: Optional[Dict] = None,
+    pattern_data: Optional[Dict] = None,
+    bazi_data: Optional[Dict] = None,
+) -> Dict[str, Any]:
+    """
+    Generate pattern lens content from cross-lens data.
+    
+    Returns the structured data for the Pattern Lens reflection screen.
+    """
+    # Default structure
+    result = {
+        "has_pattern": False,
+        "pattern_sequence": [],
+        "years": [],
+        "timeline_events": [],  # Event details for timeline visualization
+        "cycles": [],  # Pattern cycles grouping
+        "pattern_phase": None,  # Current pattern phase detection
+        "arc_key": "default",  # Pattern arc key for phase detection
+        "challenge": "",
+        "genius": "",
+        "tips": [],
+        "reflection_prompt": "Where might this pattern be appearing in your life right now?",
+    }
+    
+    # Pattern sequence mappings based on common life arcs
+    PATTERN_ARCS = {
+        "career_growth": {
+            "sequence": ["Ambition", "Pressure", "Transformation"],
+            "challenge": "The drive to achieve can outpace your readiness, creating pressure that builds before the pivot.",
+            "genius": "You know how to turn crisis into reinvention. The pattern shows you've done this before.",
+            "tips": [
+                "Name the decision you're postponing",
+                "Write down what success would actually look like",
+                "Ask: what is the clean next move here?"
+            ]
+        },
+        "identity_shift": {
+            "sequence": ["Stability", "Disruption", "Reinvention"],
+            "challenge": "When identity is disrupted, the instinct is to return to safety. Growth often requires staying in the discomfort longer.",
+            "genius": "You've rebuilt before. Each disruption has made you more adaptable and self-aware.",
+            "tips": [
+                "Notice what parts of the old identity you're still holding onto",
+                "Ask what the disruption is making space for",
+                "Write about who you're becoming, not who you were"
+            ]
+        },
+        "relationship_turning": {
+            "sequence": ["Connection", "Tension", "Clarity"],
+            "challenge": "Relationship patterns often repeat until the underlying need is acknowledged. Tension can feel like failure but often brings clarity.",
+            "genius": "Your sensitivity to relational dynamics is a gift. You notice what others miss.",
+            "tips": [
+                "Name what you're actually needing",
+                "Notice if you're trying to fix or to understand",
+                "Ask: what boundary would honor both people?"
+            ]
+        },
+        "momentum_pressure": {
+            "sequence": ["Momentum", "Pressure", "Reinvention"],
+            "challenge": "The tension between wanting to move forward and needing to reassess is a recurring theme.",
+            "genius": "You know when it's time to pivot. Trust that knowing, even when it feels disruptive.",
+            "tips": [
+                "Write the constraint you're not naming",
+                "Notice if you're forcing clarity",
+                "Ask: what would I do if I had permission to change direction?"
+            ]
+        },
+        "expression_hesitation": {
+            "sequence": ["Clarity", "Hesitation", "Expression"],
+            "challenge": "Knowing what to say and saying it are different acts. The gap between can feel like failure but is often discernment.",
+            "genius": "Your care about how things land is why your words carry weight when they come.",
+            "tips": [
+                "Draft the message you keep rewriting",
+                "Ask: what's the worst that could happen if I said it?",
+                "Notice what you're protecting by staying silent"
+            ]
+        },
+        "default": {
+            "sequence": ["Beginning", "Challenge", "Integration"],
+            "challenge": "Patterns emerge when similar situations trigger familiar responses. Noticing is the first step to changing them.",
+            "genius": "You've navigated this before. The pattern shows resilience, not failure.",
+            "tips": [
+                "Name what keeps returning",
+                "Notice the emotion that shows up first",
+                "Ask: what would breaking the pattern require?"
+            ]
+        }
+    }
+    
+    # Determine pattern arc based on data
+    arc_key = "default"
+    all_years = []
+    
+    if lifeline_data:
+        categories = lifeline_data.get("categories", [])
+        years_by_cat = lifeline_data.get("years_by_category", {})
+        
+        if categories:
+            top_category = categories[0][0] if categories else None
+            
+            # Map category to arc
+            if top_category in ["Career", "Achievement"]:
+                arc_key = "career_growth"
+            elif top_category in ["Identity", "Turning Point"]:
+                arc_key = "identity_shift"
+            elif top_category in ["Relationships", "Family"]:
+                arc_key = "relationship_turning"
+            elif top_category in ["Move", "Loss"]:
+                arc_key = "momentum_pressure"
+            
+            # Get years from top categories
+            for cat, _ in categories[:3]:
+                if cat in years_by_cat:
+                    all_years.extend(years_by_cat[cat])
+    
+    # Adjust arc based on BaZi element if available
+    if bazi_data:
+        element = bazi_data.get("day_master", {}).get("element")
+        if element == "Metal" and arc_key == "default":
+            arc_key = "expression_hesitation"
+        elif element == "Wood" and arc_key == "default":
+            arc_key = "momentum_pressure"
+    
+    # Get the arc content
+    arc = PATTERN_ARCS.get(arc_key, PATTERN_ARCS["default"])
+    
+    # Extract unique years and sort
+    unique_years = sorted(set(all_years)) if all_years else []
+    
+    # Build result
+    result["has_pattern"] = len(unique_years) >= 2 or lifeline_data is not None
+    result["pattern_sequence"] = arc["sequence"]
+    result["years"] = unique_years[-5:] if unique_years else []  # Last 5 years
+    result["arc_key"] = arc_key  # Store for pattern phase detection
+    result["challenge"] = arc["challenge"]
+    result["genius"] = arc["genius"]
+    result["tips"] = arc["tips"]
+    
+    # Add timeline events for visualization
+    if lifeline_data and lifeline_data.get("events_with_details"):
+        # Filter to just the years in the pattern and limit to last 6 events
+        all_events = lifeline_data["events_with_details"]
+        result["timeline_events"] = all_events[-6:] if len(all_events) > 6 else all_events
+        
+        # Generate pattern cycles from timeline events
+        result["cycles"] = _generate_pattern_cycles(
+            events=all_events,
+            pattern_sequence=arc["sequence"],
+            arc_key=arc_key
+        )
+    
+    # Customize reflection prompt based on arc
+    if arc_key == "career_growth":
+        result["reflection_prompt"] = "Where might this career-related pattern be appearing in your life right now?"
+    elif arc_key == "identity_shift":
+        result["reflection_prompt"] = "Where might this identity-related pattern be showing up in your current situation?"
+    elif arc_key == "relationship_turning":
+        result["reflection_prompt"] = "Where might this relational pattern be active in your life right now?"
+    elif arc_key == "momentum_pressure":
+        result["reflection_prompt"] = "Where might this momentum-pressure pattern be present in your current decisions?"
+    elif arc_key == "expression_hesitation":
+        result["reflection_prompt"] = "Where might this expression pattern be holding you back right now?"
+    
+    return result
 
 
 
@@ -14194,6 +17143,2944 @@ async def get_forum_pulse(forum_id: str, user_id: str):
         "lens_insight": lens_insight,
         "member_cards": member_cards
     }
+
+
+# =====================================================================
+# FORUM MEMBER LENS DATA & DYNAMICS CONTEXT
+# Extended data models for Forum Chat and Forum Dynamics
+# =====================================================================
+
+async def get_member_lens_data(user_id: str) -> dict:
+    """
+    Build the full forum_member_lens_data object for a user.
+    Aggregates data from existing user profile sources (charts, enneagram, patterns).
+    Returns None values for missing fields - never fails.
+    """
+    lens_data = {
+        "user_id": user_id,
+        "name": None,
+        "human_design": {
+            "type": None,
+            "strategy": None,
+            "authority": None,
+            "profile": None,
+            "definition": None,
+            "incarnation_cross": None,
+            "centers_defined": [],
+            "centers_undefined": [],
+            "active_gates": [],
+            "active_channels": []  # Will be formatted as strings like "37-40"
+        },
+        "enneagram": {
+            "core_type": None,
+            "wing": None,
+            "center": None,
+            "hornevian_group": None,
+            "harmonic_group": None,
+            "growth_direction": None,
+            "stress_direction": None
+        },
+        "astrology": {
+            "sun": None,
+            "moon": None,
+            "rising": None,
+            "dominant_element": None,
+            "dominant_modality": None
+        },
+        "numerology": {
+            "life_path": None,
+            "expression": None,
+            "soul_urge": None,
+            "personality": None
+        },
+        "patterns": {
+            "active_domains": [],
+            "recurring_domains": []
+        }
+    }
+    
+    try:
+        # Get user basic info
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if user:
+            lens_data["name"] = user.get("name", "Anonymous")
+        
+        # Get chart data (contains astrology, human_design, numerology)
+        chart = await db.charts.find_one({"user_id": user_id})
+        if chart:
+            # === Human Design ===
+            hd = chart.get("human_design", {})
+            if hd:
+                lens_data["human_design"]["type"] = hd.get("type") if hd.get("type") != "Unknown" else None
+                lens_data["human_design"]["strategy"] = hd.get("strategy") if hd.get("strategy") != "Unknown" else None
+                lens_data["human_design"]["authority"] = hd.get("authority") if hd.get("authority") != "Unknown" else None
+                lens_data["human_design"]["profile"] = hd.get("profile") if hd.get("profile") != "Unknown" else None
+                lens_data["human_design"]["definition"] = hd.get("definition") if hd.get("definition") != "Unknown" else None
+                
+                # Incarnation cross - handle both dict and string formats
+                ic = hd.get("incarnation_cross")
+                if isinstance(ic, dict):
+                    lens_data["human_design"]["incarnation_cross"] = ic.get("name", str(ic))
+                elif ic and ic != "Unknown":
+                    lens_data["human_design"]["incarnation_cross"] = str(ic)
+                
+                # Centers
+                lens_data["human_design"]["centers_defined"] = hd.get("defined_centers", [])
+                # Calculate undefined centers
+                all_centers = ["Head", "Ajna", "Throat", "G", "Heart", "Sacral", "Solar Plexus", "Spleen", "Root"]
+                defined = set(hd.get("defined_centers", []))
+                lens_data["human_design"]["centers_undefined"] = [c for c in all_centers if c not in defined]
+                
+                # Gates and channels
+                lens_data["human_design"]["active_gates"] = hd.get("all_gates", hd.get("gates", []))
+                
+                # Format channels as readable strings (e.g., "37-40")
+                raw_channels = hd.get("defined_channels", [])
+                formatted_channels = []
+                for ch in raw_channels:
+                    if isinstance(ch, dict):
+                        # Channel is an object with gate1, gate2
+                        g1 = ch.get("gate1")
+                        g2 = ch.get("gate2")
+                        if g1 and g2:
+                            formatted_channels.append(f"{g1}-{g2}")
+                    elif isinstance(ch, str):
+                        formatted_channels.append(ch)
+                    elif isinstance(ch, (list, tuple)) and len(ch) >= 2:
+                        formatted_channels.append(f"{ch[0]}-{ch[1]}")
+                lens_data["human_design"]["active_channels"] = formatted_channels
+            
+            # === Astrology ===
+            astro = chart.get("astrology", {})
+            if astro:
+                planets = astro.get("planets", {})
+                
+                # Sun
+                sun = planets.get("sun", {})
+                if isinstance(sun, dict):
+                    lens_data["astrology"]["sun"] = sun.get("sign")
+                elif isinstance(sun, str):
+                    lens_data["astrology"]["sun"] = sun
+                
+                # Moon  
+                moon = planets.get("moon", {})
+                if isinstance(moon, dict):
+                    lens_data["astrology"]["moon"] = moon.get("sign")
+                elif isinstance(moon, str):
+                    lens_data["astrology"]["moon"] = moon
+                
+                # Rising (Ascendant)
+                houses = astro.get("houses", {})
+                if houses:
+                    rising_sign = houses.get("ascendant_sign")
+                    if not rising_sign:
+                        # If ascendant_sign not available, try to derive from degree
+                        asc_degree = houses.get("ascendant")
+                        if isinstance(asc_degree, (int, float)):
+                            # Convert degree to zodiac sign
+                            signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+                                     "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
+                            sign_index = int(asc_degree / 30) % 12
+                            rising_sign = signs[sign_index]
+                    lens_data["astrology"]["rising"] = rising_sign
+                
+                # Calculate dominant element and modality from planets
+                element_counts = {"Fire": 0, "Earth": 0, "Air": 0, "Water": 0}
+                modality_counts = {"Cardinal": 0, "Fixed": 0, "Mutable": 0}
+                
+                sign_elements = {
+                    "Aries": "Fire", "Taurus": "Earth", "Gemini": "Air", "Cancer": "Water",
+                    "Leo": "Fire", "Virgo": "Earth", "Libra": "Air", "Scorpio": "Water",
+                    "Sagittarius": "Fire", "Capricorn": "Earth", "Aquarius": "Air", "Pisces": "Water"
+                }
+                sign_modalities = {
+                    "Aries": "Cardinal", "Taurus": "Fixed", "Gemini": "Mutable", "Cancer": "Cardinal",
+                    "Leo": "Fixed", "Virgo": "Mutable", "Libra": "Cardinal", "Scorpio": "Fixed",
+                    "Sagittarius": "Mutable", "Capricorn": "Cardinal", "Aquarius": "Fixed", "Pisces": "Mutable"
+                }
+                
+                for planet_name, planet_data in planets.items():
+                    sign = planet_data.get("sign") if isinstance(planet_data, dict) else planet_data
+                    if sign and sign in sign_elements:
+                        element_counts[sign_elements[sign]] += 1
+                        modality_counts[sign_modalities[sign]] += 1
+                
+                if any(element_counts.values()):
+                    lens_data["astrology"]["dominant_element"] = max(element_counts.items(), key=lambda x: x[1])[0]
+                if any(modality_counts.values()):
+                    lens_data["astrology"]["dominant_modality"] = max(modality_counts.items(), key=lambda x: x[1])[0]
+            
+            # === Numerology ===
+            numerology = chart.get("numerology", {})
+            if numerology:
+                lens_data["numerology"]["life_path"] = numerology.get("life_path")
+                lens_data["numerology"]["expression"] = numerology.get("expression")
+                lens_data["numerology"]["soul_urge"] = numerology.get("soul_urge")
+                lens_data["numerology"]["personality"] = numerology.get("personality")
+        
+        # === Enneagram ===
+        # Get effective Enneagram from enneagram_results collection
+        # This handles both assessment results AND self-declared types
+        enneagram_data = await db.enneagram_results.find_one({"user_id": user_id})
+        if enneagram_data:
+            # Use core_type or inferred_core (both are stored)
+            core_type = enneagram_data.get("core_type") or enneagram_data.get("inferred_core")
+            wing_value = enneagram_data.get("wing") or enneagram_data.get("inferred_wing")
+            
+            # Convert wing to int if it's not "balanced"
+            if isinstance(wing_value, str) and wing_value != "balanced":
+                try:
+                    wing_value = int(wing_value)
+                except ValueError:
+                    wing_value = None
+            elif wing_value == "balanced":
+                wing_value = None
+            
+            lens_data["enneagram"]["core_type"] = core_type
+            lens_data["enneagram"]["wing"] = wing_value
+            
+            # Add Enneagram metadata based on core type
+            if core_type:
+                # Centers (Body/Heart/Head)
+                centers_map = {
+                    8: "Body", 9: "Body", 1: "Body",
+                    2: "Heart", 3: "Heart", 4: "Heart",
+                    5: "Head", 6: "Head", 7: "Head"
+                }
+                # Hornevian Groups (Assertive/Compliant/Withdrawn)
+                hornevian_map = {
+                    3: "Assertive", 7: "Assertive", 8: "Assertive",
+                    1: "Compliant", 2: "Compliant", 6: "Compliant",
+                    4: "Withdrawn", 5: "Withdrawn", 9: "Withdrawn"
+                }
+                # Harmonic Groups (Positive/Competency/Reactive)
+                harmonic_map = {
+                    2: "Positive", 7: "Positive", 9: "Positive",
+                    1: "Competency", 3: "Competency", 5: "Competency",
+                    4: "Reactive", 6: "Reactive", 8: "Reactive"
+                }
+                # Growth and Stress directions
+                growth_map = {1: 7, 2: 4, 3: 6, 4: 1, 5: 8, 6: 9, 7: 5, 8: 2, 9: 3}
+                stress_map = {1: 4, 2: 8, 3: 9, 4: 2, 5: 7, 6: 3, 7: 1, 8: 5, 9: 6}
+                
+                lens_data["enneagram"]["center"] = centers_map.get(core_type)
+                lens_data["enneagram"]["hornevian_group"] = hornevian_map.get(core_type)
+                lens_data["enneagram"]["harmonic_group"] = harmonic_map.get(core_type)
+                lens_data["enneagram"]["growth_direction"] = growth_map.get(core_type)
+                lens_data["enneagram"]["stress_direction"] = stress_map.get(core_type)
+        
+        # === Patterns ===
+        pattern_cache = await db.pattern_cache.find_one({
+            "user_id": user_id,
+            "cache_type": "pattern_graph"
+        })
+        if pattern_cache and pattern_cache.get("categories"):
+            categories = pattern_cache.get("categories", [])
+            active_domains = []
+            recurring_domains = []
+            
+            for cat in categories:
+                signal = cat.get("signal_strength", "")
+                domain_name = cat.get("category_name")
+                if domain_name:
+                    if signal == "active":
+                        active_domains.append(domain_name)
+                    elif signal in ["emerging", "recurring"]:
+                        recurring_domains.append(domain_name)
+            
+            lens_data["patterns"]["active_domains"] = active_domains
+            lens_data["patterns"]["recurring_domains"] = recurring_domains
+    
+    except Exception as e:
+        logger.warning(f"[MemberLensData] Error building lens data for {user_id}: {e}")
+    
+    return lens_data
+
+
+def build_forum_dynamics_context(members_lens_data: List[dict]) -> dict:
+    """
+    Build a structured context object for Forum Chat and Forum Dynamics.
+    Aggregates member lens data into distributions and summaries.
+    
+    Args:
+        members_lens_data: List of forum_member_lens_data objects
+    
+    Returns:
+        Structured context object for AI interpretation
+    """
+    context = {
+        "forum_members": members_lens_data,
+        "member_count": len(members_lens_data),
+        
+        # Distributions
+        "hd_type_distribution": {},
+        "hd_authority_distribution": {},
+        "hd_profile_distribution": {},
+        "enneagram_distribution": {},
+        "astrology_elements": {},
+        "astrology_modalities": {},
+        "numerology_life_paths": {},
+        
+        # Active patterns across forum
+        "active_pattern_domains": [],
+        
+        # Center coverage (for channel/gate dynamics later)
+        "defined_centers_coverage": {},
+        "undefined_centers_coverage": {}
+    }
+    
+    pattern_domain_counts = {}
+    
+    for member in members_lens_data:
+        # HD Type distribution
+        hd = member.get("human_design", {})
+        if hd.get("type"):
+            hd_type = hd["type"]
+            context["hd_type_distribution"][hd_type] = context["hd_type_distribution"].get(hd_type, 0) + 1
+        
+        # HD Authority distribution
+        if hd.get("authority"):
+            auth = hd["authority"]
+            context["hd_authority_distribution"][auth] = context["hd_authority_distribution"].get(auth, 0) + 1
+        
+        # HD Profile distribution
+        if hd.get("profile"):
+            profile = hd["profile"]
+            context["hd_profile_distribution"][profile] = context["hd_profile_distribution"].get(profile, 0) + 1
+        
+        # Center coverage
+        for center in hd.get("centers_defined", []):
+            context["defined_centers_coverage"][center] = context["defined_centers_coverage"].get(center, 0) + 1
+        for center in hd.get("centers_undefined", []):
+            context["undefined_centers_coverage"][center] = context["undefined_centers_coverage"].get(center, 0) + 1
+        
+        # Enneagram distribution
+        enneagram = member.get("enneagram", {})
+        if enneagram.get("core_type"):
+            etype = enneagram["core_type"]
+            context["enneagram_distribution"][etype] = context["enneagram_distribution"].get(etype, 0) + 1
+        
+        # Astrology elements
+        astro = member.get("astrology", {})
+        if astro.get("dominant_element"):
+            elem = astro["dominant_element"]
+            context["astrology_elements"][elem] = context["astrology_elements"].get(elem, 0) + 1
+        if astro.get("dominant_modality"):
+            mod = astro["dominant_modality"]
+            context["astrology_modalities"][mod] = context["astrology_modalities"].get(mod, 0) + 1
+        
+        # Numerology life paths - handle both simple numbers and dict format
+        numerology = member.get("numerology", {})
+        if numerology.get("life_path"):
+            lp = numerology["life_path"]
+            # Handle dict format (e.g., {"number": 11, "description": "..."})
+            if isinstance(lp, dict):
+                lp = lp.get("number")
+            if lp:
+                context["numerology_life_paths"][lp] = context["numerology_life_paths"].get(lp, 0) + 1
+        
+        # Pattern domains
+        patterns = member.get("patterns", {})
+        for domain in patterns.get("active_domains", []):
+            pattern_domain_counts[domain] = pattern_domain_counts.get(domain, 0) + 1
+    
+    # Sort pattern domains by count
+    context["active_pattern_domains"] = sorted(
+        [{"domain": k, "count": v} for k, v in pattern_domain_counts.items()],
+        key=lambda x: -x["count"]
+    )
+    
+    return context
+
+
+@api_router.get("/forums/{forum_id}/member-lens/{member_user_id}")
+async def get_forum_member_lens(forum_id: str, member_user_id: str, user_id: str):
+    """
+    Get detailed lens data for a specific forum member.
+    Used by Member Lens Profile modal.
+    """
+    logger.info(f"[ForumMemberLens] Getting lens data for member {member_user_id[:8]}... in forum {forum_id}")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    
+    # Check requester membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    # Check target member is also in forum
+    target_membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": member_user_id,
+        "status": "active"
+    })
+    
+    if not target_membership:
+        raise HTTPException(status_code=404, detail="Member not found in this forum")
+    
+    # Get lens data
+    lens_data = await get_member_lens_data(member_user_id)
+    
+    return {
+        "success": True,
+        "lens_data": lens_data
+    }
+
+
+@api_router.get("/forums/{forum_id}/dynamics-context")
+async def get_forum_dynamics_context(forum_id: str, user_id: str):
+    """
+    Get the aggregated dynamics context for a forum.
+    Returns structured data for Forum Chat and future dynamics features.
+    """
+    logger.info(f"[ForumDynamics] Building dynamics context for forum {forum_id}")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    
+    # Check membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    # Get all active member IDs
+    members_cursor = db.forum_members.find({
+        "forum_id": forum_id,
+        "status": "active"
+    })
+    
+    member_user_ids = []
+    async for m in members_cursor:
+        member_user_ids.append(m["user_id"])
+    
+    # Build lens data for all members
+    members_lens_data = []
+    for mid in member_user_ids:
+        lens_data = await get_member_lens_data(mid)
+        members_lens_data.append(lens_data)
+    
+    # Build dynamics context
+    context = build_forum_dynamics_context(members_lens_data)
+    
+    return {
+        "success": True,
+        "context": context
+    }
+
+
+# =====================================================================
+# FORUM CHAT V1 - Reflective AI Assistant for Forum Dynamics
+# Uses existing forum_member_lens_data and forum_dynamics_context
+# =====================================================================
+
+# Rate limiting for Forum Chat: 1 request per 3 seconds per user
+forum_chat_rate_limits: Dict[str, float] = {}
+
+FORUM_CHAT_SYSTEM_PROMPT = """You are Emergent!, acting as a reflective facilitator for a forum community in Project Mirror.
+
+YOUR ROLE:
+You help forum members understand themselves, each other, and the group dynamics through the lens of their shared profiles (Human Design, Enneagram, Astrology, Numerology, and Pattern work).
+
+TONE & STYLE:
+- Write like a thoughtful facilitator, not an analytical system
+- Reflective and curious, not authoritative
+- Non-deterministic - avoid claims of certainty
+- Agency-preserving - the user decides meaning
+- Calm, warm, and grounded
+
+USE LANGUAGE LIKE:
+- "may suggest"
+- "might indicate"  
+- "could reflect"
+- "one possibility is"
+- "this combination seems to..."
+- "there's often..."
+- "that can create..."
+
+NEVER:
+- Diagnose people or claim to know their truth
+- Make deterministic predictions
+- Tell people what they should or must do
+- Claim certainty about personality or behavior
+- Use section headers like "Observation:", "Interpretation:", etc.
+
+Mirror is a mirror, not a guru. You reflect patterns for contemplation.
+
+RESPONSE FORMAT:
+- Write 2-4 short paragraphs in a conversational, reflective tone
+- No section headers or bullet points
+- End naturally with a reflective question
+- Keep it concise but meaningful
+
+EXAMPLE STYLE:
+"Looking at the mix of lenses represented in this forum, there seems to be a combination of strong initiating energy and reflective depth. That often creates groups where ideas move quickly but meaning unfolds more slowly.
+
+Some members may naturally push conversations forward, while others help the group pause and explore what's underneath those ideas. When those two rhythms work together, a forum can become both dynamic and deeply supportive.
+
+One thing the group might explore is this: how does each person naturally contribute to the forum's movement — initiating, holding space, questioning, or synthesizing?"
+"""
+
+class ForumChatMode(str, Enum):
+    SELF = "self"
+    MEMBER = "member"
+    FORUM = "forum"
+
+class ForumChatRequest(BaseModel):
+    user_id: str
+    message: str
+    mode: ForumChatMode
+    target_member_id: Optional[str] = None
+
+class ForumChatResponse(BaseModel):
+    success: bool
+    message_id: str
+    response: str
+    timestamp: str
+
+
+def check_forum_chat_rate_limit(user_id: str, cooldown_seconds: float = 3.0) -> bool:
+    """Check if user can make a forum chat request (3 second cooldown)."""
+    import time
+    current_time = time.time()
+    last_request = forum_chat_rate_limits.get(user_id, 0)
+    
+    if current_time - last_request < cooldown_seconds:
+        return False
+    
+    forum_chat_rate_limits[user_id] = current_time
+    return True
+
+
+async def build_forum_chat_context(
+    forum_id: str,
+    user_id: str,
+    mode: ForumChatMode,
+    target_member_id: Optional[str] = None
+) -> str:
+    """
+    Build context string for Forum Chat based on mode.
+    Uses existing get_member_lens_data() and build_forum_dynamics_context().
+    
+    SELF mode: user profile + forum summary
+    MEMBER mode: user profile + target member profile + forum summary
+    FORUM mode: forum summary only
+    """
+    context_parts = []
+    
+    # Get all forum members for dynamics context
+    members_cursor = db.forum_members.find({
+        "forum_id": forum_id,
+        "status": "active"
+    })
+    member_user_ids = []
+    async for m in members_cursor:
+        member_user_ids.append(m["user_id"])
+    
+    # Build members lens data
+    members_lens_data = []
+    for mid in member_user_ids:
+        lens_data = await get_member_lens_data(mid)
+        members_lens_data.append(lens_data)
+    
+    # Build dynamics context
+    dynamics = build_forum_dynamics_context(members_lens_data)
+    
+    # Format user profile if needed
+    if mode in [ForumChatMode.SELF, ForumChatMode.MEMBER]:
+        user_lens = await get_member_lens_data(user_id)
+        context_parts.append("--- YOUR PROFILE (Requesting User) ---")
+        context_parts.append(format_lens_for_prompt(user_lens))
+    
+    # Format target member profile if needed
+    if mode == ForumChatMode.MEMBER and target_member_id:
+        target_lens = await get_member_lens_data(target_member_id)
+        context_parts.append("\n--- TARGET MEMBER PROFILE ---")
+        context_parts.append(format_lens_for_prompt(target_lens))
+    
+    # Format forum dynamics summary
+    context_parts.append("\n--- FORUM DYNAMICS SUMMARY ---")
+    context_parts.append(format_dynamics_for_prompt(dynamics))
+    
+    return "\n".join(context_parts)
+
+
+def format_lens_for_prompt(lens_data: dict) -> str:
+    """Format a member's lens data as a readable string for the LLM prompt."""
+    parts = []
+    
+    name = lens_data.get("name", "Anonymous")
+    parts.append(f"Name: {name}")
+    
+    # Human Design
+    hd = lens_data.get("human_design", {})
+    if hd.get("type"):
+        hd_line = f"Human Design: {hd.get('type')}"
+        if hd.get("profile"):
+            hd_line += f" • {hd.get('profile')}"
+        if hd.get("authority"):
+            hd_line += f" • {hd.get('authority')} Authority"
+        parts.append(hd_line)
+        
+        if hd.get("definition"):
+            parts.append(f"  Definition: {hd.get('definition')}")
+        if hd.get("centers_defined"):
+            parts.append(f"  Defined Centers: {', '.join(hd.get('centers_defined', []))}")
+        if hd.get("centers_undefined"):
+            parts.append(f"  Open Centers: {', '.join(hd.get('centers_undefined', []))}")
+    
+    # Enneagram
+    enneagram = lens_data.get("enneagram", {})
+    if enneagram.get("core_type"):
+        enne_line = f"Enneagram: Type {enneagram.get('core_type')}"
+        if enneagram.get("wing"):
+            enne_line += f"w{enneagram.get('wing')}"
+        parts.append(enne_line)
+    
+    # Astrology
+    astro = lens_data.get("astrology", {})
+    if astro.get("sun") or astro.get("moon"):
+        astro_line = "Astrology:"
+        if astro.get("sun"):
+            astro_line += f" Sun in {astro.get('sun')}"
+        if astro.get("moon"):
+            astro_line += f", Moon in {astro.get('moon')}"
+        if astro.get("rising"):
+            astro_line += f", {astro.get('rising')} Rising"
+        parts.append(astro_line)
+    
+    # Numerology
+    numerology = lens_data.get("numerology", {})
+    if numerology.get("life_path"):
+        lp = numerology.get("life_path")
+        # Handle dict format
+        if isinstance(lp, dict):
+            lp = lp.get("number")
+        parts.append(f"Numerology: Life Path {lp}")
+    
+    # Patterns
+    patterns = lens_data.get("patterns", {})
+    if patterns.get("active_domains"):
+        parts.append(f"Active Pattern Domains: {', '.join(patterns.get('active_domains', []))}")
+    if patterns.get("recurring_domains"):
+        parts.append(f"Recurring Domains: {', '.join(patterns.get('recurring_domains', []))}")
+    
+    return "\n".join(parts)
+
+
+def format_dynamics_for_prompt(dynamics: dict) -> str:
+    """Format forum dynamics context as a readable string for the LLM prompt."""
+    parts = []
+    
+    member_count = dynamics.get("member_count", 0)
+    parts.append(f"Forum has {member_count} active member(s)")
+    
+    # HD Type distribution
+    hd_dist = dynamics.get("hd_type_distribution", {})
+    if hd_dist:
+        hd_summary = ", ".join([f"{k}: {v}" for k, v in hd_dist.items()])
+        parts.append(f"Human Design Types: {hd_summary}")
+    
+    # HD Authority distribution
+    auth_dist = dynamics.get("hd_authority_distribution", {})
+    if auth_dist:
+        auth_summary = ", ".join([f"{k}: {v}" for k, v in auth_dist.items()])
+        parts.append(f"Authorities: {auth_summary}")
+    
+    # Enneagram distribution
+    enne_dist = dynamics.get("enneagram_distribution", {})
+    if enne_dist:
+        enne_summary = ", ".join([f"Type {k}: {v}" for k, v in enne_dist.items()])
+        parts.append(f"Enneagram Types: {enne_summary}")
+    
+    # Astrology elements
+    elem_dist = dynamics.get("astrology_elements", {})
+    if elem_dist:
+        elem_summary = ", ".join([f"{k}: {v}" for k, v in elem_dist.items()])
+        parts.append(f"Dominant Elements: {elem_summary}")
+    
+    # Active pattern domains
+    pattern_domains = dynamics.get("active_pattern_domains", [])
+    if pattern_domains:
+        domain_names = [d.get("domain", "") for d in pattern_domains[:5]]
+        parts.append(f"Active Pattern Domains: {', '.join(domain_names)}")
+    
+    # Center coverage (for future dynamics)
+    defined_centers = dynamics.get("defined_centers_coverage", {})
+    if defined_centers:
+        coverage = ", ".join([f"{k}({v})" for k, v in list(defined_centers.items())[:5]])
+        parts.append(f"Center Coverage (defined): {coverage}")
+    
+    return "\n".join(parts)
+
+
+@api_router.get("/forums/{forum_id}/chat/history")
+async def get_forum_chat_history(forum_id: str, user_id: str, limit: int = 50):
+    """Get chat history for a forum (scoped to that forum)."""
+    logger.info(f"[ForumChat] Getting chat history for forum {forum_id}, user {user_id[:8]}...")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    
+    # Check membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    # Fetch chat history for this forum (user's messages only)
+    messages_cursor = db.forum_chat_messages.find({
+        "forum_id": forum_id,
+        "user_id": user_id
+    }).sort("timestamp", 1).limit(limit)
+    
+    messages = []
+    async for msg in messages_cursor:
+        messages.append({
+            "id": str(msg["_id"]),
+            "mode": msg.get("mode"),
+            "target_member_id": msg.get("target_member_id"),
+            "target_member_name": msg.get("target_member_name"),
+            "message": msg.get("message"),
+            "response": msg.get("response"),
+            "timestamp": msg["timestamp"].isoformat() if msg.get("timestamp") else None
+        })
+    
+    return {
+        "success": True,
+        "messages": messages
+    }
+
+
+@api_router.post("/forums/{forum_id}/chat", response_model=ForumChatResponse)
+async def forum_chat(forum_id: str, request: ForumChatRequest):
+    """
+    Forum Chat - Reflective AI assistant for forum dynamics.
+    
+    Modes:
+    - SELF: User asking about themselves in forum context
+    - MEMBER: User asking about another forum member
+    - FORUM: User asking about group dynamics
+    """
+    import time
+    import asyncio
+    
+    logger.info(f"[ForumChat] Request: forum={forum_id}, user={request.user_id[:8]}..., mode={request.mode}")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    
+    # Rate limiting (3 second cooldown)
+    if not check_forum_chat_rate_limit(request.user_id):
+        raise HTTPException(status_code=429, detail="Please wait a moment before sending another message.")
+    
+    # Validate membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": request.user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    # Validate target member for MEMBER mode
+    target_member_name = None
+    if request.mode == ForumChatMode.MEMBER:
+        if not request.target_member_id:
+            raise HTTPException(status_code=400, detail="target_member_id required for member mode")
+        
+        target_membership = await db.forum_members.find_one({
+            "forum_id": forum_id,
+            "user_id": request.target_member_id,
+            "status": "active"
+        })
+        
+        if not target_membership:
+            raise HTTPException(status_code=404, detail="Target member not found in this forum")
+        
+        # Get target member name
+        target_user = await db.users.find_one({"_id": ObjectId(request.target_member_id)})
+        target_member_name = target_user.get("name", "Unknown") if target_user else "Unknown"
+    
+    try:
+        if not EMERGENT_LLM_KEY:
+            logger.error("[ForumChat] EMERGENT_LLM_KEY not configured!")
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        # Build context based on mode
+        context = await build_forum_chat_context(
+            forum_id=forum_id,
+            user_id=request.user_id,
+            mode=request.mode,
+            target_member_id=request.target_member_id
+        )
+        
+        # Get recent chat history (last 5 exchanges = 10 messages)
+        recent_history = await db.forum_chat_messages.find({
+            "forum_id": forum_id,
+            "user_id": request.user_id
+        }).sort("timestamp", -1).limit(5).to_list(5)
+        
+        # Reverse to chronological order
+        recent_history = list(reversed(recent_history))
+        
+        # Build conversation history for LLM
+        history_parts = []
+        if recent_history:
+            history_parts.append("\n--- RECENT CONVERSATION ---")
+            for msg in recent_history:
+                history_parts.append(f"User ({msg.get('mode', 'unknown')} mode): {msg.get('message', '')[:300]}")
+                history_parts.append(f"Mirror: {msg.get('response', '')[:500]}")
+        
+        # Build full system prompt
+        system_prompt = FORUM_CHAT_SYSTEM_PROMPT
+        system_prompt += "\n\n--- FORUM CONTEXT ---\n" + context
+        if history_parts:
+            system_prompt += "\n" + "\n".join(history_parts)
+        
+        # Add mode-specific instruction
+        if request.mode == ForumChatMode.SELF:
+            system_prompt += "\n\nThe user is asking about THEMSELVES in the context of this forum."
+        elif request.mode == ForumChatMode.MEMBER:
+            system_prompt += f"\n\nThe user is asking about another member ({target_member_name}). Be respectful and focus on potential strengths and perspectives."
+        else:  # FORUM mode
+            system_prompt += "\n\nThe user is asking about the FORUM GROUP DYNAMICS as a whole."
+        
+        # Call LLM using emergent_generate
+        from emergent_contract import emergent_generate
+        
+        try:
+            response_text = await asyncio.wait_for(
+                emergent_generate(
+                    mode="reflection_chat",
+                    user_message=request.message,
+                    endpoint="forum_chat",
+                    user_id=request.user_id,
+                    context={"forum_id": forum_id, "mode": request.mode.value},
+                    additional_system_prompt=system_prompt,
+                    model="gpt-5.2"
+                ),
+                timeout=60.0
+            )
+            logger.info(f"[ForumChat] LLM response received, length={len(response_text) if response_text else 0}")
+        except asyncio.TimeoutError:
+            logger.error(f"[ForumChat] LLM timeout for user {request.user_id}")
+            raise HTTPException(status_code=504, detail="Mirror is taking too long. Please try again.")
+        
+        # Store message in database
+        now = datetime.now(timezone.utc)
+        message_doc = {
+            "forum_id": forum_id,
+            "user_id": request.user_id,
+            "mode": request.mode.value,
+            "target_member_id": request.target_member_id,
+            "target_member_name": target_member_name,
+            "message": request.message,
+            "response": response_text,
+            "timestamp": now
+        }
+        
+        result = await db.forum_chat_messages.insert_one(message_doc)
+        message_id = str(result.inserted_id)
+        
+        logger.info(f"[ForumChat] Message stored: {message_id}")
+        
+        return ForumChatResponse(
+            success=True,
+            message_id=message_id,
+            response=response_text,
+            timestamp=now.isoformat()
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[ForumChat] Error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to process chat request")
+
+
+# =====================================================================
+# FORUM STORY - Reflective narrative about the forum's collective composition
+# =====================================================================
+
+FORUM_STORY_SYSTEM_PROMPT = """You are Emergent!, a reflective facilitator helping a forum community explore what their collective composition might suggest about their shared learning space.
+
+YOUR ROLE:
+Generate a calm, thoughtful narrative about the group's composition based on their combined lens data (Human Design, Enneagram, Astrology, Numerology, and Pattern work).
+
+TONE GUIDELINES:
+- Reflective facilitator, not analyst
+- Non-deterministic and exploratory
+- Calm, warm, and grounded
+- Agency-preserving - the group decides meaning
+
+USE LANGUAGE LIKE:
+- "may suggest"
+- "might reflect"
+- "could create space for"
+- "often brings"
+- "may invite"
+- "this mix sometimes..."
+- "groups like this often find..."
+
+AVOID:
+- Mystical or prophetic claims ("you were brought together for...")
+- Deterministic predictions
+- Lists of statistics or raw numbers
+- Long essays
+- Analytical frameworks or categories
+- Markdown headers (###) or bold formatting
+
+OUTPUT FORMAT:
+Write exactly 3 sections followed by a reflective question. Use these EXACT section markers:
+
+[SECTION:What this circle may bring]
+One paragraph about potential strengths or energies the group composition may offer.
+
+[SECTION:Perspectives that may be present]
+One paragraph about the diversity of orientations, tempos, or ways of engaging that may exist.
+
+[SECTION:Growth edges this group might explore]
+One paragraph about possible tensions or growth opportunities when different perspectives meet.
+
+[QUESTION]
+A single reflective question for the group to consider together.
+
+Keep each section to 2-4 sentences. Write like a wise facilitator offering a gentle reflection.
+"""
+
+
+@api_router.get("/forums/{forum_id}/story")
+async def get_forum_story(forum_id: str, user_id: str):
+    """
+    Generate a reflective narrative about the forum's collective composition.
+    Uses the dynamics context to create a thoughtful story about what the group might bring together.
+    """
+    import asyncio
+    
+    logger.info(f"[ForumStory] Generating story for forum {forum_id}")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    
+    # Check membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    # Check if we have a recent cached story (cache for 24 hours)
+    cache_key = f"forum_story_{forum_id}"
+    cached_story = await db.forum_story_cache.find_one({
+        "forum_id": forum_id,
+        "generated_at": {"$gte": datetime.now(timezone.utc) - timedelta(hours=24)}
+    })
+    
+    if cached_story:
+        logger.info(f"[ForumStory] Returning cached story for forum {forum_id}")
+        return {
+            "success": True,
+            "story": cached_story["story"],
+            "generated_at": cached_story["generated_at"].isoformat(),
+            "from_cache": True
+        }
+    
+    try:
+        if not EMERGENT_LLM_KEY:
+            logger.error("[ForumStory] EMERGENT_LLM_KEY not configured!")
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        # Get all active member IDs
+        members_cursor = db.forum_members.find({
+            "forum_id": forum_id,
+            "status": "active"
+        })
+        
+        member_user_ids = []
+        async for m in members_cursor:
+            member_user_ids.append(m["user_id"])
+        
+        if len(member_user_ids) < 1:
+            raise HTTPException(status_code=400, detail="Forum has no active members")
+        
+        # Build lens data for all members
+        members_lens_data = []
+        for mid in member_user_ids:
+            lens_data = await get_member_lens_data(mid)
+            members_lens_data.append(lens_data)
+        
+        # Build dynamics context
+        dynamics = build_forum_dynamics_context(members_lens_data)
+        
+        # Format dynamics for the prompt
+        context_text = format_dynamics_for_prompt(dynamics)
+        
+        # Build the full prompt
+        user_message = f"""Based on this forum's composition, write a reflective narrative about what this circle of {len(member_user_ids)} members might bring together.
+
+FORUM COMPOSITION:
+{context_text}
+
+Remember: Write a warm, thoughtful reflection in 3-5 paragraphs. End with a reflective question."""
+
+        # Call LLM
+        from emergent_contract import emergent_generate
+        
+        try:
+            story_text = await asyncio.wait_for(
+                emergent_generate(
+                    mode="reflection_chat",
+                    user_message=user_message,
+                    endpoint="forum_story",
+                    user_id=user_id,
+                    context={"forum_id": forum_id},
+                    additional_system_prompt=FORUM_STORY_SYSTEM_PROMPT,
+                    model="gpt-5.2"
+                ),
+                timeout=60.0
+            )
+            logger.info(f"[ForumStory] Story generated, length={len(story_text) if story_text else 0}")
+        except asyncio.TimeoutError:
+            logger.error(f"[ForumStory] LLM timeout for forum {forum_id}")
+            raise HTTPException(status_code=504, detail="Mirror is taking too long. Please try again.")
+        
+        # Cache the story
+        now = datetime.now(timezone.utc)
+        await db.forum_story_cache.update_one(
+            {"forum_id": forum_id},
+            {
+                "$set": {
+                    "forum_id": forum_id,
+                    "story": story_text,
+                    "member_count": len(member_user_ids),
+                    "generated_at": now
+                }
+            },
+            upsert=True
+        )
+        
+        return {
+            "success": True,
+            "story": story_text,
+            "generated_at": now.isoformat(),
+            "from_cache": False
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[ForumStory] Error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to generate forum story")
+
+
+# =====================================================================
+# PAIRWISE DYNAMICS - Reflective comparison between two forum members
+# =====================================================================
+
+PAIRWISE_DYNAMICS_SYSTEM_PROMPT = """You are Emergent!, a reflective facilitator helping two forum members explore how their different profiles might interact.
+
+YOUR ROLE:
+Generate a calm, thoughtful reflection about how two members' profiles may complement or contrast with each other, based on their lens data (Human Design, Enneagram, Astrology, Numerology, and Pattern work).
+
+TONE GUIDELINES:
+- Reflective facilitator, not analyst or relationship counselor
+- Non-deterministic and exploratory
+- Calm, warm, and grounded
+- Agency-preserving - the pair decides what resonates
+
+USE LANGUAGE LIKE:
+- "may bring different approaches"
+- "might complement each other"
+- "could create productive tension"
+- "one person may tend toward... while the other..."
+- "this contrast sometimes invites..."
+
+AVOID:
+- Relationship predictions or diagnoses
+- Deterministic claims about compatibility
+- Rigid framework explanations
+- Lists of differences without reflection
+- Statements like "you will" or "this means"
+
+OUTPUT FORMAT:
+Write exactly 3 short paragraphs followed by a reflective question. Use these EXACT markers:
+
+[COMPLEMENT]
+How these two profiles may complement each other. Focus on what each might naturally bring that the other doesn't.
+
+[TENSION]
+Where tensions or differences may arise. Frame these as growth invitations, not problems.
+
+[INSIGHT]
+What the pair may help each other see or learn. What might become visible through their differences.
+
+[QUESTION]
+A single reflective question for the pair to explore together.
+
+Keep each section to 2-4 sentences. Write like a wise facilitator offering a gentle observation.
+"""
+
+
+class PairwiseDynamicsRequest(BaseModel):
+    user_id: str
+    member_a_id: str
+    member_b_id: str
+
+
+@api_router.post("/forums/{forum_id}/pairwise-dynamics")
+async def get_pairwise_dynamics(forum_id: str, request: PairwiseDynamicsRequest):
+    """
+    Generate a reflective comparison between two forum members.
+    """
+    import asyncio
+    
+    logger.info(f"[PairwiseDynamics] Comparing {request.member_a_id[:8]}... and {request.member_b_id[:8]}...")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    
+    # Verify requester is a member
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": request.user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    # Verify both members are in the forum
+    member_a_membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": request.member_a_id,
+        "status": "active"
+    })
+    member_b_membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": request.member_b_id,
+        "status": "active"
+    })
+    
+    if not member_a_membership or not member_b_membership:
+        raise HTTPException(status_code=404, detail="One or both members not found in this forum")
+    
+    try:
+        if not EMERGENT_LLM_KEY:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        # Fetch lens data for both members
+        member_a_lens = await get_member_lens_data(request.member_a_id)
+        member_b_lens = await get_member_lens_data(request.member_b_id)
+        
+        # Format for prompt
+        context_text = f"""MEMBER A: {member_a_lens.get('name', 'Member A')}
+{format_lens_for_prompt(member_a_lens)}
+
+MEMBER B: {member_b_lens.get('name', 'Member B')}
+{format_lens_for_prompt(member_b_lens)}"""
+        
+        user_message = f"""Based on these two member profiles, write a reflective narrative about how they might interact or complement each other.
+
+{context_text}
+
+Remember: Write a warm, thoughtful reflection. Avoid predictions or deterministic claims. End with a reflective question for the pair."""
+
+        # Call LLM
+        from emergent_contract import emergent_generate
+        
+        try:
+            reflection_text = await asyncio.wait_for(
+                emergent_generate(
+                    mode="reflection_chat",
+                    user_message=user_message,
+                    endpoint="pairwise_dynamics",
+                    user_id=request.user_id,
+                    context={"forum_id": forum_id},
+                    additional_system_prompt=PAIRWISE_DYNAMICS_SYSTEM_PROMPT,
+                    model="gpt-5.2"
+                ),
+                timeout=60.0
+            )
+            logger.info(f"[PairwiseDynamics] Reflection generated, length={len(reflection_text) if reflection_text else 0}")
+        except asyncio.TimeoutError:
+            raise HTTPException(status_code=504, detail="Mirror is taking too long. Please try again.")
+        
+        return {
+            "success": True,
+            "member_a": {
+                "id": request.member_a_id,
+                "name": member_a_lens.get("name", "Member A")
+            },
+            "member_b": {
+                "id": request.member_b_id,
+                "name": member_b_lens.get("name", "Member B")
+            },
+            "reflection": reflection_text
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[PairwiseDynamics] Error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to generate pairwise dynamics")
+
+
+# =====================================================================
+# FORUM PATTERN MAP - Task 48
+# Visualizes shared life patterns across forum members
+# =====================================================================
+
+@api_router.get("/forums/{forum_id}/pattern-map")
+async def get_forum_pattern_map(forum_id: str, user_id: str):
+    """
+    Get the Forum Pattern Map - aggregated patterns across all forum members.
+    
+    Detects:
+    1. Shared Pattern Types - When multiple members have similar pattern arcs
+    2. Timeline Clusters - Event concentrations across members in time windows
+    
+    Returns pattern visualization data with Mirror language principles.
+    """
+    logger.info(f"[ForumPatternMap] Generating pattern map for forum {forum_id} (requested by {user_id[:8]}...)")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    # Check membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    try:
+        from services.forum_pattern_map import generate_forum_pattern_map
+        
+        pattern_map = await generate_forum_pattern_map(db, forum_id)
+        
+        logger.info(f"[ForumPatternMap] Generated: members={pattern_map['member_count']} events={pattern_map['events_total']} patterns={len(pattern_map['shared_patterns'])} clusters={len(pattern_map['timeline_clusters'])}")
+        
+        return pattern_map
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[ForumPatternMap] Error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to generate forum pattern map")
+
+
+# =====================================================================
+# FORUM DATA EXPORT/IMPORT - Admin endpoints for data migration
+# =====================================================================
+
+class ForumImportRequest(BaseModel):
+    """Request model for importing forum data"""
+    forum_data: dict
+    new_forum_name: str = None  # Optional: rename forum on import
+    admin_key: str  # Simple security key
+
+ADMIN_MIGRATION_KEY = "forum_migration_2024"  # Simple key for security
+
+@api_router.get("/admin/forum/export/{forum_name}")
+async def export_forum_by_name(forum_name: str, admin_key: str):
+    """
+    Export a forum and all related data by forum name.
+    Returns JSON that can be imported into another environment.
+    
+    Security: Requires admin_key query parameter.
+    """
+    if admin_key != ADMIN_MIGRATION_KEY:
+        raise HTTPException(status_code=403, detail="Invalid admin key")
+    
+    try:
+        # Find forum by name (case-insensitive)
+        forum = await db.forums.find_one({
+            "name": {"$regex": f"^{forum_name}$", "$options": "i"}
+        })
+        
+        if not forum:
+            raise HTTPException(status_code=404, detail=f"Forum '{forum_name}' not found")
+        
+        forum_id = str(forum["_id"])
+        logger.info(f"[ForumExport] Exporting forum: {forum_name} (ID: {forum_id})")
+        
+        # Export forum record
+        forum_export = {
+            "name": forum.get("name"),
+            "description": forum.get("description"),
+            "invite_token": forum.get("invite_token"),
+            "created_by": forum.get("created_by"),
+            "active_exercise_id": forum.get("active_exercise_id"),
+            "created_at": forum.get("created_at").isoformat() if forum.get("created_at") else None,
+        }
+        
+        # Export members
+        members_cursor = db.forum_members.find({"forum_id": forum_id})
+        members = []
+        async for member in members_cursor:
+            members.append({
+                "user_id": member.get("user_id"),
+                "role": member.get("role"),
+                "joined_at": member.get("joined_at").isoformat() if member.get("joined_at") else None,
+            })
+        
+        # Export reflections
+        reflections_cursor = db.forum_reflections.find({"forum_id": forum_id})
+        reflections = []
+        async for reflection in reflections_cursor:
+            reflections.append({
+                "user_id": reflection.get("user_id"),
+                "exercise_id": reflection.get("exercise_id"),
+                "selected_domain": reflection.get("selected_domain"),
+                "reflection_text": reflection.get("reflection_text"),
+                "is_shared": reflection.get("is_shared", False),
+                "created_at": reflection.get("created_at").isoformat() if reflection.get("created_at") else None,
+            })
+        
+        # Export chat messages
+        chat_cursor = db.forum_chat_messages.find({"forum_id": forum_id})
+        chat_messages = []
+        async for msg in chat_cursor:
+            chat_messages.append({
+                "user_id": msg.get("user_id"),
+                "mode": msg.get("mode"),
+                "target_member_id": msg.get("target_member_id"),
+                "message": msg.get("message"),
+                "response": msg.get("response"),
+                "timestamp": msg.get("timestamp").isoformat() if msg.get("timestamp") else None,
+            })
+        
+        # Export forum story cache
+        story_cache = await db.forum_story_cache.find_one({"forum_id": forum_id})
+        story_cache_export = None
+        if story_cache:
+            story_cache_export = {
+                "story": story_cache.get("story"),
+                "generated_at": story_cache.get("generated_at").isoformat() if story_cache.get("generated_at") else None,
+            }
+        
+        # Get user info for members (names)
+        user_ids = [m["user_id"] for m in members]
+        users_info = {}
+        for uid in user_ids:
+            try:
+                user = await db.users.find_one({"_id": ObjectId(uid)})
+                if user:
+                    users_info[uid] = {
+                        "name": user.get("name"),
+                        "email": user.get("email"),
+                    }
+            except:
+                pass
+        
+        export_data = {
+            "export_version": "1.0",
+            "exported_at": datetime.utcnow().isoformat(),
+            "source_forum_id": forum_id,
+            "forum": forum_export,
+            "members": members,
+            "members_info": users_info,
+            "reflections": reflections,
+            "chat_messages": chat_messages,
+            "story_cache": story_cache_export,
+            "stats": {
+                "member_count": len(members),
+                "reflection_count": len(reflections),
+                "chat_message_count": len(chat_messages),
+                "has_story_cache": story_cache_export is not None,
+            }
+        }
+        
+        logger.info(f"[ForumExport] Export complete: {len(members)} members, {len(reflections)} reflections, {len(chat_messages)} chat messages")
+        
+        return export_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[ForumExport] Error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+
+@api_router.post("/admin/forum/import")
+async def import_forum(request: ForumImportRequest):
+    """
+    Import a forum from exported JSON data.
+    Optionally rename the forum on import.
+    
+    Security: Requires admin_key in request body.
+    """
+    if request.admin_key != ADMIN_MIGRATION_KEY:
+        raise HTTPException(status_code=403, detail="Invalid admin key")
+    
+    try:
+        data = request.forum_data
+        forum_info = data.get("forum", {})
+        
+        # Determine forum name
+        new_name = request.new_forum_name or forum_info.get("name")
+        if not new_name:
+            raise HTTPException(status_code=400, detail="Forum name is required")
+        
+        logger.info(f"[ForumImport] Importing forum as: {new_name}")
+        
+        # Check if forum with this name already exists
+        existing = await db.forums.find_one({
+            "name": {"$regex": f"^{new_name}$", "$options": "i"}
+        })
+        
+        if existing:
+            # Delete existing forum and related data
+            existing_id = str(existing["_id"])
+            logger.info(f"[ForumImport] Removing existing forum: {new_name} (ID: {existing_id})")
+            
+            await db.forums.delete_one({"_id": existing["_id"]})
+            await db.forum_members.delete_many({"forum_id": existing_id})
+            await db.forum_reflections.delete_many({"forum_id": existing_id})
+            await db.forum_chat_messages.delete_many({"forum_id": existing_id})
+            await db.forum_story_cache.delete_many({"forum_id": existing_id})
+        
+        # Generate new invite token
+        import secrets
+        new_invite_token = secrets.token_urlsafe(16)
+        
+        # Create new forum
+        forum_doc = {
+            "name": new_name,
+            "description": forum_info.get("description"),
+            "invite_token": new_invite_token,
+            "created_by": forum_info.get("created_by"),
+            "active_exercise_id": forum_info.get("active_exercise_id"),
+            "created_at": datetime.utcnow(),
+        }
+        
+        result = await db.forums.insert_one(forum_doc)
+        new_forum_id = str(result.inserted_id)
+        logger.info(f"[ForumImport] Created forum with ID: {new_forum_id}")
+        
+        # Import members
+        members = data.get("members", [])
+        members_imported = 0
+        for member in members:
+            member_doc = {
+                "forum_id": new_forum_id,
+                "user_id": member.get("user_id"),
+                "role": member.get("role", "member"),
+                "joined_at": datetime.utcnow(),
+            }
+            await db.forum_members.insert_one(member_doc)
+            members_imported += 1
+        
+        # Import reflections
+        reflections = data.get("reflections", [])
+        reflections_imported = 0
+        for reflection in reflections:
+            reflection_doc = {
+                "forum_id": new_forum_id,
+                "user_id": reflection.get("user_id"),
+                "exercise_id": reflection.get("exercise_id"),
+                "selected_domain": reflection.get("selected_domain"),
+                "reflection_text": reflection.get("reflection_text"),
+                "is_shared": reflection.get("is_shared", False),
+                "created_at": datetime.utcnow(),
+            }
+            await db.forum_reflections.insert_one(reflection_doc)
+            reflections_imported += 1
+        
+        # Import chat messages
+        chat_messages = data.get("chat_messages", [])
+        chat_imported = 0
+        for msg in chat_messages:
+            msg_doc = {
+                "forum_id": new_forum_id,
+                "user_id": msg.get("user_id"),
+                "mode": msg.get("mode"),
+                "target_member_id": msg.get("target_member_id"),
+                "message": msg.get("message"),
+                "response": msg.get("response"),
+                "timestamp": datetime.utcnow(),
+            }
+            await db.forum_chat_messages.insert_one(msg_doc)
+            chat_imported += 1
+        
+        # Import story cache if present
+        story_cache = data.get("story_cache")
+        story_imported = False
+        if story_cache and story_cache.get("story"):
+            cache_doc = {
+                "forum_id": new_forum_id,
+                "story": story_cache.get("story"),
+                "generated_at": datetime.utcnow(),
+            }
+            await db.forum_story_cache.insert_one(cache_doc)
+            story_imported = True
+        
+        logger.info(f"[ForumImport] Import complete: {members_imported} members, {reflections_imported} reflections, {chat_imported} chat messages")
+        
+        return {
+            "success": True,
+            "source_forum_id": data.get("source_forum_id"),
+            "destination_forum_id": new_forum_id,
+            "forum_name": new_name,
+            "invite_token": new_invite_token,
+            "stats": {
+                "members_imported": members_imported,
+                "reflections_imported": reflections_imported,
+                "chat_messages_imported": chat_imported,
+                "story_cache_imported": story_imported,
+            },
+            "members_info": data.get("members_info", {}),
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[ForumImport] Error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
+
+# =====================================================================
+# LIFELINE API ENDPOINTS
+# Structured timeline for major life events
+# =====================================================================
+
+# Lifeline Event Categories
+LIFELINE_CATEGORIES = [
+    "Family",
+    "Relationships", 
+    "Career",
+    "Health",
+    "Money",
+    "Spirituality",
+    "Turning Point",
+    "Loss",
+    "Achievement",
+    "Move",
+    "Identity",
+]
+
+# Emotional Tone Options
+EMOTIONAL_TONES = ["positive", "negative", "mixed", "neutral"]
+
+# Privacy Levels
+PRIVACY_LEVELS = ["private", "shareable"]
+
+
+class LifelineEventCreate(BaseModel):
+    """Request model for creating a lifeline event."""
+    user_id: str
+    title: str
+    description: Optional[str] = None
+    year: Optional[int] = None
+    age: Optional[int] = None
+    category: Optional[str] = None
+    emotional_tone: Optional[str] = "neutral"
+    impact_score: Optional[int] = 5  # 1-10 scale
+    tags: Optional[List[str]] = []
+    photos: Optional[List[str]] = []
+    privacy_level: Optional[str] = "private"
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "user_id": "6971c81f2b40fd5ef501d375",
+                "title": "Started my first job",
+                "description": "Began working at a tech startup in San Francisco",
+                "year": 2015,
+                "category": "Career",
+                "emotional_tone": "positive",
+                "impact_score": 8,
+                "tags": ["career", "milestone", "growth"],
+                "privacy_level": "private"
+            }
+        }
+
+
+class LifelineEventUpdate(BaseModel):
+    """Request model for updating a lifeline event."""
+    title: Optional[str] = None
+    description: Optional[str] = None
+    year: Optional[int] = None
+    age: Optional[int] = None
+    category: Optional[str] = None
+    emotional_tone: Optional[str] = None
+    impact_score: Optional[int] = None
+    tags: Optional[List[str]] = None
+    photos: Optional[List[str]] = None
+    privacy_level: Optional[str] = None
+    # Decision Replay fields - for Pattern Lens reflection
+    decision_text: Optional[str] = None  # The decision made at this moment
+    decision_reflection: Optional[str] = None  # How this decision affected the user's path
+
+
+# =============================================================================
+# LIFELINE IMPORT ENDPOINT
+# =============================================================================
+
+@api_router.post("/lifeline/import")
+async def import_lifeline_file(
+    file: UploadFile = File(...),
+    user_id: str = Form(...)
+):
+    """
+    Import timeline events from uploaded files.
+    
+    Supported file formats:
+    - PowerPoint (.pptx)
+    - PDF (.pdf)
+    - Excel (.xlsx, .xls)
+    - CSV (.csv)
+    - Images (.jpg, .jpeg, .png) - uses OCR
+    
+    The endpoint extracts text from the file, detects life events with years,
+    classifies them into categories, and returns a list of event candidates
+    with confidence scores.
+    
+    Maximum file size: 10MB
+    Maximum events returned: 10
+    
+    Request:
+    - file: multipart file upload
+    - user_id: user ID string (form field)
+    
+    Response:
+    {
+        "events": [
+            {
+                "id": "import-abc123-0",
+                "year": 2015,
+                "title": "Started new career path",
+                "description": "Full extracted text...",
+                "category": "Career",
+                "confidence": 0.84
+            }
+        ],
+        "message": "Successfully extracted 5 events.",
+        "success": true
+    }
+    """
+    import os
+    
+    logger.info(f"[LifelineImport] Received file '{file.filename}' for user {user_id}")
+    
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Validate file extension
+        ext = os.path.splitext(file.filename.lower())[1]
+        if ext not in SUPPORTED_EXTENSIONS:
+            return {
+                "events": [],
+                "message": f"Unsupported file format '{ext}'. Supported formats: {', '.join(SUPPORTED_EXTENSIONS.keys())}",
+                "success": False
+            }
+        
+        # Read file content
+        file_bytes = await file.read()
+        
+        # Validate file size
+        if len(file_bytes) > MAX_FILE_SIZE:
+            return {
+                "events": [],
+                "message": f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB.",
+                "success": False
+            }
+        
+        # Get user's birth year for age-based detection (optional)
+        birth_year = None
+        if user.get("birth_date"):
+            try:
+                birth_date = user.get("birth_date")
+                if isinstance(birth_date, datetime):
+                    birth_year = birth_date.year
+                elif isinstance(birth_date, str):
+                    birth_year = int(birth_date[:4])
+            except Exception:
+                pass
+        
+        # Process the import
+        result = await process_lifeline_import(
+            file_bytes=file_bytes,
+            filename=file.filename,
+            user_id=user_id,
+            birth_year=birth_year
+        )
+        
+        logger.info(f"[LifelineImport] Extracted {len(result.get('events', []))} events for user {user_id}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[LifelineImport] Error processing file: {e}")
+        return {
+            "events": [],
+            "message": "An error occurred while processing the file. Please try again.",
+            "success": False
+        }
+
+
+@api_router.post("/lifeline/event")
+async def create_lifeline_event(event: LifelineEventCreate):
+    """
+    Create a new lifeline event.
+    
+    Each event represents a meaningful moment in the user's life timeline.
+    Events are used for pattern recognition and chart overlays.
+    
+    Validation:
+    - title is required
+    - year OR age should be provided (both optional but at least one recommended)
+    - impact_score must be between 1 and 10
+    - category should be one of the predefined categories
+    - emotional_tone should be: positive, negative, mixed, or neutral
+    """
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(event.user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Validate title
+        if not event.title or not event.title.strip():
+            raise HTTPException(status_code=400, detail="Title is required")
+        
+        # Validate impact_score
+        if event.impact_score is not None:
+            if event.impact_score < 1 or event.impact_score > 10:
+                raise HTTPException(status_code=400, detail="Impact score must be between 1 and 10")
+        
+        # Validate category if provided
+        if event.category and event.category not in LIFELINE_CATEGORIES:
+            logger.warning(f"[Lifeline] Custom category used: {event.category}")
+            # Allow custom categories but log warning
+        
+        # Validate emotional_tone if provided
+        if event.emotional_tone and event.emotional_tone not in EMOTIONAL_TONES:
+            raise HTTPException(status_code=400, detail=f"Emotional tone must be one of: {', '.join(EMOTIONAL_TONES)}")
+        
+        # Validate privacy_level if provided
+        if event.privacy_level and event.privacy_level not in PRIVACY_LEVELS:
+            raise HTTPException(status_code=400, detail=f"Privacy level must be one of: {', '.join(PRIVACY_LEVELS)}")
+        
+        # Calculate age from year if birth_date available and age not provided
+        calculated_age = event.age
+        if event.year and not event.age:
+            birth_date = user.get("birth_date")
+            if birth_date:
+                if hasattr(birth_date, 'year'):
+                    birth_year = birth_date.year
+                else:
+                    birth_year = int(str(birth_date)[:4])
+                calculated_age = event.year - birth_year
+        
+        # Build event document
+        now = datetime.now(timezone.utc)
+        event_doc = {
+            "user_id": event.user_id,
+            "title": event.title.strip(),
+            "description": event.description.strip() if event.description else None,
+            "year": event.year,
+            "age": calculated_age or event.age,
+            "category": event.category,
+            "emotional_tone": event.emotional_tone or "neutral",
+            "impact_score": event.impact_score or 5,
+            "tags": event.tags or [],
+            "photos": event.photos or [],
+            "privacy_level": event.privacy_level or "private",
+            "created_at": now,
+            "updated_at": now,
+        }
+        
+        # Insert into database
+        result = await db.lifeline_events.insert_one(event_doc)
+        event_doc["_id"] = str(result.inserted_id)
+        
+        logger.info(f"[Lifeline] Created event '{event.title}' for user {event.user_id}")
+        
+        return {
+            "success": True,
+            "message": "Lifeline event created",
+            "event": {
+                "id": str(result.inserted_id),
+                "title": event_doc["title"],
+                "year": event_doc["year"],
+                "age": event_doc["age"],
+                "category": event_doc["category"],
+                "emotional_tone": event_doc["emotional_tone"],
+                "impact_score": event_doc["impact_score"],
+                "tags": event_doc["tags"],
+                "privacy_level": event_doc["privacy_level"],
+                "created_at": now.isoformat(),
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Lifeline] Create error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create event: {str(e)}")
+
+
+@api_router.put("/lifeline/event/{event_id}")
+async def update_lifeline_event(event_id: str, update: LifelineEventUpdate):
+    """
+    Update an existing lifeline event.
+    
+    Only provided fields will be updated.
+    """
+    try:
+        # Validate event exists
+        existing = await db.lifeline_events.find_one({"_id": ObjectId(event_id)})
+        if not existing:
+            raise HTTPException(status_code=404, detail="Event not found")
+        
+        # Build update document
+        update_doc = {"updated_at": datetime.now(timezone.utc)}
+        
+        if update.title is not None:
+            if not update.title.strip():
+                raise HTTPException(status_code=400, detail="Title cannot be empty")
+            update_doc["title"] = update.title.strip()
+        
+        if update.description is not None:
+            update_doc["description"] = update.description.strip() if update.description else None
+        
+        if update.year is not None:
+            update_doc["year"] = update.year
+        
+        if update.age is not None:
+            update_doc["age"] = update.age
+        
+        if update.category is not None:
+            if update.category and update.category not in LIFELINE_CATEGORIES:
+                logger.warning(f"[Lifeline] Custom category used in update: {update.category}")
+            update_doc["category"] = update.category
+        
+        if update.emotional_tone is not None:
+            if update.emotional_tone not in EMOTIONAL_TONES:
+                raise HTTPException(status_code=400, detail=f"Emotional tone must be one of: {', '.join(EMOTIONAL_TONES)}")
+            update_doc["emotional_tone"] = update.emotional_tone
+        
+        if update.impact_score is not None:
+            if update.impact_score < 1 or update.impact_score > 10:
+                raise HTTPException(status_code=400, detail="Impact score must be between 1 and 10")
+            update_doc["impact_score"] = update.impact_score
+        
+        if update.tags is not None:
+            update_doc["tags"] = update.tags
+        
+        if update.photos is not None:
+            update_doc["photos"] = update.photos
+        
+        if update.privacy_level is not None:
+            if update.privacy_level not in PRIVACY_LEVELS:
+                raise HTTPException(status_code=400, detail=f"Privacy level must be one of: {', '.join(PRIVACY_LEVELS)}")
+            update_doc["privacy_level"] = update.privacy_level
+        
+        # Decision Replay fields
+        if update.decision_text is not None:
+            update_doc["decision_text"] = update.decision_text.strip() if update.decision_text else None
+        
+        if update.decision_reflection is not None:
+            update_doc["decision_reflection"] = update.decision_reflection.strip() if update.decision_reflection else None
+        
+        # Apply update
+        await db.lifeline_events.update_one(
+            {"_id": ObjectId(event_id)},
+            {"$set": update_doc}
+        )
+        
+        # Fetch updated document
+        updated = await db.lifeline_events.find_one({"_id": ObjectId(event_id)})
+        
+        logger.info(f"[Lifeline] Updated event {event_id}")
+        
+        return {
+            "success": True,
+            "message": "Event updated",
+            "event": {
+                "id": str(updated["_id"]),
+                "title": updated.get("title"),
+                "description": updated.get("description"),
+                "year": updated.get("year"),
+                "age": updated.get("age"),
+                "category": updated.get("category"),
+                "emotional_tone": updated.get("emotional_tone"),
+                "impact_score": updated.get("impact_score"),
+                "tags": updated.get("tags", []),
+                "photos": updated.get("photos", []),
+                "privacy_level": updated.get("privacy_level"),
+                "decision_text": updated.get("decision_text"),
+                "decision_reflection": updated.get("decision_reflection"),
+                "updated_at": updated.get("updated_at").isoformat() if updated.get("updated_at") else None,
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Lifeline] Update error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update event: {str(e)}")
+
+
+@api_router.delete("/lifeline/event/{event_id}")
+async def delete_lifeline_event(event_id: str):
+    """
+    Delete a lifeline event.
+    """
+    try:
+        # Validate event exists
+        existing = await db.lifeline_events.find_one({"_id": ObjectId(event_id)})
+        if not existing:
+            raise HTTPException(status_code=404, detail="Event not found")
+        
+        # Delete event
+        await db.lifeline_events.delete_one({"_id": ObjectId(event_id)})
+        
+        logger.info(f"[Lifeline] Deleted event {event_id}")
+        
+        return {
+            "success": True,
+            "message": "Event deleted",
+            "deleted_id": event_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Lifeline] Delete error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete event: {str(e)}")
+
+
+@api_router.get("/lifeline/{user_id}")
+async def get_lifeline(user_id: str, include_private: bool = True):
+    """
+    Get all lifeline events for a user, sorted chronologically.
+    
+    Query Parameters:
+    - include_private: Include private events (default: True)
+    
+    Returns events sorted by year (ascending), then by created_at.
+    """
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Build query
+        query = {"user_id": user_id}
+        if not include_private:
+            query["privacy_level"] = "shareable"
+        
+        # Fetch events sorted by year, then created_at
+        cursor = db.lifeline_events.find(query).sort([
+            ("year", 1),  # Chronological by year
+            ("created_at", 1)  # Then by creation time
+        ])
+        
+        events = await cursor.to_list(length=500)  # Reasonable limit
+        
+        # Format response
+        formatted_events = []
+        for event in events:
+            formatted_events.append({
+                "id": str(event["_id"]),
+                "title": event.get("title"),
+                "description": event.get("description"),
+                "year": event.get("year"),
+                "age": event.get("age"),
+                "category": event.get("category"),
+                "emotional_tone": event.get("emotional_tone"),
+                "impact_score": event.get("impact_score"),
+                "tags": event.get("tags", []),
+                "photos": event.get("photos", []),
+                "privacy_level": event.get("privacy_level"),
+                "created_at": event.get("created_at").isoformat() if event.get("created_at") else None,
+                "updated_at": event.get("updated_at").isoformat() if event.get("updated_at") else None,
+            })
+        
+        # Calculate statistics
+        categories_used = list(set(e.get("category") for e in events if e.get("category")))
+        tone_distribution = {}
+        for event in events:
+            tone = event.get("emotional_tone", "neutral")
+            tone_distribution[tone] = tone_distribution.get(tone, 0) + 1
+        
+        year_range = None
+        years = [e.get("year") for e in events if e.get("year")]
+        if years:
+            year_range = {"min": min(years), "max": max(years)}
+        
+        logger.info(f"[Lifeline] Retrieved {len(events)} events for user {user_id}")
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "event_count": len(formatted_events),
+            "events": formatted_events,
+            "statistics": {
+                "categories_used": categories_used,
+                "tone_distribution": tone_distribution,
+                "year_range": year_range,
+            },
+            "available_categories": LIFELINE_CATEGORIES,
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Lifeline] Get error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get lifeline: {str(e)}")
+
+
+@api_router.get("/lifeline/{user_id}/summary")
+async def get_lifeline_summary(user_id: str):
+    """
+    Get a summary of the user's lifeline for pattern analysis.
+    
+    Returns aggregated statistics, key events, and pattern insights.
+    """
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Fetch all events
+        events = await db.lifeline_events.find({"user_id": user_id}).to_list(length=500)
+        
+        if not events:
+            # Generate patterns for empty state
+            patterns = generate_lifeline_patterns([])
+            return {
+                "success": True,
+                "user_id": user_id,
+                "has_lifeline": False,
+                "event_count": 0,
+                "summary": None,
+                "patterns": patterns,
+            }
+        
+        # Calculate various statistics
+        categories = {}
+        emotional_tones = {"positive": 0, "negative": 0, "mixed": 0, "neutral": 0}
+        total_impact = 0
+        high_impact_events = []
+        years_covered = []
+        
+        for event in events:
+            # Category distribution
+            cat = event.get("category")
+            if cat:
+                categories[cat] = categories.get(cat, 0) + 1
+            
+            # Emotional tone
+            tone = event.get("emotional_tone", "neutral")
+            emotional_tones[tone] = emotional_tones.get(tone, 0) + 1
+            
+            # Impact score
+            impact = event.get("impact_score", 5)
+            total_impact += impact
+            
+            # High impact events (8+)
+            if impact >= 8:
+                high_impact_events.append({
+                    "id": str(event["_id"]),
+                    "title": event.get("title"),
+                    "year": event.get("year"),
+                    "category": cat,
+                    "impact_score": impact,
+                })
+            
+            # Years
+            year = event.get("year")
+            if year:
+                years_covered.append(year)
+        
+        # Sort high impact events by impact
+        high_impact_events.sort(key=lambda x: x["impact_score"], reverse=True)
+        
+        # Calculate averages and distributions
+        avg_impact = total_impact / len(events) if events else 0
+        
+        # Identify dominant category
+        dominant_category = max(categories.items(), key=lambda x: x[1])[0] if categories else None
+        
+        # Identify emotional pattern
+        dominant_tone = max(emotional_tones.items(), key=lambda x: x[1])[0]
+        
+        # Generate pattern insights including gap detection
+        # Convert ObjectId to string for pattern analysis
+        events_for_patterns = []
+        for e in events:
+            event_copy = {**e}
+            event_copy['_id'] = str(e['_id'])
+            events_for_patterns.append(event_copy)
+        
+        patterns = generate_full_lifeline_analysis(events_for_patterns)
+        logger.info(f"[Lifeline] Generated {len(patterns.get('insights', []))} pattern insights and {len(patterns.get('missing_periods', []))} gap prompts for user {user_id}")
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "has_lifeline": True,
+            "event_count": len(events),
+            "summary": {
+                "year_span": {
+                    "earliest": min(years_covered) if years_covered else None,
+                    "latest": max(years_covered) if years_covered else None,
+                    "coverage": len(set(years_covered)),
+                },
+                "category_distribution": categories,
+                "dominant_category": dominant_category,
+                "emotional_distribution": emotional_tones,
+                "dominant_emotional_tone": dominant_tone,
+                "average_impact_score": round(avg_impact, 1),
+                "high_impact_events": high_impact_events[:5],  # Top 5
+            },
+            "patterns": patterns,
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Lifeline] Summary error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get summary: {str(e)}")
+
+
+@api_router.get("/lifeline/{user_id}/resonances")
+async def get_lifeline_resonances(user_id: str):
+    """
+    Get chart-timeline resonances for the user's lifeline events.
+    
+    Detects moments where life events align with significant chart signals
+    (Saturn returns, Nodal returns, BaZi cycles, etc.)
+    
+    Returns resonance data with observational, non-predictive language.
+    """
+    from services.chart_resonance import (
+        detect_chart_resonances, 
+        format_resonance_for_display,
+        get_resonance_summary_for_patterns
+    )
+    
+    try:
+        # Validate user exists and get birth data
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get birth year
+        birth_date = user.get("birth_date")
+        if not birth_date:
+            return {
+                "success": True,
+                "user_id": user_id,
+                "resonances": [],
+                "pattern_summary": [],
+                "message": "Birth date required for chart resonance detection"
+            }
+        
+        if isinstance(birth_date, datetime):
+            birth_year = birth_date.year
+        else:
+            birth_year = int(str(birth_date)[:4])
+        
+        # Fetch lifeline events
+        events_cursor = db.lifeline_events.find({"user_id": user_id})
+        events = []
+        async for event in events_cursor:
+            events.append({
+                "id": str(event["_id"]),
+                "title": event.get("title", ""),
+                "year": event.get("year"),
+                "category": event.get("category"),
+                "impact_score": event.get("impact_score", 5),
+            })
+        
+        if not events:
+            return {
+                "success": True,
+                "user_id": user_id,
+                "resonances": [],
+                "pattern_summary": [],
+                "message": "No lifeline events found"
+            }
+        
+        # Detect resonances
+        resonances = detect_chart_resonances(
+            events=events,
+            birth_year=birth_year,
+            tolerance_years=1
+        )
+        
+        # Format for display
+        formatted_resonances = [format_resonance_for_display(r) for r in resonances]
+        
+        # Get pattern summary for Pattern Lens
+        pattern_summary = get_resonance_summary_for_patterns(resonances, max_items=3)
+        
+        # Create lookup map by event_id for frontend
+        resonance_map = {}
+        for r in formatted_resonances:
+            event_id = r["event_id"]
+            if event_id not in resonance_map:
+                resonance_map[event_id] = []
+            resonance_map[event_id].append(r)
+        
+        logger.info(f"[ChartResonance] Found {len(resonances)} resonances for user {user_id}")
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "birth_year": birth_year,
+            "resonances": formatted_resonances,
+            "resonance_map": resonance_map,
+            "pattern_summary": pattern_summary,
+            "total_count": len(resonances),
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[ChartResonance] Error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to detect resonances: {str(e)}")
+
+
+# =============================================================================
+# LIFELINE PATTERN SYNTHESIS - Task 56
+# =============================================================================
+
+@api_router.get("/lifeline/{user_id}/synthesis")
+async def get_lifeline_pattern_synthesis(user_id: str):
+    """
+    Generate a synthesis of the user's lifeline turning points.
+    
+    Identifies recurring life arcs, themes, clusters, and patterns.
+    Returns Mirror-language observations about life patterns.
+    
+    Requires at least 5 lifeline events.
+    """
+    logger.info(f"[LifelineSynthesis] Getting synthesis for user {user_id[:8]}...")
+    
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        from services.lifeline_pattern_synthesis import get_cached_lifeline_synthesis
+        result = await get_cached_lifeline_synthesis(db, user_id)
+        return result
+        
+    except Exception as e:
+        logger.error(f"[LifelineSynthesis] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
+# DAILY PATTERN SIGNAL
+# =============================================================================
+# Task 43: Shows users a daily insight about their recurring life patterns
+
+class DailyPatternSignalResponse(BaseModel):
+    """Response model for Daily Pattern Signal"""
+    success: bool
+    signal_title: str
+    insight_text: str
+    past_reflection: Optional[str] = None  # Reflection on past decisions in similar phases
+    reflective_question: str
+    pattern_type: Optional[str] = None  # "arc", "cycle", "phase", or None
+    pattern_name: Optional[str] = None
+    confidence: float = 0.5
+    generated_at: str
+
+
+@api_router.get("/daily-pattern-signal/{user_id}", response_model=DailyPatternSignalResponse)
+async def get_daily_pattern_signal(user_id: str):
+    """
+    Get a daily pattern signal for the user.
+    
+    Shows the user where they might currently be within one of their recurring life patterns.
+    Uses observational, non-deterministic language ("may", "appears", "seems").
+    
+    Returns:
+    - signal_title: e.g., "Daily Pattern Signal"
+    - insight_text: Reflective observation about current pattern phase
+    - past_reflection: Optional reflection on past decisions during similar phases
+    - reflective_question: A question to invite awareness
+    """
+    from datetime import date as date_type
+    
+    try:
+        # Get today's date for caching
+        today = date_type.today()
+        date_str = today.isoformat()
+        
+        # Check cache first (valid for the whole day)
+        cached = await db.daily_pattern_signals.find_one({
+            "user_id": user_id,
+            "date": date_str
+        })
+        
+        if cached:
+            logger.info(f"[DailyPatternSignal] Returning cached signal for {user_id} on {date_str}")
+            return DailyPatternSignalResponse(
+                success=True,
+                signal_title=cached.get("signal_title", "Daily Pattern Signal"),
+                insight_text=cached.get("insight_text", ""),
+                past_reflection=cached.get("past_reflection"),
+                reflective_question=cached.get("reflective_question", ""),
+                pattern_type=cached.get("pattern_type"),
+                pattern_name=cached.get("pattern_name"),
+                confidence=cached.get("confidence", 0.5),
+                generated_at=cached.get("generated_at", date_str)
+            )
+        
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Create deterministic daily seed
+        seed_input = f"{user_id}:{date_str}:daily-pattern-signal-v1"
+        daily_seed = hashlib.sha256(seed_input.encode()).hexdigest()
+        
+        # Fetch pattern data
+        pattern_data = None
+        try:
+            # Get cached pattern graph if available
+            pattern_cache = await db.pattern_cache.find_one({
+                "user_id": user_id,
+                "cache_type": "pattern_graph"
+            })
+            if pattern_cache:
+                pattern_data = pattern_cache
+        except Exception as pe:
+            logger.debug(f"[DailyPatternSignal] Could not load pattern cache: {pe}")
+        
+        # Fetch lifeline patterns
+        lifeline_patterns = None
+        try:
+            events_cursor = db.lifeline_events.find({"user_id": user_id})
+            events = []
+            async for event in events_cursor:
+                events.append(event)
+            
+            if events:
+                from services.lifeline_patterns import generate_full_lifeline_analysis
+                lifeline_patterns = generate_full_lifeline_analysis(events)
+        except Exception as le:
+            logger.debug(f"[DailyPatternSignal] Could not load lifeline patterns: {le}")
+        
+        # Fetch journal entries for context
+        recent_journal = []
+        try:
+            journal_cursor = db.journal_entries.find(
+                {"user_id": user_id}
+            ).sort("created_at", -1).limit(5)
+            async for entry in journal_cursor:
+                recent_journal.append({
+                    "content": entry.get("content", "")[:200],
+                    "themes": entry.get("themes", []),
+                })
+        except Exception as je:
+            logger.debug(f"[DailyPatternSignal] Could not load journal: {je}")
+        
+        # Build signal based on available data
+        signal_data = _generate_pattern_signal(
+            pattern_data=pattern_data,
+            lifeline_patterns=lifeline_patterns,
+            recent_journal=recent_journal,
+            daily_seed=daily_seed
+        )
+        
+        # Cache the result
+        await db.daily_pattern_signals.update_one(
+            {"user_id": user_id, "date": date_str},
+            {"$set": {
+                **signal_data,
+                "user_id": user_id,
+                "date": date_str,
+                "generated_at": datetime.now(timezone.utc).isoformat()
+            }},
+            upsert=True
+        )
+        
+        logger.info(f"[DailyPatternSignal] Generated signal for {user_id}: type={signal_data.get('pattern_type')}")
+        
+        return DailyPatternSignalResponse(
+            success=True,
+            signal_title=signal_data.get("signal_title", "Daily Pattern Signal"),
+            insight_text=signal_data.get("insight_text", ""),
+            past_reflection=signal_data.get("past_reflection"),
+            reflective_question=signal_data.get("reflective_question", ""),
+            pattern_type=signal_data.get("pattern_type"),
+            pattern_name=signal_data.get("pattern_name"),
+            confidence=signal_data.get("confidence", 0.5),
+            generated_at=signal_data.get("generated_at", date_str)
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[DailyPatternSignal] Error: {type(e).__name__}: {str(e)}")
+        # Return graceful fallback
+        return DailyPatternSignalResponse(
+            success=False,
+            signal_title="Daily Pattern Signal",
+            insight_text="Patterns often reveal themselves in quiet moments. This may be one worth noticing.",
+            past_reflection=None,
+            reflective_question="What familiar feeling seems to be present today?",
+            pattern_type=None,
+            pattern_name=None,
+            confidence=0.3,
+            generated_at=datetime.now(timezone.utc).isoformat()
+        )
+
+
+def _generate_pattern_signal(
+    pattern_data: Optional[Dict[str, Any]],
+    lifeline_patterns: Optional[Dict[str, Any]],
+    recent_journal: List[Dict[str, Any]],
+    daily_seed: str
+) -> Dict[str, Any]:
+    """
+    Generate the daily pattern signal content.
+    
+    Uses observational, non-deterministic language.
+    Never predicts or prescribes.
+    """
+    
+    # Pre-defined signal templates using Mirror language principles
+    # Each includes: insight_text, past_reflection (optional), reflective_question
+    
+    PATTERN_SIGNAL_TEMPLATES = {
+        # For when active patterns are detected
+        "active_pattern": [
+            {
+                "insight_text": "A familiar {pattern_domain} energy may be present today. This could be part of a recurring rhythm in your life.",
+                "past_reflection": "In similar phases before, you may have noticed certain tendencies emerging.",
+                "reflective_question": "What feels recognizable about this moment?"
+            },
+            {
+                "insight_text": "Something in the area of {pattern_domain} seems to be surfacing. You've likely encountered similar terrain before.",
+                "past_reflection": "Past moments like this may have called for a certain kind of attention.",
+                "reflective_question": "What previous experience does this moment remind you of?"
+            },
+            {
+                "insight_text": "There appears to be movement in your {pattern_domain} space. This may echo patterns you've traveled before.",
+                "past_reflection": None,
+                "reflective_question": "What decision might be forming in this moment?"
+            },
+        ],
+        # For tension patterns
+        "tension_pattern": [
+            {
+                "insight_text": "A familiar tension between {category_a} and {category_b} may be present. These two areas of your life seem to be in conversation.",
+                "past_reflection": "You've likely navigated this dynamic before, each time learning something new.",
+                "reflective_question": "What does this tension seem to be asking of you?"
+            },
+            {
+                "insight_text": "There appears to be a pull between {category_a} and {category_b}. This may be a recurring theme worth noticing.",
+                "past_reflection": None,
+                "reflective_question": "Where have you felt this pull before, and what helped then?"
+            },
+        ],
+        # For lifeline-based patterns
+        "lifeline_pattern": [
+            {
+                "insight_text": "Looking at your timeline, a certain rhythm around {theme} seems to appear. Today may be connected to that deeper arc.",
+                "past_reflection": "Similar moments in your past may have carried seeds of what's emerging now.",
+                "reflective_question": "What thread connects this moment to your story?"
+            },
+            {
+                "insight_text": "Your life's pattern suggests {theme} tends to come in waves. This could be one of those moments.",
+                "past_reflection": None,
+                "reflective_question": "What feels like it's completing, and what feels like it's beginning?"
+            },
+        ],
+        # For low-data or general fallback
+        "general": [
+            {
+                "insight_text": "Patterns often reveal themselves in subtle ways. Today may hold a clue to something larger in your life.",
+                "past_reflection": None,
+                "reflective_question": "What recurring feeling or thought has been visiting you lately?"
+            },
+            {
+                "insight_text": "Sometimes the most significant patterns are the quiet ones. This moment may be worth pausing to notice.",
+                "past_reflection": "The past often whispers into the present. Something familiar may be at play.",
+                "reflective_question": "What pattern in your life seems ready to be seen?"
+            },
+            {
+                "insight_text": "Life moves in cycles, some visible and some hidden. Today may be part of a rhythm you're beginning to recognize.",
+                "past_reflection": None,
+                "reflective_question": "What does this moment seem to be echoing from your past?"
+            },
+            {
+                "insight_text": "A familiar pressure or ease may be present today. This could be connected to a deeper pattern in your journey.",
+                "past_reflection": None,
+                "reflective_question": "What decision may be forming in this moment?"
+            },
+        ]
+    }
+    
+    # Determine pattern type and select template
+    pattern_type = None
+    pattern_name = None
+    template_category = "general"
+    template_vars = {}
+    confidence = 0.5
+    
+    # Check for active pattern tensions
+    if pattern_data:
+        tensions = pattern_data.get("pattern_tensions", [])
+        categories = pattern_data.get("categories", [])
+        
+        # Look for active tensions
+        if tensions:
+            tension = tensions[0]  # Top tension
+            template_category = "tension_pattern"
+            pattern_type = "tension"
+            template_vars = {
+                "category_a": tension.get("category_a", "one area"),
+                "category_b": tension.get("category_b", "another area"),
+            }
+            pattern_name = f"{template_vars['category_a']} ↔ {template_vars['category_b']}"
+            confidence = 0.7
+        
+        # Look for strong active patterns
+        elif categories:
+            # Find categories with high pattern scores
+            active_cats = [c for c in categories if c.get("pattern_score", 0) > 0.5]
+            if active_cats:
+                top_cat = active_cats[0]
+                template_category = "active_pattern"
+                pattern_type = "phase"
+                
+                # Clean up domain name for display
+                domain_name = top_cat.get("category_name", "life").replace("_", " ").title()
+                template_vars = {"pattern_domain": domain_name}
+                pattern_name = domain_name
+                confidence = 0.6 + (top_cat.get("pattern_score", 0) * 0.2)
+    
+    # Check lifeline patterns if no pattern_data signals
+    if template_category == "general" and lifeline_patterns:
+        insights = lifeline_patterns.get("insights", [])
+        if insights:
+            # Look for thematic or category insights
+            for insight in insights:
+                insight_type = insight.get("type", "")
+                if insight_type in ["category_dominant", "category_multiple", "thematic_overlap"]:
+                    template_category = "lifeline_pattern"
+                    pattern_type = "arc"
+                    
+                    # Extract theme from insight text
+                    text = insight.get("text", "")
+                    if "keeps showing up" in text:
+                        theme = text.split(" keeps showing up")[0]
+                    elif "appear often" in text:
+                        parts = text.split(" appear often")[0]
+                        theme = parts.replace(" and ", " & ")
+                    else:
+                        theme = "certain themes"
+                    
+                    template_vars = {"theme": theme.lower()}
+                    pattern_name = theme.title()
+                    confidence = 0.55
+                    break
+    
+    # Select template using daily seed for consistency
+    templates = PATTERN_SIGNAL_TEMPLATES.get(template_category, PATTERN_SIGNAL_TEMPLATES["general"])
+    template_index = int(daily_seed[:4], 16) % len(templates)
+    selected_template = templates[template_index]
+    
+    # Format the template with variables
+    insight_text = selected_template["insight_text"]
+    past_reflection = selected_template.get("past_reflection")
+    reflective_question = selected_template["reflective_question"]
+    
+    # Apply template variables
+    for key, value in template_vars.items():
+        placeholder = f"{{{key}}}"
+        if placeholder in insight_text:
+            insight_text = insight_text.replace(placeholder, value)
+        if past_reflection and placeholder in past_reflection:
+            past_reflection = past_reflection.replace(placeholder, value)
+        if placeholder in reflective_question:
+            reflective_question = reflective_question.replace(placeholder, value)
+    
+    return {
+        "signal_title": "Daily Pattern Signal",
+        "insight_text": insight_text,
+        "past_reflection": past_reflection,
+        "reflective_question": reflective_question,
+        "pattern_type": pattern_type,
+        "pattern_name": pattern_name,
+        "confidence": min(confidence, 0.9),  # Cap at 0.9 - never claim certainty
+        "generated_at": datetime.now(timezone.utc).isoformat()
+    }
+
+
+# =============================================================================
+# LUNAR CYCLE API - Task 49
+# Special support for Human Design Reflectors
+# =============================================================================
+
+class LunarCycleResponse(BaseModel):
+    """Response model for Lunar Cycle endpoint"""
+    is_reflector: bool
+    human_design_type: Optional[str] = None
+    lunar_day: float
+    moon_phase: str
+    moon_icon: str
+    phase_energy: str
+    days_since_new_moon: float
+    days_until_new_moon: float
+    days_until_full_moon: float
+    days_since_full_moon: Optional[float] = None
+    cycle_progress: float
+    # Reflector-only fields
+    signal_title: Optional[str] = None
+    reflection_message: Optional[str] = None
+    reflective_question: Optional[str] = None
+    guidance: Optional[str] = None
+    pattern_lens_message: Optional[str] = None
+    strategy: Optional[str] = None
+
+
+@api_router.get("/lunar-cycle/{user_id}")
+async def get_lunar_cycle(user_id: str):
+    """
+    Get lunar cycle information for a user.
+    
+    For Reflectors (Human Design type), returns full lunar reflection signal.
+    For non-Reflectors, returns basic lunar cycle info.
+    
+    Reflectors (~1% of users) are uniquely sensitive to lunar cycles.
+    Their strategy is "To Wait a Lunar Cycle" for major decisions.
+    """
+    logger.info(f"[LunarCycle] Getting lunar cycle for user {user_id[:8]}...")
+    
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        from services.lunar_cycle import get_lunar_cycle_for_user
+        
+        result = await get_lunar_cycle_for_user(db, user_id)
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[LunarCycle] Error: {type(e).__name__}: {str(e)}")
+        # Return basic lunar info on error
+        from services.lunar_cycle import calculate_lunar_cycle_info
+        lunar_info = calculate_lunar_cycle_info()
+        return {
+            "is_reflector": False,
+            "human_design_type": None,
+            **lunar_info,
+            "reflection_message": None,
+            "reflective_question": None,
+        }
+
+
+# =============================================================================
+# LUNAR DECISION JOURNAL ENDPOINTS - Task 51
+# =============================================================================
+
+class LunarConsiderationCreate(BaseModel):
+    """Create a new lunar consideration"""
+    topic: str
+
+class LunarConsiderationClose(BaseModel):
+    """Close a lunar consideration"""
+    final_reflection: Optional[str] = None
+    continue_to_next_cycle: bool = False
+
+class LunarJournalEntryCreate(BaseModel):
+    """Create a lunar journal entry"""
+    content: str
+    consideration_id: Optional[str] = None
+
+
+@api_router.get("/lunar-journal/{user_id}/status")
+async def get_lunar_journal_status(user_id: str):
+    """
+    Get the complete lunar journal status for a Reflector user.
+    Returns current lunar info, active consideration, recent entries, and prompts.
+    """
+    logger.info(f"[LunarJournal] Getting status for user {user_id[:8]}...")
+    
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        # First check if user is a Reflector
+        from services.lunar_cycle import is_user_reflector
+        is_reflector, _ = await is_user_reflector(db, user_id)
+        
+        if not is_reflector:
+            return {
+                "success": True,
+                "is_reflector": False,
+                "message": "Lunar journal is only available for Reflector types"
+            }
+        
+        from services.lunar_decision_journal import get_lunar_journal_status as get_status
+        result = await get_status(db, user_id)
+        result["is_reflector"] = True
+        return result
+        
+    except Exception as e:
+        logger.error(f"[LunarJournal] Error getting status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/lunar-journal/{user_id}/consideration")
+async def create_lunar_consideration(user_id: str, data: LunarConsiderationCreate):
+    """
+    Create a new lunar consideration for the current cycle.
+    Only one active consideration per user is allowed.
+    """
+    logger.info(f"[LunarJournal] Creating consideration for user {user_id[:8]}...")
+    
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        from services.lunar_decision_journal import create_consideration
+        result = await create_consideration(db, user_id, data.topic)
+        return {"success": True, **result}
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"[LunarJournal] Error creating consideration: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.put("/lunar-journal/{user_id}/consideration/{consideration_id}")
+async def update_lunar_consideration(user_id: str, consideration_id: str, data: LunarConsiderationCreate):
+    """
+    Update the topic of an active lunar consideration.
+    """
+    logger.info(f"[LunarJournal] Updating consideration {consideration_id[:8]} for user {user_id[:8]}...")
+    
+    if not ObjectId.is_valid(user_id) or not ObjectId.is_valid(consideration_id):
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    try:
+        from services.lunar_decision_journal import update_consideration_topic
+        result = await update_consideration_topic(db, user_id, consideration_id, data.topic)
+        return {"success": True, **result}
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"[LunarJournal] Error updating consideration: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/lunar-journal/{user_id}/consideration/{consideration_id}/close")
+async def close_lunar_consideration(user_id: str, consideration_id: str, data: LunarConsiderationClose):
+    """
+    Close a lunar consideration at the end of a cycle.
+    Optionally continue to next cycle with the same topic.
+    """
+    logger.info(f"[LunarJournal] Closing consideration {consideration_id[:8]} for user {user_id[:8]}...")
+    
+    if not ObjectId.is_valid(user_id) or not ObjectId.is_valid(consideration_id):
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    try:
+        from services.lunar_decision_journal import close_consideration
+        result = await close_consideration(
+            db, user_id, consideration_id,
+            final_reflection=data.final_reflection,
+            continue_to_next_cycle=data.continue_to_next_cycle
+        )
+        return {"success": True, **result}
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"[LunarJournal] Error closing consideration: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/lunar-journal/{user_id}/entry")
+async def create_lunar_journal_entry(user_id: str, data: LunarJournalEntryCreate):
+    """
+    Create a lunar journal entry with automatic lunar metadata.
+    """
+    logger.info(f"[LunarJournal] Creating entry for user {user_id[:8]}...")
+    
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        from services.lunar_decision_journal import create_lunar_journal_entry as create_entry
+        result = await create_entry(db, user_id, data.content, data.consideration_id)
+        return {"success": True, "entry": result}
+        
+    except Exception as e:
+        logger.error(f"[LunarJournal] Error creating entry: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/lunar-journal/{user_id}/entries")
+async def get_lunar_journal_entries(user_id: str, consideration_id: Optional[str] = None, limit: int = 50):
+    """
+    Get lunar journal entries for a user.
+    """
+    logger.info(f"[LunarJournal] Getting entries for user {user_id[:8]}...")
+    
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        from services.lunar_decision_journal import get_lunar_journal_entries as get_entries
+        entries = await get_entries(db, user_id, consideration_id, limit)
+        return {"success": True, "entries": entries, "count": len(entries)}
+        
+    except Exception as e:
+        logger.error(f"[LunarJournal] Error getting entries: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/lunar-journal/{user_id}/timeline")
+async def get_lunar_cycle_timeline(user_id: str, consideration_id: Optional[str] = None):
+    """
+    Get a timeline view of lunar journal entries for the current cycle.
+    """
+    logger.info(f"[LunarJournal] Getting timeline for user {user_id[:8]}...")
+    
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        from services.lunar_decision_journal import get_cycle_timeline
+        result = await get_cycle_timeline(db, user_id, consideration_id)
+        return {"success": True, **result}
+        
+    except Exception as e:
+        logger.error(f"[LunarJournal] Error getting timeline: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/lunar-journal/{user_id}/history")
+async def get_lunar_consideration_history(user_id: str, limit: int = 20):
+    """
+    Get archived lunar considerations for a user.
+    """
+    logger.info(f"[LunarJournal] Getting history for user {user_id[:8]}...")
+    
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        from services.lunar_decision_journal import get_consideration_history
+        history = await get_consideration_history(db, user_id, limit)
+        return {"success": True, "history": history, "count": len(history)}
+        
+    except Exception as e:
+        logger.error(f"[LunarJournal] Error getting history: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/lunar-journal/{user_id}/history/{consideration_id}")
+async def get_lunar_consideration_detail(user_id: str, consideration_id: str):
+    """
+    Get detailed view of a specific archived consideration with all entries.
+    """
+    logger.info(f"[LunarJournal] Getting consideration detail {consideration_id[:8]} for user {user_id[:8]}...")
+    
+    if not ObjectId.is_valid(user_id) or not ObjectId.is_valid(consideration_id):
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    try:
+        from services.lunar_decision_journal import get_consideration_detail
+        result = await get_consideration_detail(db, user_id, consideration_id)
+        
+        if not result:
+            raise HTTPException(status_code=404, detail="Consideration not found")
+        
+        return {"success": True, **result}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[LunarJournal] Error getting consideration detail: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
+# LUNAR CYCLE SYNTHESIS ENDPOINT - Task 55
+# =============================================================================
+
+@api_router.get("/lunar-journal/{user_id}/synthesis/{consideration_id}")
+async def get_lunar_cycle_synthesis(user_id: str, consideration_id: str):
+    """
+    Get or generate a synthesis of the user's lunar cycle observation.
+    Returns an observational summary of patterns across the cycle.
+    """
+    logger.info(f"[LunarSynthesis] Getting synthesis for user {user_id[:8]}, consideration {consideration_id[:8]}...")
+    
+    if not ObjectId.is_valid(user_id) or not ObjectId.is_valid(consideration_id):
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    try:
+        # First check if user is a Reflector
+        from services.lunar_cycle import is_user_reflector
+        is_reflector, _ = await is_user_reflector(db, user_id)
+        
+        if not is_reflector:
+            return {
+                "success": False,
+                "is_reflector": False,
+                "message": "Lunar synthesis is only available for Reflector types"
+            }
+        
+        from services.lunar_cycle_synthesis import get_cached_synthesis
+        result = await get_cached_synthesis(db, user_id, consideration_id)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"[LunarSynthesis] Error getting synthesis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)

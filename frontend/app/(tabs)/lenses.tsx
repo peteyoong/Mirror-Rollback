@@ -33,6 +33,7 @@ const LENS_KEYS: { [key: string]: string } = {
   'Numerology': 'numerology',
   'Levels of Consciousness': 'consciousness',
   'Enneagram': 'enneagram',
+  'BaZi': 'bazi',
 };
 
 export default function LensesScreen() {

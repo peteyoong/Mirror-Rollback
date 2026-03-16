@@ -18,11 +18,13 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
 // Removed Ionicons - using text-based alternatives for web compatibility
 import { useAppStore } from '../../store';
+import { InlineReflectButton } from '../../components/UniversalReflectButton';
 import MirrorChat from '../../components/MirrorChat';
 import AstrologyLensView from '../../components/AstrologyLensView';
 import HumanDesignLensView from '../../components/HumanDesignLensView';
 import NumerologyLensView from '../../components/NumerologyLensView';
 import EnneagramLensView from '../../components/EnneagramLensView';
+import BaziLensView from '../../components/BaziLensView';
 
 // Lens metadata
 const LENS_META: { [key: string]: { name: string; icon: string } } = {
@@ -30,6 +32,7 @@ const LENS_META: { [key: string]: { name: string; icon: string } } = {
   human_design: { name: 'Human Design', icon: 'body-outline' },
   numerology: { name: 'Numerology', icon: 'calculator-outline' },
   enneagram: { name: 'Enneagram', icon: 'git-branch-outline' },
+  bazi: { name: 'BaZi', icon: 'apps-outline' },
   consciousness: { name: 'Consciousness', icon: 'eye-outline' },
 };
 
@@ -436,6 +439,20 @@ export default function LensDetail() {
       <Text style={styles.reflectionLabel}>REFLECTION</Text>
       <Text style={styles.reflectionText}>{mirrorContent.reflection}</Text>
       
+      {/* Reflect Button */}
+      <View style={styles.mirrorReflectButton}>
+        <InlineReflectButton
+          source={{
+            lens: lens as string,
+            type: 'mirror_moment',
+            name: mirrorContent.title,
+            value: mirrorContent.body.join(' '),
+            id: `${lens}_mirror_moment_${activeTab}`,
+          }}
+          prompt={mirrorContent.reflection}
+        />
+      </View>
+      
       {mirrorContent.footer && (
         <Text style={styles.mirrorFooter}>{mirrorContent.footer}</Text>
       )}
@@ -720,6 +737,32 @@ export default function LensDetail() {
             </SafeAreaView>
           </Modal>
         </>
+      ) : lens === 'bazi' && user?.id ? (
+        <>
+          <BaziLensView
+            userId={user.id}
+            onOpenChat={() => setLensChatVisible(true)}
+          />
+          
+          {/* Lens Chat Modal */}
+          <Modal
+            visible={lensChatVisible}
+            animationType="slide"
+            presentationStyle="pageSheet"
+            onRequestClose={() => setLensChatVisible(false)}
+          >
+            <SafeAreaView style={styles.modalContainer} edges={['top', 'bottom']}>
+              <MirrorChat
+                userId={user.id}
+                lens="bazi"
+                placeholder="Ask about your Four Pillars…"
+                headerTitle="BaZi Chat"
+                headerSubtitle="Lens-focused reflection"
+                onClose={() => setLensChatVisible(false)}
+              />
+            </SafeAreaView>
+          </Modal>
+        </>
       ) : (lens === 'astrology' || lens === 'human_design') && !user?.id ? (
         // LOADING STATE: User session is being restored for astrology/human_design
         <View style={styles.loadingContainer}>
@@ -958,6 +1001,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 16,
+  },
+  mirrorReflectButton: {
+    marginTop: 12,
+    marginBottom: 8,
   },
   mirrorFooter: {
     fontSize: 13,

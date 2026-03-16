@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
-import { ReflectButton } from './ReflectButton';
+import { InlineReflectButton } from './UniversalReflectButton';
 
 interface GateData {
   gate_number: number;
@@ -203,15 +203,15 @@ export default function DefinedGatesView({ userId }: Props) {
 
             {/* Reflect Button */}
             <View style={styles.reflectContainer}>
-              <ReflectButton
-                sourceLens="human-design"
-                sourceType={`gate_${gate.gate_number}`}
-                sourceName={`Gate ${gate.gate_number}: ${gate.gate_name}`}
-                sourceValue={gate.center_name}
-                theme={gate.what_this_means}
-                strength={gate.your_genius}
-                challenge={gate.your_challenge}
-                guidance={gate.practical_experiments.join('\n')}
+              <InlineReflectButton
+                source={{
+                  lens: 'human_design',
+                  type: 'gate',
+                  name: `Gate ${gate.gate_number}: ${gate.gate_name}`,
+                  value: gate.center_name,
+                  id: `hd_gate_${gate.gate_number}`,
+                }}
+                prompt={gate.what_this_means}
               />
             </View>
           </View>

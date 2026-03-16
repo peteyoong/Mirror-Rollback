@@ -541,6 +541,10 @@ def aggregate_journal_signals(
 ) -> Dict[str, List[MatchedSignal]]:
     """Extract pattern signals from recent journal entries.
     
+    Now considers BOTH:
+    1. Keyword matching in content (legacy behavior)
+    2. Explicit source_domain metadata from ReflectButton submissions
+    
     Args:
         journal_entries: List of recent journal entries
         max_entries: Maximum entries to analyze
@@ -555,13 +559,49 @@ def aggregate_journal_signals(
     # Analyze recent entries
     for entry in journal_entries[:max_entries]:
         content = entry.get("content", "").lower()
-        timestamp = entry.get("timestamp")
+        timestamp = entry.get("timestamp") or entry.get("created_at")
+        
+        # Build date string for display
+        date_str = ""
+        if timestamp:
+            if hasattr(timestamp, 'strftime'):
+                date_str = timestamp.strftime("%b %d")
+            else:
+                date_str = str(timestamp)[:10]
+        
+        # =====================================================================
+        # PRIORITY 1: Check for explicit source_domain metadata
+        # This comes from ReflectButton submissions with pattern domain context
+        # =====================================================================
+        source_domain = entry.get("source_domain")
+        source_lens = entry.get("source_lens")
+        source_name = entry.get("source_name")
+        
+        if source_domain and source_domain in category_signals:
+            # Create high-confidence signal from explicit domain metadata
+            signal: MatchedSignal = {
+                "source": "journal",
+                "label": f"Reflection on {source_name or source_lens or 'insight'}",
+                "sphere_name": source_lens,
+                "detail": f"From entry on {date_str}" if date_str else "Recent reflection"
+            }
+            category_signals[source_domain].append(signal)
+            logger.debug(f"[PatternSignal] Direct domain signal: {source_domain} from {source_lens}")
+            # Continue to also check keywords (may generate additional signals)
         
         if len(content) < 20:
-            continue  # Skip very short entries
+            continue  # Skip very short entries for keyword matching
         
-        # Check for keyword matches
+        # =====================================================================
+        # PRIORITY 2: Check for keyword matches in content
+        # This is the legacy behavior for entries without domain metadata
+        # =====================================================================
         for cat_id, keywords in KEYWORD_CATEGORY_MAP.items():
+            # Skip if we already added a direct domain signal for this category
+            # to avoid double-counting
+            if source_domain == cat_id:
+                continue
+                
             matches_found = []
             for kw in keywords:
                 if kw in content:
@@ -569,13 +609,6 @@ def aggregate_journal_signals(
             
             if matches_found:
                 # Create a signal for this category
-                date_str = ""
-                if timestamp:
-                    if hasattr(timestamp, 'strftime'):
-                        date_str = timestamp.strftime("%b %d")
-                    else:
-                        date_str = str(timestamp)[:10]
-                
                 signal: MatchedSignal = {
                     "source": "journal",
                     "label": f"Journal reflection ({', '.join(matches_found[:2])})",
@@ -583,6 +616,7 @@ def aggregate_journal_signals(
                     "detail": f"From entry on {date_str}" if date_str else "Recent entry"
                 }
                 category_signals[cat_id].append(signal)
+                logger.debug(f"[PatternSignal] Keyword signal: {cat_id} keywords={matches_found[:2]}")
     
     return category_signals
 
@@ -1077,6 +1111,72 @@ def aggregate_enneagram_signals(
     return category_signals
 
 
+def aggregate_mirror_chat_signals(
+    mirror_insights: List[dict],
+    max_insights: int = 15
+) -> Dict[str, List[MatchedSignal]]:
+    """Extract pattern signals from saved Mirror Chat insights.
+    
+    Mirror insights are high-quality signals created when users save
+    meaningful moments from Mirror Chat conversations.
+    
+    Args:
+        mirror_insights: List of mirror insights from db.mirror_insights
+        max_insights: Maximum insights to analyze
+    
+    Returns:
+        Dict mapping category_id to list of matched signals
+    """
+    category_signals: Dict[str, List[MatchedSignal]] = {
+        cat["id"]: [] for cat in PATTERN_CATEGORIES
+    }
+    
+    for insight in mirror_insights[:max_insights]:
+        # Mirror insights have explicit domain metadata
+        domains = insight.get("domains", [])
+        summary = insight.get("summary", "")
+        created_at = insight.get("created_at")
+        confidence = insight.get("confidence", 0.7)
+        
+        # Build date string
+        date_str = ""
+        if created_at:
+            if hasattr(created_at, 'strftime'):
+                date_str = created_at.strftime("%b %d")
+            else:
+                date_str = str(created_at)[:10]
+        
+        # Add signal to each domain this insight touches
+        for domain in domains:
+            if domain in category_signals:
+                signal: MatchedSignal = {
+                    "source": "mirror_chat",
+                    "label": summary[:50] + "..." if len(summary) > 50 else summary,
+                    "sphere_name": None,
+                    "detail": f"Mirror insight from {date_str}" if date_str else "Mirror insight"
+                }
+                category_signals[domain].append(signal)
+                logger.debug(f"[PatternSignal] Mirror chat signal: {domain} - {summary[:30]}...")
+        
+        # If no explicit domains, use keyword matching on summary
+        if not domains and summary:
+            summary_lower = summary.lower()
+            for cat_id, keywords in KEYWORD_CATEGORY_MAP.items():
+                for kw in keywords:
+                    if kw in summary_lower:
+                        signal: MatchedSignal = {
+                            "source": "mirror_chat",
+                            "label": f"Mirror insight ({kw})",
+                            "sphere_name": None,
+                            "detail": f"From {date_str}" if date_str else "Mirror insight"
+                        }
+                        category_signals[cat_id].append(signal)
+                        logger.debug(f"[PatternSignal] Mirror chat keyword signal: {cat_id}")
+                        break  # Only one signal per category per insight
+    
+    return category_signals
+
+
 # =============================================================================
 # TRANSIT INFLUENCE FUNCTIONS - Real Swiss Ephemeris Implementation
 # =============================================================================
@@ -1566,6 +1666,7 @@ def aggregate_pattern_graph(
     human_design_centers: Optional[List[dict]] = None,
     human_design_gates: Optional[List[int]] = None,
     chat_signals: Optional[List[dict]] = None,  # Future: from Mirror Chat
+    mirror_insights: Optional[List[dict]] = None,  # Mirror Chat saved insights
     enneagram_type: Optional[int] = None,       # Enneagram core type (1-9)
     enneagram_wing: Optional[int] = None,       # Enneagram wing (optional)
     include_transits: bool = True,              # Whether to include transit amplification
@@ -1576,12 +1677,21 @@ def aggregate_pattern_graph(
     Combines signals from all available sources into the 7 pattern categories.
     Uses real planetary transits (Swiss Ephemeris) as a timing/amplification layer.
     
+    Signal Sources (in order of weight):
+    1. Journal reflections (weight: 3) - direct user reflection
+    2. Mirror Chat insights (weight: 2) - saved chat moments  
+    3. Gene Keys (weight: 1) - framework-based
+    4. Human Design (weight: 1) - framework-based
+    5. Enneagram (weight: 1) - invisible contributor
+    6. Astrology Transits (weight: 0.5) - timing amplification only
+    
     Args:
         gene_keys_profile: Result from build_gene_keys_profile()
         journal_entries: List of recent journal entries
         human_design_centers: List of center interpretations from build_centers_profile()
         human_design_gates: List of active gate numbers
-        chat_signals: Future - signals from Mirror Chat analysis
+        chat_signals: Future - raw signals from Mirror Chat analysis
+        mirror_insights: Saved Mirror Chat insights with domain metadata
         enneagram_type: User's Enneagram type (invisible contributor)
         enneagram_wing: User's Enneagram wing (optional)
         include_transits: Whether to include transit amplification (default True)
@@ -1590,9 +1700,21 @@ def aggregate_pattern_graph(
     Returns:
         Complete pattern graph response
     """
+    logger.info("[PatternGraph] Starting aggregation...")
+    
     # Initialize category results
     all_signals: Dict[str, List[MatchedSignal]] = {
         cat["id"]: [] for cat in PATTERN_CATEGORIES
+    }
+    
+    # Track signal source counts for debugging
+    signal_counts = {
+        "gene_keys": 0,
+        "journal": 0,
+        "mirror_chat": 0,
+        "human_design": 0,
+        "enneagram": 0,
+        "transit": 0
     }
     
     # Aggregate Gene Keys signals
@@ -1600,12 +1722,21 @@ def aggregate_pattern_graph(
         gk_signals = aggregate_gene_keys_signals(gene_keys_profile)
         for cat_id, signals in gk_signals.items():
             all_signals[cat_id].extend(signals)
+            signal_counts["gene_keys"] += len(signals)
     
     # Aggregate journal signals
     if journal_entries:
         journal_sigs = aggregate_journal_signals(journal_entries)
         for cat_id, signals in journal_sigs.items():
             all_signals[cat_id].extend(signals)
+            signal_counts["journal"] += len(signals)
+    
+    # Aggregate Mirror Chat insights
+    if mirror_insights:
+        chat_sigs = aggregate_mirror_chat_signals(mirror_insights)
+        for cat_id, signals in chat_sigs.items():
+            all_signals[cat_id].extend(signals)
+            signal_counts["mirror_chat"] += len(signals)
     
     # Aggregate Human Design center signals
     if human_design_centers or human_design_gates:
@@ -1615,6 +1746,7 @@ def aggregate_pattern_graph(
         )
         for cat_id, signals in hd_signals.items():
             all_signals[cat_id].extend(signals)
+            signal_counts["human_design"] += len(signals)
     
     # Aggregate Enneagram signals (invisible contributor)
     if enneagram_type:
@@ -1624,6 +1756,10 @@ def aggregate_pattern_graph(
         )
         for cat_id, signals in ennea_signals.items():
             all_signals[cat_id].extend(signals)
+            signal_counts["enneagram"] += len(signals)
+    
+    # Log signal counts for debugging
+    logger.info(f"[PatternSignal] Signal counts: {signal_counts}")
     
     # First pass: Calculate preliminary scores (before transit amplification)
     # This is needed to determine which domains have existing support
