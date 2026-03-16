@@ -1078,29 +1078,49 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   
-  // Impact
-  impactRow: {
+  // Task 61: New two-scale rating styles
+  scaleRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-  },
-  impactButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    borderWidth: 1,
     gap: 6,
+    justifyContent: 'center',
   },
-  impactDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  scaleGuidance: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 2,
   },
-  impactText: {
-    fontSize: 13,
+  scaleGuideText: {
+    fontSize: 11,
     fontWeight: '500',
+  },
+  scaleGuideArrow: {
+    fontSize: 10,
+    letterSpacing: 0.5,
+    fontWeight: '400',
+  },
+  scaleCalibration: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingHorizontal: 2,
+  },
+  calibrationText: {
+    fontSize: 11,
+  },
+  scaleButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scaleText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   
   // Actions
