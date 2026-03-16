@@ -835,9 +835,37 @@ export default function JournalScreen() {
     // Task 64: Decision-first tracker UX with multiple decisions support
     // Task 65: Use activeDecision as single source of truth for all lunar components
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // TASK 70: Single Source of Truth for Cycle Day
+    // ═══════════════════════════════════════════════════════════════════════
+    // Compute a single, canonical cycle day value that ALL UI components use.
+    // Priority: activeDecision.days_in_cycle > calculated from cycle_start > lunarStatus.lunar_day > 1
+    const canonicalCycleDay = (() => {
+      // First, try to use activeDecision's days_in_cycle (most accurate for this decision)
+      if (activeDecision?.days_in_cycle && activeDecision.days_in_cycle > 0) {
+        return Math.round(activeDecision.days_in_cycle);
+      }
+      // Fallback: calculate from cycle_start if available
+      if (activeDecision?.cycle_start) {
+        const startDate = new Date(activeDecision.cycle_start);
+        const now = new Date();
+        const diffMs = now.getTime() - startDate.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+        return Math.min(Math.max(diffDays, 1), 30); // Clamp between 1 and 30
+      }
+      // Fallback: use lunarStatus.lunar_day (global lunar day, less specific)
+      if (lunarStatus?.lunar_day) {
+        return Math.round(lunarStatus.lunar_day);
+      }
+      // Default
+      return 1;
+    })();
+
     // Get gate explanation for today's gate
     const currentGate = lunarStatus?.current_gate || null;
     const gateExplanation = getGateExplanation(currentGate);
+    
+    // Task 68: Show instruction card only when user has few reflections
     const hasReflections = activeDecision?.entry_count && activeDecision.entry_count > 0;
 
     return (
