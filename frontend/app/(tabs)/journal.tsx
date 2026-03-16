@@ -1220,11 +1220,12 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 7: CYCLE COMPLETION BANNER (Task 70: Moved after wheel)
-                  Only shows when cycle is eligible for completion (Day 21-29).
-                  User must explicitly tap to open completion modal.
+                  SECTION 7: CYCLE COMPLETION BANNER 
+                  CRITICAL FIX: Only shows when resolvedCycleState.completion_eligible === true
+                  This means cycle_day >= 21 (nearing_completion phase)
+                  HARD RULE: If cycle_day < 21, do NOT render this banner.
                   ═══════════════════════════════════════════════════════════════ */}
-              {lunarStatus?.is_near_new_moon && activeDecision && lunarStatus?.show_cycle_completion && (
+              {activeDecision && resolvedCycleState.completion_eligible && (
                 <View style={[styles.cycleCompletionBanner, { backgroundColor: 'rgba(192, 200, 212, 0.08)', borderColor: theme.border }]}>
                   <View style={styles.cycleCompletionBannerContent}>
                     <Text style={[styles.cycleCompletionBannerIcon]}>🌑</Text>
@@ -1233,7 +1234,7 @@ export default function JournalScreen() {
                         Cycle Nearing Completion
                       </Text>
                       <Text style={[styles.cycleCompletionBannerSubtitle, { color: theme.textSecondary }]}>
-                        Day {canonicalCycleDay} of ~29 • Ready to reflect on this cycle
+                        Day {resolvedCycleState.cycle_day} of ~29 • Ready to reflect on this cycle
                       </Text>
                     </View>
                   </View>
