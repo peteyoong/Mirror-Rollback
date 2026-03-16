@@ -921,9 +921,14 @@ export default function JournalScreen() {
                   <Text style={[styles.decisionHeaderTopic, { color: theme.text }]}>
                     "{activeDecision.topic}"
                   </Text>
-                  <Text style={[styles.decisionHeaderStatus, { color: theme.textSecondary }]}>
-                    Day {activeDecision.days_in_cycle} of 29.5 • {getCyclePhase(activeDecision.days_in_cycle)}
-                  </Text>
+                  <View style={styles.decisionHeaderStatusRow}>
+                    <Text style={[styles.decisionHeaderStatusDay, { color: theme.text }]}>
+                      Day {activeDecision.days_in_cycle} of your lunar cycle
+                    </Text>
+                    <Text style={[styles.decisionHeaderStatusPhase, { color: theme.textTertiary }]}>
+                      {getCyclePhase(activeDecision.days_in_cycle)}
+                    </Text>
+                  </View>
                   <View style={[styles.decisionHeaderDivider, { backgroundColor: theme.border }]} />
                   <Text style={[styles.decisionHeaderDescription, { color: theme.textTertiary }]}>
                     You are observing this decision across a full lunar cycle before making a choice.
