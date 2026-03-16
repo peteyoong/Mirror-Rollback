@@ -683,61 +683,7 @@ export default function JournalScreen() {
 
   // Task 51: Lunar Journal View (Reflectors Only)
   if (viewMode === 'lunar') {
-    const handleLunarStatusLoaded = (status: LunarJournalStatus | null) => {
-      setLunarStatus(status);
-      // Show cycle completion modal if near new moon with active consideration
-      if (status?.show_cycle_completion && status?.active_consideration) {
-        setShowCycleCompletion(true);
-      }
-    };
-
-    // Task 52: Fetch timeline data for LunarGateTimeline
-    const fetchLunarTimeline = async () => {
-      if (!user) return;
-      try {
-        const response = await api.get(`/lunar-journal/${user.id}/timeline`);
-        if (response.data?.success) {
-          setLunarTimelineData(response.data);
-        }
-      } catch (err) {
-        console.log('[Journal] Error fetching lunar timeline');
-      }
-    };
-
-    // Fetch timeline data when entering lunar view
-    if (!lunarTimelineData && user) {
-      fetchLunarTimeline();
-    }
-
-    const handleCreateLunarEntry = async () => {
-      if (!newEntry.trim() || !user || isCreatingLunarEntry) return;
-      
-      setIsCreatingLunarEntry(true);
-      try {
-        await api.post(`/lunar-journal/${user.id}/entry`, {
-          content: newEntry.trim(),
-          consideration_id: lunarStatus?.active_consideration?.id || null,
-        });
-        
-        setNewEntry('');
-        Keyboard.dismiss();
-        // Refresh the lunar status and timeline to update entry count
-        const [statusRes, timelineRes] = await Promise.all([
-          api.get(`/lunar-journal/${user.id}/status`),
-          api.get(`/lunar-journal/${user.id}/timeline`)
-        ]);
-        if (statusRes.data?.success) {
-          setLunarStatus(statusRes.data);
-        }
-        if (timelineRes.data?.success) {
-          setLunarTimelineData(timelineRes.data);
-        }
-      } catch (err) {
-        console.error('[LunarJournal] Error creating entry:', err);
-      } finally {
-        setIsCreatingLunarEntry(false);
-      }
-    };
+    // Task 60: All lunar callbacks are now defined at component level to prevent re-fetch loops
 
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
