@@ -672,6 +672,24 @@ def extract_pattern_signals_from_enneagram(data: Dict[str, Any], user_id: str) -
     return []
 
 
+def extract_pattern_signals_from_gene_keys(data: Dict[str, Any], user_id: str) -> List[PatternSignal]:
+    """
+    STUB: Extract pattern signals from Gene Keys data.
+    To be implemented in future version.
+    """
+    logger.debug("[PatternEngine] Gene Keys extraction not yet implemented")
+    return []
+
+
+def extract_pattern_signals_from_transit(transit_data: Dict[str, Any], user_id: str) -> List[PatternSignal]:
+    """
+    STUB: Extract pattern signals from planetary transits.
+    To be implemented in future version.
+    """
+    logger.debug("[PatternEngine] Transit extraction not yet implemented")
+    return []
+
+
 # =============================================================================
 # DECISION PATTERN SNAPSHOT - Task 70 Section 10
 # =============================================================================
