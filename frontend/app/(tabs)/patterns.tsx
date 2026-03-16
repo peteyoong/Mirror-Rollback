@@ -1711,6 +1711,7 @@ export default function PatternsScreen() {
         {activeTab === 'patterns' && renderPatternsTab()}
         {activeTab === 'weekly' && renderWeeklyTab()}
         {activeTab === 'timeline' && renderTimelineTab()}
+        {activeTab === 'signals' && renderSignalsTab()}
       </View>
     </SafeAreaView>
   );
