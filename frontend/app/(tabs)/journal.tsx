@@ -2111,9 +2111,22 @@ const styles = StyleSheet.create({
   reflectionEntryGate: {
     fontSize: 12,
   },
+  // Task 68: Improved reflection entry card styling
+  reflectionEntryCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 10,
+  },
+  reflectionEntryMeta: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
   reflectionEntryContent: {
     fontSize: 14,
     lineHeight: 20,
+    fontStyle: 'italic',
   },
   // New styles for restructured lunar view
   decisionSelectorSection: {
