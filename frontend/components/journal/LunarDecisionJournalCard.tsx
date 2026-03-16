@@ -99,6 +99,10 @@ export default function LunarDecisionJournalCard({
   const [showCycleCompletion, setShowCycleCompletion] = useState(false);
 
   // Fetch lunar journal status
+  // Task 60: Use ref for onStatusLoaded to prevent dependency loop
+  const onStatusLoadedRef = useRef(onStatusLoaded);
+  onStatusLoadedRef.current = onStatusLoaded;
+  
   const fetchStatus = useCallback(async () => {
     if (!userId) return;
     
@@ -108,7 +112,8 @@ export default function LunarDecisionJournalCard({
       
       if (response.data?.success) {
         setStatus(response.data);
-        onStatusLoaded?.(response.data);
+        // Use ref to avoid re-triggering effect when callback changes
+        onStatusLoadedRef.current?.(response.data);
         
         // Show cycle completion if near new moon with active consideration
         if (response.data.show_cycle_completion) {
@@ -116,7 +121,7 @@ export default function LunarDecisionJournalCard({
         }
       } else if (response.data?.is_reflector === false) {
         setStatus(null);
-        onStatusLoaded?.(null);
+        onStatusLoadedRef.current?.(null);
       }
       
       setError(null);
@@ -124,11 +129,11 @@ export default function LunarDecisionJournalCard({
       console.error('[LunarJournalCard] Error:', err);
       setError('Unable to load lunar journal');
       setStatus(null);
-      onStatusLoaded?.(null);
+      onStatusLoadedRef.current?.(null);
     } finally {
       setLoading(false);
     }
-  }, [userId, onStatusLoaded]);
+  }, [userId]); // Task 60: Removed onStatusLoaded from dependencies
 
   useEffect(() => {
     fetchStatus();
