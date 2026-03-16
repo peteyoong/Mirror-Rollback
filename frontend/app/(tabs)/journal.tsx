@@ -687,9 +687,7 @@ export default function JournalScreen() {
   if (viewMode === 'lunar') {
     // Task 60: All lunar callbacks are now defined at component level to prevent re-fetch loops
     // Task 64: Decision-first tracker UX with multiple decisions support
-
-    // State for selected decision
-    const [selectedDecisionId, setSelectedDecisionId] = React.useState<string | null>(null);
+    // selectedDecisionId state is now at component level
     
     // Get the selected decision details
     const selectedDecision = lunarStatus?.active_considerations?.find(
