@@ -3,6 +3,10 @@
  * 
  * Modal form for creating and editing lifeline events.
  * Supports all event fields with validation.
+ * 
+ * TASK 59: Separates emotional valence (how good/bad) from significance (how life-shaping)
+ * - emotional_valence: 1-10 scale (1 = very difficult, 5 = mixed, 10 = very positive)
+ * - significance_score: 1-10 scale (1 = very low, 5 = meaningful, 10 = life-changing)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -36,13 +40,6 @@ const CATEGORIES = [
   'Achievement',
   'Move',
   'Identity',
-];
-
-const EMOTIONAL_TONES = [
-  { value: 'positive', label: 'Positive', color: '#4CAF50' },
-  { value: 'negative', label: 'Difficult', color: '#E57373' },
-  { value: 'mixed', label: 'Mixed', color: '#FFB74D' },
-  { value: 'neutral', label: 'Neutral', color: '#90A4AE' },
 ];
 
 interface Props {
