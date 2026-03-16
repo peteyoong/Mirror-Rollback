@@ -856,7 +856,7 @@ export default function PatternsScreen() {
 
   const renderSegmentedControl = () => (
     <View style={[styles.segmentedControl, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-      {(['patterns', 'weekly', 'timeline'] as TabType[]).map((tab) => (
+      {(['patterns', 'weekly', 'timeline', 'signals'] as TabType[]).map((tab) => (
         <TouchableOpacity
           key={tab}
           style={[
