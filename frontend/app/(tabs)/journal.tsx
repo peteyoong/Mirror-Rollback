@@ -996,14 +996,14 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 5: REFLECTION TIMELINE
+                  SECTION 5: REFLECTION TIMELINE (Task 65: Uses activeDecision.entries)
                   ═══════════════════════════════════════════════════════════════ */}
-              {lunarStatus?.recent_entries && lunarStatus.recent_entries.length > 0 && (
+              {activeDecision?.entries && activeDecision.entries.length > 0 && (
                 <View style={styles.reflectionTimelineSection}>
                   <Text style={[styles.reflectionTimelineTitle, { color: '#A8B2C0' }]}>
                     REFLECTION TIMELINE
                   </Text>
-                  {lunarStatus.recent_entries.slice(0, 5).map((entry: any, index: number) => (
+                  {activeDecision.entries.slice(0, 5).map((entry: any, index: number) => (
                     <View 
                       key={entry.id || index}
                       style={[styles.reflectionEntry, { borderBottomColor: theme.border }]}
