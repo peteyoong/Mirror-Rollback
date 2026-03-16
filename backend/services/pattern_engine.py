@@ -1,21 +1,27 @@
 """
-Mirror Pattern Engine v0.5 - Task 70
+Mirror Pattern Engine v0.15 - Task 71
 
-Foundation for cross-lens pattern intelligence that will eventually connect:
-- Lunar decisions
-- Journal reflections  
-- Mirror chat
-- Human Design gate activations
-- Enneagram patterns
-- Future Gene Keys / transit signals
+Enhanced foundation for cross-lens pattern intelligence:
+- Persistent signal storage with idempotency
+- Source stub interfaces for future multi-lens expansion
+- Improved decision snapshots with confidence logic
+- Time window filtering support
+- Tag/signal normalization
 
-This is the normalized internal signal model and extraction layer.
+Sources (active and stubbed):
+- Lunar reflections (ACTIVE)
+- Journal entries (STUB)
+- Mirror chat (STUB)
+- Human Design gate activations (STUB)
+- Enneagram patterns (STUB)
+- Gene Keys (STUB)
+- Transits (STUB)
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import Dict, Any, Optional, List, Literal
-from dataclasses import dataclass, asdict
+from datetime import datetime, timezone, timedelta
+from typing import Dict, Any, Optional, List, Literal, Tuple
+from dataclasses import dataclass, asdict, field
 from enum import Enum
 import re
 from collections import Counter
@@ -24,7 +30,7 @@ import hashlib
 logger = logging.getLogger(__name__)
 
 # =============================================================================
-# ENUMS AND TYPE DEFINITIONS - Task 70
+# ENUMS AND TYPE DEFINITIONS - v0.15
 # =============================================================================
 
 class SourceType(str, Enum):
@@ -82,17 +88,35 @@ class DataSufficiency(str, Enum):
     INSUFFICIENT = "insufficient"
 
 
+class ConfidenceLevel(str, Enum):
+    HIGH = "high"
+    MODERATE = "moderate"
+    LOW = "low"
+
+
+class TimeWindow(str, Enum):
+    ALL_TIME = "all_time"
+    LAST_30_DAYS = "last_30_days"
+    LAST_7_DAYS = "last_7_days"
+    CURRENT_CYCLE = "current_cycle"
+    CURRENT_DECISION = "current_decision"
+
+
 # =============================================================================
-# PATTERN SIGNAL MODEL - Task 70 Section 8
+# PATTERN SIGNAL MODEL - v0.15 Enhanced
 # =============================================================================
 
 @dataclass
 class PatternSignal:
-    """Unified pattern signal model for cross-lens intelligence."""
+    """
+    Unified pattern signal model for cross-lens intelligence.
+    v0.15: Added source_event_id, created_at, updated_at for persistence.
+    """
     id: str
     user_id: str
     source_type: str
-    source_id: str
+    source_id: str  # e.g., decision_id, journal_entry_id
+    source_event_id: str  # Specific event ID (e.g., reflection entry ID)
     timestamp: datetime
     domain: str
     signal_type: str
@@ -101,21 +125,54 @@ class PatternSignal:
     confidence: float  # 0.0 to 1.0
     tags: List[str]
     metadata: Dict[str, Any]
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
-        data['timestamp'] = self.timestamp.isoformat() if isinstance(self.timestamp, datetime) else self.timestamp
+        for key in ['timestamp', 'created_at', 'updated_at']:
+            if isinstance(data.get(key), datetime):
+                data[key] = data[key].isoformat()
         return data
+    
+    @staticmethod
+    def from_dict(data: Dict[str, Any]) -> 'PatternSignal':
+        """Create PatternSignal from dictionary."""
+        # Parse datetime fields
+        for key in ['timestamp', 'created_at', 'updated_at']:
+            if key in data and isinstance(data[key], str):
+                data[key] = datetime.fromisoformat(data[key].replace('Z', '+00:00'))
+        return PatternSignal(**data)
+    
+    def get_dedupe_key(self) -> str:
+        """
+        Generate stable dedupe key for idempotent ingestion.
+        Key components: user_id, source_type, source_id, source_event_id, signal_type, domain
+        """
+        key_parts = [
+            self.user_id,
+            self.source_type,
+            self.source_id,
+            self.source_event_id,
+            self.signal_type,
+            self.domain
+        ]
+        key_string = "|".join(str(p) for p in key_parts)
+        return hashlib.sha256(key_string.encode()).hexdigest()[:24]
 
 
 @dataclass
 class DecisionPatternSnapshot:
-    """Lightweight snapshot of decision patterns for synthesis."""
+    """
+    Lightweight snapshot of decision patterns for synthesis.
+    v0.15: Added confidence_level, source_breakdown, recent_signal_count
+    """
     decision_id: str
     decision_topic: str
     data_sufficiency: str
     entry_count: int
     days_observed: int
+    distinct_days: int  # v0.15: Actual unique observation days
     dominant_signals: List[str]
     repeated_tags: List[str]
     strongest_gate: Optional[int]
@@ -123,6 +180,66 @@ class DecisionPatternSnapshot:
     excitement_score: float
     hesitation_score: float
     confidence: float
+    confidence_level: str  # v0.15: low/moderate/high
+    total_signals: int  # v0.15
+    source_breakdown: Dict[str, int]  # v0.15
+    domain_distribution: Dict[str, int]  # v0.15
+    recent_signal_count: int  # v0.15: Signals in last 7 days
+
+
+# =============================================================================
+# TAG AND LABEL NORMALIZATION - v0.15 Section 7
+# =============================================================================
+
+TAG_NORMALIZATION_MAP = {
+    # Common variations to canonical form
+    "creative independence": "creative_independence",
+    "creative-independence": "creative_independence",
+    "new beginning": "new_beginning",
+    "new beginnings": "new_beginning",
+    "new-beginning": "new_beginning",
+    "financial security": "financial_security",
+    "financial-security": "financial_security",
+    "work purpose": "work_purpose",
+    "work-purpose": "work_purpose",
+}
+
+
+def normalize_tag(tag: str) -> str:
+    """Normalize a tag to canonical form."""
+    # Lowercase and strip
+    normalized = tag.lower().strip()
+    # Check normalization map
+    if normalized in TAG_NORMALIZATION_MAP:
+        return TAG_NORMALIZATION_MAP[normalized]
+    # Replace spaces and hyphens with underscores
+    normalized = re.sub(r'[\s\-]+', '_', normalized)
+    # Remove duplicate underscores
+    normalized = re.sub(r'_+', '_', normalized)
+    return normalized
+
+
+def normalize_tags(tags: List[str]) -> List[str]:
+    """Normalize a list of tags and remove duplicates."""
+    normalized = [normalize_tag(t) for t in tags]
+    # Remove duplicates while preserving order
+    seen = set()
+    result = []
+    for tag in normalized:
+        if tag not in seen:
+            seen.add(tag)
+            result.append(tag)
+    return result
+
+
+def normalize_source_type(source_type: str) -> str:
+    """Normalize source type to canonical form."""
+    return source_type.lower().strip().replace("-", "_").replace(" ", "_")
+
+
+def normalize_domain(domain: str) -> str:
+    """Normalize domain to canonical form."""
+    return domain.lower().strip().replace("-", "_").replace(" ", "_")
 
 
 # =============================================================================
