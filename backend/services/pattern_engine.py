@@ -721,6 +721,9 @@ async def get_decision_pattern_snapshot(
     """
     Generate a lightweight pattern snapshot for a decision.
     
+    v0.15: Enhanced with confidence_level, source_breakdown, domain_distribution,
+    distinct_days, and recent_signal_count for better trust indicators.
+    
     Args:
         db: Database connection
         user_id: User ID
@@ -744,7 +747,26 @@ async def get_decision_pattern_snapshot(
     }).to_list(length=100)
     
     entry_count = len(entries)
-    unique_days = len(set(int(e.get("lunar_day", 0)) for e in entries))
+    
+    # v0.15: Calculate distinct observation days
+    observation_days = set()
+    recent_cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+    recent_entry_count = 0
+    
+    for entry in entries:
+        lunar_day = entry.get("lunar_day")
+        if lunar_day:
+            observation_days.add(int(lunar_day))
+        
+        # Check if entry is recent
+        entry_time = entry.get("created_at")
+        if isinstance(entry_time, str):
+            entry_time = datetime.fromisoformat(entry_time.replace('Z', '+00:00'))
+        if entry_time and entry_time >= recent_cutoff:
+            recent_entry_count += 1
+    
+    distinct_days = len(observation_days)
+    unique_days = distinct_days  # Backward compatibility alias
     
     # Determine data sufficiency
     if entry_count >= 10:
@@ -763,6 +785,8 @@ async def get_decision_pattern_snapshot(
     all_tags = []
     dominant_tones = []
     gate_scores = Counter()
+    domain_counts = Counter()
+    source_counts = Counter()
     
     for entry in entries:
         signals = extract_pattern_signals_from_lunar(entry, user_id, decision_id, decision_topic)
@@ -776,12 +800,17 @@ async def get_decision_pattern_snapshot(
             
             all_tags.extend(signal.tags)
             dominant_tones.append(signal.signal_type)
+            domain_counts[signal.domain] += 1
+            source_counts[signal.source_type] += 1
             
             if signal.metadata.get("gate"):
                 gate_scores[signal.metadata["gate"]] += signal.intensity + 0.5
     
-    # Compute repeated tags
-    tag_counts = Counter(all_tags)
+    total_signals = len(all_signals)
+    
+    # Compute repeated tags (with normalization)
+    normalized_tags = normalize_tags(all_tags)
+    tag_counts = Counter(normalized_tags)
     repeated_tags = [tag for tag, count in tag_counts.most_common(5) if count >= 1]
     
     # Find strongest gate
@@ -811,7 +840,34 @@ async def get_decision_pattern_snapshot(
     if abs(total_excitement - total_hesitation) < 0.5 and entry_count >= 2:
         dominant_signals.append("mixed")
     
-    # Compute overall confidence
+    # v0.15: Compute confidence level based on multiple factors
+    # Factors: entry_count, distinct_days, distinct_tags, recency
+    confidence_score = 0.0
+    
+    # Entry count factor (max 0.3)
+    confidence_score += min(entry_count / 10, 1.0) * 0.3
+    
+    # Distinct observation days factor (max 0.25)
+    confidence_score += min(distinct_days / 15, 1.0) * 0.25
+    
+    # Tag diversity factor (max 0.2)
+    unique_tag_count = len(set(normalized_tags))
+    confidence_score += min(unique_tag_count / 8, 1.0) * 0.2
+    
+    # Recency factor (max 0.25) - how active is recent data
+    if entry_count > 0:
+        recency_ratio = recent_entry_count / entry_count
+        confidence_score += recency_ratio * 0.25
+    
+    # Map score to level
+    if confidence_score >= 0.65:
+        confidence_level = ConfidenceLevel.HIGH.value
+    elif confidence_score >= 0.35:
+        confidence_level = ConfidenceLevel.MODERATE.value
+    else:
+        confidence_level = ConfidenceLevel.LOW.value
+    
+    # Legacy confidence value (for backward compatibility)
     if entry_count >= 5:
         confidence = 0.8 + (min(entry_count, 10) / 50)
     elif entry_count >= 2:
@@ -825,6 +881,7 @@ async def get_decision_pattern_snapshot(
         data_sufficiency=data_sufficiency,
         entry_count=entry_count,
         days_observed=unique_days,
+        distinct_days=distinct_days,
         dominant_signals=dominant_signals,
         repeated_tags=repeated_tags,
         strongest_gate=strongest_gate,
@@ -832,6 +889,11 @@ async def get_decision_pattern_snapshot(
         excitement_score=round(total_excitement, 3),
         hesitation_score=round(total_hesitation, 3),
         confidence=round(confidence, 3),
+        confidence_level=confidence_level,
+        total_signals=total_signals,
+        source_breakdown=dict(source_counts),
+        domain_distribution=dict(domain_counts),
+        recent_signal_count=recent_entry_count,
     )
 
 
