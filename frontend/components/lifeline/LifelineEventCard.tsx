@@ -26,6 +26,9 @@ export interface LifelineEvent {
   category?: string;
   emotional_tone?: 'positive' | 'negative' | 'mixed' | 'neutral';
   impact_score?: number;
+  // TASK 59: New separate scales for valence and significance
+  emotional_valence?: number;  // 1-10: 1=very difficult, 5=mixed, 10=very positive
+  significance_score?: number; // 1-10: 1=very low, 5=meaningful, 10=life-changing
   tags?: string[];
   privacy_level?: 'private' | 'shareable';
   created_at?: string;
