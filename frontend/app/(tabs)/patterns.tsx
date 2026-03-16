@@ -1762,7 +1762,7 @@ export default function PatternsScreen() {
         
         <View style={styles.introSection}>
           <Text style={[styles.introDescription, { color: theme.textSecondary }]}>
-            All signals contributing to your current patterns, organized by source and type.
+            A live view of the signals shaping your patterns.
           </Text>
         </View>
 
