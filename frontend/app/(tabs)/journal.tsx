@@ -1797,4 +1797,89 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontStyle: 'italic',
   },
+  // Task 64: Today's Reflection Card Styles
+  todayReflectionCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 16,
+  },
+  todayReflectionHeader: {
+    marginBottom: 12,
+  },
+  todayReflectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  todayGateInfo: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+  },
+  todayGateText: {
+    fontSize: 14,
+  },
+  todayGateTitle: {
+    fontSize: 13,
+    marginLeft: 4,
+  },
+  todayPrompt: {
+    fontSize: 14,
+    marginBottom: 12,
+    fontStyle: 'italic',
+  },
+  todayInput: {
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 12,
+    fontSize: 14,
+    lineHeight: 20,
+    minHeight: 100,
+    marginBottom: 12,
+  },
+  addReflectionButton: {
+    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addReflectionButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1A1D24',
+  },
+  // Task 64: Reflection Timeline Styles
+  reflectionTimelineSection: {
+    marginBottom: 16,
+  },
+  reflectionTimelineTitle: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  reflectionEntry: {
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  reflectionEntryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: 8,
+  },
+  reflectionEntryDay: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  reflectionEntryGate: {
+    fontSize: 12,
+  },
+  reflectionEntryContent: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
 });
