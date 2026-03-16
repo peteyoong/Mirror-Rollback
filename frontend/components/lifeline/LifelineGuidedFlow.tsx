@@ -206,16 +206,25 @@ export default function LifelineGuidedFlow({
     setIsSaving(true);
     
     try {
-      // Save to API
+      // Save to API - Task 61: Send both new rating fields
+      // Derive emotional_tone from valence for backward compatibility
+      const derivedTone = moment.emotionalValence <= 3 ? 'negative' : 
+                          moment.emotionalValence <= 6 ? 'mixed' : 
+                          moment.emotionalValence >= 7 ? 'positive' : 'neutral';
+      
       await api.post('/lifeline/event', {
         user_id: user?.id,
         title: moment.title.trim(),
         description: moment.description.trim() || undefined,
         year: yearNum,
         age: ageNum,
-        impact_score: moment.impactScore,
+        // Task 61: New two-scale model
+        emotional_valence: moment.emotionalValence,
+        significance_score: moment.significanceScore,
+        // Backward compatibility fields
+        impact_score: moment.significanceScore,
+        emotional_tone: derivedTone,
         category: 'Turning Point',
-        emotional_tone: 'mixed',
         privacy_level: 'private',
       });
       
