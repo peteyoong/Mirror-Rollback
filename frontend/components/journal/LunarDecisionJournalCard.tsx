@@ -112,11 +112,6 @@ export default function LunarDecisionJournalCard({
         setStatus(response.data);
         // Use ref to avoid re-triggering effect when callback changes
         onStatusLoadedRef.current?.(response.data);
-        
-        // Show cycle completion if near new moon with active consideration
-        if (response.data.show_cycle_completion) {
-          setShowCycleCompletion(true);
-        }
       } else if (response.data?.is_reflector === false) {
         setStatus(null);
         onStatusLoadedRef.current?.(null);
