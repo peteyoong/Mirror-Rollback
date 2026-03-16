@@ -107,6 +107,17 @@ export default function JournalScreen() {
   const lunarFetchInProgress = useRef(false);
   // Task 64: Selected decision for multi-decision support
   const [selectedDecisionId, setSelectedDecisionId] = useState<string | null>(null);
+  // Task 65: Active decision with full data (single source of truth)
+  const [activeDecision, setActiveDecision] = useState<{
+    id: string;
+    topic: string;
+    days_in_cycle: number;
+    cycle_start: string;
+    entry_count: number;
+    entries: any[];
+    timeline: any[];
+  } | null>(null);
+  const [isLoadingDecisionData, setIsLoadingDecisionData] = useState(false);
   
   // Pattern metadata for journal entries triggered from patterns
   const [patternMetadata, setPatternMetadata] = useState<{
