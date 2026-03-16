@@ -255,7 +255,7 @@ export default function LunarDecisionJournalCard({
           {!showInput ? (
             <>
               <Text style={[styles.noConsiderationText, { color: theme.textSecondary }]}>
-                What decision or life consideration would you like to observe across this lunar cycle?
+                What important decision are you currently thinking about?
               </Text>
               <TouchableOpacity
                 style={[styles.addButton, { borderColor: LUNAR_COLORS.moonlight }]}
