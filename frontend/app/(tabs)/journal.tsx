@@ -2128,6 +2128,9 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontStyle: 'italic',
   },
+  reflectionEntryDate: {
+    fontSize: 12,
+  },
   // New styles for restructured lunar view
   decisionSelectorSection: {
     marginBottom: 16,
