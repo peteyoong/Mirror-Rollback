@@ -1757,6 +1757,9 @@ export default function PatternsScreen() {
           />
         }
       >
+        {/* Pattern Graph v0.1 Card */}
+        <PatternGraphCard />
+        
         <View style={styles.introSection}>
           <Text style={[styles.introDescription, { color: theme.textSecondary }]}>
             All signals contributing to your current patterns, organized by source and type.
