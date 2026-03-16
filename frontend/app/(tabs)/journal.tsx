@@ -2431,22 +2431,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1A1D24',
   },
-  // Task 68: Reflection entry card styles
-  reflectionEntryCard: {
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 12,
-  },
-  reflectionEntryHeader: {
-    marginBottom: 8,
-  },
-  reflectionEntryMeta: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  reflectionEntryContent: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
 });
