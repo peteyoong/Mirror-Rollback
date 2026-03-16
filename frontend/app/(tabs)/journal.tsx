@@ -1026,11 +1026,11 @@ export default function JournalScreen() {
               )}
 
               {/* Lunar Cycle Synthesis - show when near cycle completion */}
-              {lunarStatus?.is_near_new_moon && selectedDecision && (
+              {lunarStatus?.is_near_new_moon && activeDecision && (
                 <View style={styles.lunarSynthesisSection}>
                   <LunarCycleSynthesisCard
                     userId={user?.id || ''}
-                    considerationId={selectedDecision.id}
+                    considerationId={activeDecision.id}
                   />
                 </View>
               )}
