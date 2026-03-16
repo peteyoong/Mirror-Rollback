@@ -148,6 +148,9 @@ async def get_all_active_considerations(db, user_id: str) -> List[Dict[str, Any]
             # Calculate days in cycle
             created_at = consideration.get("created_at")
             if created_at:
+                # Handle timezone-naive datetimes from MongoDB
+                if created_at.tzinfo is None:
+                    created_at = created_at.replace(tzinfo=timezone.utc)
                 days_in_cycle = (datetime.now(timezone.utc) - created_at).days + 1
             else:
                 days_in_cycle = 1
