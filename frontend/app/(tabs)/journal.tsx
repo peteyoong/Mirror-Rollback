@@ -1039,12 +1039,12 @@ export default function JournalScreen() {
         </KeyboardAvoidingView>
 
         {/* Cycle Completion Modal */}
-        {selectedDecision && lunarStatus?.cycle_completion_prompts && (
+        {activeDecision && lunarStatus?.cycle_completion_prompts && (
           <CycleCompletionModal
             visible={showCycleCompletion}
             userId={user?.id || ''}
-            considerationId={selectedDecision.id}
-            considerationTopic={selectedDecision.topic}
+            considerationId={activeDecision.id}
+            considerationTopic={activeDecision.topic}
             cycleCompletionPrompts={lunarStatus.cycle_completion_prompts}
             onClose={() => setShowCycleCompletion(false)}
             onComplete={(message) => {
