@@ -684,6 +684,7 @@ export default function JournalScreen() {
   // Task 51: Lunar Journal View (Reflectors Only)
   if (viewMode === 'lunar') {
     // Task 60: All lunar callbacks are now defined at component level to prevent re-fetch loops
+    // Task 62: Restructured UX - Decision-first, guided hierarchy
 
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
@@ -716,10 +717,10 @@ export default function JournalScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Scrollable content with Wheel, Timeline, and Journal */}
+            {/* Task 62: Restructured Scrollable content - Decision-first hierarchy */}
             <ScrollView 
               style={{ flex: 1 }}
-              contentContainerStyle={{ paddingBottom: 20 }}
+              contentContainerStyle={{ paddingBottom: 120 }}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
@@ -730,34 +731,24 @@ export default function JournalScreen() {
                 </View>
               )}
 
-              {/* Task 55: Lunar Cycle Synthesis - show when near cycle completion */}
-              {lunarStatus?.is_near_new_moon && lunarStatus?.active_consideration && (
-                <LunarCycleSynthesisCard
-                  userId={user?.id || ''}
-                  considerationId={lunarStatus.active_consideration.id}
-                />
-              )}
+              {/* ═══════════════════════════════════════════════════════════════
+                  SECTION 1: PAGE INTRO
+                  ═══════════════════════════════════════════════════════════════ */}
+              <View style={[styles.lunarIntroCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <Text style={[styles.lunarIntroTitle, { color: theme.text }]}>
+                  Lunar Decision Cycle
+                </Text>
+                <Text style={[styles.lunarIntroText, { color: theme.textSecondary }]}>
+                  Reflectors often gain clarity by observing a decision across the full lunar cycle (~29 days).
+                </Text>
+                <Text style={[styles.lunarIntroText, { color: theme.textTertiary, marginTop: 8 }]}>
+                  Notice how your perspective shifts as the Moon moves through different gates.
+                </Text>
+              </View>
 
-              {/* Task 53: Lunar Decision Wheel */}
-              {lunarStatus && lunarTimelineData && (
-                <LunarDecisionWheel
-                  currentLunarDay={lunarStatus.lunar_day}
-                  currentGate={lunarStatus.current_gate}
-                  currentGateTitle={lunarStatus.gate_title}
-                  cycleProgress={lunarStatus.cycle_progress}
-                  timeline={lunarTimelineData.timeline || []}
-                  activeTopic={lunarStatus.active_consideration?.topic || null}
-                  onDayPress={(day, entries) => {
-                    console.log('[LunarWheel] Day pressed:', day, 'entries:', entries.length);
-                  }}
-                  onAddEntry={() => {
-                    // Focus the input field
-                    inputRef.current?.focus();
-                  }}
-                />
-              )}
-
-              {/* Lunar Decision Journal Card */}
+              {/* ═══════════════════════════════════════════════════════════════
+                  SECTION 2 & 3: ACTIVE DECISION CARD
+                  ═══════════════════════════════════════════════════════════════ */}
               <LunarDecisionJournalCard
                 userId={user?.id || ''}
                 onStatusLoaded={handleLunarStatusLoaded}
@@ -771,74 +762,146 @@ export default function JournalScreen() {
                 }}
               />
 
-              {/* Task 52: Lunar Gate Timeline */}
+              {/* ═══════════════════════════════════════════════════════════════
+                  SECTION 4: LUNAR DECISION WHEEL (moved below decision card)
+                  ═══════════════════════════════════════════════════════════════ */}
               {lunarStatus && lunarTimelineData && (
-                <LunarGateTimeline
-                  currentLunarDay={lunarStatus.lunar_day}
-                  currentGate={lunarStatus.current_gate}
-                  currentGateTitle={lunarStatus.gate_title}
-                  timeline={lunarTimelineData.timeline || []}
-                  cycleProgress={lunarStatus.cycle_progress}
-                  onEntryPress={(entry) => {
-                    console.log('[LunarGateTimeline] Entry pressed:', entry.id);
-                  }}
-                />
+                <View style={styles.lunarWheelSection}>
+                  <LunarDecisionWheel
+                    currentLunarDay={lunarStatus.lunar_day}
+                    currentGate={lunarStatus.current_gate}
+                    currentGateTitle={lunarStatus.gate_title}
+                    cycleProgress={lunarStatus.cycle_progress}
+                    timeline={lunarTimelineData.timeline || []}
+                    activeTopic={lunarStatus.active_consideration?.topic || null}
+                    onDayPress={(day, entries) => {
+                      console.log('[LunarWheel] Day pressed:', day, 'entries:', entries.length);
+                    }}
+                    onAddEntry={() => {
+                      inputRef.current?.focus();
+                    }}
+                  />
+                  {/* Wheel instruction text */}
+                  <Text style={[styles.lunarWheelInstruction, { color: theme.textTertiary }]}>
+                    Tap any day to view reflections from that gate.
+                  </Text>
+                </View>
               )}
 
-              {/* Daily Prompt */}
+              {/* ═══════════════════════════════════════════════════════════════
+                  SECTION 5: DAILY REFLECTION
+                  ═══════════════════════════════════════════════════════════════ */}
               {lunarStatus?.daily_prompt && (
-                <View style={[styles.lunarPromptCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  <Text style={[styles.lunarPromptLabel, { color: '#A8B2C0' }]}>
+                <View style={[styles.lunarReflectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Text style={[styles.lunarReflectionLabel, { color: '#A8B2C0' }]}>
                     TODAY'S REFLECTION
                   </Text>
-                  <Text style={[styles.lunarPromptText, { color: theme.textSecondary }]}>
+                  <View style={styles.lunarReflectionGateInfo}>
+                    <Text style={[styles.lunarReflectionGate, { color: theme.text }]}>
+                      Gate {lunarStatus.gate_formatted || lunarStatus.current_gate}
+                    </Text>
+                    {lunarStatus.gate_title && (
+                      <Text style={[styles.lunarReflectionGateTitle, { color: theme.textSecondary }]}>
+                        — {lunarStatus.gate_title}
+                      </Text>
+                    )}
+                  </View>
+                  <Text style={[styles.lunarReflectionPrompt, { color: theme.textSecondary }]}>
                     {lunarStatus.daily_prompt}
                   </Text>
                 </View>
               )}
 
-              {/* Lunar Journal Entry Input */}
-              <View style={styles.inputSection}>
-                <View style={styles.inputContainer}>
+              {/* ═══════════════════════════════════════════════════════════════
+                  SECTION 6: JOURNAL ENTRY INPUT
+                  ═══════════════════════════════════════════════════════════════ */}
+              <View style={[styles.lunarJournalInputSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <Text style={[styles.lunarJournalInputLabel, { color: '#A8B2C0' }]}>
+                  JOURNAL ENTRY
+                </Text>
+                <Text style={[styles.lunarJournalInputPrompt, { color: theme.textSecondary }]}>
+                  What's present for you right now?
+                </Text>
+                <View style={styles.lunarJournalInputContainer}>
                   <TextInput
                     ref={inputRef}
-                    style={[styles.input, { backgroundColor: theme.surface, color: theme.text }]}
+                    style={[styles.lunarJournalInput, { backgroundColor: theme.background, color: theme.text, borderColor: theme.border }]}
                     value={newEntry}
                     onChangeText={setNewEntry}
                     placeholder={lunarStatus?.has_active_consideration 
                       ? "What do you notice about your consideration today?" 
-                      : "What's present for you right now?"}
+                      : "Observe your thoughts, feelings, or clarity..."}
                     placeholderTextColor={theme.textTertiary}
                     multiline
+                    numberOfLines={3}
                     maxLength={2000}
                     editable={!isCreatingLunarEntry}
+                    textAlignVertical="top"
                   />
-                  <View style={styles.inputActions}>
-                    <TouchableOpacity
-                      style={[
-                        styles.submitButton,
-                        { backgroundColor: '#C0C8D4' },
-                        (!newEntry.trim() || isCreatingLunarEntry) && styles.submitButtonDisabled,
-                      ]}
-                      onPress={handleCreateLunarEntry}
-                      disabled={!newEntry.trim() || isCreatingLunarEntry}
-                    >
-                      {isCreatingLunarEntry ? (
-                        <ActivityIndicator size="small" color="#1A1D24" />
-                      ) : (
-                        <Text style={{ fontSize: 18, color: '#1A1D24' }}>✓</Text>
-                      )}
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.lunarJournalSubmitButton,
+                      { backgroundColor: newEntry.trim() ? '#C0C8D4' : theme.border },
+                      (!newEntry.trim() || isCreatingLunarEntry) && { opacity: 0.5 },
+                    ]}
+                    onPress={handleCreateLunarEntry}
+                    disabled={!newEntry.trim() || isCreatingLunarEntry}
+                  >
+                    {isCreatingLunarEntry ? (
+                      <ActivityIndicator size="small" color="#1A1D24" />
+                    ) : (
+                      <Text style={{ fontSize: 16, color: '#1A1D24', fontWeight: '600' }}>Add Entry</Text>
+                    )}
+                  </TouchableOpacity>
                 </View>
               </View>
 
-              {/* Lunar Timeline Entry List */}
+              {/* ═══════════════════════════════════════════════════════════════
+                  SECTION 7: LUNAR TIMELINE
+                  ═══════════════════════════════════════════════════════════════ */}
+              {lunarStatus && lunarTimelineData && (
+                <View style={styles.lunarTimelineSection}>
+                  <Text style={[styles.lunarTimelineSectionTitle, { color: '#A8B2C0' }]}>
+                    LUNAR CYCLE TIMELINE
+                  </Text>
+                  <LunarGateTimeline
+                    currentLunarDay={lunarStatus.lunar_day}
+                    currentGate={lunarStatus.current_gate}
+                    currentGateTitle={lunarStatus.gate_title}
+                    timeline={lunarTimelineData.timeline || []}
+                    cycleProgress={lunarStatus.cycle_progress}
+                    onEntryPress={(entry) => {
+                      console.log('[LunarGateTimeline] Entry pressed:', entry.id);
+                    }}
+                  />
+                </View>
+              )}
+
+              {/* Task 55: Lunar Cycle Synthesis - show when near cycle completion */}
+              {lunarStatus?.is_near_new_moon && lunarStatus?.active_consideration && (
+                <View style={styles.lunarSynthesisSection}>
+                  <LunarCycleSynthesisCard
+                    userId={user?.id || ''}
+                    considerationId={lunarStatus.active_consideration.id}
+                  />
+                </View>
+              )}
+
+              {/* Entry Timeline View */}
               <LunarTimelineView
                 userId={user?.id || ''}
                 considerationId={lunarStatus?.active_consideration?.id}
                 considerationTopic={lunarStatus?.active_consideration?.topic}
               />
+
+              {/* Decision Limit Explanation */}
+              {lunarStatus?.has_active_consideration && (
+                <View style={styles.lunarLimitNote}>
+                  <Text style={[styles.lunarLimitNoteText, { color: theme.textTertiary }]}>
+                    You can observe one decision at a time. Complete or pause the current cycle to begin another.
+                  </Text>
+                </View>
+              )}
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
