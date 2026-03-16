@@ -268,7 +268,8 @@ export default function JournalScreen() {
       
       if (decision) {
         // Build timeline from entries grouped by day
-        const entries = entriesRes.data || [];
+        // Note: API returns { success: true, entries: [...] }
+        const entries = entriesRes.data?.entries || [];
         const timelineMap: { [key: number]: any[] } = {};
         
         entries.forEach((entry: any) => {
