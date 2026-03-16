@@ -2242,10 +2242,20 @@ const styles = StyleSheet.create({
     height: 1,
     marginVertical: 12,
   },
+  // Task 68: Improved observation row styling
+  todaysLensObservationRow: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  todaysLensObservationIcon: {
+    fontSize: 14,
+    marginRight: 8,
+    marginTop: 1,
+  },
   todaysLensObservation: {
     fontSize: 13,
     lineHeight: 18,
-    marginBottom: 16,
+    flex: 1,
   },
   todaysLensPromptBox: {
     borderRadius: 8,
