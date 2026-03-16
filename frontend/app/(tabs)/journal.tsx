@@ -959,15 +959,16 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 3: CYCLE INSTRUCTION CARD (Show if no reflections)
+                  SECTION 3: CYCLE INSTRUCTION CARD (Task 68: Smart visibility)
+                  Shows only when user has < 2 unique days with reflections
                   ═══════════════════════════════════════════════════════════════ */}
-              {activeDecision && !hasReflections && (
-                <View style={[styles.instructionCard, { backgroundColor: 'rgba(192, 200, 212, 0.08)', borderColor: theme.border }]}>
+              {activeDecision && (activeDecision.entry_count || 0) < 2 && (
+                <View style={[styles.instructionCard, { backgroundColor: 'rgba(192, 200, 212, 0.06)', borderColor: theme.border }]}>
                   <Text style={[styles.instructionTitle, { color: theme.text }]}>
                     How This Works
                   </Text>
                   <Text style={[styles.instructionText, { color: theme.textSecondary }]}>
-                    Each day the Moon activates a different Human Design gate, providing a unique lens for viewing your decision. Instead of deciding immediately, simply notice how your perspective evolves over the ~29 day cycle.
+                    Each day the Moon activates a different Human Design gate, offering a unique lens for viewing your decision. Simply notice how your perspective evolves over the ~29 day cycle.
                   </Text>
                 </View>
               )}
