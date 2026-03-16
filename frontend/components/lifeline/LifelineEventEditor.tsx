@@ -147,14 +147,28 @@ export default function LifelineEventEditor({ visible, event, prefillYear, onClo
     setIsSaving(true);
 
     try {
-      const eventData: Partial<LifelineEvent> = {
+      // TASK 59: Save both emotional_valence and significance_score
+      // Also derive emotional_tone from valence for backward compatibility
+      const derivedTone = emotionalValence <= 3 ? 'negative' : 
+                          emotionalValence <= 6 ? 'mixed' : 
+                          emotionalValence >= 7 ? 'positive' : 'neutral';
+      
+      const eventData: Partial<LifelineEvent> & { 
+        emotional_valence?: number; 
+        significance_score?: number;
+      } = {
         title: title.trim(),
         description: description.trim() || undefined,
         year: yearNum,
         age: ageNum,
         category: category || undefined,
-        emotional_tone: emotionalTone as LifelineEvent['emotional_tone'],
-        impact_score: impactScore,
+        // Keep emotional_tone for backward compatibility
+        emotional_tone: derivedTone as LifelineEvent['emotional_tone'],
+        // New fields for Task 59
+        emotional_valence: emotionalValence,
+        significance_score: significanceScore,
+        // Also save as impact_score for backward compatibility
+        impact_score: significanceScore,
         tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
         privacy_level: privacyLevel,
       };
