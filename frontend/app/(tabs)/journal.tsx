@@ -1184,6 +1184,7 @@ export default function JournalScreen() {
 
               {/* ═══════════════════════════════════════════════════════════════
                   SECTION 6: LUNAR WHEEL (History & Navigation Tool)
+                  Uses resolvedCycleState for today state
                   ═══════════════════════════════════════════════════════════════ */}
               {activeDecision && (
                 <View style={styles.lunarWheelSection}>
@@ -1194,14 +1195,22 @@ export default function JournalScreen() {
                     Tap any day to view that gate's reflection
                   </Text>
                   <LunarDecisionWheel
-                    currentLunarDay={canonicalCycleDay}
-                    currentGate={currentGate}
+                    currentLunarDay={resolvedCycleState.cycle_day}
+                    currentGate={resolvedCycleState.today_gate}
                     currentGateTitle={gateExplanation?.title || null}
-                    cycleProgress={(canonicalCycleDay / 29.5) * 100}
+                    cycleProgress={(resolvedCycleState.cycle_day / 29.5) * 100}
                     timeline={activeDecision.timeline || []}
                     activeTopic={activeDecision.topic}
                     onDayPress={(day, entries) => {
                       console.log('[LunarWheel] Day pressed:', day, 'entries:', entries.length);
+                      // Set historical view state (does not change today state)
+                      if (entries.length > 0) {
+                        setSelectedHistoricalEntry({
+                          cycle_day: day,
+                          gate: entries[0]?.moon_gate || null,
+                          entry_id: entries[0]?.id || '',
+                        });
+                      }
                     }}
                     onAddEntry={() => {
                       inputRef.current?.focus();
