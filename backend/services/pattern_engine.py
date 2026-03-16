@@ -898,47 +898,175 @@ async def get_decision_pattern_snapshot(
 
 
 # =============================================================================
-# PATTERN SIGNAL STORAGE - Task 70 Section 11
+# PATTERN SIGNAL STORAGE - v0.15 Idempotent Persistence
 # =============================================================================
 
-async def store_pattern_signals(db, signals: List[PatternSignal]) -> int:
+async def store_pattern_signals(db, signals: List[PatternSignal]) -> Tuple[int, int]:
     """
-    Store pattern signals in the database.
-    Uses upsert to avoid duplicates.
+    Store pattern signals in the database with idempotent upsert.
     
-    Returns number of signals stored.
+    v0.15: Uses dedupe_key for reliable idempotency.
+    Re-ingesting the same data will update existing signals, not create duplicates.
+    
+    Args:
+        db: Database connection
+        signals: List of PatternSignal objects to store
+    
+    Returns:
+        Tuple of (inserted_count, updated_count)
     """
     if not signals:
-        return 0
+        return (0, 0)
     
-    stored = 0
+    inserted = 0
+    updated = 0
+    
     for signal in signals:
         try:
-            await db.pattern_signals.update_one(
-                {"id": signal.id},
-                {"$set": signal.to_dict()},
-                upsert=True
-            )
-            stored += 1
+            dedupe_key = signal.get_dedupe_key()
+            now = datetime.now(timezone.utc)
+            
+            # Check if signal exists by dedupe key
+            existing = await db.pattern_signals.find_one({"dedupe_key": dedupe_key})
+            
+            signal_data = signal.to_dict()
+            signal_data["dedupe_key"] = dedupe_key
+            signal_data["updated_at"] = now.isoformat()
+            
+            if existing:
+                # Update existing signal
+                await db.pattern_signals.update_one(
+                    {"dedupe_key": dedupe_key},
+                    {"$set": signal_data}
+                )
+                updated += 1
+            else:
+                # Insert new signal
+                signal_data["created_at"] = now.isoformat()
+                await db.pattern_signals.insert_one(signal_data)
+                inserted += 1
+                
         except Exception as e:
             logger.error(f"[PatternEngine] Error storing signal {signal.id}: {e}")
     
-    return stored
+    logger.info(f"[PatternEngine] Storage complete: {inserted} inserted, {updated} updated")
+    return (inserted, updated)
 
 
 async def get_user_pattern_signals(
     db,
     user_id: str,
     source_type: Optional[str] = None,
+    decision_id: Optional[str] = None,
+    time_window: Optional[TimeWindow] = None,
     limit: int = 100
 ) -> List[Dict[str, Any]]:
-    """Retrieve pattern signals for a user."""
+    """
+    Retrieve pattern signals for a user with filtering options.
+    
+    v0.15: Added decision_id and time_window filtering support.
+    
+    Args:
+        db: Database connection
+        user_id: User ID
+        source_type: Optional filter by source type
+        decision_id: Optional filter by decision ID
+        time_window: Optional time window filter
+        limit: Maximum number of signals to return
+    
+    Returns:
+        List of signal dictionaries
+    """
     query = {"user_id": user_id}
+    
     if source_type:
-        query["source_type"] = source_type
+        query["source_type"] = normalize_source_type(source_type)
+    
+    if decision_id:
+        query["source_id"] = decision_id
+    
+    # Apply time window filter
+    if time_window:
+        now = datetime.now(timezone.utc)
+        
+        if time_window == TimeWindow.LAST_7_DAYS:
+            cutoff = now - timedelta(days=7)
+            query["timestamp"] = {"$gte": cutoff.isoformat()}
+        elif time_window == TimeWindow.LAST_30_DAYS:
+            cutoff = now - timedelta(days=30)
+            query["timestamp"] = {"$gte": cutoff.isoformat()}
+        elif time_window == TimeWindow.CURRENT_CYCLE:
+            # Approximately one lunar cycle
+            cutoff = now - timedelta(days=30)
+            query["timestamp"] = {"$gte": cutoff.isoformat()}
+        # ALL_TIME and CURRENT_DECISION don't need time filters
     
     cursor = db.pattern_signals.find(query).sort("timestamp", -1).limit(limit)
     return await cursor.to_list(length=limit)
+
+
+async def count_pattern_signals_by_source(db, user_id: str) -> Dict[str, int]:
+    """
+    Count pattern signals by source type for a user.
+    
+    Returns:
+        Dictionary mapping source_type to count
+    """
+    pipeline = [
+        {"$match": {"user_id": user_id}},
+        {"$group": {"_id": "$source_type", "count": {"$sum": 1}}},
+    ]
+    
+    results = await db.pattern_signals.aggregate(pipeline).to_list(length=20)
+    
+    # Initialize all source types with 0
+    counts = {
+        SourceType.LUNAR_REFLECTION.value: 0,
+        SourceType.JOURNAL_ENTRY.value: 0,
+        SourceType.MIRROR_CHAT.value: 0,
+        SourceType.HUMAN_DESIGN_GATE.value: 0,
+        SourceType.ENNEAGRAM.value: 0,
+        SourceType.GENE_KEYS.value: 0,
+        SourceType.TRANSIT.value: 0,
+    }
+    
+    for result in results:
+        source = result["_id"]
+        if source in counts:
+            counts[source] = result["count"]
+    
+    return counts
+
+
+async def delete_user_pattern_signals(
+    db,
+    user_id: str,
+    source_type: Optional[str] = None,
+    decision_id: Optional[str] = None
+) -> int:
+    """
+    Delete pattern signals for a user.
+    
+    Args:
+        db: Database connection
+        user_id: User ID
+        source_type: Optional filter by source type
+        decision_id: Optional filter by decision ID
+    
+    Returns:
+        Number of signals deleted
+    """
+    query = {"user_id": user_id}
+    
+    if source_type:
+        query["source_type"] = normalize_source_type(source_type)
+    
+    if decision_id:
+        query["source_id"] = decision_id
+    
+    result = await db.pattern_signals.delete_many(query)
+    logger.info(f"[PatternEngine] Deleted {result.deleted_count} signals for user {user_id[:8]}...")
+    return result.deleted_count
 
 
 # =============================================================================
