@@ -2572,4 +2572,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1A1D24',
   },
+  // Task 70: Debug Panel styles
+  debugPanel: {
+    borderRadius: 12,
+    borderWidth: 2,
+    padding: 16,
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  debugPanelTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  debugPanelSubtitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  debugPanelText: {
+    fontSize: 11,
+    fontFamily: 'monospace',
+    lineHeight: 16,
+  },
 });
