@@ -252,6 +252,65 @@ export default function JournalScreen() {
     }
   }, [viewMode, user, lunarDataFetched, fetchLunarTimeline]);
 
+  // Task 65: Fetch decision-specific data when selection changes
+  const fetchDecisionData = useCallback(async (decisionId: string) => {
+    if (!user || !decisionId) return;
+    
+    setIsLoadingDecisionData(true);
+    try {
+      // Fetch entries specific to this decision
+      const entriesRes = await api.get(`/lunar-journal/${user.id}/entries`, {
+        params: { consideration_id: decisionId, limit: 50 }
+      });
+      
+      // Find the decision in lunarStatus
+      const decision = lunarStatus?.active_considerations?.find((d: any) => d.id === decisionId);
+      
+      if (decision) {
+        // Build timeline from entries grouped by day
+        const entries = entriesRes.data || [];
+        const timelineMap: { [key: number]: any[] } = {};
+        
+        entries.forEach((entry: any) => {
+          const day = Math.round(entry.lunar_day || 1);
+          if (!timelineMap[day]) {
+            timelineMap[day] = [];
+          }
+          timelineMap[day].push(entry);
+        });
+        
+        const timeline = Object.entries(timelineMap).map(([day, dayEntries]) => ({
+          lunar_day: parseInt(day),
+          entries: dayEntries,
+          entry_count: dayEntries.length,
+          gates: [...new Set(dayEntries.map((e: any) => e.moon_gate).filter(Boolean))]
+        })).sort((a, b) => a.lunar_day - b.lunar_day);
+        
+        setActiveDecision({
+          id: decision.id,
+          topic: decision.topic,
+          days_in_cycle: decision.days_in_cycle || 1,
+          cycle_start: decision.cycle_start || decision.created_at,
+          entry_count: entries.length,
+          entries: entries,
+          timeline: timeline,
+        });
+      }
+    } catch (err) {
+      console.error('[LunarJournal] Error fetching decision data:', err);
+    } finally {
+      setIsLoadingDecisionData(false);
+    }
+  }, [user, lunarStatus?.active_considerations]);
+
+  // Task 65: Update activeDecision when selection changes
+  useEffect(() => {
+    const decisionId = selectedDecisionId || lunarStatus?.active_consideration?.id;
+    if (decisionId && viewMode === 'lunar') {
+      fetchDecisionData(decisionId);
+    }
+  }, [selectedDecisionId, lunarStatus?.active_consideration?.id, viewMode, fetchDecisionData]);
+
   // Task 60: Stable callback for creating lunar entry
   // Task 64: Updated to use selectedDecisionId for multi-decision support
   const handleCreateLunarEntry = useCallback(async () => {
