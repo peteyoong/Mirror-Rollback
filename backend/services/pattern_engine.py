@@ -551,7 +551,7 @@ def get_momentum_description(momentum: MomentumState, decision_topic: str) -> st
         MomentumState.STRONG_POSITIVE: f"Your reflections across this cycle about {decision_topic} showed recurring excitement and curiosity, with relatively little hesitation.",
         MomentumState.POSITIVE: f"Your reflections about {decision_topic} lean toward positive energy, though some considerations remain.",
         MomentumState.MIXED: f"Your reflections about {decision_topic} showed both genuine pull and meaningful hesitation.",
-        MomentumState.UNCLEAR: f"There is not yet enough data to determine the momentum of this decision.",
+        MomentumState.UNCLEAR: "There is not yet enough data to determine the momentum of this decision.",
         MomentumState.RESISTANT: f"Your reflections consistently returned to concern, pressure, or hesitation around {decision_topic}.",
     }
     return descriptions.get(momentum, descriptions[MomentumState.UNCLEAR])
