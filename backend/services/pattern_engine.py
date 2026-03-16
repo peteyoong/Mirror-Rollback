@@ -477,9 +477,9 @@ def extract_tags(text: str) -> List[str]:
 # PATTERN SIGNAL EXTRACTION - Task 70 Section 9
 # =============================================================================
 
-def generate_signal_id(user_id: str, source_type: str, source_id: str, timestamp: datetime) -> str:
+def generate_signal_id(user_id: str, source_type: str, source_id: str, timestamp: datetime, suffix: str = "") -> str:
     """Generate deterministic signal ID."""
-    data = f"{user_id}:{source_type}:{source_id}:{timestamp.isoformat()}"
+    data = f"{user_id}:{source_type}:{source_id}:{timestamp.isoformat()}:{suffix}"
     return hashlib.sha256(data.encode()).hexdigest()[:16]
 
 
@@ -491,6 +491,8 @@ def extract_pattern_signals_from_lunar(
 ) -> List[PatternSignal]:
     """
     Extract normalized pattern signals from a lunar reflection entry.
+    
+    v0.15: Added source_event_id for better deduplication, created_at/updated_at tracking.
     
     Args:
         entry: Lunar journal entry document
@@ -511,20 +513,25 @@ def extract_pattern_signals_from_lunar(
     if isinstance(timestamp, str):
         timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
     
+    now = datetime.now(timezone.utc)
+    
     # Compute emotional scores
     emotional_data = compute_weighted_emotional_score(content)
     
-    # Extract domain and tags
+    # Extract domain and tags (with normalization)
     domain = extract_domain(content)
-    tags = extract_tags(content)
+    tags = normalize_tags(extract_tags(content))
     
     # Add decision-specific tag
     if "business" in decision_topic.lower():
-        tags.append("business_decision")
+        tags.append(normalize_tag("business_decision"))
     elif "coach" in decision_topic.lower():
-        tags.append("coaching_decision")
+        tags.append(normalize_tag("coaching_decision"))
     elif "relocate" in decision_topic.lower() or "move" in decision_topic.lower():
-        tags.append("relocation_decision")
+        tags.append(normalize_tag("relocation_decision"))
+    
+    # Dedupe tags
+    tags = list(dict.fromkeys(tags))[:5]
     
     # Build metadata
     metadata = {
@@ -562,10 +569,11 @@ def extract_pattern_signals_from_lunar(
         intensity = emotional_data["neutrality_score"]
     
     primary_signal = PatternSignal(
-        id=generate_signal_id(user_id, SourceType.LUNAR_REFLECTION.value, entry_id, timestamp),
+        id=generate_signal_id(user_id, SourceType.LUNAR_REFLECTION.value, entry_id, timestamp, "primary"),
         user_id=user_id,
         source_type=SourceType.LUNAR_REFLECTION.value,
-        source_id=entry_id,
+        source_id=decision_id,  # v0.15: source_id is now decision_id
+        source_event_id=entry_id,  # v0.15: specific entry ID
         timestamp=timestamp,
         domain=domain,
         signal_type=signal_type,
@@ -574,6 +582,8 @@ def extract_pattern_signals_from_lunar(
         confidence=emotional_data["confidence"],
         tags=tags,
         metadata=metadata,
+        created_at=now,
+        updated_at=now,
     )
     signals.append(primary_signal)
     
@@ -581,10 +591,11 @@ def extract_pattern_signals_from_lunar(
     if dominant == "mixed":
         if emotional_data["excitement_score"] > 0.2:
             secondary = PatternSignal(
-                id=generate_signal_id(user_id, SourceType.LUNAR_REFLECTION.value, entry_id + "_exc", timestamp),
+                id=generate_signal_id(user_id, SourceType.LUNAR_REFLECTION.value, entry_id, timestamp, "excitement"),
                 user_id=user_id,
                 source_type=SourceType.LUNAR_REFLECTION.value,
-                source_id=entry_id,
+                source_id=decision_id,
+                source_event_id=entry_id,
                 timestamp=timestamp,
                 domain=domain,
                 signal_type=SignalType.EXCITEMENT.value,
@@ -593,15 +604,18 @@ def extract_pattern_signals_from_lunar(
                 confidence=emotional_data["confidence"] * 0.8,
                 tags=tags,
                 metadata=metadata,
+                created_at=now,
+                updated_at=now,
             )
             signals.append(secondary)
         
         if emotional_data["hesitation_score"] > 0.2:
             secondary = PatternSignal(
-                id=generate_signal_id(user_id, SourceType.LUNAR_REFLECTION.value, entry_id + "_hes", timestamp),
+                id=generate_signal_id(user_id, SourceType.LUNAR_REFLECTION.value, entry_id, timestamp, "hesitation"),
                 user_id=user_id,
                 source_type=SourceType.LUNAR_REFLECTION.value,
-                source_id=entry_id,
+                source_id=decision_id,
+                source_event_id=entry_id,
                 timestamp=timestamp,
                 domain=domain,
                 signal_type=SignalType.HESITATION.value,
@@ -610,6 +624,8 @@ def extract_pattern_signals_from_lunar(
                 confidence=emotional_data["confidence"] * 0.8,
                 tags=tags,
                 metadata=metadata,
+                created_at=now,
+                updated_at=now,
             )
             signals.append(secondary)
     
