@@ -242,14 +242,18 @@ export default function JournalScreen() {
   }, [viewMode, user, lunarDataFetched, fetchLunarTimeline]);
 
   // Task 60: Stable callback for creating lunar entry
+  // Task 64: Updated to use selectedDecisionId for multi-decision support
   const handleCreateLunarEntry = useCallback(async () => {
     if (!newEntry.trim() || !user || isCreatingLunarEntry) return;
+    
+    // Use selectedDecisionId if available, otherwise fall back to active_consideration
+    const considerationId = selectedDecisionId || lunarStatus?.active_consideration?.id || null;
     
     setIsCreatingLunarEntry(true);
     try {
       await api.post(`/lunar-journal/${user.id}/entry`, {
         content: newEntry.trim(),
-        consideration_id: lunarStatus?.active_consideration?.id || null,
+        consideration_id: considerationId,
       });
       
       setNewEntry('');
@@ -270,7 +274,7 @@ export default function JournalScreen() {
     } finally {
       setIsCreatingLunarEntry(false);
     }
-  }, [newEntry, user, isCreatingLunarEntry, lunarStatus?.active_consideration?.id]);
+  }, [newEntry, user, isCreatingLunarEntry, selectedDecisionId, lunarStatus?.active_consideration?.id]);
 
   const loadEntries = async () => {
     if (!user) return;
