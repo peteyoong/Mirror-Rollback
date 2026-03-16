@@ -545,6 +545,7 @@ async def get_lunar_journal_status(db, user_id: str) -> Dict[str, Any]:
     """
     Get complete lunar journal status for a Reflector user.
     Used to initialize the journal UI.
+    Task 64: Now includes all active considerations.
     """
     try:
         # Get current lunar info
@@ -552,10 +553,13 @@ async def get_lunar_journal_status(db, user_id: str) -> Dict[str, Any]:
         gate_data = get_current_moon_gate()
         cycle_info = get_current_cycle_boundaries()
         
-        # Get active consideration
-        active_consideration = await get_active_consideration(db, user_id)
+        # Task 64: Get ALL active considerations
+        all_considerations = await get_all_active_considerations(db, user_id)
         
-        # Get recent entries
+        # Get the most recent active consideration for backward compatibility
+        active_consideration = all_considerations[0] if all_considerations else None
+        
+        # Get recent entries (from the most recent consideration)
         recent_entries = await get_lunar_journal_entries(
             db, user_id, 
             consideration_id=active_consideration["id"] if active_consideration else None,
@@ -586,7 +590,10 @@ async def get_lunar_journal_status(db, user_id: str) -> Dict[str, Any]:
             "gate_theme": gate_data.get("gate_theme"),
             "center": gate_data.get("center"),
             "gate_reflection": gate_data.get("gate_reflection_message"),
-            # Consideration
+            # Task 64: All active considerations
+            "active_considerations": all_considerations,
+            "decision_count": len(all_considerations),
+            # Backward compatibility: single active consideration
             "active_consideration": active_consideration,
             "has_active_consideration": active_consideration is not None,
             # Entries
