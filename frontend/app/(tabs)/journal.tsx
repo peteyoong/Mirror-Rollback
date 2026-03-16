@@ -1080,7 +1080,37 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 7: REFLECTION TIMELINE (Task 68: Improved card formatting)
+                  SECTION 7: CYCLE COMPLETION BANNER (Task 70: Moved after wheel)
+                  Only shows when cycle is eligible for completion (Day 21-29).
+                  User must explicitly tap to open completion modal.
+                  ═══════════════════════════════════════════════════════════════ */}
+              {lunarStatus?.is_near_new_moon && activeDecision && lunarStatus?.show_cycle_completion && (
+                <View style={[styles.cycleCompletionBanner, { backgroundColor: 'rgba(192, 200, 212, 0.08)', borderColor: theme.border }]}>
+                  <View style={styles.cycleCompletionBannerContent}>
+                    <Text style={[styles.cycleCompletionBannerIcon]}>🌑</Text>
+                    <View style={styles.cycleCompletionBannerText}>
+                      <Text style={[styles.cycleCompletionBannerTitle, { color: theme.text }]}>
+                        Cycle Nearing Completion
+                      </Text>
+                      <Text style={[styles.cycleCompletionBannerSubtitle, { color: theme.textSecondary }]}>
+                        Day {Math.round(activeDecision.days_in_cycle)} of ~29 • Ready to reflect on this cycle
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.cycleCompletionBannerButton, { backgroundColor: '#C0C8D4' }]}
+                    onPress={() => {
+                      console.log('[Lunar] User tapped Complete Cycle button');
+                      setShowCycleCompletion(true);
+                    }}
+                  >
+                    <Text style={styles.cycleCompletionBannerButtonText}>Complete Cycle Reflection</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* ═══════════════════════════════════════════════════════════════
+                  SECTION 8: REFLECTION TIMELINE (Task 68: Improved card formatting)
                   ═══════════════════════════════════════════════════════════════ */}
               {activeDecision?.entries && activeDecision.entries.length > 0 && (
                 <View style={styles.reflectionTimelineSection}>
