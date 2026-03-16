@@ -1091,10 +1091,10 @@ export default function JournalScreen() {
                     Tap any day to view that gate's reflection
                   </Text>
                   <LunarDecisionWheel
-                    currentLunarDay={activeDecision.days_in_cycle}
+                    currentLunarDay={canonicalCycleDay}
                     currentGate={currentGate}
                     currentGateTitle={gateExplanation?.title || null}
-                    cycleProgress={(activeDecision.days_in_cycle / 29.5) * 100}
+                    cycleProgress={(canonicalCycleDay / 29.5) * 100}
                     timeline={activeDecision.timeline || []}
                     activeTopic={activeDecision.topic}
                     onDayPress={(day, entries) => {
