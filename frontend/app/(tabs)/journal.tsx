@@ -2044,4 +2044,199 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+  // New styles for restructured lunar view
+  decisionSelectorSection: {
+    marginBottom: 16,
+  },
+  decisionSelectorScroll: {
+    paddingHorizontal: 4,
+  },
+  decisionSelectorPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginRight: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  decisionSelectorText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  decisionSelectorDot: {
+    fontSize: 8,
+    fontWeight: '600',
+  },
+  decisionHeaderCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 20,
+    marginBottom: 16,
+  },
+  decisionHeaderLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  decisionHeaderTopic: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+    lineHeight: 24,
+  },
+  decisionHeaderStatus: {
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  decisionHeaderDivider: {
+    height: 1,
+    marginVertical: 12,
+  },
+  decisionHeaderDescription: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  noDecisionCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  noDecisionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  noDecisionText: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  instructionCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 16,
+  },
+  instructionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  instructionText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  todaysLensCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 20,
+    marginBottom: 16,
+  },
+  todaysLensLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  todaysLensGate: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  todaysLensTheme: {
+    fontSize: 14,
+    marginBottom: 12,
+    fontStyle: 'italic',
+  },
+  todaysLensDivider: {
+    height: 1,
+    marginVertical: 12,
+  },
+  todaysLensObservation: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  todaysLensPromptBox: {
+    borderRadius: 8,
+    padding: 12,
+  },
+  todaysLensPromptLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  todaysLensPrompt: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  reflectionInputCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 20,
+    marginBottom: 16,
+  },
+  reflectionInputLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  reflectionTextInput: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 16,
+    fontSize: 15,
+    minHeight: 120,
+    textAlignVertical: 'top',
+    marginBottom: 16,
+  },
+  saveReflectionButton: {
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveReflectionButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1A1D24',
+  },
+  lunarWheelSectionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  lunarWheelSectionHint: {
+    fontSize: 12,
+    marginBottom: 16,
+  },
+  addAnotherSection: {
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  addAnotherButton: {
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addAnotherButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  reflectionEntryDate: {
+    fontSize: 12,
+  },
 });
