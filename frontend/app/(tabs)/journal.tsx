@@ -934,59 +934,86 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 3: TODAY'S REFLECTION (Primary Action)
+                  SECTION 3: CYCLE INSTRUCTION CARD (Show if no reflections)
                   ═══════════════════════════════════════════════════════════════ */}
-              <View style={[styles.todayReflectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <View style={styles.todayReflectionHeader}>
-                  <Text style={[styles.todayReflectionTitle, { color: theme.text }]}>
-                    Today
+              {activeDecision && !hasReflections && (
+                <View style={[styles.instructionCard, { backgroundColor: 'rgba(192, 200, 212, 0.08)', borderColor: theme.border }]}>
+                  <Text style={[styles.instructionTitle, { color: theme.text }]}>
+                    How This Works
                   </Text>
-                  <View style={styles.todayGateInfo}>
-                    <Text style={[styles.todayGateText, { color: theme.textSecondary }]}>
-                      Gate {lunarStatus?.gate_formatted || lunarStatus?.current_gate}
+                  <Text style={[styles.instructionText, { color: theme.textSecondary }]}>
+                    Each day the Moon activates a different Human Design gate, providing a unique lens for viewing your decision. Instead of deciding immediately, simply notice how your perspective evolves over the ~29 day cycle.
+                  </Text>
+                </View>
+              )}
+
+              {/* ═══════════════════════════════════════════════════════════════
+                  SECTION 4: TODAY'S LENS CARD (Gate Activation)
+                  ═══════════════════════════════════════════════════════════════ */}
+              {activeDecision && gateExplanation && (
+                <View style={[styles.todaysLensCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Text style={[styles.todaysLensLabel, { color: '#A8B2C0' }]}>
+                    TODAY'S LENS
+                  </Text>
+                  <Text style={[styles.todaysLensGate, { color: theme.text }]}>
+                    Gate {lunarStatus?.gate_formatted || currentGate} — {gateExplanation.title}
+                  </Text>
+                  <Text style={[styles.todaysLensTheme, { color: theme.textSecondary }]}>
+                    {gateExplanation.theme}
+                  </Text>
+                  <View style={[styles.todaysLensDivider, { backgroundColor: theme.border }]} />
+                  <Text style={[styles.todaysLensObservation, { color: theme.textTertiary }]}>
+                    💡 {gateExplanation.observation}
+                  </Text>
+                  <View style={[styles.todaysLensPromptBox, { backgroundColor: 'rgba(192, 200, 212, 0.08)' }]}>
+                    <Text style={[styles.todaysLensPromptLabel, { color: '#A8B2C0' }]}>
+                      REFLECTION PROMPT
                     </Text>
-                    {lunarStatus?.gate_title && (
-                      <Text style={[styles.todayGateTitle, { color: theme.textTertiary }]}>
-                        — {lunarStatus.gate_title}
-                      </Text>
-                    )}
+                    <Text style={[styles.todaysLensPrompt, { color: theme.text }]}>
+                      {gateExplanation.reflectionQuestion}
+                    </Text>
                   </View>
                 </View>
-                
-                <Text style={[styles.todayPrompt, { color: theme.textSecondary }]}>
-                  What do you notice about this decision today?
-                </Text>
-                
-                <TextInput
-                  ref={inputRef}
-                  style={[styles.todayInput, { backgroundColor: theme.background, color: theme.text, borderColor: theme.border }]}
-                  value={newEntry}
-                  onChangeText={setNewEntry}
-                  placeholder="Write your reflection..."
-                  placeholderTextColor={theme.textTertiary}
-                  multiline
-                  numberOfLines={4}
-                  maxLength={2000}
-                  editable={!isCreatingLunarEntry}
-                  textAlignVertical="top"
-                />
-                
-                <TouchableOpacity
-                  style={[
-                    styles.addReflectionButton,
-                    { backgroundColor: newEntry.trim() ? '#C0C8D4' : theme.border },
-                    (!newEntry.trim() || isCreatingLunarEntry) && { opacity: 0.5 },
-                  ]}
-                  onPress={handleCreateLunarEntry}
-                  disabled={!newEntry.trim() || isCreatingLunarEntry}
-                >
-                  {isCreatingLunarEntry ? (
-                    <ActivityIndicator size="small" color="#1A1D24" />
-                  ) : (
-                    <Text style={styles.addReflectionButtonText}>Add Reflection</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
+              )}
+
+              {/* ═══════════════════════════════════════════════════════════════
+                  SECTION 5: REFLECTION INPUT (Primary Action)
+                  ═══════════════════════════════════════════════════════════════ */}
+              {activeDecision && (
+                <View style={[styles.reflectionInputCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Text style={[styles.reflectionInputLabel, { color: '#A8B2C0' }]}>
+                    TODAY'S REFLECTION
+                  </Text>
+                  <TextInput
+                    ref={inputRef}
+                    style={[styles.reflectionTextInput, { backgroundColor: theme.background, color: theme.text, borderColor: theme.border }]}
+                    value={newEntry}
+                    onChangeText={setNewEntry}
+                    placeholder="What did you notice today about this decision?"
+                    placeholderTextColor={theme.textTertiary}
+                    multiline
+                    numberOfLines={5}
+                    maxLength={2000}
+                    editable={!isCreatingLunarEntry}
+                    textAlignVertical="top"
+                  />
+                  <TouchableOpacity
+                    style={[
+                      styles.saveReflectionButton,
+                      { backgroundColor: newEntry.trim() ? '#C0C8D4' : theme.border },
+                      (!newEntry.trim() || isCreatingLunarEntry) && { opacity: 0.5 },
+                    ]}
+                    onPress={handleCreateLunarEntry}
+                    disabled={!newEntry.trim() || isCreatingLunarEntry}
+                  >
+                    {isCreatingLunarEntry ? (
+                      <ActivityIndicator size="small" color="#1A1D24" />
+                    ) : (
+                      <Text style={styles.saveReflectionButtonText}>Save Reflection</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              )}
 
               {/* ═══════════════════════════════════════════════════════════════
                   SECTION 4: LUNAR WHEEL (Task 65: Uses activeDecision.days_in_cycle)
