@@ -1784,6 +1784,19 @@ const styles = StyleSheet.create({
   addDecisionSection: {
     marginBottom: 8,
   },
+  simpleAddButton: {
+    borderWidth: 1.5,
+    borderRadius: 10,
+    borderStyle: 'dashed',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  simpleAddButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
   decisionLimitNote: {
     paddingHorizontal: 16,
     paddingVertical: 8,
