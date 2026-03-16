@@ -951,10 +951,10 @@ export default function JournalScreen() {
                   </Text>
                   <View style={styles.decisionHeaderStatusRow}>
                     <Text style={[styles.decisionHeaderStatusDay, { color: theme.text }]}>
-                      Day {activeDecision.days_in_cycle} of your lunar cycle
+                      Day {canonicalCycleDay} of your lunar cycle
                     </Text>
                     <Text style={[styles.decisionHeaderStatusPhase, { color: theme.textTertiary }]}>
-                      {getCyclePhase(activeDecision.days_in_cycle)}
+                      {getCyclePhase(canonicalCycleDay)}
                     </Text>
                   </View>
                   <View style={[styles.decisionHeaderDivider, { backgroundColor: theme.border }]} />
