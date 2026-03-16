@@ -1089,10 +1089,13 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 3: CYCLE INSTRUCTION CARD (Task 68: Smart visibility)
-                  Shows only when user has < 2 unique days with reflections
+                  SECTION 3: CYCLE INSTRUCTION CARD
+                  NEW VISIBILITY RULE: Show only if BOTH are true:
+                  - entry_count < 2
+                  - cycle_day <= 7
+                  Hides automatically once user is engaged (past early phase or has reflections)
                   ═══════════════════════════════════════════════════════════════ */}
-              {activeDecision && (activeDecision.entry_count || 0) < 2 && (
+              {activeDecision && (activeDecision.entry_count || 0) < 2 && resolvedCycleState.cycle_day <= 7 && (
                 <View style={[styles.instructionCard, { backgroundColor: 'rgba(192, 200, 212, 0.06)', borderColor: theme.border }]}>
                   <Text style={[styles.instructionTitle, { color: theme.text }]}>
                     How This Works
