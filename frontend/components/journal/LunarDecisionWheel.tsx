@@ -394,7 +394,7 @@ export default function LunarDecisionWheel({
       {/* Day Info Footer */}
       <View style={[styles.footer, { borderTopColor: theme.border }]}>
         <Text style={[styles.footerProgress, { color: theme.textSecondary }]}>
-          Day {Math.round(currentLunarDay)} of 29.5 • {Math.round(cycleProgress * 100)}% complete
+          Day {Math.round(currentLunarDay)} of 29.5 • {(cycleProgress * 100).toFixed(1)}% complete
         </Text>
         <Text style={[styles.footerDescription, { color: theme.textTertiary }]}>
           Tap any segment to view or add entries
