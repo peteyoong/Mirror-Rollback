@@ -609,6 +609,48 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
   },
+  // TASK 59: New two-scale rating styles
+  scaleRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    justifyContent: 'center',
+  },
+  scaleGuidance: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 2,
+  },
+  scaleGuideText: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  scaleGuideArrow: {
+    fontSize: 10,
+    letterSpacing: 0.5,
+    fontWeight: '400',
+  },
+  scaleCalibration: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingHorizontal: 2,
+  },
+  scaleButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scaleText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  // Keep old impact styles for backward compatibility
   impactRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
