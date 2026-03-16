@@ -613,6 +613,37 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 11,
   },
+  // v0.15: Source breakdown row
+  sourceRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  sourceChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  sourceChipText: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  stubNote: {
+    fontSize: 11,
+    fontStyle: 'italic',
+  },
+  // v0.15: Data sufficiency badge
+  sufficiencyBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  sufficiencyText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
   // Loading/Error
   loadingText: {
     textAlign: 'center',
