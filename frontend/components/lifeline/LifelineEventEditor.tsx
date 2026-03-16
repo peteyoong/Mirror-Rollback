@@ -61,8 +61,9 @@ export default function LifelineEventEditor({ visible, event, prefillYear, onClo
   const [year, setYear] = useState('');
   const [age, setAge] = useState('');
   const [category, setCategory] = useState('');
-  const [emotionalTone, setEmotionalTone] = useState<string>('neutral');
-  const [impactScore, setImpactScore] = useState(5);
+  // TASK 59: Separate valence from significance
+  const [emotionalValence, setEmotionalValence] = useState(5); // 1-10: 1=very difficult, 5=mixed, 10=very positive
+  const [significanceScore, setSignificanceScore] = useState(5); // 1-10: 1=minor, 5=meaningful, 10=life-changing
   const [tags, setTags] = useState('');
   const [privacyLevel, setPrivacyLevel] = useState<'private' | 'shareable'>('private');
 
@@ -79,8 +80,25 @@ export default function LifelineEventEditor({ visible, event, prefillYear, onClo
       setYear(event.year?.toString() || '');
       setAge(event.age?.toString() || '');
       setCategory(event.category || '');
-      setEmotionalTone(event.emotional_tone || 'neutral');
-      setImpactScore(event.impact_score || 5);
+      // TASK 59: Load new fields with backward compatibility
+      // emotional_valence: new field (default 5)
+      // For old events, derive from emotional_tone if available
+      if ((event as any).emotional_valence !== undefined) {
+        setEmotionalValence((event as any).emotional_valence);
+      } else if (event.emotional_tone) {
+        // Map old categorical tone to numeric valence
+        const toneToValence: Record<string, number> = {
+          'positive': 8,
+          'negative': 2,
+          'mixed': 5,
+          'neutral': 5,
+        };
+        setEmotionalValence(toneToValence[event.emotional_tone] || 5);
+      } else {
+        setEmotionalValence(5);
+      }
+      // significance_score: maps from old impact_score
+      setSignificanceScore((event as any).significance_score || event.impact_score || 5);
       setTags(event.tags?.join(', ') || '');
       setPrivacyLevel(event.privacy_level || 'private');
     } else {
@@ -98,8 +116,8 @@ export default function LifelineEventEditor({ visible, event, prefillYear, onClo
     setYear('');
     setAge('');
     setCategory('');
-    setEmotionalTone('neutral');
-    setImpactScore(5);
+    setEmotionalValence(5);
+    setSignificanceScore(5);
     setTags('');
     setPrivacyLevel('private');
     setError('');
