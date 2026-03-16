@@ -968,14 +968,6 @@ export default function JournalScreen() {
     
     // Task 68: Show instruction card only when user has few reflections
     const hasReflections = activeDecision?.entry_count && activeDecision.entry_count > 0;
-    
-    // Historical view state (separate from today state)
-    // Used when user taps a historical segment or reflection entry
-    const [selectedHistoricalEntry, setSelectedHistoricalEntry] = useState<{
-      cycle_day: number;
-      gate: number | null;
-      entry_id: string;
-    } | null>(null);
 
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
