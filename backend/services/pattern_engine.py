@@ -826,3 +826,320 @@ async def get_debug_pattern_analysis(
         ),
         "entry_analyses": entry_analyses,
     }
+
+
+# =============================================================================
+# PATTERN GRAPH SNAPSHOT - v0.1 User-Level Aggregation
+# =============================================================================
+
+@dataclass
+class DomainSummary:
+    """Summary of a single domain in the pattern graph."""
+    domain: str
+    domain_label: str
+    signal_count: int
+    dominant_signals: List[str]
+    dominant_tags: List[str]
+    average_intensity: float
+    polarity_breakdown: Dict[str, int]
+
+
+@dataclass
+class PatternGraphSnapshot:
+    """
+    User-level pattern graph snapshot.
+    Aggregates all signals across sources into a unified view.
+    """
+    user_id: str
+    generated_at: datetime
+    total_signals: int
+    active_domains: List[DomainSummary]
+    strongest_signals: List[Dict[str, Any]]
+    recent_signals: List[Dict[str, Any]]
+    source_breakdown: Dict[str, int]
+    repeated_tags: List[str]
+    overall_momentum: str
+    data_sufficiency: str
+
+
+DOMAIN_LABELS = {
+    Domain.WORK_PURPOSE.value: "Work & Purpose",
+    Domain.EMOTIONAL_LANDSCAPE.value: "Emotional Landscape",
+    Domain.RELATIONSHIPS.value: "Relationships",
+    Domain.EXPRESSION_ACTION.value: "Expression & Action",
+    Domain.IDENTITY_DIRECTION.value: "Identity & Direction",
+    Domain.PRESSURE_STRESS.value: "Pressure & Stress",
+    Domain.TIMING_READINESS.value: "Timing & Readiness",
+}
+
+
+async def get_pattern_graph_snapshot(
+    db,
+    user_id: str,
+    include_debug: bool = False
+) -> Dict[str, Any]:
+    """
+    Generate a user-level pattern graph snapshot.
+    
+    Aggregates all pattern signals from all sources into a unified view.
+    For v0.1, this primarily pulls from Lunar reflections.
+    
+    Args:
+        db: Database connection
+        user_id: User ID
+        include_debug: Include debug information
+    
+    Returns:
+        Pattern graph snapshot as a dictionary
+    """
+    # Fetch all stored signals for user
+    stored_signals = await get_user_pattern_signals(db, user_id, limit=500)
+    
+    # Also generate live signals from lunar entries if not enough stored
+    if len(stored_signals) < 5:
+        # Fetch all lunar entries and generate signals on the fly
+        lunar_entries = await db.lunar_journal.find({
+            "user_id": user_id
+        }).to_list(length=200)
+        
+        # Get all considerations to map entries
+        considerations = await db.lunar_considerations.find({
+            "user_id": user_id
+        }).to_list(length=50)
+        consideration_map = {str(c["_id"]): c.get("topic", "Unknown") for c in considerations}
+        
+        # Generate signals from lunar entries
+        live_signals = []
+        for entry in lunar_entries:
+            consideration_id = entry.get("consideration_id", "")
+            decision_topic = consideration_map.get(consideration_id, "Decision")
+            signals = extract_pattern_signals_from_lunar(
+                entry, user_id, consideration_id, decision_topic
+            )
+            live_signals.extend([s.to_dict() for s in signals])
+        
+        # Combine with stored signals (dedupe by id)
+        seen_ids = {s.get("id") for s in stored_signals}
+        for signal in live_signals:
+            if signal.get("id") not in seen_ids:
+                stored_signals.append(signal)
+    
+    if not stored_signals:
+        return {
+            "user_id": user_id,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "total_signals": 0,
+            "active_domains": [],
+            "strongest_signals": [],
+            "recent_signals": [],
+            "source_breakdown": {},
+            "repeated_tags": [],
+            "overall_momentum": "unclear",
+            "data_sufficiency": "insufficient",
+            "message": "No pattern signals found. Start by adding reflections to your Lunar Decision Journal.",
+        }
+    
+    # Aggregate by domain
+    domain_signals = {}
+    all_tags = []
+    source_counts = Counter()
+    total_excitement = 0.0
+    total_hesitation = 0.0
+    
+    for signal in stored_signals:
+        domain = signal.get("domain", Domain.IDENTITY_DIRECTION.value)
+        if domain not in domain_signals:
+            domain_signals[domain] = []
+        domain_signals[domain].append(signal)
+        
+        # Collect tags
+        all_tags.extend(signal.get("tags", []))
+        
+        # Track source types
+        source_counts[signal.get("source_type", "unknown")] += 1
+        
+        # Aggregate emotional scores
+        signal_type = signal.get("signal_type", "")
+        intensity = signal.get("intensity", 0.5)
+        if signal_type == SignalType.EXCITEMENT.value:
+            total_excitement += intensity
+        elif signal_type == SignalType.HESITATION.value:
+            total_hesitation += intensity
+    
+    # Build domain summaries
+    active_domains = []
+    for domain, signals in domain_signals.items():
+        if not signals:
+            continue
+        
+        # Calculate domain metrics
+        signal_types = Counter(s.get("signal_type") for s in signals)
+        polarity_breakdown = Counter(s.get("polarity") for s in signals)
+        domain_tags = []
+        intensities = []
+        
+        for s in signals:
+            domain_tags.extend(s.get("tags", []))
+            intensities.append(s.get("intensity", 0.5))
+        
+        avg_intensity = sum(intensities) / len(intensities) if intensities else 0.5
+        
+        active_domains.append({
+            "domain": domain,
+            "domain_label": DOMAIN_LABELS.get(domain, domain.replace("_", " ").title()),
+            "signal_count": len(signals),
+            "dominant_signals": [st[0] for st in signal_types.most_common(3)],
+            "dominant_tags": [t[0] for t in Counter(domain_tags).most_common(3)],
+            "average_intensity": round(avg_intensity, 2),
+            "polarity_breakdown": dict(polarity_breakdown),
+        })
+    
+    # Sort domains by signal count
+    active_domains.sort(key=lambda d: d["signal_count"], reverse=True)
+    
+    # Get strongest signals (highest intensity)
+    sorted_by_intensity = sorted(
+        stored_signals,
+        key=lambda s: s.get("intensity", 0),
+        reverse=True
+    )
+    strongest_signals = [
+        {
+            "signal_type": s.get("signal_type"),
+            "domain": s.get("domain"),
+            "intensity": s.get("intensity"),
+            "polarity": s.get("polarity"),
+            "source_type": s.get("source_type"),
+            "tags": s.get("tags", [])[:3],
+            "preview": s.get("metadata", {}).get("content_preview", "")[:60],
+        }
+        for s in sorted_by_intensity[:5]
+    ]
+    
+    # Get recent signals (most recent first)
+    sorted_by_time = sorted(
+        stored_signals,
+        key=lambda s: s.get("timestamp", ""),
+        reverse=True
+    )
+    recent_signals = [
+        {
+            "signal_type": s.get("signal_type"),
+            "domain": s.get("domain"),
+            "intensity": s.get("intensity"),
+            "polarity": s.get("polarity"),
+            "source_type": s.get("source_type"),
+            "gate": s.get("metadata", {}).get("gate"),
+            "timestamp": s.get("timestamp"),
+        }
+        for s in sorted_by_time[:10]
+    ]
+    
+    # Repeated tags
+    tag_counts = Counter(all_tags)
+    repeated_tags = [tag for tag, count in tag_counts.most_common(8) if count >= 1]
+    
+    # Overall momentum
+    if len(stored_signals) < 3:
+        overall_momentum = "unclear"
+    elif total_excitement > total_hesitation * 1.5:
+        overall_momentum = "positive"
+    elif total_hesitation > total_excitement * 1.5:
+        overall_momentum = "resistant"
+    else:
+        overall_momentum = "mixed"
+    
+    # Data sufficiency
+    total_signals = len(stored_signals)
+    if total_signals >= 15:
+        data_sufficiency = "high"
+    elif total_signals >= 8:
+        data_sufficiency = "medium"
+    elif total_signals >= 3:
+        data_sufficiency = "low"
+    else:
+        data_sufficiency = "insufficient"
+    
+    result = {
+        "user_id": user_id,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "total_signals": total_signals,
+        "active_domains": active_domains[:5],  # Top 5 domains
+        "strongest_signals": strongest_signals,
+        "recent_signals": recent_signals,
+        "source_breakdown": dict(source_counts),
+        "repeated_tags": repeated_tags,
+        "overall_momentum": overall_momentum,
+        "data_sufficiency": data_sufficiency,
+    }
+    
+    if include_debug:
+        result["debug"] = {
+            "total_excitement": round(total_excitement, 3),
+            "total_hesitation": round(total_hesitation, 3),
+            "raw_signal_count": len(stored_signals),
+            "all_domains": list(domain_signals.keys()),
+        }
+    
+    return result
+
+
+async def ingest_lunar_signals_to_graph(
+    db,
+    user_id: str,
+    decision_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Ingest lunar reflections into the pattern signal store.
+    
+    This is the primary ingestion function for v0.1.
+    Call this after a user adds a new lunar reflection.
+    
+    Args:
+        db: Database connection
+        user_id: User ID
+        decision_id: Optional specific decision to ingest
+    
+    Returns:
+        Summary of ingested signals
+    """
+    # Build query
+    query = {"user_id": user_id}
+    if decision_id:
+        query["consideration_id"] = decision_id
+    
+    # Fetch entries
+    entries = await db.lunar_journal.find(query).to_list(length=500)
+    
+    # Get consideration topics
+    considerations = await db.lunar_considerations.find({
+        "user_id": user_id
+    }).to_list(length=50)
+    consideration_map = {str(c["_id"]): c.get("topic", "Unknown") for c in considerations}
+    
+    # Extract and store signals
+    total_signals = 0
+    signals_by_type = Counter()
+    
+    for entry in entries:
+        consideration_id = entry.get("consideration_id", "")
+        decision_topic = consideration_map.get(consideration_id, "Decision")
+        
+        signals = extract_pattern_signals_from_lunar(
+            entry, user_id, consideration_id, decision_topic
+        )
+        
+        stored = await store_pattern_signals(db, signals)
+        total_signals += stored
+        
+        for signal in signals:
+            signals_by_type[signal.signal_type] += 1
+    
+    logger.info(f"[PatternEngine] Ingested {total_signals} signals for user {user_id[:8]}...")
+    
+    return {
+        "user_id": user_id,
+        "entries_processed": len(entries),
+        "signals_created": total_signals,
+        "signals_by_type": dict(signals_by_type),
+    }
