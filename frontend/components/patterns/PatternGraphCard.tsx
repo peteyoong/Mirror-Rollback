@@ -403,19 +403,23 @@ export default function PatternGraphCard({ showDebug = false }: PatternGraphCard
         {renderAccordionHeader('sources', 'Source Breakdown', activeSourceCount)}
         {expandedSection === 'sources' && (
           <View style={styles.accordionContent}>
-            <View style={styles.sourcePills}>
-              {Object.entries(data.source_breakdown).map(([source, count]) => (
-                count > 0 && (
+            {activeSources.length > 0 ? (
+              <View style={styles.sourcePills}>
+                {activeSources.map(([source, count]) => (
                   <View key={source} style={[styles.sourcePill, { backgroundColor: COLORS.cardBg }]}>
                     <Text style={[styles.sourcePillText, { color: theme.textSecondary }]}>
-                      {SOURCE_LABELS[source] || source} {count}
+                      {SOURCE_LABELS[source] || source} — {count}
                     </Text>
                   </View>
-                )
-              ))}
-            </View>
+                ))}
+              </View>
+            ) : (
+              <Text style={[styles.noSourcesText, { color: theme.textTertiary }]}>
+                No active sources yet
+              </Text>
+            )}
             <Text style={[styles.stubNote, { color: theme.textTertiary }]}>
-              More sources coming: Journal, Chat, HD, Enneagram
+              More sources coming soon: {futureSourceLabels.join(', ')}
             </Text>
           </View>
         )}
