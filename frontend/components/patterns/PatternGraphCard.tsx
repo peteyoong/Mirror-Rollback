@@ -19,7 +19,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAppStore } from '../../store';
 import Constants from 'expo-constants';
 
 // =============================================================================
