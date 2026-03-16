@@ -762,12 +762,7 @@ export default function JournalScreen() {
   if (viewMode === 'lunar') {
     // Task 60: All lunar callbacks are now defined at component level to prevent re-fetch loops
     // Task 64: Decision-first tracker UX with multiple decisions support
-    // selectedDecisionId state is now at component level
-    
-    // Get the selected decision details
-    const selectedDecision = lunarStatus?.active_considerations?.find(
-      (d: any) => d.id === (selectedDecisionId || lunarStatus?.active_consideration?.id)
-    ) || lunarStatus?.active_consideration;
+    // Task 65: Use activeDecision as single source of truth for all lunar components
 
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
