@@ -294,6 +294,19 @@ export default function PatternGraphCard({ showDebug = false }: PatternGraphCard
 
   const momentumInfo = MOMENTUM_LABELS[data.overall_momentum] || MOMENTUM_LABELS.unclear;
 
+  // v0.15: Calculate source labels for display
+  const sourceLabels: Record<string, string> = {
+    lunar_reflection: 'Lunar',
+    journal_entry: 'Journal',
+    mirror_chat: 'Chat',
+    human_design_gate: 'HD',
+    enneagram: 'Enneagram',
+    gene_keys: 'Gene Keys',
+    transit: 'Transit',
+  };
+
+  const activeSourceCount = Object.values(data.source_breakdown).filter(v => v > 0).length;
+
   return (
     <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}>
       {/* Header */}
@@ -303,7 +316,7 @@ export default function PatternGraphCard({ showDebug = false }: PatternGraphCard
             PATTERN GRAPH
           </Text>
           <Text style={[styles.headerSubtitle, { color: theme.textTertiary }]}>
-            v0.1 • {data.total_signals} signals from {Object.keys(data.source_breakdown).length} source{Object.keys(data.source_breakdown).length !== 1 ? 's' : ''}
+            v0.15 • {data.total_signals} signals • {activeSourceCount} source{activeSourceCount !== 1 ? 's' : ''}
           </Text>
         </View>
         <View style={[styles.momentumBadge, { backgroundColor: momentumInfo.color + '20' }]}>
@@ -312,6 +325,40 @@ export default function PatternGraphCard({ showDebug = false }: PatternGraphCard
           </Text>
         </View>
       </View>
+
+      {/* v0.15: Source Breakdown Row */}
+      <View style={styles.sourceRow}>
+        {Object.entries(data.source_breakdown).map(([source, count]) => (
+          count > 0 && (
+            <View key={source} style={[styles.sourceChip, { backgroundColor: PATTERN_COLORS.cardBg }]}>
+              <Text style={[styles.sourceChipText, { color: theme.textSecondary }]}>
+                {sourceLabels[source] || source}: {count}
+              </Text>
+            </View>
+          )
+        ))}
+        {/* Show stub sources with 0 count */}
+        {Object.values(data.source_breakdown).every(v => v === 0 || data.source_breakdown['lunar_reflection'] === data.total_signals) && (
+          <Text style={[styles.stubNote, { color: theme.textTertiary }]}>
+            More sources coming soon
+          </Text>
+        )}
+      </View>
+
+      {/* Data Sufficiency Badge (v0.15) */}
+      {data.data_sufficiency !== 'high' && (
+        <View style={[styles.sufficiencyBadge, { 
+          backgroundColor: data.data_sufficiency === 'insufficient' ? 'rgba(239, 154, 154, 0.15)' : 'rgba(255, 183, 77, 0.15)'
+        }]}>
+          <Text style={[styles.sufficiencyText, { 
+            color: data.data_sufficiency === 'insufficient' ? '#EF9A9A' : '#FFB74D' 
+          }]}>
+            {data.data_sufficiency === 'insufficient' ? '⚠️ Limited data' : 
+             data.data_sufficiency === 'low' ? '📊 Building pattern baseline' : 
+             '📈 Good data foundation'}
+          </Text>
+        </View>
+      )}
 
       {/* Active Domains Section */}
       <View style={styles.section}>
