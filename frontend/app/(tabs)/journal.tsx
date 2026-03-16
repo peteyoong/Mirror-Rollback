@@ -1044,12 +1044,12 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
-                  SECTION 5: REFLECTION TIMELINE (Task 65: Uses activeDecision.entries)
+                  SECTION 7: REFLECTION TIMELINE (Past Entries)
                   ═══════════════════════════════════════════════════════════════ */}
               {activeDecision?.entries && activeDecision.entries.length > 0 && (
                 <View style={styles.reflectionTimelineSection}>
                   <Text style={[styles.reflectionTimelineTitle, { color: '#A8B2C0' }]}>
-                    REFLECTION TIMELINE
+                    YOUR REFLECTIONS
                   </Text>
                   {activeDecision.entries.slice(0, 5).map((entry: any, index: number) => (
                     <View 
@@ -1057,18 +1057,36 @@ export default function JournalScreen() {
                       style={[styles.reflectionEntry, { borderBottomColor: theme.border }]}
                     >
                       <View style={styles.reflectionEntryHeader}>
-                        <Text style={[styles.reflectionEntryDay, { color: theme.text }]}>
-                          Day {entry.lunar_day || '—'}
+                        <Text style={[styles.reflectionEntryDay, { color: theme.textSecondary }]}>
+                          Day {Math.round(entry.lunar_day || 1)} • Gate {entry.moon_gate || '—'}
                         </Text>
-                        <Text style={[styles.reflectionEntryGate, { color: theme.textTertiary }]}>
-                          Gate {entry.moon_gate || '—'}
+                        <Text style={[styles.reflectionEntryDate, { color: theme.textTertiary }]}>
+                          {entry.created_at ? new Date(entry.created_at).toLocaleDateString() : ''}
                         </Text>
                       </View>
-                      <Text style={[styles.reflectionEntryContent, { color: theme.textSecondary }]} numberOfLines={3}>
+                      <Text style={[styles.reflectionEntryContent, { color: theme.text }]} numberOfLines={3}>
                         {entry.content}
                       </Text>
                     </View>
                   ))}
+                </View>
+              )}
+
+              {/* ═══════════════════════════════════════════════════════════════
+                  SECTION 8: ADD ANOTHER DECISION
+                  ═══════════════════════════════════════════════════════════════ */}
+              {activeDecision && (
+                <View style={styles.addAnotherSection}>
+                  <TouchableOpacity
+                    style={[styles.addAnotherButton, { borderColor: theme.border }]}
+                    onPress={() => {
+                      // TODO: Show modal to add new decision
+                    }}
+                  >
+                    <Text style={[styles.addAnotherButtonText, { color: theme.textSecondary }]}>
+                      + Track Another Decision
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               )}
 
