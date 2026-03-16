@@ -107,7 +107,7 @@ interface PatternGraphCardProps {
 
 export default function PatternGraphCard({ showDebug = false }: PatternGraphCardProps) {
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { user } = useAppStore();
   const [data, setData] = useState<PatternGraphData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
