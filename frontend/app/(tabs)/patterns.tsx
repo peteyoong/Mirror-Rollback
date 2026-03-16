@@ -2462,62 +2462,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   
-  // Signals Section
-  signalsSection: {
-    marginTop: 16,
-    paddingTop: 14,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  signalsSectionTitle: {
-    fontSize: 11,
-    fontWeight: '500',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 12,
-    opacity: 0.7,
-  },
-  sourceGroup: {
-    marginBottom: 12,
-  },
-  sourceLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  signalItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 3,
-    paddingLeft: 4,
-  },
-  signalDot: {
-    fontSize: 10,
-    marginRight: 8,
-    marginTop: 3,
-  },
-  signalText: {
-    fontSize: 13,
-    lineHeight: 18,
-    flex: 1,
-  },
-  moreSignals: {
-    fontSize: 11,
-    fontStyle: 'italic',
-    marginTop: 4,
-    paddingLeft: 16,
-  },
-  transitNote: {
-    marginTop: 12,
-    paddingTop: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255,255,255,0.08)',
-  },
-  transitNoteText: {
-    fontSize: 11,
-    fontStyle: 'italic',
-    opacity: 0.6,
-  },
-  
   // Weekly Tab Styles
   weeklyHeader: {
     marginBottom: 20,
