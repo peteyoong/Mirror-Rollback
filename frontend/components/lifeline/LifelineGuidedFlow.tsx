@@ -118,7 +118,9 @@ export default function LifelineGuidedFlow({
     year: '',
     age: '',
     description: '',
-    impactScore: 7,
+    // Task 61: New two-scale rating model
+    emotionalValence: 5,   // Default to mixed/neutral
+    significanceScore: 7,  // Default to significant
   });
   
   // UI state
