@@ -205,6 +205,71 @@ export default function JournalScreen() {
     }
   }, [viewMode, user]);
 
+  // Task 60: Stable callback for lunar status loaded (prevents re-fetch loop)
+  const handleLunarStatusLoaded = useCallback((status: LunarJournalStatus | null) => {
+    setLunarStatus(status);
+    // Show cycle completion modal if near new moon with active consideration
+    if (status?.show_cycle_completion && status?.active_consideration) {
+      setShowCycleCompletion(true);
+    }
+  }, []);
+
+  // Task 60: Fetch lunar timeline data with proper guards
+  const fetchLunarTimeline = useCallback(async () => {
+    if (!user || lunarFetchInProgress.current) return;
+    
+    lunarFetchInProgress.current = true;
+    try {
+      const response = await api.get(`/lunar-journal/${user.id}/timeline`);
+      if (response.data?.success) {
+        setLunarTimelineData(response.data);
+        setLunarDataFetched(true);
+      }
+    } catch (err) {
+      console.log('[Journal] Error fetching lunar timeline');
+    } finally {
+      lunarFetchInProgress.current = false;
+    }
+  }, [user]);
+
+  // Task 60: Load lunar timeline when entering lunar view (only once)
+  useEffect(() => {
+    if ((viewMode === 'lunar' || viewMode === 'lunar-history') && user && !lunarDataFetched) {
+      fetchLunarTimeline();
+    }
+  }, [viewMode, user, lunarDataFetched, fetchLunarTimeline]);
+
+  // Task 60: Stable callback for creating lunar entry
+  const handleCreateLunarEntry = useCallback(async () => {
+    if (!newEntry.trim() || !user || isCreatingLunarEntry) return;
+    
+    setIsCreatingLunarEntry(true);
+    try {
+      await api.post(`/lunar-journal/${user.id}/entry`, {
+        content: newEntry.trim(),
+        consideration_id: lunarStatus?.active_consideration?.id || null,
+      });
+      
+      setNewEntry('');
+      Keyboard.dismiss();
+      // Refresh the lunar status and timeline to update entry count
+      const [statusRes, timelineRes] = await Promise.all([
+        api.get(`/lunar-journal/${user.id}/status`),
+        api.get(`/lunar-journal/${user.id}/timeline`)
+      ]);
+      if (statusRes.data?.success) {
+        setLunarStatus(statusRes.data);
+      }
+      if (timelineRes.data?.success) {
+        setLunarTimelineData(timelineRes.data);
+      }
+    } catch (err) {
+      console.error('[LunarJournal] Error creating entry:', err);
+    } finally {
+      setIsCreatingLunarEntry(false);
+    }
+  }, [newEntry, user, isCreatingLunarEntry, lunarStatus?.active_consideration?.id]);
+
   const loadEntries = async () => {
     if (!user) return;
 
