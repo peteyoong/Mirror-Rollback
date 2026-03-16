@@ -100,13 +100,15 @@ def get_daily_prompt(lunar_day: int, gate_number: Optional[int] = None) -> str:
 
 async def get_active_consideration(db, user_id: str) -> Optional[Dict[str, Any]]:
     """
-    Get the user's active lunar consideration for the current cycle.
+    Get the user's most recent active lunar consideration.
+    For backward compatibility, returns only one consideration.
+    Use get_all_active_considerations() for full list.
     """
     try:
-        consideration = await db.lunar_considerations.find_one({
-            "user_id": user_id,
-            "status": "active",
-        })
+        consideration = await db.lunar_considerations.find_one(
+            {"user_id": user_id, "status": "active"},
+            sort=[("created_at", -1)]  # Most recent first
+        )
         
         if consideration:
             return {
@@ -124,16 +126,55 @@ async def get_active_consideration(db, user_id: str) -> Optional[Dict[str, Any]]
         return None
 
 
+# Task 64: Support multiple active considerations
+async def get_all_active_considerations(db, user_id: str) -> List[Dict[str, Any]]:
+    """
+    Get ALL active lunar considerations for a user.
+    Users can track multiple decisions simultaneously.
+    """
+    try:
+        cursor = db.lunar_considerations.find(
+            {"user_id": user_id, "status": "active"}
+        ).sort("created_at", -1)  # Most recent first
+        
+        considerations = []
+        async for consideration in cursor:
+            # Get entry count for this consideration
+            entry_count = await db.lunar_journal_entries.count_documents({
+                "user_id": user_id,
+                "consideration_id": str(consideration["_id"])
+            })
+            
+            # Calculate days in cycle
+            created_at = consideration.get("created_at")
+            if created_at:
+                days_in_cycle = (datetime.now(timezone.utc) - created_at).days + 1
+            else:
+                days_in_cycle = 1
+            
+            considerations.append({
+                "id": str(consideration["_id"]),
+                "topic": consideration.get("topic", ""),
+                "created_at": created_at.isoformat() if created_at else None,
+                "cycle_start": consideration.get("cycle_start"),
+                "status": consideration.get("status"),
+                "entry_count": entry_count,
+                "days_in_cycle": min(days_in_cycle, 29),
+            })
+        
+        return considerations
+        
+    except Exception as e:
+        logger.error(f"[LunarJournal] Error getting all active considerations: {e}")
+        return []
+
+
 async def create_consideration(db, user_id: str, topic: str) -> Dict[str, Any]:
     """
     Create a new lunar consideration for the current cycle.
+    Task 64: Removed restriction - users can track multiple decisions.
     """
     try:
-        # Check if there's already an active consideration
-        existing = await get_active_consideration(db, user_id)
-        if existing:
-            raise ValueError("An active consideration already exists for this cycle")
-        
         cycle_info = get_current_cycle_boundaries()
         
         consideration_data = {
@@ -155,8 +196,6 @@ async def create_consideration(db, user_id: str, topic: str) -> Dict[str, Any]:
             "status": "active",
         }
         
-    except ValueError as e:
-        raise e
     except Exception as e:
         logger.error(f"[LunarJournal] Error creating consideration: {e}")
         raise
