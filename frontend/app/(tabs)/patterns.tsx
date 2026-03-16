@@ -870,7 +870,7 @@ export default function PatternsScreen() {
             styles.segmentText,
             { color: activeTab === tab ? theme.accent : theme.textSecondary }
           ]}>
-            {tab === 'patterns' ? 'Patterns' : tab === 'weekly' ? 'Weekly' : 'Timeline'}
+            {tab === 'patterns' ? 'Patterns' : tab === 'weekly' ? 'Weekly' : tab === 'timeline' ? 'Timeline' : 'Signals'}
           </Text>
         </TouchableOpacity>
       ))}
