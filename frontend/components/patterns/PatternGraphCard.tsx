@@ -207,9 +207,15 @@ export default function PatternGraphCard({ showDebug = false }: PatternGraphCard
   // ==========================================================================
 
   const momentum = MOMENTUM_CONFIG[data.overall_momentum] || MOMENTUM_CONFIG.unclear;
-  const activeSourceCount = Object.values(data.source_breakdown).filter(v => v > 0).length;
   const topDomains = data.active_domains.slice(0, 3);
   const topThemes = data.repeated_tags.slice(0, 3);
+  
+  // Source breakdown - only count sources with signals > 0
+  const activeSources = Object.entries(data.source_breakdown || {}).filter(([_, count]) => count > 0);
+  const activeSourceCount = activeSources.length;
+  
+  // Future sources that aren't active yet
+  const futureSourceLabels = ['Journal', 'Chat', 'HD', 'Enneagram'];
 
   // ==========================================================================
   // RENDER: ACCORDION HEADER
