@@ -2162,6 +2162,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 12,
   },
+  // Task 68: Improved status row styling
+  decisionHeaderStatusRow: {
+    marginBottom: 12,
+  },
+  decisionHeaderStatusDay: {
+    fontSize: 15,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  decisionHeaderStatusPhase: {
+    fontSize: 13,
+  },
   decisionHeaderDivider: {
     height: 1,
     marginVertical: 12,
