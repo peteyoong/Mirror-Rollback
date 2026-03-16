@@ -2358,9 +2358,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  reflectionEntryDate: {
-    fontSize: 12,
-  },
   // Task 67: Cycle Completion Banner styles
   cycleCompletionBanner: {
     borderRadius: 12,
