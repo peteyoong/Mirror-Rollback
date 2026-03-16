@@ -1041,6 +1041,7 @@ export default function JournalScreen() {
 
               {/* ═══════════════════════════════════════════════════════════════
                   SECTION 2: DECISION HEADER CARD (Primary Focus)
+                  Uses resolvedCycleState for all cycle information
                   ═══════════════════════════════════════════════════════════════ */}
               {activeDecision ? (
                 <View style={[styles.decisionHeaderCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -1052,10 +1053,10 @@ export default function JournalScreen() {
                   </Text>
                   <View style={styles.decisionHeaderStatusRow}>
                     <Text style={[styles.decisionHeaderStatusDay, { color: theme.text }]}>
-                      Day {canonicalCycleDay} of your lunar cycle
+                      Day {resolvedCycleState.cycle_day} of your lunar cycle
                     </Text>
                     <Text style={[styles.decisionHeaderStatusPhase, { color: theme.textTertiary }]}>
-                      {getCyclePhase(canonicalCycleDay)}
+                      {getCyclePhase(resolvedCycleState.cycle_day)}
                     </Text>
                   </View>
                   <View style={[styles.decisionHeaderDivider, { backgroundColor: theme.border }]} />
