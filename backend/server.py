@@ -18921,6 +18921,9 @@ async def create_lifeline_event(event: LifelineEventCreate):
             "category": event.category,
             "emotional_tone": event.emotional_tone or "neutral",
             "impact_score": event.impact_score or 5,
+            # TASK 59: New separate scales for valence and significance
+            "emotional_valence": event.emotional_valence if event.emotional_valence is not None else 5,
+            "significance_score": event.significance_score if event.significance_score is not None else (event.impact_score or 5),
             "tags": event.tags or [],
             "photos": event.photos or [],
             "privacy_level": event.privacy_level or "private",
@@ -18945,6 +18948,9 @@ async def create_lifeline_event(event: LifelineEventCreate):
                 "category": event_doc["category"],
                 "emotional_tone": event_doc["emotional_tone"],
                 "impact_score": event_doc["impact_score"],
+                # TASK 59: Include new fields in response
+                "emotional_valence": event_doc["emotional_valence"],
+                "significance_score": event_doc["significance_score"],
                 "tags": event_doc["tags"],
                 "privacy_level": event_doc["privacy_level"],
                 "created_at": now.isoformat(),
