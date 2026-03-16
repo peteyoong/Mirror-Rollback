@@ -174,6 +174,13 @@ export default function JournalScreen() {
   } | null>(null);
   const [isLoadingDecisionData, setIsLoadingDecisionData] = useState(false);
   
+  // Task 70 Fix: Historical entry view state (separate from today state)
+  const [selectedHistoricalEntry, setSelectedHistoricalEntry] = useState<{
+    cycle_day: number;
+    gate: number | null;
+    entry_id: string;
+  } | null>(null);
+  
   // Pattern metadata for journal entries triggered from patterns
   const [patternMetadata, setPatternMetadata] = useState<{
     journal_source?: string;
