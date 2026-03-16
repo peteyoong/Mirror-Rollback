@@ -800,21 +800,37 @@ export default function JournalScreen() {
                 </View>
               )}
 
-              {/* Add New Decision Button */}
-              <View style={styles.addDecisionSection}>
-                <LunarDecisionJournalCard
-                  userId={user?.id || ''}
-                  onStatusLoaded={handleLunarStatusLoaded}
-                  onConsiderationCreated={() => {
-                    // Refresh status after creating consideration
-                    if (user) {
-                      api.get(`/lunar-journal/${user.id}/status`).then(res => {
-                        if (res.data?.success) setLunarStatus(res.data);
-                      });
-                    }
-                  }}
-                />
-              </View>
+              {/* Add New Decision Button - Simplified when decisions already exist */}
+              {lunarStatus?.active_considerations && lunarStatus.active_considerations.length > 0 ? (
+                <View style={styles.addDecisionSection}>
+                  <TouchableOpacity
+                    style={[styles.simpleAddButton, { borderColor: '#C0C8D4' }]}
+                    onPress={() => {
+                      // Navigate or show modal to add new decision
+                      // For now, we'll use the LunarDecisionJournalCard's flow
+                    }}
+                  >
+                    <Text style={[styles.simpleAddButtonText, { color: '#C0C8D4' }]}>
+                      + Add Another Decision
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.addDecisionSection}>
+                  <LunarDecisionJournalCard
+                    userId={user?.id || ''}
+                    onStatusLoaded={handleLunarStatusLoaded}
+                    onConsiderationCreated={() => {
+                      // Refresh status after creating consideration
+                      if (user) {
+                        api.get(`/lunar-journal/${user.id}/status`).then(res => {
+                          if (res.data?.success) setLunarStatus(res.data);
+                        });
+                      }
+                    }}
+                  />
+                </View>
+              )}
 
               {/* ═══════════════════════════════════════════════════════════════
                   SECTION 2: SELECTED DECISION DETAILS
