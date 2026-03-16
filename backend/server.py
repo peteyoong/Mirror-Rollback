@@ -19009,6 +19009,19 @@ async def update_lifeline_event(event_id: str, update: LifelineEventUpdate):
                 raise HTTPException(status_code=400, detail="Impact score must be between 1 and 10")
             update_doc["impact_score"] = update.impact_score
         
+        # TASK 59: Handle new emotional_valence and significance_score fields
+        if update.emotional_valence is not None:
+            if update.emotional_valence < 1 or update.emotional_valence > 10:
+                raise HTTPException(status_code=400, detail="Emotional valence must be between 1 and 10")
+            update_doc["emotional_valence"] = update.emotional_valence
+        
+        if update.significance_score is not None:
+            if update.significance_score < 1 or update.significance_score > 10:
+                raise HTTPException(status_code=400, detail="Significance score must be between 1 and 10")
+            update_doc["significance_score"] = update.significance_score
+            # Also update impact_score for backward compatibility
+            update_doc["impact_score"] = update.significance_score
+        
         if update.tags is not None:
             update_doc["tags"] = update.tags
         
