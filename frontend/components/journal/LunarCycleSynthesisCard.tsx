@@ -42,6 +42,13 @@ interface StrongestGate {
   longest_entry_preview?: string;
 }
 
+interface DecisionMomentum {
+  state: 'strong_positive' | 'positive' | 'mixed' | 'unclear' | 'resistant';
+  label: string;
+  description: string;
+  score: number; // 0-5 for visualization
+}
+
 interface SynthesisData {
   success: boolean;
   has_synthesis: boolean;
@@ -65,6 +72,9 @@ interface SynthesisData {
   // Pattern Insight
   pattern_insight?: string;
   top_themes?: string[];
+  
+  // Decision Momentum (Task 70)
+  momentum?: DecisionMomentum;
   
   // Reflection
   reflection_question?: string;
