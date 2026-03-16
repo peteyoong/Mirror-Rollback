@@ -274,12 +274,19 @@ export default function JournalScreen() {
   }, [viewMode, user]);
 
   // Task 60: Stable callback for lunar status loaded (prevents re-fetch loop)
+  // Task 67: REMOVED auto-trigger of cycle completion modal
+  // The modal should only open when user explicitly taps "Complete Cycle"
   const handleLunarStatusLoaded = useCallback((status: LunarJournalStatus | null) => {
+    console.log('[Lunar] Status loaded:', {
+      hasStatus: !!status,
+      isNearNewMoon: status?.is_near_new_moon,
+      showCycleCompletion: status?.show_cycle_completion,
+      hasActiveConsideration: !!status?.active_consideration,
+      lunarDay: status?.lunar_day,
+    });
     setLunarStatus(status);
-    // Show cycle completion modal if near new moon with active consideration
-    if (status?.show_cycle_completion && status?.active_consideration) {
-      setShowCycleCompletion(true);
-    }
+    // NOTE: We no longer auto-open the completion modal here.
+    // The modal will only open when user taps "Complete Cycle" button.
   }, []);
 
   // Task 60: Fetch lunar timeline data with proper guards
