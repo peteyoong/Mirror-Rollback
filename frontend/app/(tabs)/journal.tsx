@@ -121,6 +121,14 @@ const getGateExplanation = (gateNumber: number | null): GateExplanation | null =
   };
 };
 
+// Helper to get cycle phase description
+const getCyclePhase = (dayInCycle: number): string => {
+  if (dayInCycle <= 7) return 'New Moon Phase';
+  if (dayInCycle <= 14) return 'Waxing Phase';
+  if (dayInCycle <= 21) return 'Full Moon Phase';
+  return 'Waning Phase';
+};
+
 export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
   const { theme, isDark } = useTheme();
