@@ -103,6 +103,8 @@ export default function MirrorScreen() {
   
   // Core data states
   const [keystone, setKeystone] = useState<DailyKeystone | null>(null);
+  const [dailyInsight, setDailyInsight] = useState<DailyInsight | null>(null);
+  const [insightLoading, setInsightLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentDate, setCurrentDate] = useState<string>(getLocalDateString());
