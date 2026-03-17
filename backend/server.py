@@ -11169,6 +11169,65 @@ async def get_pattern_archetype(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =============================================================================
+# PATTERN CONVERSATION ENDPOINTS (Task 76)
+# =============================================================================
+
+class ConversationMessage(BaseModel):
+    message: str
+    conversation_history: Optional[List[Dict[str, str]]] = None
+
+@api_router.post("/pattern-conversation/{user_id}")
+async def pattern_conversation(user_id: str, body: ConversationMessage):
+    """
+    Task 76: Conversational Intelligence Layer.
+    
+    Generate a pattern-based conversational response grounded in user data.
+    
+    Input:
+    - message: User's message
+    - conversation_history: Previous turns (optional)
+    
+    Output:
+    - response: Mirror's response
+    - referenced_archetype: User's primary archetype
+    - referenced_events: Lifeline events mentioned
+    - follow_up_question: Next question to continue conversation
+    """
+    try:
+        from services.pattern_conversation import generate_pattern_response
+        
+        result = await generate_pattern_response(
+            db=db,
+            user_id=user_id,
+            message=body.message,
+            conversation_history=body.conversation_history
+        )
+        return result
+    except Exception as e:
+        logger.error(f"[PatternConversation] Error for {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/pattern-conversation/{user_id}/start")
+async def get_conversation_start(user_id: str):
+    """
+    Get initial conversation prompt based on user's archetype.
+    
+    Returns the first question to ask the user to begin the conversation.
+    """
+    try:
+        from services.pattern_conversation import get_conversation_starter
+        
+        result = await get_conversation_starter(db, user_id)
+        return result
+    except Exception as e:
+        logger.error(f"[PatternConversation] Start error for {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
 @api_router.get("/pattern-engine/decision/{user_id}/{decision_id}")
 async def get_pattern_engine_decision(user_id: str, decision_id: str):
     """
