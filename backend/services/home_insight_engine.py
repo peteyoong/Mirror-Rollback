@@ -343,8 +343,8 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
         journal_cursor = db.journal.find({
             "user_id": user_id,
-            "timestamp": {"$gte": seven_days_ago.isoformat()}
-        }).sort("timestamp", -1).limit(10)
+            "created_at": {"$gte": seven_days_ago}
+        }).sort("created_at", -1).limit(10)
         
         async for entry in journal_cursor:
             content = entry.get("content", "")
