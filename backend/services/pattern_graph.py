@@ -1243,7 +1243,7 @@ def get_category_summary_dynamic(category: dict, status: str) -> str:
     
     # Status-specific summaries that feel more dynamic
     summaries = {
-        "emerging": f"Something new around {cat_name.lower()} may be starting to surface. Signals have appeared recently that weren't present before.",
+        "emerging": f"Something new around {cat_name.lower()} is starting to surface. Signals have appeared recently that weren't present before.",
         "present": f"Occasional signals around {cat_name.lower()} are showing up. This theme has some activity but isn't dominant.",
         "recurring": f"A recurring pattern around {cat_name.lower()} is active. Multiple signals have appeared repeatedly in recent reflections.",
         "stable": f"{cat_name} appears as a stable, consistent theme in your pattern landscape. This shows steady presence over time.",
@@ -1259,7 +1259,7 @@ def get_category_summary_dynamic(category: dict, status: str) -> str:
     elif status in ["recurring", "stable"]:
         return category.get("active_summary", summaries.get(status))
     
-    return summaries.get(status, "A theme may be surfacing.")
+    return summaries.get(status, "A theme is surfacing.")
 
 
 def aggregate_enneagram_signals(
