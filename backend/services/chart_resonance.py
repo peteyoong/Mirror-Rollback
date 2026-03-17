@@ -308,12 +308,13 @@ def detect_chart_resonances(
                     "confidence": confidence
                 })
     
-    # Filter by minimum confidence
-    confident_resonances = [r for r in raw_resonances if r["confidence"] >= min_confidence]
+    # Filter by minimum confidence - INCREASED for higher trust
+    MIN_CONFIDENCE_THRESHOLD = 0.75  # Stricter threshold
+    confident_resonances = [r for r in raw_resonances if r["confidence"] >= MIN_CONFIDENCE_THRESHOLD]
     
-    # Deduplicate: For each signal_type, only keep the best match per 3-year window
+    # Deduplicate: For each signal_type, only keep the best match per 5-year window
     # This prevents "Saturn Return" showing for every event in 1996, 1997, 1998
-    deduped_resonances = deduplicate_resonances_by_window(confident_resonances, window_years=3)
+    deduped_resonances = deduplicate_resonances_by_window(confident_resonances, window_years=5)
     
     # Remove event-level duplicates (same event matching multiple similar signals)
     seen = set()
@@ -324,7 +325,16 @@ def detect_chart_resonances(
             seen.add(key)
             unique_resonances.append(r)
     
-    # Sort by event year
+    # Sort by confidence (highest first), then event year
+    unique_resonances.sort(key=lambda x: (-x["confidence"], x["event_year"]))
+    
+    # LIMIT: Keep only top 3 strongest resonances for quality > quantity
+    MAX_RESONANCES = 3
+    if len(unique_resonances) > MAX_RESONANCES:
+        logger.info(f"[ChartResonance] Limiting from {len(unique_resonances)} to {MAX_RESONANCES} resonances")
+        unique_resonances = unique_resonances[:MAX_RESONANCES]
+    
+    # Re-sort by event year for display
     unique_resonances.sort(key=lambda x: x["event_year"])
     
     logger.info(f"[ChartResonance] Detected {len(unique_resonances)} resonances for birth_year={birth_year} (filtered from {len(raw_resonances)} raw)")
