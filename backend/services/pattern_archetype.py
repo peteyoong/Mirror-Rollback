@@ -21,7 +21,7 @@ from collections import Counter
 logger = logging.getLogger(__name__)
 
 # =============================================================================
-# ARCHETYPE LIBRARY (v0.1)
+# ARCHETYPE LIBRARY (v0.2 - Compressed & Precise)
 # =============================================================================
 
 ARCHETYPE_LIBRARY = {
@@ -29,8 +29,8 @@ ARCHETYPE_LIBRARY = {
         "id": "phoenix",
         "name": "Phoenix",
         "icon": "🔥",
-        "description": "A pattern of breakdown, reinvention, and stronger re-emergence.",
-        "short_description": "Rise through transformation",
+        "description": "You build. Something breaks. You rebuild stronger.",
+        "short_description": "Breakdown → rebuild",
         "signals": {
             "lifeline": ["turning point", "career", "restart", "transition", "transformation", "crisis", "rebuild", "new beginning"],
             "patterns": ["recurring", "growth_transformation", "identity_direction"],
@@ -38,14 +38,20 @@ ARCHETYPE_LIBRARY = {
             "lunar": ["release", "decision", "pivot", "change", "transform"]
         },
         "narrative_template": {
-            "summary": "You appear to move through cycles of build, rupture, and reinvention. What others might see as setbacks, you transform into fuel for rebuilding stronger.",
-            "why_patterns": [
-                "High-impact turning points have reshaped your direction multiple times",
-                "Periods of pressure or crisis often precede significant new beginnings",
-                "Recent reflections echo earlier reinvention themes"
+            "summary": "You don't grow steadily. You grow when something breaks. Your biggest leaps forward come after collapse—not despite it, but because of it.",
+            "contrast": "Others fear losing what they've built. You know destruction clears the way for something better.",
+            "how_this_shows_up": [
+                "In work: Career restarts, industry pivots, burning boats",
+                "In relationships: Ending what no longer fits, even when hard",
+                "In decisions: Choosing transformation over comfortable stagnation"
             ],
-            "current_expression": "This pattern may be showing up in how you approach current transitions—not as endings, but as opportunities to rebuild with more clarity.",
-            "reflection_question": "What are you ready to release in order to rebuild more intentionally?"
+            "why_patterns": [
+                "Multiple major turning points have reshaped your direction",
+                "Crisis precedes your biggest growth periods",
+                "Your reflections keep returning to themes of starting over"
+            ],
+            "current_expression": "If something feels like it's falling apart right now, you've been here before. You know how this goes.",
+            "reflection_question": "What are you refusing to let die that needs to?"
         }
     },
     
@@ -53,7 +59,7 @@ ARCHETYPE_LIBRARY = {
         "id": "builder_under_pressure",
         "name": "Builder Under Pressure",
         "icon": "🏗️",
-        "description": "Growth through challenge. You build your strongest foundations when facing difficulty.",
+        "description": "Difficulty doesn't break you. It builds you.",
         "short_description": "Strength through challenge",
         "signals": {
             "lifeline": ["challenge", "achievement", "career", "work", "professional", "milestone", "pressure"],
@@ -62,14 +68,20 @@ ARCHETYPE_LIBRARY = {
             "lunar": ["tension", "effort", "commitment", "push"]
         },
         "narrative_template": {
-            "summary": "You tend to create your most meaningful structures when under pressure. Challenge doesn't break you—it focuses you.",
-            "why_patterns": [
-                "Major achievements in your timeline often follow periods of intensity",
-                "Your career or work signals show building through difficulty",
-                "Stress patterns correlate with eventual breakthroughs"
+            "summary": "You create your strongest work under pressure. Comfort makes you lazy. Challenge makes you sharp.",
+            "contrast": "Others crumble under weight. You use it to build foundations.",
+            "how_this_shows_up": [
+                "In work: Deadlines and constraints improve your output",
+                "In relationships: You step up when others need you most",
+                "In decisions: You commit hardest when stakes are highest"
             ],
-            "current_expression": "Right now, any pressure you're feeling might be the necessary friction that shapes something lasting.",
-            "reflection_question": "What structure are you being called to build, even when conditions feel difficult?"
+            "why_patterns": [
+                "Your biggest achievements follow periods of intensity",
+                "Stress and breakthrough cluster together in your timeline",
+                "You keep choosing harder paths over easier ones"
+            ],
+            "current_expression": "The pressure you feel right now isn't breaking you. It's shaping you.",
+            "reflection_question": "What are you building that only pressure can forge?"
         }
     },
     
@@ -77,8 +89,8 @@ ARCHETYPE_LIBRARY = {
         "id": "reinventor",
         "name": "The Reinventor",
         "icon": "🔄",
-        "description": "Multiple identity shifts across life. You regularly shed old versions of yourself.",
-        "short_description": "Serial self-transformation",
+        "description": "You've been many people. Each one was real.",
+        "short_description": "Serial transformation",
         "signals": {
             "lifeline": ["identity", "transformation", "move", "relocation", "career", "change", "new", "different"],
             "patterns": ["identity_direction", "growth_transformation"],
@@ -86,14 +98,20 @@ ARCHETYPE_LIBRARY = {
             "lunar": ["identity", "change", "who", "becoming"]
         },
         "narrative_template": {
-            "summary": "You've lived multiple lives within this one. Each major shift wasn't about abandoning yourself—it was about becoming more yourself.",
-            "why_patterns": [
-                "Your lifeline shows distinct chapters with different focuses",
-                "Identity and direction signals are consistently active",
-                "Recent reflections touch on themes of personal evolution"
+            "summary": "You've lived multiple lives in one. Shedding old identities isn't loss—it's how you become more yourself.",
+            "contrast": "Others cling to who they were. You keep asking who you're becoming.",
+            "how_this_shows_up": [
+                "In work: Career pivots that confuse others but feel right to you",
+                "In relationships: Outgrowing connections that no longer fit",
+                "In decisions: Choosing unknown futures over known limitations"
             ],
-            "current_expression": "You may be in the early stages of another reinvention, even if you can't fully see what's forming yet.",
-            "reflection_question": "What version of yourself is trying to emerge right now?"
+            "why_patterns": [
+                "Your timeline shows distinct chapters, not continuous storyline",
+                "Identity signals are consistently high",
+                "You've made 'who am I now' a recurring question"
+            ],
+            "current_expression": "Something in you is shifting again. Trust it. You've done this before.",
+            "reflection_question": "Who are you becoming that you haven't admitted yet?"
         }
     },
     
@@ -101,8 +119,8 @@ ARCHETYPE_LIBRARY = {
         "id": "seeker",
         "name": "The Seeker",
         "icon": "🧭",
-        "description": "Driven by exploration and the search for meaning. Always moving toward something.",
-        "short_description": "Exploration and meaning",
+        "description": "You'd rather search than settle.",
+        "short_description": "Exploration over arrival",
         "signals": {
             "lifeline": ["move", "travel", "education", "learning", "new", "exploration", "search"],
             "patterns": ["mind_meaning", "identity_direction"],
@@ -110,14 +128,263 @@ ARCHETYPE_LIBRARY = {
             "lunar": ["question", "explore", "meaning", "purpose", "direction"]
         },
         "narrative_template": {
-            "summary": "Your life pattern shows a consistent pull toward exploration—whether geographical, intellectual, or spiritual. You seek rather than settle.",
-            "why_patterns": [
-                "Movement and change appear frequently in your timeline",
-                "Learning and growth signals are strongly present",
-                "Reflections often touch on questions of meaning and direction"
+            "summary": "You're pulled toward questions, not answers. The search itself is the point. Settling feels like dying slowly.",
+            "contrast": "Others need destinations. You need horizons.",
+            "how_this_shows_up": [
+                "In work: Learning new fields, exploring possibilities",
+                "In relationships: Drawn to depth and novelty",
+                "In decisions: Choosing growth over security"
             ],
-            "current_expression": "What you're currently exploring may feel like restlessness, but it's actually your natural pattern of growth through seeking.",
-            "reflection_question": "What question are you truly trying to answer right now?"
+            "why_patterns": [
+                "Movement and change run through your timeline",
+                "Learning signals stay consistently strong",
+                "Your reflections circle questions of meaning"
+            ],
+            "current_expression": "That restlessness you feel? It's not a problem. It's your compass.",
+            "reflection_question": "What question are you avoiding by staying busy?"
+        }
+    },
+    
+    "stabilizer": {
+        "id": "stabilizer",
+        "name": "The Stabilizer",
+        "icon": "⚓",
+        "description": "You're the ground others stand on.",
+        "short_description": "Steady through chaos",
+        "signals": {
+            "lifeline": ["family", "home", "relationship", "marriage", "stability", "steady", "consistent"],
+            "patterns": ["relationships_boundaries", "emotional_landscape"],
+            "journal": ["stable", "ground", "secure", "home", "foundation", "steady", "reliable"],
+            "lunar": ["steady", "consistent", "ground", "security"]
+        },
+        "narrative_template": {
+            "summary": "You create steadiness. Not by avoiding change—by being what doesn't change. Others orbit around your consistency.",
+            "contrast": "Others chase excitement. You create foundations.",
+            "how_this_shows_up": [
+                "In work: Reliable, long-term commitments",
+                "In relationships: The one people lean on",
+                "In decisions: Choosing what lasts over what excites"
+            ],
+            "why_patterns": [
+                "Home and relationship themes dominate your timeline",
+                "You've built structures others depend on",
+                "Emotional steadiness signals run deep"
+            ],
+            "current_expression": "Your steadiness isn't boring. It's rare. Don't undervalue it.",
+            "reflection_question": "What would fall apart if you stopped holding it together?"
+        }
+    },
+    
+    "protector": {
+        "id": "protector",
+        "name": "The Protector",
+        "icon": "🛡️",
+        "description": "You carry weight so others don't have to.",
+        "short_description": "Responsibility first",
+        "signals": {
+            "lifeline": ["family", "responsibility", "care", "duty", "support", "protect", "children"],
+            "patterns": ["relationships_boundaries", "pressure_stress"],
+            "journal": ["responsible", "care", "protect", "others", "duty", "support", "help"],
+            "lunar": ["responsibility", "others", "care", "protect"]
+        },
+        "narrative_template": {
+            "summary": "You take responsibility—often more than your share. Protecting others is woven into how you exist.",
+            "contrast": "Others protect themselves first. You protect others first.",
+            "how_this_shows_up": [
+                "In work: Taking on what others can't or won't",
+                "In relationships: Being the strong one",
+                "In decisions: Considering others' needs before your own"
+            ],
+            "why_patterns": [
+                "Family and duty signals run through your timeline",
+                "You carry more than anyone asks you to",
+                "Sacrifice patterns cluster around those you love"
+            ],
+            "current_expression": "The weight you're carrying right now—is it yours to carry?",
+            "reflection_question": "What would happen if you protected yourself as fiercely as you protect others?"
+        }
+    },
+    
+    "breakthrough_artist": {
+        "id": "breakthrough_artist",
+        "name": "Breakthrough Artist",
+        "icon": "💫",
+        "description": "You create in bursts. Then you rest. Then you burst again.",
+        "short_description": "Creative cycles",
+        "signals": {
+            "lifeline": ["creative", "expression", "art", "project", "achievement", "breakthrough", "launch"],
+            "patterns": ["expression_action", "timing_readiness"],
+            "journal": ["create", "express", "make", "build", "breakthrough", "inspired", "flow"],
+            "lunar": ["create", "express", "flow", "inspiration", "emergence"]
+        },
+        "narrative_template": {
+            "summary": "You work in cycles—intense creation, then quiet integration. Your breakthroughs come through making, not thinking.",
+            "contrast": "Others produce steadily. You explode, rest, explode.",
+            "how_this_shows_up": [
+                "In work: Projects with intense bursts of energy",
+                "In relationships: Deep connection then needed space",
+                "In decisions: Acting when inspiration strikes"
+            ],
+            "why_patterns": [
+                "Your achievements cluster in time",
+                "Creative expression signals spike and calm",
+                "Your best work follows periods of incubation"
+            ],
+            "current_expression": "Quiet phase? Building. Intense phase? Trust it.",
+            "reflection_question": "What's ready to emerge that you've been holding back?"
+        }
+    },
+    
+    "threshold_walker": {
+        "id": "threshold_walker",
+        "name": "Threshold Walker",
+        "icon": "🚪",
+        "description": "You're comfortable in doorways. Others rush through—you know how to be in them.",
+        "short_description": "Navigator of between",
+        "signals": {
+            "lifeline": ["transition", "turning point", "milestone", "major", "life change", "threshold", "between"],
+            "patterns": ["growth_transformation", "timing_readiness"],
+            "journal": ["transition", "between", "crossing", "threshold", "next phase", "change"],
+            "lunar": ["transition", "threshold", "crossing", "between", "phase"]
+        },
+        "narrative_template": {
+            "summary": "You navigate liminal spaces. While others panic at 'between', you've learned to be there—because you've been there before.",
+            "contrast": "Others fear uncertainty. You've made it familiar territory.",
+            "how_this_shows_up": [
+                "In work: Handling transitions others avoid",
+                "In relationships: Staying present during hard changes",
+                "In decisions: Trusting timing over forcing outcomes"
+            ],
+            "why_patterns": [
+                "Transitions cluster throughout your timeline",
+                "You engage with change rather than resist it",
+                "Your reflections show comfort with uncertainty"
+            ],
+            "current_expression": "Feeling 'between' right now? That's not limbo. That's your territory.",
+            "reflection_question": "What threshold are you standing at that you haven't fully acknowledged?"
+        }
+    },
+    
+    "expansion_through_disruption": {
+        "id": "expansion_through_disruption",
+        "name": "Expansion Through Disruption",
+        "icon": "⚡",
+        "description": "Your biggest growth comes from what you didn't plan.",
+        "short_description": "Growth via chaos",
+        "signals": {
+            "lifeline": ["unexpected", "crisis", "disruption", "surprise", "sudden", "unplanned", "shock"],
+            "patterns": ["growth_transformation", "pressure_stress"],
+            "journal": ["unexpected", "surprised", "didn't plan", "sudden", "disruption", "change"],
+            "lunar": ["unexpected", "surprise", "shift", "disruption"]
+        },
+        "narrative_template": {
+            "summary": "Your most significant growth comes uninvited. Disruption opens doors you couldn't have planned. Chaos becomes compass.",
+            "contrast": "Others plan growth. Growth plans you.",
+            "how_this_shows_up": [
+                "In work: Pivots forced by circumstance that led somewhere better",
+                "In relationships: Unexpected connections that changed everything",
+                "In decisions: Choosing to work with surprise rather than against it"
+            ],
+            "why_patterns": [
+                "Key turning points were unplanned",
+                "Disruption and expansion correlate in your signals",
+                "You've learned to ride chaos rather than fight it"
+            ],
+            "current_expression": "Current disruption? Less random than it seems.",
+            "reflection_question": "What opportunity is hiding inside what just broke?"
+        }
+    },
+    
+    "quiet_endurer": {
+        "id": "quiet_endurer",
+        "name": "The Quiet Endurer",
+        "icon": "🌱",
+        "description": "You outlast. You don't overpower.",
+        "short_description": "Persistence over force",
+        "signals": {
+            "lifeline": ["persistent", "steady", "long-term", "endure", "continue", "patience", "gradual"],
+            "patterns": ["emotional_landscape", "relationships_boundaries"],
+            "journal": ["patience", "persist", "continue", "keep going", "endure", "steady", "wait"],
+            "lunar": ["patience", "waiting", "persistence", "steady", "continue"]
+        },
+        "narrative_template": {
+            "summary": "You don't force outcomes. You outlast obstacles. Your strength is quiet—but it's deeper than most.",
+            "contrast": "Others push through walls. You wait for them to crumble.",
+            "how_this_shows_up": [
+                "In work: Long games that others abandon",
+                "In relationships: Staying when others would leave",
+                "In decisions: Trusting slow over fast"
+            ],
+            "why_patterns": [
+                "Gradual building shows throughout your timeline",
+                "Emotional steadiness runs deep",
+                "Your patience has already paid off more than you've noticed"
+            ],
+            "current_expression": "What feels slow right now is exactly the pace this needs.",
+            "reflection_question": "Where is your persistence already paying off without recognition?"
+        }
+    },
+    
+    "weaver": {
+        "id": "weaver",
+        "name": "The Weaver",
+        "icon": "🕸️",
+        "description": "You see connections others miss.",
+        "short_description": "Pattern connector",
+        "signals": {
+            "lifeline": ["relationship", "connect", "network", "community", "bridge", "bring together"],
+            "patterns": ["relationships_boundaries", "expression_action"],
+            "journal": ["connect", "relationship", "together", "bridge", "link", "weave", "synthesis"],
+            "lunar": ["connection", "relationship", "together", "bridge"]
+        },
+        "narrative_template": {
+            "summary": "You naturally see how separate things connect. Your life pattern shows building bridges—between people, ideas, or worlds that seemed unrelated.",
+            "contrast": "Others see categories. You see relationships.",
+            "how_this_shows_up": [
+                "In work: Bringing different fields together",
+                "In relationships: Being the connector in your circles",
+                "In decisions: Synthesizing rather than choosing"
+            ],
+            "why_patterns": [
+                "Connection-making runs through your timeline",
+                "Relationship signals stay consistently active",
+                "You've linked things others kept separate"
+            ],
+            "current_expression": "Those connections forming right now? They're part of a larger pattern.",
+            "reflection_question": "What disconnected parts of your life are asking to be woven together?"
+        }
+    },
+    
+    "emergence_keeper": {
+        "id": "emergence_keeper",
+        "name": "Emergence Keeper",
+        "icon": "🌅",
+        "description": "You're drawn to beginnings. You know how to receive what's trying to start.",
+        "short_description": "Midwife of new things",
+        "signals": {
+            "lifeline": ["new", "start", "beginning", "first", "launch", "initiate", "pioneer"],
+            "patterns": ["expression_action", "timing_readiness"],
+            "journal": ["new beginning", "start", "first", "emergence", "dawn", "initiate"],
+            "lunar": ["new", "beginning", "start", "emergence", "initiate"]
+        },
+        "narrative_template": {
+            "summary": "You have an affinity for beginnings. New projects, relationships, chapters—you sense what's trying to emerge before others do.",
+            "contrast": "Others finish things. You start them.",
+            "how_this_shows_up": [
+                "In work: Launching initiatives others continue",
+                "In relationships: Sensing new connections before they solidify",
+                "In decisions: Recognizing dawn before sunrise"
+            ],
+            "why_patterns": [
+                "Your timeline shows you present at many beginnings",
+                "Emergence signals stay consistently active",
+                "You often start what others carry forward"
+            ],
+            "current_expression": "Something new is trying to begin. You can feel it. Trust that.",
+            "reflection_question": "What new beginning is asking for your attention that you keep postponing?"
+        }
+    }
+}
         }
     },
     
