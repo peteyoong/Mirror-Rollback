@@ -200,10 +200,28 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
     await loadTimeline();
   };
 
-  // Delete event
+  // Delete event with proper cleanup and refresh
   const handleDeleteEvent = async (eventId: string) => {
-    await api.delete(`/lifeline/event/${eventId}`);
-    await loadTimeline();
+    console.log('[Lifeline] Deleting event:', eventId);
+    try {
+      const response = await api.delete(`/lifeline/event/${eventId}`);
+      console.log('[Lifeline] Delete response:', response.data);
+      
+      if (response.data.success) {
+        // Close the editor modal first
+        setShowEditor(false);
+        setEditingEvent(null);
+        
+        // Refresh all lifeline data (events, patterns, resonances, stats)
+        console.log('[Lifeline] Delete successful, refreshing all data...');
+        await loadTimeline(true);
+      } else {
+        throw new Error(response.data.message || 'Delete failed');
+      }
+    } catch (err: any) {
+      console.error('[Lifeline] Delete error:', err);
+      throw err; // Re-throw so the editor can show error
+    }
   };
 
   // Open editor for new event
