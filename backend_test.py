@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Backend URL from environment
-BACKEND_URL = "https://decision-tracker-17.preview.emergentagent.com/api"
+BACKEND_URL = "https://mirror-decision-mind.preview.emergentagent.com/api"
 
 # Test User IDs from review request
 USER_WITH_EVENTS = "6971c81f2b40fd5ef501d375"  # peter@test.com - has 6 lifeline events
