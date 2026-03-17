@@ -176,12 +176,20 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
     loadTimeline();
   }, [loadTimeline]);
 
-  // Refresh all data when screen comes into focus
-  // This ensures resonances, patterns, and timeline update after imports
+  // Track if this is the first focus to avoid double loading
+  const isFirstFocus = useRef(true);
+
+  // Refresh all data when screen comes into focus (but not on initial mount)
+  // This ensures resonances, patterns, and timeline update after imports/navigation
   useFocusEffect(
     useCallback(() => {
-      console.log('[Lifeline] Screen focused - refreshing all data');
-      loadTimeline(true); // Force refresh on focus
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        console.log('[Lifeline] Initial focus - skipping redundant refresh');
+        return;
+      }
+      console.log('[Lifeline] Screen refocused - refreshing all data');
+      loadTimeline(true); // Force refresh on subsequent focus
     }, [loadTimeline])
   );
 
