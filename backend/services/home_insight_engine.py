@@ -349,57 +349,57 @@ def detect_pattern_phase(signal_flags: Dict[str, bool], entry_history: list) -> 
     # RECOVERY: Clear recovery signals, or coming down from intensity
     if has_recovery:
         return ("RECOVERY", 
-                "Energy is rebuilding. This is a reset.",
+                "I think I'm coming out of it.",
                 trajectory_summary)
     
     if had_frustration_before and not has_frustration and not has_urgency:
         return ("RECOVERY",
-                "The intensity has passed. Space is opening up.",
+                "Something in me is settling again.",
                 trajectory_summary)
     
     # FRICTION: Frustration/doubt after taking action, waiting without result
     if has_frustration or has_doubt:
         if has_waiting or had_action_before:
             return ("FRICTION",
-                    "Effort went out. Nothing came back yet.",
+                    "I did my part. Nothing came back yet.",
                     trajectory_summary)
         if has_emotional:
             return ("FRICTION",
-                    "Feelings are loud. Clarity is low.",
+                    "There's a lot here, but none of it is clear.",
                     trajectory_summary)
         return ("FRICTION",
-                "Something isn't clicking. There's resistance here.",
+                "Something's off, but I can't name it.",
                 trajectory_summary)
     
     # BUILD-UP: Momentum happening, action taken, progress visible
     if has_momentum:
         if has_action or had_action_before:
             return ("BUILD_UP",
-                    "Things are moving. Momentum is building.",
+                    "Things are picking up—I can feel it.",
                     trajectory_summary)
         return ("BUILD_UP",
-                "Progress is happening. Stay with it.",
+                "This is already in motion.",
                 trajectory_summary)
     
     if had_action_before and had_momentum_before and not has_frustration:
         return ("BUILD_UP",
-                "You're in a building phase. Consistency matters now.",
+                "I just need to keep going.",
                 trajectory_summary)
     
     # INITIATION: Action starting, urgency present, no friction yet
     if has_action and not has_frustration and not has_doubt:
         return ("INITIATION",
-                "Something is in motion. This is starting energy.",
+                "Something is starting to move.",
                 trajectory_summary)
     
     if has_urgency and not had_frustration_before:
         return ("INITIATION",
-                "Energy is building. Something wants to move.",
+                "I'm ready. I just don't know for what yet.",
                 trajectory_summary)
     
-    # Default: INITIATION with experiential framing
+    # Default: INITIATION with inner voice
     return ("INITIATION",
-            "This feels like the start of something.",
+            "Something is starting… I just don't know what yet.",
             trajectory_summary)
 
 
