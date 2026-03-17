@@ -20,6 +20,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useTheme } from '../../contexts/ThemeContext';
 import api from '../../services/api';
@@ -36,6 +37,7 @@ import LifelineMemoryPrompt, {
 } from './LifelineMemoryPrompt';
 import TimeDistanceTimeline from './TimeDistanceTimeline';
 import { ChartResonance, ChartResonanceSection, PatternResonanceSummary } from './ChartResonance';
+import LifelineAddMenu from './LifelineAddMenu';
 
 interface Props {
   userId: string;
