@@ -287,7 +287,8 @@ export default function NumerologyPatternView({ userId, onOpenChat }: Props) {
 
         {/* Energy Map (Lo Shu Grid) */}
         <LoShuGrid
-          grid={data.lo_shu_grid}
+          loShuDisplay={data.lo_shu_display}
+          loShuTemplate={data.lo_shu_template}
           presentNumbers={data.present_numbers}
           missingNumbers={data.missing_numbers}
           theme={theme}
@@ -314,18 +315,18 @@ export default function NumerologyPatternView({ userId, onOpenChat }: Props) {
           </View>
         </View>
 
-        {/* Internal Tension */}
+        {/* Tensions to Notice (renamed from Internal Tension) */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>INTERNAL TENSION</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>TENSIONS TO NOTICE</Text>
           <View style={styles.tensionList}>
             {data.internal_tensions.map((tension, index) => (
               <View 
                 key={index} 
-                style={[styles.tensionCard, { backgroundColor: COLORS.tensionBg, borderColor: COLORS.tension }]}
+                style={[styles.tensionCard, { backgroundColor: COLORS.tensionBg, borderColor: COLORS.tensionGold }]}
               >
                 <View style={styles.tensionHeader}>
                   <Text style={[styles.tensionA, { color: theme.text }]}>{tension.a}</Text>
-                  <Text style={[styles.tensionVs, { color: COLORS.tension }]}>vs</Text>
+                  <Text style={[styles.tensionVs, { color: COLORS.tensionGold }]}>vs</Text>
                   <Text style={[styles.tensionB, { color: theme.text }]}>{tension.b}</Text>
                 </View>
                 <Text style={[styles.tensionDescription, { color: theme.textSecondary }]}>
@@ -336,10 +337,10 @@ export default function NumerologyPatternView({ userId, onOpenChat }: Props) {
           </View>
         </View>
 
-        {/* Mirror Moment */}
-        <View style={[styles.mirrorMomentSection, { backgroundColor: theme.surface, borderLeftColor: COLORS.accent }]}>
-          <Text style={[styles.mirrorMomentLabel, { color: theme.textTertiary }]}>MIRROR MOMENT</Text>
-          <Text style={[styles.mirrorMomentText, { color: theme.text }]}>
+        {/* Reflection (renamed from Mirror Moment) */}
+        <View style={[styles.reflectionSection, { backgroundColor: theme.surface, borderLeftColor: COLORS.accent }]}>
+          <Text style={[styles.reflectionLabel, { color: theme.textTertiary }]}>REFLECTION</Text>
+          <Text style={[styles.reflectionText, { color: theme.text }]}>
             {data.mirror_moment}
           </Text>
         </View>
