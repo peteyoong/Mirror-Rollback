@@ -2,6 +2,7 @@
  * HomeArchetypeCard.tsx
  * 
  * Task 75: Unified Narrative Engine
+ * Task 76: Added conversation entry point
  * 
  * Compact archetype teaser for the home screen.
  * Uses /api/pattern-archetype as the single source of truth.
@@ -20,6 +21,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAppStore } from '../store';
 import api from '../services/api';
+import PatternConversationPanel, { ExploreWithMirrorButton } from './PatternConversationPanel';
 
 // Types
 interface ArchetypeNarrative {
