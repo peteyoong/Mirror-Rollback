@@ -1,0 +1,510 @@
+"""
+Numerology Pattern System Service
+
+Task: Transform numerology from descriptive personality text into 
+diagnostic pattern recognition system.
+
+Provides:
+- Lo Shu Grid computation
+- Core pattern generation (sharp, confronting)
+- Behavioral manifestations
+- Internal tensions
+- Precise reflection questions
+"""
+
+import logging
+from datetime import datetime
+from typing import Dict, List, Any, Optional
+
+logger = logging.getLogger(__name__)
+
+# =============================================================================
+# LO SHU GRID COMPUTATION
+# =============================================================================
+
+def compute_lo_shu_grid(birth_date: datetime) -> Dict[str, Any]:
+    """
+    Compute Lo Shu Grid from birth date.
+    
+    The Lo Shu Grid is a 3x3 grid showing presence/absence of numbers 1-9.
+    Numbers are derived from the birth date digits.
+    
+    Grid positions:
+    4 | 9 | 2
+    3 | 5 | 7  
+    8 | 1 | 6
+    
+    Returns:
+        {
+            'grid': [[4,9,2],[3,5,7],[8,1,6]],
+            'present_numbers': {'1': 2, '8': 1, ...},
+            'missing_numbers': [3, 5, 7]
+        }
+    """
+    # Extract all digits from birth date
+    date_str = birth_date.strftime('%d%m%Y')  # e.g., "01111988"
+    digits = [int(d) for d in date_str if d != '0']  # Remove zeros
+    
+    # Count occurrences of each number 1-9
+    present_numbers = {}
+    for d in digits:
+        if 1 <= d <= 9:
+            present_numbers[str(d)] = present_numbers.get(str(d), 0) + 1
+    
+    # Find missing numbers
+    missing_numbers = [n for n in range(1, 10) if str(n) not in present_numbers]
+    
+    # Standard Lo Shu grid positions
+    grid = [[4, 9, 2], [3, 5, 7], [8, 1, 6]]
+    
+    return {
+        'grid': grid,
+        'present_numbers': present_numbers,
+        'missing_numbers': missing_numbers
+    }
+
+# =============================================================================
+# NUMBER MEANINGS FOR PATTERN GENERATION
+# =============================================================================
+
+NUMBER_CORE_MEANINGS = {
+    1: {'energy': 'initiation, independence, action', 'shadow': 'isolation, domination', 'verb': 'initiates'},
+    2: {'energy': 'sensitivity, partnership, processing', 'shadow': 'dependency, over-accommodation', 'verb': 'connects'},
+    3: {'energy': 'expression, creativity, joy', 'shadow': 'superficiality, scattered energy', 'verb': 'expresses'},
+    4: {'energy': 'stability, structure, grounding', 'shadow': 'rigidity, limitation', 'verb': 'builds'},
+    5: {'energy': 'freedom, change, experience', 'shadow': 'restlessness, excess', 'verb': 'moves'},
+    6: {'energy': 'responsibility, care, harmony', 'shadow': 'martyrdom, control', 'verb': 'nurtures'},
+    7: {'energy': 'analysis, depth, spirituality', 'shadow': 'isolation, cynicism', 'verb': 'analyzes'},
+    8: {'energy': 'power, manifestation, karma', 'shadow': 'materialism, manipulation', 'verb': 'manifests'},
+    9: {'energy': 'completion, wisdom, service', 'shadow': 'martyrdom, escapism', 'verb': 'completes'},
+    11: {'energy': 'intuition, inspiration, vision', 'shadow': 'anxiety, impracticality', 'verb': 'illuminates'},
+    22: {'energy': 'mastery, large-scale building', 'shadow': 'overwhelm, scattered power', 'verb': 'constructs'},
+    33: {'energy': 'teaching, healing, compassion', 'shadow': 'self-sacrifice, delusion', 'verb': 'heals'}
+}
+
+# =============================================================================
+# CORE PATTERN GENERATOR
+# =============================================================================
+
+def generate_core_pattern(
+    life_path: int,
+    expression: Optional[int],
+    soul_urge: Optional[int],
+    missing_numbers: List[int]
+) -> str:
+    """
+    Generate a sharp, confronting core pattern statement.
+    
+    Format: 1-2 lines max, direct, no hedging.
+    
+    Examples:
+    - "You are built to see quickly and move quickly—but not naturally built to stabilize or express what you see."
+    - "You initiate powerfully but struggle to follow through on emotional commitments."
+    """
+    lp_meaning = NUMBER_CORE_MEANINGS.get(life_path, {})
+    lp_verb = lp_meaning.get('verb', 'moves')
+    lp_energy = lp_meaning.get('energy', 'action')
+    
+    # Start with life path core
+    pattern_parts = []
+    
+    # Life path strength
+    if life_path == 1:
+        pattern_parts.append("You initiate quickly and act decisively")
+    elif life_path == 2:
+        pattern_parts.append("You read emotional undercurrents that others miss")
+    elif life_path == 3:
+        pattern_parts.append("You communicate naturally and crave expression")
+    elif life_path == 4:
+        pattern_parts.append("You build steadily and value what lasts")
+    elif life_path == 5:
+        pattern_parts.append("You adapt rapidly and need constant movement")
+    elif life_path == 6:
+        pattern_parts.append("You take responsibility even when it isn't yours")
+    elif life_path == 7:
+        pattern_parts.append("You analyze deeply before committing to anything")
+    elif life_path == 8:
+        pattern_parts.append("You see power dynamics clearly and navigate them well")
+    elif life_path == 9:
+        pattern_parts.append("You see the larger picture that others struggle to grasp")
+    elif life_path == 11:
+        pattern_parts.append("You perceive things before they become visible to others")
+    elif life_path == 22:
+        pattern_parts.append("You think in systems and structures that span years")
+    elif life_path == 33:
+        pattern_parts.append("You absorb others' pain without being asked")
+    else:
+        pattern_parts.append("You carry a unique energetic signature")
+    
+    # Add missing number tension
+    if missing_numbers:
+        missing_str = ', '.join([str(n) for n in missing_numbers[:3]])
+        
+        if 3 in missing_numbers:
+            pattern_parts.append("—but expressing what you know doesn't come naturally")
+        elif 4 in missing_numbers:
+            pattern_parts.append("—but stabilizing and grounding your insights is a struggle")
+        elif 5 in missing_numbers:
+            pattern_parts.append("—but adapting to rapid change feels forced")
+        elif 6 in missing_numbers:
+            pattern_parts.append("—but domestic harmony eludes you")
+        elif 7 in missing_numbers:
+            pattern_parts.append("—but deep analysis feels like work, not instinct")
+        elif 2 in missing_numbers:
+            pattern_parts.append("—but emotional nuance isn't your native language")
+        elif 1 in missing_numbers:
+            pattern_parts.append("—but initiating alone is uncomfortable")
+        elif 8 in missing_numbers:
+            pattern_parts.append("—but material mastery doesn't hold your attention")
+        elif 9 in missing_numbers:
+            pattern_parts.append("—but letting go and completing cycles is hard")
+        else:
+            pattern_parts.append(f"—missing {missing_str} creates gaps in your natural flow")
+    
+    return ''.join(pattern_parts) + '.'
+
+# =============================================================================
+# HOW THIS SHOWS UP GENERATOR
+# =============================================================================
+
+def generate_how_this_shows_up(
+    life_path: int,
+    expression: Optional[int],
+    missing_numbers: List[int],
+    present_counts: Dict[str, int]
+) -> List[str]:
+    """
+    Generate 3-5 specific behavioral patterns.
+    
+    Rules:
+    - Real behavioral patterns only
+    - No abstract language
+    - Must feel personally specific
+    """
+    behaviors = []
+    
+    # Life path behaviors
+    lp_behaviors = {
+        1: [
+            "You start projects before fully thinking them through—and often finish them anyway",
+            "You resist asking for help until you're already stuck",
+            "You make decisions that confuse people who think slower"
+        ],
+        2: [
+            "You sense tension in a room before anyone speaks",
+            "You over-explain when you feel misunderstood",
+            "You give more than you receive in most relationships"
+        ],
+        3: [
+            "You have multiple creative projects open at once",
+            "You talk through problems—thinking happens out loud for you",
+            "Your mood visibly affects the room around you"
+        ],
+        4: [
+            "You feel physical discomfort in chaotic environments",
+            "You create systems even when no one asks for them",
+            "You resist shortcuts that skip necessary steps"
+        ],
+        5: [
+            "You feel trapped by routine even when you chose it",
+            "You leave situations before they become unbearable",
+            "You're drawn to people and places that challenge your current life"
+        ],
+        6: [
+            "You take on other people's problems as your own",
+            "You sacrifice personal needs to maintain harmony",
+            "You feel responsible for outcomes you can't control"
+        ],
+        7: [
+            "You research obsessively before making commitments",
+            "You need time alone to process even positive experiences",
+            "You trust your analysis over others' opinions"
+        ],
+        8: [
+            "You notice who holds power in every room you enter",
+            "You're comfortable with high-stakes decisions",
+            "You track value and results—even when others don't"
+        ],
+        9: [
+            "You see patterns that connect unrelated events",
+            "You're drawn to endings and transitions",
+            "You release attachments more easily than most"
+        ],
+        11: [
+            "You receive insights before you have words for them",
+            "You feel things happening before evidence appears",
+            "You're easily overwhelmed by environments that others tolerate"
+        ],
+        22: [
+            "You think in decades while others think in months",
+            "You're frustrated by small-scale solutions",
+            "You build structures—physical, organizational, or conceptual"
+        ],
+        33: [
+            "You feel others' pain as if it were your own",
+            "People share their problems with you without being asked",
+            "You teach through presence rather than instruction"
+        ]
+    }
+    
+    behaviors.extend(lp_behaviors.get(life_path, [
+        "You carry patterns that are uniquely yours",
+        "Your life rhythm follows a non-standard beat"
+    ]))
+    
+    # Add missing number behaviors
+    for missing in missing_numbers[:2]:
+        missing_behaviors = {
+            1: "You defer to group consensus even when you see a better path",
+            2: "You miss emotional subtext that others catch easily",
+            3: "You struggle to articulate what you're thinking",
+            4: "You start strong but maintenance drains you",
+            5: "You cling to familiar patterns even when they've stopped working",
+            6: "You avoid domestic responsibilities when possible",
+            7: "You make decisions without deep analysis",
+            8: "You undervalue your work and avoid money conversations",
+            9: "You hold on past the point of usefulness"
+        }
+        if missing in missing_behaviors:
+            behaviors.append(missing_behaviors[missing])
+    
+    # Check for repeated numbers (emphasis)
+    for num_str, count in present_counts.items():
+        if count >= 2:
+            num = int(num_str)
+            emphasis_behaviors = {
+                1: "Your independence is amplified—you're aggressively self-reliant",
+                2: "Your sensitivity is heightened—you feel everything twice",
+                3: "Your expressiveness is doubled—you communicate constantly",
+                4: "Your need for structure is intense—chaos is intolerable",
+                5: "Your need for change is urgent—stability feels like stagnation",
+                6: "Your responsibility is overwhelming—you carry too much",
+                7: "Your analytical nature is extreme—you over-think everything",
+                8: "Your power focus is doubled—you see everything through results",
+                9: "Your wisdom is amplified—but so is your tendency to detach"
+            }
+            if num in emphasis_behaviors:
+                behaviors.append(emphasis_behaviors[num])
+    
+    return behaviors[:5]  # Max 5 behaviors
+
+# =============================================================================
+# INTERNAL TENSION GENERATOR
+# =============================================================================
+
+def generate_internal_tensions(
+    life_path: int,
+    expression: Optional[int],
+    soul_urge: Optional[int],
+    missing_numbers: List[int],
+    present_counts: Dict[str, int]
+) -> List[Dict[str, str]]:
+    """
+    Generate 2-3 X vs Y tensions.
+    
+    Format:
+    {
+        'a': 'Fast action (1)',
+        'b': 'emotional processing (2)',
+        'description': 'You move before you feel—then the feelings catch up'
+    }
+    """
+    tensions = []
+    
+    # Life path vs missing number tensions
+    lp_meaning = NUMBER_CORE_MEANINGS.get(life_path, {})
+    
+    for missing in missing_numbers[:2]:
+        missing_meaning = NUMBER_CORE_MEANINGS.get(missing, {})
+        
+        tension_map = {
+            (1, 2): {
+                'a': f'Fast action ({life_path})',
+                'b': f'emotional processing ({missing})',
+                'description': 'You move before you feel—then the feelings catch up later'
+            },
+            (1, 4): {
+                'a': f'Quick initiation ({life_path})',
+                'b': f'stable foundation ({missing})',
+                'description': 'You start quickly but building something lasting takes effort'
+            },
+            (2, 1): {
+                'a': f'Sensitivity ({life_path})',
+                'b': f'decisive action ({missing})',
+                'description': 'You feel everything but acting on it doesn't come naturally'
+            },
+            (3, 7): {
+                'a': f'Expression ({life_path})',
+                'b': f'deep analysis ({missing})',
+                'description': 'You speak before you've fully understood—wisdom lags behind words'
+            },
+            (5, 4): {
+                'a': f'Constant movement ({life_path})',
+                'b': f'stable grounding ({missing})',
+                'description': 'You crave change but lack the foundation to sustain it'
+            },
+            (7, 3): {
+                'a': f'Deep analysis ({life_path})',
+                'b': f'free expression ({missing})',
+                'description': 'You understand deeply but struggle to communicate what you know'
+            },
+            (11, 4): {
+                'a': f'Vision ({life_path})',
+                'b': f'practical grounding ({missing})',
+                'description': 'You see far ahead but building the bridge there is frustrating'
+            }
+        }
+        
+        key = (life_path if life_path <= 9 else life_path, missing)
+        if key in tension_map:
+            tensions.append(tension_map[key])
+        elif (missing, life_path if life_path <= 9 else life_path) in tension_map:
+            tensions.append(tension_map[(missing, life_path if life_path <= 9 else life_path)])
+    
+    # Add expression vs soul urge tension if both present
+    if expression and soul_urge and expression != soul_urge:
+        exp_verb = NUMBER_CORE_MEANINGS.get(expression, {}).get('verb', 'acts')
+        su_verb = NUMBER_CORE_MEANINGS.get(soul_urge, {}).get('verb', 'wants')
+        
+        tensions.append({
+            'a': f'How you present ({expression})',
+            'b': f'what you truly want ({soul_urge})',
+            'description': f'The face you show {exp_verb}—but your soul {su_verb} something different'
+        })
+    
+    # Add doubled number tension
+    for num_str, count in present_counts.items():
+        if count >= 2:
+            num = int(num_str)
+            if num in NUMBER_CORE_MEANINGS:
+                meaning = NUMBER_CORE_MEANINGS[num]
+                tensions.append({
+                    'a': f'Amplified {meaning["energy"].split(",")[0]} ({num}×{count})',
+                    'b': 'balance and moderation',
+                    'description': f'This energy is doubled—making it both a gift and a blind spot'
+                })
+                break  # Only one doubled number tension
+    
+    return tensions[:3]  # Max 3 tensions
+
+# =============================================================================
+# MIRROR MOMENT GENERATOR
+# =============================================================================
+
+def generate_mirror_moment(
+    life_path: int,
+    tensions: List[Dict[str, str]],
+    missing_numbers: List[int]
+) -> str:
+    """
+    Generate a precise reflection question based on the pattern tensions.
+    
+    Not generic—must be derived from the specific tensions identified.
+    """
+    if tensions:
+        # Use the primary tension to generate the question
+        primary_tension = tensions[0]
+        a = primary_tension['a'].split('(')[0].strip().lower()
+        b = primary_tension['b'].split('(')[0].strip().lower()
+        
+        return f"Where in your life is {a} running ahead of {b}—and what would it cost to slow down?"
+    
+    # Fallback based on missing numbers
+    if missing_numbers:
+        missing = missing_numbers[0]
+        missing_energy = NUMBER_CORE_MEANINGS.get(missing, {}).get('energy', 'this energy').split(',')[0]
+        return f"Where are you compensating for the absence of {missing_energy}—and is it working?"
+    
+    # Life path fallback
+    lp_energy = NUMBER_CORE_MEANINGS.get(life_path, {}).get('energy', 'your core energy').split(',')[0]
+    return f"Where is your {lp_energy} serving you—and where has it become a pattern you're running on autopilot?"
+
+# =============================================================================
+# MAIN PATTERN COMPUTATION
+# =============================================================================
+
+async def compute_numerology_pattern(
+    db,
+    user_id: str,
+    birth_date: datetime,
+    full_name: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Compute the complete numerology pattern system for a user.
+    
+    Returns:
+        {
+            'life_path': int,
+            'expression': int | null,
+            'soul_urge': int | null,
+            'personality': int | null,
+            'birth_date': str,
+            'lo_shu_grid': [[int]],
+            'present_numbers': {str: int},
+            'missing_numbers': [int],
+            'core_pattern': str,
+            'how_this_shows_up': [str],
+            'internal_tensions': [{a, b, description}],
+            'mirror_moment': str
+        }
+    """
+    from calculations.numerology import (
+        calculate_life_path,
+        calculate_expression_number,
+        calculate_soul_urge,
+        calculate_personality_number
+    )
+    
+    # Calculate core numbers
+    life_path_result = calculate_life_path(birth_date)
+    life_path = life_path_result['number']
+    
+    expression = None
+    soul_urge = None
+    personality = None
+    
+    if full_name:
+        expression_result = calculate_expression_number(full_name)
+        expression = expression_result['number']
+        
+        soul_urge_result = calculate_soul_urge(full_name)
+        soul_urge = soul_urge_result['number']
+        
+        personality_result = calculate_personality_number(full_name)
+        personality = personality_result['number']
+    
+    # Compute Lo Shu grid
+    lo_shu = compute_lo_shu_grid(birth_date)
+    
+    # Generate pattern content
+    core_pattern = generate_core_pattern(
+        life_path, expression, soul_urge, lo_shu['missing_numbers']
+    )
+    
+    how_shows_up = generate_how_this_shows_up(
+        life_path, expression, lo_shu['missing_numbers'], lo_shu['present_numbers']
+    )
+    
+    internal_tensions = generate_internal_tensions(
+        life_path, expression, soul_urge, 
+        lo_shu['missing_numbers'], lo_shu['present_numbers']
+    )
+    
+    mirror_moment = generate_mirror_moment(
+        life_path, internal_tensions, lo_shu['missing_numbers']
+    )
+    
+    return {
+        'life_path': life_path,
+        'expression': expression,
+        'soul_urge': soul_urge,
+        'personality': personality,
+        'birth_date': birth_date.isoformat(),
+        'lo_shu_grid': lo_shu['grid'],
+        'present_numbers': lo_shu['present_numbers'],
+        'missing_numbers': lo_shu['missing_numbers'],
+        'core_pattern': core_pattern,
+        'how_this_shows_up': how_shows_up,
+        'internal_tensions': internal_tensions,
+        'mirror_moment': mirror_moment
+    }
