@@ -118,7 +118,7 @@ class LifelineAPITester:
         """Get current event count for user"""
         try:
             async with self.session.get(
-                f"{BACKEND_URL}/lifeline/{TEST_USER_ID}/events",
+                f"{BACKEND_URL}/lifeline/{TEST_USER_ID}",
                 timeout=10
             ) as response:
                 if response.status == 200:
