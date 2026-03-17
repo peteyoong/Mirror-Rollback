@@ -21,6 +21,7 @@ import { InlineReflectButton } from '../../components/UniversalReflectButton';
 import { FullSynthesis, SynthesisData } from '../../components/CrossLensSynthesis';
 import { ChartResonanceSection, PatternResonanceSummary } from '../../components/lifeline/ChartResonance';
 import PatternGraphCard from '../../components/patterns/PatternGraphCard';
+import PatternArchetypeCard from '../../components/patterns/PatternArchetypeCard';
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
