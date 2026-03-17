@@ -237,7 +237,6 @@ export default function MirrorScreen() {
       loadKeystone(),
       loadPatternData(),
       loadRecentReflection(),
-      loadSynthesisTeaser(),
       loadLifelineCount(),
     ]);
     
@@ -258,23 +257,7 @@ export default function MirrorScreen() {
     }
   };
 
-  const loadSynthesisTeaser = async () => {
-    if (!user?.id) return;
-    setIsSynthesisLoading(true);
-    
-    try {
-      const response = await api.get(`/synthesis/${user.id}/teaser`);
-      if (response.data) {
-        setSynthesisTeaser(response.data);
-      }
-    } catch (err) {
-      console.log('[SynthesisTeaser] Failed to load:', err);
-      // Silently fail - synthesis teaser is optional
-      setSynthesisTeaser(null);
-    } finally {
-      setIsSynthesisLoading(false);
-    }
-  };
+  // Task 75: Removed loadSynthesisTeaser - HomeArchetypeCard fetches its own data
 
   const loadKeystone = async () => {
     if (!user?.id) return;
