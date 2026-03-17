@@ -624,14 +624,11 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            SECTION 4: CROSS-LENS SYNTHESIS TEASER
+            SECTION 4: ARCHETYPE INSIGHT CARD (Task 75: Unified Narrative)
             =================================================================== */}
-        {!isLoading && (synthesisTeaser?.show_teaser || isSynthesisLoading) && (
-          <View style={[styles.synthesisSection, { borderColor: theme.border }]}>
-            <SynthesisTeaser 
-              synthesis={synthesisTeaser} 
-              isLoading={isSynthesisLoading} 
-            />
+        {!isLoading && (
+          <View style={styles.archetypeSection}>
+            <HomeArchetypeCard />
           </View>
         )}
 
