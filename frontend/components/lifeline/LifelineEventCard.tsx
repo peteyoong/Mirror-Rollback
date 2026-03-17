@@ -116,8 +116,9 @@ export default function LifelineEventCard({ event, onPress, onEdit, onDelete, is
   const [isDeleting, setIsDeleting] = useState(false);
   const hasResonance = resonances && resonances.length > 0;
 
-  // Clean the title for display
-  const displayTitle = cleanDisplayTitle(event.title);
+  // Clean the title and description for display
+  const displayTitle = cleanDisplayText(event.title);
+  const displayDescription = event.description ? cleanDisplayText(event.description) : '';
 
   // Handle delete with confirmation
   const handleDelete = () => {
