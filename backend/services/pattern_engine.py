@@ -1573,9 +1573,10 @@ async def get_pattern_graph_snapshot(
     ]
     
     # Get recent signals (most recent first)
+    # Handle None timestamps by using empty string as fallback
     sorted_by_time = sorted(
         stored_signals,
-        key=lambda s: s.get("timestamp", ""),
+        key=lambda s: s.get("timestamp") or "",
         reverse=True
     )
     recent_signals = [
