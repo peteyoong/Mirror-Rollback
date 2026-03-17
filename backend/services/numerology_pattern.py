@@ -36,7 +36,9 @@ def compute_lo_shu_grid(birth_date: datetime) -> Dict[str, Any]:
     
     Returns:
         {
-            'grid': [[4,9,2],[3,5,7],[8,1,6]],
+            'lo_shu_template': [[4,9,2],[3,5,7],[8,1,6]],
+            'lo_shu_counts': {'1': 2, '8': 1, ...},
+            'lo_shu_display': [["4","9","—"],["—","—","—"],["8","1 1","6"]],
             'present_numbers': {'1': 2, '8': 1, ...},
             'missing_numbers': [3, 5, 7]
         }
@@ -54,11 +56,28 @@ def compute_lo_shu_grid(birth_date: datetime) -> Dict[str, Any]:
     # Find missing numbers
     missing_numbers = [n for n in range(1, 10) if str(n) not in present_numbers]
     
-    # Standard Lo Shu grid positions
-    grid = [[4, 9, 2], [3, 5, 7], [8, 1, 6]]
+    # Standard Lo Shu grid template (positions)
+    lo_shu_template = [[4, 9, 2], [3, 5, 7], [8, 1, 6]]
+    
+    # Build display grid with actual user data
+    lo_shu_display = []
+    for row in lo_shu_template:
+        display_row = []
+        for num in row:
+            count = present_numbers.get(str(num), 0)
+            if count == 0:
+                display_row.append("—")
+            elif count == 1:
+                display_row.append(str(num))
+            else:
+                # Repeat the number for multiple occurrences
+                display_row.append(" ".join([str(num)] * count))
+        lo_shu_display.append(display_row)
     
     return {
-        'grid': grid,
+        'lo_shu_template': lo_shu_template,
+        'lo_shu_counts': present_numbers,
+        'lo_shu_display': lo_shu_display,
         'present_numbers': present_numbers,
         'missing_numbers': missing_numbers
     }
