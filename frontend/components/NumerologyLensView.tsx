@@ -25,6 +25,8 @@ import {
   maskUserId,
   getDebugUserIdInfo 
 } from '../utils/stableUserId';
+// Import NumerologyPatternView for Deep Dive tab
+import NumerologyDeepDivePattern from './NumerologyDeepDivePattern';
 
 // === V1-SAFE DEV FALLBACK FOR BACKEND URL ===
 // Web preview proxy /api is unreliable, so we need a direct backend URL fallback
