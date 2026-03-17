@@ -307,34 +307,6 @@ def generate_how_this_shows_up(
                 behaviors.append(emphasis_behaviors[num])
     
     return behaviors[:5]  # Max 5 behaviors
-            5: "You cling to familiar patterns even when they've stopped working",
-            6: "You avoid domestic responsibilities when possible",
-            7: "You make decisions without deep analysis",
-            8: "You undervalue your work and avoid money conversations",
-            9: "You hold on past the point of usefulness"
-        }
-        if missing in missing_behaviors:
-            behaviors.append(missing_behaviors[missing])
-    
-    # Check for repeated numbers (emphasis)
-    for num_str, count in present_counts.items():
-        if count >= 2:
-            num = int(num_str)
-            emphasis_behaviors = {
-                1: "Your independence is amplified—you're aggressively self-reliant",
-                2: "Your sensitivity is heightened—you feel everything twice",
-                3: "Your expressiveness is doubled—you communicate constantly",
-                4: "Your need for structure is intense—chaos is intolerable",
-                5: "Your need for change is urgent—stability feels like stagnation",
-                6: "Your responsibility is overwhelming—you carry too much",
-                7: "Your analytical nature is extreme—you over-think everything",
-                8: "Your power focus is doubled—you see everything through results",
-                9: "Your wisdom is amplified—but so is your tendency to detach"
-            }
-            if num in emphasis_behaviors:
-                behaviors.append(emphasis_behaviors[num])
-    
-    return behaviors[:5]  # Max 5 behaviors
 
 # =============================================================================
 # INTERNAL TENSION GENERATOR
