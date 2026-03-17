@@ -252,6 +252,9 @@ export default function PatternArchetypeCard() {
         </Text>
       </View>
 
+      {/* Task 76: Conversation Entry Point */}
+      <ExploreWithMirrorButton onPress={() => setShowConversation(true)} />
+
       {/* Secondary Archetype Hint */}
       {data.secondary_archetype && data.secondary_archetype.score >= 0.6 && (
         <View style={styles.secondaryHint}>
@@ -260,6 +263,12 @@ export default function PatternArchetypeCard() {
           </Text>
         </View>
       )}
+
+      {/* Task 76: Conversation Panel */}
+      <PatternConversationPanel 
+        visible={showConversation} 
+        onClose={() => setShowConversation(false)} 
+      />
     </View>
   );
 }
