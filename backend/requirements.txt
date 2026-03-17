@@ -102,6 +102,7 @@ pytokens==0.3.0
 pytz==2025.2
 referencing==0.37.0
 regex==2026.1.15
+reportlab==4.4.10
 requests-oauthlib==2.0.0
 requests==2.32.5
 rich==14.2.0
