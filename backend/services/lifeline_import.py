@@ -680,7 +680,7 @@ def _extract_events_from_structured_excel(df, sheet_name: str) -> List[Dict[str,
                     'text': combined_text,
                     'source': f'structured:{sheet_name}:row:{idx}'
                 })
-        except Exception as row_error:
+        except Exception:
             continue
     
     logger.info(f"[LifelineImport/Excel] Sheet '{sheet_name}': {len(events)} structured events with valid years")
