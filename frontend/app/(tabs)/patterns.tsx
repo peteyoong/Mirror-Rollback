@@ -1083,7 +1083,7 @@ export default function PatternsScreen() {
                 {/* Signal Groups */}
                 {Object.keys(signalGroups).length === 0 ? (
                   <Text style={[styles.noSignalsText, { color: theme.textTertiary }]}>
-                    No specific signals detected yet. This domain may become active as you journal and reflect.
+                    No specific signals detected yet. This domain becomes active as you journal and reflect.
                   </Text>
                 ) : (
                   <View style={styles.signalGroupsContainer}>
