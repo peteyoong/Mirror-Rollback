@@ -436,7 +436,7 @@ def apply_phase_modifier(template: dict, phase: str, phase_description: str) -> 
     return modified
 
 
-
+def select_pattern_from_signals(flags: Dict[str, bool]) -> tuple:
     """
     Select pattern based on signal flags.
     Returns (pattern_key, reason)
