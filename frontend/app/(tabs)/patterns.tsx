@@ -127,7 +127,7 @@ interface TimelineData {
 }
 
 // ============================================================================
-// DOMAIN CONTENT - Deeper synthesis and reflection prompts
+// DOMAIN CONTENT - Task 75: Archetype-aligned, direct behavioral language
 // ============================================================================
 
 interface DomainContent {
@@ -142,60 +142,60 @@ interface DomainContent {
 
 const DOMAIN_CONTENT: Record<string, DomainContent> = {
   'energy_vitality': {
-    quietSynthesis: "Your energy may be in a quieter phase right now. This doesn't mean something is wrong—sometimes the body and spirit need rest before the next movement becomes clear.",
-    presentSynthesis: "Something around energy, vitality, or the pace of your life may be surfacing. This domain can become active when the body is asking for attention—whether through fatigue, restlessness, or a subtle sense that something needs to shift.",
-    presentShowUp: "One way this pattern can appear is through the tension between what you want to do and what your energy actually allows.",
-    recurringSynthesis: "A recurring theme around energy and vitality seems to be present across your reflections. This may point to a deeper question about how you sustain yourself—not just physically, but emotionally and spiritually.",
-    recurringShowUp: "This pattern can sometimes show up as cycles of depletion and recovery, or as a growing awareness that something in how you're living may need to change.",
-    reflectionPrompt: "What is your energy asking you to notice right now?"
+    quietSynthesis: "Your energy is stable. No major shifts detected—your body is holding steady.",
+    presentSynthesis: "Something is pulling at your energy reserves. You're either pushing too hard or holding back when you want to move.",
+    presentShowUp: "You hit a wall mid-day. You wake tired. You have the idea but not the momentum to act on it.",
+    recurringSynthesis: "This keeps coming back. Your energy pattern isn't random—it's responding to something deeper.",
+    recurringShowUp: "Cycles of depletion followed by forced recovery. The pattern repeats because the root cause isn't addressed.",
+    reflectionPrompt: "What are you spending energy on that doesn't give it back?"
   },
   'emotional_landscape': {
-    quietSynthesis: "The emotional landscape may feel quieter at the moment. This can be a time of integration, or simply a pause between waves of feeling.",
-    presentSynthesis: "Emotional themes may be moving through your inner world right now. This domain often becomes active when feelings are asking for acknowledgment.",
-    presentShowUp: "One way this can show up is through mood shifts that feel disconnected from external events, or through recurring feelings that don't quite resolve.",
-    recurringSynthesis: "Emotional patterns seem to be surfacing repeatedly in your reflections. This may suggest that something in your inner life is asking for deeper attention.",
-    recurringShowUp: "Sometimes this pattern shows up as a particular emotion that keeps returning, or as a sense that your emotional life has its own rhythm.",
-    reflectionPrompt: "What emotion might be asking for your attention?"
+    quietSynthesis: "Emotionally quiet. You're processing, integrating, or simply resting between waves.",
+    presentSynthesis: "Feelings are moving. You're experiencing something that wants acknowledgment—not analysis.",
+    presentShowUp: "Mood shifts that don't match external events. A feeling that returns even after you've 'dealt with it.'",
+    recurringSynthesis: "The same emotional territory keeps appearing. This isn't coincidence—it's information.",
+    recurringShowUp: "A particular emotion keeps surfacing. It doesn't want to be managed. It wants to be heard.",
+    reflectionPrompt: "What emotion are you avoiding by staying busy?"
   },
   'identity_direction': {
-    quietSynthesis: "Questions of identity and direction may be resting for now. This can be a period of simply being, without the pressure of becoming.",
-    presentSynthesis: "A quieter question may be surfacing around self-trust, worth, or permission to move forward.",
-    presentShowUp: "One way this pattern can appear is through hesitation that feels deeper than practical uncertainty.",
-    recurringSynthesis: "Themes around identity and direction seem to be recurring in your inner world. This may point to a deeper process of self-definition.",
-    recurringShowUp: "This pattern can sometimes show up as a persistent question about what you really want, or as a tension between external expectations and internal truth.",
-    reflectionPrompt: "What part of yourself is seeking expression or acknowledgment?"
+    quietSynthesis: "Identity questions are resting. You're being rather than becoming—for now.",
+    presentSynthesis: "Something is asking: Who are you, really? The question surfaces when old answers stop fitting.",
+    presentShowUp: "You hesitate in ways that feel deeper than practical uncertainty. You doubt yourself even when the path is clear.",
+    recurringSynthesis: "This question keeps returning. Who you are isn't settled—it's evolving through these moments.",
+    recurringShowUp: "A tension between what others expect and what feels true. The gap between your roles and your reality.",
+    reflectionPrompt: "What part of yourself have you been hiding or abandoning?"
   },
   'mind_meaning': {
-    quietSynthesis: "The mind may be in a quieter phase right now—less focused on making sense of things, more present to experience itself.",
-    presentSynthesis: "Something around thinking, understanding, or meaning-making may be active.",
-    presentShowUp: "One way this can show up is through mental restlessness, overthinking, or a sense that understanding something will bring relief.",
-    recurringSynthesis: "Patterns around mind and meaning seem to be recurring in your reflections.",
-    recurringShowUp: "Sometimes this pattern shows up as a persistent question that doesn't have a clear answer.",
-    reflectionPrompt: "What is your mind trying to understand or make sense of?"
+    quietSynthesis: "Your mind is settled. Less analyzing, more experiencing.",
+    presentSynthesis: "You're trying to figure something out. The mind is working overtime on a problem that may not be mental.",
+    presentShowUp: "Overthinking. Loops that don't resolve. A belief that understanding will bring relief.",
+    recurringSynthesis: "The same questions keep circling. Your mind is fixated because something hasn't been integrated.",
+    recurringShowUp: "A persistent question without a clear answer. The mind keeps chewing on something the heart hasn't accepted.",
+    reflectionPrompt: "What truth are you thinking around instead of sitting with?"
   },
   'expression_action': {
-    quietSynthesis: "Expression and action may be in a quieter phase. This can be a time of gathering, preparing, or simply being.",
-    presentSynthesis: "Something around expression, creativity, or taking action may be surfacing.",
-    presentShowUp: "One way this can show up is through creative restlessness, or a feeling that something wants to be said.",
-    recurringSynthesis: "Themes around expression and action seem to be recurring in your reflections.",
-    recurringShowUp: "Sometimes this pattern shows up as a persistent question about voice, visibility, or impact.",
-    reflectionPrompt: "What wants to be expressed or created through you?"
+    quietSynthesis: "Expression is dormant. You're gathering, preparing, or simply being—before the next movement.",
+    presentSynthesis: "Something wants out. A creative urge, a voice, an action that feels necessary.",
+    presentShowUp: "Creative restlessness. A sense that you have something to say but no clear channel for it.",
+    recurringSynthesis: "This impulse keeps returning. Expression isn't optional for you—it's how you process life.",
+    recurringShowUp: "Questions about voice, visibility, and impact that don't go away when ignored.",
+    reflectionPrompt: "What have you been holding back that wants to be said?"
   },
   'relationships_boundaries': {
-    quietSynthesis: "Relational themes may be quieter right now. This can be a time of being present with yourself.",
-    presentSynthesis: "Something around relationships, boundaries, or connection may be surfacing.",
-    presentShowUp: "One way this can show up is through a sense of being pulled between your own needs and others' expectations.",
-    recurringSynthesis: "Patterns around relationships and boundaries seem to be recurring in your reflections.",
-    recurringShowUp: "Sometimes this pattern shows up as a persistent question about where you end and others begin.",
-    reflectionPrompt: "Where might your connections be asking for care or attention?"
+    quietSynthesis: "Relational space is calm. You're present with yourself without the pull of others.",
+    presentSynthesis: "Something is shifting in how you relate. Boundaries feel tested or unclear.",
+    presentShowUp: "Pulled between your needs and others' expectations. Resentment building where clarity is missing.",
+    recurringSynthesis: "This pattern runs deep. Your relational wiring is showing you something consistent.",
+    recurringShowUp: "The same dynamic repeats with different people. The common factor is you.",
+    reflectionPrompt: "Where are you giving what you don't actually have?"
   },
   'growth_transformation': {
-    quietSynthesis: "Growth and transformation may be in a quieter phase. Sometimes the most profound changes happen invisibly.",
-    presentSynthesis: "Something around change, growth, or transformation may be surfacing.",
-    presentShowUp: "One way this can show up is through a sense of being between identities, or through the discomfort that comes before a shift.",
-    recurringSynthesis: "Themes around growth and transformation seem to be recurring in your reflections.",
-    recurringShowUp: "Sometimes this pattern shows up as a feeling of being on the edge of something new.",
-    reflectionPrompt: "What change might be ready to happen in you?"
+    quietSynthesis: "Transformation is quiet—but that doesn't mean inactive. Deep changes happen invisibly.",
+    presentSynthesis: "You're between versions of yourself. The old doesn't fit. The new isn't clear yet.",
+    presentShowUp: "Discomfort before a shift. The feeling of standing at a threshold you haven't crossed.",
+    recurringSynthesis: "Growth keeps calling. You don't just want comfort—you want to become something more.",
+    recurringShowUp: "The edge keeps appearing. Every time you settle, something in you leans toward the unknown.",
+    reflectionPrompt: "What are you ready to let go of?"
   }
 };
 
