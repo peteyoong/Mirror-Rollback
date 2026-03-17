@@ -168,118 +168,138 @@ export default function LifelineEventCard({ event, onPress, onEdit, onDelete, is
 
   return (
     <>
-      <TouchableOpacity
+      <View
         style={[
           styles.container,
           { backgroundColor: theme.surface, borderColor: theme.border },
           isDeleting && { opacity: 0.5 }
         ]}
-        onPress={() => onPress?.(event)}
-        activeOpacity={0.7}
-        disabled={!onPress || isDeleting}
       >
-        {/* Year/Age indicator */}
-        <View style={[styles.yearBadge, { backgroundColor: theme.background }]}>
-          <Text style={[styles.yearText, { color: theme.text }]}>
-            {event.year || (event.age ? `Age ${event.age}` : '—')}
-          </Text>
-          {/* Resonance marker below year */}
-          {hasResonance && (
-            <ResonanceMarker
-              resonances={resonances}
-              onPress={() => setShowResonanceModal(true)}
-              size="small"
-            />
-          )}
-        </View>
-
-        {/* Timeline connector */}
-        <View style={styles.timelineConnector}>
-          <View style={[styles.timelineLine, { backgroundColor: theme.border }]} />
-          <View style={[styles.timelineDot, { backgroundColor: toneColor }]} />
-          <View style={[styles.timelineLine, { backgroundColor: theme.border }]} />
-        </View>
-
-        {/* Content */}
-        <View style={styles.content}>
-          <View style={styles.headerRow}>
-            <View style={styles.headerLeft}>
-              {event.category && (
-                <View style={[styles.categoryBadge, { backgroundColor: `${theme.accent}15` }]}>
-                  <Ionicons name={icon} size={12} color={theme.accent} />
-                  <Text style={[styles.categoryText, { color: theme.accent }]}>
-                    {event.category}
-                  </Text>
-                </View>
-              )}
-              {/* Inline resonance indicator */}
-              {hasResonance && (
-                <TouchableOpacity
-                  style={styles.resonanceInline}
-                  onPress={() => setShowResonanceModal(true)}
-                >
-                  <Text style={[styles.resonanceIcon, { color: '#9B8AC4' }]}>✧</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-            {/* Action buttons grouped together */}
-            {(onEdit || onDelete) && (
-              <View style={styles.actionGroup}>
-                {onEdit && (
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => onEdit(event)}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <Ionicons name="pencil-outline" size={16} color={theme.textTertiary} />
-                  </TouchableOpacity>
-                )}
-                {onDelete && (
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={handleDelete}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    disabled={isDeleting}
-                  >
-                    <Ionicons name="trash-outline" size={16} color={isDeleting ? theme.border : '#E57373'} />
-                  </TouchableOpacity>
-                )}
-              </View>
+        {/* Main card content - tappable for editing */}
+        <Pressable
+          style={styles.cardContent}
+          onPress={() => onPress?.(event)}
+          disabled={!onPress || isDeleting}
+        >
+          {/* Year/Age indicator */}
+          <View style={[styles.yearBadge, { backgroundColor: theme.background }]}>
+            <Text style={[styles.yearText, { color: theme.text }]}>
+              {event.year || (event.age ? `Age ${event.age}` : '—')}
+            </Text>
+            {/* Resonance marker below year */}
+            {hasResonance && (
+              <ResonanceMarker
+                resonances={resonances}
+                onPress={() => setShowResonanceModal(true)}
+                size="small"
+              />
             )}
           </View>
 
-          <Text style={[styles.title, { color: theme.text }]} numberOfLines={2}>
-            {displayTitle}
-          </Text>
+          {/* Timeline connector */}
+          <View style={styles.timelineConnector}>
+            <View style={[styles.timelineLine, { backgroundColor: theme.border }]} />
+            <View style={[styles.timelineDot, { backgroundColor: toneColor }]} />
+            <View style={[styles.timelineLine, { backgroundColor: theme.border }]} />
+          </View>
 
-          {!isCompact && displayDescription && (
-            <Text style={[styles.description, { color: theme.textSecondary }]} numberOfLines={3}>
-              {displayDescription}
+          {/* Content */}
+          <View style={styles.content}>
+            <View style={styles.headerRow}>
+              <View style={styles.headerLeft}>
+                {event.category && (
+                  <View style={[styles.categoryBadge, { backgroundColor: `${theme.accent}15` }]}>
+                    <Ionicons name={icon} size={12} color={theme.accent} />
+                    <Text style={[styles.categoryText, { color: theme.accent }]}>
+                      {event.category}
+                    </Text>
+                  </View>
+                )}
+                {/* Inline resonance indicator */}
+                {hasResonance && (
+                  <Pressable
+                    style={styles.resonanceInline}
+                    onPress={() => setShowResonanceModal(true)}
+                  >
+                    <Text style={[styles.resonanceIcon, { color: '#9B8AC4' }]}>✧</Text>
+                  </Pressable>
+                )}
+              </View>
+              {/* Spacer to push actions to right */}
+              <View style={{ flex: 1 }} />
+            </View>
+
+            <Text style={[styles.title, { color: theme.text }]} numberOfLines={2}>
+              {displayTitle}
             </Text>
-          )}
 
-          {/* Impact indicator */}
-          {event.impact_score && event.impact_score >= 7 && (
-            <View style={styles.impactRow}>
-              <View style={[styles.impactDot, { backgroundColor: toneColor }]} />
-              <Text style={[styles.impactText, { color: theme.textTertiary }]}>
-                High impact moment
+            {!isCompact && displayDescription && (
+              <Text style={[styles.description, { color: theme.textSecondary }]} numberOfLines={3}>
+                {displayDescription}
               </Text>
-            </View>
-          )}
+            )}
 
-          {/* Tags */}
-          {!isCompact && event.tags && event.tags.length > 0 && (
-            <View style={styles.tagsRow}>
-              {event.tags.slice(0, 3).map((tag, index) => (
-                <View key={index} style={[styles.tag, { backgroundColor: theme.background }]}>
-                  <Text style={[styles.tagText, { color: theme.textTertiary }]}>#{tag}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
+            {/* Impact indicator */}
+            {event.impact_score && event.impact_score >= 7 && (
+              <View style={styles.impactRow}>
+                <View style={[styles.impactDot, { backgroundColor: toneColor }]} />
+                <Text style={[styles.impactText, { color: theme.textTertiary }]}>
+                  High impact moment
+                </Text>
+              </View>
+            )}
+
+            {/* Tags */}
+            {!isCompact && event.tags && event.tags.length > 0 && (
+              <View style={styles.tagsRow}>
+                {event.tags.slice(0, 3).map((tag, index) => (
+                  <View key={index} style={[styles.tag, { backgroundColor: theme.background }]}>
+                    <Text style={[styles.tagText, { color: theme.textTertiary }]}>#{tag}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        </Pressable>
+
+        {/* Action buttons - OUTSIDE the main touchable for reliable tapping */}
+        {(onEdit || onDelete) && (
+          <View style={styles.actionGroup}>
+            {onEdit && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.actionButton,
+                  { backgroundColor: pressed ? theme.border : 'transparent' }
+                ]}
+                onPress={(e) => {
+                  e.stopPropagation?.();
+                  console.log('[LifelineEventCard] Edit button pressed');
+                  onEdit(event);
+                }}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <Ionicons name="pencil-outline" size={18} color={theme.textTertiary} />
+              </Pressable>
+            )}
+            {onDelete && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.actionButton,
+                  { backgroundColor: pressed ? '#E5737320' : 'transparent' }
+                ]}
+                onPress={(e) => {
+                  e.stopPropagation?.();
+                  handleDelete();
+                }}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                disabled={isDeleting}
+              >
+                <Ionicons name="trash-outline" size={18} color={isDeleting ? theme.border : '#E57373'} />
+              </Pressable>
+            )}
+          </View>
+        )}
+      </View>
       
       {/* Resonance Modal */}
       {hasResonance && (
