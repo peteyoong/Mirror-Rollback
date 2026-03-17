@@ -487,6 +487,41 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
   },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 12,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  emptyStateContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  emptyDescription: {
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  emptyStateActions: {
+    backgroundColor: 'rgba(168, 178, 192, 0.08)',
+    borderRadius: 12,
+    padding: 16,
+  },
+  emptyActionsTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  emptyActionsList: {
+    gap: 8,
+  },
+  emptyActionItem: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
 
   // Summary Section
   summarySection: {
