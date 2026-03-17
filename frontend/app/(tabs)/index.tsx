@@ -117,9 +117,7 @@ export default function MirrorScreen() {
   // Recent reflection for continuity
   const [recentReflection, setRecentReflection] = useState<JournalEntry | null>(null);
   
-  // Cross-lens synthesis teaser
-  const [synthesisTeaser, setSynthesisTeaser] = useState<SynthesisTeaserData | null>(null);
-  const [isSynthesisLoading, setIsSynthesisLoading] = useState(false);
+  // Task 75: Removed Cross-lens synthesis teaser - HomeArchetypeCard is single source
   
   // Lifeline event count for bridge section
   const [lifelineEventCount, setLifelineEventCount] = useState<number>(0);
