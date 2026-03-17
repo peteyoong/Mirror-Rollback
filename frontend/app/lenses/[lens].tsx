@@ -688,8 +688,8 @@ export default function LensDetail() {
         </>
       ) : lens === 'numerology' && user?.id ? (
         <>
-          {/* Production NumerologyPatternView replaces old accordion-based NumerologyLensView */}
-          <NumerologyPatternView
+          {/* Restored NumerologyLensView with tabs: Summary, Today, Deep Dive */}
+          <NumerologyLensView
             userId={user.id}
             onOpenChat={() => setLensChatVisible(true)}
           />
