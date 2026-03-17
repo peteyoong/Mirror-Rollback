@@ -375,19 +375,37 @@ export default function JournalScreen() {
   }, [user, lunarStatus?.active_considerations]);
 
   // Task 65: Update activeDecision when selection changes or lunarStatus loads
+  // This effect only handles initial load and external changes (not user clicks)
   useEffect(() => {
-    // Get decisionId from: 1) explicit selection, 2) active_consideration, 3) first in list
-    const decisionId = selectedDecisionId 
-      || lunarStatus?.active_consideration?.id 
+    // Skip if user has explicitly selected a decision
+    if (selectedDecisionId) return;
+    
+    // Auto-select first decision when lunar status loads
+    const decisionId = lunarStatus?.active_consideration?.id 
       || lunarStatus?.active_considerations?.[0]?.id;
     
     if (decisionId && viewMode === 'lunar' && !isLoadingDecisionData) {
       // Only fetch if we don't already have this decision loaded
       if (!activeDecision || activeDecision.id !== decisionId) {
+        console.log('[Lunar] Auto-loading first decision:', decisionId);
         fetchDecisionData(decisionId);
       }
     }
-  }, [selectedDecisionId, lunarStatus?.active_consideration?.id, lunarStatus?.active_considerations, viewMode, activeDecision, isLoadingDecisionData, fetchDecisionData]);
+  }, [lunarStatus?.active_consideration?.id, lunarStatus?.active_considerations, viewMode, activeDecision, isLoadingDecisionData, fetchDecisionData, selectedDecisionId]);
+
+  // Task 65: Handle explicit user decision selection
+  const handleSelectDecision = useCallback(async (decisionId: string) => {
+    console.log('[Lunar] User selected decision:', decisionId);
+    setSelectedDecisionId(decisionId);
+    
+    // Clear historical entry view when switching decisions
+    setSelectedHistoricalEntry(null);
+    
+    // Immediately fetch the decision data (don't rely on useEffect)
+    if (!isLoadingDecisionData) {
+      await fetchDecisionData(decisionId);
+    }
+  }, [fetchDecisionData, isLoadingDecisionData]);
 
   // Task 60: Stable callback for creating lunar entry
   // Task 64: Updated to use selectedDecisionId for multi-decision support
