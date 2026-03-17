@@ -331,7 +331,7 @@ export default function PatternGraphCard({ showDebug = false }: PatternGraphCard
       <View style={styles.summarySection}>
         {/* Header Row */}
         <View style={styles.headerRow}>
-          <Text style={[styles.title, { color: theme.text }]}>Pattern Graph</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Pattern Signals</Text>
           <View style={[styles.momentumBadge, { backgroundColor: momentum.color + '20' }]}>
             <Text style={[styles.momentumText, { color: momentum.color }]}>
               {momentum.icon} {momentum.label}
@@ -339,15 +339,15 @@ export default function PatternGraphCard({ showDebug = false }: PatternGraphCard
           </View>
         </View>
 
-        {/* Stats Row */}
+        {/* Stats Row - More human-readable */}
         <Text style={[styles.statsText, { color: theme.textTertiary }]}>
-          {data.total_signals} signals • {activeSourceCount} source{activeSourceCount !== 1 ? 's' : ''} • {data.data_sufficiency} data
+          {data.total_signals} signal{data.total_signals !== 1 ? 's' : ''} from {activeSourceCount} source{activeSourceCount !== 1 ? 's' : ''}{data.data_sufficiency === 'limited' ? ' · Still building' : data.data_sufficiency === 'medium' ? ' · Growing' : ' · Rich data'}
         </Text>
 
         {/* Most Active Domains */}
         {topDomains.length > 0 && (
           <View style={styles.summaryGroup}>
-            <Text style={[styles.summaryLabel, { color: COLORS.silver }]}>Most active now</Text>
+            <Text style={[styles.summaryLabel, { color: COLORS.silver }]}>Active Life Areas</Text>
             <View style={styles.summaryList}>
               {topDomains.map((d, i) => (
                 <Text key={i} style={[styles.summaryItem, { color: theme.textSecondary }]}>
@@ -361,7 +361,7 @@ export default function PatternGraphCard({ showDebug = false }: PatternGraphCard
         {/* Top Themes */}
         {topThemes.length > 0 && (
           <View style={styles.summaryGroup}>
-            <Text style={[styles.summaryLabel, { color: COLORS.silver }]}>Repeated themes</Text>
+            <Text style={[styles.summaryLabel, { color: COLORS.silver }]}>Recurring Themes</Text>
             <View style={styles.themePills}>
               {topThemes.map((tag, i) => (
                 <View key={i} style={[styles.themePill, { backgroundColor: COLORS.cardBg }]}>
