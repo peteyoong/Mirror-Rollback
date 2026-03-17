@@ -24,6 +24,7 @@ import { InlineReflectButton } from '../../components/UniversalReflectButton';
 import DailyPatternSignalCard from '../../components/DailyPatternSignalCard';
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
 import HomeArchetypeCard from '../../components/HomeArchetypeCard';
+import HomeInsightCard, { DailyInsight } from '../../components/HomeInsightCard';
 
 interface DailyKeystone {
   date: string;
