@@ -193,10 +193,20 @@ export default function LifelineEventCard({ event, onPress, onEdit, onDelete, is
                 <Ionicons name="pencil-outline" size={16} color={theme.textTertiary} />
               </TouchableOpacity>
             )}
+            {onDelete && (
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={handleDelete}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                disabled={isDeleting}
+              >
+                <Ionicons name="trash-outline" size={16} color={isDeleting ? theme.border : '#E57373'} />
+              </TouchableOpacity>
+            )}
           </View>
 
           <Text style={[styles.title, { color: theme.text }]} numberOfLines={2}>
-            {event.title}
+            {displayTitle}
           </Text>
 
           {!isCompact && event.description && (
