@@ -11143,6 +11143,32 @@ async def get_pattern_engine_graph(user_id: str, include_debug: bool = False):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/pattern-archetype/{user_id}")
+async def get_pattern_archetype(user_id: str):
+    """
+    Get Pattern Archetype Analysis.
+    
+    Transforms structured pattern signals into named archetypes with:
+    - Clear narrative synthesis
+    - Evidence-based explanation
+    - Current relevance
+    
+    Returns:
+    - primary_archetype: Main archetype with narrative
+    - secondary_archetype: Supporting archetype (if confidence high enough)
+    - confidence: Overall confidence score
+    - all_scores: Top 5 archetype scores for transparency
+    """
+    try:
+        from services.pattern_archetype import get_user_archetype
+        
+        result = await get_user_archetype(db, user_id)
+        return result
+    except Exception as e:
+        logger.error(f"[PatternArchetype] Error for {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.get("/pattern-engine/decision/{user_id}/{decision_id}")
 async def get_pattern_engine_decision(user_id: str, decision_id: str):
     """
