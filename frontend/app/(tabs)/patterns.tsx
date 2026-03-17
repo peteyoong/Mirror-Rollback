@@ -677,7 +677,7 @@ export default function PatternsScreen() {
         if (sphere) {
           return {
             title: 'Lens Context',
-            description: `${label}${sphere ? ` (${sphere})` : ''} — a quality in your design that may resonate with this pattern.`
+            description: `${label}${sphere ? ` (${sphere})` : ''} — a quality in your design that resonates with this pattern.`
           };
         }
         return {
