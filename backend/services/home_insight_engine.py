@@ -376,7 +376,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     try:
         lunar_cursor = db.lunar_journal.find({
             "user_id": user_id,
-            "created_at": {"$gte": seven_days_ago}
+            "created_at": {"$gte": seven_days_ago.isoformat()}
         }).sort("created_at", -1).limit(5)
         
         async for reflection in lunar_cursor:
