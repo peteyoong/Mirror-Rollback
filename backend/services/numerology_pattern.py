@@ -193,91 +193,120 @@ def generate_how_this_shows_up(
     present_counts: Dict[str, int]
 ) -> List[str]:
     """
-    Generate 3-5 specific behavioral patterns.
+    Generate 3-5 specific behavioral tendencies.
     
     Rules:
     - Real behavioral patterns only
-    - No abstract language
-    - Must feel personally specific
+    - Grounded, not absolute
+    - Confronting but fair
+    - Behavioral, not mystical
     """
     behaviors = []
     
-    # Life path behaviors
+    # Life path behaviors - refined to be less absolute
     lp_behaviors = {
         1: [
-            "You start projects before fully thinking them through—and often finish them anyway",
-            "You resist asking for help until you're already stuck",
-            "You make decisions that confuse people who think slower"
+            "You often start projects before fully mapping them out - and frequently finish them anyway",
+            "You tend to resist asking for help until you've already tried on your own",
+            "Your pace of decision-making can outrun those around you"
         ],
         2: [
-            "You sense tension in a room before anyone speaks",
-            "You over-explain when you feel misunderstood",
-            "You give more than you receive in most relationships"
+            "You often pick up on tension in a room before it's spoken",
+            "You tend to over-explain when you sense you're being misunderstood",
+            "You may give more than you receive in many relationships"
         ],
         3: [
-            "You have multiple creative projects open at once",
-            "You talk through problems—thinking happens out loud for you",
-            "Your mood visibly affects the room around you"
+            "You often have multiple creative threads open at once",
+            "Thinking tends to happen out loud for you - talking is processing",
+            "Your emotional state can visibly influence the energy around you"
         ],
         4: [
-            "You feel physical discomfort in chaotic environments",
-            "You create systems even when no one asks for them",
-            "You resist shortcuts that skip necessary steps"
+            "Chaotic environments tend to create physical discomfort for you",
+            "You often create systems even when no one requests them",
+            "Shortcuts that skip necessary steps tend to bother you"
         ],
         5: [
-            "You feel trapped by routine even when you chose it",
-            "You leave situations before they become unbearable",
-            "You're drawn to people and places that challenge your current life"
+            "Routine can feel constraining even when you chose it",
+            "You may leave situations before they become fully unbearable",
+            "You're often drawn to people and places that challenge your current setup"
         ],
         6: [
-            "You take on other people's problems as your own",
-            "You sacrifice personal needs to maintain harmony",
-            "You feel responsible for outcomes you can't control"
+            "You often take on other people's problems as your responsibility",
+            "You may sacrifice personal needs to maintain harmony around you",
+            "You can feel responsible for outcomes outside your direct control"
         ],
         7: [
-            "You research obsessively before making commitments",
-            "You need time alone to process even positive experiences",
-            "You trust your analysis over others' opinions"
+            "You tend to research extensively before making commitments",
+            "Processing time alone is often necessary, even for positive experiences",
+            "Your own analysis usually carries more weight than outside opinions"
         ],
         8: [
-            "You notice who holds power in every room you enter",
-            "You're comfortable with high-stakes decisions",
-            "You track value and results—even when others don't"
+            "You often notice the power dynamics in any room you enter",
+            "High-stakes decisions tend to feel comfortable rather than stressful",
+            "You track value and results in situations where others don't"
         ],
         9: [
-            "You see patterns that connect unrelated events",
-            "You're drawn to endings and transitions",
-            "You release attachments more easily than most"
+            "You often see patterns that connect seemingly unrelated events",
+            "Endings and transitions tend to draw your attention",
+            "You may release attachments with less difficulty than most"
         ],
         11: [
-            "You receive insights before you have words for them",
-            "You feel things happening before evidence appears",
-            "You're easily overwhelmed by environments that others tolerate"
+            "Insights often arrive before you have language for them",
+            "You may sense things unfolding before concrete evidence appears",
+            "Environments that others tolerate can feel overwhelming to you"
         ],
         22: [
-            "You think in decades while others think in months",
-            "You're frustrated by small-scale solutions",
-            "You build structures—physical, organizational, or conceptual"
+            "Your thinking often operates on longer timelines than those around you",
+            "Small-scale solutions can feel frustrating when bigger structures are needed",
+            "You tend to build frameworks - physical, organizational, or conceptual"
         ],
         33: [
-            "You feel others' pain as if it were your own",
-            "People share their problems with you without being asked",
-            "You teach through presence rather than instruction"
+            "You often absorb the emotional weight others are carrying",
+            "People frequently share their struggles with you without prompting",
+            "Teaching happens through your presence as much as your words"
         ]
     }
     
     behaviors.extend(lp_behaviors.get(life_path, [
-        "You carry patterns that are uniquely yours",
-        "Your life rhythm follows a non-standard beat"
+        "Your patterns follow a rhythm that's distinctly yours",
+        "Your life operates on a beat that doesn't match conventional timelines"
     ]))
     
-    # Add missing number behaviors
+    # Add missing number behaviors - softer language
     for missing in missing_numbers[:2]:
         missing_behaviors = {
-            1: "You defer to group consensus even when you see a better path",
-            2: "You miss emotional subtext that others catch easily",
-            3: "You struggle to articulate what you're thinking",
-            4: "You start strong but maintenance drains you",
+            1: "Group consensus may carry more weight for you than solo conviction",
+            2: "The larger pattern can grab your attention before relational nuance registers",
+            3: "Articulating what you're thinking may take more effort than thinking it",
+            4: "Starting strong comes naturally, but sustained maintenance can drain energy",
+            5: "Familiar patterns can feel safer than necessary change, even when change would help",
+            6: "Domestic responsibilities may feel like an interruption rather than a calling",
+            7: "Decisions sometimes happen before deep analysis has run its course",
+            8: "Value and material results may get less tracking than other priorities",
+            9: "Letting go of what's complete can take longer than it needs to"
+        }
+        if missing in missing_behaviors:
+            behaviors.append(missing_behaviors[missing])
+    
+    # Check for repeated numbers (emphasis) - softer
+    for num_str, count in present_counts.items():
+        if count >= 2:
+            num = int(num_str)
+            emphasis_behaviors = {
+                1: "Independence is amplified - self-reliance runs strong in your pattern",
+                2: "Sensitivity is heightened - you tend to feel things with extra depth",
+                3: "Expressiveness is doubled - communication is a constant current",
+                4: "Structure needs are intensified - chaos tolerance runs low",
+                5: "The pull toward change is urgent - stability can feel like stagnation",
+                6: "Responsibility runs strong - you may carry more than your share",
+                7: "Analysis runs deep - thinking tends to be thorough, sometimes excessively",
+                8: "Power awareness is amplified - results and outcomes stay in focus",
+                9: "The big picture dominates - but so does the pull to disengage"
+            }
+            if num in emphasis_behaviors:
+                behaviors.append(emphasis_behaviors[num])
+    
+    return behaviors[:5]  # Max 5 behaviors
             5: "You cling to familiar patterns even when they've stopped working",
             6: "You avoid domestic responsibilities when possible",
             7: "You make decisions without deep analysis",
