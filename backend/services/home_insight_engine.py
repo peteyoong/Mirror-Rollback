@@ -621,14 +621,23 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     logger.info(f"[HomeInsight] Collected {len(texts_to_analyze)} texts from {len(set(signal_sources))} sources")
     
     # =================================================================
-    # STEP 2: Extract signal flags
+    # STEP 2: Extract signal flags (combined + per-entry for trajectory)
     # =================================================================
     signal_flags = extract_signal_flags(texts_to_analyze)
     active_flags = {k: v for k, v in signal_flags.items() if v}
     logger.info(f"[HomeInsight] Active signal flags: {list(active_flags.keys())}")
     
+    # Extract per-entry flags for trajectory detection
+    entry_history = extract_signal_flags_per_entry(texts_to_analyze)
+    
     # =================================================================
-    # STEP 3: Select pattern based on signals
+    # STEP 3: Detect pattern phase (trajectory awareness)
+    # =================================================================
+    phase, phase_description, trajectory_summary = detect_pattern_phase(signal_flags, entry_history)
+    logger.info(f"[HomeInsight] Detected phase: {phase} - {phase_description}")
+    
+    # =================================================================
+    # STEP 4: Select pattern based on signals
     # =================================================================
     chart_data = None
     try:
@@ -640,7 +649,12 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     template = PATTERN_TEMPLATES.get(pattern_key, PATTERN_TEMPLATES["default"])
     
     # =================================================================
-    # STEP 4: Build response with debug info
+    # STEP 5: Apply phase modifier to template
+    # =================================================================
+    modified_template = apply_phase_modifier(template, phase, phase_description)
+    
+    # =================================================================
+    # STEP 6: Build response with debug info
     # =================================================================
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
@@ -655,20 +669,26 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "success": True,
         "date": today,
         "pattern_id": f"{pattern_key}_{today.replace('-', '')}",
-        "title": template["title"],
-        "what_happening": template["what_happening"],
-        "why_feels": template["why_feels"],
-        "watch_for": template["watch_for"],
-        "better_move": template["better_move"],
-        "interrupt": template["interrupt"],
+        "title": modified_template["title"],
+        "what_happening": modified_template["what_happening"],
+        "why_feels": modified_template["why_feels"],
+        "watch_for": modified_template["watch_for"],
+        "better_move": modified_template["better_move"],
+        "interrupt": modified_template["interrupt"],
+        "phase": phase,
+        "phase_description": phase_description,
         "confidence": confidence,
         "debug": {
             "pattern_key": pattern_key,
             "selection_reason": selection_reason,
+            "phase": phase,
+            "phase_description": phase_description,
+            "trajectory_summary": trajectory_summary,
             "signal_flags": active_flags,
             "signal_sources": list(set(signal_sources)),
             "texts_analyzed": len(texts_to_analyze),
-            "source": "signal_v2" if active_flags else "fallback_rotation",
+            "entries_in_history": len(entry_history),
+            "source": "signal_v3_trajectory" if active_flags else "fallback_rotation",
             "computed_at": datetime.now(timezone.utc).isoformat()
         }
     }
