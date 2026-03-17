@@ -246,6 +246,11 @@ def detect_chart_resonances(
         if not event_year:
             continue
         
+        # Skip events that happened before the user was born
+        age_at_event = event_year - birth_year
+        if age_at_event < 0:
+            continue
+        
         event_id = event.get("id", str(event_year))
         
         for signal in chart_signals:
@@ -256,6 +261,30 @@ def detect_chart_resonances(
             if year_diff <= tolerance_years:
                 signal_type = signal["type"]
                 signal_info = RESONANCE_TYPES.get(signal_type, {})
+                
+                # Additional validation for specific signal types
+                signal_age = signal.get("age", signal_year - birth_year)
+                
+                # Saturn return should be ~29, ~58, ~87 (allow ±3 years)
+                if signal_type == "saturn_return":
+                    valid_ages = [29, 58, 87]
+                    if not any(abs(signal_age - va) <= 3 for va in valid_ages):
+                        continue
+                    # Also validate the event age matches
+                    if not any(abs(age_at_event - va) <= 3 for va in valid_ages):
+                        continue
+                
+                # Saturn opposition should be ~14, ~44, ~73 (allow ±2 years)
+                if signal_type == "saturn_opposition":
+                    valid_ages = [14, 44, 73]
+                    if not any(abs(signal_age - va) <= 2 for va in valid_ages):
+                        continue
+                
+                # Nodal return should be ~18, ~37, ~56, ~74 (allow ±2 years)
+                if signal_type == "nodal_return":
+                    valid_ages = [18, 37, 56, 74, 93]
+                    if not any(abs(signal_age - va) <= 2 for va in valid_ages):
+                        continue
                 
                 # Calculate confidence based on:
                 # 1. Base confidence of the signal type
@@ -274,7 +303,7 @@ def detect_chart_resonances(
                     "system": signal_info.get("system", "unknown"),
                     "description": signal_info.get("description", ""),
                     "reflection": signal_info.get("reflection", ""),
-                    "age_at_event": event_year - birth_year,
+                    "age_at_event": age_at_event,
                     "match_quality": "exact" if year_diff == 0 else "near",
                     "confidence": confidence
                 })
