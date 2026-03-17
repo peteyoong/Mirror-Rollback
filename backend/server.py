@@ -67,6 +67,31 @@ from services.cross_lens_synthesis import generate_cross_lens_synthesis, condens
 # Import Lifeline Import Service
 from services.lifeline_import import process_lifeline_import, SUPPORTED_EXTENSIONS, MAX_FILE_SIZE
 
+# Import Lifeline Ingestion Service (new architecture)
+from services.lifeline_ingestion import (
+    create_import_source,
+    get_import_source_by_hash,
+    update_import_source_status,
+    get_user_import_sources,
+    store_imported_moments_batch,
+    get_imported_moments_for_source,
+    get_user_imported_moments,
+    update_imported_moment_status,
+    find_duplicate_candidates,
+    find_all_duplicate_candidates_for_user,
+    merge_moment_into_canonical,
+    process_import_source_to_canonical,
+    merge_canonical_duplicates,
+    migrate_fix_existing_duplicates,
+    migrate_add_source_fields_to_all_events,
+    get_lifeline_ingestion_stats,
+    compute_file_hash,
+    get_source_type_from_filename,
+    SOURCE_STATUS_PARSED,
+    SOURCE_STATUS_REVIEWED,
+    IMPORT_STATUS_REVIEWED,
+)
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
