@@ -190,8 +190,8 @@ export default function LifelineEventEditor({ visible, event, prefillYear, onClo
     if (!event?.id || !onDelete) return;
 
     Alert.alert(
-      'Delete this moment?',
-      'This cannot be undone.',
+      'Delete moment?',
+      'This will remove the moment from your lifeline and update related patterns.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -201,10 +201,9 @@ export default function LifelineEventEditor({ visible, event, prefillYear, onClo
             setIsSaving(true);
             try {
               await onDelete(event.id);
-              onClose();
+              // onClose is called by the parent after successful delete
             } catch (err: any) {
               setError(err.message || 'Failed to delete');
-            } finally {
               setIsSaving(false);
             }
           },
