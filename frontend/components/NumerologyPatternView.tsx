@@ -709,6 +709,25 @@ const styles = StyleSheet.create({
     lineHeight: 23,
     fontStyle: 'italic',
   },
+  
+  // Reflection Section (renamed from Mirror Moment for elegance)
+  reflectionSection: {
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    padding: 16,
+    marginBottom: 24,
+  },
+  reflectionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  reflectionText: {
+    fontSize: 15,
+    lineHeight: 23,
+    fontStyle: 'italic',
+  },
 
   // Unlock Button
   unlockButton: {
