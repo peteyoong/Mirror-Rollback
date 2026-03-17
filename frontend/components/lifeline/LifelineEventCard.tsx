@@ -132,38 +132,66 @@ export default function LifelineEventCard({ event, onPress, onEdit, onDelete, is
     }
     
     console.log('[LifelineEventCard] Showing confirmation dialog...');
-    Alert.alert(
-      'Delete this moment from your Lifeline?',
-      'This will also update related patterns and insights.',
-      [
-        { 
-          text: 'Cancel', 
-          style: 'cancel',
-          onPress: () => {
-            console.log('[LifelineEventCard] Delete cancelled by user');
-          }
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            console.log('[LifelineEventCard] Delete confirmed, starting deletion...');
-            setIsDeleting(true);
-            try {
-              console.log('[LifelineEventCard] Calling onDelete API for:', event.id);
-              await onDelete(event.id);
-              console.log('[LifelineEventCard] Delete API call successful');
-            } catch (err: any) {
-              console.log('[LifelineEventCard] Delete API call FAILED:', err?.message || err);
-              Alert.alert('Error', 'Failed to delete moment. Please try again.');
-            } finally {
-              setIsDeleting(false);
-              console.log('[LifelineEventCard] Delete flow completed');
+    
+    // Use window.confirm on web for better compatibility
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(
+        `Delete "${displayTitle}" from your Lifeline?\n\nThis will also update related patterns and insights.`
+      );
+      
+      if (confirmed) {
+        console.log('[LifelineEventCard] Delete confirmed (web), starting deletion...');
+        setIsDeleting(true);
+        onDelete(event.id)
+          .then(() => {
+            console.log('[LifelineEventCard] Delete API call successful');
+          })
+          .catch((err: any) => {
+            console.log('[LifelineEventCard] Delete API call FAILED:', err?.message || err);
+            window.alert('Failed to delete moment. Please try again.');
+          })
+          .finally(() => {
+            setIsDeleting(false);
+            console.log('[LifelineEventCard] Delete flow completed');
+          });
+      } else {
+        console.log('[LifelineEventCard] Delete cancelled by user (web)');
+      }
+    } else {
+      // Native: use Alert.alert
+      Alert.alert(
+        'Delete this moment from your Lifeline?',
+        'This will also update related patterns and insights.',
+        [
+          { 
+            text: 'Cancel', 
+            style: 'cancel',
+            onPress: () => {
+              console.log('[LifelineEventCard] Delete cancelled by user');
             }
           },
-        },
-      ]
-    );
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              console.log('[LifelineEventCard] Delete confirmed, starting deletion...');
+              setIsDeleting(true);
+              try {
+                console.log('[LifelineEventCard] Calling onDelete API for:', event.id);
+                await onDelete(event.id);
+                console.log('[LifelineEventCard] Delete API call successful');
+              } catch (err: any) {
+                console.log('[LifelineEventCard] Delete API call FAILED:', err?.message || err);
+                Alert.alert('Error', 'Failed to delete moment. Please try again.');
+              } finally {
+                setIsDeleting(false);
+                console.log('[LifelineEventCard] Delete flow completed');
+              }
+            },
+          },
+        ]
+      );
+    }
   };
 
   return (
