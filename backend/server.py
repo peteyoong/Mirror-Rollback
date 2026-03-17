@@ -19242,10 +19242,16 @@ async def delete_lifeline_event(event_id: str):
         if not existing:
             raise HTTPException(status_code=404, detail="Event not found")
         
+        user_id = existing.get("user_id")
+        
         # Delete event
         await db.lifeline_events.delete_one({"_id": ObjectId(event_id)})
         
-        logger.info(f"[Lifeline] Deleted event {event_id}")
+        # Invalidate synthesis cache
+        if user_id:
+            await db.lifeline_synthesis_cache.delete_many({"user_id": user_id})
+        
+        logger.info(f"[Lifeline] Deleted event {event_id}, cache invalidated")
         
         return {
             "success": True,
