@@ -170,64 +170,77 @@ def detect_chart_resonances(
     bazi_chart: Optional[Dict] = None,
     human_design_chart: Optional[Dict] = None,
     astrology_chart: Optional[Dict] = None,
-    tolerance_years: int = 1
+    tolerance_years: int = 1,
+    min_confidence: float = 0.7
 ) -> List[Dict[str, Any]]:
     """
-    Detect resonances between lifeline events and chart signals.
+    Detect resonance between lifeline events and chart signals.
+    
+    This function finds moments where life events coincide with significant 
+    astrological or metaphysical cycles (Saturn returns, nodal returns, etc.)
+    
+    IMPORTANT: This does NOT claim prediction. It only highlights COINCIDENCE
+    between recorded life events and chart signal timing.
     
     Args:
-        events: List of lifeline events with 'year' field
-        birth_year: User's birth year
-        bazi_chart: Optional BaZi chart data
+        events: List of lifeline events with at least 'year' field
+        birth_year: User's birth year for calculating signal years
+        bazi_chart: Optional BaZi chart data for element-based signals
         human_design_chart: Optional Human Design chart data
         astrology_chart: Optional astrology chart data
-        tolerance_years: How many years +/- to consider a match (default: 1)
+        tolerance_years: How many years difference to still consider a match
+        min_confidence: Minimum confidence score to include a resonance (0-1)
     
     Returns:
-        List of resonance objects with event_id, signal_type, and explanation
+        List of resonance objects with event_id, signal_type, confidence, and explanation
     """
     resonances = []
     
     # Build chart signal years
     chart_signals = []
     
-    # Saturn returns (~29, ~58, ~87)
+    # Saturn returns (~29, ~58, ~87) - HIGH confidence, major life cycle
     saturn_returns = calculate_saturn_return_years(birth_year)
     for year in saturn_returns:
         chart_signals.append({
             "year": year,
             "type": "saturn_return",
-            "age": year - birth_year
+            "age": year - birth_year,
+            "base_confidence": 0.9  # Saturn returns are well-established
         })
     
-    # Saturn oppositions (~14, ~44, ~73)
+    # Saturn oppositions (~14, ~44, ~73) - MEDIUM confidence
     saturn_oppositions = calculate_saturn_opposition_years(birth_year)
     for year in saturn_oppositions:
         chart_signals.append({
             "year": year,
             "type": "saturn_opposition", 
-            "age": year - birth_year
+            "age": year - birth_year,
+            "base_confidence": 0.75
         })
     
-    # Nodal returns (~18, ~37, ~56, ~74, ~93)
+    # Nodal returns (~18, ~37, ~56, ~74, ~93) - MEDIUM confidence
     nodal_returns = calculate_nodal_return_years(birth_year)
     for year in nodal_returns:
         chart_signals.append({
             "year": year,
             "type": "nodal_return",
-            "age": year - birth_year
+            "age": year - birth_year,
+            "base_confidence": 0.7
         })
     
-    # BaZi significant years
+    # BaZi significant years - LOWER confidence (more speculative)
     bazi_years = calculate_bazi_significant_years(birth_year, bazi_chart)
     for bazi_signal in bazi_years:
         chart_signals.append({
             "year": bazi_signal["year"],
             "type": bazi_signal["type"],
-            "age": bazi_signal["year"] - birth_year
+            "age": bazi_signal["year"] - birth_year,
+            "base_confidence": 0.6
         })
     
     # Match events to signals
+    raw_resonances = []
     for event in events:
         event_year = event.get("year")
         if not event_year:
@@ -237,13 +250,21 @@ def detect_chart_resonances(
         
         for signal in chart_signals:
             signal_year = signal["year"]
+            year_diff = abs(event_year - signal_year)
             
             # Check if event year is within tolerance of signal year
-            if abs(event_year - signal_year) <= tolerance_years:
+            if year_diff <= tolerance_years:
                 signal_type = signal["type"]
                 signal_info = RESONANCE_TYPES.get(signal_type, {})
                 
-                resonances.append({
+                # Calculate confidence based on:
+                # 1. Base confidence of the signal type
+                # 2. Exactness of the year match
+                base_confidence = signal.get("base_confidence", 0.5)
+                year_match_bonus = 0.1 if year_diff == 0 else 0
+                confidence = min(base_confidence + year_match_bonus, 1.0)
+                
+                raw_resonances.append({
                     "event_id": event_id,
                     "event_year": event_year,
                     "event_title": event.get("title", ""),
@@ -254,13 +275,21 @@ def detect_chart_resonances(
                     "description": signal_info.get("description", ""),
                     "reflection": signal_info.get("reflection", ""),
                     "age_at_event": event_year - birth_year,
-                    "match_quality": "exact" if event_year == signal_year else "near"
+                    "match_quality": "exact" if year_diff == 0 else "near",
+                    "confidence": confidence
                 })
     
-    # Remove duplicates (same event matching multiple similar signals)
+    # Filter by minimum confidence
+    confident_resonances = [r for r in raw_resonances if r["confidence"] >= min_confidence]
+    
+    # Deduplicate: For each signal_type, only keep the best match per 3-year window
+    # This prevents "Saturn Return" showing for every event in 1996, 1997, 1998
+    deduped_resonances = deduplicate_resonances_by_window(confident_resonances, window_years=3)
+    
+    # Remove event-level duplicates (same event matching multiple similar signals)
     seen = set()
     unique_resonances = []
-    for r in resonances:
+    for r in deduped_resonances:
         key = (r["event_id"], r["signal_type"])
         if key not in seen:
             seen.add(key)
@@ -269,7 +298,7 @@ def detect_chart_resonances(
     # Sort by event year
     unique_resonances.sort(key=lambda x: x["event_year"])
     
-    logger.info(f"[ChartResonance] Detected {len(unique_resonances)} resonances for birth_year={birth_year}")
+    logger.info(f"[ChartResonance] Detected {len(unique_resonances)} resonances for birth_year={birth_year} (filtered from {len(raw_resonances)} raw)")
     
     return unique_resonances
 
