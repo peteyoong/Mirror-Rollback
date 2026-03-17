@@ -99,6 +99,26 @@ export default function HomeInsightCard({ insight, isLoading }: Props) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      {/* Phase Indicator (if available) */}
+      {insight.phase && (
+        <View style={[
+          styles.phaseIndicator, 
+          { backgroundColor: `${PHASE_CONFIG[insight.phase]?.color || theme.textTertiary}15` }
+        ]}>
+          <Ionicons 
+            name={PHASE_CONFIG[insight.phase]?.icon as any || 'ellipse-outline'} 
+            size={12} 
+            color={PHASE_CONFIG[insight.phase]?.color || theme.textTertiary} 
+          />
+          <Text style={[
+            styles.phaseText, 
+            { color: PHASE_CONFIG[insight.phase]?.color || theme.textTertiary }
+          ]}>
+            {insight.phase_description || insight.phase}
+          </Text>
+        </View>
+      )}
+
       {/* Title */}
       <Text style={[styles.title, { color: theme.text }]}>
         {insight.title}
