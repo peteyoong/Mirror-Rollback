@@ -19080,7 +19080,9 @@ async def create_lifeline_event(event: LifelineEventCreate):
         result = await db.lifeline_events.insert_one(event_doc)
         event_doc["_id"] = str(result.inserted_id)
         
-        logger.info(f"[Lifeline] Created event '{event.title}' for user {event.user_id}")
+        # Invalidate synthesis cache so it regenerates with new event
+        await db.lifeline_synthesis_cache.delete_many({"user_id": event.user_id})
+        logger.info(f"[Lifeline] Created event '{event.title}' for user {event.user_id}, cache invalidated")
         
         return {
             "success": True,
