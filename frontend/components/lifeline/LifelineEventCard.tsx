@@ -203,24 +203,29 @@ export default function LifelineEventCard({ event, onPress, onEdit, onDelete, is
                 </TouchableOpacity>
               )}
             </View>
-            {onEdit && (
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() => onEdit(event)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Ionicons name="pencil-outline" size={16} color={theme.textTertiary} />
-              </TouchableOpacity>
-            )}
-            {onDelete && (
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={handleDelete}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                disabled={isDeleting}
-              >
-                <Ionicons name="trash-outline" size={16} color={isDeleting ? theme.border : '#E57373'} />
-              </TouchableOpacity>
+            {/* Action buttons grouped together */}
+            {(onEdit || onDelete) && (
+              <View style={styles.actionGroup}>
+                {onEdit && (
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => onEdit(event)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Ionicons name="pencil-outline" size={16} color={theme.textTertiary} />
+                  </TouchableOpacity>
+                )}
+                {onDelete && (
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={handleDelete}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    disabled={isDeleting}
+                  >
+                    <Ionicons name="trash-outline" size={16} color={isDeleting ? theme.border : '#E57373'} />
+                  </TouchableOpacity>
+                )}
+              </View>
             )}
           </View>
 
