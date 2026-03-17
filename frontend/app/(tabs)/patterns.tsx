@@ -402,12 +402,12 @@ export default function PatternsScreen() {
 
   const getStrengthLabel = (strength: string): string => {
     switch (strength) {
-      case 'recurring': return 'Recurring';
+      case 'recurring': return 'Strong Signal';
       case 'present': return 'Present';
-      case 'emerging': return 'Emerging';
-      case 'stable': return 'Stable';
+      case 'emerging': return 'Early Signal';
+      case 'stable': return 'Consistent';
       case 'quiet': return 'Quiet';
-      case 'context': return 'Context';
+      case 'context': return 'Lens-based';
       default: return strength;
     }
   };
