@@ -18,7 +18,6 @@ import { useAppStore } from '../../store';
 import api, { getPatternInterpretation, PatternInterpretation } from '../../services/api';
 import { useForumContext } from '../../contexts/ForumContext';
 import { InlineReflectButton } from '../../components/UniversalReflectButton';
-import { FullSynthesis, SynthesisData } from '../../components/CrossLensSynthesis';
 import { ChartResonanceSection, PatternResonanceSummary } from '../../components/lifeline/ChartResonance';
 import PatternGraphCard from '../../components/patterns/PatternGraphCard';
 import PatternArchetypeCard from '../../components/patterns/PatternArchetypeCard';
