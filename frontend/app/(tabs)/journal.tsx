@@ -1038,7 +1038,7 @@ export default function JournalScreen() {
                               borderWidth: isSelected ? 1.5 : 1,
                             },
                           ]}
-                          onPress={() => setSelectedDecisionId(decision.id)}
+                          onPress={() => handleSelectDecision(decision.id)}
                           activeOpacity={0.7}
                         >
                           <Text style={[
