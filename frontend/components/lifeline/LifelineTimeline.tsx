@@ -116,8 +116,8 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
     setError(null);
 
     try {
-      // Fetch events, summary (with patterns), and resonances in parallel
-      const [eventsRes, summaryRes, resonancesRes] = await Promise.all([
+      // Fetch events, summary (with patterns), resonances, and import stats in parallel
+      const [eventsRes, summaryRes, resonancesRes, importStatsRes] = await Promise.all([
         api.get<LifelineResponse>(`/lifeline/${userId}`),
         api.get<LifelineSummaryResponse>(`/lifeline/${userId}/summary`),
         api.get<{
@@ -125,6 +125,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
           resonance_map: Record<string, ChartResonance[]>;
           pattern_summary: PatternResonanceSummary[];
         }>(`/lifeline/${userId}/resonances`).catch(() => ({ data: { success: false, resonance_map: {}, pattern_summary: [] } })),
+        api.get(`/lifeline/ingestion-stats/${userId}`).catch(() => ({ data: { import_sources: 0 } })),
       ]);
       
       if (eventsRes.data.success) {
@@ -148,6 +149,11 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
       if (resonancesRes.data.success) {
         setResonanceMap(resonancesRes.data.resonance_map || {});
         setResonanceSummary(resonancesRes.data.pattern_summary || []);
+      }
+      
+      // Store import source count
+      if (importStatsRes.data) {
+        setImportSourceCount(importStatsRes.data.import_sources || 0);
       }
     } catch (err: any) {
       console.error('[Lifeline] Load error:', err);
