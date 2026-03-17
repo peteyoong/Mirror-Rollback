@@ -331,7 +331,7 @@ def generate_internal_tensions(
             (2, 1): {
                 'a': f'Sensitivity ({life_path})',
                 'b': f'decisive action ({missing})',
-                'description': 'You feel everything but acting on it doesn't come naturally'
+                'description': 'You feel everything but acting on it does not come naturally'
             },
             (3, 7): {
                 'a': f'Expression ({life_path})',
