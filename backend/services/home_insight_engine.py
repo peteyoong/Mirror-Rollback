@@ -205,7 +205,238 @@ def extract_signal_flags(texts: list) -> Dict[str, bool]:
     return flags
 
 
-def select_pattern_from_signals(flags: Dict[str, bool]) -> tuple:
+# =============================================================================
+# PHASE 3: TRAJECTORY / PHASE DETECTION
+# =============================================================================
+# Detect WHERE user is in pattern cycle: INITIATION → BUILD-UP → FRICTION → RECOVERY
+
+PHASE_DEFINITIONS = {
+    "INITIATION": {
+        "description": "Starting energy. Movement beginning.",
+        "tone": "encourage movement, avoid overthinking"
+    },
+    "BUILD_UP": {
+        "description": "Progress happening. Momentum building.",
+        "tone": "reinforce consistency, avoid distraction"
+    },
+    "FRICTION": {
+        "description": "Effort not landing. Tension building.",
+        "tone": "normalize frustration, prevent overreaction"
+    },
+    "RECOVERY": {
+        "description": "Slowing down. Integration happening.",
+        "tone": "slow down, integrate learning"
+    }
+}
+
+# Phase-specific content adjustments
+PHASE_MODIFIERS = {
+    "INITIATION": {
+        "title_prefix": "",
+        "what_happening_suffix": "",
+        "watch_for_emphasis": "Don't second-guess too early.",
+        "better_move_emphasis": "Keep moving forward.",
+        "interrupt_emphasis": "Hesitation now costs more than mistakes."
+    },
+    "BUILD_UP": {
+        "title_prefix": "",
+        "what_happening_suffix": " This is part of the process.",
+        "watch_for_emphasis": "Don't get distracted by new shiny things.",
+        "better_move_emphasis": "Stay the course a bit longer.",
+        "interrupt_emphasis": "Consistency beats intensity here."
+    },
+    "FRICTION": {
+        "title_prefix": "",
+        "what_happening_suffix": " The gap between effort and result is creating pressure.",
+        "watch_for_emphasis": "Don't blow up what's actually working.",
+        "better_move_emphasis": "The frustration is information, not a command.",
+        "interrupt_emphasis": "Nothing has failed yet—it just hasn't landed."
+    },
+    "RECOVERY": {
+        "title_prefix": "",
+        "what_happening_suffix": " Your system is recalibrating.",
+        "watch_for_emphasis": "Don't judge the slowdown as failure.",
+        "better_move_emphasis": "Rest is part of the work.",
+        "interrupt_emphasis": "Guilt about rest means you need more rest."
+    }
+}
+
+
+def extract_signal_flags_per_entry(texts: list) -> list:
+    """
+    Extract signal flags for EACH text entry separately.
+    Used for detecting trajectory across recent entries.
+    """
+    if not texts:
+        return []
+    
+    entry_flags = []
+    for text in texts:
+        if not text:
+            continue
+        text_lower = str(text).lower()
+        flags = {}
+        for signal_name, keywords in SIGNAL_KEYWORDS.items():
+            flags[signal_name] = any(kw in text_lower for kw in keywords)
+        entry_flags.append(flags)
+    
+    return entry_flags
+
+
+def detect_pattern_phase(signal_flags: Dict[str, bool], entry_history: list) -> tuple:
+    """
+    Detect where user is in the pattern cycle.
+    
+    Uses current signals + recent history to determine phase.
+    Returns (phase, phase_description, trajectory_summary)
+    
+    Phases:
+    - INITIATION: action_taken, high_urgency, no frustration yet
+    - BUILD_UP: action_taken, momentum, some progress
+    - FRICTION: frustration/doubt after action, waiting for outcome
+    - RECOVERY: recovery signals, lower urgency, reflection mode
+    """
+    
+    # Count signals across recent history
+    history_counts = {
+        "action_taken": 0,
+        "frustration": 0,
+        "doubt": 0,
+        "momentum": 0,
+        "recovery_needed": 0,
+        "waiting_outcome": 0,
+        "emotional_intensity": 0,
+        "high_urgency": 0
+    }
+    
+    for entry_flags in entry_history:
+        for key in history_counts.keys():
+            if entry_flags.get(key):
+                history_counts[key] += 1
+    
+    # Build trajectory summary
+    trajectory_parts = []
+    if history_counts["action_taken"] > 0:
+        trajectory_parts.append(f"action({history_counts['action_taken']})")
+    if history_counts["momentum"] > 0:
+        trajectory_parts.append(f"momentum({history_counts['momentum']})")
+    if history_counts["frustration"] > 0:
+        trajectory_parts.append(f"frustration({history_counts['frustration']})")
+    if history_counts["recovery_needed"] > 0:
+        trajectory_parts.append(f"recovery({history_counts['recovery_needed']})")
+    
+    trajectory_summary = " → ".join(trajectory_parts) if trajectory_parts else "no clear trajectory"
+    
+    # Current state signals
+    has_action = signal_flags.get("action_taken", False)
+    has_frustration = signal_flags.get("frustration", False)
+    has_doubt = signal_flags.get("doubt", False)
+    has_momentum = signal_flags.get("momentum", False)
+    has_recovery = signal_flags.get("recovery_needed", False)
+    has_waiting = signal_flags.get("waiting_outcome", False)
+    has_urgency = signal_flags.get("high_urgency", False)
+    has_emotional = signal_flags.get("emotional_intensity", False)
+    
+    # Historical patterns
+    had_action_before = history_counts["action_taken"] > 0
+    had_frustration_before = history_counts["frustration"] > 0
+    had_momentum_before = history_counts["momentum"] > 0
+    
+    # =================================================================
+    # PHASE DETECTION RULES (priority order)
+    # =================================================================
+    
+    # RECOVERY: Clear recovery signals, or coming down from intensity
+    if has_recovery:
+        return ("RECOVERY", 
+                "You're in recovery mode. Energy is rebuilding after recent output.",
+                trajectory_summary)
+    
+    if had_frustration_before and not has_frustration and not has_urgency:
+        return ("RECOVERY",
+                "The intensity has passed. You're in an integration phase.",
+                trajectory_summary)
+    
+    # FRICTION: Frustration/doubt after taking action, waiting without result
+    if has_frustration or has_doubt:
+        if has_waiting or had_action_before:
+            return ("FRICTION",
+                    "You pushed, but it's not landing yet. The gap is creating tension.",
+                    trajectory_summary)
+        if has_emotional:
+            return ("FRICTION",
+                    "Emotional intensity is high. The noise is making it hard to see clearly.",
+                    trajectory_summary)
+        return ("FRICTION",
+                "Something isn't clicking. There's resistance in the system.",
+                trajectory_summary)
+    
+    # BUILD-UP: Momentum happening, action taken, progress visible
+    if has_momentum:
+        if has_action or had_action_before:
+            return ("BUILD_UP",
+                    "Things are moving. Momentum is building from recent effort.",
+                    trajectory_summary)
+        return ("BUILD_UP",
+                "Progress is happening. Stay with what's working.",
+                trajectory_summary)
+    
+    if had_action_before and had_momentum_before and not has_frustration:
+        return ("BUILD_UP",
+                "You're in a building phase. Consistency matters here.",
+                trajectory_summary)
+    
+    # INITIATION: Action starting, urgency present, no friction yet
+    if has_action and not has_frustration and not has_doubt:
+        return ("INITIATION",
+                "You're in motion. This is starting energy.",
+                trajectory_summary)
+    
+    if has_urgency and not had_frustration_before:
+        return ("INITIATION",
+                "Energy is building. Something wants to move.",
+                trajectory_summary)
+    
+    # Default: INITIATION (treat unclear as beginning)
+    return ("INITIATION",
+            "No strong phase signal. Treating as fresh start.",
+            trajectory_summary)
+
+
+def apply_phase_modifier(template: dict, phase: str, phase_description: str) -> dict:
+    """
+    Apply phase-specific modifications to template content.
+    Returns modified template with phase-aware adjustments.
+    """
+    modifier = PHASE_MODIFIERS.get(phase, PHASE_MODIFIERS["INITIATION"])
+    
+    # Create modified copy
+    modified = template.copy()
+    
+    # For FRICTION phase, provide more specific content
+    if phase == "FRICTION":
+        # Add context about the friction
+        if "hasn't landed" not in modified["what_happening"]:
+            modified["what_happening"] = modified["what_happening"] + modifier["what_happening_suffix"]
+        
+        # Emphasize the interrupt for friction
+        if "nothing has failed" not in modified["interrupt"].lower():
+            modified["interrupt"] = modified["interrupt"] + " " + modifier["interrupt_emphasis"]
+    
+    elif phase == "RECOVERY":
+        # Soften the urgency for recovery
+        if "recalibrating" not in modified["what_happening"]:
+            modified["what_happening"] = modified["what_happening"] + modifier["what_happening_suffix"]
+    
+    elif phase == "BUILD_UP":
+        # Reinforce consistency
+        if "stay" not in modified["better_move"].lower():
+            modified["better_move"] = modified["better_move"] + " " + modifier["better_move_emphasis"]
+    
+    return modified
+
+
+
     """
     Select pattern based on signal flags.
     Returns (pattern_key, reason)
