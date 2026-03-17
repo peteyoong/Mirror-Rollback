@@ -1249,7 +1249,10 @@ export default function PatternsScreen() {
           />
         }
       >
-        {/* Cross-Lens Synthesis - Shown at top when available */}
+        {/* Pattern Archetype Card - Main insight at top */}
+        <PatternArchetypeCard />
+
+        {/* Cross-Lens Synthesis - Secondary insight (if no archetype or as supplement) */}
         {(synthesis || synthesisLoading) && (
           <FullSynthesis synthesis={synthesis} isLoading={synthesisLoading} />
         )}
