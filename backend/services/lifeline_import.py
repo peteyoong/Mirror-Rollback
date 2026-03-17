@@ -602,7 +602,6 @@ def _extract_events_from_structured_excel(df, sheet_name: str) -> List[Dict[str,
         
         # Explicitly check for age columns to EXCLUDE them
         if col_name in ['age', 'age at time', 'your age']:
-            age_col = col
             logger.info(f"[LifelineImport/Excel] Sheet '{sheet_name}': Detected AGE column '{col}' - will NOT use as year")
             continue
         
