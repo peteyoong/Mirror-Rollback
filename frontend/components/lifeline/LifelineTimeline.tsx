@@ -266,7 +266,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
         </View>
         <TouchableOpacity
           style={[styles.addButton, { backgroundColor: theme.accent }]}
-          onPress={handleAddEvent}
+          onPress={() => setShowAddMenu(true)}
         >
           <Ionicons name="add" size={20} color="#FFFFFF" />
         </TouchableOpacity>
