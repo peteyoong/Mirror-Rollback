@@ -19579,6 +19579,392 @@ async def get_lifeline_pattern_synthesis(user_id: str):
 
 
 # =============================================================================
+# LIFELINE INGESTION API (New 3-Layer Architecture)
+# =============================================================================
+# Replaces direct-to-timeline imports with:
+# 1. Import Source Registry
+# 2. Imported Candidate Moments  
+# 3. Canonical Lifeline Events (deduplicated, merged)
+
+@api_router.post("/lifeline/import-v2")
+async def import_lifeline_file_v2(
+    file: UploadFile = File(...),
+    user_id: str = Form(...)
+):
+    """
+    Import timeline events using the new 3-layer architecture.
+    
+    Flow:
+    1. Creates import source record
+    2. Parses file and extracts events
+    3. Stores as imported candidate moments (idempotent)
+    4. Returns candidates for review (not yet canonical)
+    
+    This replaces the old direct-to-timeline approach.
+    """
+    import os
+    
+    logger.info(f"[LifelineIngestion] Received file '{file.filename}' for user {user_id}")
+    
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Validate file extension
+        ext = os.path.splitext(file.filename.lower())[1]
+        if ext not in SUPPORTED_EXTENSIONS:
+            return {
+                "events": [],
+                "message": f"Unsupported file format '{ext}'.",
+                "success": False
+            }
+        
+        # Read file content
+        file_bytes = await file.read()
+        
+        # Validate file size
+        if len(file_bytes) > MAX_FILE_SIZE:
+            return {
+                "events": [],
+                "message": f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB.",
+                "success": False
+            }
+        
+        # Compute file hash for idempotency
+        file_hash = compute_file_hash(file_bytes)
+        
+        # Check if this file was already imported
+        existing_source = await get_import_source_by_hash(db, user_id, file_hash)
+        if existing_source:
+            logger.info(f"[LifelineIngestion] File already imported: {file_hash}")
+            # Return existing imported moments
+            moments = await get_imported_moments_for_source(db, str(existing_source["_id"]))
+            return {
+                "success": True,
+                "message": f"This file was already imported. Showing {len(moments)} existing candidates.",
+                "import_source_id": str(existing_source["_id"]),
+                "events": [
+                    {
+                        "id": m["id"],
+                        "year": m.get("normalized_year"),
+                        "title": m.get("normalized_title"),
+                        "description": m.get("normalized_description"),
+                        "category": m.get("category"),
+                        "confidence": m.get("confidence", 0.5),
+                        "import_status": m.get("import_status"),
+                    }
+                    for m in moments
+                ],
+                "already_imported": True
+            }
+        
+        # Determine source type
+        source_type = get_source_type_from_filename(file.filename)
+        
+        # Get user's birth year for age-based detection
+        birth_year = None
+        if user.get("birth_date"):
+            try:
+                birth_date = user.get("birth_date")
+                if isinstance(birth_date, datetime):
+                    birth_year = birth_date.year
+                elif isinstance(birth_date, str):
+                    birth_year = int(birth_date[:4])
+            except Exception:
+                pass
+        
+        # Process the file to extract events
+        result = await process_lifeline_import(
+            file_bytes=file_bytes,
+            filename=file.filename,
+            user_id=user_id,
+            birth_year=birth_year
+        )
+        
+        if not result.get("success") or not result.get("events"):
+            return result
+        
+        # Create import source record
+        import_source = await create_import_source(
+            db=db,
+            user_id=user_id,
+            source_type=source_type,
+            file_name=file.filename,
+            file_hash=file_hash,
+            raw_event_count=len(result["events"])
+        )
+        import_source_id = str(import_source["_id"])
+        
+        # Store events as imported moments (idempotent)
+        events_with_ids = []
+        for idx, event in enumerate(result["events"]):
+            event["source_event_id"] = f"row_{idx}"
+            events_with_ids.append(event)
+        
+        created, updated = await store_imported_moments_batch(
+            db=db,
+            user_id=user_id,
+            import_source_id=import_source_id,
+            source_type=source_type,
+            events=events_with_ids
+        )
+        
+        # Update source status
+        await update_import_source_status(
+            db=db,
+            source_id=import_source_id,
+            status=SOURCE_STATUS_PARSED,
+            candidate_event_count=len(events_with_ids)
+        )
+        
+        # Fetch stored moments to return
+        moments = await get_imported_moments_for_source(db, import_source_id)
+        
+        logger.info(f"[LifelineIngestion] Imported {len(moments)} candidates for user {user_id}")
+        
+        return {
+            "success": True,
+            "message": f"Extracted {len(moments)} events. Ready for review.",
+            "import_source_id": import_source_id,
+            "created": created,
+            "updated": updated,
+            "events": [
+                {
+                    "id": m["id"],
+                    "year": m.get("normalized_year"),
+                    "title": m.get("normalized_title"),
+                    "description": m.get("normalized_description"),
+                    "category": m.get("category"),
+                    "confidence": m.get("confidence", 0.5),
+                    "import_status": m.get("import_status"),
+                }
+                for m in moments
+            ]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[LifelineIngestion] Error: {e}")
+        return {
+            "events": [],
+            "message": "An error occurred while processing the file.",
+            "success": False
+        }
+
+
+@api_router.get("/lifeline/import-sources/{user_id}")
+async def get_lifeline_import_sources(user_id: str):
+    """
+    Get all import sources for a user.
+    Shows what files have been imported and their status.
+    """
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        sources = await get_user_import_sources(db, user_id)
+        return {
+            "success": True,
+            "sources": sources
+        }
+    except Exception as e:
+        logger.error(f"[LifelineIngestion] Error getting sources: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/lifeline/imported-moments/{user_id}")
+async def get_lifeline_imported_moments(
+    user_id: str,
+    status: Optional[str] = None,
+    import_source_id: Optional[str] = None
+):
+    """
+    Get imported candidate moments for a user.
+    Optionally filter by status or import source.
+    """
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        if import_source_id:
+            moments = await get_imported_moments_for_source(db, import_source_id)
+        else:
+            moments = await get_user_imported_moments(db, user_id, status)
+        
+        return {
+            "success": True,
+            "moments": moments
+        }
+    except Exception as e:
+        logger.error(f"[LifelineIngestion] Error getting moments: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/lifeline/confirm-import/{import_source_id}")
+async def confirm_lifeline_import(
+    import_source_id: str,
+    auto_merge_exact: bool = True
+):
+    """
+    Confirm an import and merge candidates into canonical events.
+    
+    This runs the deduplication pipeline:
+    1. Marks all moments as reviewed
+    2. Finds duplicates in existing canonical events
+    3. Merges exact matches automatically (if auto_merge_exact=True)
+    4. Creates new canonical events for non-matches
+    5. Returns stats and any items needing manual review
+    """
+    try:
+        # First mark all moments as reviewed
+        await db.lifeline_imported_moments.update_many(
+            {"import_source_id": import_source_id},
+            {"$set": {"import_status": IMPORT_STATUS_REVIEWED}}
+        )
+        
+        # Run the merge pipeline
+        stats = await process_import_source_to_canonical(
+            db=db,
+            import_source_id=import_source_id,
+            auto_merge_exact=auto_merge_exact
+        )
+        
+        return {
+            "success": True,
+            "message": f"Import confirmed. {stats['new_canonical']} new events, {stats['exact_matches']} matched existing.",
+            "stats": stats
+        }
+        
+    except Exception as e:
+        logger.error(f"[LifelineIngestion] Error confirming import: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/lifeline/duplicate-candidates/{user_id}")
+async def get_lifeline_duplicate_candidates(user_id: str):
+    """
+    Get potential duplicate groups in the user's canonical timeline.
+    Used for cleanup and manual review.
+    """
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        groups = await find_all_duplicate_candidates_for_user(db, user_id)
+        return {
+            "success": True,
+            "duplicate_groups": groups,
+            "total_groups": len(groups)
+        }
+    except Exception as e:
+        logger.error(f"[LifelineIngestion] Error finding duplicates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/lifeline/merge-duplicates")
+async def merge_lifeline_duplicates(
+    primary_event_id: str = Form(...),
+    duplicate_event_ids: str = Form(...)  # Comma-separated list
+):
+    """
+    Merge duplicate canonical events into one.
+    
+    Keeps the primary event and merges all duplicates into it.
+    Source references are preserved.
+    """
+    try:
+        # Parse duplicate IDs
+        dup_ids = [id.strip() for id in duplicate_event_ids.split(",") if id.strip()]
+        
+        if not dup_ids:
+            raise HTTPException(status_code=400, detail="No duplicate IDs provided")
+        
+        result = await merge_canonical_duplicates(db, primary_event_id, dup_ids)
+        
+        if not result.get("success"):
+            raise HTTPException(status_code=400, detail=result.get("error", "Merge failed"))
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[LifelineIngestion] Error merging duplicates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/lifeline/migrate-fix-duplicates/{user_id}")
+async def migrate_fix_lifeline_duplicates(
+    user_id: str,
+    dry_run: bool = True
+):
+    """
+    Migration endpoint to find and fix existing duplicate canonical events.
+    
+    Set dry_run=False to actually perform the merges.
+    """
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        result = await migrate_fix_existing_duplicates(db, user_id, dry_run)
+        return {
+            "success": True,
+            **result
+        }
+    except Exception as e:
+        logger.error(f"[LifelineIngestion] Error in migration: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/lifeline/ingestion-stats/{user_id}")
+async def get_lifeline_ingestion_stats_endpoint(user_id: str):
+    """
+    Get comprehensive stats about a user's lifeline data.
+    
+    Shows:
+    - Import sources count
+    - Imported moments by status
+    - Canonical events count
+    - Potential duplicates
+    """
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        stats = await get_lifeline_ingestion_stats(db, user_id)
+        return {
+            "success": True,
+            **stats
+        }
+    except Exception as e:
+        logger.error(f"[LifelineIngestion] Error getting stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/lifeline/migrate-add-source-fields/{user_id}")
+async def migrate_add_source_fields(user_id: str):
+    """
+    Migration endpoint to add source tracking fields to existing canonical events.
+    """
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+    
+    try:
+        updated = await migrate_add_source_fields_to_all_events(db, user_id)
+        return {
+            "success": True,
+            "updated_count": updated
+        }
+    except Exception as e:
+        logger.error(f"[LifelineIngestion] Error in migration: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
 # DAILY PATTERN SIGNAL
 # =============================================================================
 # Task 43: Shows users a daily insight about their recurring life patterns
