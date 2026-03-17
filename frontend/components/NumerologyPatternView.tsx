@@ -1,16 +1,17 @@
 /**
  * NumerologyPatternView.tsx
  * 
- * COMPLETE REWRITE for Task: Transform Numerology into Pattern System
- * 
- * Replaces descriptive personality text with diagnostic pattern recognition.
+ * Production-ready Numerology Pattern System
  * 
  * Sections:
- * 1. Energy Map (Lo Shu Grid)
- * 2. Core Pattern (sharp, confronting insight)
- * 3. How This Shows Up (real behavioral patterns)
- * 4. Internal Tension (X vs Y conflicts)
- * 5. Mirror Moment (precise reflection questions)
+ * 1. Core Numbers Strip
+ * 2. Energy Map (Lo Shu Grid)
+ * 3. Core Pattern
+ * 4. How This Shows Up
+ * 5. Tensions to Notice
+ * 6. Reflection
+ * 7. Edit birth name action
+ * 8. Explore with Mirror CTA
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -40,7 +41,9 @@ interface NumerologyPatternData {
   soul_urge: number | null;
   personality: number | null;
   birth_date: string;
-  lo_shu_grid: number[][];
+  lo_shu_template: number[][];
+  lo_shu_counts: { [key: string]: number };
+  lo_shu_display: string[][];
   present_numbers: { [key: string]: number };
   missing_numbers: number[];
   core_pattern: string;
@@ -55,18 +58,18 @@ interface Props {
 }
 
 // =============================================================================
-// COLORS
+// COLORS - Elegant, non-clinical
 // =============================================================================
 
 const COLORS = {
   accent: '#9B8AC4',
-  accentLight: 'rgba(155, 138, 196, 0.15)',
-  missing: '#EF4444',
-  missingBg: 'rgba(239, 68, 68, 0.1)',
-  present: '#10B981',
-  presentBg: 'rgba(16, 185, 129, 0.1)',
-  tension: '#F59E0B',
-  tensionBg: 'rgba(245, 158, 11, 0.1)',
+  accentLight: 'rgba(155, 138, 196, 0.12)',
+  accentMedium: 'rgba(155, 138, 196, 0.25)',
+  // Subtle contrast instead of aggressive red
+  lessEmphasis: 'rgba(156, 163, 175, 0.4)',
+  lessEmphasisText: '#9CA3AF',
+  tensionGold: '#D4A574',
+  tensionBg: 'rgba(212, 165, 116, 0.08)',
 };
 
 // =============================================================================
