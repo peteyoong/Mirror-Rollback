@@ -167,7 +167,7 @@ export function FullSynthesis({ synthesis, isLoading }: FullSynthesisProps) {
           </View>
           <View style={styles.headerText}>
             <Text style={[styles.fullTitle, { color: theme.text }]}>Cross-Lens Synthesis</Text>
-            <Text style={[styles.fullSubtitle, { color: theme.textTertiary }]}>Loading...</Text>
+            <Text style={[styles.fullSubtitle, { color: theme.textTertiary }]}>Synthesizing your data...</Text>
           </View>
         </View>
       </View>
