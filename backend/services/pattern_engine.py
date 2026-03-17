@@ -1218,6 +1218,201 @@ DOMAIN_LABELS = {
 }
 
 
+# =============================================================================
+# LIFELINE SIGNAL EXTRACTION
+# =============================================================================
+
+# Map Lifeline categories to pattern domains
+LIFELINE_CATEGORY_DOMAIN_MAP = {
+    "career": Domain.WORK_PURPOSE.value,
+    "work": Domain.WORK_PURPOSE.value,
+    "job": Domain.WORK_PURPOSE.value,
+    "professional": Domain.WORK_PURPOSE.value,
+    "relationship": Domain.RELATIONSHIPS.value,
+    "relationships": Domain.RELATIONSHIPS.value,
+    "family": Domain.RELATIONSHIPS.value,
+    "marriage": Domain.RELATIONSHIPS.value,
+    "divorce": Domain.RELATIONSHIPS.value,
+    "friendship": Domain.RELATIONSHIPS.value,
+    "growth": Domain.IDENTITY_DIRECTION.value,
+    "transformation": Domain.IDENTITY_DIRECTION.value,
+    "turning point": Domain.IDENTITY_DIRECTION.value,
+    "milestone": Domain.IDENTITY_DIRECTION.value,
+    "achievement": Domain.EXPRESSION_ACTION.value,
+    "challenge": Domain.PRESSURE_STRESS.value,
+    "identity": Domain.IDENTITY_DIRECTION.value,
+    "move": Domain.IDENTITY_DIRECTION.value,
+    "relocation": Domain.IDENTITY_DIRECTION.value,
+    "education": Domain.WORK_PURPOSE.value,
+    "learning": Domain.WORK_PURPOSE.value,
+    "health": Domain.PRESSURE_STRESS.value,
+    "illness": Domain.PRESSURE_STRESS.value,
+    "recovery": Domain.EMOTIONAL_LANDSCAPE.value,
+    "loss": Domain.EMOTIONAL_LANDSCAPE.value,
+    "grief": Domain.EMOTIONAL_LANDSCAPE.value,
+    "joy": Domain.EMOTIONAL_LANDSCAPE.value,
+    "trauma": Domain.EMOTIONAL_LANDSCAPE.value,
+}
+
+
+def extract_signals_from_lifeline_events(
+    lifeline_events: List[dict],
+    user_id: str
+) -> List[Dict[str, Any]]:
+    """
+    Extract pattern signals from Lifeline events.
+    
+    Creates signals for:
+    - Individual events (mapped to domains)
+    - Repeated categories (strong signals)
+    - High-impact events
+    - Time-clustered periods
+    
+    Args:
+        lifeline_events: List of Lifeline events from the database
+        user_id: User ID
+    
+    Returns:
+        List of signal dictionaries in the pattern_signals format
+    """
+    signals = []
+    category_counts: Dict[str, int] = {}
+    high_impact_events = []
+    decade_clusters: Dict[int, List[dict]] = {}
+    
+    for event in lifeline_events:
+        event_id = str(event.get("_id", event.get("id", "")))
+        event_category = (event.get("category") or "").lower()
+        event_year = event.get("year")
+        event_title = event.get("title", "")[:50]
+        impact_score = event.get("impact_score", 5)
+        
+        # Track category counts
+        if event_category:
+            category_counts[event_category] = category_counts.get(event_category, 0) + 1
+        
+        # Track high-impact events
+        if impact_score and impact_score >= 7:
+            high_impact_events.append(event)
+        
+        # Track decade clusters
+        if event_year:
+            decade = (event_year // 10) * 10
+            if decade not in decade_clusters:
+                decade_clusters[decade] = []
+            decade_clusters[decade].append(event)
+        
+        # Determine domain from category
+        domain = Domain.IDENTITY_DIRECTION.value  # Default
+        for cat_key, domain_val in LIFELINE_CATEGORY_DOMAIN_MAP.items():
+            if cat_key in event_category:
+                domain = domain_val
+                break
+        
+        # Create signal for this event
+        signal = {
+            "id": f"lifeline_{event_id}",
+            "user_id": user_id,
+            "source_type": "lifeline",
+            "signal_type": "clarity" if impact_score >= 6 else "experience",
+            "domain": domain,
+            "intensity": min(0.9, 0.5 + (impact_score or 5) * 0.05),
+            "polarity": "positive" if event.get("emotional_tone") == "positive" else "mixed",
+            "tags": [t for t in (event.get("tags") or [])[:3]],
+            "preview": event_title,
+            "timestamp": event.get("date") or (f"{event_year}-01-01" if event_year else None),
+            "context": {
+                "year": event_year,
+                "category": event.get("category"),
+                "source": "lifeline"
+            }
+        }
+        signals.append(signal)
+    
+    # Add signals for REPEATED CATEGORIES (strong pattern evidence)
+    for cat_name, count in category_counts.items():
+        if count >= 2:  # At least 2 events in same category
+            domain = Domain.IDENTITY_DIRECTION.value
+            for cat_key, domain_val in LIFELINE_CATEGORY_DOMAIN_MAP.items():
+                if cat_key in cat_name:
+                    domain = domain_val
+                    break
+            
+            signal = {
+                "id": f"lifeline_pattern_{cat_name}_{count}",
+                "user_id": user_id,
+                "source_type": "lifeline_pattern",
+                "signal_type": "clarity" if count >= 3 else "direction",
+                "domain": domain,
+                "intensity": min(0.9, 0.5 + count * 0.1),
+                "polarity": "positive",
+                "tags": [cat_name, "recurring", "life_theme"],
+                "preview": f"Recurring {cat_name.title()} theme ({count} events)",
+                "timestamp": None,
+                "context": {
+                    "pattern_type": "repeated_category",
+                    "event_count": count,
+                    "source": "lifeline"
+                }
+            }
+            signals.append(signal)
+    
+    # Add signals for HIGH-IMPACT EVENTS
+    for event in high_impact_events[:3]:
+        event_id = str(event.get("_id", event.get("id", "")))
+        event_category = (event.get("category") or "").lower()
+        
+        domain = Domain.IDENTITY_DIRECTION.value
+        for cat_key, domain_val in LIFELINE_CATEGORY_DOMAIN_MAP.items():
+            if cat_key in event_category:
+                domain = domain_val
+                break
+        
+        signal = {
+            "id": f"lifeline_impact_{event_id}",
+            "user_id": user_id,
+            "source_type": "lifeline_impact",
+            "signal_type": "clarity",
+            "domain": domain,
+            "intensity": 0.85,
+            "polarity": "mixed" if event.get("emotional_tone") == "mixed" else "positive",
+            "tags": ["high_impact", "pivotal_moment"],
+            "preview": f"Major: {event.get('title', 'Pivotal moment')[:40]}",
+            "timestamp": event.get("date"),
+            "context": {
+                "impact_score": event.get("impact_score", 7),
+                "year": event.get("year"),
+                "source": "lifeline"
+            }
+        }
+        signals.append(signal)
+    
+    # Add signals for DECADE CLUSTERS
+    for decade, events in decade_clusters.items():
+        if len(events) >= 3:
+            signal = {
+                "id": f"lifeline_cluster_{decade}s",
+                "user_id": user_id,
+                "source_type": "lifeline_cluster",
+                "signal_type": "direction",
+                "domain": Domain.TIMING_READINESS.value,
+                "intensity": min(0.85, 0.5 + len(events) * 0.08),
+                "polarity": "positive",
+                "tags": ["time_cluster", f"{decade}s", "active_period"],
+                "preview": f"Active period: {decade}s ({len(events)} events)",
+                "timestamp": f"{decade}-01-01",
+                "context": {
+                    "decade": decade,
+                    "event_count": len(events),
+                    "source": "lifeline"
+                }
+            }
+            signals.append(signal)
+    
+    logger.info(f"[PatternEngine] Extracted {len(signals)} signals from Lifeline events")
+    return signals
+
+
 async def get_pattern_graph_snapshot(
     db,
     user_id: str,
