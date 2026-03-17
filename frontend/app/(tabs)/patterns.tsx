@@ -370,28 +370,12 @@ export default function PatternsScreen() {
     }
   };
 
-  const fetchSynthesis = async () => {
-    if (!user?.id) return;
-    setSynthesisLoading(true);
-    
-    try {
-      const response = await api.get(`/synthesis/${user.id}`);
-      if (response.data) {
-        setSynthesis(response.data);
-      }
-    } catch (err) {
-      console.log('[Synthesis] Failed to load:', err);
-      setSynthesis(null);
-    } finally {
-      setSynthesisLoading(false);
-    }
-  };
+  // Task 75: Removed fetchSynthesis - Archetype is single source of truth
 
   useEffect(() => {
     fetchPatterns();
     fetchWeekly();
     fetchTimeline();
-    fetchSynthesis();
   }, [user?.id]);
 
   // ============================================================================
