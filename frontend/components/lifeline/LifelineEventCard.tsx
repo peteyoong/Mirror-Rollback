@@ -11,6 +11,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
@@ -39,6 +40,7 @@ interface Props {
   event: LifelineEvent;
   onPress?: (event: LifelineEvent) => void;
   onEdit?: (event: LifelineEvent) => void;
+  onDelete?: (eventId: string) => Promise<void>;
   isCompact?: boolean;
   resonances?: ChartResonance[];
 }
@@ -64,25 +66,79 @@ const TONE_COLORS = {
   neutral: '#90A4AE',
 };
 
-export default function LifelineEventCard({ event, onPress, onEdit, isCompact = false, resonances = [] }: Props) {
+/**
+ * Clean malformed event titles that have numeric parsing artifacts.
+ * Examples: "0 Transitioned to Australia", "2 -4 0 Parents divorced"
+ */
+function cleanDisplayTitle(title: string): string {
+  if (!title) return '';
+  
+  // Remove leading numeric patterns like "0 ", "2 -4 0 ", etc.
+  // Pattern: start with digits, optionally followed by spaces/dashes/more digits
+  let cleaned = title.replace(/^[\d\s\-]+(?=\s*[A-Za-z])/, '').trim();
+  
+  // If we cleaned too much and the result is empty, return original
+  if (!cleaned) return title;
+  
+  // Capitalize first letter if it was lowercased after cleaning
+  if (cleaned[0] && cleaned[0].match(/[a-z]/)) {
+    cleaned = cleaned[0].toUpperCase() + cleaned.slice(1);
+  }
+  
+  return cleaned;
+}
+
+export default function LifelineEventCard({ event, onPress, onEdit, onDelete, isCompact = false, resonances = [] }: Props) {
   const { theme } = useTheme();
   const icon = CATEGORY_ICONS[event.category || ''] || 'ellipse-outline';
   const toneColor = TONE_COLORS[event.emotional_tone || 'neutral'];
   
   // Modal state for resonance
   const [showResonanceModal, setShowResonanceModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const hasResonance = resonances && resonances.length > 0;
+
+  // Clean the title for display
+  const displayTitle = cleanDisplayTitle(event.title);
+
+  // Handle delete with confirmation
+  const handleDelete = () => {
+    if (!onDelete) return;
+    
+    Alert.alert(
+      'Delete this moment from your Lifeline?',
+      'This will also update related patterns and insights.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              await onDelete(event.id);
+            } catch (err) {
+              Alert.alert('Error', 'Failed to delete moment. Please try again.');
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <>
       <TouchableOpacity
         style={[
           styles.container,
-          { backgroundColor: theme.surface, borderColor: theme.border }
+          { backgroundColor: theme.surface, borderColor: theme.border },
+          isDeleting && { opacity: 0.5 }
         ]}
         onPress={() => onPress?.(event)}
         activeOpacity={0.7}
-        disabled={!onPress}
+        disabled={!onPress || isDeleting}
       >
         {/* Year/Age indicator */}
         <View style={[styles.yearBadge, { backgroundColor: theme.background }]}>
