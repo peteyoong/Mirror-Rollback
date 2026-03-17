@@ -68,7 +68,7 @@ const COLORS = {
 
 export default function PatternArchetypeCard() {
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { user } = useAppStore();
   
   const [data, setData] = useState<ArchetypeResponse | null>(null);
   const [loading, setLoading] = useState(true);
