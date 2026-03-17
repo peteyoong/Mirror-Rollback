@@ -273,6 +273,50 @@ def detect_chart_resonances(
                     "signal_name": signal_info.get("name", signal_type),
                     "system": signal_info.get("system", "unknown"),
                     "description": signal_info.get("description", ""),
+
+def deduplicate_resonances_by_window(resonances: List[Dict], window_years: int = 3) -> List[Dict]:
+    """
+    Deduplicate resonances so that only the best match per signal_type 
+    is kept within each time window.
+    
+    For example, if there are 3 events in 1996-1998 all showing Saturn Return,
+    only keep the one with highest confidence or exact match.
+    """
+    if not resonances:
+        return []
+    
+    # Group by signal_type
+    by_type: Dict[str, List[Dict]] = {}
+    for r in resonances:
+        signal_type = r["signal_type"]
+        if signal_type not in by_type:
+            by_type[signal_type] = []
+        by_type[signal_type].append(r)
+    
+    result = []
+    for signal_type, type_resonances in by_type.items():
+        # Sort by event_year
+        type_resonances.sort(key=lambda x: x["event_year"])
+        
+        # Keep best match per window
+        windows_used = []  # Track (start_year, end_year) windows used
+        
+        for r in type_resonances:
+            event_year = r["event_year"]
+            
+            # Check if this falls within an already-used window
+            in_existing_window = False
+            for start, end in windows_used:
+                if start <= event_year <= end:
+                    in_existing_window = True
+                    break
+            
+            if not in_existing_window:
+                # Add this resonance and mark the window
+                result.append(r)
+                windows_used.append((event_year - window_years // 2, event_year + window_years // 2))
+    
+    return result
                     "reflection": signal_info.get("reflection", ""),
                     "age_at_event": event_year - birth_year,
                     "match_quality": "exact" if year_diff == 0 else "near",
