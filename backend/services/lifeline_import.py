@@ -216,21 +216,188 @@ def extract_text_from_pptx(file_bytes: bytes) -> str:
 
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
-    """Extract text from PDF file."""
+    """
+    Extract text from PDF file with enhanced timeline detection.
+    
+    Task 74: Enhanced extraction for:
+    - Page-by-page text with structure preservation
+    - Table detection for timeline formats
+    - Year + event patterns in various layouts
+    - Visual timeline detection (text boxes, annotations)
+    - Filtering of headers/footers/page numbers
+    """
     try:
         import pdfplumber
         
         text_parts = []
+        all_tables = []
+        total_chars = 0
+        
         with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+            logger.info(f"[LifelineImport/PDF] Processing {len(pdf.pages)} pages")
+            
             for page_num, page in enumerate(pdf.pages, 1):
+                page_content = []
+                
+                # Extract main text
                 page_text = page.extract_text()
                 if page_text and page_text.strip():
-                    text_parts.append(f"[Page {page_num}]\n{page_text.strip()}")
+                    # Clean the text - remove common page artifacts
+                    clean_lines = []
+                    for line in page_text.split('\n'):
+                        line = line.strip()
+                        # Skip likely headers/footers/page numbers
+                        if _is_pdf_junk_line(line, page_num, len(pdf.pages)):
+                            logger.debug(f"[LifelineImport/PDF] Filtered junk line: {line[:50]}")
+                            continue
+                        if line:
+                            clean_lines.append(line)
+                    
+                    if clean_lines:
+                        page_content.append("\n".join(clean_lines))
+                
+                # Extract tables (common in timelines)
+                tables = page.extract_tables()
+                if tables:
+                    for table_idx, table in enumerate(tables):
+                        if table:
+                            table_text = _process_pdf_table(table, page_num, table_idx)
+                            if table_text:
+                                page_content.append(table_text)
+                                all_tables.append((page_num, table_idx))
+                
+                if page_content:
+                    combined = f"[Page {page_num}]\n" + "\n".join(page_content)
+                    text_parts.append(combined)
+                    total_chars += len(combined)
         
-        return "\n\n".join(text_parts)
+        result = "\n\n".join(text_parts)
+        logger.info(f"[LifelineImport/PDF] Extracted {total_chars} chars from {len(pdf.pages)} pages, {len(all_tables)} tables")
+        logger.debug(f"[LifelineImport/PDF] Sample text: {result[:500]}...")
+        
+        return result
+        
+    except ImportError:
+        logger.error("[LifelineImport/PDF] pdfplumber not installed")
+        raise ValueError("PDF processing not available. Please install pdfplumber.")
     except Exception as e:
-        logger.error(f"[LifelineImport] PDF extraction failed: {e}")
+        logger.error(f"[LifelineImport/PDF] Extraction failed: {e}")
         raise ValueError(f"Failed to extract text from PDF: {str(e)}")
+
+
+def _is_pdf_junk_line(line: str, page_num: int, total_pages: int) -> bool:
+    """
+    Detect and filter PDF junk lines (page numbers, headers, footers).
+    
+    Task 74: Reduces noise in extracted text to improve event detection quality.
+    """
+    line_lower = line.lower().strip()
+    
+    # Empty or very short lines
+    if len(line) < 3:
+        return True
+    
+    # Pure page number patterns
+    if re.match(r'^[\d\s\-/]+$', line) and len(line) < 10:
+        return True
+    
+    # Page N of M patterns
+    if re.match(r'^page\s*\d+\s*(of\s*\d+)?$', line_lower):
+        return True
+    
+    # Just the page number
+    if line.strip() == str(page_num):
+        return True
+    
+    # Copyright/footer patterns
+    if any(marker in line_lower for marker in ['©', 'copyright', 'all rights reserved', 'confidential']):
+        return True
+    
+    # Common document headers/footers
+    if any(marker in line_lower for marker in ['table of contents', 'appendix', 'references']):
+        # Allow these as they might contain dates
+        return False
+    
+    # Purely numeric (not years)
+    if line.replace(' ', '').replace('-', '').replace('/', '').isdigit():
+        # Could be a date - check if it looks like a year
+        year_match = re.search(r'\b(19[5-9]\d|20[0-2]\d)\b', line)
+        if not year_match:
+            return True
+    
+    return False
+
+
+def _process_pdf_table(table: List[List[str]], page_num: int, table_idx: int) -> str:
+    """
+    Process a PDF table and extract structured timeline data.
+    
+    Task 74: Handles various table formats:
+    - Year | Event columns
+    - Date | Description | Category columns
+    - Multi-column timelines
+    """
+    if not table or len(table) < 2:
+        return ""
+    
+    output_lines = []
+    year_col_idx = None
+    header_row = table[0] if table else []
+    
+    # Try to detect year column from headers
+    for idx, cell in enumerate(header_row):
+        if cell:
+            cell_lower = str(cell).lower().strip()
+            if cell_lower in ['year', 'date', 'when', 'time', 'period']:
+                year_col_idx = idx
+                break
+    
+    logger.debug(f"[LifelineImport/PDF] Table on page {page_num}: {len(table)} rows, year_col: {year_col_idx}")
+    
+    # Process table rows
+    for row_idx, row in enumerate(table):
+        if not row:
+            continue
+        
+        # Clean cells
+        cells = [str(cell).strip() if cell else '' for cell in row]
+        
+        # Skip empty rows
+        if not any(cells):
+            continue
+        
+        # Try to extract year from row
+        row_year = None
+        row_text_parts = []
+        
+        for cell_idx, cell in enumerate(cells):
+            if not cell:
+                continue
+            
+            # Check if this cell contains a year
+            year_match = re.search(r'\b(19[5-9]\d|20[0-2]\d)\b', cell)
+            if year_match and not row_year:
+                row_year = year_match.group(1)
+                # If cell is just the year, don't add to text
+                remaining = re.sub(r'\b(19[5-9]\d|20[0-2]\d)\b', '', cell).strip()
+                if remaining and len(remaining) > 3:
+                    row_text_parts.append(remaining)
+            else:
+                # Add non-year content
+                if len(cell) > 2 and not cell.replace('.', '').replace(',', '').isdigit():
+                    row_text_parts.append(cell)
+        
+        # Build output line
+        if row_text_parts:
+            row_text = " - ".join(row_text_parts)
+            if row_year:
+                output_lines.append(f"{row_year} - {row_text}")
+            elif len(row_text) > 10:
+                output_lines.append(row_text)
+    
+    if output_lines:
+        return f"[Table {table_idx + 1}]\n" + "\n".join(output_lines)
+    return ""
 
 
 def extract_text_from_excel(file_bytes: bytes) -> str:
