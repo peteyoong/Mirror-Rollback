@@ -228,9 +228,9 @@ export default function LifelineEventCard({ event, onPress, onEdit, onDelete, is
             {displayTitle}
           </Text>
 
-          {!isCompact && event.description && (
+          {!isCompact && displayDescription && (
             <Text style={[styles.description, { color: theme.textSecondary }]} numberOfLines={3}>
-              {event.description}
+              {displayDescription}
             </Text>
           )}
 
