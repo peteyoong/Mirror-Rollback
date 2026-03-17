@@ -126,7 +126,8 @@ function calculateTimelineNodes(events: LifelineEvent[]): TimelineNode[] {
 
 export default function TimeDistanceTimeline({ 
   events, 
-  onEditEvent, 
+  onEditEvent,
+  onDeleteEvent,
   onAddEarlierMoment,
   isCompact = false,
   isFirstReveal = false,
