@@ -319,6 +319,7 @@ export default function TimeDistanceTimeline({
                   <LifelineEventCard
                     event={node.event}
                     onEdit={onEditEvent}
+                    onDelete={onDeleteEvent}
                     isCompact={isCompact}
                     resonances={resonanceMap[node.event.id] || []}
                   />
@@ -327,6 +328,7 @@ export default function TimeDistanceTimeline({
                 <LifelineEventCard
                   event={node.event}
                   onEdit={onEditEvent}
+                  onDelete={onDeleteEvent}
                   isCompact={isCompact}
                   resonances={resonanceMap[node.event.id] || []}
                 />
