@@ -1077,7 +1077,7 @@ export default function PatternsScreen() {
               <View style={styles.innerTabContent}>
                 {/* Why This Pattern Section */}
                 <Text style={[styles.signalsIntro, { color: theme.textSecondary }]}>
-                  Here's what may be contributing to this pattern surfacing:
+                  Here's what is contributing to this pattern surfacing:
                 </Text>
 
                 {/* Signal Groups */}
