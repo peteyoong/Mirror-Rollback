@@ -26,6 +26,8 @@ export interface DailyInsight {
   watch_for: string;
   better_move: string;
   interrupt: string;
+  phase?: string;
+  phase_description?: string;
   confidence: string;
 }
 
@@ -33,6 +35,14 @@ interface Props {
   insight: DailyInsight | null;
   isLoading: boolean;
 }
+
+// Phase colors and icons
+const PHASE_CONFIG: Record<string, { color: string; icon: string }> = {
+  'INITIATION': { color: '#85C88A', icon: 'rocket-outline' },
+  'BUILD_UP': { color: '#6BB5E0', icon: 'trending-up-outline' },
+  'FRICTION': { color: '#E8A87C', icon: 'warning-outline' },
+  'RECOVERY': { color: '#9B8AC4', icon: 'leaf-outline' },
+};
 
 // Section component for consistent styling
 const InsightSection = ({ 
