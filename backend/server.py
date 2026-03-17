@@ -10651,6 +10651,16 @@ async def get_pattern_graph(user_id: str):
         except Exception as j_err:
             logger.debug(f"[PatternGraph] Could not load journal: {j_err}")
         
+        # Load Lifeline events for signal aggregation
+        lifeline_events = []
+        try:
+            lifeline_events = await db.lifeline_events.find(
+                {"user_id": user_id}
+            ).sort("year", -1).limit(30).to_list(30)
+            logger.debug(f"[PatternGraph] Loaded {len(lifeline_events)} Lifeline events")
+        except Exception as life_err:
+            logger.debug(f"[PatternGraph] Could not load Lifeline: {life_err}")
+        
         # Try to load Enneagram data (invisible contributor to pattern scoring)
         enneagram_type = None
         enneagram_wing = None
