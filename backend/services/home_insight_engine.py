@@ -19,99 +19,99 @@ logger = logging.getLogger(__name__)
 PATTERN_TEMPLATES = {
     "fast_start_delayed_feedback": {
         "title": "Fast Start, Delayed Feedback",
-        "what_happening": "You moved quickly and executed, but you're not seeing results yet.",
-        "why_feels": "There is a gap between your action speed and when outcomes become visible.",
-        "watch_for": "Switching direction too early or pushing harder out of frustration.",
-        "better_move": "Hold your current direction and give it one more cycle to land.",
-        "interrupt": "If you feel urgency to change, pause and check if it's impatience."
+        "what_happening": "You took action—sent the message, made the move, started the thing—but nothing came back yet. No response, no confirmation, no signal that it landed.",
+        "why_feels": "You're ready for the next step, but the world hasn't caught up. That gap between 'I did my part' and 'where's the result' creates pressure that makes you want to do more.",
+        "watch_for": "Sending a follow-up before it's needed. Changing your approach because silence feels like rejection. Doing more when the original move hasn't had time to land.",
+        "better_move": "Let the current move finish playing out. Give it 24-48 more hours before deciding if something is wrong.",
+        "interrupt": "If you're about to check your inbox again, or send another message, or pivot your strategy—stop. Ask yourself: did anything actually break, or has it just not landed yet?"
     },
     "high_drive_low_signal": {
         "title": "High Drive, Low Signal",
-        "what_happening": "You're ready to move, but the direction isn't clear yet.",
-        "why_feels": "The energy is there. The clarity isn't keeping pace.",
-        "watch_for": "Starting things to escape the discomfort of not knowing.",
-        "better_move": "Name what you're waiting to understand before acting.",
-        "interrupt": "If you catch yourself doing busy work—pause and ask what you're avoiding."
+        "what_happening": "You have energy and you want to use it, but you don't have a clear target. So you're scanning—opening tabs, starting conversations, looking for something to put the energy into.",
+        "why_feels": "The drive is real but directionless. It's like having a full tank of gas but no destination. That mismatch creates restlessness that disguises itself as productivity.",
+        "watch_for": "Starting three things instead of finishing one. Filling time with tasks that feel useful but don't actually move anything forward. Confusing movement with progress.",
+        "better_move": "Before you start anything new, write down the one thing that would actually matter if it got done today. Do that first.",
+        "interrupt": "If you've opened a new browser tab or switched tasks in the last 10 minutes without finishing something—that's the pattern. Close everything and pick one thing."
     },
     "emotional_noise_low_clarity": {
         "title": "Emotional Noise, Low Clarity",
-        "what_happening": "Feelings are running high. Thinking isn't keeping pace.",
-        "why_feels": "You're processing something that doesn't have words yet.",
-        "watch_for": "Making decisions while the wave is still moving.",
-        "better_move": "Let feelings pass before deciding anything permanent.",
-        "interrupt": "If someone asks 'what's wrong' and you snap—that's the signal to pause."
+        "what_happening": "You're feeling something strongly, but you can't name it cleanly. Someone asked 'what's wrong' and you couldn't give a straight answer—not because nothing's wrong, but because it's not one thing.",
+        "why_feels": "Multiple signals are hitting at once—frustration, disappointment, maybe some old stuff getting stirred up. The noise makes it hard to think straight, and that creates more frustration.",
+        "watch_for": "Making a decision to get relief from the discomfort. Picking a fight because the tension needs somewhere to go. Saying something you'll need to walk back later.",
+        "better_move": "Don't try to solve it right now. Write down what you're feeling without trying to fix it. Let the wave move through before you act on any of it.",
+        "interrupt": "If someone asks what's wrong and you feel the urge to snap or give a sharp answer—that's the signal. Say 'I don't know yet' and give yourself more time."
     },
     "strong_urge_wrong_timing": {
         "title": "Strong Urge, Wrong Timing",
-        "what_happening": "Something feels urgent, but the conditions aren't aligned yet.",
-        "why_feels": "Your internal readiness is ahead of external circumstances.",
-        "watch_for": "Forcing outcomes that need more time to mature.",
-        "better_move": "Prepare fully so you're ready when the opening appears.",
-        "interrupt": "If you're about to push through resistance—check if waiting costs anything real."
+        "what_happening": "You know what you want to do. You've been ready. But the situation isn't there yet—the other person isn't ready, the opportunity hasn't opened, the pieces aren't in place.",
+        "why_feels": "Your internal clock says 'now' but the external clock says 'not yet.' That mismatch creates pressure to force something that would work better if you waited.",
+        "watch_for": "Trying to manufacture the opening instead of waiting for it. Pushing someone to be ready before they are. Making the move anyway and hoping it works out.",
+        "better_move": "Stay ready without acting. Use this time to get more prepared so when the window opens, you can move cleanly.",
+        "interrupt": "If you're about to push through resistance because you're tired of waiting—pause. Ask yourself: will forcing this now create a bigger problem than waiting?"
     },
     "pattern_returning_control": {
         "title": "Pattern Returning: Control Under Pressure",
-        "what_happening": "A familiar response is showing up again. You've been here before.",
-        "why_feels": "When things feel uncertain, control feels like the only option.",
-        "watch_for": "Tightening your grip on things you can't actually control.",
-        "better_move": "Name what you're actually afraid of losing.",
-        "interrupt": "If you catch yourself micromanaging—that's the pattern talking."
+        "what_happening": "Something uncertain showed up—a conversation that didn't go as planned, a result you can't predict, a situation you can't fully manage. And your response is to tighten your grip on everything you can control.",
+        "why_feels": "When you can't control the big thing, controlling the small things feels like safety. It's not—it's just a way to manage anxiety. But it feels productive in the moment.",
+        "watch_for": "Over-preparing for things that don't need it. Checking details you've already checked. Asking for updates on things that are already in motion. Managing other people's work too closely.",
+        "better_move": "Name the thing you're actually worried about—the real thing, not the surface one. Then ask: is controlling these details actually helping that, or just keeping you busy?",
+        "interrupt": "If you're reviewing something for the third time or asking someone for a status update you don't need—that's the pattern. Step back and let it breathe."
     },
     "waiting_for_permission": {
         "title": "Waiting for Permission",
-        "what_happening": "You know what you want to do, but you're waiting for someone to say it's okay.",
-        "why_feels": "There's a gap between your own knowing and trusting it.",
-        "watch_for": "Asking for opinions when you already have your answer.",
-        "better_move": "Notice what you'd do if no one was watching.",
-        "interrupt": "If you're about to ask 'what do you think'—check if you already know."
+        "what_happening": "You know what you want to do. You've known for a while. But you haven't done it yet because part of you is waiting for someone to say it's the right call—a sign, a green light, an external yes.",
+        "why_feels": "The decision is already made inside you, but you don't fully trust it. So you keep gathering input, asking questions, running scenarios—not to decide, but to delay committing.",
+        "watch_for": "Asking for opinions you don't actually need. Framing a statement as a question. Waiting for someone to give you permission you could give yourself.",
+        "better_move": "Notice what you would do if you knew no one would judge the choice. That's probably the answer.",
+        "interrupt": "If you're about to ask someone 'what do you think I should do'—stop. Check if you already know what you'd do if they weren't there."
     },
     "momentum_building": {
         "title": "Momentum Building",
-        "what_happening": "Things are starting to move. Not finished, but in motion.",
-        "why_feels": "Early traction creates a mix of excitement and impatience.",
-        "watch_for": "Overcommitting before you see what's actually working.",
-        "better_move": "Keep doing what's working. Don't add complexity yet.",
-        "interrupt": "If you're tempted to scale before stabilizing—slow down."
+        "what_happening": "Something is working. You got traction—a response, a result, a sign that the thing you're doing is landing. It's not finished, but it's moving.",
+        "why_feels": "Early wins create urgency to do more, faster. The excitement is real, but so is the temptation to overcommit before you know what's actually sustainable.",
+        "watch_for": "Adding complexity before the current approach stabilizes. Making promises based on early results. Scaling before you understand what's actually working.",
+        "better_move": "Keep doing exactly what's working. Don't optimize yet. Don't expand yet. Let the current move finish playing out before you add anything new.",
+        "interrupt": "If you're thinking about a bigger version of this before the current one is stable—slow down. Finish this phase first."
     },
     "holding_back_expression": {
         "title": "Something Unsaid",
-        "what_happening": "There's something you want to express but haven't yet.",
-        "why_feels": "The words are forming, but the moment doesn't feel right.",
-        "watch_for": "Waiting so long that the moment passes entirely.",
-        "better_move": "Say the smaller version first. See how it lands.",
-        "interrupt": "If you've rehearsed it in your head more than twice—it's time."
+        "what_happening": "There's something you want to say—to a specific person, about a specific thing—and you haven't said it yet. You've thought about how to phrase it. You've played out scenarios. But you haven't pulled the trigger.",
+        "why_feels": "The thing is real, but the moment hasn't felt right. Or you're worried how it will land. Or you're not sure if saying it will actually help. So it stays stuck.",
+        "watch_for": "Waiting for a perfect moment that doesn't come. Hinting at the thing instead of saying it directly. Letting resentment build because the other person should have figured it out by now.",
+        "better_move": "Say the smaller, simpler version. You don't have to say all of it—just the first honest piece. See how that lands before deciding on the rest.",
+        "interrupt": "If you've mentally rehearsed this conversation more than twice—it's ready. The next time you see that person, say the first sentence."
     },
     "decision_avoidance": {
         "title": "Decision in the Room",
-        "what_happening": "A choice is present that you're circling but not making.",
-        "why_feels": "Both options have real costs, so neither feels safe.",
-        "watch_for": "Gathering more information as a way to delay.",
-        "better_move": "Name what you're actually afraid of getting wrong.",
-        "interrupt": "If you've been 'thinking about it' for more than a week—decide or drop it."
+        "what_happening": "There's a choice you've been sitting with for days or weeks. You've thought about it, analyzed it, maybe talked to people about it. But you haven't decided—because both options have real costs and neither feels safe.",
+        "why_feels": "Deciding means closing a door. That loss is real, even if the gain is too. So you stay in analysis mode, where the decision stays theoretical and the consequences stay hypothetical.",
+        "watch_for": "Gathering more information when you already have enough. Running the same mental loop without new inputs. Treating 'I'm still deciding' as an answer when it's actually avoidance.",
+        "better_move": "Name what you're actually afraid of getting wrong. Not the practical risk—the emotional one. That's the real thing stopping you.",
+        "interrupt": "If you've been 'thinking about' this decision for more than a week without new information—it's time. Decide by end of day, or decide to drop it entirely."
     },
     "energy_recovery": {
         "title": "Recovery Phase",
-        "what_happening": "You're coming off a period of output. Energy is rebuilding.",
-        "why_feels": "Lower capacity right now isn't failure—it's recalibration.",
-        "watch_for": "Judging yourself for not being as productive as before.",
-        "better_move": "Protect your recovery. Don't fill the space with new commitments.",
-        "interrupt": "If you feel guilty for resting—that's the signal you need more rest."
+        "what_happening": "You pushed hard recently—maybe a deadline, maybe an emotional stretch, maybe just an extended period of output. Now you're running on less, and it's showing up in your capacity.",
+        "why_feels": "You're comparing today's energy to a version of yourself that didn't just spend a lot. That comparison makes normal recovery feel like failure. It's not—it's the cost of what you did.",
+        "watch_for": "Forcing productivity when your body is asking for rest. Saying yes to things because you feel guilty about slowing down. Judging yourself for not being at full capacity.",
+        "better_move": "Protect the recovery window. Don't fill the empty space with new commitments. Let yourself move slower today so you can move faster later.",
+        "interrupt": "If you feel guilty about doing less—that's the signal you need the rest more, not less. Stay down one more day."
     },
     "quiet_signal_day": {
         "title": "A Quiet Signal Day",
-        "what_happening": "Nothing strong is pulling today. That can be information too.",
-        "why_feels": "Not every day has a clear pattern. Some days are just days.",
-        "watch_for": "Creating urgency where none exists.",
-        "better_move": "Use the space for maintenance, not new projects.",
-        "interrupt": "If you're looking for something to fix—maybe nothing needs fixing today."
+        "what_happening": "No urgent pull today. No strong emotion. No crisis. No breakthrough. Just a regular Tuesday. And weirdly, that might feel uncomfortable.",
+        "why_feels": "You're used to having something to respond to. When there's no fire, you might be tempted to start one—create urgency, find a problem, manufacture intensity.",
+        "watch_for": "Looking for something to fix when nothing is broken. Starting a conversation that doesn't need to happen. Making a neutral day feel significant because quiet feels wrong.",
+        "better_move": "Use the space for maintenance—small tasks, loose ends, things that don't need urgency but do need attention. Don't fill it with new drama.",
+        "interrupt": "If you're scanning for something to worry about or react to—stop. Maybe today is just a day. Let it be that."
     },
     "default": {
-        "title": "Noticing Today",
-        "what_happening": "Something is present that's worth paying attention to.",
-        "why_feels": "Your attention is being drawn somewhere specific.",
-        "watch_for": "Dismissing what you're noticing as unimportant.",
-        "better_move": "Stay with what's here before moving to what's next.",
-        "interrupt": "If you're rushing past this moment—pause and ask why."
+        "title": "Something Present",
+        "what_happening": "There's something here today that's asking for your attention. Not an emergency—more like a pull. You might not have words for it yet, but you're noticing it.",
+        "why_feels": "Your system is picking up a signal that your conscious mind hasn't fully processed. That's not a problem—it's information. The work is to stay with it long enough to hear what it's saying.",
+        "watch_for": "Dismissing the feeling because you can't explain it. Moving too fast past something that needed another minute. Letting noise drown out something quieter but real.",
+        "better_move": "Don't rush to label it. Sit with what you're noticing before you try to solve it. Let it become clearer before you act.",
+        "interrupt": "If you're about to switch tasks or move on and something in you hesitates—listen to that. The hesitation is the signal."
     }
 }
 
