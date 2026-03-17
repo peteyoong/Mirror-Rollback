@@ -1224,7 +1224,6 @@ export default function PatternsScreen() {
             refreshing={patternsRefreshing}
             onRefresh={() => {
               fetchPatterns(true);
-              fetchSynthesis();
             }}
             tintColor={theme.textSecondary}
           />
