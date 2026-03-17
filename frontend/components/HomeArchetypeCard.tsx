@@ -104,40 +104,54 @@ export default function HomeArchetypeCard() {
   const narrative = archetype.narrative;
 
   return (
-    <TouchableOpacity
-      style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}
-      onPress={() => router.push('/(tabs)/patterns')}
-      activeOpacity={0.7}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={[styles.iconBadge, { backgroundColor: COLORS.accentLight }]}>
-          <Text style={styles.archetypeIcon}>{archetype.icon}</Text>
+    <>
+      <TouchableOpacity
+        style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}
+        onPress={() => router.push('/(tabs)/patterns')}
+        activeOpacity={0.7}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={[styles.iconBadge, { backgroundColor: COLORS.accentLight }]}>
+            <Text style={styles.archetypeIcon}>{archetype.icon}</Text>
+          </View>
+          <View style={styles.headerText}>
+            <Text style={[styles.labelText, { color: theme.textTertiary }]}>
+              YOUR PATTERN
+            </Text>
+            <Text style={[styles.archetypeName, { color: theme.text }]}>
+              {archetype.name}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
         </View>
-        <View style={styles.headerText}>
-          <Text style={[styles.labelText, { color: theme.textTertiary }]}>
-            YOUR PATTERN
-          </Text>
-          <Text style={[styles.archetypeName, { color: theme.text }]}>
-            {archetype.name}
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
-      </View>
 
-      {/* Current Expression - Direct, behavioral language */}
-      <Text style={[styles.currentExpression, { color: theme.textSecondary }]}>
-        {narrative.current_expression}
-      </Text>
-
-      {/* Subtle reflection hint */}
-      <View style={styles.reflectionHint}>
-        <Ionicons name="help-circle-outline" size={14} color={COLORS.accent} />
-        <Text style={[styles.reflectionText, { color: theme.textTertiary }]} numberOfLines={1}>
-          {narrative.reflection_question}
+        {/* Current Expression - Direct, behavioral language */}
+        <Text style={[styles.currentExpression, { color: theme.textSecondary }]}>
+          {narrative.current_expression}
         </Text>
-      </View>
-    </TouchableOpacity>
+
+        {/* Subtle reflection hint */}
+        <View style={styles.reflectionHint}>
+          <Ionicons name="help-circle-outline" size={14} color={COLORS.accent} />
+          <Text style={[styles.reflectionText, { color: theme.textTertiary }]} numberOfLines={1}>
+            {narrative.reflection_question}
+          </Text>
+        </View>
+
+        {/* Task 76: Conversation Entry Point */}
+        <ExploreWithMirrorButton 
+          onPress={() => setShowConversation(true)} 
+          compact={true}
+        />
+      </TouchableOpacity>
+
+      {/* Task 76: Conversation Panel */}
+      <PatternConversationPanel 
+        visible={showConversation} 
+        onClose={() => setShowConversation(false)} 
+      />
+    </>
   );
 }
 
