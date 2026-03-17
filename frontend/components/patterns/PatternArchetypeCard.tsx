@@ -7,6 +7,7 @@
  * - Evidence-based explanation ("Why Mirror sees this")
  * - Reflection question
  * - Current relevance
+ * - Task 76: Conversation entry point
  */
 
 import React, { useState, useEffect } from 'react';
@@ -21,6 +22,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
+import PatternConversationPanel, { ExploreWithMirrorButton } from '../PatternConversationPanel';
 
 // Types
 interface ArchetypeNarrative {
