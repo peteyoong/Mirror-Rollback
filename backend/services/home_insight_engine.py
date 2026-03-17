@@ -18,66 +18,102 @@ logger = logging.getLogger(__name__)
 
 PATTERN_TEMPLATES = {
     "fast_start_delayed_feedback": {
-        "title": "Fast Start, Delayed Feedback",
+        "title": "You Moved. Nothing Echoed Back.",
         "what_happening": "You took action—sent the message, made the move, started the thing—but nothing came back yet. No response, no confirmation, no signal that it landed.",
-        "why_feels": "You're ready for the next step, but the world hasn't caught up. That gap between 'I did my part' and 'where's the result' creates pressure that makes you want to do more.",
-        "watch_for": "Sending a follow-up before it's needed. Changing your approach because silence feels like rejection. Doing more when the original move hasn't had time to land.",
+        "why_feels": "You did your part. The world hasn't caught up. That gap creates pressure that makes you want to do more.",
+        "watch_for": "Sending a follow-up before it's needed. Changing direction because silence feels like rejection.",
         "better_move": "Let the current move finish playing out. Give it 24-48 more hours before deciding if something is wrong.",
-        "interrupt": "If you're about to check your inbox again, or send another message, or pivot your strategy—stop. Ask yourself: did anything actually break, or has it just not landed yet?"
+        "interrupt": "If you're about to check again, or send another message—stop. Did anything actually break, or has it just not landed yet?"
     },
     "high_drive_low_signal": {
-        "title": "High Drive, Low Signal",
+        "title": "Energy Without a Target",
         "what_happening": "You have energy and you want to use it, but you don't have a clear target. So you're scanning—opening tabs, starting conversations, looking for something to put the energy into.",
-        "why_feels": "The drive is real but directionless. It's like having a full tank of gas but no destination. That mismatch creates restlessness that disguises itself as productivity.",
-        "watch_for": "Starting three things instead of finishing one. Filling time with tasks that feel useful but don't actually move anything forward. Confusing movement with progress.",
-        "better_move": "Before you start anything new, write down the one thing that would actually matter if it got done today. Do that first.",
-        "interrupt": "If you've opened a new browser tab or switched tasks in the last 10 minutes without finishing something—that's the pattern. Close everything and pick one thing."
+        "why_feels": "The drive is real but directionless. That mismatch creates restlessness disguised as productivity.",
+        "watch_for": "Starting three things instead of finishing one. Confusing movement with progress.",
+        "better_move": "Write down the one thing that would actually matter if it got done today. Do that first.",
+        "interrupt": "If you've switched tasks in the last 10 minutes without finishing something—close everything and pick one thing."
     },
     "emotional_noise_low_clarity": {
-        "title": "Emotional Noise, Low Clarity",
-        "what_happening": "You're feeling something strongly, but you can't name it cleanly. Someone asked 'what's wrong' and you couldn't give a straight answer—not because nothing's wrong, but because it's not one thing.",
-        "why_feels": "Multiple signals are hitting at once—frustration, disappointment, maybe some old stuff getting stirred up. The noise makes it hard to think straight, and that creates more frustration.",
-        "watch_for": "Making a decision to get relief from the discomfort. Picking a fight because the tension needs somewhere to go. Saying something you'll need to walk back later.",
-        "better_move": "Don't try to solve it right now. Write down what you're feeling without trying to fix it. Let the wave move through before you act on any of it.",
-        "interrupt": "If someone asks what's wrong and you feel the urge to snap or give a sharp answer—that's the signal. Say 'I don't know yet' and give yourself more time."
+        "title": "It's Not One Thing",
+        "what_happening": "You're feeling something strongly, but you can't name it cleanly. Someone asked 'what's wrong' and you couldn't give a straight answer—because it's not one thing.",
+        "why_feels": "Multiple signals hitting at once. The noise makes it hard to think straight, and that creates more frustration.",
+        "watch_for": "Making a decision just to get relief. Picking a fight because the tension needs somewhere to go.",
+        "better_move": "Don't solve it right now. Let the wave move through before you act on any of it.",
+        "interrupt": "If someone asks what's wrong and you want to snap—say 'I don't know yet' and give yourself more time."
     },
     "strong_urge_wrong_timing": {
-        "title": "Strong Urge, Wrong Timing",
+        "title": "You're Ready Before It Is",
         "what_happening": "You know what you want to do. You've been ready. But the situation isn't there yet—the other person isn't ready, the opportunity hasn't opened, the pieces aren't in place.",
-        "why_feels": "Your internal clock says 'now' but the external clock says 'not yet.' That mismatch creates pressure to force something that would work better if you waited.",
-        "watch_for": "Trying to manufacture the opening instead of waiting for it. Pushing someone to be ready before they are. Making the move anyway and hoping it works out.",
-        "better_move": "Stay ready without acting. Use this time to get more prepared so when the window opens, you can move cleanly.",
-        "interrupt": "If you're about to push through resistance because you're tired of waiting—pause. Ask yourself: will forcing this now create a bigger problem than waiting?"
+        "why_feels": "Your internal clock says 'now' but the external clock says 'not yet.' That mismatch creates pressure to force it.",
+        "watch_for": "Trying to manufacture the opening. Pushing someone to be ready before they are.",
+        "better_move": "Stay ready without acting. Use this time to prepare so when the window opens, you can move cleanly.",
+        "interrupt": "If you're about to push through resistance—will forcing this now create a bigger problem than waiting?"
     },
     "pattern_returning_control": {
-        "title": "Pattern Returning: Control Under Pressure",
-        "what_happening": "Something uncertain showed up—a conversation that didn't go as planned, a result you can't predict, a situation you can't fully manage. And your response is to tighten your grip on everything you can control.",
-        "why_feels": "When you can't control the big thing, controlling the small things feels like safety. It's not—it's just a way to manage anxiety. But it feels productive in the moment.",
-        "watch_for": "Over-preparing for things that don't need it. Checking details you've already checked. Asking for updates on things that are already in motion. Managing other people's work too closely.",
-        "better_move": "Name the thing you're actually worried about—the real thing, not the surface one. Then ask: is controlling these details actually helping that, or just keeping you busy?",
-        "interrupt": "If you're reviewing something for the third time or asking someone for a status update you don't need—that's the pattern. Step back and let it breathe."
+        "title": "The Grip Is Getting Tighter",
+        "what_happening": "Something uncertain showed up. And your response is to tighten your grip on everything you can control—details, plans, other people's work.",
+        "why_feels": "When you can't control the big thing, controlling small things feels like safety. It's not. But it feels productive.",
+        "watch_for": "Over-preparing. Checking details you've already checked. Asking for updates you don't need.",
+        "better_move": "Name what you're actually worried about—the real thing. Is controlling details helping that, or keeping you busy?",
+        "interrupt": "If you're reviewing something for the third time—that's the pattern. Step back and let it breathe."
     },
     "waiting_for_permission": {
-        "title": "Waiting for Permission",
-        "what_happening": "You know what you want to do. You've known for a while. But you haven't done it yet because part of you is waiting for someone to say it's the right call—a sign, a green light, an external yes.",
-        "why_feels": "The decision is already made inside you, but you don't fully trust it. So you keep gathering input, asking questions, running scenarios—not to decide, but to delay committing.",
-        "watch_for": "Asking for opinions you don't actually need. Framing a statement as a question. Waiting for someone to give you permission you could give yourself.",
-        "better_move": "Notice what you would do if you knew no one would judge the choice. That's probably the answer.",
-        "interrupt": "If you're about to ask someone 'what do you think I should do'—stop. Check if you already know what you'd do if they weren't there."
+        "title": "You Already Know",
+        "what_happening": "You know what you want to do. You've known for a while. But you're waiting for someone to say it's the right call—a sign, a green light, an external yes.",
+        "why_feels": "The decision is already made inside you, but you don't fully trust it. So you keep gathering input to delay committing.",
+        "watch_for": "Asking for opinions you don't need. Framing statements as questions. Waiting for permission you could give yourself.",
+        "better_move": "Notice what you would do if no one would judge the choice. That's probably the answer.",
+        "interrupt": "If you're about to ask 'what do you think I should do'—check if you already know what you'd do without them."
     },
     "momentum_building": {
-        "title": "Momentum Building",
-        "what_happening": "Something is working. You got traction—a response, a result, a sign that the thing you're doing is landing. It's not finished, but it's moving.",
-        "why_feels": "Early wins create urgency to do more, faster. The excitement is real, but so is the temptation to overcommit before you know what's actually sustainable.",
-        "watch_for": "Adding complexity before the current approach stabilizes. Making promises based on early results. Scaling before you understand what's actually working.",
-        "better_move": "Keep doing exactly what's working. Don't optimize yet. Don't expand yet. Let the current move finish playing out before you add anything new.",
-        "interrupt": "If you're thinking about a bigger version of this before the current one is stable—slow down. Finish this phase first."
+        "title": "It's Starting to Work",
+        "what_happening": "Something is working. You got traction—a response, a result, a sign that the thing is landing. It's not finished, but it's moving.",
+        "why_feels": "Early wins create urgency to do more, faster. The excitement is real, but so is the temptation to overcommit.",
+        "watch_for": "Adding complexity before this stabilizes. Making promises based on early results.",
+        "better_move": "Keep doing exactly what's working. Don't optimize yet. Don't expand yet.",
+        "interrupt": "If you're thinking about the bigger version before this one is stable—slow down. Finish this phase first."
     },
     "holding_back_expression": {
-        "title": "Something Unsaid",
-        "what_happening": "There's something you want to say—to a specific person, about a specific thing—and you haven't said it yet. You've thought about how to phrase it. You've played out scenarios. But you haven't pulled the trigger.",
-        "why_feels": "The thing is real, but the moment hasn't felt right. Or you're worried how it will land. Or you're not sure if saying it will actually help. So it stays stuck.",
-        "watch_for": "Waiting for a perfect moment that doesn't come. Hinting at the thing instead of saying it directly. Letting resentment build because the other person should have figured it out by now.",
+        "title": "Something Wants to Be Said",
+        "what_happening": "There's something you want to say—to a specific person, about a specific thing—and you haven't said it yet. You've rehearsed it. But you haven't pulled the trigger.",
+        "why_feels": "The thing is real, but the moment hasn't felt right. Or you're worried how it will land. So it stays stuck.",
+        "watch_for": "Waiting for a perfect moment that doesn't come. Letting resentment build because they should have figured it out.",
+        "better_move": "Say the smaller version first. You don't have to say all of it—just the first honest piece.",
+        "interrupt": "If you've rehearsed this in your head more than twice—it's ready. Say the first sentence."
+    },
+    "decision_avoidance": {
+        "title": "The Choice You Keep Circling",
+        "what_happening": "There's a decision you've been sitting with. You've thought about it, analyzed it, talked to people about it. But you haven't decided—because both options have real costs.",
+        "why_feels": "Deciding means closing a door. That loss is real. So you stay in analysis mode where consequences stay hypothetical.",
+        "watch_for": "Gathering more information when you already have enough. Treating 'still deciding' as an answer when it's avoidance.",
+        "better_move": "Name what you're actually afraid of getting wrong. Not the practical risk—the emotional one.",
+        "interrupt": "If you've been 'thinking about it' for more than a week without new information—decide today or drop it."
+    },
+    "energy_recovery": {
+        "title": "You Spent Something Recently",
+        "what_happening": "You pushed hard recently—a deadline, an emotional stretch, an extended period of output. Now you're running on less, and it's showing.",
+        "why_feels": "You're comparing today's energy to a version of yourself that didn't just spend a lot. That comparison makes recovery feel like failure.",
+        "watch_for": "Forcing productivity when your body asks for rest. Saying yes because you feel guilty about slowing down.",
+        "better_move": "Protect the recovery window. Don't fill empty space with new commitments.",
+        "interrupt": "If you feel guilty about doing less—that's the signal you need the rest more, not less."
+    },
+    "quiet_signal_day": {
+        "title": "Nothing Urgent Is Pulling",
+        "what_happening": "No urgent pull today. No strong emotion. No crisis. No breakthrough. Just a regular day. And that might feel uncomfortable.",
+        "why_feels": "You're used to having something to respond to. When there's no fire, you might be tempted to start one.",
+        "watch_for": "Looking for something to fix when nothing is broken. Making a neutral day feel significant because quiet feels wrong.",
+        "better_move": "Use the space for maintenance—loose ends, small tasks. Don't fill it with new drama.",
+        "interrupt": "If you're scanning for something to worry about—stop. Maybe today is just a day."
+    },
+    "default": {
+        "title": "Something Present",
+        "what_happening": "There's something here today asking for your attention. Not an emergency—more like a pull. You might not have words for it yet.",
+        "why_feels": "Your system is picking up a signal that your conscious mind hasn't fully processed. That's not a problem—it's information.",
+        "watch_for": "Dismissing the feeling because you can't explain it. Moving too fast past something that needed another minute.",
+        "better_move": "Don't rush to label it. Sit with what you're noticing before you try to solve it.",
+        "interrupt": "If you're about to move on and something in you hesitates—listen to that. The hesitation is the signal."
+    }
+}
         "better_move": "Say the smaller, simpler version. You don't have to say all of it—just the first honest piece. See how that lands before deciding on the rest.",
         "interrupt": "If you've mentally rehearsed this conversation more than twice—it's ready. The next time you see that person, say the first sentence."
     },
