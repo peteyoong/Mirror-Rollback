@@ -273,6 +273,35 @@ def detect_chart_resonances(
                     "signal_name": signal_info.get("name", signal_type),
                     "system": signal_info.get("system", "unknown"),
                     "description": signal_info.get("description", ""),
+                    "reflection": signal_info.get("reflection", ""),
+                    "age_at_event": event_year - birth_year,
+                    "match_quality": "exact" if year_diff == 0 else "near",
+                    "confidence": confidence
+                })
+    
+    # Filter by minimum confidence
+    confident_resonances = [r for r in raw_resonances if r["confidence"] >= min_confidence]
+    
+    # Deduplicate: For each signal_type, only keep the best match per 3-year window
+    # This prevents "Saturn Return" showing for every event in 1996, 1997, 1998
+    deduped_resonances = deduplicate_resonances_by_window(confident_resonances, window_years=3)
+    
+    # Remove event-level duplicates (same event matching multiple similar signals)
+    seen = set()
+    unique_resonances = []
+    for r in deduped_resonances:
+        key = (r["event_id"], r["signal_type"])
+        if key not in seen:
+            seen.add(key)
+            unique_resonances.append(r)
+    
+    # Sort by event year
+    unique_resonances.sort(key=lambda x: x["event_year"])
+    
+    logger.info(f"[ChartResonance] Detected {len(unique_resonances)} resonances for birth_year={birth_year} (filtered from {len(raw_resonances)} raw)")
+    
+    return unique_resonances
+
 
 def deduplicate_resonances_by_window(resonances: List[Dict], window_years: int = 3) -> List[Dict]:
     """
