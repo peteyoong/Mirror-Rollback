@@ -496,73 +496,13 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            SECTION 1: OPENING HIT - Hero Block
+            SECTION 1: DAILY INSIGHT - New Structured Format
             =================================================================== */}
-        {keystone && !isLoading && (
-          <View style={styles.heroSection}>
-            {/* Primary Personalized Statement */}
-            <Text style={[styles.heroStatement, { color: theme.text }]}>
-              {keystone.keystone}
-            </Text>
-            
-            {/* Personal Echo from Lifeline (if available) */}
-            {keystone.personal_echo && (
-              <Text style={[styles.heroEcho, { color: theme.accent }]}>
-                {keystone.personal_echo}
-              </Text>
-            )}
-            
-            {/* Cause Layer - Why this pattern keeps returning (if available) */}
-            {keystone.cause_layer && (
-              <Text style={[styles.heroCause, { color: theme.textSecondary }]}>
-                {keystone.cause_layer}
-              </Text>
-            )}
-            
-            {/* Decision Replay - Past decision reference (if available) */}
-            {keystone.decision_replay && (
-              <View style={[styles.heroDecisionReplay, { borderColor: theme.accent, backgroundColor: `${theme.accent}08` }]}>
-                <Text style={[styles.heroDecisionReplayText, { color: theme.text }]}>
-                  {keystone.decision_replay}
-                </Text>
-              </View>
-            )}
-            
-            {/* Pattern Phase Line - Current phase detection (if available) */}
-            {keystone.pattern_phase_line && (
-              <View style={[styles.heroPhaseLine, { backgroundColor: 'rgba(16, 185, 129, 0.08)', borderColor: 'rgba(16, 185, 129, 0.3)' }]}>
-                <Text style={[styles.heroPhaseLineText, { color: '#10B981' }]}>
-                  {keystone.pattern_phase_line}
-                </Text>
-              </View>
-            )}
-            
-            {/* Decision Awareness Prompt - Reflective prompt (if available) */}
-            {keystone.decision_awareness_prompt && (
-              <View style={[styles.heroAwarenessPrompt, { borderColor: theme.border, backgroundColor: theme.surface }]}>
-                <Text style={[styles.heroAwarenessLabel, { color: theme.textTertiary }]}>
-                  DECISION AWARENESS
-                </Text>
-                <Text style={[styles.heroAwarenessText, { color: theme.textSecondary }]}>
-                  {keystone.decision_awareness_prompt}
-                </Text>
-              </View>
-            )}
-            
-            {/* Supporting Explanation */}
-            <Text style={[styles.heroSupport, { color: theme.textSecondary }]}>
-              {keystone.micro_affirmation}
-            </Text>
-            
-            {/* Primary CTA */}
-            <TouchableOpacity
-              style={[styles.heroCTA, { backgroundColor: theme.accent }]}
-              onPress={handleReflect}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.heroCTAText, { color: '#FFFFFF' }]}>Reflect</Text>
-            </TouchableOpacity>
-          </View>
+        {!isLoading && (
+          <HomeInsightCard 
+            insight={dailyInsight} 
+            isLoading={insightLoading} 
+          />
         )}
 
         {/* ===================================================================
