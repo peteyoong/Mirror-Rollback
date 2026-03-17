@@ -237,6 +237,7 @@ export default function MirrorScreen() {
     setIsLoading(true);
     
     await Promise.all([
+      loadDailyInsight(),  // NEW: Load structured daily insight
       loadKeystone(),
       loadPatternData(),
       loadRecentReflection(),
