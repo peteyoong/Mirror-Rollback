@@ -169,6 +169,15 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
     loadTimeline();
   }, [loadTimeline]);
 
+  // Refresh all data when screen comes into focus
+  // This ensures resonances, patterns, and timeline update after imports
+  useFocusEffect(
+    useCallback(() => {
+      console.log('[Lifeline] Screen focused - refreshing all data');
+      loadTimeline(true); // Force refresh on focus
+    }, [loadTimeline])
+  );
+
   // Save event (create or update)
   const handleSaveEvent = async (eventData: Partial<LifelineEvent>) => {
     if (eventData.id) {
