@@ -10755,7 +10755,8 @@ async def get_pattern_graph(user_id: str):
             mirror_insights=mirror_insights,  # Include mirror insights
             enneagram_type=enneagram_type,
             enneagram_wing=enneagram_wing,
-            natal_chart=natal_chart  # Pass natal chart for personalized transits
+            natal_chart=natal_chart,  # Pass natal chart for personalized transits
+            lifeline_events=lifeline_events  # NEW: Include Lifeline events
         )
         
         # Generate synthesis for recurring/active categories
