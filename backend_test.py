@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://mirror-decision-mind.preview.emergentagent.com/api"
+BASE_URL = "https://lifeline-fixes.preview.emergentagent.com/api"
 TEST_USER_ID = "697f0c6abf35c0528ff06954"  # User with 10 clean events after migration
 
 def log_test(test_name, status, details=""):

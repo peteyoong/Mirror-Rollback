@@ -10,7 +10,7 @@ import time
 from typing import Dict, Any, List
 
 # Base URL from frontend/.env REACT_APP_BACKEND_URL
-BASE_URL = "https://mirror-decision-mind.preview.emergentagent.com/api"
+BASE_URL = "https://lifeline-fixes.preview.emergentagent.com/api"
 
 # Test user ID from review request
 TEST_USER_ID = "697f0c6abf35c0528ff06954"
