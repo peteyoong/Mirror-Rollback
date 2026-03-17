@@ -1142,7 +1142,7 @@ export default function PatternsScreen() {
                       )}
                       
                       <Text style={[styles.enhancedEnergyText, { color: theme.textSecondary }]}>
-                        These transits may be temporarily amplifying this pattern. This is natural and part of ongoing cycles.
+                        These transits are temporarily amplifying this pattern. This is natural and part of ongoing cycles.
                       </Text>
                     </View>
                   );
