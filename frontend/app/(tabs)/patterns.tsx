@@ -245,9 +245,7 @@ export default function PatternsScreen() {
   const [timelineError, setTimelineError] = useState<string | null>(null);
   const [expandedWeek, setExpandedWeek] = useState<string | null>(null);
   
-  // Cross-Lens Synthesis State
-  const [synthesis, setSynthesis] = useState<SynthesisData | null>(null);
-  const [synthesisLoading, setSynthesisLoading] = useState(true);
+  // Task 75: Removed Cross-Lens Synthesis State - Archetype card is single source of truth
   
   // Chart Resonance State (for Pattern Lens section)
   const [chartResonances, setChartResonances] = useState<PatternResonanceSummary[]>([]);
