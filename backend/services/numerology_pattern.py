@@ -520,9 +520,14 @@ async def compute_numerology_pattern(
         'soul_urge': soul_urge,
         'personality': personality,
         'birth_date': birth_date.isoformat(),
-        'lo_shu_grid': lo_shu['grid'],
+        # New Lo Shu structure (Task: API Data Contract Cleanup)
+        'lo_shu_template': lo_shu['lo_shu_template'],
+        'lo_shu_counts': lo_shu['lo_shu_counts'],
+        'lo_shu_display': lo_shu['lo_shu_display'],
+        # Keep these for backward compatibility
         'present_numbers': lo_shu['present_numbers'],
         'missing_numbers': lo_shu['missing_numbers'],
+        # Pattern content
         'core_pattern': core_pattern,
         'how_this_shows_up': how_shows_up,
         'internal_tensions': internal_tensions,
