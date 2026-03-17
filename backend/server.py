@@ -19543,7 +19543,7 @@ async def get_lifeline_resonances(user_id: str):
                 resonance_map[event_id] = []
             resonance_map[event_id].append(r)
         
-        logger.info(f"[ChartResonance] Found {len(resonances)} resonances for user {user_id}")
+        logger.info(f"[ChartResonance] Found {len(resonances)} resonances from {len(events)} canonical events for user {user_id}")
         
         return {
             "success": True,
@@ -19553,6 +19553,8 @@ async def get_lifeline_resonances(user_id: str):
             "resonance_map": resonance_map,
             "pattern_summary": pattern_summary,
             "total_count": len(resonances),
+            "event_count": len(events),  # Debug: canonical event count used
+            "computed_at": datetime.now(timezone.utc).isoformat(),  # Debug: timestamp
         }
         
     except HTTPException:
