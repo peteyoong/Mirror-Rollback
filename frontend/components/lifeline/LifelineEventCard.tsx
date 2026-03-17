@@ -67,18 +67,33 @@ const TONE_COLORS = {
 };
 
 /**
- * Clean malformed event titles that have numeric parsing artifacts.
- * Examples: "0 Transitioned to Australia", "2 -4 0 Parents divorced"
+ * Clean malformed event text that has numeric parsing artifacts.
+ * Examples: "0 Transitioned to Australia", "2 -4 0 Parents divorced", "1970 2 -4 0 Parents divorced"
+ * 
+ * This function handles various patterns from import parsing:
+ * - Leading single digits: "0 Started..."
+ * - Year-like prefixes: "1970 2 -4 0 Parents..."
+ * - Multiple numeric chunks: "2 -4 0 Something..."
  */
-function cleanDisplayTitle(title: string): string {
-  if (!title) return '';
+function cleanDisplayText(text: string): string {
+  if (!text) return '';
   
-  // Remove leading numeric patterns like "0 ", "2 -4 0 ", etc.
-  // Pattern: start with digits, optionally followed by spaces/dashes/more digits
-  let cleaned = title.replace(/^[\d\s\-]+(?=\s*[A-Za-z])/, '').trim();
+  let cleaned = text;
+  
+  // Pattern 1: Remove leading year-like numbers (4 digits) followed by garbage
+  // "1970 2 -4 0 Parents divorced" -> "Parents divorced"
+  cleaned = cleaned.replace(/^\d{4}\s+[\d\s\-]+(?=[A-Za-z])/, '').trim();
+  
+  // Pattern 2: Remove leading numeric patterns like "0 ", "2 -4 0 ", etc.
+  // "0 Started direct selling" -> "Started direct selling"
+  cleaned = cleaned.replace(/^[\d\s\-]+(?=\s*[A-Za-z])/, '').trim();
+  
+  // Pattern 3: Remove isolated leading numbers or dashes at start
+  // "-4 0 Something" -> "Something"
+  cleaned = cleaned.replace(/^[-\d\s]+(?=[A-Za-z])/, '').trim();
   
   // If we cleaned too much and the result is empty, return original
-  if (!cleaned) return title;
+  if (!cleaned) return text;
   
   // Capitalize first letter if it was lowercased after cleaning
   if (cleaned[0] && cleaned[0].match(/[a-z]/)) {
@@ -87,6 +102,9 @@ function cleanDisplayTitle(title: string): string {
   
   return cleaned;
 }
+
+// Alias for backward compatibility
+const cleanDisplayTitle = cleanDisplayText;
 
 export default function LifelineEventCard({ event, onPress, onEdit, onDelete, isCompact = false, resonances = [] }: Props) {
   const { theme } = useTheme();
