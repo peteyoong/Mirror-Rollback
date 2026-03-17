@@ -167,7 +167,7 @@ const DOMAIN_CONTENT: Record<string, DomainContent> = {
   },
   'mind_meaning': {
     quietSynthesis: "Your mind is settled. Less analyzing, more experiencing.",
-    presentSynthesis: "You're trying to figure something out. The mind is working overtime on a problem that may not be mental.",
+    presentSynthesis: "You're trying to figure something out. The mind is working overtime on a problem that isn't purely mental.",
     presentShowUp: "Overthinking. Loops that don't resolve. A belief that understanding will bring relief.",
     recurringSynthesis: "The same questions keep circling. Your mind is fixated because something hasn't been integrated.",
     recurringShowUp: "A persistent question without a clear answer. The mind keeps chewing on something the heart hasn't accepted.",
