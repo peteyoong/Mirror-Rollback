@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # Life-derived signals weigh more than framework signals
 
 SIGNAL_WEIGHTS = {
+    "lifeline": 3,          # Highest - direct life experience
     "journal": 3,           # Highest - direct user reflection
     "mirror_chat": 2,       # High - user-initiated conversation
     "gene_keys": 1,         # Framework-based
