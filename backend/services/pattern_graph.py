@@ -1216,9 +1216,9 @@ def get_category_summary(category: dict, strength: str) -> str:
     if strength == "quiet":
         return category.get("quiet_summary", "No strong signals at the moment.")
     elif strength == "present":
-        return category.get("emerging_summary", "A theme may be starting to surface.")
+        return category.get("emerging_summary", "A theme is starting to surface.")
     else:  # recurring
-        return category.get("active_summary", "This theme seems to be present across your reflection.")
+        return category.get("active_summary", "This theme is present across your reflection.")
 
 
 def get_category_summary_dynamic(category: dict, status: str) -> str:
