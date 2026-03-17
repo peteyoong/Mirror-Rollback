@@ -20236,9 +20236,9 @@ async def get_daily_pattern_signal(user_id: str):
         return DailyPatternSignalResponse(
             success=False,
             signal_title="Daily Pattern Signal",
-            insight_text="Patterns often reveal themselves in quiet moments. This may be one worth noticing.",
+            insight_text="Patterns reveal themselves in quiet moments. This is one worth noticing.",
             past_reflection=None,
-            reflective_question="What familiar feeling seems to be present today?",
+            reflective_question="What familiar feeling is present today?",
             pattern_type=None,
             pattern_name=None,
             confidence=0.3,
