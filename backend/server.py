@@ -19816,7 +19816,8 @@ async def confirm_lifeline_import(
     2. Finds duplicates in existing canonical events
     3. Merges exact matches automatically (if auto_merge_exact=True)
     4. Creates new canonical events for non-matches
-    5. Returns stats and any items needing manual review
+    5. Invalidates lifeline synthesis cache
+    6. Returns stats and any items needing manual review
     """
     try:
         # First mark all moments as reviewed
@@ -19831,6 +19832,15 @@ async def confirm_lifeline_import(
             import_source_id=import_source_id,
             auto_merge_exact=auto_merge_exact
         )
+        
+        # Get user_id from import source for cache invalidation
+        import_source = await db.lifeline_import_sources.find_one({"_id": ObjectId(import_source_id)})
+        if import_source:
+            user_id = import_source.get("user_id")
+            
+            # Invalidate lifeline synthesis cache so it regenerates with new data
+            await db.lifeline_synthesis_cache.delete_many({"user_id": user_id})
+            logger.info(f"[LifelineIngestion] Invalidated synthesis cache for user {user_id[:8]}")
         
         return {
             "success": True,
