@@ -144,10 +144,26 @@ export default function PatternArchetypeCard() {
         </View>
       </View>
 
-      {/* Summary */}
+      {/* Summary + Contrast */}
       <Text style={[styles.summary, { color: theme.textSecondary }]}>
         {narrative.summary}
       </Text>
+      {narrative.contrast && (
+        <Text style={[styles.contrast, { color: theme.text }]}>
+          {narrative.contrast}
+        </Text>
+      )}
+
+      {/* How This Shows Up - Always visible */}
+      {narrative.how_this_shows_up && narrative.how_this_shows_up.length > 0 && (
+        <View style={styles.showsUpSection}>
+          {narrative.how_this_shows_up.map((item, index) => (
+            <Text key={index} style={[styles.showsUpItem, { color: theme.textSecondary }]}>
+              {item}
+            </Text>
+          ))}
+        </View>
+      )}
 
       {/* Expandable Section */}
       <TouchableOpacity
