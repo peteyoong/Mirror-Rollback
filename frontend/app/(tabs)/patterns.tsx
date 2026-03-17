@@ -695,7 +695,7 @@ export default function PatternsScreen() {
       case 'astrology_transit':
         return {
           title: 'Enhanced Energy',
-          description: `A current timing influence may be amplifying ${detail || 'this pattern'}. This is temporary and part of natural cycles.`
+          description: `A current timing influence is amplifying ${detail || 'this pattern'}. This is temporary and part of natural cycles.`
         };
       
       case 'pattern_memory':
