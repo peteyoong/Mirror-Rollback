@@ -621,6 +621,209 @@ def aggregate_journal_signals(
     return category_signals
 
 
+# =============================================================================
+# LIFELINE SIGNAL AGGREGATION
+# =============================================================================
+# Maps Lifeline event categories to pattern domains
+
+LIFELINE_CATEGORY_DOMAIN_MAP = {
+    # Career/work related
+    "career": "expression_action",
+    "work": "expression_action",
+    "job": "expression_action",
+    "professional": "expression_action",
+    
+    # Relationship related
+    "relationship": "relationships_boundaries",
+    "relationships": "relationships_boundaries",
+    "family": "relationships_boundaries",
+    "marriage": "relationships_boundaries",
+    "divorce": "relationships_boundaries",
+    "friendship": "relationships_boundaries",
+    
+    # Personal growth
+    "growth": "growth_transformation",
+    "transformation": "growth_transformation",
+    "turning point": "growth_transformation",
+    "milestone": "growth_transformation",
+    "achievement": "growth_transformation",
+    "challenge": "growth_transformation",
+    
+    # Identity related
+    "identity": "identity_direction",
+    "move": "identity_direction",
+    "relocation": "identity_direction",
+    "education": "mind_meaning",
+    "learning": "mind_meaning",
+    
+    # Health and energy
+    "health": "energy_vitality",
+    "illness": "energy_vitality",
+    "recovery": "energy_vitality",
+    
+    # Emotional events
+    "loss": "emotional_landscape",
+    "grief": "emotional_landscape",
+    "joy": "emotional_landscape",
+    "trauma": "emotional_landscape",
+}
+
+
+def aggregate_lifeline_signals(
+    lifeline_events: Optional[List[dict]] = None,
+    max_events: int = 20
+) -> Dict[str, List[MatchedSignal]]:
+    """Extract pattern signals from Lifeline events.
+    
+    Analyzes:
+    - Event categories to domain mapping
+    - High-impact events (impact_score >= 7)
+    - Clustered events (multiple events in similar time periods)
+    - Repeated categories
+    
+    Args:
+        lifeline_events: List of Lifeline events from the database
+        max_events: Maximum events to process
+    
+    Returns:
+        Dict mapping category_id to list of matched signals
+    """
+    category_signals: Dict[str, List[MatchedSignal]] = {
+        cat["id"]: [] for cat in PATTERN_CATEGORIES
+    }
+    
+    if not lifeline_events:
+        return category_signals
+    
+    # Track category counts for repeated categories
+    category_counts: Dict[str, int] = {}
+    high_impact_events: List[dict] = []
+    year_clusters: Dict[int, List[dict]] = {}
+    
+    for event in lifeline_events[:max_events]:
+        event_category = (event.get("category") or "").lower()
+        event_year = event.get("year")
+        event_title = event.get("title", "")
+        impact_score = event.get("impact_score", 5)
+        
+        # Track category counts
+        if event_category:
+            category_counts[event_category] = category_counts.get(event_category, 0) + 1
+        
+        # Track high-impact events
+        if impact_score and impact_score >= 7:
+            high_impact_events.append(event)
+        
+        # Track year clusters (group by decade)
+        if event_year:
+            decade = (event_year // 10) * 10
+            if decade not in year_clusters:
+                year_clusters[decade] = []
+            year_clusters[decade].append(event)
+        
+        # Map event category to pattern domain
+        domain_id = None
+        for cat_key, domain in LIFELINE_CATEGORY_DOMAIN_MAP.items():
+            if cat_key in event_category:
+                domain_id = domain
+                break
+        
+        # Default mapping based on keywords in title if no category match
+        if not domain_id and event_title:
+            title_lower = event_title.lower()
+            for cat_id, keywords in KEYWORD_CATEGORY_MAP.items():
+                if any(kw in title_lower for kw in keywords[:5]):  # Check first 5 keywords
+                    domain_id = cat_id
+                    break
+        
+        # Create signal for the event
+        if domain_id and domain_id in category_signals:
+            signal: MatchedSignal = {
+                "source": "lifeline",
+                "label": event_title[:50] + ("..." if len(event_title) > 50 else ""),
+                "sphere_name": event_category.title() if event_category else None,
+                "detail": f"Year {event_year}" if event_year else "From your Lifeline"
+            }
+            
+            # Avoid duplicates
+            existing_labels = [s["label"] for s in category_signals[domain_id]]
+            if signal["label"] not in existing_labels:
+                category_signals[domain_id].append(signal)
+    
+    # Add signals for REPEATED CATEGORIES (strong pattern evidence)
+    for cat_name, count in category_counts.items():
+        if count >= 3:  # At least 3 events in same category
+            domain_id = None
+            for cat_key, domain in LIFELINE_CATEGORY_DOMAIN_MAP.items():
+                if cat_key in cat_name:
+                    domain_id = domain
+                    break
+            
+            if domain_id and domain_id in category_signals:
+                signal: MatchedSignal = {
+                    "source": "lifeline",
+                    "label": f"Recurring {cat_name.title()} theme",
+                    "sphere_name": "Pattern",
+                    "detail": f"{count} events in this area across your life"
+                }
+                existing_labels = [s["label"] for s in category_signals[domain_id]]
+                if signal["label"] not in existing_labels:
+                    category_signals[domain_id].append(signal)
+    
+    # Add signals for HIGH-IMPACT EVENTS
+    for event in high_impact_events[:3]:  # Top 3 high-impact events
+        event_category = (event.get("category") or "").lower()
+        domain_id = None
+        for cat_key, domain in LIFELINE_CATEGORY_DOMAIN_MAP.items():
+            if cat_key in event_category:
+                domain_id = domain
+                break
+        
+        # Default to growth_transformation for high-impact events without category
+        if not domain_id:
+            domain_id = "growth_transformation"
+        
+        if domain_id in category_signals:
+            signal: MatchedSignal = {
+                "source": "lifeline",
+                "label": f"Major moment: {event.get('title', 'Significant event')[:40]}",
+                "sphere_name": "High Impact",
+                "detail": f"Impact score: {event.get('impact_score', 7)}/10"
+            }
+            existing_labels = [s["label"] for s in category_signals[domain_id]]
+            if signal["label"] not in existing_labels:
+                category_signals[domain_id].append(signal)
+    
+    # Add signals for CLUSTERED PERIODS (multiple events in same decade)
+    for decade, events in year_clusters.items():
+        if len(events) >= 3:  # At least 3 events in same decade
+            # Determine dominant domain for this cluster
+            cluster_categories = [e.get("category", "") for e in events if e.get("category")]
+            if cluster_categories:
+                most_common = max(set(cluster_categories), key=cluster_categories.count)
+                domain_id = None
+                for cat_key, domain in LIFELINE_CATEGORY_DOMAIN_MAP.items():
+                    if cat_key in most_common.lower():
+                        domain_id = domain
+                        break
+            else:
+                domain_id = "growth_transformation"  # Default for clusters
+            
+            if domain_id and domain_id in category_signals:
+                signal: MatchedSignal = {
+                    "source": "lifeline",
+                    "label": f"Active period: {decade}s",
+                    "sphere_name": "Time Cluster",
+                    "detail": f"{len(events)} significant events in this decade"
+                }
+                existing_labels = [s["label"] for s in category_signals[domain_id]]
+                if signal["label"] not in existing_labels:
+                    category_signals[domain_id].append(signal)
+    
+    logger.info(f"[PatternGraph] Extracted {sum(len(v) for v in category_signals.values())} Lifeline signals")
+    return category_signals
+
+
 def aggregate_human_design_center_signals(
     centers_profile: Optional[List[dict]] = None,
     active_gates: Optional[List[int]] = None
