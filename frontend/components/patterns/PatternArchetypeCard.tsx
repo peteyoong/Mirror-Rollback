@@ -27,7 +27,9 @@ interface ArchetypeNarrative {
   headline: string;
   icon: string;
   summary: string;
+  contrast: string;
   short_description: string;
+  how_this_shows_up: string[];
   why_this_pattern: string[];
   current_expression: string;
   reflection_question: string;
