@@ -19196,7 +19196,12 @@ async def update_lifeline_event(event_id: str, update: LifelineEventUpdate):
         # Fetch updated document
         updated = await db.lifeline_events.find_one({"_id": ObjectId(event_id)})
         
-        logger.info(f"[Lifeline] Updated event {event_id}")
+        # Invalidate synthesis cache
+        user_id = updated.get("user_id")
+        if user_id:
+            await db.lifeline_synthesis_cache.delete_many({"user_id": user_id})
+        
+        logger.info(f"[Lifeline] Updated event {event_id}, cache invalidated")
         
         return {
             "success": True,
