@@ -415,6 +415,16 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
         </View>
       </ScrollView>
 
+      {/* Add to Lifeline Menu */}
+      <LifelineAddMenu
+        visible={showAddMenu}
+        onClose={() => setShowAddMenu(false)}
+        onAddManually={handleAddEvent}
+        onViewSources={() => router.push('/lifeline-imported-sources')}
+        hasImportedSources={importSourceCount > 0}
+        importedSourceCount={importSourceCount}
+      />
+
       {/* Event Editor Modal */}
       <LifelineEventEditor
         visible={showEditor}
