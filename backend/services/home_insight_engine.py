@@ -114,42 +114,6 @@ PATTERN_TEMPLATES = {
         "interrupt": "If you're about to move on and something in you hesitates—listen to that. The hesitation is the signal."
     }
 }
-        "better_move": "Say the smaller, simpler version. You don't have to say all of it—just the first honest piece. See how that lands before deciding on the rest.",
-        "interrupt": "If you've mentally rehearsed this conversation more than twice—it's ready. The next time you see that person, say the first sentence."
-    },
-    "decision_avoidance": {
-        "title": "Decision in the Room",
-        "what_happening": "There's a choice you've been sitting with for days or weeks. You've thought about it, analyzed it, maybe talked to people about it. But you haven't decided—because both options have real costs and neither feels safe.",
-        "why_feels": "Deciding means closing a door. That loss is real, even if the gain is too. So you stay in analysis mode, where the decision stays theoretical and the consequences stay hypothetical.",
-        "watch_for": "Gathering more information when you already have enough. Running the same mental loop without new inputs. Treating 'I'm still deciding' as an answer when it's actually avoidance.",
-        "better_move": "Name what you're actually afraid of getting wrong. Not the practical risk—the emotional one. That's the real thing stopping you.",
-        "interrupt": "If you've been 'thinking about' this decision for more than a week without new information—it's time. Decide by end of day, or decide to drop it entirely."
-    },
-    "energy_recovery": {
-        "title": "Recovery Phase",
-        "what_happening": "You pushed hard recently—maybe a deadline, maybe an emotional stretch, maybe just an extended period of output. Now you're running on less, and it's showing up in your capacity.",
-        "why_feels": "You're comparing today's energy to a version of yourself that didn't just spend a lot. That comparison makes normal recovery feel like failure. It's not—it's the cost of what you did.",
-        "watch_for": "Forcing productivity when your body is asking for rest. Saying yes to things because you feel guilty about slowing down. Judging yourself for not being at full capacity.",
-        "better_move": "Protect the recovery window. Don't fill the empty space with new commitments. Let yourself move slower today so you can move faster later.",
-        "interrupt": "If you feel guilty about doing less—that's the signal you need the rest more, not less. Stay down one more day."
-    },
-    "quiet_signal_day": {
-        "title": "A Quiet Signal Day",
-        "what_happening": "No urgent pull today. No strong emotion. No crisis. No breakthrough. Just a regular Tuesday. And weirdly, that might feel uncomfortable.",
-        "why_feels": "You're used to having something to respond to. When there's no fire, you might be tempted to start one—create urgency, find a problem, manufacture intensity.",
-        "watch_for": "Looking for something to fix when nothing is broken. Starting a conversation that doesn't need to happen. Making a neutral day feel significant because quiet feels wrong.",
-        "better_move": "Use the space for maintenance—small tasks, loose ends, things that don't need urgency but do need attention. Don't fill it with new drama.",
-        "interrupt": "If you're scanning for something to worry about or react to—stop. Maybe today is just a day. Let it be that."
-    },
-    "default": {
-        "title": "Something Present",
-        "what_happening": "There's something here today that's asking for your attention. Not an emergency—more like a pull. You might not have words for it yet, but you're noticing it.",
-        "why_feels": "Your system is picking up a signal that your conscious mind hasn't fully processed. That's not a problem—it's information. The work is to stay with it long enough to hear what it's saying.",
-        "watch_for": "Dismissing the feeling because you can't explain it. Moving too fast past something that needed another minute. Letting noise drown out something quieter but real.",
-        "better_move": "Don't rush to label it. Sit with what you're noticing before you try to solve it. Let it become clearer before you act.",
-        "interrupt": "If you're about to switch tasks or move on and something in you hesitates—listen to that. The hesitation is the signal."
-    }
-}
 
 
 # =============================================================================
