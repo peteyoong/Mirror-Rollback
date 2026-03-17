@@ -12,6 +12,7 @@ export { default as LifelinePatterns, type LifelinePatternsData, type PatternIns
 export { default as LifelinePatternSynthesisCard } from './LifelinePatternSynthesisCard';
 export { default as LifelineGapPrompt, type GapPromptData } from './LifelineGapPrompt';
 export { default as TimeDistanceTimeline } from './TimeDistanceTimeline';
+export { default as LifelineAddMenu } from './LifelineAddMenu';
 export { 
   default as MemoryEchoPrompt, 
   type MemoryEchoData, 
