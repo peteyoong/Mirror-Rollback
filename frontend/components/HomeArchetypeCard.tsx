@@ -59,6 +59,7 @@ export default function HomeArchetypeCard() {
   
   const [data, setData] = useState<ArchetypeResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showConversation, setShowConversation] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
