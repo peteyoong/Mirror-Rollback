@@ -338,9 +338,12 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     texts_to_analyze = []
     signal_sources = []
     
+    # Calculate cutoff date (no timezone for MongoDB comparison with naive datetimes)
+    from datetime import datetime, timedelta
+    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    
     # Get recent journal entries (last 7 days)
     try:
-        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
         journal_cursor = db.journal.find({
             "user_id": user_id,
             "created_at": {"$gte": seven_days_ago}
