@@ -78,6 +78,7 @@ export default function PatternArchetypeCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showConversation, setShowConversation] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
