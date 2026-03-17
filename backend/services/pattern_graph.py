@@ -1965,6 +1965,13 @@ def aggregate_pattern_graph(
             all_signals[cat_id].extend(signals)
             signal_counts["enneagram"] += len(signals)
     
+    # Aggregate Lifeline signals (high weight - direct life experience)
+    if lifeline_events:
+        lifeline_sigs = aggregate_lifeline_signals(lifeline_events)
+        for cat_id, signals in lifeline_sigs.items():
+            all_signals[cat_id].extend(signals)
+            signal_counts["lifeline"] += len(signals)
+    
     # Log signal counts for debugging
     logger.info(f"[PatternSignal] Signal counts: {signal_counts}")
     
