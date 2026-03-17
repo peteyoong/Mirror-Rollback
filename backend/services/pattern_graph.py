@@ -2040,11 +2040,18 @@ def aggregate_pattern_graph(
         cat_id = cat["id"]
         signals = all_signals.get(cat_id, [])
         
-        # Deduplicate signals by label
+        # Sort signals by source weight (highest first) to prioritize lived experience
+        def signal_priority(sig):
+            source = sig.get("source", "")
+            return -SIGNAL_WEIGHTS.get(source, 1)  # Negative for descending sort
+        
+        sorted_signals = sorted(signals, key=signal_priority)
+        
+        # Deduplicate signals by label (keeping higher-priority sources)
         seen_labels = set()
         unique_signals = []
         transit_signal = None
-        for sig in signals:
+        for sig in sorted_signals:
             if sig["label"] not in seen_labels:
                 seen_labels.add(sig["label"])
                 # Keep transit signal separate for later inclusion
