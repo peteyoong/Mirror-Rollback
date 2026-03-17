@@ -11993,6 +11993,64 @@ async def get_numerology_summary(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+# =============================================================================
+# NUMEROLOGY PATTERN SYSTEM ENDPOINT (New Diagnostic View)
+# =============================================================================
+
+@api_router.get("/numerology/pattern/{user_id}")
+async def get_numerology_pattern(user_id: str):
+    """
+    Get numerology pattern system data.
+    
+    Returns:
+    - Lo Shu Grid with present/missing numbers
+    - Core pattern statement (sharp, confronting)
+    - How this shows up (behavioral patterns)
+    - Internal tensions (X vs Y)
+    - Mirror moment (precise reflection question)
+    
+    This is a structured, diagnostic view - no fluffy descriptions.
+    """
+    try:
+        from services.numerology_pattern import compute_numerology_pattern
+        
+        user, chart = await get_user_numerology_data(user_id)
+        
+        if not user or not user.get("birth_date"):
+            raise HTTPException(status_code=400, detail="Birth date required")
+        
+        # Parse birth date
+        birth_date_str = user["birth_date"]
+        if isinstance(birth_date_str, str):
+            try:
+                birth_date = datetime.fromisoformat(birth_date_str.replace('Z', '+00:00'))
+            except:
+                birth_date = datetime.strptime(birth_date_str[:10], "%Y-%m-%d")
+        else:
+            birth_date = birth_date_str
+        
+        # Get full name if available
+        full_name = user.get("numerology_full_name") or user.get("full_birth_name")
+        
+        # Compute pattern data
+        pattern_data = await compute_numerology_pattern(
+            db=db,
+            user_id=user_id,
+            birth_date=birth_date,
+            full_name=full_name
+        )
+        
+        return pattern_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[NumerologyPattern] Error for {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 @api_router.get("/numerology/today/{user_id}")
 async def get_numerology_today(user_id: str):
     """
