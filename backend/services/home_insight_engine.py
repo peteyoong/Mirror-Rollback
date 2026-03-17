@@ -23,7 +23,7 @@ PATTERN_TEMPLATES = {
         "why_feels": "You did your part. The world hasn't caught up. That gap creates pressure that makes you want to do more.",
         "watch_for": "Sending a follow-up before it's needed. Changing direction because silence feels like rejection.",
         "better_move": "Let the current move finish playing out. Give it 24-48 more hours before deciding if something is wrong.",
-        "interrupt": "If you're about to check again, or send another message—stop. Did anything actually break, or has it just not landed yet?"
+        "interrupt": "Right before you check again—stop. Nothing broke. It just hasn't landed."
     },
     "high_drive_low_signal": {
         "title": "Energy Without a Target",
@@ -31,7 +31,7 @@ PATTERN_TEMPLATES = {
         "why_feels": "The drive is real but directionless. That mismatch creates restlessness disguised as productivity.",
         "watch_for": "Starting three things instead of finishing one. Confusing movement with progress.",
         "better_move": "Write down the one thing that would actually matter if it got done today. Do that first.",
-        "interrupt": "If you've switched tasks in the last 10 minutes without finishing something—close everything and pick one thing."
+        "interrupt": "You just switched tasks again. Stop. Pick one. Finish it."
     },
     "emotional_noise_low_clarity": {
         "title": "It's Not One Thing",
@@ -39,7 +39,7 @@ PATTERN_TEMPLATES = {
         "why_feels": "Multiple signals hitting at once. The noise makes it hard to think straight, and that creates more frustration.",
         "watch_for": "Making a decision just to get relief. Picking a fight because the tension needs somewhere to go.",
         "better_move": "Don't solve it right now. Let the wave move through before you act on any of it.",
-        "interrupt": "If someone asks what's wrong and you want to snap—say 'I don't know yet' and give yourself more time."
+        "interrupt": "If you feel the snap coming—stop. Say nothing. Walk away for five minutes."
     },
     "strong_urge_wrong_timing": {
         "title": "You're Ready Before It Is",
@@ -47,7 +47,7 @@ PATTERN_TEMPLATES = {
         "why_feels": "Your internal clock says 'now' but the external clock says 'not yet.' That mismatch creates pressure to force it.",
         "watch_for": "Trying to manufacture the opening. Pushing someone to be ready before they are.",
         "better_move": "Stay ready without acting. Use this time to prepare so when the window opens, you can move cleanly.",
-        "interrupt": "If you're about to push through resistance—will forcing this now create a bigger problem than waiting?"
+        "interrupt": "You're about to force it. Don't. The cost of waiting is lower than the cost of pushing."
     },
     "pattern_returning_control": {
         "title": "The Grip Is Getting Tighter",
@@ -55,7 +55,7 @@ PATTERN_TEMPLATES = {
         "why_feels": "When you can't control the big thing, controlling small things feels like safety. It's not. But it feels productive.",
         "watch_for": "Over-preparing. Checking details you've already checked. Asking for updates you don't need.",
         "better_move": "Name what you're actually worried about—the real thing. Is controlling details helping that, or keeping you busy?",
-        "interrupt": "If you're reviewing something for the third time—that's the pattern. Step back and let it breathe."
+        "interrupt": "You're checking it again. That's the pattern. Step back. Let it breathe."
     },
     "waiting_for_permission": {
         "title": "You Already Know",
@@ -63,7 +63,7 @@ PATTERN_TEMPLATES = {
         "why_feels": "The decision is already made inside you, but you don't fully trust it. So you keep gathering input to delay committing.",
         "watch_for": "Asking for opinions you don't need. Framing statements as questions. Waiting for permission you could give yourself.",
         "better_move": "Notice what you would do if no one would judge the choice. That's probably the answer.",
-        "interrupt": "If you're about to ask 'what do you think I should do'—check if you already know what you'd do without them."
+        "interrupt": "You're about to ask what they think. You already know. Say what you know instead."
     },
     "momentum_building": {
         "title": "It's Starting to Work",
@@ -71,7 +71,7 @@ PATTERN_TEMPLATES = {
         "why_feels": "Early wins create urgency to do more, faster. The excitement is real, but so is the temptation to overcommit.",
         "watch_for": "Adding complexity before this stabilizes. Making promises based on early results.",
         "better_move": "Keep doing exactly what's working. Don't optimize yet. Don't expand yet.",
-        "interrupt": "If you're thinking about the bigger version before this one is stable—slow down. Finish this phase first."
+        "interrupt": "You're about to add something. Don't. Finish this first."
     },
     "holding_back_expression": {
         "title": "Something Wants to Be Said",
@@ -79,7 +79,7 @@ PATTERN_TEMPLATES = {
         "why_feels": "The thing is real, but the moment hasn't felt right. Or you're worried how it will land. So it stays stuck.",
         "watch_for": "Waiting for a perfect moment that doesn't come. Letting resentment build because they should have figured it out.",
         "better_move": "Say the smaller version first. You don't have to say all of it—just the first honest piece.",
-        "interrupt": "If you've rehearsed this in your head more than twice—it's ready. Say the first sentence."
+        "interrupt": "You've rehearsed it twice already. Next time you see them—say the first sentence. Now."
     },
     "decision_avoidance": {
         "title": "The Choice You Keep Circling",
@@ -87,7 +87,7 @@ PATTERN_TEMPLATES = {
         "why_feels": "Deciding means closing a door. That loss is real. So you stay in analysis mode where consequences stay hypothetical.",
         "watch_for": "Gathering more information when you already have enough. Treating 'still deciding' as an answer when it's avoidance.",
         "better_move": "Name what you're actually afraid of getting wrong. Not the practical risk—the emotional one.",
-        "interrupt": "If you've been 'thinking about it' for more than a week without new information—decide today or drop it."
+        "interrupt": "You're running the same loop again. Decide now—or drop it entirely. No more thinking."
     },
     "energy_recovery": {
         "title": "You Spent Something Recently",
@@ -95,7 +95,7 @@ PATTERN_TEMPLATES = {
         "why_feels": "You're comparing today's energy to a version of yourself that didn't just spend a lot. That comparison makes recovery feel like failure.",
         "watch_for": "Forcing productivity when your body asks for rest. Saying yes because you feel guilty about slowing down.",
         "better_move": "Protect the recovery window. Don't fill empty space with new commitments.",
-        "interrupt": "If you feel guilty about doing less—that's the signal you need the rest more, not less."
+        "interrupt": "You feel guilty about resting. That's the signal. Stay down. One more day."
     },
     "quiet_signal_day": {
         "title": "Nothing Urgent Is Pulling",
@@ -103,7 +103,7 @@ PATTERN_TEMPLATES = {
         "why_feels": "You're used to having something to respond to. When there's no fire, you might be tempted to start one.",
         "watch_for": "Looking for something to fix when nothing is broken. Making a neutral day feel significant because quiet feels wrong.",
         "better_move": "Use the space for maintenance—loose ends, small tasks. Don't fill it with new drama.",
-        "interrupt": "If you're scanning for something to worry about—stop. Maybe today is just a day."
+        "interrupt": "You're scanning for a problem. Stop. There isn't one. Let the quiet be quiet."
     },
     "default": {
         "title": "Something Present",
@@ -111,7 +111,7 @@ PATTERN_TEMPLATES = {
         "why_feels": "Your system is picking up a signal that your conscious mind hasn't fully processed. That's not a problem—it's information.",
         "watch_for": "Dismissing the feeling because you can't explain it. Moving too fast past something that needed another minute.",
         "better_move": "Don't rush to label it. Sit with what you're noticing before you try to solve it.",
-        "interrupt": "If you're about to move on and something in you hesitates—listen to that. The hesitation is the signal."
+        "interrupt": "You're about to move on. Something in you hesitated. Listen to that."
     }
 }
 
