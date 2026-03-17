@@ -72,6 +72,7 @@ interface LifelineSummaryResponse {
 
 export default function LifelineTimeline({ userId, forumId, isCompact = false, maxEvents }: Props) {
   const { theme } = useTheme();
+  const router = useRouter();
   
   // Data state
   const [events, setEvents] = useState<LifelineEvent[]>([]);
@@ -93,6 +94,10 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Add menu state
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [importSourceCount, setImportSourceCount] = useState(0);
   
   // Editor state
   const [showEditor, setShowEditor] = useState(false);
