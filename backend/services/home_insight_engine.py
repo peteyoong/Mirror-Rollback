@@ -116,15 +116,196 @@ PATTERN_TEMPLATES = {
 }
 
 
-def select_pattern_for_user(user_id: str, chart_data: Optional[dict] = None) -> str:
+# =============================================================================
+# PHASE 2: SIGNAL-BASED PATTERN SELECTION
+# =============================================================================
+# Extract signals from journal, mirror chat, reflections
+# Map signals to patterns using simple heuristics
+
+# Signal detection keywords
+SIGNAL_KEYWORDS = {
+    "action_taken": [
+        "did", "sent", "made", "started", "launched", "pushed", "submitted",
+        "told", "asked", "called", "emailed", "texted", "posted", "shipped",
+        "finished", "completed", "delivered", "created", "built", "wrote"
+    ],
+    "waiting_outcome": [
+        "waiting", "wait", "haven't heard", "no response", "nothing yet",
+        "still waiting", "haven't gotten", "no reply", "silence", "crickets",
+        "not yet", "hasn't landed", "hasn't happened", "no sign", "no word"
+    ],
+    "frustration": [
+        "frustrated", "annoying", "annoyed", "stuck", "blocked", "tired of",
+        "sick of", "fed up", "impatient", "why won't", "ugh", "argh",
+        "driving me crazy", "can't believe", "so slow", "taking forever"
+    ],
+    "doubt": [
+        "doubt", "not sure", "uncertain", "second guess", "maybe I shouldn't",
+        "wrong", "mistake", "regret", "should I have", "was that right",
+        "overthinking", "questioning", "wonder if", "what if I"
+    ],
+    "seeking_validation": [
+        "what do you think", "should I", "is this right", "does this make sense",
+        "am I crazy", "tell me", "need advice", "opinions", "feedback",
+        "asking", "asked everyone", "checking with", "running it by"
+    ],
+    "high_urgency": [
+        "need to", "have to", "must", "urgent", "now", "immediately",
+        "can't wait", "right now", "asap", "deadline", "running out of time",
+        "pressure", "pushing", "hurry", "rush"
+    ],
+    "low_clarity": [
+        "confused", "unclear", "don't know", "not sure what", "which way",
+        "can't decide", "torn", "options", "either", "or", "both",
+        "no idea", "lost", "foggy", "muddled"
+    ],
+    "emotional_intensity": [
+        "overwhelmed", "anxious", "stressed", "worried", "scared", "angry",
+        "sad", "upset", "crying", "can't stop thinking", "obsessing",
+        "spiraling", "triggered", "emotional", "feelings", "heavy"
+    ],
+    "recovery_needed": [
+        "exhausted", "tired", "drained", "burnt out", "burnout", "need rest",
+        "low energy", "depleted", "running on empty", "nothing left",
+        "can't keep going", "need a break", "worn out"
+    ],
+    "momentum": [
+        "working", "progress", "moving", "traction", "starting to",
+        "finally", "breakthrough", "it's happening", "coming together",
+        "things are", "getting somewhere", "on track"
+    ],
+    "something_unsaid": [
+        "want to say", "need to tell", "haven't said", "holding back",
+        "keeping", "secret", "can't say", "afraid to say", "should tell",
+        "been meaning to", "avoiding the conversation"
+    ],
+    "control_seeking": [
+        "need to control", "micromanaging", "checking", "monitoring",
+        "can't let go", "have to make sure", "double checking", "triple",
+        "keeping tabs", "watching", "obsessing over details"
+    ]
+}
+
+def extract_signal_flags(texts: list) -> Dict[str, bool]:
     """
-    Select appropriate pattern template based on available data.
-    Phase 1: Simple selection logic.
+    Extract signal flags from a list of text content.
+    Simple keyword matching - no NLP needed.
+    """
+    if not texts:
+        return {}
+    
+    # Combine all text, lowercase
+    combined = " ".join(str(t).lower() for t in texts if t)
+    
+    flags = {}
+    for signal_name, keywords in SIGNAL_KEYWORDS.items():
+        # Check if any keyword appears in the combined text
+        flags[signal_name] = any(kw in combined for kw in keywords)
+    
+    return flags
+
+
+def select_pattern_from_signals(flags: Dict[str, bool]) -> tuple:
+    """
+    Select pattern based on signal flags.
+    Returns (pattern_key, reason)
+    """
+    # Priority-ordered pattern matching rules
+    
+    # Rule 1: Action taken + waiting for outcome + frustration/doubt
+    if flags.get("action_taken") and flags.get("waiting_outcome"):
+        if flags.get("frustration"):
+            return ("fast_start_delayed_feedback", 
+                    "Action taken + waiting for outcome + frustration detected")
+        if flags.get("doubt"):
+            return ("fast_start_delayed_feedback",
+                    "Action taken + waiting for outcome + doubt detected")
+        return ("fast_start_delayed_feedback",
+                "Action taken + waiting for outcome")
+    
+    # Rule 2: High urgency + low clarity
+    if flags.get("high_urgency") and flags.get("low_clarity"):
+        return ("strong_urge_wrong_timing",
+                "High urgency + low clarity detected")
+    
+    # Rule 3: High urgency without action
+    if flags.get("high_urgency") and not flags.get("action_taken"):
+        if flags.get("doubt") or flags.get("low_clarity"):
+            return ("strong_urge_wrong_timing",
+                    "High urgency without action + doubt/uncertainty")
+    
+    # Rule 4: Seeking validation + hesitation
+    if flags.get("seeking_validation"):
+        if not flags.get("action_taken"):
+            return ("waiting_for_permission",
+                    "Seeking validation without action taken")
+        if flags.get("doubt"):
+            return ("waiting_for_permission",
+                    "Seeking validation + doubt detected")
+    
+    # Rule 5: Emotional intensity + low clarity
+    if flags.get("emotional_intensity") and flags.get("low_clarity"):
+        return ("emotional_noise_low_clarity",
+                "Emotional intensity + low clarity detected")
+    
+    # Rule 6: Emotional intensity alone (high)
+    if flags.get("emotional_intensity"):
+        if flags.get("frustration"):
+            return ("emotional_noise_low_clarity",
+                    "Emotional intensity + frustration")
+    
+    # Rule 7: Control seeking behavior
+    if flags.get("control_seeking"):
+        return ("pattern_returning_control",
+                "Control-seeking behavior detected")
+    
+    # Rule 8: Recovery signals
+    if flags.get("recovery_needed"):
+        return ("energy_recovery",
+                "Recovery/exhaustion signals detected")
+    
+    # Rule 9: Momentum signals
+    if flags.get("momentum") and flags.get("action_taken"):
+        return ("momentum_building",
+                "Momentum + action signals detected")
+    
+    # Rule 10: Something unsaid
+    if flags.get("something_unsaid"):
+        return ("holding_back_expression",
+                "Holding back expression signals detected")
+    
+    # Rule 11: High drive but no clear direction
+    if flags.get("high_urgency") and not flags.get("momentum"):
+        return ("high_drive_low_signal",
+                "High urgency without clear momentum")
+    
+    # Rule 12: Low clarity / indecision dominant
+    if flags.get("low_clarity") and flags.get("doubt"):
+        return ("decision_avoidance",
+                "Low clarity + doubt = decision avoidance")
+    
+    # No strong signals - return None to fall back to default logic
+    return (None, "No strong lived-state signals detected")
+
+
+def select_pattern_for_user(user_id: str, signal_flags: Dict[str, bool], chart_data: Optional[dict] = None) -> tuple:
+    """
+    Select appropriate pattern template based on signal flags.
+    Phase 2: Signal-based selection with fallback.
+    
+    Returns (pattern_key, reason)
     """
     import hashlib
     from datetime import datetime, timezone
     
-    # Create daily seed for variety
+    # First try signal-based selection
+    if signal_flags:
+        pattern_key, reason = select_pattern_from_signals(signal_flags)
+        if pattern_key:
+            logger.info(f"[HomeInsight] Signal-selected pattern '{pattern_key}' for user {user_id[:8]}: {reason}")
+            return (pattern_key, reason)
+    
+    # Fallback: deterministic daily variety (when no strong signals)
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     seed = hashlib.sha256(f"{user_id}:{today}".encode()).hexdigest()
     
@@ -135,35 +316,106 @@ def select_pattern_for_user(user_id: str, chart_data: Optional[dict] = None) -> 
     index = int(seed[:8], 16) % len(pattern_keys)
     selected = pattern_keys[index]
     
-    logger.info(f"[HomeInsight] Selected pattern '{selected}' for user {user_id[:8]}...")
-    return selected
+    logger.info(f"[HomeInsight] Fallback-selected pattern '{selected}' for user {user_id[:8]}")
+    return (selected, "No lived-state signals - using daily rotation")
 
 
 async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     """
     Generate structured daily insight for Home Screen.
     
-    Phase 1: Simple template selection with deterministic daily variety.
-    Returns the new structured format.
+    Phase 2: Signal-based pattern selection from lived-state data.
+    Returns the new structured format with debug info.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone, timedelta
     from bson import ObjectId
     
     logger.info(f"[HomeInsight] Generating insight for user {user_id[:8]}...")
     
-    # Fetch user chart for future use
+    # =================================================================
+    # STEP 1: Collect lived-state signals from recent activity
+    # =================================================================
+    texts_to_analyze = []
+    signal_sources = []
+    
+    # Get recent journal entries (last 7 days)
+    try:
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+        journal_cursor = db.journal.find({
+            "user_id": user_id,
+            "timestamp": {"$gte": seven_days_ago.isoformat()}
+        }).sort("timestamp", -1).limit(10)
+        
+        async for entry in journal_cursor:
+            content = entry.get("content", "")
+            if content:
+                texts_to_analyze.append(content)
+                signal_sources.append("journal")
+    except Exception as e:
+        logger.debug(f"[HomeInsight] Journal fetch error: {e}")
+    
+    # Get recent mirror chat insights (last 7 days)
+    try:
+        chat_cursor = db.mirror_insights.find({
+            "user_id": user_id,
+            "created_at": {"$gte": seven_days_ago.isoformat()}
+        }).sort("created_at", -1).limit(10)
+        
+        async for insight in chat_cursor:
+            content = insight.get("content", "") or insight.get("insight", "")
+            if content:
+                texts_to_analyze.append(content)
+                signal_sources.append("mirror_chat")
+    except Exception as e:
+        logger.debug(f"[HomeInsight] Mirror chat fetch error: {e}")
+    
+    # Get recent lunar reflections (last 7 days)
+    try:
+        lunar_cursor = db.lunar_journal.find({
+            "user_id": user_id,
+            "created_at": {"$gte": seven_days_ago.isoformat()}
+        }).sort("created_at", -1).limit(5)
+        
+        async for reflection in lunar_cursor:
+            content = reflection.get("content", "") or reflection.get("reflection", "")
+            if content:
+                texts_to_analyze.append(content)
+                signal_sources.append("lunar_reflection")
+    except Exception as e:
+        logger.debug(f"[HomeInsight] Lunar journal fetch error: {e}")
+    
+    logger.info(f"[HomeInsight] Collected {len(texts_to_analyze)} texts from {len(set(signal_sources))} sources")
+    
+    # =================================================================
+    # STEP 2: Extract signal flags
+    # =================================================================
+    signal_flags = extract_signal_flags(texts_to_analyze)
+    active_flags = {k: v for k, v in signal_flags.items() if v}
+    logger.info(f"[HomeInsight] Active signal flags: {list(active_flags.keys())}")
+    
+    # =================================================================
+    # STEP 3: Select pattern based on signals
+    # =================================================================
     chart_data = None
     try:
         chart_data = await db.charts.find_one({"user_id": user_id})
     except Exception as e:
         logger.debug(f"[HomeInsight] Could not load chart: {e}")
     
-    # Select pattern
-    pattern_key = select_pattern_for_user(user_id, chart_data)
+    pattern_key, selection_reason = select_pattern_for_user(user_id, signal_flags, chart_data)
     template = PATTERN_TEMPLATES.get(pattern_key, PATTERN_TEMPLATES["default"])
     
-    # Build response
+    # =================================================================
+    # STEP 4: Build response with debug info
+    # =================================================================
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    # Determine confidence based on signal strength
+    confidence = "low"
+    if len(active_flags) >= 3:
+        confidence = "high"
+    elif len(active_flags) >= 1:
+        confidence = "medium"
     
     return {
         "success": True,
@@ -175,10 +427,14 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "watch_for": template["watch_for"],
         "better_move": template["better_move"],
         "interrupt": template["interrupt"],
-        "confidence": "medium",
+        "confidence": confidence,
         "debug": {
             "pattern_key": pattern_key,
-            "source": "template_v1",
+            "selection_reason": selection_reason,
+            "signal_flags": active_flags,
+            "signal_sources": list(set(signal_sources)),
+            "texts_analyzed": len(texts_to_analyze),
+            "source": "signal_v2" if active_flags else "fallback_rotation",
             "computed_at": datetime.now(timezone.utc).isoformat()
         }
     }
