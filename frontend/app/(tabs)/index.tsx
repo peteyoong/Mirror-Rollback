@@ -322,6 +322,33 @@ export default function MirrorScreen() {
     }
   };
 
+  // Load new structured daily insight
+  const loadDailyInsight = async () => {
+    if (!user?.id) return;
+    setInsightLoading(true);
+    try {
+      const response = await api.get(`/daily-insight/${user.id}`);
+      setDailyInsight(response.data);
+    } catch (err: any) {
+      console.log('[MirrorHome] Daily insight error:', err);
+      // Fallback
+      setDailyInsight({
+        success: true,
+        date: getLocalDateString(),
+        pattern_id: 'fallback',
+        title: 'Noticing Today',
+        what_happening: "Something is present that's worth paying attention to.",
+        why_feels: 'Your attention is being drawn somewhere specific.',
+        watch_for: "Dismissing what you're noticing as unimportant.",
+        better_move: "Stay with what's here before moving to what's next.",
+        interrupt: "If you're rushing past this moment—pause and ask why.",
+        confidence: 'low',
+      });
+    } finally {
+      setInsightLoading(false);
+    }
+  };
+
   const loadPatternData = async () => {
     if (!user?.id) return;
     
