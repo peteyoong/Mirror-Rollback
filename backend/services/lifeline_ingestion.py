@@ -540,13 +540,22 @@ async def find_all_duplicate_candidates_for_user(
     duplicate_groups = []
     processed_ids = set()
     
+    def serialize_event(event: Dict) -> Dict:
+        """Serialize event for JSON response."""
+        return {
+            "id": str(event["_id"]),
+            "title": event.get("title", ""),
+            "year": event.get("year"),
+            "category": event.get("category"),
+            "description": event.get("description", "")[:100] if event.get("description") else None,
+        }
+    
     for i, event in enumerate(events):
         event_id = str(event["_id"])
         if event_id in processed_ids:
             continue
         
         group = [event]
-        event["id"] = event_id
         
         for j, other in enumerate(events[i+1:], start=i+1):
             other_id = str(other["_id"])
@@ -566,15 +575,21 @@ async def find_all_duplicate_candidates_for_user(
             )
             
             if title_sim >= TITLE_SIMILARITY_THRESHOLD and year_match:
-                other["id"] = other_id
                 other["match_score"] = title_sim
                 group.append(other)
                 processed_ids.add(other_id)
         
         if len(group) > 1:
+            primary = serialize_event(group[0])
+            duplicates = []
+            for dup in group[1:]:
+                dup_serialized = serialize_event(dup)
+                dup_serialized["match_score"] = dup.get("match_score", 0)
+                duplicates.append(dup_serialized)
+            
             duplicate_groups.append({
-                "primary": group[0],
-                "duplicates": group[1:],
+                "primary": primary,
+                "duplicates": duplicates,
                 "count": len(group)
             })
             processed_ids.add(event_id)
