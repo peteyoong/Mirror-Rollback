@@ -21,9 +21,9 @@ import api from '../../services/api';
 import { storage } from '../../store';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
 import { InlineReflectButton } from '../../components/UniversalReflectButton';
-import { SynthesisTeaser, SynthesisTeaserData } from '../../components/CrossLensSynthesis';
 import DailyPatternSignalCard from '../../components/DailyPatternSignalCard';
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
+import HomeArchetypeCard from '../../components/HomeArchetypeCard';
 
 interface DailyKeystone {
   date: string;
