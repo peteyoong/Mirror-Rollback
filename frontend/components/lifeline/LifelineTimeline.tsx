@@ -116,6 +116,8 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
     }
     setError(null);
 
+    console.log('[Lifeline] Loading all data for user:', userId, 'refresh:', refresh);
+
     try {
       // Fetch events, summary (with patterns), resonances, and import stats in parallel
       const [eventsRes, summaryRes, resonancesRes, importStatsRes] = await Promise.all([
@@ -136,6 +138,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
         }
         setEvents(loadedEvents);
         setStatistics(eventsRes.data.statistics);
+        console.log('[Lifeline] Loaded', loadedEvents.length, 'canonical events');
       }
       
       if (summaryRes.data.success && summaryRes.data.patterns) {
@@ -144,12 +147,16 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
         if (summaryRes.data.patterns.missing_periods) {
           setMissingPeriods(summaryRes.data.patterns.missing_periods);
         }
+        console.log('[Lifeline] Loaded patterns with', summaryRes.data.patterns.intense_periods?.length || 0, 'intense periods');
       }
       
-      // Store resonance data
+      // Store resonance data - important: this must refresh after deletes/edits
       if (resonancesRes.data.success) {
-        setResonanceMap(resonancesRes.data.resonance_map || {});
-        setResonanceSummary(resonancesRes.data.pattern_summary || []);
+        const resonanceMapData = resonancesRes.data.resonance_map || {};
+        const patternSummaryData = resonancesRes.data.pattern_summary || [];
+        setResonanceMap(resonanceMapData);
+        setResonanceSummary(patternSummaryData);
+        console.log('[Lifeline] Loaded resonances:', Object.keys(resonanceMapData).length, 'event mappings,', patternSummaryData.length, 'pattern summaries');
       }
       
       // Store import source count
