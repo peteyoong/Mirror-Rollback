@@ -1873,7 +1873,8 @@ def aggregate_pattern_graph(
     enneagram_type: Optional[int] = None,       # Enneagram core type (1-9)
     enneagram_wing: Optional[int] = None,       # Enneagram wing (optional)
     include_transits: bool = True,              # Whether to include transit amplification
-    natal_chart: Optional[dict] = None          # User's natal chart for personalized transits
+    natal_chart: Optional[dict] = None,         # User's natal chart for personalized transits
+    lifeline_events: Optional[List[dict]] = None  # NEW: Lifeline events
 ) -> Dict[str, Any]:
     """Main aggregation function for Pattern Graph.
     
@@ -1881,12 +1882,13 @@ def aggregate_pattern_graph(
     Uses real planetary transits (Swiss Ephemeris) as a timing/amplification layer.
     
     Signal Sources (in order of weight):
-    1. Journal reflections (weight: 3) - direct user reflection
-    2. Mirror Chat insights (weight: 2) - saved chat moments  
-    3. Gene Keys (weight: 1) - framework-based
-    4. Human Design (weight: 1) - framework-based
-    5. Enneagram (weight: 1) - invisible contributor
-    6. Astrology Transits (weight: 0.5) - timing amplification only
+    1. Lifeline events (weight: 3) - highest, direct life experience
+    2. Journal reflections (weight: 3) - direct user reflection
+    3. Mirror Chat insights (weight: 2) - saved chat moments  
+    4. Gene Keys (weight: 1) - framework-based
+    5. Human Design (weight: 1) - framework-based
+    6. Enneagram (weight: 1) - invisible contributor
+    7. Astrology Transits (weight: 0.5) - timing amplification only
     
     Args:
         gene_keys_profile: Result from build_gene_keys_profile()
@@ -1899,6 +1901,7 @@ def aggregate_pattern_graph(
         enneagram_wing: User's Enneagram wing (optional)
         include_transits: Whether to include transit amplification (default True)
         natal_chart: User's natal chart for personalized transit calculations
+        lifeline_events: List of Lifeline events from user's timeline
     
     Returns:
         Complete pattern graph response
@@ -1917,7 +1920,8 @@ def aggregate_pattern_graph(
         "mirror_chat": 0,
         "human_design": 0,
         "enneagram": 0,
-        "transit": 0
+        "transit": 0,
+        "lifeline": 0  # NEW
     }
     
     # Aggregate Gene Keys signals
