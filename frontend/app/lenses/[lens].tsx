@@ -688,7 +688,8 @@ export default function LensDetail() {
         </>
       ) : lens === 'numerology' && user?.id ? (
         <>
-          <NumerologyLensView
+          {/* Production NumerologyPatternView replaces old accordion-based NumerologyLensView */}
+          <NumerologyPatternView
             userId={user.id}
             onOpenChat={() => setLensChatVisible(true)}
           />
@@ -704,9 +705,9 @@ export default function LensDetail() {
               <MirrorChat
                 userId={user.id}
                 lens="numerology"
-                placeholder="Ask about your numerology…"
+                placeholder="Ask about your numerology patterns…"
                 headerTitle="Numerology Chat"
-                headerSubtitle="Lens-focused reflection"
+                headerSubtitle="Pattern-focused exploration"
                 onClose={() => setLensChatVisible(false)}
               />
             </SafeAreaView>
