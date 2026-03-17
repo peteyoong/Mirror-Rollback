@@ -168,7 +168,6 @@ def extract_text_from_pptx(file_bytes: bytes) -> str:
         
         prs = Presentation(io.BytesIO(file_bytes))
         text_parts = []
-        slide_events = []  # Structured events with context
         
         logger.info(f"[LifelineImport/PPTX] Processing {len(prs.slides)} slides")
         
