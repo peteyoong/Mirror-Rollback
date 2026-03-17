@@ -840,7 +840,16 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
             {/* Still show core numbers on Deep Dive even with error */}
             {activeTab === 'deep_dive' && renderCoreNumbers()}
           </View>
+        ) : activeTab === 'deep_dive' ? (
+          /* ===== DEEP DIVE TAB: Uses new NumerologyDeepDivePattern component ===== */
+          <NumerologyDeepDivePattern
+            userId={userId}
+            onOpenChat={onOpenChat}
+            existingName={profile?.numerology_full_name}
+            onNameUpdated={hydrateProfile}
+          />
         ) : data ? (
+          /* ===== SUMMARY & TODAY TABS: Use API data with sections ===== */
           <>
             {/* Title */}
             <Text style={[styles.title, { color: theme.text }]}>{data.title}</Text>
@@ -853,26 +862,6 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
             {/* Cycles Card (Today only) */}
             {renderCycles()}
 
-            {/* Core Numbers Card (Deep Dive only) */}
-            {activeTab === 'deep_dive' && renderCoreNumbers()}
-
-            {/* Expand Button (Deep Dive only) */}
-            {activeTab === 'deep_dive' && (
-              <TouchableOpacity
-                style={styles.expandButton}
-                onPress={() => setExpandedSection(expandedSection ? null : 'all')}
-              >
-                <Text style={[styles.expandButtonText, { color: theme.accent }]}>
-                  {expandedSection ? 'Collapse sections' : 'Explore your numbers'}
-                </Text>
-                <Ionicons
-                  name={expandedSection ? 'contract-outline' : 'expand-outline'}
-                  size={16}
-                  color={theme.accent}
-                />
-              </TouchableOpacity>
-            )}
-
             {/* Sections */}
             {data.sections.map((section, index) => renderSection(section, index))}
 
@@ -880,7 +869,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
             {data.mirror_prompt && (
               <View style={[styles.mirrorPromptCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
                 <Text style={[styles.mirrorPromptLabel, { color: theme.textTertiary }]}>
-                  {activeTab === 'today' ? 'REFLECT' : activeTab === 'deep_dive' ? 'MIRROR MOMENT' : 'REFLECT'}
+                  {activeTab === 'today' ? 'REFLECT' : 'REFLECT'}
                 </Text>
                 <Text style={[styles.mirrorPromptText, { color: theme.text }]}>{data.mirror_prompt}</Text>
               </View>
@@ -902,35 +891,6 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
             <Text style={[styles.footer, { color: theme.textTertiary }]}>
               A lens for noticing patterns, not a prediction of outcomes.
             </Text>
-            
-            {/* Debug Footer - only shows when DEBUG_MIRROR is enabled */}
-            {activeTab === 'deep_dive' && data.sections && (
-              <DebugFooter 
-                lens="Numerology"
-                sections={data.sections}
-                source={data.debug_stamp?.source}
-                rawDataLength={rawDataLength}
-                debugStamp={data.debug_stamp}
-                extraDebug={{
-                  backend_base_url: BACKEND_BASE_URL || '(relative)',
-                  backend_health_ok: backendHealthOk === null ? 'checking...' : backendHealthOk ? 'YES' : 'NO',
-                  prop_user_id: maskUserId(userId),
-                  stable_user_id: maskUserId(stableUserId),
-                  user_id_match: userId === stableUserId ? 'YES ✓' : 'NO ⚠️',
-                  user_id_stable: userIdDebugInfo?.is_stable ? 'YES ✓' : 'NO ⚠️',
-                  assertion_count: userIdDebugInfo?.assertion_count || 0,
-                  profile_loaded: profile ? 'YES' : 'NO',
-                  profile_loading: profileLoading ? 'YES' : 'NO',
-                  numerology_full_name: profile?.numerology_full_name || '(none)',
-                  profile_updated_at: profile?.updated_at || '(never)',
-                  '--- MODAL ---': '---',
-                  modal_open: unlockModalVisible ? 'YES' : 'NO',
-                  modal_mode: modalMode,
-                  unlock_step: unlockStep,
-                  input_rendered: inputRendered ? 'YES' : 'NO'
-                }}
-              />
-            )}
           </>
         ) : null}
       </ScrollView>
