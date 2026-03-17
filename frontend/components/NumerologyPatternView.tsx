@@ -73,35 +73,18 @@ const COLORS = {
 };
 
 // =============================================================================
-// LO SHU GRID COMPONENT
+// LO SHU GRID COMPONENT - Energy Map
 // =============================================================================
 
 interface LoShuGridProps {
-  grid: number[][];
+  loShuDisplay: string[][];
+  loShuTemplate: number[][];
   presentNumbers: { [key: string]: number };
   missingNumbers: number[];
   theme: any;
 }
 
-function LoShuGrid({ grid, presentNumbers, missingNumbers, theme }: LoShuGridProps) {
-  // Lo Shu grid positions: 
-  // [4, 9, 2]
-  // [3, 5, 7]
-  // [8, 1, 6]
-  const gridOrder = [[4, 9, 2], [3, 5, 7], [8, 1, 6]];
-  
-  const getCellDisplay = (num: number) => {
-    const count = presentNumbers[num.toString()] || 0;
-    if (count === 0) {
-      return { display: '—', isMissing: true, count: 0 };
-    }
-    return { 
-      display: count > 1 ? `${num}`.repeat(count).split('').join(' ') : num.toString(),
-      isMissing: false,
-      count 
-    };
-  };
-
+function LoShuGrid({ loShuDisplay, loShuTemplate, presentNumbers, missingNumbers, theme }: LoShuGridProps) {
   return (
     <View style={styles.loShuContainer}>
       <Text style={[styles.sectionTitle, { color: theme.text }]}>ENERGY MAP</Text>
@@ -111,28 +94,32 @@ function LoShuGrid({ grid, presentNumbers, missingNumbers, theme }: LoShuGridPro
       
       {/* Grid */}
       <View style={[styles.gridContainer, { borderColor: theme.border }]}>
-        {gridOrder.map((row, rowIdx) => (
+        {loShuDisplay.map((row, rowIdx) => (
           <View key={rowIdx} style={styles.gridRow}>
-            {row.map((num, colIdx) => {
-              const cell = getCellDisplay(num);
+            {row.map((cellDisplay, colIdx) => {
+              const templateNum = loShuTemplate[rowIdx][colIdx];
+              const isMissing = cellDisplay === '—';
+              const count = presentNumbers[templateNum.toString()] || 0;
+              
               return (
                 <View
                   key={`${rowIdx}-${colIdx}`}
                   style={[
                     styles.gridCell,
                     { borderColor: theme.border },
-                    cell.isMissing && { backgroundColor: COLORS.missingBg },
+                    isMissing && { backgroundColor: 'rgba(156, 163, 175, 0.08)' },
+                    !isMissing && { backgroundColor: COLORS.accentLight },
                   ]}
                 >
                   <Text style={[
                     styles.gridCellText,
-                    { color: cell.isMissing ? COLORS.missing : theme.text },
-                    cell.count > 1 && styles.gridCellMultiple
+                    { color: isMissing ? COLORS.lessEmphasisText : theme.text },
+                    count > 1 && styles.gridCellMultiple
                   ]}>
-                    {cell.display}
+                    {cellDisplay}
                   </Text>
                   <Text style={[styles.gridCellLabel, { color: theme.textTertiary }]}>
-                    {num}
+                    {templateNum}
                   </Text>
                 </View>
               );
@@ -141,18 +128,18 @@ function LoShuGrid({ grid, presentNumbers, missingNumbers, theme }: LoShuGridPro
         ))}
       </View>
 
-      {/* Legend */}
+      {/* Legend - Renamed for elegance */}
       <View style={styles.gridLegend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: COLORS.present }]} />
+          <View style={[styles.legendDot, { backgroundColor: COLORS.accent }]} />
           <Text style={[styles.legendText, { color: theme.textSecondary }]}>
-            Present: {Object.entries(presentNumbers).filter(([_, c]) => c > 0).map(([n, c]) => c > 1 ? `${n}×${c}` : n).join(', ') || 'None'}
+            Active in your pattern: {Object.entries(presentNumbers).filter(([_, c]) => c > 0).map(([n, c]) => c > 1 ? `${n}×${c}` : n).join(', ') || 'None'}
           </Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: COLORS.missing }]} />
+          <View style={[styles.legendDot, { backgroundColor: COLORS.lessEmphasisText }]} />
           <Text style={[styles.legendText, { color: theme.textSecondary }]}>
-            Missing: {missingNumbers.length > 0 ? missingNumbers.join(', ') : 'None'}
+            Less emphasized: {missingNumbers.length > 0 ? missingNumbers.join(', ') : 'None'}
           </Text>
         </View>
       </View>
