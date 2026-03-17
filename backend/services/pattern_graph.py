@@ -216,6 +216,7 @@ class PatternTension(TypedDict):
 
 # =============================================================================
 # THE 7 CORE PATTERN CATEGORIES
+# Task 76B: Direct language, no hedging
 # =============================================================================
 
 PATTERN_CATEGORIES = [
@@ -224,40 +225,40 @@ PATTERN_CATEGORIES = [
         "name": "Energy & Vitality",
         "description": "Patterns around energy, pacing, exhaustion, and life force",
         "quiet_summary": "No strong signals around energy themes at the moment.",
-        "emerging_summary": "A theme around energy, pacing, or vitality may be starting to surface.",
-        "active_summary": "Energy and vitality themes seem to be showing up across multiple areas."
+        "emerging_summary": "A theme around energy, pacing, or vitality is starting to surface.",
+        "active_summary": "Energy and vitality themes are showing up across multiple areas."
     },
     {
         "id": "emotional_landscape",
         "name": "Emotional Landscape",
         "description": "Patterns around feelings, emotional waves, and inner weather",
         "quiet_summary": "No strong signals around emotional patterns at the moment.",
-        "emerging_summary": "Something around your emotional experience may be surfacing.",
-        "active_summary": "Emotional themes seem to be moving through multiple parts of your reflection."
+        "emerging_summary": "Something around your emotional experience is surfacing.",
+        "active_summary": "Emotional themes are moving through multiple parts of your reflection."
     },
     {
         "id": "identity_direction",
         "name": "Identity & Direction",
         "description": "Patterns around sense of self, purpose, and life direction",
         "quiet_summary": "No strong signals around identity or direction themes at the moment.",
-        "emerging_summary": "A question about identity or direction may be emerging.",
-        "active_summary": "Themes of identity and direction seem to be present across your reflections."
+        "emerging_summary": "A question about identity or direction is emerging.",
+        "active_summary": "Themes of identity and direction are present across your reflections."
     },
     {
         "id": "mind_meaning",
         "name": "Mind & Meaning",
         "description": "Patterns around thinking, understanding, and sense-making",
         "quiet_summary": "No strong signals around mental themes at the moment.",
-        "emerging_summary": "Something around thinking, clarity, or meaning may be surfacing.",
-        "active_summary": "Mental and meaning-making themes seem to be active in your current pattern."
+        "emerging_summary": "Something around thinking, clarity, or meaning is surfacing.",
+        "active_summary": "Mental and meaning-making themes are active in your current pattern."
     },
     {
         "id": "expression_action",
         "name": "Expression & Action",
         "description": "Patterns around voice, communication, and taking action",
         "quiet_summary": "No strong signals around expression themes at the moment.",
-        "emerging_summary": "A theme around expression or action may be emerging.",
-        "active_summary": "Expression and action themes seem to be showing up across your experience."
+        "emerging_summary": "A theme around expression or action is emerging.",
+        "active_summary": "Expression and action themes are showing up across your experience."
     },
     {
         "id": "relationships_boundaries",
