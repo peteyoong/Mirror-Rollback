@@ -82,6 +82,8 @@ export default function LifelineImportReviewScreen() {
   const sourceFilename = params.sourceFilename as string | undefined;
   const isRealImport = params.isRealImport === 'true';
   const extractedCountParam = params.extractedCount as string | undefined;
+  const importSourceId = params.importSourceId as string | undefined;
+  const alreadyImported = params.alreadyImported === 'true';
   
   // Debug logging helper
   const debugLog = (message: string, data?: any) => {
