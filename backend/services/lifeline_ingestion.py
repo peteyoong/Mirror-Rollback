@@ -493,9 +493,6 @@ async def find_duplicate_candidates(
         # Same year bonus
         year_match = (year and candidate_year and year == candidate_year)
         
-        # Same category bonus
-        category_match = (category and candidate.get("category") == category)
-        
         # Check for exact match
         if title_sim >= TITLE_EXACT_THRESHOLD:
             candidate["id"] = str(candidate["_id"])
