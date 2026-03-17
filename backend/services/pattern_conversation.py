@@ -89,8 +89,8 @@ class PatternConversationService:
         
         try:
             # Get archetype data
-            from services.pattern_archetype import compute_user_archetype
-            archetype_result = await compute_user_archetype(self.db, user_id)
+            from services.pattern_archetype import get_user_archetype
+            archetype_result = await get_user_archetype(self.db, user_id)
             if archetype_result and archetype_result.get("primary_archetype"):
                 context["archetype"] = archetype_result["primary_archetype"]
             
