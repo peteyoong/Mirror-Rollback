@@ -8060,6 +8060,47 @@ REFLECTION CHAT STYLE:
         return ReflectionChatResponse(response=get_safe_fallback("reflection_chat"))
 
 
+
+# =============================================================================
+# DAILY INSIGHT ENGINE (New Structured Format)
+# =============================================================================
+
+@api_router.get("/daily-insight/{user_id}")
+async def get_daily_insight(user_id: str):
+    """
+    Generate structured daily insight for Home Screen.
+    
+    New format with:
+    - title
+    - what_happening
+    - why_feels
+    - watch_for
+    - better_move
+    - interrupt
+    """
+    from services.home_insight_engine import generate_daily_insight
+    
+    try:
+        insight = await generate_daily_insight(db, user_id)
+        return insight
+    except Exception as e:
+        logger.error(f"[DailyInsight] Error generating insight: {e}")
+        # Fallback response
+        return {
+            "success": True,
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "pattern_id": "fallback",
+            "title": "Noticing Today",
+            "what_happening": "Something is present that's worth paying attention to.",
+            "why_feels": "Your attention is being drawn somewhere specific.",
+            "watch_for": "Dismissing what you're noticing as unimportant.",
+            "better_move": "Stay with what's here before moving to what's next.",
+            "interrupt": "If you're rushing past this moment—pause and ask why.",
+            "confidence": "low"
+        }
+
+
+
 @api_router.get("/mirror/home/{user_id}")
 async def get_daily_keystone(user_id: str, date: Optional[str] = None, force_refresh: bool = False):
     """
