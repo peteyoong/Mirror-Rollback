@@ -1255,7 +1255,7 @@ export default function PatternsScreen() {
 
         <View style={styles.introSection}>
           <Text style={[styles.introDescription, { color: theme.textSecondary }]}>
-            Patterns can emerge across different parts of life. This view gathers signals from your reflections and interpretive lenses.
+            Mirror notices themes that repeat across your Lifeline, Journal, and Lunar reflections. The strongest signals rise to the top.
           </Text>
         </View>
 
