@@ -1105,6 +1105,8 @@ def extract_lifeline_events(
     """
     Main function to extract lifeline events from text.
     
+    Task 74: Enhanced for PDF/PPTX with additional slide-based extraction.
+    
     Returns list of event candidates with:
     - year: int or None
     - title: str
@@ -1116,19 +1118,31 @@ def extract_lifeline_events(
         return []
     
     logger.info(f"[LifelineImport] Extracting events from {len(text)} chars of text")
+    logger.debug(f"[LifelineImport] Text sample: {text[:300]}...")
+    
+    # Detect if this is PDF/PPTX content (contains slide/page markers)
+    is_slide_content = '[Slide' in text or '[Page' in text or '[Table' in text
     
     # Collect raw events from different extraction methods
     raw_events = []
     
-    # Method 1: Structured text extraction
+    # Method 1: Structured text extraction (year - description patterns)
     structured_events = extract_events_from_structured_text(text)
     raw_events.extend(structured_events)
     logger.info(f"[LifelineImport] Found {len(structured_events)} structured events")
     
-    # Method 2: Sentence-based extraction
+    # Method 2: Slide-based extraction (Task 74 - for PDF/PPTX)
+    if is_slide_content:
+        slide_events = extract_events_from_slides(text)
+        raw_events.extend(slide_events)
+        logger.info(f"[LifelineImport] Found {len(slide_events)} slide events")
+    
+    # Method 3: Sentence-based extraction
     sentence_events = extract_events_from_sentences(text, birth_year)
     raw_events.extend(sentence_events)
     logger.info(f"[LifelineImport] Found {len(sentence_events)} sentence events")
+    
+    logger.info(f"[LifelineImport] Total raw events before dedup: {len(raw_events)}")
     
     # Deduplicate and process events
     seen_hashes = set()
