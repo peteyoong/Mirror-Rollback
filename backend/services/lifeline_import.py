@@ -122,25 +122,96 @@ EVENT_PATTERNS = [
 # =============================================================================
 
 def extract_text_from_pptx(file_bytes: bytes) -> str:
-    """Extract text from PowerPoint file."""
+    """
+    Extract text from PowerPoint file with enhanced timeline detection.
+    
+    Task 74: Enhanced extraction for:
+    - Slide titles (often contain key life events)
+    - Bullet points with year + description patterns
+    - Text boxes with timeline content
+    - Tables with year/event columns
+    - Notes sections
+    """
     try:
         from pptx import Presentation
+        from pptx.util import Inches
         
         prs = Presentation(io.BytesIO(file_bytes))
         text_parts = []
+        slide_events = []  # Structured events with context
+        
+        logger.info(f"[LifelineImport/PPTX] Processing {len(prs.slides)} slides")
         
         for slide_num, slide in enumerate(prs.slides, 1):
+            slide_title = None
+            slide_bullets = []
             slide_text = []
-            for shape in slide.shapes:
-                if hasattr(shape, "text") and shape.text.strip():
-                    slide_text.append(shape.text.strip())
             
-            if slide_text:
-                text_parts.append(f"[Slide {slide_num}]\n" + "\n".join(slide_text))
+            for shape in slide.shapes:
+                # Extract title separately (high-value content)
+                if shape.has_text_frame:
+                    if hasattr(shape, 'is_placeholder') and shape.is_placeholder:
+                        if hasattr(shape, 'placeholder_format'):
+                            pf = shape.placeholder_format
+                            # Title placeholder types: 1 (title), 3 (center title)
+                            if hasattr(pf, 'type') and pf.type in [1, 3]:
+                                slide_title = shape.text.strip()
+                    
+                    # Extract all text with paragraph structure
+                    for para in shape.text_frame.paragraphs:
+                        para_text = para.text.strip()
+                        if para_text:
+                            # Detect if this is a bullet point (has indent level)
+                            if para.level > 0 or (hasattr(para, 'bullet') and para.bullet):
+                                slide_bullets.append(para_text)
+                            else:
+                                slide_text.append(para_text)
+                
+                # Extract from tables (common in timelines)
+                if shape.has_table:
+                    table = shape.table
+                    for row_idx, row in enumerate(table.rows):
+                        row_cells = [cell.text.strip() for cell in row.cells if cell.text.strip()]
+                        if row_cells:
+                            # Try to identify year + description pattern in table
+                            row_text = " | ".join(row_cells)
+                            slide_text.append(f"[Table row] {row_text}")
+            
+            # Build slide output with structure
+            slide_output = []
+            if slide_title:
+                slide_output.append(f"[Slide {slide_num} Title] {slide_title}")
+                logger.debug(f"[LifelineImport/PPTX] Slide {slide_num} title: {slide_title[:50]}...")
+            
+            # Add non-bullet text
+            for text in slide_text:
+                if text and text != slide_title:
+                    slide_output.append(text)
+            
+            # Add bullet points with marker
+            for bullet in slide_bullets:
+                slide_output.append(f"• {bullet}")
+            
+            if slide_output:
+                text_parts.append("\n".join(slide_output))
+            
+            # Extract speaker notes (often contain additional context)
+            if slide.has_notes_slide and slide.notes_slide.notes_text_frame:
+                notes_text = slide.notes_slide.notes_text_frame.text.strip()
+                if notes_text and len(notes_text) > 10:
+                    text_parts.append(f"[Slide {slide_num} Notes] {notes_text}")
         
-        return "\n\n".join(text_parts)
+        result = "\n\n".join(text_parts)
+        logger.info(f"[LifelineImport/PPTX] Extracted {len(result)} chars from {len(prs.slides)} slides")
+        logger.debug(f"[LifelineImport/PPTX] Sample text: {result[:500]}...")
+        
+        return result
+        
+    except ImportError:
+        logger.error("[LifelineImport/PPTX] python-pptx not installed")
+        raise ValueError("PowerPoint processing not available. Please install python-pptx.")
     except Exception as e:
-        logger.error(f"[LifelineImport] PPTX extraction failed: {e}")
+        logger.error(f"[LifelineImport/PPTX] Extraction failed: {e}")
         raise ValueError(f"Failed to extract text from PowerPoint: {str(e)}")
 
 
