@@ -1226,8 +1226,10 @@ async def get_pattern_graph_snapshot(
     """
     Generate a user-level pattern graph snapshot.
     
-    Aggregates all pattern signals from all sources into a unified view.
-    For v0.1, this primarily pulls from Lunar reflections.
+    Aggregates all pattern signals from all sources into a unified view:
+    - Stored pattern signals (from Lunar reflections)
+    - Live Lunar journal signals
+    - Lifeline events (categories, high-impact moments, time clusters)
     
     Args:
         db: Database connection
@@ -1269,6 +1271,20 @@ async def get_pattern_graph_snapshot(
             if signal.get("id") not in seen_ids:
                 stored_signals.append(signal)
     
+    # =========================================================================
+    # NEW: Generate signals from Lifeline events
+    # =========================================================================
+    lifeline_events = await db.lifeline_events.find({
+        "user_id": user_id
+    }).sort("year", -1).limit(30).to_list(30)
+    
+    if lifeline_events:
+        lifeline_signals = extract_signals_from_lifeline_events(lifeline_events, user_id)
+        
+        # Add Lifeline signals (they won't have IDs that conflict with stored_signals)
+        stored_signals.extend(lifeline_signals)
+        logger.info(f"[PatternEngine] Added {len(lifeline_signals)} Lifeline signals for user {user_id}")
+    
     if not stored_signals:
         return {
             "user_id": user_id,
@@ -1281,7 +1297,7 @@ async def get_pattern_graph_snapshot(
             "repeated_tags": [],
             "overall_momentum": "unclear",
             "data_sufficiency": "insufficient",
-            "message": "No pattern signals found. Start by adding reflections to your Lunar Decision Journal.",
+            "message": "Pattern signals begin to appear when you add moments, reflections, or decision observations. Mirror looks for repeated themes across your life and journal.",
         }
     
     # Aggregate by domain
