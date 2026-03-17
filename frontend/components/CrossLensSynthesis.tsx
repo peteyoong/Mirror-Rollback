@@ -211,14 +211,14 @@ export function FullSynthesis({ synthesis, isLoading }: FullSynthesisProps) {
         </View>
         <View style={styles.headerText}>
           <Text style={[styles.fullTitle, { color: theme.text }]}>{synthesis.headline}</Text>
-          <Text style={[styles.fullSubtitle, { color: theme.textTertiary }]}>Cross-Lens Synthesis</Text>
+          <Text style={[styles.fullSubtitle, { color: theme.textTertiary }]}>Insight from your data</Text>
         </View>
       </View>
       
       {/* Signal badges */}
       {synthesis.signals_used.length > 0 && (
         <View style={styles.signalBadgesRow}>
-          <Text style={[styles.signalLabel, { color: theme.textTertiary }]}>Connecting:</Text>
+          <Text style={[styles.signalLabel, { color: theme.textTertiary }]}>Drawing from:</Text>
           {synthesis.signals_used.map((signal) => {
             const info = SIGNAL_ICONS[signal];
             if (!info) return null;
