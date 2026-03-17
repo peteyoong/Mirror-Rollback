@@ -440,6 +440,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
         <TimeDistanceTimeline
           events={events}
           onEditEvent={handleEditEvent}
+          onDeleteEvent={handleDeleteEvent}
           isCompact={isCompact}
           isFirstReveal={false}
           showEarlyMessages={events.length <= 3}
