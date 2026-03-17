@@ -265,16 +265,16 @@ PATTERN_CATEGORIES = [
         "name": "Relationships & Boundaries",
         "description": "Patterns around connection, intimacy, and personal limits",
         "quiet_summary": "No strong signals around relationship themes at the moment.",
-        "emerging_summary": "Something around relationships or boundaries may be surfacing.",
-        "active_summary": "Relationship and boundary themes seem to be present in multiple areas."
+        "emerging_summary": "Something around relationships or boundaries is surfacing.",
+        "active_summary": "Relationship and boundary themes are present in multiple areas."
     },
     {
         "id": "growth_transformation",
         "name": "Growth & Transformation",
         "description": "Patterns around change, evolution, and personal development",
         "quiet_summary": "No strong signals around transformation themes at the moment.",
-        "emerging_summary": "A theme around growth or change may be starting to show.",
-        "active_summary": "Transformation and growth themes seem to be active across your reflection."
+        "emerging_summary": "A theme around growth or change is starting to show.",
+        "active_summary": "Transformation and growth themes are active across your reflection."
     }
 ]
 
