@@ -973,6 +973,95 @@ def extract_events_from_structured_text(text: str) -> List[Dict[str, Any]]:
     return events
 
 
+def extract_events_from_slides(text: str) -> List[Dict[str, Any]]:
+    """
+    Task 74: Extract events from PDF/PPTX slide content.
+    
+    Handles patterns common in:
+    - Life timelines / autobiographies
+    - Retreat presentations
+    - Workshop decks
+    - Personal history documents
+    """
+    events = []
+    filtered_count = 0
+    
+    # First, filter out junk lines
+    clean_lines = []
+    for line in text.split('\n'):
+        line = line.strip()
+        if not line:
+            continue
+        
+        # Check against junk patterns
+        is_junk = False
+        for junk_pattern in JUNK_PATTERNS:
+            if re.match(junk_pattern, line.lower()):
+                is_junk = True
+                filtered_count += 1
+                logger.debug(f"[LifelineImport/Slides] Filtered junk: {line[:40]}")
+                break
+        
+        if not is_junk:
+            clean_lines.append(line)
+    
+    clean_text_content = '\n'.join(clean_lines)
+    
+    # Apply slide-specific patterns
+    for pattern in SLIDE_EVENT_PATTERNS:
+        matches = re.findall(pattern, clean_text_content, re.MULTILINE | re.IGNORECASE)
+        for match in matches:
+            try:
+                # Handle different match group orders
+                if isinstance(match, tuple) and len(match) >= 2:
+                    # Check which group is the year
+                    if str(match[0]).isdigit() and 1950 <= int(match[0]) <= 2030:
+                        year = int(match[0])
+                        description = str(match[1]).strip() if len(match) > 1 else ''
+                    elif str(match[1]).isdigit() and 1950 <= int(match[1]) <= 2030:
+                        year = int(match[1])
+                        description = str(match[0]).strip()
+                    else:
+                        continue
+                else:
+                    continue
+                
+                if description and len(description) >= 5:
+                    description = re.sub(r'\s+', ' ', description).strip()
+                    # Skip if description is too long (likely paragraph, not event title)
+                    if len(description) > 200:
+                        description = description[:200] + '...'
+                    
+                    events.append({
+                        'year': year,
+                        'raw_text': description,
+                        'source': 'slide'
+                    })
+                    logger.debug(f"[LifelineImport/Slides] Found event: {year} - {description[:50]}...")
+            except (ValueError, IndexError):
+                continue
+    
+    # Also extract slide titles with years
+    title_pattern = r'\[Slide\s+\d+\s+Title\]\s*(.+?)(?:\n|$)'
+    title_matches = re.findall(title_pattern, text, re.MULTILINE)
+    for title in title_matches:
+        title = title.strip()
+        year_match = re.search(r'\b(19[5-9]\d|20[0-2]\d)\b', title)
+        if year_match:
+            year = int(year_match.group(1))
+            # Remove year from title for cleaner display
+            clean_title = re.sub(r'\b(19[5-9]\d|20[0-2]\d)\b\s*[-–—:.]?\s*', '', title).strip()
+            if clean_title and len(clean_title) >= 5:
+                events.append({
+                    'year': year,
+                    'raw_text': clean_title,
+                    'source': 'slide_title'
+                })
+    
+    logger.info(f"[LifelineImport/Slides] Found {len(events)} slide events, filtered {filtered_count} junk lines")
+    return events
+
+
 def extract_events_from_sentences(text: str, birth_year: Optional[int] = None) -> List[Dict[str, Any]]:
     """
     Extract events from natural language sentences.
