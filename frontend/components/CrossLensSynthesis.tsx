@@ -90,7 +90,7 @@ export function SynthesisTeaser({ synthesis, isLoading }: SynthesisTeaserProps) 
           <View style={[styles.iconContainer, { backgroundColor: `${theme.accent}12` }]}>
             <Ionicons name="sparkles-outline" size={16} color={theme.accent} />
           </View>
-          <Text style={[styles.teaserTitle, { color: theme.text }]}>Cross-Lens Synthesis</Text>
+          <Text style={[styles.teaserTitle, { color: theme.text }]}>Today's Insight</Text>
         </View>
         <View style={[styles.loadingBar, { backgroundColor: theme.border }]} />
         <View style={[styles.loadingBar, { backgroundColor: theme.border, width: '60%' }]} />
