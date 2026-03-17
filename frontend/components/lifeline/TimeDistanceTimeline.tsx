@@ -50,6 +50,7 @@ const PIXELS_PER_YEAR = 15; // Base scale for year-to-pixel conversion
 interface Props {
   events: LifelineEvent[];
   onEditEvent?: (event: LifelineEvent) => void;
+  onDeleteEvent?: (eventId: string) => Promise<void>;
   onAddEarlierMoment?: (prefill: EarlierMomentPrefill) => void;
   isCompact?: boolean;
   isFirstReveal?: boolean;
