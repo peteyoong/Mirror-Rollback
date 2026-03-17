@@ -352,13 +352,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
   },
-  editButton: {
-    padding: 4,
-  },
-  deleteButton: {
-    padding: 4,
-    marginLeft: 8,
-  },
   title: {
     fontSize: 15,
     fontWeight: '600',
