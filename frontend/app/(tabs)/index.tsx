@@ -1041,9 +1041,10 @@ const styles = StyleSheet.create({
   },
 
   // =========================================================================
-  // SECTION 4: SYNTHESIS
   // =========================================================================
-  synthesisSection: {
+  // SECTION 4: ARCHETYPE CARD (Task 75: Unified Narrative)
+  // =========================================================================
+  archetypeSection: {
     marginHorizontal: 20,
     marginTop: 8,
     marginBottom: 4,
