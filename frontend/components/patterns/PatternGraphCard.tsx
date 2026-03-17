@@ -178,7 +178,7 @@ export default function PatternGraphCard({ showDebug = false }: PatternGraphCard
     return (
       <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <ActivityIndicator size="small" color={COLORS.moonlight} />
-        <Text style={[styles.loadingText, { color: theme.textTertiary }]}>Loading patterns...</Text>
+        <Text style={[styles.loadingText, { color: theme.textTertiary }]}>Gathering your patterns...</Text>
       </View>
     );
   }
@@ -186,7 +186,7 @@ export default function PatternGraphCard({ showDebug = false }: PatternGraphCard
   if (error || !data) {
     return (
       <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[styles.emptyText, { color: theme.textTertiary }]}>{error || 'No data'}</Text>
+        <Text style={[styles.emptyText, { color: theme.textTertiary }]}>{error || 'Unable to load patterns'}</Text>
       </View>
     );
   }
@@ -194,10 +194,30 @@ export default function PatternGraphCard({ showDebug = false }: PatternGraphCard
   if (data.total_signals === 0) {
     return (
       <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[styles.title, { color: theme.text }]}>Pattern Graph</Text>
-        <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-          {data.message || 'Add reflections to see your patterns emerge.'}
-        </Text>
+        <Text style={[styles.emptyTitle, { color: theme.text }]}>Your Patterns Dashboard</Text>
+        
+        <View style={styles.emptyStateContent}>
+          <Text style={[styles.emptyDescription, { color: theme.textSecondary }]}>
+            Pattern signals begin to appear when you add moments, reflections, or decision observations. Mirror looks for repeated themes across your life and journal.
+          </Text>
+          
+          <View style={styles.emptyStateActions}>
+            <Text style={[styles.emptyActionsTitle, { color: theme.textTertiary }]}>
+              To see patterns emerge:
+            </Text>
+            <View style={styles.emptyActionsList}>
+              <Text style={[styles.emptyActionItem, { color: theme.textSecondary }]}>
+                • Add a moment to your Lifeline
+              </Text>
+              <Text style={[styles.emptyActionItem, { color: theme.textSecondary }]}>
+                • Write a journal reflection
+              </Text>
+              <Text style={[styles.emptyActionItem, { color: theme.textSecondary }]}>
+                • Continue a lunar decision cycle
+              </Text>
+            </View>
+          </View>
+        </View>
       </View>
     );
   }
