@@ -177,6 +177,21 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
   },
+  phaseIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginBottom: 12,
+    alignSelf: 'flex-start',
+  },
+  phaseText: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
   loadingRow: {
     flexDirection: 'row',
     alignItems: 'center',
