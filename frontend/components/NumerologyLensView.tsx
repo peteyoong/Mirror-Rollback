@@ -283,18 +283,30 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   }, [hydrateProfile]);
 
   useEffect(() => {
-    loadTabData(activeTab);
+    // Deep Dive tab uses NumerologyDeepDivePattern which has its own data fetching
+    // Only load data for Summary and Today tabs
+    if (activeTab !== 'deep_dive') {
+      loadTabData(activeTab);
+    } else {
+      // Reset loading state for Deep Dive since component handles it
+      setIsLoading(false);
+      setError(null);
+    }
   }, [activeTab, userId]);
 
   const loadTabData = async (tab: TabType) => {
+    // Skip API call for Deep Dive - it uses NumerologyDeepDivePattern's own fetch
+    if (tab === 'deep_dive') {
+      setIsLoading(false);
+      return;
+    }
+    
     setIsLoading(true);
     setError(null);
 
     try {
       const endpoint = tab === 'today' 
         ? `/numerology/today/${userId}`
-        : tab === 'deep_dive'
-        ? `/numerology/deep-dive/${userId}`
         : `/numerology/summary/${userId}`;
 
       const response = await api.get(endpoint);
