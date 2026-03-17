@@ -3375,3 +3375,170 @@ P3: Some loading states take 3-4 seconds but within acceptable range
 
 🎯 RECOMMENDATION: READY FOR DEPLOY
 The Lifeline Pattern Synthesis feature is fully functional and meets all visual requirements for release."
+
+
+
+#====================================================================================================
+# Lifeline Ingestion Architecture Refactor - Testing Data
+#====================================================================================================
+
+backend:
+  - task: "Lifeline Ingestion Service - 3 Layer Architecture"
+    implemented: true
+    working: true
+    file: "/app/backend/services/lifeline_ingestion.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          NEW SERVICE CREATED: lifeline_ingestion.py
+          
+          Implements 3-layer data pipeline:
+          1. Import Source Registry (lifeline_import_sources collection)
+          2. Imported Candidate Moments (lifeline_imported_moments collection)
+          3. Canonical Lifeline Events (lifeline_events - existing, enhanced)
+          
+          Key features implemented:
+          - Idempotent imports (dedupe_key prevents duplicates)
+          - Source-aware tracking (file hash, source type, event IDs)
+          - Duplicate detection using title similarity (70% threshold)
+          - Canonical merge pipeline with auto-merge exact matches
+          - Migration helper to fix existing duplicates
+          
+          TESTED via curl:
+          - /api/lifeline/ingestion-stats returns proper stats
+          - /api/lifeline/duplicate-candidates finds duplicate groups
+          - /api/lifeline/migrate-fix-duplicates successfully cleaned 40→10 events
+          
+          Functions:
+          - create_import_source(), get_import_source_by_hash()
+          - store_imported_moment(), store_imported_moments_batch()
+          - find_duplicate_candidates(), find_all_duplicate_candidates_for_user()
+          - merge_moment_into_canonical(), process_import_source_to_canonical()
+          - merge_canonical_duplicates(), migrate_fix_existing_duplicates()
+
+  - task: "Lifeline Ingestion API Endpoints"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          NEW ENDPOINTS ADDED to server.py:
+          
+          1. POST /api/lifeline/import-v2
+             - New import endpoint using 3-layer architecture
+             - Creates import source, stores candidates, returns for review
+             - Idempotent: re-importing same file returns existing moments
+          
+          2. GET /api/lifeline/import-sources/{user_id}
+             - Lists all import sources for a user
+          
+          3. GET /api/lifeline/imported-moments/{user_id}
+             - Lists imported candidate moments
+             - Optional filter by status or import_source_id
+          
+          4. POST /api/lifeline/confirm-import/{import_source_id}
+             - Confirms import and runs merge pipeline
+             - Auto-merges exact matches, marks likely duplicates for review
+          
+          5. GET /api/lifeline/duplicate-candidates/{user_id}
+             - Returns potential duplicate groups in canonical events
+          
+          6. POST /api/lifeline/merge-duplicates
+             - Merges specified duplicate events into primary
+          
+          7. POST /api/lifeline/migrate-fix-duplicates/{user_id}
+             - Migration endpoint to clean up existing duplicates
+             - dry_run=true for preview, dry_run=false to execute
+          
+          8. GET /api/lifeline/ingestion-stats/{user_id}
+             - Comprehensive stats about lifeline data
+          
+          9. POST /api/lifeline/migrate-add-source-fields/{user_id}
+             - Adds source tracking fields to legacy events
+
+frontend:
+  - task: "Lifeline Upload v2 Integration"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/lifeline-upload.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          UPDATED lifeline-upload.tsx:
+          - Changed API call from /lifeline/import to /lifeline/import-v2
+          - Added import_source_id and already_imported params to review navigation
+          - File hash enables idempotent imports
+          
+  - task: "Lifeline Import Review v2 Integration"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/lifeline-import-review.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          UPDATED lifeline-import-review.tsx:
+          - Added importSourceId and alreadyImported params capture
+          - New saveSelectedEvents() uses /lifeline/confirm-import/{id} when source ID available
+          - Provides stats feedback: new events, matched, needs review
+          - Legacy fallback for backwards compatibility
+
+test_plan:
+  current_focus:
+    - "Lifeline Ingestion API - verify all endpoints work"
+    - "Duplicate detection and merge pipeline"
+    - "Import idempotency test"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: |
+      LIFELINE INGESTION ARCHITECTURE REFACTOR IMPLEMENTED
+      
+      🎯 PROBLEM SOLVED:
+      - Root cause: Imports were writing directly to canonical timeline without dedupe
+      - Result: 40 duplicate events from just 10 real events
+      
+      🔧 SOLUTION IMPLEMENTED:
+      1. Created new 3-layer architecture:
+         - Import Source Registry (tracks files)
+         - Imported Candidate Moments (raw parsed with dedupe keys)
+         - Canonical Lifeline Events (merged, deduplicated)
+      
+      2. Idempotent imports:
+         - File hash prevents re-importing same file
+         - Dedupe key prevents duplicate moments
+      
+      3. Duplicate detection:
+         - 70% title similarity threshold
+         - Year tolerance ±1 year
+         - Auto-merge exact matches (90%+)
+      
+      4. Migration completed:
+         - User 697f0c6a: 40 events → 10 clean events
+         - 10 duplicate groups merged
+      
+      📋 TESTING NEEDED:
+      1. Test /api/lifeline/import-v2 with file upload
+      2. Test /api/lifeline/confirm-import/{id} merge pipeline
+      3. Test /api/lifeline/ingestion-stats returns correct counts
+      4. Verify timeline UI shows clean data (no duplicates)
+      5. Verify patterns/synthesis use canonical events only
