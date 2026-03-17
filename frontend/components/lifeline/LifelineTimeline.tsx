@@ -9,7 +9,7 @@
  * <LifelineTimeline userId="xxx" forumId="yyy" /> // Forum context
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../../constants/colors';
 import { useTheme } from '../../contexts/ThemeContext';
 import api from '../../services/api';
