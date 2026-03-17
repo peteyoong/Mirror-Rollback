@@ -1249,17 +1249,14 @@ export default function PatternsScreen() {
           />
         }
       >
-        {/* Pattern Archetype Card - Main insight at top */}
+        {/* Pattern Archetype Card - Single source of truth for narrative */}
         <PatternArchetypeCard />
 
-        {/* Cross-Lens Synthesis - Secondary insight (if no archetype or as supplement) */}
-        {(synthesis || synthesisLoading) && (
-          <FullSynthesis synthesis={synthesis} isLoading={synthesisLoading} />
-        )}
+        {/* Task 75: Removed FullSynthesis card - Archetype is now the only top-level interpretation */}
 
         <View style={styles.introSection}>
           <Text style={[styles.introDescription, { color: theme.textSecondary }]}>
-            Mirror notices themes that repeat across your Lifeline, Journal, and Lunar reflections. The strongest signals rise to the top.
+            These patterns surface from your Lifeline, Journal, and Lunar reflections. The strongest signals rise to the top.
           </Text>
         </View>
 
