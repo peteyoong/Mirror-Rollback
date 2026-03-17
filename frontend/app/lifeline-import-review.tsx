@@ -175,7 +175,7 @@ export default function LifelineImportReviewScreen() {
   // State for tracking failed events for retry
   const [failedEvents, setFailedEvents] = useState<ExtractedEvent[]>([]);
   
-  // Save selected events to Lifeline - Task 46: Improved bulk save with Promise.allSettled
+  // Save selected events to Lifeline using new v2 architecture
   const saveSelectedEvents = async () => {
     if (!user?.id) {
       Alert.alert('Error', 'Please log in to save events.');
@@ -189,15 +189,78 @@ export default function LifelineImportReviewScreen() {
       return;
     }
     
-    debugLog('Starting bulk save:', { count: selectedEvents.length });
+    debugLog('Starting save with v2 architecture:', { 
+      count: selectedEvents.length,
+      importSourceId,
+      alreadyImported 
+    });
     setSaving(true);
     setFailedEvents([]);
+    
+    try {
+      // Use the new v2 confirm-import endpoint if we have an import source ID
+      if (importSourceId) {
+        debugLog('Using v2 confirm-import endpoint');
+        
+        const response = await api.post(`/lifeline/confirm-import/${importSourceId}?auto_merge_exact=true`);
+        
+        debugLog('Confirm import response:', response.data);
+        
+        if (response.data.success) {
+          const stats = response.data.stats || {};
+          const newCount = stats.new_canonical || 0;
+          const matchedCount = stats.exact_matches || 0;
+          const needsReviewCount = stats.needs_review || 0;
+          
+          let message = `Added ${newCount} new moment${newCount !== 1 ? 's' : ''} to your Lifeline.`;
+          if (matchedCount > 0) {
+            message += ` ${matchedCount} matched existing entries.`;
+          }
+          if (needsReviewCount > 0) {
+            message += ` ${needsReviewCount} potential duplicates to review later.`;
+          }
+          
+          Alert.alert(
+            'Import Complete',
+            message,
+            [
+              {
+                text: 'View Lifeline',
+                onPress: () => router.replace('/(tabs)/life'),
+              },
+            ]
+          );
+        } else {
+          throw new Error(response.data.message || 'Import confirmation failed');
+        }
+      } else {
+        // Fallback to legacy direct-save method for backwards compatibility
+        debugLog('Falling back to legacy direct-save method');
+        await saveLegacyMethod(selectedEvents);
+      }
+    } catch (err: any) {
+      console.error('[ImportReview] Save error:', err);
+      Alert.alert(
+        'Import Failed',
+        err.message || 'Failed to save events. Please try again.',
+        [
+          { text: 'OK' },
+        ]
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+  
+  // Legacy save method for backwards compatibility
+  const saveLegacyMethod = async (selectedEvents: ExtractedEvent[]) => {
+    debugLog('Starting legacy bulk save:', { count: selectedEvents.length });
     
     // Create save promises for all events
     const savePromises = selectedEvents.map(async (event) => {
       try {
         await api.post('/lifeline/event', {
-          user_id: user.id,
+          user_id: user!.id,
           title: event.title,
           year: event.year,
           description: event.description,
@@ -236,10 +299,9 @@ export default function LifelineImportReviewScreen() {
       }
     });
     
-    setSaving(false);
     setFailedEvents(failed);
     
-    debugLog('Bulk save complete:', { savedCount, errorCount, failedCount: failed.length });
+    debugLog('Legacy bulk save complete:', { savedCount, errorCount, failedCount: failed.length });
     
     // Always show result and navigate
     if (errorCount === 0) {
