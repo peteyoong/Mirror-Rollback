@@ -116,6 +116,36 @@ EVENT_PATTERNS = [
     r'\d+[.)]\s*(19[5-9]\d|20[0-2]\d)\s*[-–—:.]?\s*(.+?)(?:\n|$)',
 ]
 
+# Task 74: Enhanced patterns for PDF/PPTX content
+SLIDE_EVENT_PATTERNS = [
+    # Slide title with year: "[Slide N Title] 2018 - Started new job"
+    r'\[Slide\s+\d+\s+Title\]\s*(19[5-9]\d|20[0-2]\d)\s*[-–—:.]?\s*(.+?)(?:\n|$)',
+    # Year followed by title text
+    r'(19[5-9]\d|20[0-2]\d)\s*[-–—:.]\s*([A-Z][^.\n]{5,80})',
+    # Life event phrases with year
+    r'(?:born|graduated|married|moved|started|joined|left|died|won)\s+(?:in\s+)?(19[5-9]\d|20[0-2]\d)',
+    # "In 2005, ..." pattern
+    r'[Ii]n\s+(19[5-9]\d|20[0-2]\d)[,.]?\s+(.+?)(?:\n|$)',
+    # Year at end: "Got my first job (1998)"
+    r'([A-Z][^.\n]{5,80})\s*\((19[5-9]\d|20[0-2]\d)\)',
+    # "Since 2010" or "From 2005" patterns
+    r'(?:since|from)\s+(19[5-9]\d|20[0-2]\d)[,.]?\s*(.{0,80})',
+]
+
+# Junk text patterns to filter out
+JUNK_PATTERNS = [
+    r'^page\s*\d+',
+    r'^\d+\s*$',  # Just numbers
+    r'^copyright',
+    r'^all rights reserved',
+    r'^confidential',
+    r'^\s*•\s*$',  # Just bullet
+    r'^www\.',
+    r'^http',
+    r'@.*\.com',  # Email addresses
+    r'^\s*[-–—]\s*$',  # Just dashes
+]
+
 
 # =============================================================================
 # FILE EXTRACTION FUNCTIONS
