@@ -358,6 +358,7 @@ def format_resonance_for_display(resonance: Dict[str, Any]) -> Dict[str, Any]:
     event_year = resonance.get("event_year", "")
     event_title = resonance.get("event_title", "life event")
     reflection = resonance.get("reflection", "")
+    confidence = resonance.get("confidence", 0.5)
     
     # Build display text with observational language
     if resonance.get("match_quality") == "exact":
@@ -370,7 +371,8 @@ def format_resonance_for_display(resonance: Dict[str, Any]) -> Dict[str, Any]:
         "display_title": "Resonance Moment",
         "display_timing": timing_text,
         "display_reflection": reflection,
-        "display_footer": "Your timeline shows a turning point during this same period."
+        "display_footer": "Your timeline shows a turning point during this same period.",
+        "display_confidence": "strong" if confidence >= 0.85 else "moderate" if confidence >= 0.7 else "light"
     }
 
 
