@@ -159,10 +159,10 @@ export default function LifelineUploadScreen() {
       
       formData.append('user_id', user.id);
       
-      debugLog('Uploading to API...');
+      debugLog('Uploading to API v2...');
       
-      // Upload to backend
-      const response = await api.post('/lifeline/import', formData, {
+      // Upload to backend using new v2 ingestion API
+      const response = await api.post('/lifeline/import-v2', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -179,8 +179,10 @@ export default function LifelineUploadScreen() {
       
       const events = response.data.events || [];
       const extractedCount = events.length;
+      const importSourceId = response.data.import_source_id;
+      const alreadyImported = response.data.already_imported || false;
       
-      debugLog(`Extraction complete: ${extractedCount} events found`);
+      debugLog(`Extraction complete: ${extractedCount} events found, import_source_id: ${importSourceId}`);
       
       // Navigate to review screen with extracted data
       router.push({
@@ -189,6 +191,8 @@ export default function LifelineUploadScreen() {
           extractedEvents: JSON.stringify(events),
           sourceFilename: selectedFile.name,
           extractedCount: String(extractedCount),
+          importSourceId: importSourceId || '',
+          alreadyImported: alreadyImported ? 'true' : 'false',
           isRealImport: 'true', // Flag to indicate this is from real upload
         },
       });
