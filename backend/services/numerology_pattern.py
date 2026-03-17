@@ -336,7 +336,7 @@ def generate_internal_tensions(
             (3, 7): {
                 'a': f'Expression ({life_path})',
                 'b': f'deep analysis ({missing})',
-                'description': 'You speak before you've fully understood—wisdom lags behind words'
+                'description': 'You speak before you have fully understood - wisdom lags behind words'
             },
             (5, 4): {
                 'a': f'Constant movement ({life_path})',
