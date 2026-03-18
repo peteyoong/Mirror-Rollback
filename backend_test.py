@@ -19,7 +19,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://mirror-self-28.preview.emergentagent.com/api"
+BACKEND_URL = "https://home-screen-overhaul.preview.emergentagent.com/api"
 
 # Test user data
 TEST_USER_ID = "697f795f1a7a96aa35e283a3"
