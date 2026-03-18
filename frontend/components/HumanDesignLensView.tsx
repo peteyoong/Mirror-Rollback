@@ -2029,98 +2029,97 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Get Type card content
+  // Get Type card content - Mirror pattern language
   const getTypeCardContent = (type: string) => {
     const content: Record<string, { story: string; showsUp: string; challenge: string; tips: string }> = {
       'Generator': {
-        story: 'You are a life force being, here to find work you love and build mastery through response.',
-        showsUp: 'Strong gut responses to opportunities. Deep satisfaction when engaged in meaningful work.',
-        challenge: 'Saying yes out of obligation rather than genuine excitement leads to frustration.',
-        tips: 'Wait for your gut "uh-huh" before committing. Trust your body over your mind.'
+        story: 'You run on a motor that needs the right fuel. When you\'re doing work you actually love, you could go all day.',
+        showsUp: 'In real life, you light up when something lands right. Your gut pulls you toward things—or pushes back hard.',
+        challenge: 'The trap is saying yes to keep the peace. Then you\'re grinding on something that drains you.',
+        tips: 'Wait for the gut pull before you commit. If it\'s not a hell yes, it\'s probably a no.'
       },
       'Manifesting Generator': {
-        story: 'You combine sustainable energy with initiating power. Designed to respond quickly and pivot freely.',
-        showsUp: 'Quick bursts of energy when excited. Natural tendency to multi-task and find shortcuts.',
-        challenge: 'Forcing yourself to finish what no longer excites you. Judging your non-linear path.',
-        tips: 'Respond first, then move fast. Inform others before sudden changes.'
+        story: 'You move fast when you\'re lit up. You skip steps, change lanes, and don\'t always finish what you start—and that\'s fine.',
+        showsUp: 'People notice your speed. You bounce between things. You find shortcuts others miss.',
+        challenge: 'The trap is forcing yourself to stay on one track. Or feeling guilty for pivoting.',
+        tips: 'Respond first, then move. Let people know when you\'re about to shift—it saves friction.'
       },
       'Projector': {
-        story: 'You are a guide and seer, designed to understand systems and people more deeply than others.',
-        showsUp: 'Ability to see what others miss. Natural talent for guiding and advising when invited.',
-        challenge: 'Offering guidance that wasn\'t asked for leads to bitterness.',
-        tips: 'Wait for recognition and invitation. Rest more than you think you need.'
+        story: 'You see things others don\'t. Systems, people, what\'s really going on underneath.',
+        showsUp: 'People come to you when they\'re stuck. You have a way of cutting through noise—when they\'re ready to hear it.',
+        challenge: 'The trap is offering insight before anyone asked. That\'s when it backfires.',
+        tips: 'Wait until you\'re invited. Rest more than feels normal. Your value isn\'t about output.'
       },
       'Manifestor': {
-        story: 'You are an initiator, here to start things and set change in motion through action.',
-        showsUp: 'Strong urges to initiate. Powerful impact that ripples outward and affects others.',
-        challenge: 'Suppressing impulses to avoid conflict, or acting without informing creates resistance.',
-        tips: 'Inform others before acting. This isn\'t permission—it\'s reducing friction.'
+        story: 'You\'re built to start things. Urges hit you and you move—often before anyone else sees why.',
+        showsUp: 'People feel your impact. You create ripples, whether you mean to or not.',
+        challenge: 'The trap is holding back to avoid conflict. Or moving without telling anyone and creating chaos.',
+        tips: 'Inform before you act. Not for permission—just so people aren\'t blindsided.'
       },
       'Reflector': {
-        story: 'You mirror the world around you, sampling and reflecting the health of your environment.',
-        showsUp: 'Deep sensitivity to environment. Wisdom from sampling many perspectives over time.',
-        challenge: 'Rushing decisions without allowing a full lunar cycle for clarity.',
-        tips: 'Give major decisions 28 days. Choose environments carefully—they shape you.'
+        story: 'You take in everything around you. You\'re a mirror—what you feel often isn\'t yours.',
+        showsUp: 'You shift depending on where you are and who\'s there. Your wisdom comes from sampling, not certainty.',
+        challenge: 'The trap is deciding too fast. You need time—real time—to know what\'s true for you.',
+        tips: 'Big decisions need a full month. Your environment matters more than most people\'s. Choose it carefully.'
       }
     };
     return content[type] || content['Generator'];
   };
 
-  // Get Authority card content
+  // Get Authority card content - Mirror pattern language
   const getAuthorityCardContent = (authority: string) => {
     const normalizedAuth = authority?.toLowerCase() || '';
     const content: Record<string, { story: string; showsUp: string; challenge: string; tips: string }> = {
       'emotional': {
-        story: 'Your clarity comes through emotional waves. Decisions gain truth over time, not in the moment.',
-        showsUp: 'Strong emotional responses. Changing feelings about the same choice over days.',
-        challenge: 'Deciding at emotional peaks or valleys leads to regret.',
-        tips: 'Sleep on important decisions. Revisit them over days. Wait for calm clarity.'
+        story: 'You ride waves. Your clarity doesn\'t come instantly—it builds over time as emotions settle.',
+        showsUp: 'You feel differently about the same thing on different days. That\'s not confusion—that\'s your process.',
+        challenge: 'The trap is deciding when you\'re high or low. Both distort what\'s actually true.',
+        tips: 'Sleep on it. Check again tomorrow. Real clarity feels calm, not urgent.'
       },
       'sacral': {
-        story: 'Your body speaks through gut responses—visceral sounds and sensations that indicate yes or no.',
-        showsUp: 'Immediate gut reactions to questions. An "uh-huh" of expansion or "unh-uh" of contraction.',
-        challenge: 'Ignoring gut response because of mental reasoning or social pressure.',
-        tips: 'Pay attention to your first physical response. Ask yes/no questions to clarify.'
+        story: 'Your body knows before your mind does. There\'s a pull toward yes—or a wall that says no.',
+        showsUp: 'You make sounds. You feel expansion or contraction in your gut. It\'s physical.',
+        challenge: 'The trap is overriding that response because it doesn\'t make logical sense.',
+        tips: 'Trust the first hit. Ask yourself yes/no questions out loud and feel the response.'
       },
       'splenic': {
-        story: 'Your intuition speaks once, quietly, in the present moment. It\'s immediate knowing.',
-        showsUp: 'Quick, quiet knowing in the moment. Instincts about safety and timing.',
-        challenge: 'Second-guessing your immediate knowing with mental analysis.',
-        tips: 'Trust your first hit. Don\'t hesitate—the splenic speaks once then moves on.'
+        story: 'Your knowing comes fast and quiet. Once. In the moment. Then it\'s gone.',
+        showsUp: 'You get instincts. Subtle hits about timing, safety, what\'s off.',
+        challenge: 'The trap is second-guessing that first hit. Once you analyze, you\'ve lost it.',
+        tips: 'Act on the first knowing. Don\'t wait for your mind to agree.'
       },
       'ego': {
-        story: 'Your decisions are clear when connected to what you truly want—what your heart desires.',
-        showsUp: 'Clarity when desires are genuinely felt. Strong willpower when heart is committed.',
-        challenge: 'Committing to things you should want rather than things you actually want.',
-        tips: 'Ask "Do I really want this? Is my heart in it?" before promising anything.'
+        story: 'Your clarity lives in what you actually want. Not what you should want—what you really desire.',
+        showsUp: 'When your heart is in it, you can move mountains. When it\'s not, everything stalls.',
+        challenge: 'The trap is committing to things you don\'t actually want. Then you can\'t sustain them.',
+        tips: 'Ask: Do I actually want this? If your heart says no, don\'t promise it.'
       },
       'self-projected': {
-        story: 'Your clarity comes through your voice—hearing yourself speak reveals your truth.',
-        showsUp: 'Clarity that comes through speaking aloud. Recognizing truth in your own voice.',
-        challenge: 'Processing silently or seeking advice instead of hearing yourself.',
-        tips: 'Talk through decisions with trusted people. Listen to your own words, not their advice.'
+        story: 'You find clarity by hearing yourself speak. Not thinking—talking.',
+        showsUp: 'You say something out loud and suddenly know if it\'s true. Your voice carries your truth.',
+        challenge: 'The trap is processing alone or asking for advice. You need to hear yourself, not others.',
+        tips: 'Talk through decisions with someone who listens. Pay attention to your own words, not their opinions.'
       },
       'mental': {
-        story: 'Your clarity emerges through conversation and environment over time, not internal analysis.',
-        showsUp: 'Clarity through discussion in varied settings. Decisions that solidify through dialogue.',
-        challenge: 'Deciding in isolation or expecting others to give you the answer.',
-        tips: 'Cultivate trusted sounding boards. Discuss in different environments before deciding.'
+        story: 'Your clarity comes through conversation over time. Different places, different talks.',
+        showsUp: 'You process out loud. The answer emerges through dialogue—not internal analysis.',
+        challenge: 'The trap is isolating or expecting immediate certainty. Neither works for you.',
+        tips: 'Talk to trusted people. In different settings. Let clarity build across conversations.'
       },
       'lunar': {
-        story: 'Your clarity unfolds over a complete lunar cycle—28 days to truly know what\'s correct.',
-        showsUp: 'Different feelings about decisions throughout the month. Wisdom from sampling varied energies.',
-        challenge: 'Pressure to decide quickly in a world that values fast answers.',
-        tips: 'Mark when decisions appear. Give them a full moon cycle before committing.'
+        story: 'Your clarity takes a full cycle. About a month. That\'s not slow—that\'s thorough.',
+        showsUp: 'You feel different about things as the month moves. That\'s information, not indecision.',
+        challenge: 'The trap is pressure to decide fast. That almost always backfires.',
+        tips: 'Mark when decisions show up. Give them 28 days before you commit.'
       },
       'none': {
-        story: 'Your clarity comes from your environment—where and with whom you feel most clear.',
-        showsUp: 'Decisions that feel different in different places. Sensitivity to setting.',
-        challenge: 'Not recognizing how much your environment affects your knowing.',
-        tips: 'Make important decisions only in environments where you feel clear and grounded.'
+        story: 'Your clarity is environmental. Where you are changes what you know.',
+        showsUp: 'Some places make you clear. Others muddy everything.',
+        challenge: 'The trap is not recognizing how much your setting affects your knowing.',
+        tips: 'Only make important decisions in places where you feel grounded.'
       }
     };
     
-    // Match partial authority names
     for (const [key, value] of Object.entries(content)) {
       if (normalizedAuth.includes(key)) return value;
     }
@@ -2206,27 +2205,27 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     return content[profile] || { story: 'You have your own way of moving through life and learning.', showsUp: 'Patterns unique to how you engage with experience.', challenge: 'The trap is resisting your natural rhythm.', tips: 'Pay attention to what consistently works for you.' };
   };
 
-  // Get Incarnation Cross card content
+  // Get Incarnation Cross card content - Mirror pattern language
   const getIncarnationCrossCardContent = (crossName: string) => {
     const angle = getCrossAngle(crossName);
     const content: Record<string, { story: string; showsUp: string; challenge: string; tips: string }> = {
       'Right Angle': {
-        story: 'Your destiny is personal—focused on your own journey and growth. Your life purpose unfolds through self-discovery.',
-        showsUp: 'Life lessons that are primarily internal. Growth through your own journey.',
-        challenge: 'Thinking you should be more focused on others. Judging your path as selfish.',
-        tips: 'Your personal curriculum is the point. Trust that your journey serves something larger.'
+        story: 'Your life is mostly about you. Your own journey, your own growth. That\'s not selfish—that\'s the design.',
+        showsUp: 'You keep circling back to your own lessons. The people you meet serve your path, not the other way around.',
+        challenge: 'The trap is thinking you should be more outward-focused. You\'re not here to save anyone.',
+        tips: 'Stop apologizing for your focus on yourself. That IS the curriculum.'
       },
       'Left Angle': {
-        story: 'Your destiny is transpersonal—woven into the lives of others. Purpose unfolds through relationship.',
-        showsUp: 'Life shaped by key relationships and meetings. Purpose through connection.',
-        challenge: 'Losing yourself in others\' paths. Trying to control the transpersonal unfolding.',
-        tips: 'Your encounters matter in ways you may not see yet. Trust the connections.'
+        story: 'Your life unfolds through others. Key people change everything. You\'re here for the encounters.',
+        showsUp: 'Certain meetings shift your whole trajectory. Your purpose is tangled up with other people\'s.',
+        challenge: 'The trap is trying to control who shows up or losing yourself in their agendas.',
+        tips: 'Trust the connections. They\'re happening for reasons you may not see yet.'
       },
       'Juxtaposition': {
-        story: 'Your destiny is fixed and geometric—a specific role you\'re here to play. Less flexibility, more focus.',
-        showsUp: 'Life that keeps returning to the same themes. A sense of fixed purpose.',
-        challenge: 'Fighting the fixedness of your path. Not recognizing your specific role.',
-        tips: 'Your focused destiny is a gift, not a limitation. Lean into the specificity.'
+        story: 'You\'re here to do one specific thing. Your life keeps returning to the same core role.',
+        showsUp: 'Themes repeat. You feel most alive when you\'re doing that one thing you\'re built for.',
+        challenge: 'The trap is fighting the narrowness. Wanting more flexibility than you have.',
+        tips: 'Lean into the focus. The specificity is the gift.'
       }
     };
     return content[angle] || content['Right Angle'];
@@ -2769,55 +2768,55 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const getDefaultCenterShowsUp = (centerName: string, isDefined: boolean): string => {
     const name = centerName.toLowerCase();
     const defaults: Record<string, { defined: string; undefined: string }> = {
-      'head': { defined: 'Consistent mental inspiration and questions.', undefined: 'You sample different ways of thinking from your environment.' },
-      'ajna': { defined: 'Reliable way of processing and conceptualizing.', undefined: 'Mental flexibility—seeing things from many angles.' },
-      'throat': { defined: 'Consistent voice and communication style.', undefined: 'Adaptable expression that matches your context.' },
-      'g': { defined: 'Fixed sense of identity and direction.', undefined: 'Fluid identity shaped by where and who you\'re with.' },
-      'g center': { defined: 'Fixed sense of identity and direction.', undefined: 'Fluid identity shaped by where and who you\'re with.' },
-      'heart': { defined: 'Reliable willpower and ability to commit.', undefined: 'Fluctuating willpower—don\'t over-promise.' },
-      'ego': { defined: 'Reliable willpower and ability to commit.', undefined: 'Fluctuating willpower—don\'t over-promise.' },
-      'spleen': { defined: 'Consistent intuition and instinctual awareness.', undefined: 'Amplified fears—learn to distinguish yours from others.' },
-      'solar plexus': { defined: 'Emotional wave that cycles through highs and lows.', undefined: 'Absorbing and amplifying others\' emotions intensely.' },
-      'sacral': { defined: 'Sustainable life force energy for work.', undefined: 'No consistent work energy—rest is essential.' },
-      'root': { defined: 'Consistent drive and ability to handle pressure.', undefined: 'Amplified pressure from environment—don\'t rush.' }
+      'head': { defined: 'You\'re always thinking. The questions keep coming, whether you want them to or not.', undefined: 'You pick up other people\'s questions. Not all that mental noise is yours.' },
+      'ajna': { defined: 'You think in consistent patterns. You have your own way of making sense of things.', undefined: 'Your thinking shifts with the room. You can see things from many angles.' },
+      'throat': { defined: 'You have a voice that\'s distinctly yours. Expression comes consistently.', undefined: 'Sometimes you have a lot to say, sometimes nothing. It depends on where you are.' },
+      'g': { defined: 'You know who you are. That doesn\'t change much no matter where you go.', undefined: 'You shift with your environment. Different places, different people, different you.' },
+      'g center': { defined: 'You know who you are. That doesn\'t change much no matter where you go.', undefined: 'You shift with your environment. Different places, different people, different you.' },
+      'heart': { defined: 'When you say you\'ll do something, you mean it. You have willpower to burn.', undefined: 'Your willpower comes and goes. Be careful what you promise.' },
+      'ego': { defined: 'When you say you\'ll do something, you mean it. You have willpower to burn.', undefined: 'Your willpower comes and goes. Be careful what you promise.' },
+      'spleen': { defined: 'You get gut hits about what\'s right, safe, off. Quick knowing.', undefined: 'You absorb fears from your environment. Hard to tell which ones are real.' },
+      'solar plexus': { defined: 'You ride emotional waves. Highs, lows, and everything in between—that\'s your weather.', undefined: 'You absorb what others feel. Someone else\'s mood can feel like your own.' },
+      'sacral': { defined: 'You have a motor for work. When you\'re lit up, you can go all day.', undefined: 'You don\'t have sustainable work energy. Rest isn\'t lazy—it\'s necessary.' },
+      'root': { defined: 'Pressure doesn\'t rattle you the same way. You handle stress consistently.', undefined: 'You amplify external pressure. Everything feels urgent even when it\'s not.' }
     };
-    return defaults[name]?.[isDefined ? 'defined' : 'undefined'] || `This center shapes how you experience ${name} energy.`;
+    return defaults[name]?.[isDefined ? 'defined' : 'undefined'] || 'In real life, this shows up in how you handle this energy.';
   };
 
   const getDefaultCenterChallenge = (centerName: string, isDefined: boolean): string => {
     const name = centerName.toLowerCase();
     const defaults: Record<string, { defined: string; undefined: string }> = {
-      'head': { defined: 'Overthinking or mental pressure.', undefined: 'Chasing questions that aren\'t yours to answer.' },
-      'ajna': { defined: 'Rigid thinking patterns.', undefined: 'Feeling pressure to have fixed opinions.' },
-      'throat': { defined: 'Speaking without timing.', undefined: 'Forcing expression when you have nothing to say.' },
-      'g': { defined: 'Inflexibility about identity.', undefined: 'Confusion about who you really are.' },
-      'g center': { defined: 'Inflexibility about identity.', undefined: 'Confusion about who you really are.' },
-      'heart': { defined: 'Over-committing willpower.', undefined: 'Making promises you can\'t sustain.' },
-      'ego': { defined: 'Over-committing willpower.', undefined: 'Making promises you can\'t sustain.' },
-      'spleen': { defined: 'Ignoring subtle intuitive hits.', undefined: 'Acting on borrowed fears.' },
-      'solar plexus': { defined: 'Deciding during emotional highs or lows.', undefined: 'Thinking others\' emotions are your own.' },
-      'sacral': { defined: 'Overwork and burnout.', undefined: 'Trying to keep up with Generators.' },
-      'root': { defined: 'Addiction to pressure and stress.', undefined: 'Letting external urgency dictate your pace.' }
+      'head': { defined: 'The trap is overthinking—running on questions that don\'t actually need answering.', undefined: 'The trap is chasing questions that aren\'t yours. Mental clutter that belongs to someone else.' },
+      'ajna': { defined: 'The trap is rigidity. Insisting your way of thinking is the only way.', undefined: 'The trap is feeling like you need a fixed opinion. You don\'t.' },
+      'throat': { defined: 'The trap is speaking before the timing is right.', undefined: 'The trap is forcing words when you have nothing real to say.' },
+      'g': { defined: 'The trap is being inflexible about who you are.', undefined: 'The trap is identity confusion—not knowing who you are without context.' },
+      'g center': { defined: 'The trap is being inflexible about who you are.', undefined: 'The trap is identity confusion—not knowing who you are without context.' },
+      'heart': { defined: 'The trap is overcommitting—using willpower on things that don\'t matter.', undefined: 'The trap is making promises your borrowed willpower can\'t keep.' },
+      'ego': { defined: 'The trap is overcommitting—using willpower on things that don\'t matter.', undefined: 'The trap is making promises your borrowed willpower can\'t keep.' },
+      'spleen': { defined: 'The trap is ignoring those quick hits because your mind disagrees.', undefined: 'The trap is acting on fears that aren\'t yours.' },
+      'solar plexus': { defined: 'The trap is deciding at emotional peaks or valleys. Both distort reality.', undefined: 'The trap is confusing someone else\'s emotion for your own.' },
+      'sacral': { defined: 'The trap is burnout—working past what your body actually wants.', undefined: 'The trap is trying to keep up with people who have more fuel than you.' },
+      'root': { defined: 'The trap is getting addicted to pressure—always needing more.', undefined: 'The trap is letting other people\'s urgency set your pace.' }
     };
-    return defaults[name]?.[isDefined ? 'defined' : 'undefined'] || `Working with this energy consciously.`;
+    return defaults[name]?.[isDefined ? 'defined' : 'undefined'] || 'The trap is going unconscious with this energy.';
   };
 
   const getDefaultCenterTip = (centerName: string, isDefined: boolean): string => {
     const name = centerName.toLowerCase();
     const defaults: Record<string, { defined: string; undefined: string }> = {
-      'head': { defined: 'Notice which questions actually serve you.', undefined: 'Ask: Would I still care about this alone?' },
-      'ajna': { defined: 'Share your perspective without attachment.', undefined: 'Practice saying "I see it differently in different contexts."' },
-      'throat': { defined: 'Time your communication for impact.', undefined: 'Be comfortable with silence when you have nothing genuine to say.' },
-      'g': { defined: 'Trust your consistent sense of direction.', undefined: 'Let your environment show you where to go.' },
-      'g center': { defined: 'Trust your consistent sense of direction.', undefined: 'Let your environment show you where to go.' },
-      'heart': { defined: 'Only commit when your heart is truly in it.', undefined: 'Only promise what you can deliver without borrowed will.' },
-      'ego': { defined: 'Only commit when your heart is truly in it.', undefined: 'Only promise what you can deliver without borrowed will.' },
-      'spleen': { defined: 'Trust your first instinctual hit.', undefined: 'Distinguish your fears from absorbed fears.' },
-      'solar plexus': { defined: 'Wait for emotional clarity before deciding.', undefined: 'Notice when you\'re absorbing someone else\'s emotion.' },
-      'sacral': { defined: 'Follow your gut response to opportunities.', undefined: 'Honor your need for rest without guilt.' },
-      'root': { defined: 'Use pressure productively, then release.', undefined: 'Don\'t let external urgency rush your process.' }
+      'head': { defined: 'Before chasing a question, ask: does this actually need solving?', undefined: 'Try: check if this question was in your head before you walked into the room.' },
+      'ajna': { defined: 'Share your view, but stay curious. Your way isn\'t the only way.', undefined: 'It\'s okay to not have a position. "I don\'t know yet" is valid.' },
+      'throat': { defined: 'Wait for the right moment. Not everything needs to be said immediately.', undefined: 'When you have nothing to say, don\'t fill the silence. That\'s fine.' },
+      'g': { defined: 'You know where you\'re going. Trust it—even when others question it.', undefined: 'Notice which places make you feel most like yourself. Go there more.' },
+      'g center': { defined: 'You know where you\'re going. Trust it—even when others question it.', undefined: 'Notice which places make you feel most like yourself. Go there more.' },
+      'heart': { defined: 'Only commit when you mean it. Willpower is finite.', undefined: 'Don\'t promise things that require willpower you don\'t consistently have.' },
+      'ego': { defined: 'Only commit when you mean it. Willpower is finite.', undefined: 'Don\'t promise things that require willpower you don\'t consistently have.' },
+      'spleen': { defined: 'Trust the first hit. The analysis usually just talks you out of what you knew.', undefined: 'When fear shows up, ask: is this mine? Sometimes it isn\'t.' },
+      'solar plexus': { defined: 'Wait. Check how you feel about it tomorrow. And the day after.', undefined: 'When you feel emotional, ask: whose feeling is this?' },
+      'sacral': { defined: 'Follow what lights you up. Say no when your gut isn\'t in it.', undefined: 'Rest before you\'re exhausted. You don\'t get a warning light.' },
+      'root': { defined: 'Pressure can be fuel—but you don\'t need it to function.', undefined: 'When everything feels urgent, slow down. It\'s probably not.' }
     };
-    return defaults[name]?.[isDefined ? 'defined' : 'undefined'] || `Pay attention to how this center affects you.`;
+    return defaults[name]?.[isDefined ? 'defined' : 'undefined'] || 'Notice how this energy moves through you.';
   };
 
   // Gates Cards - each gate as its own card with unique content
@@ -2831,22 +2830,27 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Individual Gate Card - conversational tone
+  // Individual Gate Card - Mirror pattern language
   const renderGateCard = (gate: any, idx: number) => {
     const gateName = gate.name || gate.gate_name || gate.theme || `Gate ${gate.gate_number || gate.gate}`;
     const gateNum = gate.gate_number || gate.gate;
     
-    // More direct story text
+    // Direct story - human pattern first
     const getGateStory = (): string => {
       if (gate.what_this_means) {
         const text = gate.what_this_means;
         const firstSentence = text.split('.')[0] + '.';
         return firstSentence.length < 85 ? firstSentence : firstSentence.slice(0, 82) + '...';
       }
-      return `This is about ${gateName.toLowerCase()}—one of your consistent energies.`;
+      const fallbacks = [
+        `You keep coming back to ${gateName.toLowerCase()}. It's part of your wiring.`,
+        `There's something about ${gateName.toLowerCase()} that runs through you.`,
+        `${gateName} is built into you—not something you chose.`
+      ];
+      return fallbacks[gateNum % fallbacks.length];
     };
 
-    // More varied "shows up" phrases
+    // Behavioral "shows up" - real life patterns
     const getGateShowsUp = (): string => {
       if (gate.your_genius) {
         const text = gate.your_genius;
@@ -2855,13 +2859,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       }
       if (gate.gift) {
         const patterns = [
-          `You tend toward ${gate.gift.toLowerCase()}—it comes naturally.`,
-          `People notice your ${gate.gift.toLowerCase()}, even when you don't.`,
-          `${gate.gift} is your default mode here.`
+          `People probably notice your ${gate.gift.toLowerCase()} more than you do.`,
+          `In real life, you tend toward ${gate.gift.toLowerCase()}. It's your default.`,
+          `You do ${gate.gift.toLowerCase()} without thinking—it's just how you operate.`
         ];
         return patterns[gateNum % patterns.length];
       }
-      return "You have your own way of expressing this.";
+      return 'In real life, this shows up in how you handle certain situations.';
     };
 
     // More direct challenge phrases
