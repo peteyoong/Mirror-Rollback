@@ -9761,6 +9761,16 @@ Profile: {hd_data['profile']}
                 result["mirror_prompt"] = apply_human_design_guardrails(mirror_prompt_str)
             result["date"] = today_date
             
+            # Include core_mechanics for the frontend Today tab
+            result["core_mechanics"] = {
+                "type": hd_data['type'],
+                "strategy": strategy_desc,
+                "authority": hd_data['authority'],
+                "profile": hd_data['profile'],
+                "definition": hd_data.get('definition', ''),
+                "incarnation_cross": hd_data.get('incarnation_cross', ''),
+            }
+            
             return result
             
         except json_module.JSONDecodeError as e:

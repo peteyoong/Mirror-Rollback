@@ -31,6 +31,7 @@ import CentersView, { CentersViewHandle } from './CentersView';
 import DefinedGatesView from './DefinedGatesView';
 import { ForumContextBanner } from './ForumContextBanner';
 import { InlineReflectButton } from './UniversalReflectButton';
+import { UniversalReflectionModal, ReflectionSource } from './UniversalReflectionModal';
 
 // Build info for debugging
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
@@ -764,6 +765,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   
   // Deep Dive Mode toggle: 'explore' (cards) or 'reading' (narrative)
   const [deepDiveMode, setDeepDiveMode] = useState<'explore' | 'reading'>('explore');
+  
+  // Reflection modal state
+  const [showReflectionModal, setShowReflectionModal] = useState(false);
+  const [reflectionSource, setReflectionSource] = useState<ReflectionSource | null>(null);
+  const [reflectionPrompt, setReflectionPrompt] = useState<string>('');
   
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
@@ -1805,153 +1811,360 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // TODAY TAB - Type AND Authority-specific guidance
+  // ============================================
+  // REFLECTION MODAL HELPER
+  // ============================================
+  
+  // Open reflection modal with context-aware source and prompt
+  const openReflection = (
+    name: string,
+    type: string,
+    prompt: string,
+    section?: string,
+    id?: string,
+    value?: string
+  ) => {
+    setReflectionSource({
+      lens: 'human_design',
+      section: section || 'deep_dive',
+      name,
+      type,
+      id,
+      value,
+    });
+    setReflectionPrompt(prompt);
+    setShowReflectionModal(true);
+  };
+
+  // ============================================
+  // TODAY TAB - REWORKED WITH TODAY/WEEK/MONTH
+  // ============================================
   const renderTodayTab = () => {
     if (!data) return null;
     
     const hdType = data.core_mechanics?.type || 'Generator';
     const authority = data.core_mechanics?.authority || '';
+    const profile = data.core_mechanics?.profile || '';
     const isEmotional = authority.toLowerCase().includes('emotional');
+    const isLunar = authority.toLowerCase().includes('lunar');
+    const isSacral = authority.toLowerCase().includes('sacral');
+    const isSplenic = authority.toLowerCase().includes('splenic');
     
-    // Get type-specific base guidance
-    const typeGuidance: Record<string, { active: string; act: string; wait: string; avoid: string }> = {
-      'Generator': {
-        active: "Your sacral energy is looking for something to respond to. Notice what lights up your gut today.",
-        act: "Respond to what genuinely excites you. Your 'yes' or 'no' lives in your body, not your mind.",
-        wait: "Avoid initiating from mental ideas. Wait for something external to respond to.",
-        avoid: "Don't force yourself through tasks that drain your energy. Frustration is a signal, not a failure."
-      },
-      'Manifesting Generator': {
-        active: "Your multi-passionate energy wants to move. Notice what pulls your attention today.",
-        act: "Respond first, then move quickly. Inform others before sudden pivots.",
-        wait: "Wait for genuine response before committing. Speed comes after clarity.",
-        avoid: "Don't feel guilty about changing direction. Efficiency sometimes looks like inconsistency."
-      },
-      'Projector': {
-        active: "Your wisdom is sharp today. Notice where you're being genuinely invited to contribute.",
-        act: "Wait for recognition and invitation. Your guidance lands when it's truly wanted.",
-        wait: "Hold back unsolicited advice. Bitterness signals you're giving where you weren't asked.",
-        avoid: "Don't try to match Generator energy. Rest when needed—your power is in precision, not endurance."
-      },
-      'Manifestor': {
-        active: "Your initiating energy is ready to move. Notice the internal urges that want expression today.",
-        act: "Inform others before you act. It's not asking permission—it reduces resistance and clears your path.",
-        wait: "After big initiations, rest. Your energy comes in powerful bursts, not sustained flow.",
-        avoid: "Don't suppress your impact to keep peace. True peace comes from informed action, not withdrawal."
-      },
-      'Reflector': {
-        active: "You're sampling the energy around you. Notice what feels authentically yours versus absorbed.",
-        act: "For major decisions, wait through a full lunar cycle. Today, observe rather than conclude.",
-        wait: "Don't rush yourself. Your wisdom needs time to reveal what's truly correct.",
-        avoid: "Avoid environments and people that feel off. You amplify whatever surrounds you."
-      }
-    };
-    
-    // Emotional Authority override - adds timing layer
-    const emotionalOverride: Record<string, { act: string; wait: string }> = {
-      'Generator': {
-        act: "Respond to what excites you, then sleep on it. Emotional clarity comes in waves, not instant hits.",
-        wait: "Feel your response, then wait through the emotional wave before committing."
-      },
-      'Manifesting Generator': {
-        act: "Respond first, then wait for emotional clarity before fully committing. Speed can come after the wave settles.",
-        wait: "Your gut knows, but your emotions need time. Wait for the wave to settle before big moves."
-      },
-      'Projector': {
-        act: "When invited, don't answer immediately. Let your emotional wave settle before giving guidance.",
-        wait: "Invitations don't expire. Wait for emotional clarity before deciding."
-      },
-      'Manifestor': {
-        act: "Notice the urge to initiate, but wait for emotional clarity before acting. Impulsive action from emotional peaks or lows creates chaos.",
-        wait: "Your initiating power is strongest when you're emotionally clear. Don't act from emotional highs or lows."
-      },
-      'Reflector': {
-        act: "Your emotional wave adds another layer to your lunar process. Give yourself even more time for major decisions.",
-        wait: "Notice both the lunar cycle and your emotional wave. Clarity comes when both align."
-      }
-    };
-    
-    // Build final guidance
-    let guidance = typeGuidance[hdType] || typeGuidance['Generator'];
-    
-    // Apply emotional authority override
-    if (isEmotional && emotionalOverride[hdType]) {
-      guidance = {
-        ...guidance,
-        act: emotionalOverride[hdType].act,
-        wait: emotionalOverride[hdType].wait,
+    // ============================================
+    // TODAY CONTENT - Immediate, behavioral
+    // ============================================
+    const getTodayContent = () => {
+      const content: Record<string, { 
+        active: string; 
+        bestUse: string; 
+        watchFor: string; 
+        reflectionPrompt: string;
+      }> = {
+        'Generator': {
+          active: isEmotional 
+            ? "Your emotional wave is coloring your responses. Wait for clarity before big commitments."
+            : "Your gut is ready to respond. Notice what creates a genuine 'yes' in your body.",
+          bestUse: isEmotional
+            ? "Feel into options rather than forcing decisions. Sleep on anything that matters."
+            : "Follow the pull. When something lights you up, engage fully.",
+          watchFor: "Saying yes out of obligation. Frustration building under the surface.",
+          reflectionPrompt: "What genuinely excited me today—and what did I agree to that already feels heavy?"
+        },
+        'Manifesting Generator': {
+          active: isEmotional
+            ? "Your speed wants to move, but your emotional wave needs time. Respond first, decide later."
+            : "Multiple things are pulling your attention. Trust the gut response about which to pursue.",
+          bestUse: isEmotional
+            ? "Sample and respond, but hold off on final commitments until clarity settles."
+            : "Move fast on what resonates. Inform others before sudden pivots.",
+          watchFor: "Starting too many things at once. Guilt about wanting to change direction.",
+          reflectionPrompt: "Where did my energy want to go today—and where did I override it?"
+        },
+        'Projector': {
+          active: isEmotional
+            ? "Your insights are sharp, but timing matters. Wait for both invitation and emotional clarity."
+            : "Your ability to see into things is heightened. Notice where you're genuinely invited.",
+          bestUse: isEmotional
+            ? "When invited, take time before answering. Let the wave settle."
+            : "Offer guidance only when asked. Rest between bursts of focused work.",
+          watchFor: "Pushing advice on people who didn't ask. Trying to match others' pace.",
+          reflectionPrompt: "Where was I truly seen today—and where did I give more than was asked?"
+        },
+        'Manifestor': {
+          active: isEmotional
+            ? "The urge to initiate is there, but emotional clarity should come first."
+            : "Internal impulses are ready to move. Notice what wants to be started.",
+          bestUse: isEmotional
+            ? "Feel the urge, wait for the wave to settle, then inform and act."
+            : "Inform before acting. Move on your impulses while the energy is alive.",
+          watchFor: "Acting from emotional highs or lows. Suppressing impulses to avoid friction.",
+          reflectionPrompt: "What wanted to be initiated today—and did I move on it or hold back?"
+        },
+        'Reflector': {
+          active: "Today is one data point in your lunar cycle. Observe rather than conclude.",
+          bestUse: "Notice how environments and people feel. Your body is constantly sampling.",
+          watchFor: "Taking on others' energy as your own. Rushing to decide.",
+          reflectionPrompt: "What am I reflecting from my environment—and what feels like mine?"
+        }
       };
-    }
-    
-    // Authority-specific timing note
-    const authorityNote = isEmotional 
-      ? "With Emotional Authority, clarity comes over time. Never decide from emotional peaks or lows."
-      : authority.toLowerCase().includes('sacral')
-      ? "With Sacral Authority, trust your gut response in the moment."
-      : authority.toLowerCase().includes('splenic')
-      ? "With Splenic Authority, trust the instant knowing—it won't repeat."
-      : authority.toLowerCase().includes('ego')
-      ? "With Ego Authority, act on what you truly want and can commit to."
-      : authority.toLowerCase().includes('self')
-      ? "With Self-Projected Authority, hear yourself speak to find clarity."
-      : authority.toLowerCase().includes('lunar')
-      ? "With Lunar Authority, wait through the full moon cycle before deciding."
-      : authority.toLowerCase().includes('mental')
-      ? "With Mental Authority, talk it through with trusted others—but the decision is yours."
-      : "";
-    
+      return content[hdType] || content['Generator'];
+    };
+
+    // ============================================
+    // THIS WEEK CONTENT - Pattern over several days
+    // ============================================
+    const getWeekContent = () => {
+      const content: Record<string, { 
+        theme: string; 
+        helpsWhere: string; 
+        frictionPattern: string; 
+        reflectionPrompt: string;
+      }> = {
+        'Generator': {
+          theme: isEmotional
+            ? "Your emotional waves are cycling through—notice the pattern in your responses across days."
+            : "Your sacral energy is building or depleting based on what you've been saying yes to.",
+          helpsWhere: "Work that genuinely excites you. Tasks that feel like play, not obligation.",
+          frictionPattern: "Cumulative frustration from small 'yes' decisions that weren't real yeses.",
+          reflectionPrompt: "What have I been giving my energy to this week—and is it actually mine to do?"
+        },
+        'Manifesting Generator': {
+          theme: isEmotional
+            ? "Multiple interests are competing for attention while your emotions are shifting daily."
+            : "You're in a sampling phase—testing what resonates and what doesn't.",
+          helpsWhere: "Pivoting when energy dies. Starting fresh threads. Multi-tracking.",
+          frictionPattern: "Finishing things that lost their spark. Feeling scattered without progress.",
+          reflectionPrompt: "What did I start this week that still has energy—and what's ready to be dropped?"
+        },
+        'Projector': {
+          theme: isEmotional
+            ? "Recognition and emotional clarity need to align. Not every invitation is right."
+            : "Your insights have been accumulating. Notice where they're landing and where they're not.",
+          helpsWhere: "Being selective about where you spend energy. Resting between deep work.",
+          frictionPattern: "Over-giving to people who don't see you. Burnout from matching others' pace.",
+          reflectionPrompt: "Where was my guidance truly received this week—and where was I pushing?"
+        },
+        'Manifestor': {
+          theme: isEmotional
+            ? "Impulses have been moving through you—notice which ones survived the emotional wave."
+            : "Your initiating energy has been expressing or suppressing. Notice which.",
+          helpsWhere: "Starting things that impact. Creating ripples. Moving without asking permission.",
+          frictionPattern: "Anger building from suppressed impulses. Chaos from uninformed action.",
+          reflectionPrompt: "What did I initiate this week—and what did I hold back that still wants to move?"
+        },
+        'Reflector': {
+          theme: "The week has brought different energies. Notice which environments felt right.",
+          helpsWhere: "Community health-checking. Sensing what's off. Evaluating where you belong.",
+          frictionPattern: "Absorbing dysfunction without realizing it. Losing yourself in others.",
+          reflectionPrompt: "Which places and people felt nourishing this week—and which felt draining?"
+        }
+      };
+      return content[hdType] || content['Generator'];
+    };
+
+    // ============================================
+    // THIS MONTH CONTENT - Developmental, directional
+    // ============================================
+    const getMonthContent = () => {
+      const content: Record<string, { 
+        theme: string; 
+        growthEdge: string; 
+        commonTrap: string; 
+        reflectionPrompt: string;
+      }> = {
+        'Generator': {
+          theme: isEmotional
+            ? "Your emotional patterns are revealing what consistently lights you up versus what drains."
+            : "A bigger pattern is emerging about where your energy wants to go.",
+          growthEdge: "Trusting your 'no' as much as your 'yes.' Letting go of obligations that never fit.",
+          commonTrap: "Staying committed to things that stopped feeling right months ago.",
+          reflectionPrompt: "What has my gut been consistently telling me this month—that I might be ignoring?"
+        },
+        'Manifesting Generator': {
+          theme: isEmotional
+            ? "The emotional cycle is showing you which interests survive beyond the initial spark."
+            : "Your natural efficiency is revealing which paths are actually going somewhere.",
+          growthEdge: "Trusting your non-linear path. Letting finished things be finished.",
+          commonTrap: "Forcing yourself to stay on tracks that have gone dead.",
+          reflectionPrompt: "What pattern of interests has been emerging—and what's ready to be released?"
+        },
+        'Projector': {
+          theme: isEmotional
+            ? "Your emotional wisdom is maturing. Notice which invitations feel right over time."
+            : "Your guidance is being requested or ignored in patterns. Notice where you're valued.",
+          growthEdge: "Waiting longer for the right invitations. Trusting that they'll come.",
+          commonTrap: "Bitter from giving wisdom to people who weren't ready. Over-working.",
+          reflectionPrompt: "Where has my insight been truly valued this month—and where have I been pushing uphill?"
+        },
+        'Manifestor': {
+          theme: isEmotional
+            ? "Your emotional wave is showing you which impulses have staying power."
+            : "Your initiating pattern is becoming clearer—what you start and why.",
+          growthEdge: "Informing earlier. Trusting that your impact doesn't need to be softened.",
+          commonTrap: "Either exploding or imploding. Not finding the middle path of informed action.",
+          reflectionPrompt: "What pattern of initiation has been emerging—and what needs to be started next?"
+        },
+        'Reflector': {
+          theme: "The full lunar cycle is showing you what's consistently true across all phases.",
+          growthEdge: "Trusting your sampling process. Knowing that clarity takes 28 days, not 28 minutes.",
+          commonTrap: "Deciding too fast. Taking on identities that aren't yours.",
+          reflectionPrompt: "What has remained true for me throughout this lunar cycle—regardless of environment?"
+        }
+      };
+      return content[hdType] || content['Generator'];
+    };
+
+    const todayContent = getTodayContent();
+    const weekContent = getWeekContent();
+    const monthContent = getMonthContent();
+
     return (
       <>
-        {/* Type + Authority Context */}
-        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>YOUR DESIGN TODAY</Text>
-          <Text style={[styles.hdOverviewCardSubtitle, { color: theme.accent }]}>{hdType} • {authority || 'Authority'}</Text>
-          <Text style={[styles.hdOverviewCardBody, { color: theme.textSecondary, marginTop: 8 }]}>
-            {authorityNote}
+        {/* Header */}
+        <View style={{ marginBottom: 16 }}>
+          <Text style={[styles.hdOverviewTitle, { color: theme.text }]}>What's Active Now</Text>
+          <Text style={[styles.hdOverviewSubtitle, { color: theme.textSecondary }]}>
+            Where to act, where to wait, and what to notice across today, this week, and this month.
           </Text>
         </View>
-        
-        {/* What's Active */}
-        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>WHAT'S ACTIVE</Text>
-          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
-            {guidance.active}
-          </Text>
-        </View>
-        
-        {/* Where to Act */}
-        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>WHERE TO ACT</Text>
-          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
-            {guidance.act}
-          </Text>
-        </View>
-        
-        {/* Where to Wait */}
-        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>WHERE TO WAIT</Text>
-          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
-            {guidance.wait}
-          </Text>
-        </View>
-        
-        {/* What to Avoid */}
-        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>WHAT TO AVOID</Text>
-          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
-            {guidance.avoid}
-          </Text>
-        </View>
-        
-        {/* Growth Edge */}
-        {data.mirror_prompt && (
-          <View style={[styles.hdReflectionCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
-            <Text style={[styles.hdReflectionLabel, { color: theme.textTertiary }]}>TODAY'S EDGE</Text>
-            <Text style={[styles.hdReflectionText, { color: theme.text }]}>
-              "{data.mirror_prompt}"
-            </Text>
+
+        {/* CARD 1: TODAY */}
+        <View style={[styles.timingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={styles.timingCardHeader}>
+            <Text style={[styles.timingCardTitle, { color: theme.text }]}>Today</Text>
+            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>What is immediately active in your design</Text>
           </View>
-        )}
+          
+          <View style={styles.timingCardContent}>
+            <View style={styles.timingSection}>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>ACTIVE PATTERN</Text>
+              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{todayContent.active}</Text>
+            </View>
+            
+            <View style={styles.timingSection}>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>BEST USE</Text>
+              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{todayContent.bestUse}</Text>
+            </View>
+            
+            <View style={styles.timingSection}>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>WATCH FOR</Text>
+              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{todayContent.watchFor}</Text>
+            </View>
+            
+            <View style={styles.timingSection}>
+              <Text style={[styles.timingSectionLabel, { color: theme.accent }]}>REFLECTION PROMPT</Text>
+              <Text style={[styles.timingSectionText, { color: theme.text, fontStyle: 'italic' }]}>"{todayContent.reflectionPrompt}"</Text>
+            </View>
+          </View>
+          
+          {/* Reflect CTA */}
+          <TouchableOpacity
+            style={[styles.timingReflectCta, { borderTopColor: theme.border }]}
+            onPress={() => openReflection(
+              'Today',
+              'timing',
+              todayContent.reflectionPrompt,
+              'today',
+              'today_timing',
+              hdType
+            )}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* CARD 2: THIS WEEK */}
+        <View style={[styles.timingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={styles.timingCardHeader}>
+            <Text style={[styles.timingCardTitle, { color: theme.text }]}>This Week</Text>
+            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>The pattern likely to repeat over the next few days</Text>
+          </View>
+          
+          <View style={styles.timingCardContent}>
+            <View style={styles.timingSection}>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>WEEKLY THEME</Text>
+              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{weekContent.theme}</Text>
+            </View>
+            
+            <View style={styles.timingSection}>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>WHERE IT HELPS</Text>
+              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{weekContent.helpsWhere}</Text>
+            </View>
+            
+            <View style={styles.timingSection}>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>FRICTION PATTERN</Text>
+              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{weekContent.frictionPattern}</Text>
+            </View>
+            
+            <View style={styles.timingSection}>
+              <Text style={[styles.timingSectionLabel, { color: theme.accent }]}>REFLECTION PROMPT</Text>
+              <Text style={[styles.timingSectionText, { color: theme.text, fontStyle: 'italic' }]}>"{weekContent.reflectionPrompt}"</Text>
+            </View>
+          </View>
+          
+          {/* Reflect CTA */}
+          <TouchableOpacity
+            style={[styles.timingReflectCta, { borderTopColor: theme.border }]}
+            onPress={() => openReflection(
+              'This Week',
+              'timing',
+              weekContent.reflectionPrompt,
+              'today',
+              'week_timing',
+              hdType
+            )}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* CARD 3: THIS MONTH */}
+        <View style={[styles.timingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={styles.timingCardHeader}>
+            <Text style={[styles.timingCardTitle, { color: theme.text }]}>This Month</Text>
+            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>The deeper pattern being developed over time</Text>
+          </View>
+          
+          <View style={styles.timingCardContent}>
+            <View style={styles.timingSection}>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>MONTHLY THEME</Text>
+              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{monthContent.theme}</Text>
+            </View>
+            
+            <View style={styles.timingSection}>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>GROWTH EDGE</Text>
+              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{monthContent.growthEdge}</Text>
+            </View>
+            
+            <View style={styles.timingSection}>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>COMMON TRAP</Text>
+              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{monthContent.commonTrap}</Text>
+            </View>
+            
+            <View style={styles.timingSection}>
+              <Text style={[styles.timingSectionLabel, { color: theme.accent }]}>REFLECTION PROMPT</Text>
+              <Text style={[styles.timingSectionText, { color: theme.text, fontStyle: 'italic' }]}>"{monthContent.reflectionPrompt}"</Text>
+            </View>
+          </View>
+          
+          {/* Reflect CTA */}
+          <TouchableOpacity
+            style={[styles.timingReflectCta, { borderTopColor: theme.border }]}
+            onPress={() => openReflection(
+              'This Month',
+              'timing',
+              monthContent.reflectionPrompt,
+              'today',
+              'month_timing',
+              hdType
+            )}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+          </TouchableOpacity>
+        </View>
       </>
     );
   };
@@ -1966,7 +2179,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     title: string,
     subtitle: string | null,
     content: { story: string; showsUp: string; challenge: string; tips: string },
-    askContext: string
+    askContext: string,
+    reflectionPrompt: string
   ) => {
     const isExpanded = expandedMechanic === id;
     
@@ -2021,7 +2235,14 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             {/* Reflect CTA */}
             <TouchableOpacity
               style={[styles.accordionAskCta, { borderTopColor: theme.border }]}
-              onPress={() => onOpenChat(`I want to reflect on my ${askContext}. What patterns should I notice?`)}
+              onPress={() => openReflection(
+                title,
+                id,
+                reflectionPrompt,
+                'deep_dive',
+                `mechanic_${id}`,
+                subtitle || undefined
+              )}
               activeOpacity={0.7}
             >
               <Text style={[styles.accordionAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
@@ -2234,6 +2455,147 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     return content[angle] || content['Right Angle'];
   };
 
+  // ============================================
+  // REFLECTION PROMPT GENERATORS (context-aware)
+  // ============================================
+  
+  const getTypeReflectionPrompt = (type: string): string => {
+    const prompts: Record<string, string> = {
+      'Generator': 'Where am I saying yes out of obligation instead of genuine response?',
+      'Manifesting Generator': 'What am I forcing myself to finish that has already lost its spark?',
+      'Projector': 'Where am I giving guidance that wasn\'t actually asked for?',
+      'Manifestor': 'What impulse have I been suppressing to keep the peace?',
+      'Reflector': 'What am I absorbing from my environment that isn\'t actually mine?'
+    };
+    return prompts[type] || prompts['Generator'];
+  };
+  
+  const getAuthorityReflectionPrompt = (authority: string): string => {
+    const normalizedAuth = authority?.toLowerCase() || '';
+    
+    if (normalizedAuth.includes('emotional')) {
+      return 'What decision am I rushing that needs more time to become clear?';
+    }
+    if (normalizedAuth.includes('sacral')) {
+      return 'When did I last override my gut response—and what happened?';
+    }
+    if (normalizedAuth.includes('splenic')) {
+      return 'What instant knowing have I been second-guessing?';
+    }
+    if (normalizedAuth.includes('ego')) {
+      return 'What have I committed to that my heart was never really in?';
+    }
+    if (normalizedAuth.includes('self')) {
+      return 'What truth do I need to hear myself say out loud?';
+    }
+    if (normalizedAuth.includes('lunar')) {
+      return 'What decision am I rushing that needs a full cycle to reveal itself?';
+    }
+    if (normalizedAuth.includes('mental')) {
+      return 'Who do I need to talk to—not for their answer, but to hear my own?';
+    }
+    return 'How does my body respond when I consider this choice?';
+  };
+  
+  const getProfileReflectionPrompt = (profile: string): string => {
+    const line1 = profile?.split('/')?.[0] || '';
+    const line2 = profile?.split('/')?.[1] || '';
+    
+    const prompts: Record<string, string> = {
+      '1': 'What foundation do I need before I can move forward with confidence?',
+      '2': 'What natural gift are others seeing in me that I haven\'t fully owned?',
+      '3': 'What have I learned from a recent \'failure\' that is actually wisdom?',
+      '4': 'Which relationship is most important to nurture right now?',
+      '5': 'What projection am I carrying that isn\'t mine to fulfill?',
+      '6': 'What phase of life am I in, and what does this stage require of me?'
+    };
+    
+    return prompts[line1] || prompts[line2] || 'How is my profile showing up in my life right now?';
+  };
+  
+  const getCenterReflectionPrompt = (centerName: string, isDefined: boolean): string => {
+    const name = (centerName || '').toLowerCase();
+    const prompts: Record<string, { defined: string; undefined: string }> = {
+      'head': { 
+        defined: 'What question keeps returning because it truly matters?',
+        undefined: 'Which mental pressures am I absorbing that aren\'t mine to solve?'
+      },
+      'ajna': { 
+        defined: 'Where am I clinging to my way of thinking when flexibility would serve better?',
+        undefined: 'Whose certainty am I borrowing? What would I think if I gave myself space?'
+      },
+      'throat': { 
+        defined: 'When am I speaking just to fill space instead of saying what matters?',
+        undefined: 'What needs to be said that I\'ve been holding back?'
+      },
+      'g': { 
+        defined: 'Am I following my own direction, or someone else\'s path?',
+        undefined: 'What environment brings out the version of me I want to be?'
+      },
+      'heart': { 
+        defined: 'What have I promised that I need to either honor or release?',
+        undefined: 'Where am I trying to prove my worth instead of simply being?'
+      },
+      'ego': { 
+        defined: 'What have I promised that I need to either honor or release?',
+        undefined: 'Where am I trying to prove my worth instead of simply being?'
+      },
+      'spleen': { 
+        defined: 'What instinct have I been ignoring?',
+        undefined: 'Which fears am I holding that aren\'t actually mine?'
+      },
+      'solar plexus': { 
+        defined: 'What decision needs more time before I can see it clearly?',
+        undefined: 'Whose emotions am I carrying right now?'
+      },
+      'sacral': { 
+        defined: 'What is my gut telling me about where to put my energy?',
+        undefined: 'Am I resting enough, or borrowing energy I don\'t have?'
+      },
+      'root': { 
+        defined: 'What pressure is mine to handle—and what is not my emergency?',
+        undefined: 'What urgency am I feeling that isn\'t actually urgent?'
+      }
+    };
+    
+    const key = Object.keys(prompts).find(k => name.includes(k));
+    if (key) {
+      return isDefined ? prompts[key].defined : prompts[key].undefined;
+    }
+    return isDefined 
+      ? 'How does this consistent energy show up in my life?'
+      : 'What am I amplifying from others that isn\'t mine?';
+  };
+  
+  const getGateReflectionPrompt = (gateNum: number | string, gateName: string): string => {
+    // Default reflection prompt for gates - can be expanded with specific prompts per gate
+    return `How does the energy of ${gateName} (Gate ${gateNum}) show up in my patterns?`;
+  };
+  
+  const getSphereReflectionPrompt = (sphereName: string, geneKey: number): string => {
+    const sphere = (sphereName || '').toLowerCase();
+    const prompts: Record<string, string> = {
+      'life\'s work': 'Where is this pattern already unfolding in my life—whether I intended it or not?',
+      'evolution': 'What would change if I lived more from the gift than the shadow?',
+      'radiance': 'How does this energy want to express through me when I\'m most authentic?',
+      'purpose': 'What purpose keeps showing up, even when I\'m not trying?',
+      'attraction': 'What am I drawing toward me—and is it aligned with who I\'m becoming?',
+      'iq': 'How do I naturally process information and what patterns emerge?',
+      'eq': 'What emotional intelligence wants to develop through me?',
+      'vocation': 'What work feels like play when I\'m in alignment?',
+      'culture': 'What contribution am I here to make to the collective?',
+      'brand': 'What do I want to be known for?',
+      'pearl': 'What prosperity pattern is trying to emerge?',
+      'core': 'What is the essential wound I\'m here to transform?',
+      'genius': 'What natural gift am I not fully owning?'
+    };
+    
+    for (const [key, prompt] of Object.entries(prompts)) {
+      if (sphere.includes(key)) return prompt;
+    }
+    return `What is Gene Key ${geneKey} trying to teach me through this sphere?`;
+  };
+
   // DEEP DIVE TAB - with mode toggle (Explore / Reading)
   const renderDeepDiveTab = () => {
     if (!data) return null;
@@ -2285,7 +2647,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           data.core_mechanics.type,
           'Your Energy Type',
           getTypeCardContent(data.core_mechanics.type),
-          'Human Design Type'
+          'Human Design Type',
+          getTypeReflectionPrompt(data.core_mechanics.type)
         )}
         
         {/* Authority Accordion */}
@@ -2294,7 +2657,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           data.core_mechanics.authority,
           'Your Decision Authority',
           getAuthorityCardContent(data.core_mechanics.authority),
-          'Human Design Authority'
+          'Human Design Authority',
+          getAuthorityReflectionPrompt(data.core_mechanics.authority)
         )}
         
         {/* Profile Accordion */}
@@ -2303,7 +2667,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           data.core_mechanics.profile,
           'Your Profile',
           getProfileCardContent(data.core_mechanics.profile),
-          'Human Design Profile'
+          'Human Design Profile',
+          getProfileReflectionPrompt(data.core_mechanics.profile)
         )}
         
         {/* Incarnation Cross Accordion */}
@@ -2312,7 +2677,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           data.core_mechanics.incarnation_cross,
           'Your Life Purpose',
           getIncarnationCrossCardContent(data.core_mechanics.incarnation_cross),
-          'Incarnation Cross'
+          'Incarnation Cross',
+          'What pattern of purpose keeps showing up in my life—even when I wasn\'t trying?'
         )}
         
         {/* 4. CENTERS SECTION - Parent Accordion */}
@@ -3090,7 +3456,14 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
         {/* Reflect CTA */}
         <TouchableOpacity
           style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
-          onPress={() => onOpenChat(`I want to reflect on my ${sphere.sphere_name} energy (Gene Key ${sphere.gene_key}). What should I notice?`)}
+          onPress={() => openReflection(
+            sphere.sphere_name,
+            'sphere',
+            getSphereReflectionPrompt(sphere.sphere_name, sphere.gene_key || 0),
+            'deep_dive',
+            `sphere_${sphere.gene_key}`,
+            `GK ${sphere.gene_key}`
+          )}
           activeOpacity={0.7}
         >
           <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
@@ -3162,7 +3535,14 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
         {/* Reflect CTA */}
         <TouchableOpacity
           style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
-          onPress={() => onOpenChat(`I want to reflect on my ${isDefined ? 'defined' : 'undefined'} ${centerName} center. How does this show up in my life?`)}
+          onPress={() => openReflection(
+            `${isDefined ? 'Defined' : 'Undefined'} ${centerName}`,
+            'center',
+            getCenterReflectionPrompt(centerName, isDefined),
+            'deep_dive',
+            `center_${centerName.toLowerCase().replace(/\s/g, '_')}`,
+            isDefined ? 'defined' : 'undefined'
+          )}
           activeOpacity={0.7}
         >
           <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
@@ -3385,7 +3765,14 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
         {/* Reflect CTA */}
         <TouchableOpacity
           style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
-          onPress={() => onOpenChat(`I want to reflect on Gate ${gateNum} (${gateName}). How do I experience this energy?`)}
+          onPress={() => openReflection(
+            `Gate ${gateNum}: ${gateName}`,
+            'gate',
+            getGateReflectionPrompt(gateNum, gateName),
+            'deep_dive',
+            `gate_${gateNum}`,
+            gateName
+          )}
           activeOpacity={0.7}
         >
           <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
@@ -4113,6 +4500,20 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
       
       {/* Mechanic Detail Modal */}
       {renderMechanicDetailModal()}
+      
+      {/* Reflection Modal - only render when source is defined */}
+      {showReflectionModal && reflectionSource && (
+        <UniversalReflectionModal
+          visible={showReflectionModal}
+          onClose={() => {
+            setShowReflectionModal(false);
+            setReflectionSource(null);
+            setReflectionPrompt('');
+          }}
+          source={reflectionSource}
+          initialPrompt={reflectionPrompt}
+        />
+      )}
     </View>
   );
 }
@@ -4499,6 +4900,66 @@ const styles = StyleSheet.create({
   },
   hdSubtleLinkText: {
     fontSize: 13,
+    color: "inherit",
+  },
+
+  // ============================================
+  // TIMING CARDS (Today / This Week / This Month)
+  // ============================================
+  
+  timingCard: {
+    backgroundColor: "transparent",
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "transparent",
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  timingCardHeader: {
+    padding: 16,
+    paddingBottom: 12,
+  },
+  timingCardTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: "inherit",
+    marginBottom: 2,
+  },
+  timingCardSubtitle: {
+    fontSize: 12,
+    color: "inherit",
+    opacity: 0.7,
+  },
+  timingCardContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  timingSection: {
+    marginBottom: 14,
+  },
+  timingSectionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    color: "inherit",
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  timingSectionText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: "inherit",
+  },
+  timingReflectCta: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "transparent",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'flex-start',
+  },
+  timingReflectCtaText: {
+    fontSize: 13,
+    fontWeight: '500',
     color: "inherit",
   },
 
