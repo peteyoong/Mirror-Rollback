@@ -2230,31 +2230,15 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                 {field.headline}
               </Text>
               
-              {/* What's Happening */}
-              <View style={styles.fieldCardSection}>
-                <Text style={[styles.fieldCardSectionLabel, { color: theme.textTertiary }]}>WHAT'S HAPPENING</Text>
-                <Text style={[styles.fieldCardSectionText, { color: theme.textSecondary }]}>
-                  {field.what_happening}
-                </Text>
-              </View>
+              {/* What's Happening - shorter, more direct */}
+              <Text style={[styles.fieldCardWhatText, { color: theme.textSecondary }]}>
+                {field.what_happening}
+              </Text>
               
-              {/* Why (optional - short) */}
-              {field.why_happening && (
-                <View style={styles.fieldCardSection}>
-                  <Text style={[styles.fieldCardSectionLabel, { color: theme.textTertiary }]}>WHY</Text>
-                  <Text style={[styles.fieldCardSectionText, { color: theme.textSecondary }]}>
-                    {field.why_happening}
-                  </Text>
-                </View>
-              )}
-              
-              {/* How It Interacts With You */}
-              <View style={styles.fieldCardSection}>
-                <Text style={[styles.fieldCardSectionLabel, { color: theme.accent }]}>HOW THIS AFFECTS YOU</Text>
-                <Text style={[styles.fieldCardSectionText, { color: theme.text }]}>
-                  {field.how_interacts_with_hd}
-                </Text>
-              </View>
+              {/* How It Affects You - the key insight */}
+              <Text style={[styles.fieldCardHowText, { color: theme.text }]}>
+                {field.how_interacts_with_hd}
+              </Text>
               
               {/* Reflect CTA */}
               <TouchableOpacity
@@ -2269,7 +2253,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                 )}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.fieldCardCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+                <Text style={[styles.fieldCardCtaText, { color: theme.accent }]}>Reflect →</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -2453,26 +2437,27 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         <View style={styles.todayIntroSection}>
           <Text style={[styles.todayIntroTitle, { color: theme.text }]}>Your Design Today</Text>
           <Text style={[styles.todayIntroSubtitle, { color: theme.textSecondary }]}>
-            Real-time signals from your chart and the current transits.
+            What's active in your chart right now.
           </Text>
         </View>
         
-        {/* DOMINANT THEME - The spine of the page */}
+        {/* 1. DOMINANT THEME - The central truth */}
         {dominantSignal.theme && (
           <View style={styles.dominantThemeSection}>
-            <Text style={[styles.dominantThemeLabel, { color: theme.textTertiary }]}>DOMINANT THEME</Text>
+            <Text style={[styles.dominantThemeLabel, { color: theme.textTertiary }]}>THE THROUGH-LINE</Text>
             <Text style={[styles.dominantThemeText, { color: theme.text }]}>
-              {dominantSignal.theme}
-            </Text>
-            <Text style={[styles.dominantThemeSupport, { color: theme.textSecondary }]}>
-              {dominantSignal.center_focus 
-                ? `Your ${dominantSignal.center_focus.toLowerCase()} is asking you to wait.`
-                : `Everything active right now points to this.`}
+              {dominantSignal.theme.replace('—', '. ').replace('don\'t', 'Don\'t')}
             </Text>
           </View>
         )}
         
-        {/* THE BIGGER SHIFT - Macro sky context only */}
+        {/* 2. WHAT'S ACTIVE NOW - Personal HD signals first (experience before explanation) */}
+        {renderHeroSection()}
+        
+        {/* Divider */}
+        <View style={[styles.todayDivider, { backgroundColor: theme.border }]} />
+        
+        {/* 3. THE BIGGER SHIFT - Sky context after personal experience */}
         {renderFieldSection()}
         
         {/* Divider if field signals exist */}
@@ -2480,18 +2465,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <View style={[styles.todayDivider, { backgroundColor: theme.border }]} />
         )}
         
-        {/* SECTION 3: WHAT'S ACTIVE NOW - Personalized HD transit signals (max 3 cards) */}
-        {renderHeroSection()}
-        
-        {/* Divider */}
-        <View style={[styles.todayDivider, { backgroundColor: theme.border }]} />
-        
-        {/* YOUR TIMING - Compact, guidance-focused cards */}
+        {/* 4. YOUR TIMING - How it unfolds */}
         <View style={styles.timingSectionHeader}>
           <Text style={[styles.timingSectionTitle, { color: theme.text }]}>Your Timing</Text>
         </View>
 
-        {/* TODAY - Immediate behavioral guidance */}
+        {/* TODAY */}
         <View style={[styles.timingCardCompact, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.timingCardTitleCompact, { color: theme.text }]}>Today</Text>
           <Text style={[styles.timingCardMainText, { color: theme.textSecondary }]}>{todayContent.bestUse}</Text>
@@ -2505,11 +2484,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* THIS WEEK - Pattern recurrence */}
+        {/* THIS WEEK */}
         <View style={[styles.timingCardCompact, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.timingCardTitleCompact, { color: theme.text }]}>This Week</Text>
           <Text style={[styles.timingCardMainText, { color: theme.textSecondary }]}>{weekContent.theme}</Text>
-          <Text style={[styles.timingCardWatchText, { color: theme.textTertiary }]}>Friction: {weekContent.frictionPattern}</Text>
+          <Text style={[styles.timingCardWatchText, { color: theme.textTertiary }]}>Watch for: {weekContent.frictionPattern}</Text>
           <TouchableOpacity
             style={styles.timingReflectCtaCompact}
             onPress={() => openReflection('This Week', 'timing', weekContent.reflectionPrompt, 'today', 'week_timing', hdType)}
@@ -2519,11 +2498,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* THIS MONTH - Developmental arc */}
+        {/* THIS MONTH */}
         <View style={[styles.timingCardCompact, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.timingCardTitleCompact, { color: theme.text }]}>This Month</Text>
           <Text style={[styles.timingCardMainText, { color: theme.textSecondary }]}>{monthContent.theme}</Text>
-          <Text style={[styles.timingCardWatchText, { color: theme.textTertiary }]}>Trap: {monthContent.commonTrap}</Text>
+          <Text style={[styles.timingCardWatchText, { color: theme.textTertiary }]}>Watch for: {monthContent.commonTrap}</Text>
           <TouchableOpacity
             style={styles.timingReflectCtaCompact}
             onPress={() => openReflection('This Month', 'timing', monthContent.reflectionPrompt, 'today', 'month_timing', hdType)}
@@ -5376,15 +5355,29 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   fieldCardHeadline: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
+    paddingHorizontal: 14,
+    paddingTop: 14,
+    paddingBottom: 8,
+  },
+  // Simplified field card text styles
+  fieldCardWhatText: {
+    fontSize: 14,
+    lineHeight: 20,
+    paddingHorizontal: 14,
+    marginBottom: 8,
+    opacity: 0.8,
+  },
+  fieldCardHowText: {
+    fontSize: 14,
+    lineHeight: 20,
+    paddingHorizontal: 14,
+    marginBottom: 4,
   },
   fieldCardSection: {
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingHorizontal: 14,
+    marginBottom: 10,
   },
   fieldCardSectionLabel: {
     fontSize: 9,
@@ -5399,10 +5392,10 @@ const styles = StyleSheet.create({
   },
   fieldCardCta: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     alignItems: 'flex-start',
-    marginTop: 4,
+    marginTop: 2,
   },
   fieldCardCtaText: {
     fontSize: 13,
