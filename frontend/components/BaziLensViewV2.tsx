@@ -1,13 +1,26 @@
 /**
- * BaZi Lens View V2
+ * BaZi Lens View V2 - Stable v1.1
  * 
- * Rebuilt BaZi lens with:
- * - 2-tab structure: Summary + Snapshot
+ * A sovereign lens for Four Pillars of Destiny.
+ * 
+ * Features:
+ * - 3-tab structure: Summary, Snapshot, Deep Dive
  * - Classical Zi Ping calculations with Mirror language
  * - Day Master profile with behavioral descriptions
  * - Four Pillars with animal visuals
  * - Timing interactions (Today/Month/Year)
- * - Ask buttons with contextual prompts
+ * - Deep Dive: Ten Gods, Hidden Dynamics, Life Pattern
+ * - Ask About This Lens → Opens MirrorChat (NOT reflection modal)
+ * - Suggested questions as optional starters
+ * 
+ * Cross-Lens Architecture:
+ * - Backend outputs `pattern_domains` for future synthesis
+ * - Domains: self, relationships, work, stress, growth, timing
+ * - NO forced mapping to other frameworks (HD, Enneagram, etc.)
+ * - Each lens remains sovereign
+ * 
+ * @version 1.1
+ * @date 2026-03-18
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -420,6 +433,32 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
       </TouchableOpacity>
     </View>
   );
+  
+  // Tab blurbs - short descriptions of each tab's focus
+  const TAB_BLURBS: Record<TabType, { title: string; blurb: string }> = {
+    summary: {
+      title: "Your Core Signature",
+      blurb: "The fundamental energy that shapes how you move through life.",
+    },
+    snapshot: {
+      title: "Current Timing",
+      blurb: "What today, this month, and this year are activating in your chart.",
+    },
+    deep_dive: {
+      title: "Deeper Patterns",
+      blurb: "The behavioral tendencies and hidden dynamics that shape your experience.",
+    },
+  };
+  
+  const renderTabBlurb = () => {
+    const content = TAB_BLURBS[activeTab];
+    return (
+      <View style={styles.tabBlurbContainer}>
+        <Text style={[styles.tabBlurbTitle, { color: theme.text }]}>{content.title}</Text>
+        <Text style={[styles.tabBlurbText, { color: theme.textTertiary }]}>{content.blurb}</Text>
+      </View>
+    );
+  };
 
   // =============================================================================
   // SUMMARY TAB COMPONENTS
@@ -1382,6 +1421,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
       >
         {activeTab === 'summary' && (
           <>
+            {renderTabBlurb()}
             {renderCoreSignature()}
             {renderChartPattern()}
             {renderFourPillars()}
@@ -1392,6 +1432,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
 
         {activeTab === 'snapshot' && data?.timing && (
           <>
+            {renderTabBlurb()}
             {renderSnapshotPeriod(data.timing.today, 'Today', 'today')}
             {renderSnapshotPeriod(data.timing.month, 'This Month', 'month')}
             {renderSnapshotPeriod(data.timing.year, 'This Year', 'year')}
@@ -1401,6 +1442,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
 
         {activeTab === 'deep_dive' && data?.deep_dive && (
           <>
+            {renderTabBlurb()}
             {renderCoreEngine()}
             {renderSupportsAndDrains()}
             {renderBehavioralPatterns()}
@@ -1504,6 +1546,21 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
+  },
+  
+  // Tab Blurb
+  tabBlurbContainer: {
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  tabBlurbTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  tabBlurbText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
 
   // Core Signature Card

@@ -1,17 +1,31 @@
 """
-BaZi (Four Pillars of Destiny) Engine V2
+BaZi (Four Pillars of Destiny) Engine V2 - Stable v1.1
 
-Enhanced engine with:
+A sovereign lens calculation engine for Four Pillars of Destiny.
+
+Features:
 - Structured response shape for Mirror UI
 - Ten Gods weighted analysis (frequency + seasonal + position)
 - Timing calculations (Today/Month/Year)
 - Element interaction logic with Ten God override
 - Mirror language interpretations
+- Deep Dive: Day Master strength, favorable elements, behavioral patterns
+- Life Pattern detection
+
+Cross-Lens Architecture (v1.1):
+- Outputs `pattern_domains` for future cross-lens synthesis
+- Domains: self, relationships, work, stress, growth, timing
+- NO forced mapping to other frameworks (HD, Enneagram, Numerology)
+- Each lens remains sovereign
+- Future synthesis can identify repeated themes WITHOUT equivalence rules
 
 Calculation Methods:
 - Classical Zi Ping (Four Pillars) backbone
 - Ten Gods weighted scoring
 - Element relationship + Ten God combined interaction model
+
+@version 1.1
+@date 2026-03-18
 """
 
 from datetime import datetime, timedelta
@@ -1229,6 +1243,262 @@ def calculate_life_pattern(day_master_element: str, day_master_polarity: str, fa
     }
 
 # =============================================================================
+# PATTERN DOMAINS - NORMALIZED OUTPUT FOR CROSS-LENS SYNTHESIS
+# =============================================================================
+
+def generate_pattern_domains(
+    day_master: Dict,
+    dm_element: str,
+    dm_polarity: str,
+    strength: str,
+    ten_gods_detailed: List[Dict],
+    ten_gods_summary: Dict,
+    element_analysis: Dict,
+    life_pattern: Dict,
+    timing: Optional[Dict],
+    favorable_elements: List[str],
+) -> Dict[str, List[Dict]]:
+    """
+    Generate normalized pattern domains for cross-lens synthesis.
+    
+    These are internal normalized outputs, NOT user-facing replacements.
+    Each domain contains patterns from BaZi logic that can later be
+    compared with patterns from Human Design, Enneagram, Numerology, etc.
+    
+    The future synthesis layer can identify repeated themes WITHOUT
+    forcing direct framework equivalences.
+    
+    Domain structure:
+    - self: identity, standards, inner style
+    - relationships: friction, support, bonding style
+    - work: execution, leadership, responsibility, pace
+    - stress: pressure pattern, shadow behavior
+    - growth: balancing direction, useful elements, developmental edge
+    - timing: today / month / year activation themes
+    """
+    
+    domains = {
+        "self": [],
+        "relationships": [],
+        "work": [],
+        "stress": [],
+        "growth": [],
+        "timing": [],
+    }
+    
+    # =========================================================================
+    # SELF DOMAIN - Identity, standards, inner style
+    # =========================================================================
+    
+    dm_profile = DAY_MASTER_PROFILES.get((dm_element, dm_polarity), {})
+    
+    # Core identity from Day Master
+    domains["self"].append({
+        "pattern": f"{dm_element} {dm_polarity} Day Master",
+        "theme": dm_profile.get("keywords", [])[0] if dm_profile.get("keywords") else "identity",
+        "insight": dm_profile.get("wow_line", ""),
+        "source": "bazi_day_master",
+        "confidence": 0.9,
+    })
+    
+    # Strength impacts self-expression
+    if strength == "strong":
+        domains["self"].append({
+            "pattern": "Strong Day Master",
+            "theme": "self-expression",
+            "insight": "Natural energy to express identity openly. The work is tempering force with receptivity.",
+            "source": "bazi_day_master_strength",
+            "confidence": 0.85,
+        })
+    else:
+        domains["self"].append({
+            "pattern": "Weak Day Master",
+            "theme": "seeking support",
+            "insight": "Identity benefits from external support and validation. The work is building inner foundation.",
+            "source": "bazi_day_master_strength",
+            "confidence": 0.85,
+        })
+    
+    # =========================================================================
+    # RELATIONSHIPS DOMAIN - Friction, support, bonding style
+    # =========================================================================
+    
+    # Companion/Self energy indicates relationship style
+    companion_present = any(g["name"] == "companion" for g in ten_gods_detailed)
+    officer_present = any(g["name"] == "officer" for g in ten_gods_detailed)
+    
+    if companion_present:
+        domains["relationships"].append({
+            "pattern": "Companion energy present",
+            "theme": "independence in relationships",
+            "insight": "Tends toward self-reliance in partnerships. May resist help or compete with peers.",
+            "source": "bazi_ten_gods",
+            "confidence": 0.8,
+        })
+    
+    if officer_present:
+        domains["relationships"].append({
+            "pattern": "Officer energy present",
+            "theme": "structure in relationships",
+            "insight": "Experiences relationships through duty and responsibility. May feel over-obligated.",
+            "source": "bazi_ten_gods",
+            "confidence": 0.8,
+        })
+    
+    # Element interaction style
+    if dm_element == "Metal":
+        domains["relationships"].append({
+            "pattern": "Metal Day Master relationship style",
+            "theme": "standards and boundaries",
+            "insight": "High standards in relationships. Values quality over quantity in connections.",
+            "source": "bazi_element",
+            "confidence": 0.75,
+        })
+    elif dm_element == "Water":
+        domains["relationships"].append({
+            "pattern": "Water Day Master relationship style",
+            "theme": "adaptability and depth",
+            "insight": "Flows around relationship obstacles. Seeks depth over surface connection.",
+            "source": "bazi_element",
+            "confidence": 0.75,
+        })
+    elif dm_element == "Fire":
+        domains["relationships"].append({
+            "pattern": "Fire Day Master relationship style",
+            "theme": "warmth and visibility",
+            "insight": "Natural warmth in connections. May need to be seen and appreciated.",
+            "source": "bazi_element",
+            "confidence": 0.75,
+        })
+    
+    # =========================================================================
+    # WORK DOMAIN - Execution, leadership, responsibility, pace
+    # =========================================================================
+    
+    # Wealth (execution) energy
+    wealth_god = next((g for g in ten_gods_detailed if g["name"] == "wealth"), None)
+    if wealth_god:
+        domains["work"].append({
+            "pattern": "Wealth/Execution energy",
+            "theme": "results orientation",
+            "insight": wealth_god.get("insight", "Focus on results and practical outcomes."),
+            "source": "bazi_ten_gods",
+            "confidence": 0.85,
+        })
+    
+    # Resource (preparation) energy
+    resource_god = next((g for g in ten_gods_detailed if g["name"] == "resource"), None)
+    if resource_god:
+        domains["work"].append({
+            "pattern": "Resource/Seal energy",
+            "theme": "preparation and analysis",
+            "insight": resource_god.get("insight", "Processes and prepares before acting."),
+            "source": "bazi_ten_gods",
+            "confidence": 0.85,
+        })
+    
+    # Output (creation) energy
+    output_god = next((g for g in ten_gods_detailed if g["name"] == "output"), None)
+    if output_god:
+        domains["work"].append({
+            "pattern": "Output/Expression energy",
+            "theme": "creative expression",
+            "insight": output_god.get("insight", "Creates and expresses to process."),
+            "source": "bazi_ten_gods",
+            "confidence": 0.85,
+        })
+    
+    # =========================================================================
+    # STRESS DOMAIN - Pressure pattern, shadow behavior
+    # =========================================================================
+    
+    # Extract stress patterns from Ten Gods
+    for god in ten_gods_detailed:
+        if god.get("stress_pattern"):
+            domains["stress"].append({
+                "pattern": f"{god['name']} stress pattern",
+                "theme": god.get("name", "pressure"),
+                "insight": god["stress_pattern"],
+                "source": "bazi_ten_gods",
+                "confidence": 0.8,
+            })
+    
+    # Day Master strength stress
+    if strength == "strong":
+        domains["stress"].append({
+            "pattern": "Strong Day Master under pressure",
+            "theme": "over-assertion",
+            "insight": "Under stress, may become rigid, controlling, or dismissive of others' input.",
+            "source": "bazi_day_master_strength",
+            "confidence": 0.75,
+        })
+    else:
+        domains["stress"].append({
+            "pattern": "Weak Day Master under pressure",
+            "theme": "withdrawal",
+            "insight": "Under stress, may withdraw, seek excessive validation, or feel overwhelmed.",
+            "source": "bazi_day_master_strength",
+            "confidence": 0.75,
+        })
+    
+    # =========================================================================
+    # GROWTH DOMAIN - Balancing direction, useful elements, developmental edge
+    # =========================================================================
+    
+    # Balancing elements
+    for elem in element_analysis.get("balancing", []):
+        domains["growth"].append({
+            "pattern": f"Balancing with {elem}",
+            "theme": "element cultivation",
+            "insight": f"Activating {elem} energy supports balance and growth.",
+            "source": "bazi_element_analysis",
+            "confidence": 0.8,
+        })
+    
+    # Favorable elements for growth
+    for elem in favorable_elements[:2]:  # Top 2
+        domains["growth"].append({
+            "pattern": f"Favorable element: {elem}",
+            "theme": "supportive energy",
+            "insight": f"{elem} energy naturally supports your Day Master.",
+            "source": "bazi_favorable_elements",
+            "confidence": 0.85,
+        })
+    
+    # Life pattern developmental edge
+    if life_pattern:
+        domains["growth"].append({
+            "pattern": life_pattern.get("pattern_name", "Life Pattern"),
+            "theme": "core drive",
+            "insight": life_pattern.get("core_drive", ""),
+            "source": "bazi_life_pattern",
+            "confidence": 0.9,
+        })
+    
+    # =========================================================================
+    # TIMING DOMAIN - Today / month / year activation themes
+    # =========================================================================
+    
+    if timing:
+        for period_key, period_data in timing.items():
+            if period_data:
+                theme = period_data.get("theme", "")
+                reflection = period_data.get("reflection", "")
+                
+                if theme:
+                    domains["timing"].append({
+                        "pattern": f"{period_key.capitalize()} timing: {theme}",
+                        "theme": theme.lower() if theme else "activation",
+                        "insight": reflection or f"Current {period_key} energy activating.",
+                        "source": f"bazi_timing_{period_key}",
+                        "confidence": 0.7,
+                        "period": period_key,
+                    })
+    
+    return domains
+
+
+# =============================================================================
 # STRUCTURE SUMMARY
 # =============================================================================
 
@@ -1464,6 +1734,27 @@ def compute_bazi_chart_v2(
         "hidden_dynamics": hidden_dynamics,
         "life_pattern": life_pattern,
     }
+    
+    # =================================================================
+    # PATTERN DOMAINS - NORMALIZED OUTPUT FOR CROSS-LENS SYNTHESIS
+    # =================================================================
+    # These are internal normalized outputs for future synthesis.
+    # NOT user-facing replacements for BaZi language.
+    # Each lens (HD, Enneagram, Numerology) will populate the same buckets.
+    # This enables pattern comparison WITHOUT forced metaphysical mapping.
+    
+    chart["pattern_domains"] = generate_pattern_domains(
+        day_master=day_master,
+        dm_element=dm_element,
+        dm_polarity=dm_polarity,
+        strength=strength,
+        ten_gods_detailed=ten_gods_detailed,
+        ten_gods_summary=ten_gods_summary,
+        element_analysis=element_analysis,
+        life_pattern=life_pattern,
+        timing=chart.get("timing"),
+        favorable_elements=favorable,
+    )
     
     logger.info(f"[BaZi V2] Computed chart: Day Master = {day_master['stem_pinyin']} {dm_element} ({strength})")
     
