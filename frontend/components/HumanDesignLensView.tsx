@@ -2284,56 +2284,27 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         <View style={styles.heroSection}>
           {/* Hero Title */}
           <Text style={[styles.heroTitle, { color: theme.text }]}>What's Active Now</Text>
-          <Text style={[styles.heroSubtitle, { color: theme.textSecondary }]}>
-            These are the strongest patterns being amplified in your design right now.
-          </Text>
           
           {/* Signal Card 1: Biggest Activation */}
           {activation && (
             <View style={[styles.signalCard, styles.signalCardActivation, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
-              <View style={styles.signalCardHeader}>
-                <Text style={[styles.signalCardLabel, { color: theme.accent }]}>BIGGEST ACTIVATION</Text>
-                <Text style={[styles.signalCardBadge, { color: theme.textTertiary, backgroundColor: theme.background }]}>
-                  {activation.label}
-                </Text>
-              </View>
+              <Text style={[styles.signalCardLabel, { color: theme.accent }]}>ACTIVATION</Text>
               <Text style={[styles.signalCardTitle, { color: theme.text }]}>{activation.title}</Text>
-              
-              <View style={styles.signalCardBody}>
-                <View style={styles.signalSection}>
-                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>WHAT'S HAPPENING</Text>
-                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{activation.what_happening}</Text>
-                </View>
-                
-                <View style={styles.signalSection}>
-                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>WHY THIS IS HAPPENING</Text>
-                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{activation.why_happening}</Text>
-                </View>
-                
-                <View style={styles.signalSection}>
-                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>HOW IT SHOWS UP</Text>
-                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{activation.how_shows_up}</Text>
-                </View>
-                
-                <View style={styles.signalSection}>
-                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>BEST MOVE</Text>
-                  <Text style={[styles.signalSectionText, { color: theme.text }]}>{activation.best_move}</Text>
-                </View>
-              </View>
-              
+              <Text style={[styles.signalCardBody, { color: theme.textSecondary }]}>{activation.how_shows_up}</Text>
+              <Text style={[styles.signalCardMove, { color: theme.text }]}>{activation.best_move}</Text>
               <TouchableOpacity
                 style={[styles.signalCardCta, { borderTopColor: theme.border }]}
                 onPress={() => openReflection(
                   activation.title,
                   'transit_signal',
-                  `${activation.what_happening} How is this showing up for me?`,
+                  `${activation.how_shows_up} How is this showing up for me?`,
                   'today',
                   'signal_activation',
                   activation.center || ''
                 )}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.signalCardCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+                <Text style={[styles.signalCardCtaText, { color: theme.accent }]}>Reflect →</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -2341,44 +2312,23 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           {/* Signal Card 2: Opportunity */}
           {opportunity && (
             <View style={[styles.signalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <View style={styles.signalCardHeader}>
-                <Text style={[styles.signalCardLabel, { color: theme.success || '#4CAF50' }]}>OPPORTUNITY</Text>
-                <Text style={[styles.signalCardBadge, { color: theme.textTertiary, backgroundColor: theme.background }]}>
-                  {opportunity.label}
-                </Text>
-              </View>
+              <Text style={[styles.signalCardLabel, { color: theme.success || '#4CAF50' }]}>OPPORTUNITY</Text>
               <Text style={[styles.signalCardTitle, { color: theme.text }]}>{opportunity.title}</Text>
-              
-              <View style={styles.signalCardBody}>
-                <View style={styles.signalSection}>
-                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>WHAT'S HAPPENING</Text>
-                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{opportunity.what_happening}</Text>
-                </View>
-                
-                <View style={styles.signalSection}>
-                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>HOW IT SHOWS UP</Text>
-                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{opportunity.how_shows_up}</Text>
-                </View>
-                
-                <View style={styles.signalSection}>
-                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>BEST MOVE</Text>
-                  <Text style={[styles.signalSectionText, { color: theme.text }]}>{opportunity.best_move}</Text>
-                </View>
-              </View>
-              
+              <Text style={[styles.signalCardBody, { color: theme.textSecondary }]}>{opportunity.how_shows_up}</Text>
+              <Text style={[styles.signalCardMove, { color: theme.text }]}>{opportunity.best_move}</Text>
               <TouchableOpacity
                 style={[styles.signalCardCta, { borderTopColor: theme.border }]}
                 onPress={() => openReflection(
                   opportunity.title,
                   'transit_signal',
-                  `${opportunity.what_happening} How can I work with this?`,
+                  `${opportunity.how_shows_up} How can I work with this?`,
                   'today',
                   'signal_opportunity',
                   opportunity.center || ''
                 )}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.signalCardCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+                <Text style={[styles.signalCardCtaText, { color: theme.accent }]}>Reflect →</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -2386,44 +2336,23 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           {/* Signal Card 3: Friction */}
           {friction && (
             <View style={[styles.signalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <View style={styles.signalCardHeader}>
-                <Text style={[styles.signalCardLabel, { color: theme.warning || '#FF9800' }]}>FRICTION</Text>
-                <Text style={[styles.signalCardBadge, { color: theme.textTertiary, backgroundColor: theme.background }]}>
-                  {friction.label}
-                </Text>
-              </View>
+              <Text style={[styles.signalCardLabel, { color: theme.warning || '#FF9800' }]}>WATCH FOR</Text>
               <Text style={[styles.signalCardTitle, { color: theme.text }]}>{friction.title}</Text>
-              
-              <View style={styles.signalCardBody}>
-                <View style={styles.signalSection}>
-                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>WHAT'S HAPPENING</Text>
-                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{friction.what_happening}</Text>
-                </View>
-                
-                <View style={styles.signalSection}>
-                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>HOW IT SHOWS UP</Text>
-                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{friction.how_shows_up}</Text>
-                </View>
-                
-                <View style={styles.signalSection}>
-                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>BEST MOVE</Text>
-                  <Text style={[styles.signalSectionText, { color: theme.text }]}>{friction.best_move}</Text>
-                </View>
-              </View>
-              
+              <Text style={[styles.signalCardBody, { color: theme.textSecondary }]}>{friction.how_shows_up}</Text>
+              <Text style={[styles.signalCardMove, { color: theme.text }]}>{friction.best_move}</Text>
               <TouchableOpacity
                 style={[styles.signalCardCta, { borderTopColor: theme.border }]}
                 onPress={() => openReflection(
                   friction.title,
                   'transit_signal',
-                  `${friction.what_happening} Where am I noticing this pressure?`,
+                  `${friction.how_shows_up} Where am I noticing this?`,
                   'today',
                   'signal_friction',
                   friction.center || ''
                 )}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.signalCardCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+                <Text style={[styles.signalCardCtaText, { color: theme.accent }]}>Reflect →</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -5473,11 +5402,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     paddingHorizontal: 14,
-    paddingBottom: 12,
+    paddingBottom: 6,
   },
   signalCardBody: {
+    fontSize: 14,
+    lineHeight: 20,
     paddingHorizontal: 14,
-    paddingBottom: 12,
+    paddingBottom: 8,
+    opacity: 0.85,
+  },
+  signalCardMove: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+    paddingHorizontal: 14,
+    paddingBottom: 4,
   },
   signalSection: {
     marginBottom: 12,
@@ -5495,9 +5434,10 @@ const styles = StyleSheet.create({
   },
   signalCardCta: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 14,
     alignItems: 'flex-start',
+    marginTop: 4,
   },
   signalCardCtaText: {
     fontSize: 13,
