@@ -21207,78 +21207,91 @@ def _generate_pattern_signal(
     """
     Generate the daily pattern signal content.
     
-    Task 76B: Uses DIRECT language, no hedging words.
+    Task 76B: Uses DIRECT, PERSONAL language - no system voice.
+    Matches Mirror card tone: Hook → Body → Pattern Bridge
     """
     
-    # Pre-defined signal templates - DIRECT language
-    # Each includes: insight_text, past_reflection (optional), reflective_question
+    # Pre-defined signal templates - PERSONAL, MIRROR-TONE language
+    # Structure: hook (implicit in title), body (insight_text), pattern_bridge (past_reflection)
+    # NO "Looking at your timeline", NO "TO NOTICE" questions
     
     PATTERN_SIGNAL_TEMPLATES = {
         # For when active patterns are detected
         "active_pattern": [
             {
-                "insight_text": "Your {pattern_domain} pattern is active today. This is part of a recurring rhythm in your life.",
-                "past_reflection": "In similar phases before, the same tendencies emerged.",
-                "reflective_question": "What feels recognizable about this moment?"
+                "signal_title": "This Isn't Random",
+                "insight_text": "Something about today may feel familiar. Not the situation itself—but the feeling underneath it. You've been here before, in a slightly different form.",
+                "past_reflection": "What you felt back then may be shaping how you respond now.",
+                "reflective_question": "Where in your body does this recognition live?"
             },
             {
-                "insight_text": "Something in the area of {pattern_domain} is surfacing. You've encountered similar terrain before.",
-                "past_reflection": "Past moments like this called for a certain kind of attention.",
-                "reflective_question": "What previous experience does this moment remind you of?"
+                "signal_title": "You've Seen This Before",
+                "insight_text": "There's a quality to {pattern_domain} today that echoes something older. Part of you already knows what this is. You've navigated similar terrain.",
+                "past_reflection": "The part of you that remembers is trying to speak.",
+                "reflective_question": "What does this moment remind you of?"
             },
             {
-                "insight_text": "There is movement in your {pattern_domain} space. This echoes patterns you've traveled before.",
+                "signal_title": "A Familiar Shape",
+                "insight_text": "This isn't the first time you've felt this pull around {pattern_domain}. The details are new. The pattern is not.",
                 "past_reflection": None,
-                "reflective_question": "What decision is forming in this moment?"
+                "reflective_question": "What decision tends to form in moments like this?"
             },
         ],
         # For tension patterns
         "tension_pattern": [
             {
-                "insight_text": "A familiar tension between {category_a} and {category_b} is present. These two areas of your life are in conversation.",
-                "past_reflection": "You've navigated this dynamic before, each time learning something new.",
-                "reflective_question": "What does this tension seem to be asking of you?"
+                "signal_title": "Two Parts of You",
+                "insight_text": "You may feel torn between {category_a} and {category_b} today. This tension isn't a problem to solve—it's a conversation that keeps returning.",
+                "past_reflection": "You've held both before. Each time, something clarified.",
+                "reflective_question": "What is this tension actually asking of you?"
             },
             {
-                "insight_text": "There is a pull between {category_a} and {category_b}. This is a recurring theme worth noticing.",
+                "signal_title": "The Pull Returns",
+                "insight_text": "There's that familiar pull between {category_a} and {category_b}. You've felt it before. You'll feel it again. That's not failure—it's depth.",
                 "past_reflection": None,
-                "reflective_question": "Where have you felt this pull before, and what helped then?"
+                "reflective_question": "Which side of you is louder today?"
             },
         ],
         # For lifeline-based patterns
         "lifeline_pattern": [
             {
-                "insight_text": "Looking at your timeline, a certain rhythm around {theme} appears. Today is connected to that deeper arc.",
-                "past_reflection": "Similar moments in your past carried seeds of what's emerging now.",
-                "reflective_question": "What thread connects this moment to your story?"
+                "signal_title": "This Theme Again",
+                "insight_text": "Something about {theme} is surfacing again. You've been here before—maybe years ago, maybe recently. The specific situation is different, but the underlying rhythm is the same.",
+                "past_reflection": "What you learned then is still working in you now.",
+                "reflective_question": "What thread connects this to your larger story?"
             },
             {
-                "insight_text": "Your life's pattern shows {theme} comes in waves. This is one of those moments.",
+                "signal_title": "The Wave Returns",
+                "insight_text": "{theme} tends to come in waves for you. This is one of those moments. You're not starting from zero—you've built something through every previous round.",
                 "past_reflection": None,
-                "reflective_question": "What feels like it's completing, and what feels like it's beginning?"
+                "reflective_question": "What's completing, and what's beginning?"
             },
         ],
         # For low-data or general fallback
         "general": [
             {
-                "insight_text": "Patterns reveal themselves in subtle ways. Today holds a clue to something larger in your life.",
-                "past_reflection": None,
-                "reflective_question": "What recurring feeling or thought has been visiting you lately?"
+                "signal_title": "Something Familiar",
+                "insight_text": "There's something familiar about today. Not the events—but the texture of how it feels. You've been in moments like this before.",
+                "past_reflection": "The past doesn't just disappear. It leaves grooves.",
+                "reflective_question": "What feeling keeps visiting you lately?"
             },
             {
-                "insight_text": "The most significant patterns are often the quiet ones. This moment is worth pausing to notice.",
-                "past_reflection": "The past whispers into the present. Something familiar is at play.",
+                "signal_title": "A Pattern Wants Attention",
+                "insight_text": "You may not be able to name it yet, but something in you recognizes this moment. There's a pattern here—quiet, but present.",
+                "past_reflection": None,
                 "reflective_question": "What pattern in your life is ready to be seen?"
             },
             {
-                "insight_text": "Life moves in cycles, some visible and some hidden. Today is part of a rhythm you're beginning to recognize.",
-                "past_reflection": None,
+                "signal_title": "Part of Something Larger",
+                "insight_text": "This moment is connected to something larger in your life. Not everything needs to be understood—some things just need to be noticed.",
+                "past_reflection": "What feels small today may be part of a bigger arc.",
                 "reflective_question": "What does this moment echo from your past?"
             },
             {
-                "insight_text": "A familiar pressure or ease is present today. This is connected to a deeper pattern in your journey.",
+                "signal_title": "The Familiar Pressure",
+                "insight_text": "There's a familiar pressure or ease present today. You've felt this quality before—in different circumstances, but with the same undertone.",
                 "past_reflection": None,
-                "reflective_question": "What decision is forming in this moment?"
+                "reflective_question": "What decision tends to form in moments like this?"
             },
         ]
     }
@@ -21353,6 +21366,9 @@ def _generate_pattern_signal(
     template_index = int(daily_seed[:4], 16) % len(templates)
     selected_template = templates[template_index]
     
+    # Get signal_title from template (new structure) or use default
+    signal_title = selected_template.get("signal_title", "A Pattern Wants Attention")
+    
     # Format the template with variables
     insight_text = selected_template["insight_text"]
     past_reflection = selected_template.get("past_reflection")
@@ -21363,13 +21379,15 @@ def _generate_pattern_signal(
         placeholder = f"{{{key}}}"
         if placeholder in insight_text:
             insight_text = insight_text.replace(placeholder, value)
+        if placeholder in signal_title:
+            signal_title = signal_title.replace(placeholder, value)
         if past_reflection and placeholder in past_reflection:
             past_reflection = past_reflection.replace(placeholder, value)
         if placeholder in reflective_question:
             reflective_question = reflective_question.replace(placeholder, value)
     
     return {
-        "signal_title": "Daily Pattern Signal",
+        "signal_title": signal_title,
         "insight_text": insight_text,
         "past_reflection": past_reflection,
         "reflective_question": reflective_question,

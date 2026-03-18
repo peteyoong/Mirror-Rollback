@@ -142,14 +142,14 @@ export default function DailyPatternSignalCard({ userId, onStateChange }: DailyP
   return (
     <View style={[styles.container]}>
       <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        {/* Header with pattern indicator */}
+        {/* Header with dismiss button */}
         <View style={styles.header}>
           <View style={styles.titleRow}>
             <Text style={[styles.patternIcon, { color: theme.accent }]}>
               {getPatternIcon(signal.pattern_type)}
             </Text>
-            <Text style={[styles.cardTitle, { color: theme.textTertiary }]}>
-              {signal.signal_title}
+            <Text style={[styles.cardLabel, { color: theme.textTertiary }]}>
+              PATTERN SIGNAL
             </Text>
           </View>
           <TouchableOpacity 
@@ -161,46 +161,30 @@ export default function DailyPatternSignalCard({ userId, onStateChange }: DailyP
           </TouchableOpacity>
         </View>
         
-        {/* Pattern Name Badge (if available) */}
-        {signal.pattern_name && (
-          <View style={[styles.patternBadge, { backgroundColor: `${theme.accent}15`, borderColor: `${theme.accent}30` }]}>
-            <Text style={[styles.patternBadgeText, { color: theme.accent }]}>
-              {signal.pattern_name}
-            </Text>
-          </View>
-        )}
+        {/* Main Title (from signal_title - e.g., "This Isn't Random") */}
+        <Text style={[styles.cardTitle, { color: theme.text }]}>
+          {signal.signal_title}
+        </Text>
         
-        {/* Main Insight Text */}
-        <Text style={[styles.insightText, { color: theme.text }]}>
+        {/* Main Body Text */}
+        <Text style={[styles.insightText, { color: theme.textSecondary }]}>
           {signal.insight_text}
         </Text>
         
-        {/* Past Reflection (if available) */}
+        {/* Pattern Bridge (if available) - subtle continuation */}
         {signal.past_reflection && (
-          <View style={[styles.pastReflectionBlock, { borderLeftColor: theme.accent }]}>
-            <Text style={[styles.pastReflectionText, { color: theme.textSecondary }]}>
-              {signal.past_reflection}
-            </Text>
-          </View>
+          <Text style={[styles.patternBridge, { color: theme.textTertiary }]}>
+            {signal.past_reflection}
+          </Text>
         )}
-        
-        {/* Reflective Question */}
-        <View style={[styles.questionBlock, { borderTopColor: theme.border }]}>
-          <Text style={[styles.questionLabel, { color: theme.textTertiary }]}>
-            TO NOTICE
-          </Text>
-          <Text style={[styles.questionText, { color: theme.textSecondary }]}>
-            {signal.reflective_question}
-          </Text>
-        </View>
 
-        {/* Reflect Button */}
+        {/* Reflect Button - Clean CTA */}
         <View style={[styles.reflectButtonContainer, { borderTopColor: theme.border }]}>
           <InlineReflectButton
             source={{
               lens: 'patterns',
               type: 'daily_pattern_signal',
-              name: signal.pattern_name || 'Daily Pattern Signal',
+              name: signal.pattern_name || signal.signal_title,
               value: signal.insight_text,
               id: `pattern_signal_${new Date().toISOString().split('T')[0]}`,
             }}
@@ -234,7 +218,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   titleRow: {
     flexDirection: 'row',
@@ -242,13 +226,19 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   patternIcon: {
-    fontSize: 16,
+    fontSize: 14,
   },
-  cardTitle: {
-    fontSize: 11,
+  cardLabel: {
+    fontSize: 10,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 1,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 24,
+    marginBottom: 10,
   },
   dismissButton: {
     padding: 4,
@@ -256,52 +246,20 @@ const styles = StyleSheet.create({
     marginRight: -4,
     opacity: 0.5,
   },
-  patternBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 12,
-  },
-  patternBadgeText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
   insightText: {
     fontSize: 15,
     lineHeight: 24,
     fontWeight: '400',
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  pastReflectionBlock: {
-    paddingLeft: 12,
-    borderLeftWidth: 2,
-    marginBottom: 14,
-    marginTop: 2,
-  },
-  pastReflectionText: {
+  patternBridge: {
     fontSize: 14,
     lineHeight: 21,
     fontStyle: 'italic',
-  },
-  questionBlock: {
-    paddingTop: 14,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  questionLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 1,
-    marginBottom: 6,
-  },
-  questionText: {
-    fontSize: 14,
-    lineHeight: 21,
-    fontWeight: '400',
+    marginBottom: 12,
   },
   reflectButtonContainer: {
-    marginTop: 14,
+    marginTop: 12,
     paddingTop: 14,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
