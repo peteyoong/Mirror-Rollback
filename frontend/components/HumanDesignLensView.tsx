@@ -1943,7 +1943,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // DEEP DIVE TAB - Clean structure: Profile → Body Graph → Core Mechanics → Sequences → Centers → Gates
+  // DEEP DIVE TAB - Clean structure: Profile → Body Graph → Core Mechanics → Meaning Bridge → Sequences → Centers → Gates
   const renderDeepDiveTab = () => {
     if (!data) return null;
     
@@ -1961,20 +1961,66 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         )}
         
         {/* 2. Body Graph Visual */}
-        {renderBodygraph()}
+        {renderImprovedBodygraph()}
         
-        {/* 3. Core Mechanics - Direct display, NOT hidden in accordion */}
+        {/* 3. Core Mechanics - Direct display */}
         {renderCoreMechanicsBlock()}
         
-        {/* 4. Sequences - Integrated narrative */}
-        {renderSequencesSection()}
+        {/* 4. Meaning Bridge - How mechanics shape life */}
+        {renderMeaningBridge()}
         
-        {/* 5. Centers - Collapsible at bottom */}
+        {/* 5. Sequences - ALWAYS VISIBLE, not collapsed */}
+        {renderSequencesSectionExpanded()}
+        
+        {/* 6. Centers - Collapsible at bottom */}
         {centersData && renderCollapsibleSection('Centers', 'centers', renderCentersSection())}
         
-        {/* 6. Gates - Collapsible at bottom */}
+        {/* 7. Gates - Collapsible at bottom */}
         {gatesData && renderCollapsibleSection('Gates', 'gates', renderGatesSection())}
       </>
+    );
+  };
+
+  // Meaning Bridge - connects mechanics to lived experience
+  const renderMeaningBridge = () => {
+    if (!data?.core_mechanics) return null;
+    
+    const { type, strategy, authority, profile } = data.core_mechanics;
+    
+    // Generate a contextual meaning bridge based on type + authority
+    const getMeaningBridge = (): string => {
+      const typeInsight: Record<string, string> = {
+        'Generator': `As a ${type}, your life unfolds through response—waiting for what genuinely excites your energy before committing.`,
+        'Manifesting Generator': `As a ${type}, you're designed to respond quickly and pivot freely, but informing others keeps your path clear.`,
+        'Projector': `As a ${type}, your wisdom is your gift. Recognition and invitation are how your guidance finds its place.`,
+        'Manifestor': `As a ${type}, you're here to initiate and create impact. Informing others before action reduces the resistance you encounter.`,
+        'Reflector': `As a ${type}, you sample and mirror the world around you. Time and environment are everything in your process.`,
+      };
+      
+      const authorityInsight: Record<string, string> = {
+        'Emotional': 'Your clarity comes in waves—never rush major decisions. Wait for emotional neutrality.',
+        'Sacral': 'Your gut response tells you what's correct. Trust the immediate "uh-huh" or "uh-uh."',
+        'Splenic': 'Your instincts speak once and quickly. Trust the first knowing—it won't repeat.',
+        'Ego': 'What do you truly want? Your willpower guides when you're honest about desire.',
+        'Self-Projected': 'Hear yourself speak to find clarity. Your truth reveals itself through your voice.',
+        'Mental': 'Talk through decisions with trusted others—but the final knowing is yours alone.',
+        'Lunar': 'Major decisions need a full moon cycle. Your clarity emerges over time, not in a moment.',
+      };
+      
+      const base = typeInsight[type || 'Generator'] || '';
+      const authorityKey = Object.keys(authorityInsight).find(k => authority?.includes(k));
+      const auth = authorityKey ? authorityInsight[authorityKey] : '';
+      
+      return `${base} ${auth}`.trim();
+    };
+    
+    return (
+      <View style={[styles.meaningBridgeCard, { backgroundColor: theme.surface, borderColor: theme.border, borderLeftColor: theme.accent }]}>
+        <Text style={[styles.meaningBridgeTitle, { color: theme.textTertiary }]}>HOW THESE MECHANICS SHAPE YOUR LIFE</Text>
+        <Text style={[styles.meaningBridgeText, { color: theme.text }]}>
+          {getMeaningBridge()}
+        </Text>
+      </View>
     );
   };
 
@@ -2064,7 +2110,140 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Body graph render
+  // Improved Body graph with better proportions and trustworthy appearance
+  const renderImprovedBodygraph = () => {
+    const definedStyle = { backgroundColor: 'rgba(255, 215, 0, 0.5)', borderColor: '#FFD700', borderWidth: 2 };
+    const undefinedStyle = { backgroundColor: 'transparent', borderColor: theme.border, borderWidth: 1.5 };
+    
+    const getStyle = (centerKey: string) => centersDefinition[centerKey] ? definedStyle : undefinedStyle;
+    
+    // Count defined vs undefined centers
+    const definedCount = Object.values(centersDefinition).filter(Boolean).length;
+    const undefinedCount = 9 - definedCount;
+    
+    return (
+      <View style={[styles.improvedBodygraphCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>YOUR BODY GRAPH</Text>
+        <Text style={[styles.bodygraphSubtitle, { color: theme.textSecondary }]}>
+          {definedCount} defined • {undefinedCount} undefined centers
+        </Text>
+        
+        <View style={styles.improvedBodygraphVisual}>
+          {/* HEAD - Triangle at top */}
+          <TouchableOpacity onPress={() => handleBodygraphCenterTap('Head')} activeOpacity={0.7}>
+            <View style={[styles.bgHead, getStyle('head')]} />
+          </TouchableOpacity>
+          
+          {/* AJNA - Triangle pointing down */}
+          <TouchableOpacity onPress={() => handleBodygraphCenterTap('Ajna')} activeOpacity={0.7}>
+            <View style={[styles.bgAjna, getStyle('ajna')]} />
+          </TouchableOpacity>
+          
+          {/* THROAT - Square */}
+          <TouchableOpacity onPress={() => handleBodygraphCenterTap('Throat')} activeOpacity={0.7}>
+            <View style={[styles.bgThroat, getStyle('throat')]} />
+          </TouchableOpacity>
+          
+          {/* G CENTER - Diamond */}
+          <TouchableOpacity onPress={() => handleBodygraphCenterTap('G')} activeOpacity={0.7}>
+            <View style={[styles.bgG, getStyle('g')]} />
+          </TouchableOpacity>
+          
+          {/* MIDDLE ROW - Heart, Spleen, Solar Plexus */}
+          <View style={styles.bgMiddleRow}>
+            <TouchableOpacity onPress={() => handleBodygraphCenterTap('Heart')} activeOpacity={0.7}>
+              <View style={[styles.bgHeart, getStyle('heart')]} />
+            </TouchableOpacity>
+            
+            <View style={styles.bgMiddleSpacer} />
+            
+            <TouchableOpacity onPress={() => handleBodygraphCenterTap('Spleen')} activeOpacity={0.7}>
+              <View style={[styles.bgSpleen, getStyle('spleen')]} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity onPress={() => handleBodygraphCenterTap('Solar Plexus')} activeOpacity={0.7}>
+              <View style={[styles.bgSolarPlexus, getStyle('solar_plexus')]} />
+            </TouchableOpacity>
+          </View>
+          
+          {/* SACRAL - Square */}
+          <TouchableOpacity onPress={() => handleBodygraphCenterTap('Sacral')} activeOpacity={0.7}>
+            <View style={[styles.bgSacral, getStyle('sacral')]} />
+          </TouchableOpacity>
+          
+          {/* ROOT - Square at bottom */}
+          <TouchableOpacity onPress={() => handleBodygraphCenterTap('Root')} activeOpacity={0.7}>
+            <View style={[styles.bgRoot, getStyle('root')]} />
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.bodygraphLegend}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: 'rgba(255, 215, 0, 0.5)', borderColor: '#FFD700' }]} />
+            <Text style={[styles.legendText, { color: theme.textTertiary }]}>Defined</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: 'transparent', borderColor: theme.border }]} />
+            <Text style={[styles.legendText, { color: theme.textTertiary }]}>Undefined</Text>
+          </View>
+        </View>
+        
+        <Text style={[styles.bodygraphHint, { color: theme.textTertiary }]}>
+          Tap a center to explore
+        </Text>
+      </View>
+    );
+  };
+
+  // Sequences section - ALWAYS EXPANDED, not collapsible
+  const renderSequencesSectionExpanded = () => {
+    // Even without API sequences, show a placeholder about life patterns
+    const hasSequences = activationSequence || venusSequence || pearlSequence;
+    
+    return (
+      <View style={[styles.sequencesCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>YOUR SEQUENCES</Text>
+        <Text style={[styles.sequencesSubtitle, { color: theme.textSecondary }]}>
+          How your life patterns unfold
+        </Text>
+        
+        {/* Core Life Theme */}
+        <View style={[styles.sequenceBlockExpanded, { borderLeftColor: theme.accent }]}>
+          <Text style={[styles.sequenceBlockTitle, { color: theme.text }]}>Core Life Theme</Text>
+          <Text style={[styles.sequenceBlockSubtitle, { color: theme.textTertiary }]}>What you're here to develop</Text>
+          <Text style={[styles.sequenceBlockBody, { color: theme.textSecondary }]}>
+            {activationSequence?.purpose?.interpretation 
+              || activationSequence?.life_work?.interpretation
+              || `Your incarnation cross and profile shape your core developmental path. This is the central theme your life keeps returning to.`}
+          </Text>
+        </View>
+        
+        {/* Relationship Pattern */}
+        <View style={[styles.sequenceBlockExpanded, { borderLeftColor: '#FF69B4' }]}>
+          <Text style={[styles.sequenceBlockTitle, { color: theme.text }]}>Relationship Pattern</Text>
+          <Text style={[styles.sequenceBlockSubtitle, { color: theme.textTertiary }]}>Emotional triggers and dynamics</Text>
+          <Text style={[styles.sequenceBlockBody, { color: theme.textSecondary }]}>
+            {venusSequence?.attraction?.interpretation 
+              || venusSequence?.iq?.interpretation
+              || `Your relating style is shaped by how you attract, bond, and experience emotional depth with others. Look for patterns in what draws you close—and what pushes you away.`}
+          </Text>
+        </View>
+        
+        {/* Work & Contribution */}
+        <View style={[styles.sequenceBlockExpanded, { borderLeftColor: '#90EE90' }]}>
+          <Text style={[styles.sequenceBlockTitle, { color: theme.text }]}>Work & Contribution</Text>
+          <Text style={[styles.sequenceBlockSubtitle, { color: theme.textTertiary }]}>How value and prosperity flow</Text>
+          <Text style={[styles.sequenceBlockBody, { color: theme.textSecondary }]}>
+            {pearlSequence?.vocation?.interpretation 
+              || pearlSequence?.culture?.interpretation
+              || `Your natural form of contribution emerges when you align with your design. Prosperity follows authentic expression of your gifts—not imitation of others.`}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  // Keep old body graph as fallback (renamed)
   const renderBodygraph = () => {
     return (
       <View style={[styles.bodygraphCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -3667,5 +3846,155 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 12,
     fontStyle: 'italic',
+  },
+  
+  // Meaning Bridge
+  meaningBridgeCard: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderLeftWidth: 4,
+    marginBottom: 16,
+  },
+  meaningBridgeTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 10,
+  },
+  meaningBridgeText: {
+    fontSize: 15,
+    lineHeight: 23,
+  },
+  
+  // Improved Body Graph
+  improvedBodygraphCard: {
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  bodygraphSubtitle: {
+    fontSize: 13,
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  improvedBodygraphVisual: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  bgHead: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginBottom: 8,
+  },
+  bgAjna: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginBottom: 8,
+  },
+  bgThroat: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  bgG: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginBottom: 10,
+  },
+  bgMiddleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+    width: '100%',
+    paddingHorizontal: 20,
+  },
+  bgMiddleSpacer: {
+    width: 30,
+  },
+  bgHeart: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+  },
+  bgSpleen: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    marginHorizontal: 10,
+  },
+  bgSolarPlexus: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+  },
+  bgSacral: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  bgRoot: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+  },
+  bodygraphLegend: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+    marginTop: 16,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 1.5,
+  },
+  legendText: {
+    fontSize: 12,
+  },
+  
+  // Sequences Card (Always expanded)
+  sequencesCard: {
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 16,
+  },
+  sequencesSubtitle: {
+    fontSize: 13,
+    marginTop: 4,
+    marginBottom: 20,
+  },
+  sequenceBlockExpanded: {
+    paddingLeft: 16,
+    borderLeftWidth: 4,
+    marginBottom: 20,
+  },
+  sequenceBlockTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  sequenceBlockSubtitle: {
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  sequenceBlockBody: {
+    fontSize: 14,
+    lineHeight: 21,
   },
 });
