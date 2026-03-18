@@ -755,6 +755,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Sequence tab state for Deep Dive
   const [activeSequenceTab, setActiveSequenceTab] = useState<'core' | 'relationship' | 'work'>('core');
   
+  // Accordion state for Core Mechanics in Deep Dive (collapsed by default, one at a time)
+  const [expandedMechanic, setExpandedMechanic] = useState<string | null>(null);
+  
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
   
@@ -1950,59 +1953,74 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // DEEP DIVE TAB - NEW CARD-BASED STRUCTURE
   // ============================================
   
-  // Universal Card Component for Deep Dive
-  const renderMechanicCard = (
+  // Accordion Card Component for Core Mechanics in Deep Dive
+  const renderMechanicAccordion = (
+    id: string,
     title: string,
     subtitle: string | null,
     content: { story: string; showsUp: string; challenge: string; tips: string },
-    askContext: string,
-    accentColor?: string
+    askContext: string
   ) => {
+    const isExpanded = expandedMechanic === id;
+    
     return (
-      <View style={[styles.deepDiveCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <View style={styles.deepDiveCardHeader}>
-          <View>
-            <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>{title}</Text>
-            {subtitle && (
-              <Text style={[styles.deepDiveCardSubtitle, { color: accentColor || theme.accent }]}>{subtitle}</Text>
-            )}
-          </View>
-        </View>
-        
-        <View style={styles.deepDiveCardContent}>
-          {/* Story */}
-          <View style={styles.deepDiveCardSection}>
-            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>STORY</Text>
-            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>{content.story}</Text>
-          </View>
-          
-          {/* How This Shows Up */}
-          <View style={styles.deepDiveCardSection}>
-            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>HOW THIS SHOWS UP</Text>
-            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>{content.showsUp}</Text>
-          </View>
-          
-          {/* Challenge */}
-          <View style={styles.deepDiveCardSection}>
-            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>CHALLENGE</Text>
-            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>{content.challenge}</Text>
-          </View>
-          
-          {/* Practical Tips */}
-          <View style={styles.deepDiveCardSection}>
-            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>PRACTICAL TIPS</Text>
-            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>{content.tips}</Text>
-          </View>
-        </View>
-        
-        {/* Ask CTA */}
+      <View style={[styles.accordionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {/* Collapsed Header - always visible */}
         <TouchableOpacity
-          style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
-          onPress={() => onOpenChat(`Tell me more about my ${askContext}`)}
+          style={styles.accordionHeader}
+          onPress={() => setExpandedMechanic(isExpanded ? null : id)}
           activeOpacity={0.7}
         >
-          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Ask about this →</Text>
+          <View style={styles.accordionHeaderContent}>
+            <Text style={[styles.accordionTitle, { color: theme.text }]}>{title}</Text>
+            {subtitle && (
+              <Text style={[styles.accordionSubtitle, { color: theme.textSecondary }]}>{subtitle}</Text>
+            )}
+          </View>
+          <Ionicons 
+            name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+            size={20} 
+            color={theme.textTertiary} 
+          />
         </TouchableOpacity>
+        
+        {/* Expanded Content */}
+        {isExpanded && (
+          <View style={[styles.accordionContent, { borderTopColor: theme.border }]}>
+            {/* Story */}
+            <View style={styles.accordionSection}>
+              <Text style={[styles.accordionSectionLabel, { color: theme.textTertiary }]}>STORY</Text>
+              <Text style={[styles.accordionSectionText, { color: theme.textSecondary }]}>{content.story}</Text>
+            </View>
+            
+            {/* How This Shows Up */}
+            <View style={styles.accordionSection}>
+              <Text style={[styles.accordionSectionLabel, { color: theme.textTertiary }]}>HOW THIS SHOWS UP</Text>
+              <Text style={[styles.accordionSectionText, { color: theme.textSecondary }]}>{content.showsUp}</Text>
+            </View>
+            
+            {/* Challenge */}
+            <View style={styles.accordionSection}>
+              <Text style={[styles.accordionSectionLabel, { color: theme.textTertiary }]}>CHALLENGE</Text>
+              <Text style={[styles.accordionSectionText, { color: theme.textSecondary }]}>{content.challenge}</Text>
+            </View>
+            
+            {/* Practical Tips */}
+            <View style={styles.accordionSection}>
+              <Text style={[styles.accordionSectionLabel, { color: theme.textTertiary }]}>PRACTICAL TIPS</Text>
+              <Text style={[styles.accordionSectionText, { color: theme.textSecondary }]}>{content.tips}</Text>
+            </View>
+            
+            {/* Ask CTA */}
+            <TouchableOpacity
+              style={[styles.accordionAskCta, { borderTopColor: theme.border }]}
+              onPress={() => onOpenChat(`Tell me more about my ${askContext}`)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.accordionAskCtaText, { color: theme.accent }]}>Ask about this →</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     );
   };
@@ -2210,7 +2228,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     return content[angle] || content['Right Angle'];
   };
 
-  // DEEP DIVE TAB - Card-based structure
+  // DEEP DIVE TAB - Card-based structure with accordions
   const renderDeepDiveTab = () => {
     if (!data) return null;
     
@@ -2222,35 +2240,39 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* 2. BODY GRAPH */}
         {renderImprovedBodygraph()}
         
-        {/* 3. CORE MECHANICS CARDS */}
+        {/* 3. CORE MECHANICS - ACCORDION CARDS (collapsed by default) */}
         <Text style={[styles.deepDiveSectionHeader, { color: theme.textTertiary, marginTop: 24 }]}>CORE MECHANICS</Text>
         
-        {/* Type Card */}
-        {data.core_mechanics?.type && renderMechanicCard(
+        {/* Type Accordion */}
+        {data.core_mechanics?.type && renderMechanicAccordion(
+          'type',
           data.core_mechanics.type,
           'Your Energy Type',
           getTypeCardContent(data.core_mechanics.type),
           'Human Design Type'
         )}
         
-        {/* Authority Card */}
-        {data.core_mechanics?.authority && renderMechanicCard(
+        {/* Authority Accordion */}
+        {data.core_mechanics?.authority && renderMechanicAccordion(
+          'authority',
           data.core_mechanics.authority,
           'Your Decision Authority',
           getAuthorityCardContent(data.core_mechanics.authority),
           'Human Design Authority'
         )}
         
-        {/* Profile Card */}
-        {data.core_mechanics?.profile && renderMechanicCard(
+        {/* Profile Accordion */}
+        {data.core_mechanics?.profile && renderMechanicAccordion(
+          'profile',
           data.core_mechanics.profile,
           'Your Profile',
           getProfileCardContent(data.core_mechanics.profile),
           'Human Design Profile'
         )}
         
-        {/* Incarnation Cross Card */}
-        {data.core_mechanics?.incarnation_cross && renderMechanicCard(
+        {/* Incarnation Cross Accordion */}
+        {data.core_mechanics?.incarnation_cross && renderMechanicAccordion(
+          'cross',
           data.core_mechanics.incarnation_cross,
           'Your Life Purpose',
           getIncarnationCrossCardContent(data.core_mechanics.incarnation_cross),
@@ -2285,27 +2307,27 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     const { type, authority, profile, definition, incarnation_cross } = data.core_mechanics;
     
-    // Type colors
+    // MUTED type colors - premium, calm, sophisticated
     const typeColors: Record<string, string> = {
-      'Generator': '#FFD700',
-      'Manifesting Generator': '#FF8C00',
-      'Projector': '#87CEEB',
-      'Manifestor': '#FF6347',
-      'Reflector': '#E6E6FA'
+      'Generator': '#B8956B',      // muted gold/bronze
+      'Manifesting Generator': '#C4915C',  // muted amber
+      'Projector': '#7B9AA9',      // muted blue-grey
+      'Manifestor': '#A67C6D',     // muted clay/rust (NOT bright red)
+      'Reflector': '#A099AA'       // muted lavender-grey
     };
     
-    const typeColor = typeColors[type || ''] || theme.accent;
+    const typeColor = typeColors[type || ''] || theme.textSecondary;
     
     return (
       <View style={[styles.summaryGraphCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         {/* Header */}
         <View style={styles.summaryGraphHeader}>
-          <Text style={[styles.summaryGraphTitle, { color: theme.text }]}>Your Design</Text>
+          <Text style={[styles.summaryGraphTitle, { color: theme.textTertiary }]}>YOUR DESIGN</Text>
         </View>
         
-        {/* Main Type Badge */}
-        <View style={[styles.summaryGraphTypeBadge, { backgroundColor: typeColor + '20', borderColor: typeColor }]}>
-          <Text style={[styles.summaryGraphTypeText, { color: typeColor }]}>{type || 'Unknown Type'}</Text>
+        {/* Main Type - Premium subtle badge */}
+        <View style={[styles.summaryGraphTypeBadge, { borderColor: typeColor }]}>
+          <Text style={[styles.summaryGraphTypeText, { color: theme.text }]}>{type || 'Unknown Type'}</Text>
         </View>
         
         {/* Key Attributes Grid */}
@@ -4942,163 +4964,216 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 12,
-    marginTop: 16,
+    marginBottom: 10,
+    marginTop: 12,
     paddingHorizontal: 4,
   },
   deepDiveCard: {
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 16,
+    marginBottom: 10,
     overflow: 'hidden',
   },
   deepDiveCardHeader: {
-    padding: 16,
-    paddingBottom: 8,
+    padding: 12,
+    paddingBottom: 6,
   },
   deepDiveCardTitle: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '600',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   deepDiveCardSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
   },
   deepDiveCardContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingHorizontal: 12,
+    paddingBottom: 6,
   },
   deepDiveCardSection: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   deepDiveCardSectionLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   deepDiveCardSectionText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
   },
   deepDiveAskCta: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     alignItems: 'flex-end',
   },
   deepDiveAskCtaText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
   },
   
-  // Sequences Tabs
+  // Sequences Tabs - Lighter
   sequencesTabsContainer: {
-    marginTop: 8,
+    marginTop: 16,
   },
   sequencesTabBar: {
     flexDirection: 'row',
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 4,
-    marginBottom: 16,
+    padding: 3,
+    marginBottom: 12,
   },
   sequenceTab: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: 8,
+    borderRadius: 6,
     alignItems: 'center',
   },
   sequenceTabText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
   },
   sequencesTabContent: {
-    minHeight: 200,
+    minHeight: 150,
   },
   sequenceContent: {
     gap: 0,
   },
   sequenceDescription: {
-    fontSize: 13,
-    marginBottom: 16,
+    fontSize: 12,
+    marginBottom: 12,
     fontStyle: 'italic',
   },
   sphereConnectorLine: {
-    width: 2,
-    height: 16,
-    marginLeft: 24,
-    marginVertical: 4,
+    width: 1,
+    height: 12,
+    marginLeft: 20,
+    marginVertical: 2,
+    opacity: 0.5,
   },
   noDataText: {
     fontSize: 14,
     fontStyle: 'italic',
     textAlign: 'center',
-    padding: 20,
+    padding: 16,
   },
   
-  // Summary Graph Styles
+  // Summary Graph Styles - Premium & Calm
   summaryGraphCard: {
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 20,
-    marginBottom: 16,
+    padding: 16,
+    marginBottom: 12,
   },
   summaryGraphHeader: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   summaryGraphTitle: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
     letterSpacing: 1,
-    textTransform: 'uppercase',
   },
   summaryGraphTypeBadge: {
     alignSelf: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 24,
-    borderWidth: 2,
-    marginBottom: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 16,
   },
   summaryGraphTypeText: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '600',
     textAlign: 'center',
   },
   summaryGraphGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   summaryGraphItem: {
     width: '50%',
-    paddingVertical: 8,
+    paddingVertical: 6,
     paddingHorizontal: 4,
   },
   summaryGraphItemLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 2,
   },
   summaryGraphItemValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
   },
   summaryGraphCross: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: 12,
+    paddingTop: 10,
   },
   summaryGraphCrossLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   summaryGraphCrossValue: {
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  
+  // Accordion Card Styles for Core Mechanics
+  accordionCard: {
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  accordionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 14,
+  },
+  accordionHeaderContent: {
+    flex: 1,
+  },
+  accordionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  accordionSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  accordionContent: {
+    paddingHorizontal: 14,
+    paddingBottom: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  accordionSection: {
+    marginTop: 10,
+  },
+  accordionSectionLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 3,
+  },
+  accordionSectionText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  accordionAskCta: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 10,
+    marginTop: 10,
+    alignItems: 'flex-end',
+  },
+  accordionAskCtaText: {
+    fontSize: 12,
     fontWeight: '500',
   },
 });
