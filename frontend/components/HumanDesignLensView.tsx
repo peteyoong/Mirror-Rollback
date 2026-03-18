@@ -2401,75 +2401,238 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
   
-  // Reading Mode content generators - Pure Mirror language
+  // Reading Mode content generators - Bodygraph PDF style: empathetic, flowing, validating
   const getReadingCorePattern = (type: string, profile: string): string => {
     const typePatterns: Record<string, string> = {
-      'Generator': `You're designed to work. Not in a grinding way—in a "this lights me up" way. When you find the right thing to commit to, you have fuel that lasts. The engine is in your body, not your head.`,
-      'Manifesting Generator': `You move fast and you change directions. That's not inconsistency—that's how you're built. You find shortcuts, skip steps, and pivot when something stops feeling right. The key is response first, then speed.`,
-      'Projector': `You see what others miss. Systems, dynamics, what's really happening underneath. Your gift is guidance—but only when someone actually wants it. Unsolicited advice lands badly, no matter how right you are.`,
-      'Manifestor': `You're here to start things. Urges hit and you move—often before others see why. You make impact. The challenge is that people feel that impact, whether or not you intended it.`,
-      'Reflector': `You take in everything around you. The environment, the people, the mood—it all runs through you. What you feel often isn't yours. Your wisdom comes from this sampling, but you need time to know what's actually true for you.`
+      'Generator': `If you have Generator energy, one of your unique gifts is your sustainable life force—a deep reservoir of energy that's available when you're doing work you genuinely love. You're designed to find what lights you up and commit to it fully. When you're engaged with the right things, you can work with remarkable endurance and satisfaction.
+
+The key words here are response and satisfaction.
+
+You may have spent your life saying yes to things out of obligation, guilt, or social pressure—and feeling increasingly frustrated as a result. The traditional approach of "just push through" doesn't work for you. Your body needs to respond with a genuine "yes" before committing. When you override that gut response, frustration builds. This isn't a character flaw—it's your body telling you something isn't aligned.
+
+Your invitation: Start paying attention to your gut responses. Notice the difference between an expansive "uh-huh" and a contracting "unh-uh." Give yourself permission to wait for that genuine pull before committing. Your satisfaction is the compass—when you're lit up, you're on track.`,
+      
+      'Manifesting Generator': `If you have Manifesting Generator energy, you're a rare hybrid—combining sustainable work energy with the ability to initiate and move fast. You're designed to respond to what lights you up, then act quickly. You skip steps, change directions, and pivot when something stops feeling right. This isn't inconsistency—it's efficiency.
+
+The key words here are response, inform, and satisfaction.
+
+You may have spent your life being told to "stick with things" or "finish what you start"—and feeling wrong for wanting to move on when the energy died. The truth is, you're not designed for linear paths. You're designed to sample, engage deeply when it resonates, then move when it doesn't. Forcing yourself to continue past genuine interest leads to frustration and resentment.
+
+Your invitation: Trust your non-linear process. When you feel the pull to respond, go. When the energy dies, it's okay to pivot. Just inform the people affected before you shift—not for permission, but to reduce friction. Your path will look messy to others. It's actually remarkably efficient.`,
+      
+      'Projector': `If you have Projector energy, one of your unique gifts is your ability to see into people and systems with remarkable clarity. You're designed to guide others—to see what they can't see about themselves. When you're recognized and invited to share your insights, your guidance lands with profound impact.
+
+The key words here are recognition, invitation, and success.
+
+You may have spent your life feeling unseen or undervalued, working harder than everyone else to prove your worth. The bitterness that builds is a signal—you're operating against your design. You're not here to hustle like others. Your energy works differently. You need more rest, more alone time, and you need to wait for genuine recognition before offering guidance.
+
+Your invitation: Stop initiating. Start waiting for recognition. This feels counterintuitive, but when you're truly seen and invited, your guidance becomes magnetic. Focus on your own mastery, rest deeply, and trust that the right invitations will come. Your success depends on being selective, not productive.`,
+      
+      'Manifestor': `If you have Manifestor energy, you're designed to initiate—to start things, to set change in motion, to act on urges that others don't yet understand. You have a powerful impact on the world around you. When you walk into a room, people feel your presence before you say anything.
+
+The key words here are informing and peace.
+
+You may have spent your life either suppressing your initiating urges (to avoid conflict) or acting without warning (creating chaos). Both lead to anger—either turned inward or outward. The challenge is that people feel your impact whether you intend it or not. When you act without informing, resistance builds. When you suppress your urges, resentment builds.
+
+Your invitation: Inform before you act. Not asking permission—simply letting people know what's coming. This isn't about diminishing your power; it's about using it more effectively. Trust your urges. When you feel the impulse to start something, that's your design working. Your peace comes from honoring that initiating energy while reducing unnecessary friction.`,
+      
+      'Reflector': `If you have Reflector energy, you are incredibly rare—less than 1% of the population. One of your unique gifts is being a mirror for the collective, reflecting back the health and energy of the communities and environments you're in. Your openness allows you to experience life in a profoundly unique way.
+
+The key words here are reflection and discernment.
+
+You may have spent your life feeling like you don't quite fit anywhere, or that something is fundamentally wrong with you because you're so different from everyone else. The pressure to be consistent—to show up the same way every day—can be exhausting and impossible for you to maintain. Because all of your centers are open, you are constantly taking in and amplifying the energy around you. This makes it difficult to know what's truly yours versus what you're absorbing from others.
+
+Your genius emerges when you embrace your role as a mirror and honor your need for time and space to gain clarity. When you're in the right environment with the right people, you flourish. When you're in the wrong environment, you feel it deeply—and that's valuable information.
+
+Your invitation: Start tracking the lunar cycle and noticing how you shift and change throughout the month. Give yourself permission to be inconsistent. Pay attention to how different environments make you feel—your body is constantly giving you feedback about what's healthy for you and what isn't. For major decisions, allow a full 28-day cycle. This isn't slow—it's wise.`
     };
     
     const baseType = typePatterns[type] || typePatterns['Generator'];
-    const profileAdd = profile ? ` Your profile (${profile}) shapes how you learn and engage—there's a specific rhythm to how you grow and share.` : '';
     
-    return baseType + profileAdd;
+    // Add profile layer if available
+    const profilePatterns: Record<string, string> = {
+      '1': `\n\nYour 1-line profile brings a foundation of investigation to your design. You need to understand things deeply before you feel secure. Research, study, and building a solid foundation of knowledge aren't optional for you—they're essential. When you skip this phase, insecurity follows.`,
+      '2': `\n\nYour 2-line profile carries natural gifts that others often see before you do. You may be called to share talents you didn't know you had. The challenge is honoring your need for alone time while responding to the world's calls on your gifts.`,
+      '3': `\n\nYour 3-line profile means you learn through direct experience—trial and error. What looks like "mistakes" to others is actually your process. You're designed to discover what doesn't work, and this experiential wisdom becomes invaluable.`,
+      '4': `\n\nYour 4-line profile operates through networks and relationships. Your influence moves through the people who know and trust you. Opportunity comes through connection, not cold outreach.`,
+      '5': `\n\nYour 5-line profile attracts projections. People see you as a potential savior or solution before they know you. This can be exhausting when you can't meet expectations, and powerful when you can. Managing these projections is a lifelong practice.`,
+      '6': `\n\nYour 6-line profile unfolds in three phases: experimentation and trial until around 30, a period of observation and stepping back until around 50, then embodying the wisdom you've gathered. Trust whatever phase you're in.`
+    };
+    
+    const firstLine = profile?.split('/')?.[0] || '';
+    const secondLine = profile?.split('/')?.[1] || '';
+    
+    let profileText = profilePatterns[firstLine] || '';
+    if (secondLine && profilePatterns[secondLine]) {
+      profileText += profilePatterns[secondLine];
+    }
+    
+    return baseType + profileText;
   };
   
   const getReadingDecisionProcess = (authority: string): string => {
     const auth = authority?.toLowerCase() || '';
     
     if (auth.includes('emotional')) {
-      return `Your clarity doesn't come instantly. It builds over time. You ride emotional waves—some days a decision feels right, other days the same choice feels wrong. That's not confusion; that's your process. The trap is deciding when you're at a peak or valley. Real clarity comes when the wave settles and you feel calm about it.`;
+      return `Your decision-making process is deeply tied to your emotional wave. Unlike others who can know in an instant, your clarity builds over time. You need to ride the wave—experiencing a decision through emotional highs, lows, and the calm in between.
+
+What This Means: You don't have access to truth in the moment. When you're emotionally high, everything looks good. When you're low, everything looks bad. Neither state gives you accurate information. Your clarity comes when the wave settles and you feel calm—not excited, not depressed, just clear.
+
+The Challenge: Society rewards fast decisions. "Trust your gut" doesn't work for you. You may have spent your life regretting choices made in emotional heat—either the high of excitement or the low of desperation. The pressure to decide quickly is your greatest enemy.
+
+Your Wisdom: When you honor your wave, you make profoundly wise decisions. You've experienced the choice from every emotional angle. You know how it feels in the morning and at night, on good days and hard days. This depth of knowing is unavailable to those who decide quickly.
+
+Practical Tips:
+• Never make important decisions in one sitting. Sleep on it—multiple times if needed.
+• Track your emotional wave. Notice when you're high, low, and neutral.
+• When you feel neutral and still clear about something—that's likely your truth.
+• Tell people: "I need time to feel into this." The right opportunities will wait.`;
     }
+    
     if (auth.includes('sacral')) {
-      return `Your body knows before your mind does. There's a gut response—a pull toward yes, or a wall that says no. It's physical. You might make sounds, feel expansion or contraction. The trap is overriding that response because it doesn't make logical sense. Trust the first hit.`;
+      return `Your decision-making lives in your gut. There's a physical response—an expansion toward yes, a contraction toward no. It's not logical. It doesn't explain itself. It just knows.
+
+What This Means: Your Sacral Center speaks through sounds and sensations. An "uh-huh" of opening, an "unh-uh" of closing. This response happens faster than thought. Your job is to trust it, even when your mind disagrees.
+
+The Challenge: You may have been taught to override this knowing—to "think it through" or "be reasonable." Every time you override the gut response, you move away from what's correct for you. The frustration that follows is your body telling you it wasn't right.
+
+Your Wisdom: Your gut knows what your mind can't figure out. It's reading energy, not logic. When you follow it, life flows. When you don't, you grind.
+
+Practical Tips:
+• Pay attention to your first physical response. That's the signal.
+• Ask yourself yes/no questions. Notice whether your body opens or closes.
+• Your gut responds to things outside you—wait for something to respond TO.
+• Don't commit when you feel nothing. A neutral response means wait.`;
     }
+    
     if (auth.includes('splenic')) {
-      return `Your knowing comes fast and quiet. Once. In the moment. Then it's gone. You get instincts about timing, safety, what's off. The trap is second-guessing that first knowing. Once you start analyzing, you've already lost it.`;
+      return `Your knowing comes in the moment—fast, quiet, and once. It's an instinct about timing, safety, what's right and what's off. The Spleen speaks once, then moves on.
+
+What This Means: Your intuition doesn't repeat itself or explain itself. It's a subtle hit—a knowing that something is right or wrong, now or not now. If you catch it, you have the information. If you miss it or override it, it doesn't come back.
+
+The Challenge: Your mind is slower than your intuition. By the time you've "thought it through," the splenic knowing has passed. You may have a history of overriding quiet instincts with loud logic—and regretting it.
+
+Your Wisdom: When you trust the first hit, you navigate life with remarkable accuracy. Your instincts are reading survival-level information that your conscious mind can't access.
+
+Practical Tips:
+• Act on the first knowing. Don't wait to "think about it."
+• Learn to distinguish gut instinct from fear. Intuition is quiet; fear is loud.
+• Your timing is in the moment. "Let me think about it" often means missing the window.
+• Practice trusting small instincts to build confidence for bigger ones.`;
     }
-    if (auth.includes('ego') || auth.includes('heart')) {
-      return `Your clarity lives in what you actually want. Not what you should want—what you truly desire. When your heart is in it, you can move mountains. When it's not, everything stalls. The trap is committing to things you don't actually want.`;
-    }
-    if (auth.includes('self') || auth.includes('projected')) {
-      return `You find clarity by hearing yourself speak. Not thinking—talking. You say something out loud and suddenly know if it's true. Your truth is in your voice. The trap is processing alone or asking others for answers. You need to hear yourself.`;
-    }
+    
     if (auth.includes('lunar')) {
-      return `Your clarity takes a full cycle. About a month. That's not slow—that's thorough. You feel differently about things as the month moves. That's information, not indecision. The trap is pressure to decide fast.`;
+      return `Your clarity unfolds over a full lunar cycle—approximately 28 days. This isn't indecisiveness; it's wisdom. You experience decisions through every energetic configuration the moon brings.
+
+What This Means: As the moon moves through each gate in the Human Design wheel, you have access to different energies, perspectives, and ways of experiencing a choice. What feels right during one phase may feel different during another. You need the full cycle to gather complete information.
+
+The Challenge: The world moves fast. People want answers now. You may have made decisions under pressure that you later regretted, or felt there was something wrong with you for needing so much time. There's nothing wrong—you're designed for depth, not speed.
+
+Your Wisdom: When you honor the full cycle, your decisions have been tested against every possible energy. You've experienced how the choice feels in every state. No one else has access to this depth of knowing.
+
+Practical Tips:
+• Mark when a major decision enters your life. Give it 28 days.
+• Track how you feel about it throughout the month. Notice patterns.
+• Talk to different people in different environments throughout the cycle.
+• Trust that what survives 28 days of sampling is truly correct for you.`;
     }
-    return `Your clarity emerges through conversation and environment over time. Different places, different talks. The answer builds across dialogues—not internal analysis.`;
+    
+    return `Your clarity emerges through conversation and environment. You find truth by talking things through with others—not for their opinion, but to hear yourself speak in different contexts.
+
+What This Means: Your process is external. Clarity doesn't come from sitting alone and thinking. It comes from dialogue—hearing how you talk about a decision, noticing what your voice sounds like when you describe different options.
+
+The Challenge: You may have been told to "trust yourself" and figure it out alone. This doesn't work for you. Without conversation, decisions stay foggy.
+
+Practical Tips:
+• Talk to trusted people—not for advice, but for the mirror of conversation.
+• Notice how you feel in different environments when discussing decisions.
+• Pay attention to your voice. When you're speaking truth, it sounds different.`;
   };
   
   const getReadingHowOthersSeeYou = (type: string, profile: string): string => {
-    const profileNum = profile?.split('/')?.[0] || '';
-    
     const typeAura: Record<string, string> = {
-      'Generator': `People feel your energy. When you're lit up, it's magnetic. When you're not, they can tell. Your presence is steady and available—like there's fuel there if the right thing comes along.`,
-      'Manifesting Generator': `People experience you as fast, dynamic, sometimes unpredictable. You bring energy into a room and you're not afraid to change course. Some find this exciting; others find it disorienting.`,
-      'Projector': `People feel seen by you—sometimes uncomfortably so. You have penetrating attention. When you focus on someone, they feel it. This makes you a natural guide, but it can also feel intense.`,
-      'Manifestor': `People feel your impact before you say anything. There's a force to your presence. You can shift the energy of a room just by walking in. Some are drawn to that; others feel pushed by it.`,
-      'Reflector': `People often experience you as surprisingly different depending on when they meet you. You mirror back what's around you. This makes you a barometer for the health of any group or environment.`
+      'Generator': `People feel your energy before you speak. When you're genuinely engaged, there's a warmth and magnetism that draws others in. Your aura is open and enveloping—it invites response. People feel comfortable initiating with you, sharing ideas, asking questions. 
+
+When you're lit up about something, it's contagious. Others want to be around your energy. When you're frustrated or doing something that doesn't align, people feel that too—there's a heaviness, a "don't bother me" quality.`,
+      
+      'Manifesting Generator': `People experience you as dynamic, fast-moving, and sometimes hard to predict. You bring energy and pace into any room. Your aura combines the Generator's welcoming quality with a Manifestor's impact—people feel drawn to engage with you AND feel your initiating force.
+
+You may notice people trying to keep up with you, or feeling disoriented by your changes in direction. Some find your pace exciting and inspiring. Others find it overwhelming. Both responses are about them, not you.`,
+      
+      'Projector': `People feel seen by you—sometimes uncomfortably so. Your aura is focused and penetrating. When you give someone your attention, they feel it deeply. You naturally read people, systems, the dynamics underneath the surface.
+
+This intensity makes you a powerful guide when invited. It can also make people feel exposed when they're not ready. You may have experienced people pulling away from your perception, or being drawn to it. The difference usually comes down to whether they feel recognized first.`,
+      
+      'Manifestor': `People feel your impact before you say anything. Your aura is closed and repelling in a specific way—not unfriendly, but self-contained. You don't pull people in the way Generators do. Instead, you push energy outward.
+
+When you walk into a room, the dynamic shifts. Some people are drawn to your initiating force—they want to be part of what you're starting. Others feel pushed or controlled, even when you don't intend it. Informing helps people relax around you.`,
+      
+      'Reflector': `People experience you differently depending on when and where they meet you. You're a mirror—reflecting back the energy, health, and dynamics of whatever environment you're in. This means you can seem like a different person in different contexts.
+
+In healthy environments, you reflect that health back—people feel good around you. In unhealthy environments, you reflect the dysfunction—which isn't always welcome. Your inconsistency isn't a problem; it's information about where you are.`
     };
     
-    let profileLayer = '';
-    if (profileNum === '1') profileLayer = ` There's a depth to how you engage—you don't just skim the surface.`;
-    if (profileNum === '2') profileLayer = ` You have gifts you don't always see yourself. Others notice them first.`;
-    if (profileNum === '3') profileLayer = ` People see you as someone who's tried things, learned the hard way, knows what doesn't work.`;
-    if (profileNum === '4') profileLayer = ` Your network matters. People experience you through who you're connected to.`;
-    if (profileNum === '5') profileLayer = ` People project onto you—expectations, hopes, the need for solutions. They see you as someone who can fix things.`;
-    if (profileNum === '6') profileLayer = ` There's an eventual wisdom about you. People sense you're here to embody something over time.`;
+    const profileLayers: Record<string, string> = {
+      '1': `\n\nYour 1-line adds depth. People sense there's more beneath the surface—that you've done your research, built your foundation, understand things more thoroughly than you let on.`,
+      '2': `\n\nYour 2-line carries natural talents that others see before you do. People may call on you for things you didn't know you were good at. This can feel surprising or uncomfortable when you don't see what they see.`,
+      '3': `\n\nYour 3-line brings experiential wisdom. People sense you've tried things, failed, learned, and accumulated practical knowledge through direct experience. You know what doesn't work.`,
+      '4': `\n\nYour 4-line makes you influential through networks. People experience you through your connections—who you know, who trusts you, who you're affiliated with.`,
+      '5': `\n\nYour 5-line attracts projections. People see you as a potential solution or savior before they know you. They project their hopes—and disappointments—onto you. Managing this is a constant practice.`,
+      '6': `\n\nYour 6-line carries an eventual wisdom. People sense there's something you're here to embody over time—a living example of something. This authority grows as you age.`
+    };
     
-    return (typeAura[type] || typeAura['Generator']) + profileLayer;
+    let result = typeAura[type] || typeAura['Generator'];
+    
+    const firstLine = profile?.split('/')?.[0] || '';
+    const secondLine = profile?.split('/')?.[1] || '';
+    
+    if (profileLayers[firstLine]) result += profileLayers[firstLine];
+    if (profileLayers[secondLine]) result += profileLayers[secondLine];
+    
+    return result;
   };
   
   const getReadingNotSelf = (type: string, notSelf: string): string => {
     const notSelfPatterns: Record<string, string> = {
-      'Generator': `When you're off-track, frustration builds. You're grinding on things that don't light you up, saying yes out of obligation. The signal is that heavy, stuck, "why am I doing this" feeling. It means something isn't right—not that you're broken.`,
-      'Manifesting Generator': `When you're off-track, frustration and anger mix. You're forcing yourself to finish things that stopped mattering, or holding back impulses to avoid conflict. The signal is that trapped, buzzing energy that can't find an outlet.`,
-      'Projector': `When you're off-track, bitterness creeps in. You're giving guidance no one asked for, working too hard for recognition, exhausting yourself trying to prove value. The signal is that sour feeling of being unseen or unappreciated.`,
-      'Manifestor': `When you're off-track, anger surfaces. You're suppressing urges to keep the peace, or acting without informing and creating chaos. The signal is that pressure cooker feeling—explosive or imploded.`,
-      'Reflector': `When you're off-track, disappointment accumulates. You're rushing decisions, stuck in wrong environments, absorbing everyone else's patterns. The signal is a deep sense that life isn't what it should be.`
+      'Generator': `When you're living out of alignment with your design, frustration builds. This is your signal—not a flaw, but feedback.
+
+The Challenge: Frustration shows up when you're doing work that doesn't light you up, saying yes out of obligation, or trying to initiate things instead of responding to what's in front of you. You may feel stuck, heavy, like you're grinding without getting anywhere. "Why am I even doing this?" becomes a constant question.
+
+What It Looks Like: Working on projects that drain you. Commitments that feel like prison sentences. Saying yes because you should, not because your gut said yes. Feeling like a workhorse with no satisfaction. Envying people who seem energized while you feel depleted.
+
+The Wisdom in Frustration: This feeling isn't telling you you're broken. It's telling you something isn't right. It's your body's way of saying "not this." The frustration itself is the guide—follow it backward to find what needs to change.`,
+      
+      'Manifesting Generator': `When you're living out of alignment with your design, a mix of frustration and anger builds. You feel stuck, blocked, unable to move the way you're designed to move.
+
+The Challenge: Frustration comes from doing things that don't light you up. Anger comes from suppressing your initiating urges or being blocked from acting. You may feel trapped in commitments that stopped being exciting, or forced to finish things your energy has already left.
+
+What It Looks Like: Staying in jobs, relationships, or projects past their expiration date. Forcing yourself to complete things just to "be responsible." Not informing others and creating friction. Holding back impulses to keep the peace. A buzzing, trapped energy with no outlet.
+
+The Wisdom in Frustration and Anger: These signals are telling you something needs to change. Either you're doing something that isn't correct, or you're being blocked from something that is. The feelings themselves are the guide.`,
+      
+      'Projector': `When you're living out of alignment with your design, bitterness accumulates. This sour feeling is your signal—not a character flaw, but feedback about how you're operating.
+
+The Challenge: Bitterness comes from working too hard without recognition, offering guidance that wasn't invited, or trying to keep up with energy types (Generators, Manifestors) who have more fuel than you. You may feel invisible, undervalued, exhausted from trying to prove your worth.
+
+What It Looks Like: Initiating instead of waiting for recognition. Giving advice no one asked for. Working long hours to demonstrate value. Feeling resentful when others don't see your contributions. Burnout from trying to match others' energy levels.
+
+The Wisdom in Bitterness: This feeling is telling you that your strategy is off. You're either working too hard, not being recognized, or offering guidance that wasn't invited. The bitterness points you back toward waiting, resting, and focusing on your own mastery.`,
+      
+      'Manifestor': `When you're living out of alignment with your design, anger surfaces—either explosive or imploded. This is your signal that something in your initiating process needs attention.
+
+The Challenge: Anger comes from suppressing urges to keep the peace, or from acting without informing and creating resistance. You may feel controlled by others who don't understand your need to move, or isolated because your impact keeps pushing people away.
+
+What It Looks Like: Suppressing impulses to avoid conflict. Acting without telling anyone and being met with resistance. Feeling like you can't be yourself without making waves. Carrying resentment toward people who seem to block your movement. Either exploding or withdrawing completely.
+
+The Wisdom in Anger: This feeling tells you something in your informing process is off. Either you're suppressing what needs to be initiated, or you're not giving others the heads-up they need. The anger points back toward honoring your urges AND informing—both are necessary.`,
+      
+      'Reflector': `When you're living out of alignment with your design, disappointment accumulates. This deep sense that life isn't what it could be is your signal—not proof that something is wrong with you.
+
+The Challenge: Disappointment comes from rushing decisions, staying in wrong environments, or trying to be consistent when you're designed to change. You may feel like you don't fit anywhere, or that you're constantly absorbing everyone else's patterns while losing yourself.
+
+What It Looks Like: Making major decisions too quickly and regretting them. Staying in environments that feel wrong. Trying to be the same person every day. Not having enough alone time to discharge absorbed energy. Feeling lost in other people's emotions and patterns.
+
+The Wisdom in Disappointment: This feeling tells you something about your environment or your pace. You're either in the wrong place, with the wrong people, or you're not giving yourself the time you need. The disappointment points back toward choosing environments wisely and honoring your lunar timing.`
     };
     
     return notSelfPatterns[type] || notSelfPatterns['Generator'];
@@ -2477,47 +2640,109 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   
   const getReadingStrategy = (type: string, strategy: string, authority: string): string => {
     const strategyPatterns: Record<string, string> = {
-      'Generator': `Wait for something to respond to. Not passive waiting—engaged waiting. When something lands in front of you, your gut will tell you if it's right. That pull toward yes, or that wall of no. Trust the body over the mind. Commit when it's a full-body yes.`,
-      'Manifesting Generator': `Wait to respond, then move fast. Something shows up, you feel the pull, you go. Inform people before big shifts—not for permission, but to reduce friction. When it stops lighting you up, pivot. That's allowed.`,
-      'Projector': `Wait for the invitation. Not for everything—but for the big things: relationships, jobs, places. When you're recognized and invited, your guidance lands. When you're not, it doesn't. Rest more than feels normal. Manage energy carefully.`,
-      'Manifestor': `Inform before you act. Not asking permission—just letting people know what's coming. This reduces resistance. Trust your urges. When something needs to be initiated, you're built to start it.`,
-      'Reflector': `Wait a full lunar cycle before big decisions. Move through different environments and notice how you feel in each. Choose your surroundings carefully—they shape everything. Your wisdom comes from sampling, not certainty.`
+      'Generator': `Your strategy is to respond. Not initiate. Not push. Wait for life to bring you something—a request, an opportunity, a situation—and then check your gut response.
+
+What This Means: You're not designed to make things happen from scratch. You're designed to respond to what shows up. This doesn't mean passive waiting—it means engaged attention. Notice what's in front of you. Check your gut. When you feel that "yes," commit fully. When you feel "no," honor it.
+
+How It Works: Something appears in your world—a job posting, a question from someone, an invitation. Before your mind analyzes pros and cons, notice your body. Is there expansion? Contraction? An "uh-huh" or "unh-uh"? That response is your guide.
+
+What Actually Works: Following the gut response, even when it doesn't make logical sense. Waiting for things to respond to rather than forcing action. Trusting that the right opportunities will appear. Giving yourself permission to say no when your body says no.
+
+Remember: Your satisfaction comes from correct work. Correct work comes from responding correctly. The gut is the guide—not the mind, not obligation, not what you "should" do.`,
+      
+      'Manifesting Generator': `Your strategy is to respond, then inform, then act. The response comes first—you need something to respond TO. But once your gut says yes, you can move fast. Just let people know before big shifts.
+
+What This Means: Like Generators, you wait for something to respond to. But unlike pure Generators, once you're in, you can initiate and move with speed. Your energy works in bursts—intense engagement followed by the need to pivot when the energy dies.
+
+How It Works: Something shows up. You feel the pull—a strong gut yes. You engage fully and move quickly. When the energy shifts and something else catches your attention, you inform the people affected and pivot. This isn't flaky; it's efficient.
+
+What Actually Works: Trusting your gut response. Moving fast when you're lit up. Informing others before sudden changes. Giving yourself permission to not finish things that stopped resonating. Embracing your non-linear path.
+
+Remember: Your efficiency comes from following energy, not forcing completion. When something stops lighting you up, that's information. Pivot isn't failure—it's design.`,
+      
+      'Projector': `Your strategy is to wait for the invitation—especially for the big things: relationships, careers, places to live. When you're recognized and invited, your guidance lands. When you're not, it doesn't.
+
+What This Means: You're not designed to initiate or push your way into things. Your success comes from being seen, recognized, and invited. This feels counterintuitive in a culture that rewards hustle, but forcing your way in leads to bitterness.
+
+How It Works: Focus on your own mastery. Develop your skills. Rest. When someone genuinely sees you and invites your involvement—"I'd love your thoughts on this," "Would you consider this opportunity?"—that's the green light.
+
+What Actually Works: Resting more than feels normal. Managing your energy carefully. Waiting for recognition before offering guidance. Focusing on depth of mastery rather than breadth of activity. Being selective about where you invest your limited energy.
+
+Remember: Your value isn't in output. It's in guiding others when they're ready to receive it. The right invitations come when you're focused on being excellent at your thing, not proving yourself to everyone.`,
+      
+      'Manifestor': `Your strategy is to inform before you act. Not asking permission—simply letting people know what's coming. This reduces the resistance that naturally builds around your impact.
+
+What This Means: Your aura is closed and impactful. When you act without warning, people feel controlled or blindsided—even when that's not your intention. Informing doesn't diminish your power; it helps it land more effectively.
+
+How It Works: When you feel the urge to initiate something, pause just long enough to tell the people who will be affected: "I'm going to..." This isn't asking for approval. It's giving others a chance to adjust, which reduces friction.
+
+What Actually Works: Trusting your initiating urges. Informing others before acting. Not asking for permission. Giving yourself space to move without constant negotiation. Finding people who understand your nature.
+
+Remember: Your peace comes from acting on what you're here to initiate while minimizing unnecessary resistance. The informing isn't about them approving—it's about you moving effectively.`,
+      
+      'Reflector': `Your strategy is to wait a lunar cycle before major decisions. Not a day, not a week—a full 28-day cycle. This gives you time to experience the decision through every energetic configuration.
+
+What This Means: The moon moves through every gate in the Human Design wheel each month, giving you access to different energies and perspectives. A decision that feels right during one phase may feel different during another. You need the full cycle to know what's true.
+
+How It Works: Mark when a major decision enters your life. Move through the next 28 days, checking in with how it feels at different times. Talk to different people. Be in different environments. Notice the patterns in how you feel about it.
+
+What Actually Works: Giving yourself the full 28 days. Tracking how your feelings shift throughout the cycle. Talking through decisions in different contexts. Choosing environments carefully—they shape everything for you. Taking plenty of alone time to discharge absorbed energy.
+
+Remember: Your wisdom comes from sampling. You're not designed for quick certainty—you're designed for deep knowing that comes from experiencing all the angles. What survives 28 days of sampling is correct for you.`
     };
     
-    const auth = authority?.toLowerCase() || '';
-    let authAdd = '';
-    if (auth.includes('emotional')) authAdd = ` And because you have emotional authority: sleep on it. Check again tomorrow. Let the wave settle before you commit.`;
+    let result = strategyPatterns[type] || strategyPatterns['Generator'];
     
-    return (strategyPatterns[type] || strategyPatterns['Generator']) + authAdd;
+    const auth = authority?.toLowerCase() || '';
+    if (auth.includes('emotional') && !type?.includes('Reflector')) {
+      result += `\n\nImportant: Because you have emotional authority, layer this on top of your strategy. Even after your gut responds, give yourself time. Sleep on it. Check how it feels tomorrow, and the next day. Your truth emerges when the emotional wave settles.`;
+    }
+    
+    return result;
   };
   
   const getReadingDeeperPattern = (definedCenters: any[], undefinedCenters: any[], gates: any[], activation: any): string => {
-    const definedNames = definedCenters.map(c => c.name || c.center_name).filter(Boolean);
-    const undefinedNames = undefinedCenters.map(c => c.name || c.center_name).filter(Boolean);
+    const definedCount = definedCenters?.length || 0;
+    const undefinedCount = undefinedCenters?.length || 0;
     const gateCount = gates?.length || 0;
     
-    let narrative = '';
+    let narrative = `Beyond your type, authority, and strategy, your design contains specific energetic patterns—consistent and variable—that shape how you experience life.\n\n`;
     
-    if (definedNames.length > 0) {
-      narrative += `You have consistent energy in ${definedNames.slice(0, 3).join(', ')}${definedNames.length > 3 ? ' and more' : ''}. These are reliable—they work the same way regardless of who's around. `;
+    if (definedCount > 0) {
+      const definedNames = definedCenters.map(c => c.name || c.center_name).filter(Boolean);
+      narrative += `**Your Defined Centers:** You have consistent, reliable energy in ${definedNames.join(', ')}. These centers operate the same way regardless of who you're around. They're your fixed traits—how you're wired to think, feel, communicate, or act. You can rely on them. Others may be drawn to this consistency, or conditioned by it.\n\n`;
     }
     
-    if (undefinedNames.length > 0) {
-      narrative += `Your open areas—${undefinedNames.slice(0, 3).join(', ')}${undefinedNames.length > 3 ? ' and others' : ''}—take in and amplify energy from your environment. What you feel there often isn't yours. `;
+    if (undefinedCount > 0) {
+      const undefinedNames = undefinedCenters.map(c => c.name || c.center_name).filter(Boolean);
+      narrative += `**Your Open Centers:** Your undefined areas—${undefinedNames.slice(0, 4).join(', ')}${undefinedNames.length > 4 ? ' and more' : ''}—are where you take in and amplify energy from your environment. What you experience in these centers is often not yours. Over time, this openness becomes wisdom: you understand these energies more deeply than those who have them consistently, precisely because you experience them variably.\n\n`;
+      
+      narrative += `The challenge with open centers is conditioning—taking on patterns from others and thinking they're yours. The gift is wisdom about how these energies work, gained through experiencing them in so many different ways.\n\n`;
     }
     
     if (gateCount > 0) {
-      narrative += `You carry ${gateCount} specific gates—consistent themes that run through how you process, express, and engage. These aren't choices; they're wiring. `;
+      narrative += `**Your Gates:** You carry ${gateCount} defined gates—specific themes and energies that are consistently available to you. Each gate has a spectrum from shadow (challenge) to gift (higher expression). These aren't choices; they're wiring. Your work is to become aware of how they show up, notice when you're in shadow, and cultivate the gift expression.\n\n`;
     }
     
     if (activation?.spheres?.length > 0) {
-      const lifework = activation.spheres.find((s: any) => s.sphere_name?.includes('Life'));
-      if (lifework) {
-        narrative += `Your deeper purpose pattern includes a core around ${lifework.gift || 'transformation'}—this shapes what work actually feels meaningful to you.`;
+      const lifework = activation.spheres.find((s: any) => s.sphere_name?.toLowerCase().includes('life'));
+      const purpose = activation.spheres.find((s: any) => s.sphere_name?.toLowerCase().includes('purpose'));
+      
+      if (lifework || purpose) {
+        narrative += `**Your Deeper Purpose:** Your Gene Keys reveal another layer. `;
+        if (lifework?.gift) {
+          narrative += `Your Life's Work carries the potential of ${lifework.gift}—this is where your core contribution shows up. `;
+        }
+        if (purpose?.gift) {
+          narrative += `Your Purpose points toward ${purpose.gift}—the underlying theme you're here to embody.`;
+        }
+        narrative += `\n\n`;
       }
     }
     
-    return narrative || 'Your design contains a unique combination of consistent and open energies. The consistent parts are reliable; the open parts are where you take in and amplify what is around you.';
+    narrative += `Remember: This blueprint isn't prescriptive—it's descriptive. It shows you how you're wired, not who you have to be. Use it as a mirror for self-recognition, a tool for self-acceptance, and a guide for living more aligned with your nature.`;
+    
+    return narrative;
   };
   
   // Deep Dive Global Ask Section - page level CTA

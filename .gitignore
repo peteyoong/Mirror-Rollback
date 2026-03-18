@@ -447,3 +447,7 @@ frontend/Tension
 backend_test.py
 hd_centers_test.py
 numerology_persistence_test.py
+-e 
+# Environment files
+*.env
+*.env.*
