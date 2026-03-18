@@ -801,12 +801,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     }
 
     try {
-      // Load sequences data
-      const sequencesResponse = await api.get(`/gene-keys/sequences/${userId}`);
+      // Load Gene Keys profile with all sequences
+      const sequencesResponse = await api.get(`/gene-keys/profile/${userId}`);
       if (sequencesResponse.data) {
-        setActivationSequence(sequencesResponse.data.activation || null);
-        setVenusSequence(sequencesResponse.data.venus || null);
-        setPearlSequence(sequencesResponse.data.pearl || null);
+        setActivationSequence(sequencesResponse.data.activation_sequence || null);
+        setVenusSequence(sequencesResponse.data.venus_sequence || null);
+        setPearlSequence(sequencesResponse.data.pearl_sequence || null);
       }
     } catch (err) {
       console.error('Failed to load sequences:', err);
@@ -2195,11 +2195,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Sequences section - ALWAYS EXPANDED, not collapsible
+  // Sequences section - Sphere-based flow (ALWAYS EXPANDED)
   const renderSequencesSectionExpanded = () => {
-    // Even without API sequences, show a placeholder about life patterns
-    const hasSequences = activationSequence || venusSequence || pearlSequence;
-    
     return (
       <View style={[styles.sequencesCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>YOUR SEQUENCES</Text>
@@ -2207,41 +2204,154 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           How your life patterns unfold
         </Text>
         
-        {/* Core Life Theme */}
-        <View style={[styles.sequenceBlockExpanded, { borderLeftColor: theme.accent }]}>
-          <Text style={[styles.sequenceBlockTitle, { color: theme.text }]}>Core Life Theme</Text>
-          <Text style={[styles.sequenceBlockSubtitle, { color: theme.textTertiary }]}>What you're here to develop</Text>
-          <Text style={[styles.sequenceBlockBody, { color: theme.textSecondary }]}>
-            {activationSequence?.purpose?.interpretation 
-              || activationSequence?.life_work?.interpretation
-              || `Your incarnation cross and profile shape your core developmental path. This is the central theme your life keeps returning to.`}
-          </Text>
+        {/* ACTIVATION SEQUENCE - Core Life Theme */}
+        {renderSphereSequence(
+          'Core Life Theme',
+          'Activation Sequence',
+          activationSequence?.spheres || getDefaultActivationSpheres(),
+          '#FFD700', // Gold
+        )}
+        
+        {/* VENUS SEQUENCE - Relationship Pattern */}
+        {renderSphereSequence(
+          'Relationship Pattern',
+          'Venus Sequence',
+          venusSequence?.spheres || getDefaultVenusSpheres(),
+          '#FF69B4', // Pink
+        )}
+        
+        {/* PEARL SEQUENCE - Work & Contribution */}
+        {renderSphereSequence(
+          'Work & Contribution',
+          'Pearl Sequence',
+          pearlSequence?.spheres || getDefaultPearlSpheres(),
+          '#90EE90', // Green
+        )}
+      </View>
+    );
+  };
+
+  // Render a single sequence with its spheres
+  const renderSphereSequence = (
+    title: string, 
+    subtitle: string, 
+    spheres: any[], 
+    accentColor: string
+  ) => {
+    return (
+      <View style={styles.sphereSequenceContainer}>
+        <View style={styles.sequenceHeaderRow}>
+          <View style={[styles.sequenceAccentDot, { backgroundColor: accentColor }]} />
+          <View>
+            <Text style={[styles.sphereSequenceTitle, { color: theme.text }]}>{title}</Text>
+            <Text style={[styles.sphereSequenceSubtitle, { color: theme.textTertiary }]}>{subtitle}</Text>
+          </View>
         </View>
         
-        {/* Relationship Pattern */}
-        <View style={[styles.sequenceBlockExpanded, { borderLeftColor: '#FF69B4' }]}>
-          <Text style={[styles.sequenceBlockTitle, { color: theme.text }]}>Relationship Pattern</Text>
-          <Text style={[styles.sequenceBlockSubtitle, { color: theme.textTertiary }]}>Emotional triggers and dynamics</Text>
-          <Text style={[styles.sequenceBlockBody, { color: theme.textSecondary }]}>
-            {venusSequence?.attraction?.interpretation 
-              || venusSequence?.iq?.interpretation
-              || `Your relating style is shaped by how you attract, bond, and experience emotional depth with others. Look for patterns in what draws you close—and what pushes you away.`}
-          </Text>
-        </View>
-        
-        {/* Work & Contribution */}
-        <View style={[styles.sequenceBlockExpanded, { borderLeftColor: '#90EE90' }]}>
-          <Text style={[styles.sequenceBlockTitle, { color: theme.text }]}>Work & Contribution</Text>
-          <Text style={[styles.sequenceBlockSubtitle, { color: theme.textTertiary }]}>How value and prosperity flow</Text>
-          <Text style={[styles.sequenceBlockBody, { color: theme.textSecondary }]}>
-            {pearlSequence?.vocation?.interpretation 
-              || pearlSequence?.culture?.interpretation
-              || `Your natural form of contribution emerges when you align with your design. Prosperity follows authentic expression of your gifts—not imitation of others.`}
-          </Text>
+        <View style={styles.sphereFlowContainer}>
+          {spheres.map((sphere, index) => (
+            <View key={index}>
+              {/* Connector line (except for first) */}
+              {index > 0 && (
+                <View style={[styles.sphereConnector, { backgroundColor: theme.border }]} />
+              )}
+              
+              {/* Sphere card */}
+              <View style={[styles.sequenceSphereCard, { borderColor: theme.border, borderLeftColor: accentColor }]}>
+                <View style={styles.sequenceSphereHeader}>
+                  <Text style={[styles.sequenceSphereName, { color: theme.text }]}>
+                    {sphere.sphere_name}
+                  </Text>
+                  {sphere.gene_key && (
+                    <Text style={[styles.sequenceSphereGeneKey, { color: accentColor }]}>
+                      GK {sphere.gene_key}
+                    </Text>
+                  )}
+                </View>
+                
+                {/* Shadow → Gift flow */}
+                {(sphere.shadow || sphere.gift) && (
+                  <View style={styles.sequenceSphereGiftFlow}>
+                    {sphere.shadow && (
+                      <Text style={[styles.sequenceSphereShadow, { color: theme.textTertiary }]}>
+                        {sphere.shadow}
+                      </Text>
+                    )}
+                    {sphere.shadow && sphere.gift && (
+                      <Text style={[styles.sequenceSphereArrow, { color: theme.textTertiary }]}> → </Text>
+                    )}
+                    {sphere.gift && (
+                      <Text style={[styles.sequenceSphereGift, { color: theme.accent }]}>
+                        {sphere.gift}
+                      </Text>
+                    )}
+                  </View>
+                )}
+                
+                {/* Behavioral interpretation */}
+                <Text style={[styles.sequenceSphereInterpretation, { color: theme.textSecondary }]}>
+                  {getSphereInterpretation(sphere)}
+                </Text>
+              </View>
+            </View>
+          ))}
         </View>
       </View>
     );
   };
+
+  // Get behavioral interpretation for a sphere (max 2 lines)
+  const getSphereInterpretation = (sphere: any): string => {
+    // Use specific interpretation if available
+    if (sphere.what_this_means) {
+      // Take first sentence only
+      const firstSentence = sphere.what_this_means.split('.')[0] + '.';
+      if (firstSentence.length < 120) return firstSentence;
+      return firstSentence.slice(0, 117) + '...';
+    }
+    
+    // Generate behavioral fallback based on sphere name and gift
+    const fallbacks: Record<string, string> = {
+      "Life's Work": `This is where your natural contribution emerges through ${sphere.gift || 'your unique gifts'}.`,
+      "Evolution": `Your growth edge—where ${sphere.shadow || 'challenge'} transforms into ${sphere.gift || 'strength'}.`,
+      "Radiance": `What naturally shines when you're at ease: ${sphere.gift || 'your authentic presence'}.`,
+      "Purpose": `The deeper direction your life moves toward through ${sphere.gift || 'alignment'}.`,
+      "Attraction": `How you draw others in—through ${sphere.gift || 'your natural magnetism'}.`,
+      "IQ": `Your mental style in relationships, tending toward ${sphere.gift || 'clarity'}.`,
+      "EQ": `How you process emotions in connection, moving through ${sphere.gift || 'awareness'}.`,
+      "SQ": `Your spiritual or intuitive style in bonds: ${sphere.gift || 'depth'}.`,
+      "Core": `The center of your relating pattern: ${sphere.gift || 'your essential way of connecting'}.`,
+      "Vocation": `Your natural calling emerges through ${sphere.gift || 'authentic expression'}.`,
+      "Culture": `How you contribute to collective spaces via ${sphere.gift || 'your unique perspective'}.`,
+      "Brand": `What others recognize in your work: ${sphere.gift || 'your signature quality'}.`,
+      "Pearl": `Where prosperity flows when aligned: ${sphere.gift || 'your natural abundance'}.`,
+    };
+    
+    return fallbacks[sphere.sphere_name] || `This sphere shapes how you experience ${sphere.gift || 'this aspect of life'}.`;
+  };
+
+  // Default sphere structures when API data is missing
+  const getDefaultActivationSpheres = () => [
+    { sphere_name: "Life's Work", gene_key: null, shadow: null, gift: null },
+    { sphere_name: "Evolution", gene_key: null, shadow: null, gift: null },
+    { sphere_name: "Radiance", gene_key: null, shadow: null, gift: null },
+    { sphere_name: "Purpose", gene_key: null, shadow: null, gift: null },
+  ];
+
+  const getDefaultVenusSpheres = () => [
+    { sphere_name: "Attraction", gene_key: null, shadow: null, gift: null },
+    { sphere_name: "IQ", gene_key: null, shadow: null, gift: null },
+    { sphere_name: "EQ", gene_key: null, shadow: null, gift: null },
+    { sphere_name: "SQ", gene_key: null, shadow: null, gift: null },
+    { sphere_name: "Core", gene_key: null, shadow: null, gift: null },
+  ];
+
+  const getDefaultPearlSpheres = () => [
+    { sphere_name: "Vocation", gene_key: null, shadow: null, gift: null },
+    { sphere_name: "Culture", gene_key: null, shadow: null, gift: null },
+    { sphere_name: "Brand", gene_key: null, shadow: null, gift: null },
+    { sphere_name: "Pearl", gene_key: null, shadow: null, gift: null },
+  ];
 
   // Keep old body graph as fallback (renamed)
   const renderBodygraph = () => {
@@ -2272,13 +2382,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           
           {/* Row 4: G/Identity */}
           <TouchableOpacity onPress={() => handleBodygraphCenterTap('G')} activeOpacity={0.7}>
-            <View style={[styles.bodygraphG, centersDefinition['g'] 
+            <View style={[styles.bodygraphGCenter, centersDefinition['g'] 
               ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
               : { borderColor: theme.border, borderWidth: 2 }]} />
           </TouchableOpacity>
           
           {/* Row 5: Heart + Spleen + Solar Plexus */}
-          <View style={styles.bodygraphMiddleRow}>
+          <View style={styles.bodygraphMiddle}>
             <TouchableOpacity onPress={() => handleBodygraphCenterTap('Heart')} activeOpacity={0.7}>
               <View style={[styles.bodygraphHeart, centersDefinition['heart'] 
                 ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
@@ -3742,25 +3852,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   
-  // Today Tab Styles
-  hdReflectionCard: {
-    padding: 16,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    marginBottom: 16,
-  },
-  hdReflectionLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginBottom: 8,
-  },
-  hdReflectionText: {
-    fontSize: 15,
-    lineHeight: 22,
-    fontStyle: 'italic',
-  },
-  
   // Deep Dive Styles
   centerCard: {
     padding: 14,
@@ -3977,8 +4068,86 @@ const styles = StyleSheet.create({
   sequencesSubtitle: {
     fontSize: 13,
     marginTop: 4,
-    marginBottom: 20,
+    marginBottom: 24,
   },
+  
+  // Sphere-based Sequence Flow
+  sphereSequenceContainer: {
+    marginBottom: 28,
+  },
+  sequenceHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sequenceAccentDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 12,
+  },
+  sphereSequenceTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  sphereSequenceSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  sphereFlowContainer: {
+    paddingLeft: 5,
+  },
+  sphereConnector: {
+    width: 2,
+    height: 12,
+    marginLeft: 15,
+    marginVertical: 2,
+  },
+  sequenceSphereCard: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    paddingLeft: 16,
+    borderLeftWidth: 3,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 8,
+    marginLeft: 6,
+  },
+  sequenceSphereHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  sequenceSphereName: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  sequenceSphereGeneKey: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  sequenceSphereGiftFlow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  sequenceSphereShadow: {
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+  sequenceSphereArrow: {
+    fontSize: 12,
+  },
+  sequenceSphereGift: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  sequenceSphereInterpretation: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  
+  // Legacy styles (keep for compatibility)
   sequenceBlockExpanded: {
     paddingLeft: 16,
     borderLeftWidth: 4,
