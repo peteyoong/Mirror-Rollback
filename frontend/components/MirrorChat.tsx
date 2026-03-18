@@ -68,12 +68,13 @@ interface ThreadState {
 
 interface MirrorChatProps {
   userId: string;
-  lens?: 'astrology' | 'human_design' | 'numerology' | null;
+  lens?: 'astrology' | 'human_design' | 'numerology' | 'bazi' | null;
   placeholder?: string;
   headerTitle?: string;
   headerSubtitle?: string;
   onClose?: () => void;
   keystoneContext?: KeystoneContext | null;  // For keystone continuation
+  initialMessage?: string | null;  // Pre-filled question for Ask flows
 }
 
 // Helper to get storage key for a lens context
@@ -168,9 +169,10 @@ export default function MirrorChat({
   headerSubtitle = "A mirror, not a verdict.",
   onClose,
   keystoneContext = null,
+  initialMessage = null,
 }: MirrorChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState(initialMessage || '');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);

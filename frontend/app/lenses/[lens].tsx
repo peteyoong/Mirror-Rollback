@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -276,6 +276,19 @@ export default function LensDetail() {
   
   // Lens Chat Modal state
   const [lensChatVisible, setLensChatVisible] = useState(false);
+  const [lensChatInitialMessage, setLensChatInitialMessage] = useState<string | null>(null);
+  
+  // Handler for opening chat with optional initial message
+  const handleOpenLensChat = useCallback((initialMessage?: string) => {
+    setLensChatInitialMessage(initialMessage || null);
+    setLensChatVisible(true);
+  }, []);
+  
+  // Handler for closing chat (clears initial message)
+  const handleCloseLensChat = useCallback(() => {
+    setLensChatVisible(false);
+    setLensChatInitialMessage(null);
+  }, []);
   
   const lensMeta = LENS_META[lens as string] || { name: 'Lens', icon: 'help-outline' };
   const mirrorContent = MIRROR_CONTENT[lens as string]?.[activeTab === 'snapshot' ? 'summary' : activeTab] || MIRROR_CONTENT.astrology.summary;
@@ -743,7 +756,7 @@ export default function LensDetail() {
         <>
           <BaziLensView
             userId={user.id}
-            onOpenChat={() => setLensChatVisible(true)}
+            onOpenChat={handleOpenLensChat}
           />
           
           {/* Lens Chat Modal */}
@@ -751,16 +764,17 @@ export default function LensDetail() {
             visible={lensChatVisible}
             animationType="slide"
             presentationStyle="pageSheet"
-            onRequestClose={() => setLensChatVisible(false)}
+            onRequestClose={handleCloseLensChat}
           >
             <SafeAreaView style={styles.modalContainer} edges={['top', 'bottom']}>
               <MirrorChat
                 userId={user.id}
                 lens="bazi"
                 placeholder="Ask about your Four Pillars…"
-                headerTitle="BaZi Chat"
-                headerSubtitle="Lens-focused reflection"
-                onClose={() => setLensChatVisible(false)}
+                headerTitle="Ask About BaZi"
+                headerSubtitle="BaZi • Your Four Pillars"
+                onClose={handleCloseLensChat}
+                initialMessage={lensChatInitialMessage}
               />
             </SafeAreaView>
           </Modal>

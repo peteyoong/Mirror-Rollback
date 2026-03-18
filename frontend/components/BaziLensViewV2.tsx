@@ -23,8 +23,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
-import { useForumContext } from '../contexts/ForumContext';
-import { UniversalReflectionModal, ReflectionSource } from './UniversalReflectionModal';
 import api from '../services/api';
 
 // =============================================================================
@@ -227,7 +225,7 @@ interface BaziResponseV2 {
 
 interface Props {
   userId: string;
-  onOpenChat: () => void;
+  onOpenChat: (initialMessage?: string) => void;
 }
 
 // =============================================================================
@@ -654,8 +652,12 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
   
   // Open chat in open-ended mode (no pre-filled question)
   const handleOpenEndedAsk = () => {
-    setSelectedQuestion(null); // No pre-filled question
-    setShowQuestionModal(true);
+    onOpenChat(); // Open chat without a pre-filled question
+  };
+  
+  // Open chat with a specific question pre-filled
+  const handleSuggestedQuestionTap = (question: string) => {
+    onOpenChat(question); // Open chat with the tapped question pre-filled
   };
   
   // Render the unified Ask section for any tab
@@ -691,10 +693,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
                 <TouchableOpacity
                   key={idx}
                   style={[styles.suggestedQuestionChip, { backgroundColor: theme.background, borderColor: theme.border }]}
-                  onPress={() => {
-                    setSelectedQuestion(question);
-                    setShowQuestionModal(true);
-                  }}
+                  onPress={() => handleSuggestedQuestionTap(question)}
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.suggestedQuestionText, { color: theme.text }]} numberOfLines={2}>
@@ -978,12 +977,6 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
       </View>
     );
   };
-  
-  // Contextual Prompts Component
-  // State for question modal
-  const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
-  const [showQuestionModal, setShowQuestionModal] = useState(false);
-  const { isInForumContext, forumId, forumName } = useForumContext();
   
   // Reflection Prompts Component
   const renderReflectionPrompts = () => {
@@ -1420,25 +1413,6 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         {/* Footer spacer */}
         <View style={{ height: 40 }} />
       </ScrollView>
-      
-      {/* Question Modal - Supports both open-ended and pre-filled modes */}
-      <UniversalReflectionModal
-        visible={showQuestionModal}
-        onClose={() => {
-          setShowQuestionModal(false);
-          setSelectedQuestion(null);
-        }}
-        source={{
-          lens: 'bazi',
-          type: 'open_ask',
-          name: 'BaZi',
-          value: data?.day_master ? `${data.day_master.stem_pinyin} ${data.day_master.element}` : 'BaZi Chart',
-          id: 'bazi_open_ask',
-        }}
-        initialPrompt={selectedQuestion || getDefaultPromptForTab(activeTab)}
-        activeForumId={isInForumContext ? forumId || undefined : undefined}
-        activeForumName={isInForumContext ? forumName || undefined : undefined}
-      />
     </View>
   );
 }
