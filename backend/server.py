@@ -9885,6 +9885,58 @@ async def get_human_design_transit_signals(user_id: str):
         }
 
 
+@api_router.get("/human-design/field-signals/{user_id}")
+async def get_human_design_field_signals(user_id: str):
+    """
+    Get field (macro astrological) signals for Human Design Today tab.
+    
+    Detects major sky events:
+    - New Moon / Full Moon
+    - Equinox / Solstice
+    - Eclipse seasons
+    - Strong lunar phases
+    
+    Returns 1-2 MAX dominant signals with experiential language.
+    """
+    try:
+        from services.field_signals import compute_field_signals
+        
+        # Get user's HD data for personalization
+        user, chart = await get_user_astrology_data(user_id)
+        hd_data = extract_human_design_data(chart)
+        
+        hd_type = hd_data.get('type', 'Generator')
+        hd_authority = hd_data.get('authority', 'Emotional')
+        
+        # Compute field signals
+        field_data = compute_field_signals(
+            hd_type=hd_type,
+            hd_authority=hd_authority,
+        )
+        
+        # Add user HD summary
+        field_data["user_hd"] = {
+            "type": hd_type,
+            "authority": hd_authority,
+        }
+        
+        logger.info(f"[FieldSignals] Computed {len(field_data.get('signals', []))} signals for user {user_id}")
+        return field_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Field signals error: {e}")
+        # Return empty field signals on error
+        return {
+            "computed_at": datetime.now().isoformat(),
+            "signals": [],
+            "hd_connection_hints": [],
+            "has_major_event": False,
+            "error": str(e),
+        }
+
+
 @api_router.get("/human-design/deep-dive/{user_id}")
 async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
     """

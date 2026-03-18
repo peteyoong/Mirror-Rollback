@@ -775,6 +775,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const [transitSignals, setTransitSignals] = useState<any>(null);
   const [transitLoading, setTransitLoading] = useState(false);
   
+  // Field signals for Today tab (macro astrological context)
+  const [fieldSignals, setFieldSignals] = useState<any>(null);
+  const [fieldLoading, setFieldLoading] = useState(false);
+  
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
   
@@ -785,6 +789,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   useEffect(() => {
     if (activeTab === 'today' && userId) {
       loadTransitSignals();
+      loadFieldSignals();
     }
   }, [activeTab, userId]);
 
@@ -797,6 +802,18 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       console.error('[HD] Failed to load transit signals:', error);
     } finally {
       setTransitLoading(false);
+    }
+  };
+
+  const loadFieldSignals = async () => {
+    try {
+      setFieldLoading(true);
+      const response = await api.get(`/human-design/field-signals/${userId}`);
+      setFieldSignals(response.data);
+    } catch (error) {
+      console.error('[HD] Failed to load field signals:', error);
+    } finally {
+      setFieldLoading(false);
     }
   };
 
@@ -2047,6 +2064,103 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const monthContent = getMonthFromSignals();
 
     // ============================================
+    // RENDER FIELD SECTION (THE BIGGER SHIFT)
+    // ============================================
+    const renderFieldSection = () => {
+      // Get field signals
+      const fieldSignalsList = fieldSignals?.signals || [];
+      const hasMajorEvent = fieldSignals?.has_major_event || false;
+      const hdHints = fieldSignals?.hd_connection_hints || [];
+      
+      if (fieldLoading) {
+        return (
+          <View style={[styles.fieldLoadingContainer, { backgroundColor: theme.surface }]}>
+            <ActivityIndicator color={theme.accent} size="small" />
+            <Text style={[styles.fieldLoadingText, { color: theme.textSecondary }]}>
+              Reading the sky...
+            </Text>
+          </View>
+        );
+      }
+      
+      if (!fieldSignalsList || fieldSignalsList.length === 0) {
+        return null; // No major field events
+      }
+
+      return (
+        <View style={styles.fieldSection}>
+          {/* Field Title */}
+          <Text style={[styles.fieldTitle, { color: theme.text }]}>The Bigger Shift</Text>
+          <Text style={[styles.fieldSubtitle, { color: theme.textSecondary }]}>
+            The wider pattern influencing everything right now.
+          </Text>
+          
+          {/* Field Signal Cards (1-2 max) */}
+          {fieldSignalsList.map((field: any, index: number) => (
+            <View 
+              key={index} 
+              style={[
+                styles.fieldCard, 
+                { 
+                  backgroundColor: theme.surface, 
+                  borderColor: hasMajorEvent && index === 0 ? theme.accent : theme.border,
+                  borderWidth: hasMajorEvent && index === 0 ? 1.5 : StyleSheet.hairlineWidth,
+                }
+              ]}
+            >
+              {/* Headline */}
+              <Text style={[styles.fieldCardHeadline, { color: theme.text }]}>
+                {field.headline}
+              </Text>
+              
+              {/* What's Happening */}
+              <View style={styles.fieldCardSection}>
+                <Text style={[styles.fieldCardSectionLabel, { color: theme.textTertiary }]}>WHAT'S HAPPENING</Text>
+                <Text style={[styles.fieldCardSectionText, { color: theme.textSecondary }]}>
+                  {field.what_happening}
+                </Text>
+              </View>
+              
+              {/* Why (optional - short) */}
+              {field.why_happening && (
+                <View style={styles.fieldCardSection}>
+                  <Text style={[styles.fieldCardSectionLabel, { color: theme.textTertiary }]}>WHY</Text>
+                  <Text style={[styles.fieldCardSectionText, { color: theme.textSecondary }]}>
+                    {field.why_happening}
+                  </Text>
+                </View>
+              )}
+              
+              {/* How It Interacts With You */}
+              <View style={styles.fieldCardSection}>
+                <Text style={[styles.fieldCardSectionLabel, { color: theme.accent }]}>HOW THIS AFFECTS YOU</Text>
+                <Text style={[styles.fieldCardSectionText, { color: theme.text }]}>
+                  {field.how_interacts_with_hd}
+                </Text>
+              </View>
+              
+              {/* Reflect CTA */}
+              <TouchableOpacity
+                style={[styles.fieldCardCta, { borderTopColor: theme.border }]}
+                onPress={() => openReflection(
+                  field.headline,
+                  'field_signal',
+                  `${field.what_happening} How is this showing up in my life right now?`,
+                  'today',
+                  `field_${field.signal_type}`,
+                  field.signal_type
+                )}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.fieldCardCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      );
+    };
+
+    // ============================================
     // RENDER HERO SECTION (WHAT'S ACTIVE NOW)
     // ============================================
     const renderHeroSection = () => {
@@ -2218,6 +2332,14 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
     return (
       <>
+        {/* FIELD: The Bigger Shift */}
+        {renderFieldSection()}
+        
+        {/* Divider if field signals exist */}
+        {fieldSignals?.signals?.length > 0 && (
+          <View style={[styles.todayDivider, { backgroundColor: theme.border }]} />
+        )}
+        
         {/* HERO: What's Active Now */}
         {renderHeroSection()}
         
@@ -5081,6 +5203,79 @@ const styles = StyleSheet.create({
   hdSubtleLinkText: {
     fontSize: 13,
     color: "inherit",
+  },
+
+  // ============================================
+  // FIELD SECTION: The Bigger Shift
+  // ============================================
+  
+  fieldSection: {
+    marginBottom: 16,
+  },
+  fieldTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: "inherit",
+    marginBottom: 4,
+  },
+  fieldSubtitle: {
+    fontSize: 13,
+    color: "inherit",
+    opacity: 0.7,
+    marginBottom: 16,
+    lineHeight: 18,
+  },
+  fieldLoadingContainer: {
+    padding: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+  },
+  fieldLoadingText: {
+    fontSize: 12,
+    color: "inherit",
+  },
+  fieldCard: {
+    backgroundColor: "transparent",
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "transparent",
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  fieldCardHeadline: {
+    fontSize: 18,
+    fontWeight: '600',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
+  },
+  fieldCardSection: {
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  fieldCardSectionLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  fieldCardSectionText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  fieldCardCta: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'flex-start',
+    marginTop: 4,
+  },
+  fieldCardCtaText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
 
   // ============================================
