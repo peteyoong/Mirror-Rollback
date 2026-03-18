@@ -727,3 +727,235 @@ def signal_to_dict(signal: FieldSignal) -> Dict[str, Any]:
         "days_until": signal.days_until,
         "is_approaching": signal.is_approaching,
     }
+
+
+# =============================================================================
+# MAJOR SKY EVENTS - Priority Layer
+# =============================================================================
+
+# Sky event priority and themes
+SKY_EVENT_CONFIG = {
+    FieldSignalType.NEW_MOON: {
+        "priority": 0.95,
+        "theme": "reset",
+        "override_dominant": True,
+        "dominant_override": {
+            "theme": "A reset is happening—don't force clarity",
+            "theme_id": "sky_new_moon",
+            "activation": "Something is ending and beginning at once.",
+            "opportunity": "Plant seeds for what you want. Don't harvest yet.",
+            "friction": "Trying to see clearly in the dark.",
+            "today": "Let go. Create space.",
+            "week": "What you release now makes room for what's coming.",
+            "month": "This cycle marks a beginning—trust the dark.",
+        },
+    },
+    FieldSignalType.FULL_MOON: {
+        "priority": 0.90,
+        "theme": "culmination",
+        "override_dominant": True,
+        "dominant_override": {
+            "theme": "Something is coming to fruition",
+            "theme_id": "sky_full_moon",
+            "activation": "What's been building is now visible.",
+            "opportunity": "Harvest clarity. Make the decision.",
+            "friction": "Overthinking when the answer is obvious.",
+            "today": "Act on what you now see clearly.",
+            "week": "The pattern that's been forming reveals itself.",
+            "month": "This illumination marks a turning point.",
+        },
+    },
+    FieldSignalType.ECLIPSE_SOLAR: {
+        "priority": 1.0,
+        "theme": "portal",
+        "override_dominant": True,
+        "dominant_override": {
+            "theme": "A major threshold is active",
+            "theme_id": "sky_eclipse",
+            "activation": "Fate-level energy is in play.",
+            "opportunity": "Surrender to what's moving through.",
+            "friction": "Trying to control what cannot be controlled.",
+            "today": "Let the eclipse work. Don't force.",
+            "week": "Old identities are being burned away.",
+            "month": "This marks a before/after moment.",
+        },
+    },
+    FieldSignalType.ECLIPSE_LUNAR: {
+        "priority": 0.98,
+        "theme": "release",
+        "override_dominant": True,
+        "dominant_override": {
+            "theme": "Deep release is happening",
+            "theme_id": "sky_eclipse",
+            "activation": "Old emotional patterns are surfacing.",
+            "opportunity": "Let go of what's ready to leave.",
+            "friction": "Holding onto what's already gone.",
+            "today": "Allow the release.",
+            "week": "What surfaces now was buried for a reason.",
+            "month": "This eclipse clears space for what's next.",
+        },
+    },
+    FieldSignalType.EQUINOX: {
+        "priority": 0.85,
+        "theme": "threshold",
+        "override_dominant": True,
+        "dominant_override": {
+            "theme": "A seasonal threshold is active",
+            "theme_id": "sky_equinox",
+            "activation": "Balance and transition are the theme.",
+            "opportunity": "Align with the shift. Don't resist it.",
+            "friction": "Trying to stay in the old season.",
+            "today": "Mark the transition consciously.",
+            "week": "Energy is rebalancing between light and dark.",
+            "month": "This equinox initiates a new chapter.",
+        },
+    },
+    FieldSignalType.SOLSTICE: {
+        "priority": 0.85,
+        "theme": "extreme",
+        "override_dominant": True,
+        "dominant_override": {
+            "theme": "Energy is at an extreme—peak or depth",
+            "theme_id": "sky_solstice",
+            "activation": "Maximum light or maximum dark.",
+            "opportunity": "Work with the intensity, not against it.",
+            "friction": "Fighting the extremity of this moment.",
+            "today": "Honor the peak or the stillness.",
+            "week": "The turning point from this extreme begins.",
+            "month": "This solstice marks a shift in trajectory.",
+        },
+    },
+}
+
+
+def get_major_sky_events(dt: Optional[datetime] = None) -> List[Dict[str, Any]]:
+    """
+    Detect current major sky events and return them with priority/intensity.
+    This is the SKY PRIORITY LAYER that can override personal HD signals.
+    
+    Returns a list of active major events sorted by priority.
+    """
+    if dt is None:
+        dt = datetime.now(timezone.utc)
+    
+    major_events = []
+    
+    # Get raw field signals (before dict conversion)
+    raw_signals = _compute_raw_field_signals(dt)
+    
+    for signal in raw_signals:
+        config = SKY_EVENT_CONFIG.get(signal.signal_type)
+        if config:
+            # Calculate intensity based on proximity to event
+            # Peak intensity when event is exact (days_until == 0)
+            # Diminishes as we get further away
+            days_away = abs(signal.days_until)
+            if days_away == 0:
+                intensity = config["priority"]
+            elif days_away <= 1:
+                intensity = config["priority"] * 0.9
+            elif days_away <= 3:
+                intensity = config["priority"] * 0.7
+            elif days_away <= 5:
+                intensity = config["priority"] * 0.5
+            else:
+                intensity = config["priority"] * 0.3
+            
+            major_events.append({
+                "type": signal.signal_type.value,
+                "intensity": round(intensity, 2),
+                "theme": config["theme"],
+                "headline": signal.headline,
+                "days_until": signal.days_until,
+                "is_approaching": signal.is_approaching,
+                "override_dominant": config.get("override_dominant", False),
+                "dominant_override": config.get("dominant_override", {}),
+            })
+    
+    # Sort by intensity (highest first)
+    major_events.sort(key=lambda x: x["intensity"], reverse=True)
+    
+    return major_events
+
+
+def _compute_raw_field_signals(dt: Optional[datetime] = None) -> List[FieldSignal]:
+    """
+    Compute raw field signals (before conversion to dict).
+    Used internally by get_major_sky_events.
+    """
+    if dt is None:
+        dt = datetime.now(timezone.utc)
+    
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    
+    # Get astronomical data
+    moon_data = calculate_moon_phase(dt)
+    season_data = calculate_season(dt)
+    eclipse_data = check_eclipse_season(dt)
+    
+    # Generate all signals (using defaults for HD type/authority since we just need sky events)
+    all_signals = []
+    
+    # Moon signals
+    new_moon_signal = generate_new_moon_signal(moon_data, "Generator", "Sacral")
+    if new_moon_signal:
+        all_signals.append(new_moon_signal)
+    
+    full_moon_signal = generate_full_moon_signal(moon_data, "Generator", "Sacral")
+    if full_moon_signal:
+        all_signals.append(full_moon_signal)
+    
+    waning_signal = generate_waning_crescent_signal(moon_data, "Generator", "Sacral")
+    if waning_signal:
+        all_signals.append(waning_signal)
+    
+    # Seasonal signals
+    equinox_signal = generate_equinox_signal(season_data, "Generator", "Sacral")
+    if equinox_signal:
+        all_signals.append(equinox_signal)
+    
+    solstice_signal = generate_solstice_signal(season_data, "Generator", "Sacral")
+    if solstice_signal:
+        all_signals.append(solstice_signal)
+    
+    # Eclipse signal
+    eclipse_signal = generate_eclipse_signal(eclipse_data, "Generator", "Sacral")
+    if eclipse_signal:
+        all_signals.append(eclipse_signal)
+    
+    # Sort by strength
+    all_signals.sort(key=lambda s: s.strength, reverse=True)
+    
+    return all_signals
+
+
+def get_sky_dominant_override(major_events: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """
+    If a major sky event should override the personal HD dominant signal,
+    return the override data. Otherwise return None.
+    
+    Override rules:
+    - Event intensity >= 0.7
+    - Event has override_dominant = True
+    """
+    for event in major_events:
+        if event.get("override_dominant") and event.get("intensity", 0) >= 0.7:
+            override = event.get("dominant_override", {})
+            if override:
+                return {
+                    "theme": override.get("theme", "Major sky event active"),
+                    "theme_id": override.get("theme_id", "sky_event"),
+                    "confidence": event.get("intensity", 0.8),
+                    "center_focus": None,
+                    "field_alignment": True,
+                    "sky_event": event.get("type"),
+                    "activation_framing": override.get("activation", ""),
+                    "opportunity_framing": override.get("opportunity", ""),
+                    "friction_framing": override.get("friction", ""),
+                    "today_framing": override.get("today", ""),
+                    "week_framing": override.get("week", ""),
+                    "month_framing": override.get("month", ""),
+                }
+    
+    return None

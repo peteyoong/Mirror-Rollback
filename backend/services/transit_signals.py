@@ -516,7 +516,7 @@ def compute_channel_completion_signals(
                 center=None,
                 channel_name=channel_data.get("name", channel_key),
                 title=f"New Energy: {channel_data.get('name', 'Connection')}",
-                what_happening=f"A new channel is temporarily active in your design.",
+                what_happening="A new channel is temporarily active in your design.",
                 why_happening=f"Transit completing Gate {transit_gate}—this energy isn't usually available.",
                 how_shows_up="A capability opens up that you don't normally have.",
                 best_move="Experiment with this while it's here.",
@@ -552,7 +552,7 @@ def compute_center_activation_signals(
                 center=transit_center,
                 title=f"Your {transit_center} is Louder",
                 what_happening=f"Your {transit_center.lower()} center is amplified right now.",
-                why_happening=f"This center is open in your design—outside energy turns up its volume.",
+                why_happening="This center is open in your design—outside energy turns up its volume.",
                 how_shows_up=get_center_activation_behavior(transit_center),
                 best_move=get_center_activation_move(transit_center),
                 label="Temporary activation",
@@ -848,11 +848,36 @@ def compute_transit_signals(
     # Apply field context adaptation to all signals
     adapted_signals = [adapt_signal_to_field(s, field_context, i == 0) for i, s in enumerate(top_signals)]
     
-    # === NEW: SELECT DOMINANT SIGNAL ===
-    # Analyze all signals and field context to identify ONE central theme
-    dominant = select_dominant_signal(all_signals, field_context, defined_centers, undefined_centers)
+    # === SKY PRIORITY LAYER ===
+    # Check for major sky events that should override personal signals
+    from services.field_signals import get_major_sky_events, get_sky_dominant_override
+    major_sky_events = get_major_sky_events()
+    sky_override = get_sky_dominant_override(major_sky_events)
     
-    # === NEW: UNIFY SIGNALS AROUND DOMINANT THEME ===
+    # === SELECT DOMINANT SIGNAL ===
+    # Either from sky event override or from personal HD signals
+    if sky_override:
+        # Major sky event takes priority
+        dominant = DominantSignal(
+            theme=sky_override["theme"],
+            theme_id=sky_override["theme_id"],
+            confidence=sky_override["confidence"],
+            center_focus=sky_override.get("center_focus"),
+            field_alignment=True,
+            supporting_signals=[],
+            activation_framing=sky_override.get("activation_framing", ""),
+            opportunity_framing=sky_override.get("opportunity_framing", ""),
+            friction_framing=sky_override.get("friction_framing", ""),
+            today_framing=sky_override.get("today_framing", ""),
+            week_framing=sky_override.get("week_framing", ""),
+            month_framing=sky_override.get("month_framing", ""),
+        )
+        logger.info(f"[TransitSignals] Sky event override active: {sky_override.get('sky_event')}")
+    else:
+        # No major sky event - use personal HD signals
+        dominant = select_dominant_signal(all_signals, field_context, defined_centers, undefined_centers)
+    
+    # === UNIFY SIGNALS AROUND DOMINANT THEME ===
     # Rewrite signal content to orbit the dominant theme
     unified_signals = unify_signals_around_theme(adapted_signals, dominant, field_context)
     
@@ -872,17 +897,20 @@ def compute_transit_signals(
             "opportunity": signal_to_dict(categorized["opportunity"]),
             "friction": signal_to_dict(categorized["friction"]),
         },
-        # === NEW: Include dominant signal in response ===
+        # === Include dominant signal in response ===
         "dominant_signal": {
             "theme": dominant.theme,
             "theme_id": dominant.theme_id,
             "confidence": dominant.confidence,
             "center_focus": dominant.center_focus,
             "field_alignment": dominant.field_alignment,
+            "sky_event": sky_override.get("sky_event") if sky_override else None,
             "today": dominant.today_framing,
             "week": dominant.week_framing,
             "month": dominant.month_framing,
         },
+        # === Major sky events for frontend display ===
+        "major_sky_events": major_sky_events[:2] if major_sky_events else [],
         "field_context": field_context,
         "user_context": {
             "type": user_type,
