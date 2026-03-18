@@ -9793,6 +9793,98 @@ Profile: {hd_data['profile']}
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/human-design/transit-signals/{user_id}")
+async def get_human_design_transit_signals(user_id: str):
+    """
+    Get current transit signals for Human Design Today tab.
+    
+    Computes real-time signals based on:
+    - User's natal chart (gates, channels, centers, authority)
+    - Current planetary transits (Sun, Earth, Moon)
+    
+    Returns top 3 signals categorized as:
+    - Activation (biggest current influence)
+    - Opportunity (favorable energy available)
+    - Friction (watch-for areas)
+    """
+    try:
+        from services.transit_signals import compute_transit_signals
+        
+        # Get user's HD data
+        user, chart = await get_user_astrology_data(user_id)
+        hd_data = extract_human_design_data(chart)
+        
+        # Extract needed fields
+        all_gates = hd_data.get('all_gates', [])
+        if not all_gates:
+            # Fallback: combine personality and design gates
+            all_gates = list(set(
+                hd_data.get('personality_gates', []) + 
+                hd_data.get('design_gates', [])
+            ))
+        
+        defined_channels = hd_data.get('defined_channels', [])
+        defined_centers = hd_data.get('defined_centers', [])
+        authority = hd_data.get('authority', 'Emotional')
+        user_type = hd_data.get('type', 'Generator')
+        
+        # Compute transit signals
+        signals_data = compute_transit_signals(
+            user_gates=all_gates,
+            user_channels=defined_channels,
+            defined_centers=defined_centers,
+            user_authority=authority,
+            user_type=user_type,
+        )
+        
+        # Add user HD summary to response
+        signals_data["user_hd"] = {
+            "type": user_type,
+            "authority": authority,
+            "profile": hd_data.get('profile', ''),
+            "definition": hd_data.get('definition', ''),
+        }
+        
+        logger.info(f"[TransitSignals] Computed signals for user {user_id}")
+        return signals_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Transit signals error: {e}")
+        # Return fallback signals
+        return {
+            "computed_at": datetime.now().isoformat(),
+            "signals": {
+                "activation": {
+                    "title": "Stay Present",
+                    "what_happening": "Transit data is temporarily unavailable.",
+                    "why_happening": "We couldn't compute your personal transit signals right now.",
+                    "how_shows_up": "Focus on your natural strategy and authority.",
+                    "best_move": "Trust your design. It knows what to do.",
+                    "label": "Reinforcing your design",
+                },
+                "opportunity": {
+                    "title": "Inner Guidance",
+                    "what_happening": "Your design is always working.",
+                    "why_happening": "Even without transit data, your authority is reliable.",
+                    "how_shows_up": "Notice your natural decision-making process.",
+                    "best_move": "Follow what feels correct for you.",
+                    "label": "Reinforcing your design",
+                },
+                "friction": {
+                    "title": "Self-Awareness",
+                    "what_happening": "General open center awareness.",
+                    "why_happening": "Your undefined centers are always sampling energy.",
+                    "how_shows_up": "You may notice others' energy more than your own.",
+                    "best_move": "Come back to your own experience.",
+                    "label": "Temporary activation",
+                },
+            },
+            "error": str(e),
+        }
+
+
 @api_router.get("/human-design/deep-dive/{user_id}")
 async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
     """

@@ -771,11 +771,34 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const [reflectionSource, setReflectionSource] = useState<ReflectionSource | null>(null);
   const [reflectionPrompt, setReflectionPrompt] = useState<string>('');
   
+  // Transit signals for Today tab
+  const [transitSignals, setTransitSignals] = useState<any>(null);
+  const [transitLoading, setTransitLoading] = useState(false);
+  
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
   
   // Track mount count for debugging
   const mountCount = useRef(0);
+
+  // Load transit signals when Today tab is active
+  useEffect(() => {
+    if (activeTab === 'today' && userId) {
+      loadTransitSignals();
+    }
+  }, [activeTab, userId]);
+
+  const loadTransitSignals = async () => {
+    try {
+      setTransitLoading(true);
+      const response = await api.get(`/human-design/transit-signals/${userId}`);
+      setTransitSignals(response.data);
+    } catch (error) {
+      console.error('[HD] Failed to load transit signals:', error);
+    } finally {
+      setTransitLoading(false);
+    }
+  };
 
   // Load data when tab or user changes
   useEffect(() => {
@@ -948,8 +971,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       blurb: "How your energy, decisions, and interactions naturally operate.",
     },
     today: {
-      title: "What's Active Now",
-      blurb: "Where to act, where to wait, and what to notice today.",
+      title: "Your Design Today",
+      blurb: "Real-time signals from your chart and the current transits.",
     },
     deep_dive: {
       title: "Deeper Mechanics",
@@ -1837,194 +1860,375 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   };
 
   // ============================================
-  // TODAY TAB - REWORKED WITH TODAY/WEEK/MONTH
+  // TODAY TAB - TRANSIT SIGNAL DRIVEN
   // ============================================
   const renderTodayTab = () => {
     if (!data) return null;
     
     const hdType = data.core_mechanics?.type || 'Generator';
     const authority = data.core_mechanics?.authority || '';
-    const profile = data.core_mechanics?.profile || '';
     const isEmotional = authority.toLowerCase().includes('emotional');
-    const isLunar = authority.toLowerCase().includes('lunar');
-    const isSacral = authority.toLowerCase().includes('sacral');
-    const isSplenic = authority.toLowerCase().includes('splenic');
+    
+    // Get transit signals (or fallback)
+    const signals = transitSignals?.signals;
+    const activation = signals?.activation;
+    const opportunity = signals?.opportunity;
+    const friction = signals?.friction;
     
     // ============================================
-    // TODAY CONTENT - Immediate, behavioral
+    // SIGNAL-DERIVED CONTENT GENERATORS
     // ============================================
-    const getTodayContent = () => {
-      const content: Record<string, { 
-        active: string; 
-        bestUse: string; 
-        watchFor: string; 
-        reflectionPrompt: string;
-      }> = {
+    
+    // Derive Today content from top signal
+    const getTodayFromSignals = () => {
+      if (!activation) {
+        // Fallback to type-based content
+        return getTypeFallbackToday(hdType, isEmotional);
+      }
+      
+      return {
+        active: activation.how_shows_up || "Notice what's different today.",
+        bestUse: activation.best_move || "Follow your strategy.",
+        watchFor: friction?.how_shows_up || "Watch for taking on energy that isn't yours.",
+        reflectionPrompt: `${activation.title}: ${activation.what_happening?.slice(0, 80)}... What do I notice?`,
+      };
+    };
+    
+    // Derive Week content from signals (pattern over time)
+    const getWeekFromSignals = () => {
+      if (!activation) {
+        return getTypeFallbackWeek(hdType, isEmotional);
+      }
+      
+      const isTemporary = activation.label?.includes('Temporary');
+      const isReinforcing = activation.label?.includes('Reinforcing');
+      
+      return {
+        theme: isReinforcing 
+          ? `Your ${activation.center || 'design'} energy is amplified this week. This is familiar territory.`
+          : `A ${activation.signal_type === 'channel_completion' ? 'temporary channel' : 'center activation'} is creating new patterns in your week.`,
+        helpsWhere: opportunity?.how_shows_up || "Where this energy supports you.",
+        frictionPattern: friction?.how_shows_up || "Notice when this energy becomes pressure.",
+        reflectionPrompt: isTemporary 
+          ? "What new capability or pattern showed up this week that isn't usually available?"
+          : "How is this familiar energy expressing itself more strongly?"
+      };
+    };
+    
+    // Derive Month content from signals (developmental arc)
+    const getMonthFromSignals = () => {
+      if (!activation) {
+        return getTypeFallbackMonth(hdType, isEmotional);
+      }
+      
+      const centerFocus = activation.center || opportunity?.center || friction?.center;
+      
+      return {
+        theme: centerFocus 
+          ? `The ${centerFocus} center is being developed this month—whether through your design or transit influence.`
+          : "Multiple energies are teaching you about your design's edges.",
+        growthEdge: activation.best_move || "Experiment with what's being activated.",
+        commonTrap: friction?.how_shows_up || "Watch for over-identifying with temporary energy.",
+        reflectionPrompt: "What is this month trying to teach me about how I operate?"
+      };
+    };
+    
+    // Type fallbacks (used when transit data unavailable)
+    const getTypeFallbackToday = (type: string, emotional: boolean) => {
+      const defaults: Record<string, any> = {
         'Generator': {
-          active: isEmotional 
-            ? "Your emotional wave is coloring your responses. Wait for clarity before big commitments."
-            : "Your gut is ready to respond. Notice what creates a genuine 'yes' in your body.",
-          bestUse: isEmotional
-            ? "Feel into options rather than forcing decisions. Sleep on anything that matters."
-            : "Follow the pull. When something lights you up, engage fully.",
-          watchFor: "Saying yes out of obligation. Frustration building under the surface.",
-          reflectionPrompt: "What genuinely excited me today—and what did I agree to that already feels heavy?"
+          active: emotional ? "Your emotional wave is coloring your responses." : "Your gut is ready to respond.",
+          bestUse: emotional ? "Sleep on anything that matters." : "Follow the pull. Engage what lights you up.",
+          watchFor: "Saying yes out of obligation.",
+          reflectionPrompt: "What genuinely excited me today?"
         },
         'Manifesting Generator': {
-          active: isEmotional
-            ? "Your speed wants to move, but your emotional wave needs time. Respond first, decide later."
-            : "Multiple things are pulling your attention. Trust the gut response about which to pursue.",
-          bestUse: isEmotional
-            ? "Sample and respond, but hold off on final commitments until clarity settles."
-            : "Move fast on what resonates. Inform others before sudden pivots.",
-          watchFor: "Starting too many things at once. Guilt about wanting to change direction.",
-          reflectionPrompt: "Where did my energy want to go today—and where did I override it?"
+          active: emotional ? "Speed meets wave—respond first, decide later." : "Multiple pulls on your attention.",
+          bestUse: emotional ? "Sample and respond, commit later." : "Move fast on what resonates.",
+          watchFor: "Starting too many things at once.",
+          reflectionPrompt: "Where did my energy want to go today?"
         },
         'Projector': {
-          active: isEmotional
-            ? "Your insights are sharp, but timing matters. Wait for both invitation and emotional clarity."
-            : "Your ability to see into things is heightened. Notice where you're genuinely invited.",
-          bestUse: isEmotional
-            ? "When invited, take time before answering. Let the wave settle."
-            : "Offer guidance only when asked. Rest between bursts of focused work.",
-          watchFor: "Pushing advice on people who didn't ask. Trying to match others' pace.",
-          reflectionPrompt: "Where was I truly seen today—and where did I give more than was asked?"
+          active: emotional ? "Wait for invitation AND emotional clarity." : "Your ability to see into things is heightened.",
+          bestUse: emotional ? "Take time before answering." : "Offer guidance only when asked.",
+          watchFor: "Pushing advice on people who didn't ask.",
+          reflectionPrompt: "Where was I truly seen today?"
         },
         'Manifestor': {
-          active: isEmotional
-            ? "The urge to initiate is there, but emotional clarity should come first."
-            : "Internal impulses are ready to move. Notice what wants to be started.",
-          bestUse: isEmotional
-            ? "Feel the urge, wait for the wave to settle, then inform and act."
-            : "Inform before acting. Move on your impulses while the energy is alive.",
-          watchFor: "Acting from emotional highs or lows. Suppressing impulses to avoid friction.",
-          reflectionPrompt: "What wanted to be initiated today—and did I move on it or hold back?"
+          active: emotional ? "The urge to initiate meets emotional timing." : "Internal impulses ready to move.",
+          bestUse: emotional ? "Feel the urge, wait for wave, inform, act." : "Inform before acting.",
+          watchFor: "Acting from emotional peaks or lows.",
+          reflectionPrompt: "What wanted to be initiated today?"
         },
         'Reflector': {
-          active: "Today is one data point in your lunar cycle. Observe rather than conclude.",
-          bestUse: "Notice how environments and people feel. Your body is constantly sampling.",
-          watchFor: "Taking on others' energy as your own. Rushing to decide.",
-          reflectionPrompt: "What am I reflecting from my environment—and what feels like mine?"
+          active: "Today is one data point. Observe rather than conclude.",
+          bestUse: "Notice how environments and people feel.",
+          watchFor: "Taking on others' energy as your own.",
+          reflectionPrompt: "What am I reflecting from my environment?"
         }
       };
-      return content[hdType] || content['Generator'];
+      return defaults[type] || defaults['Generator'];
     };
-
-    // ============================================
-    // THIS WEEK CONTENT - Pattern over several days
-    // ============================================
-    const getWeekContent = () => {
-      const content: Record<string, { 
-        theme: string; 
-        helpsWhere: string; 
-        frictionPattern: string; 
-        reflectionPrompt: string;
-      }> = {
+    
+    const getTypeFallbackWeek = (type: string, emotional: boolean) => {
+      const defaults: Record<string, any> = {
         'Generator': {
-          theme: isEmotional
-            ? "Your emotional waves are cycling through—notice the pattern in your responses across days."
-            : "Your sacral energy is building or depleting based on what you've been saying yes to.",
-          helpsWhere: "Work that genuinely excites you. Tasks that feel like play, not obligation.",
-          frictionPattern: "Cumulative frustration from small 'yes' decisions that weren't real yeses.",
-          reflectionPrompt: "What have I been giving my energy to this week—and is it actually mine to do?"
+          theme: emotional ? "Emotional waves revealing response patterns." : "Sacral energy building or depleting.",
+          helpsWhere: "Work that genuinely excites you.",
+          frictionPattern: "Cumulative frustration from false yeses.",
+          reflectionPrompt: "What have I been giving energy to this week?"
         },
         'Manifesting Generator': {
-          theme: isEmotional
-            ? "Multiple interests are competing for attention while your emotions are shifting daily."
-            : "You're in a sampling phase—testing what resonates and what doesn't.",
-          helpsWhere: "Pivoting when energy dies. Starting fresh threads. Multi-tracking.",
-          frictionPattern: "Finishing things that lost their spark. Feeling scattered without progress.",
-          reflectionPrompt: "What did I start this week that still has energy—and what's ready to be dropped?"
+          theme: emotional ? "Multiple interests meeting emotional cycling." : "Sampling what resonates.",
+          helpsWhere: "Pivoting when energy dies.",
+          frictionPattern: "Finishing things that lost their spark.",
+          reflectionPrompt: "What started this week still has energy?"
         },
         'Projector': {
-          theme: isEmotional
-            ? "Recognition and emotional clarity need to align. Not every invitation is right."
-            : "Your insights have been accumulating. Notice where they're landing and where they're not.",
-          helpsWhere: "Being selective about where you spend energy. Resting between deep work.",
-          frictionPattern: "Over-giving to people who don't see you. Burnout from matching others' pace.",
-          reflectionPrompt: "Where was my guidance truly received this week—and where was I pushing?"
+          theme: emotional ? "Recognition and clarity need to align." : "Insights accumulating.",
+          helpsWhere: "Being selective about energy expenditure.",
+          frictionPattern: "Over-giving to people who don't see you.",
+          reflectionPrompt: "Where was my guidance truly received?"
         },
         'Manifestor': {
-          theme: isEmotional
-            ? "Impulses have been moving through you—notice which ones survived the emotional wave."
-            : "Your initiating energy has been expressing or suppressing. Notice which.",
-          helpsWhere: "Starting things that impact. Creating ripples. Moving without asking permission.",
-          frictionPattern: "Anger building from suppressed impulses. Chaos from uninformed action.",
-          reflectionPrompt: "What did I initiate this week—and what did I hold back that still wants to move?"
+          theme: emotional ? "Impulses surviving the emotional wave." : "Initiating pattern becoming clearer.",
+          helpsWhere: "Starting things that impact.",
+          frictionPattern: "Anger from suppressed impulses.",
+          reflectionPrompt: "What did I initiate this week?"
         },
         'Reflector': {
-          theme: "The week has brought different energies. Notice which environments felt right.",
-          helpsWhere: "Community health-checking. Sensing what's off. Evaluating where you belong.",
-          frictionPattern: "Absorbing dysfunction without realizing it. Losing yourself in others.",
-          reflectionPrompt: "Which places and people felt nourishing this week—and which felt draining?"
+          theme: "Different energies passing through. Notice which environments felt right.",
+          helpsWhere: "Community health-checking.",
+          frictionPattern: "Absorbing dysfunction without realizing.",
+          reflectionPrompt: "Which places felt nourishing this week?"
         }
       };
-      return content[hdType] || content['Generator'];
+      return defaults[type] || defaults['Generator'];
     };
-
-    // ============================================
-    // THIS MONTH CONTENT - Developmental, directional
-    // ============================================
-    const getMonthContent = () => {
-      const content: Record<string, { 
-        theme: string; 
-        growthEdge: string; 
-        commonTrap: string; 
-        reflectionPrompt: string;
-      }> = {
+    
+    const getTypeFallbackMonth = (type: string, emotional: boolean) => {
+      const defaults: Record<string, any> = {
         'Generator': {
-          theme: isEmotional
-            ? "Your emotional patterns are revealing what consistently lights you up versus what drains."
-            : "A bigger pattern is emerging about where your energy wants to go.",
-          growthEdge: "Trusting your 'no' as much as your 'yes.' Letting go of obligations that never fit.",
-          commonTrap: "Staying committed to things that stopped feeling right months ago.",
-          reflectionPrompt: "What has my gut been consistently telling me this month—that I might be ignoring?"
+          theme: emotional ? "Emotional patterns revealing what lights you up." : "Bigger pattern emerging about where energy wants to go.",
+          growthEdge: "Trusting your 'no' as much as your 'yes'.",
+          commonTrap: "Staying committed to things that stopped feeling right.",
+          reflectionPrompt: "What has my gut been telling me this month?"
         },
         'Manifesting Generator': {
-          theme: isEmotional
-            ? "The emotional cycle is showing you which interests survive beyond the initial spark."
-            : "Your natural efficiency is revealing which paths are actually going somewhere.",
-          growthEdge: "Trusting your non-linear path. Letting finished things be finished.",
-          commonTrap: "Forcing yourself to stay on tracks that have gone dead.",
-          reflectionPrompt: "What pattern of interests has been emerging—and what's ready to be released?"
+          theme: emotional ? "Emotional cycle showing which interests survive the spark." : "Efficiency revealing which paths go somewhere.",
+          growthEdge: "Trusting your non-linear path.",
+          commonTrap: "Forcing yourself on dead tracks.",
+          reflectionPrompt: "What pattern of interests is emerging?"
         },
         'Projector': {
-          theme: isEmotional
-            ? "Your emotional wisdom is maturing. Notice which invitations feel right over time."
-            : "Your guidance is being requested or ignored in patterns. Notice where you're valued.",
-          growthEdge: "Waiting longer for the right invitations. Trusting that they'll come.",
-          commonTrap: "Bitter from giving wisdom to people who weren't ready. Over-working.",
-          reflectionPrompt: "Where has my insight been truly valued this month—and where have I been pushing uphill?"
+          theme: emotional ? "Emotional wisdom maturing." : "Guidance being requested or ignored in patterns.",
+          growthEdge: "Waiting longer for the right invitations.",
+          commonTrap: "Bitter from giving wisdom to people not ready.",
+          reflectionPrompt: "Where has my insight been valued this month?"
         },
         'Manifestor': {
-          theme: isEmotional
-            ? "Your emotional wave is showing you which impulses have staying power."
-            : "Your initiating pattern is becoming clearer—what you start and why.",
-          growthEdge: "Informing earlier. Trusting that your impact doesn't need to be softened.",
-          commonTrap: "Either exploding or imploding. Not finding the middle path of informed action.",
-          reflectionPrompt: "What pattern of initiation has been emerging—and what needs to be started next?"
+          theme: emotional ? "Emotional wave showing which impulses have staying power." : "Initiating pattern becoming clearer.",
+          growthEdge: "Informing earlier. Not softening your impact.",
+          commonTrap: "Either exploding or imploding.",
+          reflectionPrompt: "What pattern of initiation is emerging?"
         },
         'Reflector': {
-          theme: "The full lunar cycle is showing you what's consistently true across all phases.",
-          growthEdge: "Trusting your sampling process. Knowing that clarity takes 28 days, not 28 minutes.",
+          theme: "The full lunar cycle showing what's consistently true.",
+          growthEdge: "Trusting that clarity takes 28 days.",
           commonTrap: "Deciding too fast. Taking on identities that aren't yours.",
-          reflectionPrompt: "What has remained true for me throughout this lunar cycle—regardless of environment?"
+          reflectionPrompt: "What has remained true throughout this lunar cycle?"
         }
       };
-      return content[hdType] || content['Generator'];
+      return defaults[type] || defaults['Generator'];
     };
 
-    const todayContent = getTodayContent();
-    const weekContent = getWeekContent();
-    const monthContent = getMonthContent();
+    const todayContent = getTodayFromSignals();
+    const weekContent = getWeekFromSignals();
+    const monthContent = getMonthFromSignals();
+
+    // ============================================
+    // RENDER HERO SECTION (WHAT'S ACTIVE NOW)
+    // ============================================
+    const renderHeroSection = () => {
+      if (transitLoading) {
+        return (
+          <View style={[styles.heroLoadingContainer, { backgroundColor: theme.surface }]}>
+            <ActivityIndicator color={theme.accent} />
+            <Text style={[styles.heroLoadingText, { color: theme.textSecondary }]}>
+              Computing your current transits...
+            </Text>
+          </View>
+        );
+      }
+      
+      if (!signals) {
+        return null; // Fall back to type-only content below
+      }
+
+      return (
+        <View style={styles.heroSection}>
+          {/* Hero Title */}
+          <Text style={[styles.heroTitle, { color: theme.text }]}>What's Active Now</Text>
+          <Text style={[styles.heroSubtitle, { color: theme.textSecondary }]}>
+            These are the strongest patterns being amplified in your design right now.
+          </Text>
+          
+          {/* Signal Card 1: Biggest Activation */}
+          {activation && (
+            <View style={[styles.signalCard, styles.signalCardActivation, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
+              <View style={styles.signalCardHeader}>
+                <Text style={[styles.signalCardLabel, { color: theme.accent }]}>BIGGEST ACTIVATION</Text>
+                <Text style={[styles.signalCardBadge, { color: theme.textTertiary, backgroundColor: theme.background }]}>
+                  {activation.label}
+                </Text>
+              </View>
+              <Text style={[styles.signalCardTitle, { color: theme.text }]}>{activation.title}</Text>
+              
+              <View style={styles.signalCardBody}>
+                <View style={styles.signalSection}>
+                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>WHAT'S HAPPENING</Text>
+                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{activation.what_happening}</Text>
+                </View>
+                
+                <View style={styles.signalSection}>
+                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>WHY THIS IS HAPPENING</Text>
+                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{activation.why_happening}</Text>
+                </View>
+                
+                <View style={styles.signalSection}>
+                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>HOW IT SHOWS UP</Text>
+                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{activation.how_shows_up}</Text>
+                </View>
+                
+                <View style={styles.signalSection}>
+                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>BEST MOVE</Text>
+                  <Text style={[styles.signalSectionText, { color: theme.text }]}>{activation.best_move}</Text>
+                </View>
+              </View>
+              
+              <TouchableOpacity
+                style={[styles.signalCardCta, { borderTopColor: theme.border }]}
+                onPress={() => openReflection(
+                  activation.title,
+                  'transit_signal',
+                  `${activation.what_happening} How is this showing up for me?`,
+                  'today',
+                  'signal_activation',
+                  activation.center || ''
+                )}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.signalCardCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          
+          {/* Signal Card 2: Opportunity */}
+          {opportunity && (
+            <View style={[styles.signalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <View style={styles.signalCardHeader}>
+                <Text style={[styles.signalCardLabel, { color: theme.success || '#4CAF50' }]}>OPPORTUNITY</Text>
+                <Text style={[styles.signalCardBadge, { color: theme.textTertiary, backgroundColor: theme.background }]}>
+                  {opportunity.label}
+                </Text>
+              </View>
+              <Text style={[styles.signalCardTitle, { color: theme.text }]}>{opportunity.title}</Text>
+              
+              <View style={styles.signalCardBody}>
+                <View style={styles.signalSection}>
+                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>WHAT'S HAPPENING</Text>
+                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{opportunity.what_happening}</Text>
+                </View>
+                
+                <View style={styles.signalSection}>
+                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>HOW IT SHOWS UP</Text>
+                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{opportunity.how_shows_up}</Text>
+                </View>
+                
+                <View style={styles.signalSection}>
+                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>BEST MOVE</Text>
+                  <Text style={[styles.signalSectionText, { color: theme.text }]}>{opportunity.best_move}</Text>
+                </View>
+              </View>
+              
+              <TouchableOpacity
+                style={[styles.signalCardCta, { borderTopColor: theme.border }]}
+                onPress={() => openReflection(
+                  opportunity.title,
+                  'transit_signal',
+                  `${opportunity.what_happening} How can I work with this?`,
+                  'today',
+                  'signal_opportunity',
+                  opportunity.center || ''
+                )}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.signalCardCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          
+          {/* Signal Card 3: Friction */}
+          {friction && (
+            <View style={[styles.signalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <View style={styles.signalCardHeader}>
+                <Text style={[styles.signalCardLabel, { color: theme.warning || '#FF9800' }]}>FRICTION</Text>
+                <Text style={[styles.signalCardBadge, { color: theme.textTertiary, backgroundColor: theme.background }]}>
+                  {friction.label}
+                </Text>
+              </View>
+              <Text style={[styles.signalCardTitle, { color: theme.text }]}>{friction.title}</Text>
+              
+              <View style={styles.signalCardBody}>
+                <View style={styles.signalSection}>
+                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>WHAT'S HAPPENING</Text>
+                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{friction.what_happening}</Text>
+                </View>
+                
+                <View style={styles.signalSection}>
+                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>HOW IT SHOWS UP</Text>
+                  <Text style={[styles.signalSectionText, { color: theme.textSecondary }]}>{friction.how_shows_up}</Text>
+                </View>
+                
+                <View style={styles.signalSection}>
+                  <Text style={[styles.signalSectionLabel, { color: theme.textTertiary }]}>BEST MOVE</Text>
+                  <Text style={[styles.signalSectionText, { color: theme.text }]}>{friction.best_move}</Text>
+                </View>
+              </View>
+              
+              <TouchableOpacity
+                style={[styles.signalCardCta, { borderTopColor: theme.border }]}
+                onPress={() => openReflection(
+                  friction.title,
+                  'transit_signal',
+                  `${friction.what_happening} Where am I noticing this pressure?`,
+                  'today',
+                  'signal_friction',
+                  friction.center || ''
+                )}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.signalCardCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      );
+    };
 
     return (
       <>
-        {/* Header */}
-        <View style={{ marginBottom: 16 }}>
-          <Text style={[styles.hdOverviewTitle, { color: theme.text }]}>What's Active Now</Text>
+        {/* HERO: What's Active Now */}
+        {renderHeroSection()}
+        
+        {/* Divider */}
+        <View style={[styles.todayDivider, { backgroundColor: theme.border }]} />
+        
+        {/* Header for Timing Sections */}
+        <View style={{ marginBottom: 16, marginTop: 8 }}>
+          <Text style={[styles.hdOverviewTitle, { color: theme.text }]}>Your Timing</Text>
           <Text style={[styles.hdOverviewSubtitle, { color: theme.textSecondary }]}>
-            Where to act, where to wait, and what to notice across today, this week, and this month.
+            How these signals unfold across today, this week, and this month.
           </Text>
         </View>
 
@@ -2032,7 +2236,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         <View style={[styles.timingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.timingCardHeader}>
             <Text style={[styles.timingCardTitle, { color: theme.text }]}>Today</Text>
-            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>What is immediately active in your design</Text>
+            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>What is immediately active</Text>
           </View>
           
           <View style={styles.timingCardContent}>
@@ -2057,17 +2261,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             </View>
           </View>
           
-          {/* Reflect CTA */}
           <TouchableOpacity
             style={[styles.timingReflectCta, { borderTopColor: theme.border }]}
-            onPress={() => openReflection(
-              'Today',
-              'timing',
-              todayContent.reflectionPrompt,
-              'today',
-              'today_timing',
-              hdType
-            )}
+            onPress={() => openReflection('Today', 'timing', todayContent.reflectionPrompt, 'today', 'today_timing', hdType)}
             activeOpacity={0.7}
           >
             <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect on this →</Text>
@@ -2078,7 +2274,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         <View style={[styles.timingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.timingCardHeader}>
             <Text style={[styles.timingCardTitle, { color: theme.text }]}>This Week</Text>
-            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>The pattern likely to repeat over the next few days</Text>
+            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>The pattern likely to repeat</Text>
           </View>
           
           <View style={styles.timingCardContent}>
@@ -2103,17 +2299,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             </View>
           </View>
           
-          {/* Reflect CTA */}
           <TouchableOpacity
             style={[styles.timingReflectCta, { borderTopColor: theme.border }]}
-            onPress={() => openReflection(
-              'This Week',
-              'timing',
-              weekContent.reflectionPrompt,
-              'today',
-              'week_timing',
-              hdType
-            )}
+            onPress={() => openReflection('This Week', 'timing', weekContent.reflectionPrompt, 'today', 'week_timing', hdType)}
             activeOpacity={0.7}
           >
             <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect on this →</Text>
@@ -2124,7 +2312,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         <View style={[styles.timingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.timingCardHeader}>
             <Text style={[styles.timingCardTitle, { color: theme.text }]}>This Month</Text>
-            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>The deeper pattern being developed over time</Text>
+            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>The deeper pattern being developed</Text>
           </View>
           
           <View style={styles.timingCardContent}>
@@ -2149,17 +2337,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             </View>
           </View>
           
-          {/* Reflect CTA */}
           <TouchableOpacity
             style={[styles.timingReflectCta, { borderTopColor: theme.border }]}
-            onPress={() => openReflection(
-              'This Month',
-              'timing',
-              monthContent.reflectionPrompt,
-              'today',
-              'month_timing',
-              hdType
-            )}
+            onPress={() => openReflection('This Month', 'timing', monthContent.reflectionPrompt, 'today', 'month_timing', hdType)}
             activeOpacity={0.7}
           >
             <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect on this →</Text>
@@ -4901,6 +5081,118 @@ const styles = StyleSheet.create({
   hdSubtleLinkText: {
     fontSize: 13,
     color: "inherit",
+  },
+
+  // ============================================
+  // HERO SECTION: What's Active Now
+  // ============================================
+  
+  heroSection: {
+    marginBottom: 16,
+  },
+  heroTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: "inherit",
+    marginBottom: 4,
+  },
+  heroSubtitle: {
+    fontSize: 13,
+    color: "inherit",
+    opacity: 0.7,
+    marginBottom: 16,
+    lineHeight: 18,
+  },
+  heroLoadingContainer: {
+    padding: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  heroLoadingText: {
+    fontSize: 13,
+    color: "inherit",
+  },
+  
+  // ============================================
+  // SIGNAL CARDS (Activation / Opportunity / Friction)
+  // ============================================
+  
+  signalCard: {
+    backgroundColor: "transparent",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "transparent",
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  signalCardActivation: {
+    borderWidth: 1.5,
+  },
+  signalCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 14,
+    paddingBottom: 8,
+  },
+  signalCardLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  signalCardBadge: {
+    fontSize: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  signalCardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    paddingHorizontal: 14,
+    paddingBottom: 12,
+  },
+  signalCardBody: {
+    paddingHorizontal: 14,
+    paddingBottom: 12,
+  },
+  signalSection: {
+    marginBottom: 12,
+  },
+  signalSectionLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  signalSectionText: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  signalCardCta: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    alignItems: 'flex-start',
+  },
+  signalCardCtaText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  
+  // ============================================
+  // TODAY DIVIDER
+  // ============================================
+  
+  todayDivider: {
+    height: 1,
+    marginVertical: 20,
+    opacity: 0.3,
   },
 
   // ============================================
