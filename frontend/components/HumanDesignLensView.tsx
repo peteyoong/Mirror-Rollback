@@ -736,6 +736,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Centers definition data for bodygraph highlighting
   const [centersDefinition, setCentersDefinition] = useState<Record<string, boolean>>({});
   
+  // Data for Deep Dive tab - centers, gates, sequences
+  const [centersData, setCentersData] = useState<any>(null);
+  const [gatesData, setGatesData] = useState<any>(null);
+  const [activationSequence, setActivationSequence] = useState<any>(null);
+  const [venusSequence, setVenusSequence] = useState<any>(null);
+  const [pearlSequence, setPearlSequence] = useState<any>(null);
+  
   // Mechanic detail modal state
   const [activeMechanicDetail, setActiveMechanicDetail] = useState<string | null>(null);
   
@@ -760,6 +767,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   useEffect(() => {
     if (activeTab === 'deep_dive') {
       loadCentersDefinition();
+      loadDeepDiveData();
     }
   }, [activeTab, userId]);
 
@@ -776,8 +784,32 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       });
       
       setCentersDefinition(centersDef);
+      setCentersData(response.data); // Store full centers data for Deep Dive
     } catch (err) {
       console.error('Failed to load centers definition:', err);
+    }
+  };
+
+  // Load all Deep Dive data (gates, sequences)
+  const loadDeepDiveData = async () => {
+    try {
+      // Load gates data
+      const gatesResponse = await api.get(`/human-design/gates/${userId}`);
+      setGatesData(gatesResponse.data);
+    } catch (err) {
+      console.error('Failed to load gates:', err);
+    }
+
+    try {
+      // Load sequences data
+      const sequencesResponse = await api.get(`/gene-keys/sequences/${userId}`);
+      if (sequencesResponse.data) {
+        setActivationSequence(sequencesResponse.data.activation || null);
+        setVenusSequence(sequencesResponse.data.venus || null);
+        setPearlSequence(sequencesResponse.data.pearl || null);
+      }
+    } catch (err) {
+      console.error('Failed to load sequences:', err);
     }
   };
 
