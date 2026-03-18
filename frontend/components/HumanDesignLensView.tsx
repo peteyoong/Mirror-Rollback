@@ -1973,96 +1973,68 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     // ============================================
     
     // ============================================
-    // TODAY/WEEK/MONTH - ALL ORBIT THE DOMINANT SIGNAL
+    // TODAY/WEEK/MONTH - DISTINCT ROLES, NO REPETITION
     // ============================================
     
-    // Derive Today content - uses dominant signal for unity
+    // TODAY = immediate posture (what to do right now)
     const getTodayFromSignals = () => {
-      // If dominant signal has today content, use it as primary
       if (dominantSignal.today) {
-        const activeText = activation?.how_shows_up || dominantSignal.theme;
-        const bestUseText = dominantSignal.today;
-        const watchForText = friction?.how_shows_up || "Don't force what isn't ready.";
-        
         return {
-          active: cleanLanguage(activeText),
-          bestUse: cleanLanguage(bestUseText),
-          watchFor: cleanLanguage(watchForText),
-          reflectionPrompt: `What about "${dominantSignal.theme.toLowerCase()}" showed up today?`
+          bestUse: cleanLanguage(dominantSignal.today),
+          watchFor: "forcing clarity before it arrives",
+          reflectionPrompt: "What showed up today?"
         };
       }
       
-      // Fallback if no dominant signal
       if (!activation) {
         return getTypeFallbackToday(hdType, isEmotional);
       }
       
       return {
-        active: cleanLanguage(activation.how_shows_up || "Something is present."),
         bestUse: cleanLanguage(activation.best_move || "Notice what's here."),
-        watchFor: cleanLanguage(friction?.how_shows_up || "Don't force anything."),
+        watchFor: "pushing too hard",
         reflectionPrompt: "What felt most present today?"
       };
     };
     
-    // Derive Week content - pattern expression of dominant signal
+    // THIS WEEK = repeating pattern (what keeps surfacing)
     const getWeekFromSignals = () => {
-      // If dominant signal has week content, use it
       if (dominantSignal.week) {
-        const opportunityHelp = opportunity?.how_shows_up || "Follow what's actually pulling you.";
-        const frictionWatch = friction?.how_shows_up || "Forcing it will backfire.";
-        
         return {
           theme: cleanLanguage(dominantSignal.week),
-          helpsWhere: cleanLanguage(opportunityHelp),
-          frictionPattern: cleanLanguage(frictionWatch),
-          reflectionPrompt: "What pattern kept showing up this week?"
+          frictionPattern: "mistaking urgency for truth",
+          reflectionPrompt: "What pattern kept showing up?"
         };
       }
       
-      // Fallback if no dominant signal
       if (!activation) {
         return getTypeFallbackWeek(hdType, isEmotional);
       }
       
-      const centerName = activation.center || 'this energy';
       return {
-        theme: `A ${centerName.toLowerCase()} pattern is forming—watch what keeps returning.`,
-        helpsWhere: cleanLanguage(opportunity?.best_move || "Follow the pattern where it leads."),
-        frictionPattern: cleanLanguage(friction?.how_shows_up || "Forcing it won't help."),
+        theme: "Notice what keeps resurfacing after the wave passes.",
+        frictionPattern: "forcing resolution too early",
         reflectionPrompt: "What kept showing up this week?"
       };
     };
     
-    // Derive Month content - developmental arc of dominant signal
+    // THIS MONTH = developmental lesson (what this cycle teaches)
     const getMonthFromSignals = () => {
-      // If dominant signal has month content, use it
       if (dominantSignal.month) {
-        const growthEdge = dominantSignal.center_focus 
-          ? `Trust the discomfort around your ${dominantSignal.center_focus.toLowerCase()}—it's part of the learning.`
-          : "Trust the discomfort—it's part of the refinement.";
-        const trapText = "This is a lesson, not a permanent state. Don't over-identify.";
-        
         return {
           theme: cleanLanguage(dominantSignal.month),
-          growthEdge: cleanLanguage(growthEdge),
-          commonTrap: cleanLanguage(trapText),
-          reflectionPrompt: `What is this month teaching you about ${dominantSignal.theme.toLowerCase()}?`
+          commonTrap: "treating temporary uncertainty like permanent reality",
+          reflectionPrompt: "What is this month teaching you?"
         };
       }
       
-      // Fallback if no dominant signal
       if (!activation) {
         return getTypeFallbackMonth(hdType, isEmotional);
       }
       
-      const centerFocus = activation.center || opportunity?.center || friction?.center;
       return {
-        theme: centerFocus 
-          ? `Your relationship with ${centerFocus.toLowerCase()} energy is being refined.`
-          : "Multiple threads are weaving. The pattern becomes clear in hindsight.",
-        growthEdge: "Trust the discomfort—it's part of the refinement.",
-        commonTrap: "This is a lesson, not a permanent state.",
+        theme: "This cycle is refining how you trust what's still forming.",
+        commonTrap: "over-identifying with how things feel right now",
         reflectionPrompt: "What is this month teaching me?"
       };
     };
@@ -5271,22 +5243,22 @@ const styles = StyleSheet.create({
   // Compact field card for The Bigger Shift
   fieldCardCompact: {
     backgroundColor: "transparent",
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "transparent",
-    marginBottom: 10,
-    padding: 12,
+    marginBottom: 8,
+    padding: 10,
   },
   fieldCardTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   fieldCardBody: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 8,
-    opacity: 0.85,
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 6,
+    opacity: 0.8,
   },
   fieldCardCtaCompact: {
     alignItems: 'flex-start',
