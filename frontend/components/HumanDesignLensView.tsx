@@ -758,6 +758,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Accordion state for Core Mechanics in Deep Dive (collapsed by default, one at a time)
   const [expandedMechanic, setExpandedMechanic] = useState<string | null>(null);
   
+  // Parent accordion states for Centers and Gates (collapsed by default)
+  const [centersAccordionExpanded, setCentersAccordionExpanded] = useState(false);
+  const [gatesAccordionExpanded, setGatesAccordionExpanded] = useState(false);
+  
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
   
@@ -2279,25 +2283,64 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           'Incarnation Cross'
         )}
         
-        {/* 4. CENTERS SECTION */}
-        {centersData && (
-          <>
-            <Text style={[styles.deepDiveSectionHeader, { color: theme.textTertiary, marginTop: 24 }]}>CENTERS</Text>
-            {renderCentersCards()}
-          </>
+        {/* 4. CENTERS SECTION - Parent Accordion */}
+        {centersData && renderParentAccordion(
+          'Centers',
+          `${centersData.centers?.length || 0} centers in your design`,
+          centersAccordionExpanded,
+          () => setCentersAccordionExpanded(!centersAccordionExpanded),
+          renderCentersCards()
         )}
         
-        {/* 5. GATES SECTION */}
-        {gatesData && (
-          <>
-            <Text style={[styles.deepDiveSectionHeader, { color: theme.textTertiary, marginTop: 24 }]}>YOUR GATES</Text>
-            {renderGatesCards()}
-          </>
+        {/* 5. GATES SECTION - Parent Accordion */}
+        {gatesData && renderParentAccordion(
+          'Gates',
+          `${gatesData.gates?.length || 0} gates activated`,
+          gatesAccordionExpanded,
+          () => setGatesAccordionExpanded(!gatesAccordionExpanded),
+          renderGatesCards()
         )}
         
         {/* 6. SEQUENCES SECTION - LAST */}
         {renderSequencesTabs()}
       </>
+    );
+  };
+  
+  // Parent Accordion Component for Centers/Gates
+  const renderParentAccordion = (
+    title: string,
+    subtitle: string,
+    isExpanded: boolean,
+    onToggle: () => void,
+    children: React.ReactNode
+  ) => {
+    return (
+      <View style={[styles.parentAccordion, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {/* Header - always visible */}
+        <TouchableOpacity
+          style={styles.parentAccordionHeader}
+          onPress={onToggle}
+          activeOpacity={0.7}
+        >
+          <View style={styles.parentAccordionHeaderContent}>
+            <Text style={[styles.parentAccordionTitle, { color: theme.text }]}>{title}</Text>
+            <Text style={[styles.parentAccordionSubtitle, { color: theme.textTertiary }]}>{subtitle}</Text>
+          </View>
+          <Ionicons 
+            name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+            size={22} 
+            color={theme.textTertiary} 
+          />
+        </TouchableOpacity>
+        
+        {/* Expanded Content */}
+        {isExpanded && (
+          <View style={[styles.parentAccordionContent, { borderTopColor: theme.border }]}>
+            {children}
+          </View>
+        )}
+      </View>
     );
   };
   
@@ -5175,5 +5218,38 @@ const styles = StyleSheet.create({
   accordionAskCtaText: {
     fontSize: 12,
     fontWeight: '500',
+  },
+  
+  // Parent Accordion Styles (for Centers & Gates wrapper)
+  parentAccordion: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginTop: 16,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  parentAccordionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  parentAccordionHeaderContent: {
+    flex: 1,
+  },
+  parentAccordionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  parentAccordionSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  parentAccordionContent: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 4,
   },
 });
