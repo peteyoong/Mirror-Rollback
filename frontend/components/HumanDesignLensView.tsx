@@ -762,6 +762,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const [centersAccordionExpanded, setCentersAccordionExpanded] = useState(false);
   const [gatesAccordionExpanded, setGatesAccordionExpanded] = useState(false);
   
+  // Deep Dive Mode toggle: 'explore' (cards) or 'reading' (narrative)
+  const [deepDiveMode, setDeepDiveMode] = useState<'explore' | 'reading'>('explore');
+  
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
   
@@ -2231,8 +2234,38 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     return content[angle] || content['Right Angle'];
   };
 
-  // DEEP DIVE TAB - Card-based structure with accordions
+  // DEEP DIVE TAB - with mode toggle (Explore / Reading)
   const renderDeepDiveTab = () => {
+    if (!data) return null;
+    
+    return (
+      <>
+        {/* Mode Toggle */}
+        <View style={[styles.deepDiveModeToggle, { backgroundColor: theme.background, borderColor: theme.border }]}>
+          <TouchableOpacity
+            style={[styles.deepDiveModeButton, deepDiveMode === 'explore' && { backgroundColor: theme.surface }]}
+            onPress={() => setDeepDiveMode('explore')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.deepDiveModeButtonText, { color: deepDiveMode === 'explore' ? theme.text : theme.textTertiary }]}>Explore</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.deepDiveModeButton, deepDiveMode === 'reading' && { backgroundColor: theme.surface }]}
+            onPress={() => setDeepDiveMode('reading')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.deepDiveModeButtonText, { color: deepDiveMode === 'reading' ? theme.text : theme.textTertiary }]}>Reading</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {/* Conditional render based on mode */}
+        {deepDiveMode === 'explore' ? renderExploreMode() : renderReadingMode()}
+      </>
+    );
+  };
+  
+  // EXPLORE MODE - Current card/accordion system
+  const renderExploreMode = () => {
     if (!data) return null;
     
     return (
@@ -2304,6 +2337,187 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {renderSequencesTabs()}
       </>
     );
+  };
+  
+  // READING MODE - Flowing narrative (PDF-style)
+  const renderReadingMode = () => {
+    if (!data?.core_mechanics) return null;
+    
+    const { type, authority, profile, strategy } = data.core_mechanics;
+    const notSelf = (data.core_mechanics as any).not_self;
+    const definedCenters = centersData?.centers?.filter((c: any) => c.defined) || [];
+    const undefinedCenters = centersData?.centers?.filter((c: any) => !c.defined) || [];
+    
+    return (
+      <View style={styles.readingModeContainer}>
+        {/* SECTION 1: Your Core Pattern */}
+        <View style={styles.readingSection}>
+          <Text style={[styles.readingSectionTitle, { color: theme.text }]}>Your Core Pattern</Text>
+          <Text style={[styles.readingParagraph, { color: theme.textSecondary }]}>
+            {getReadingCorePattern(type || '', profile || '')}
+          </Text>
+        </View>
+        
+        {/* SECTION 2: How You Make Decisions */}
+        <View style={styles.readingSection}>
+          <Text style={[styles.readingSectionTitle, { color: theme.text }]}>How You Make Decisions</Text>
+          <Text style={[styles.readingParagraph, { color: theme.textSecondary }]}>
+            {getReadingDecisionProcess(authority || '')}
+          </Text>
+        </View>
+        
+        {/* SECTION 3: How Others Experience You */}
+        <View style={styles.readingSection}>
+          <Text style={[styles.readingSectionTitle, { color: theme.text }]}>How Others Experience You</Text>
+          <Text style={[styles.readingParagraph, { color: theme.textSecondary }]}>
+            {getReadingHowOthersSeeYou(type || '', profile || '')}
+          </Text>
+        </View>
+        
+        {/* SECTION 4: Where Things Go Wrong */}
+        <View style={styles.readingSection}>
+          <Text style={[styles.readingSectionTitle, { color: theme.text }]}>Where Things Go Wrong</Text>
+          <Text style={[styles.readingParagraph, { color: theme.textSecondary }]}>
+            {getReadingNotSelf(type || '', notSelf)}
+          </Text>
+        </View>
+        
+        {/* SECTION 5: What Actually Works For You */}
+        <View style={styles.readingSection}>
+          <Text style={[styles.readingSectionTitle, { color: theme.text }]}>What Actually Works For You</Text>
+          <Text style={[styles.readingParagraph, { color: theme.textSecondary }]}>
+            {getReadingStrategy(type || '', strategy || '', authority || '')}
+          </Text>
+        </View>
+        
+        {/* SECTION 6: Your Deeper Pattern */}
+        <View style={styles.readingSection}>
+          <Text style={[styles.readingSectionTitle, { color: theme.text }]}>Your Deeper Pattern</Text>
+          <Text style={[styles.readingParagraph, { color: theme.textSecondary }]}>
+            {getReadingDeeperPattern(definedCenters, undefinedCenters, gatesData?.gates, activationSequence)}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+  
+  // Reading Mode content generators - Pure Mirror language
+  const getReadingCorePattern = (type: string, profile: string): string => {
+    const typePatterns: Record<string, string> = {
+      'Generator': `You're designed to work. Not in a grinding way—in a "this lights me up" way. When you find the right thing to commit to, you have fuel that lasts. The engine is in your body, not your head.`,
+      'Manifesting Generator': `You move fast and you change directions. That's not inconsistency—that's how you're built. You find shortcuts, skip steps, and pivot when something stops feeling right. The key is response first, then speed.`,
+      'Projector': `You see what others miss. Systems, dynamics, what's really happening underneath. Your gift is guidance—but only when someone actually wants it. Unsolicited advice lands badly, no matter how right you are.`,
+      'Manifestor': `You're here to start things. Urges hit and you move—often before others see why. You make impact. The challenge is that people feel that impact, whether or not you intended it.`,
+      'Reflector': `You take in everything around you. The environment, the people, the mood—it all runs through you. What you feel often isn't yours. Your wisdom comes from this sampling, but you need time to know what's actually true for you.`
+    };
+    
+    const baseType = typePatterns[type] || typePatterns['Generator'];
+    const profileAdd = profile ? ` Your profile (${profile}) shapes how you learn and engage—there's a specific rhythm to how you grow and share.` : '';
+    
+    return baseType + profileAdd;
+  };
+  
+  const getReadingDecisionProcess = (authority: string): string => {
+    const auth = authority?.toLowerCase() || '';
+    
+    if (auth.includes('emotional')) {
+      return `Your clarity doesn't come instantly. It builds over time. You ride emotional waves—some days a decision feels right, other days the same choice feels wrong. That's not confusion; that's your process. The trap is deciding when you're at a peak or valley. Real clarity comes when the wave settles and you feel calm about it.`;
+    }
+    if (auth.includes('sacral')) {
+      return `Your body knows before your mind does. There's a gut response—a pull toward yes, or a wall that says no. It's physical. You might make sounds, feel expansion or contraction. The trap is overriding that response because it doesn't make logical sense. Trust the first hit.`;
+    }
+    if (auth.includes('splenic')) {
+      return `Your knowing comes fast and quiet. Once. In the moment. Then it's gone. You get instincts about timing, safety, what's off. The trap is second-guessing that first knowing. Once you start analyzing, you've already lost it.`;
+    }
+    if (auth.includes('ego') || auth.includes('heart')) {
+      return `Your clarity lives in what you actually want. Not what you should want—what you truly desire. When your heart is in it, you can move mountains. When it's not, everything stalls. The trap is committing to things you don't actually want.`;
+    }
+    if (auth.includes('self') || auth.includes('projected')) {
+      return `You find clarity by hearing yourself speak. Not thinking—talking. You say something out loud and suddenly know if it's true. Your truth is in your voice. The trap is processing alone or asking others for answers. You need to hear yourself.`;
+    }
+    if (auth.includes('lunar')) {
+      return `Your clarity takes a full cycle. About a month. That's not slow—that's thorough. You feel differently about things as the month moves. That's information, not indecision. The trap is pressure to decide fast.`;
+    }
+    return `Your clarity emerges through conversation and environment over time. Different places, different talks. The answer builds across dialogues—not internal analysis.`;
+  };
+  
+  const getReadingHowOthersSeeYou = (type: string, profile: string): string => {
+    const profileNum = profile?.split('/')?.[0] || '';
+    
+    const typeAura: Record<string, string> = {
+      'Generator': `People feel your energy. When you're lit up, it's magnetic. When you're not, they can tell. Your presence is steady and available—like there's fuel there if the right thing comes along.`,
+      'Manifesting Generator': `People experience you as fast, dynamic, sometimes unpredictable. You bring energy into a room and you're not afraid to change course. Some find this exciting; others find it disorienting.`,
+      'Projector': `People feel seen by you—sometimes uncomfortably so. You have penetrating attention. When you focus on someone, they feel it. This makes you a natural guide, but it can also feel intense.`,
+      'Manifestor': `People feel your impact before you say anything. There's a force to your presence. You can shift the energy of a room just by walking in. Some are drawn to that; others feel pushed by it.`,
+      'Reflector': `People often experience you as surprisingly different depending on when they meet you. You mirror back what's around you. This makes you a barometer for the health of any group or environment.`
+    };
+    
+    let profileLayer = '';
+    if (profileNum === '1') profileLayer = ` There's a depth to how you engage—you don't just skim the surface.`;
+    if (profileNum === '2') profileLayer = ` You have gifts you don't always see yourself. Others notice them first.`;
+    if (profileNum === '3') profileLayer = ` People see you as someone who's tried things, learned the hard way, knows what doesn't work.`;
+    if (profileNum === '4') profileLayer = ` Your network matters. People experience you through who you're connected to.`;
+    if (profileNum === '5') profileLayer = ` People project onto you—expectations, hopes, the need for solutions. They see you as someone who can fix things.`;
+    if (profileNum === '6') profileLayer = ` There's an eventual wisdom about you. People sense you're here to embody something over time.`;
+    
+    return (typeAura[type] || typeAura['Generator']) + profileLayer;
+  };
+  
+  const getReadingNotSelf = (type: string, notSelf: string): string => {
+    const notSelfPatterns: Record<string, string> = {
+      'Generator': `When you're off-track, frustration builds. You're grinding on things that don't light you up, saying yes out of obligation. The signal is that heavy, stuck, "why am I doing this" feeling. It means something isn't right—not that you're broken.`,
+      'Manifesting Generator': `When you're off-track, frustration and anger mix. You're forcing yourself to finish things that stopped mattering, or holding back impulses to avoid conflict. The signal is that trapped, buzzing energy that can't find an outlet.`,
+      'Projector': `When you're off-track, bitterness creeps in. You're giving guidance no one asked for, working too hard for recognition, exhausting yourself trying to prove value. The signal is that sour feeling of being unseen or unappreciated.`,
+      'Manifestor': `When you're off-track, anger surfaces. You're suppressing urges to keep the peace, or acting without informing and creating chaos. The signal is that pressure cooker feeling—explosive or imploded.`,
+      'Reflector': `When you're off-track, disappointment accumulates. You're rushing decisions, stuck in wrong environments, absorbing everyone else's patterns. The signal is a deep sense that life isn't what it should be.`
+    };
+    
+    return notSelfPatterns[type] || notSelfPatterns['Generator'];
+  };
+  
+  const getReadingStrategy = (type: string, strategy: string, authority: string): string => {
+    const strategyPatterns: Record<string, string> = {
+      'Generator': `Wait for something to respond to. Not passive waiting—engaged waiting. When something lands in front of you, your gut will tell you if it's right. That pull toward yes, or that wall of no. Trust the body over the mind. Commit when it's a full-body yes.`,
+      'Manifesting Generator': `Wait to respond, then move fast. Something shows up, you feel the pull, you go. Inform people before big shifts—not for permission, but to reduce friction. When it stops lighting you up, pivot. That's allowed.`,
+      'Projector': `Wait for the invitation. Not for everything—but for the big things: relationships, jobs, places. When you're recognized and invited, your guidance lands. When you're not, it doesn't. Rest more than feels normal. Manage energy carefully.`,
+      'Manifestor': `Inform before you act. Not asking permission—just letting people know what's coming. This reduces resistance. Trust your urges. When something needs to be initiated, you're built to start it.`,
+      'Reflector': `Wait a full lunar cycle before big decisions. Move through different environments and notice how you feel in each. Choose your surroundings carefully—they shape everything. Your wisdom comes from sampling, not certainty.`
+    };
+    
+    const auth = authority?.toLowerCase() || '';
+    let authAdd = '';
+    if (auth.includes('emotional')) authAdd = ` And because you have emotional authority: sleep on it. Check again tomorrow. Let the wave settle before you commit.`;
+    
+    return (strategyPatterns[type] || strategyPatterns['Generator']) + authAdd;
+  };
+  
+  const getReadingDeeperPattern = (definedCenters: any[], undefinedCenters: any[], gates: any[], activation: any): string => {
+    const definedNames = definedCenters.map(c => c.name || c.center_name).filter(Boolean);
+    const undefinedNames = undefinedCenters.map(c => c.name || c.center_name).filter(Boolean);
+    const gateCount = gates?.length || 0;
+    
+    let narrative = '';
+    
+    if (definedNames.length > 0) {
+      narrative += `You have consistent energy in ${definedNames.slice(0, 3).join(', ')}${definedNames.length > 3 ? ' and more' : ''}. These are reliable—they work the same way regardless of who's around. `;
+    }
+    
+    if (undefinedNames.length > 0) {
+      narrative += `Your open areas—${undefinedNames.slice(0, 3).join(', ')}${undefinedNames.length > 3 ? ' and others' : ''}—take in and amplify energy from your environment. What you feel there often isn't yours. `;
+    }
+    
+    if (gateCount > 0) {
+      narrative += `You carry ${gateCount} specific gates—consistent themes that run through how you process, express, and engage. These aren't choices; they're wiring. `;
+    }
+    
+    if (activation?.spheres?.length > 0) {
+      const lifework = activation.spheres.find((s: any) => s.sphere_name?.includes('Life'));
+      if (lifework) {
+        narrative += `Your deeper purpose pattern includes a core around ${lifework.gift || 'transformation'}—this shapes what work actually feels meaningful to you.`;
+      }
+    }
+    
+    return narrative || 'Your design contains a unique combination of consistent and open energies. The consistent parts are reliable; the open parts are where you take in and amplify what is around you.';
   };
   
   // Deep Dive Global Ask Section - page level CTA
@@ -5427,5 +5641,42 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  
+  // Deep Dive Mode Toggle
+  deepDiveModeToggle: {
+    flexDirection: 'row',
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 3,
+    marginBottom: 20,
+  },
+  deepDiveModeButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  deepDiveModeButtonText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  
+  // Reading Mode Styles
+  readingModeContainer: {
+    paddingTop: 8,
+  },
+  readingSection: {
+    marginBottom: 28,
+  },
+  readingSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+    letterSpacing: 0.3,
+  },
+  readingParagraph: {
+    fontSize: 15,
+    lineHeight: 24,
   },
 });
