@@ -173,6 +173,41 @@ interface DeepDiveV2 {
   life_pattern: LifePattern;
 }
 
+// Adaptive Intelligence Interfaces
+interface RealLifeChecks {
+  day_master: {
+    work: string;
+    relationships: string;
+    leadership: string;
+    stress: string;
+  };
+  ten_gods: Record<string, { work: string; relationships: string }>;
+}
+
+interface TodayConnections {
+  main: string;
+  core_pattern: string;
+  ten_god_specific: string;
+  pressure_note: string | null;
+}
+
+interface AdaptiveContent {
+  real_life_checks: RealLifeChecks;
+  today_connections: TodayConnections;
+  contextual_prompts: string[];
+  reflection_prompts: string[];
+  language_modifiers: Record<string, {
+    confidence: string;
+    prefix: string;
+    suffix: string;
+    tone: string;
+  }>;
+}
+
+interface FeedbackMap {
+  [key: string]: 'yes' | 'somewhat' | 'no';
+}
+
 interface BaziResponseV2 {
   success: boolean;
   user_id: string;
@@ -256,8 +291,13 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Adaptive Intelligence State
+  const [adaptive, setAdaptive] = useState<AdaptiveContent | null>(null);
+  const [feedbackMap, setFeedbackMap] = useState<FeedbackMap>({});
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState<string | null>(null);
 
-  // Load BaZi data
+  // Load BaZi data with adaptive content
   const loadBaziData = useCallback(async (refresh = false) => {
     if (refresh) {
       setIsRefreshing(true);
@@ -267,11 +307,27 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
     setError(null);
 
     try {
-      const response = await api.get<BaziResponseV2>(`/bazi/${userId}/full`);
-      if (response.data.success) {
-        setData(response.data.chart);
+      // Load both chart and adaptive content
+      const [chartResponse, adaptiveResponse, feedbackResponse] = await Promise.all([
+        api.get<BaziResponseV2>(`/bazi/${userId}/full`),
+        api.get(`/bazi/${userId}/adaptive`).catch(() => null),
+        api.get(`/bazi/${userId}/feedback`).catch(() => null),
+      ]);
+      
+      if (chartResponse.data.success) {
+        setData(chartResponse.data.chart);
       } else {
         setError('Failed to load BaZi chart');
+      }
+      
+      // Load adaptive content
+      if (adaptiveResponse?.data?.adaptive) {
+        setAdaptive(adaptiveResponse.data.adaptive);
+      }
+      
+      // Load existing feedback
+      if (feedbackResponse?.data?.feedback_map) {
+        setFeedbackMap(feedbackResponse.data.feedback_map);
       }
     } catch (err: any) {
       console.error('[BaZi V2] Load error:', err);
@@ -292,6 +348,36 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
 
   const handleRefresh = () => {
     loadBaziData(true);
+  };
+  
+  // Submit feedback handler
+  const handleFeedback = async (section: string, rating: 'yes' | 'somewhat' | 'no', subsection?: string) => {
+    const feedbackKey = subsection ? `${section}:${subsection}` : section;
+    setFeedbackSubmitting(feedbackKey);
+    
+    try {
+      await api.post(`/bazi/${userId}/feedback`, {
+        section,
+        rating,
+        subsection: subsection || null,
+      });
+      
+      // Update local state
+      setFeedbackMap(prev => ({
+        ...prev,
+        [feedbackKey]: rating,
+      }));
+      
+      // Refresh adaptive content after feedback
+      const adaptiveResponse = await api.get(`/bazi/${userId}/adaptive`).catch(() => null);
+      if (adaptiveResponse?.data?.adaptive) {
+        setAdaptive(adaptiveResponse.data.adaptive);
+      }
+    } catch (err) {
+      console.error('[BaZi Feedback] Error:', err);
+    } finally {
+      setFeedbackSubmitting(null);
+    }
   };
 
   // =============================================================================
@@ -676,6 +762,203 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
   // DEEP DIVE TAB COMPONENTS
   // =============================================================================
 
+  // Feedback Micro-Interaction Component
+  const renderFeedbackBlock = (section: string, subsection?: string) => {
+    const feedbackKey = subsection ? `${section}:${subsection}` : section;
+    const currentRating = feedbackMap[feedbackKey];
+    const isSubmitting = feedbackSubmitting === feedbackKey;
+    
+    if (currentRating) {
+      // Show confirmed feedback
+      return (
+        <View style={[styles.feedbackConfirmed, { backgroundColor: theme.background }]}>
+          <Ionicons 
+            name={currentRating === 'yes' ? 'checkmark-circle' : currentRating === 'somewhat' ? 'remove-circle' : 'close-circle'} 
+            size={16} 
+            color={currentRating === 'yes' ? '#4CAF50' : currentRating === 'somewhat' ? '#FF9800' : '#FF5722'} 
+          />
+          <Text style={[styles.feedbackConfirmedText, { color: theme.textTertiary }]}>
+            {currentRating === 'yes' ? 'This resonates with you' : 
+             currentRating === 'somewhat' ? 'Partially resonates' : 
+             'Noted — we\'ll adjust the framing'}
+          </Text>
+        </View>
+      );
+    }
+    
+    return (
+      <View style={[styles.feedbackBlock, { backgroundColor: theme.background, borderColor: theme.border }]}>
+        <Text style={[styles.feedbackQuestion, { color: theme.textSecondary }]}>Does this feel true?</Text>
+        <View style={styles.feedbackButtons}>
+          <TouchableOpacity 
+            style={[styles.feedbackBtn, { backgroundColor: '#4CAF5015', borderColor: '#4CAF5030' }]}
+            onPress={() => handleFeedback(section, 'yes', subsection)}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="#4CAF50" />
+            ) : (
+              <>
+                <Ionicons name="checkmark" size={16} color="#4CAF50" />
+                <Text style={[styles.feedbackBtnText, { color: '#4CAF50' }]}>Yes, this fits me</Text>
+              </>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.feedbackBtn, { backgroundColor: '#FF980015', borderColor: '#FF980030' }]}
+            onPress={() => handleFeedback(section, 'somewhat', subsection)}
+            disabled={isSubmitting}
+          >
+            <Ionicons name="remove" size={16} color="#FF9800" />
+            <Text style={[styles.feedbackBtnText, { color: '#FF9800' }]}>Somewhat</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.feedbackBtn, { backgroundColor: '#FF572215', borderColor: '#FF572230' }]}
+            onPress={() => handleFeedback(section, 'no', subsection)}
+            disabled={isSubmitting}
+          >
+            <Ionicons name="close" size={16} color="#FF5722" />
+            <Text style={[styles.feedbackBtnText, { color: '#FF5722' }]}>Not really</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+  
+  // Real Life Check Component
+  const renderRealLifeCheck = (section: 'day_master' | 'ten_gods', godName?: string) => {
+    if (!adaptive?.real_life_checks) return null;
+    
+    let checks: { work: string; relationships: string; leadership?: string; stress?: string } | undefined;
+    
+    if (section === 'day_master') {
+      checks = adaptive.real_life_checks.day_master;
+    } else if (section === 'ten_gods' && godName) {
+      checks = adaptive.real_life_checks.ten_gods[godName];
+    }
+    
+    if (!checks) return null;
+    
+    return (
+      <View style={[styles.realLifeCheckBox, { backgroundColor: theme.background, borderColor: theme.border }]}>
+        <Text style={[styles.realLifeCheckTitle, { color: theme.textTertiary }]}>WHERE THIS SHOWS UP IN REAL LIFE</Text>
+        <View style={styles.realLifeCheckItems}>
+          {checks.work && (
+            <View style={styles.realLifeCheckItem}>
+              <Ionicons name="briefcase-outline" size={14} color={theme.textTertiary} />
+              <Text style={[styles.realLifeCheckText, { color: theme.textSecondary }]}><Text style={{ fontWeight: '600' }}>Work:</Text> {checks.work}</Text>
+            </View>
+          )}
+          {checks.relationships && (
+            <View style={styles.realLifeCheckItem}>
+              <Ionicons name="people-outline" size={14} color={theme.textTertiary} />
+              <Text style={[styles.realLifeCheckText, { color: theme.textSecondary }]}><Text style={{ fontWeight: '600' }}>Relationships:</Text> {checks.relationships}</Text>
+            </View>
+          )}
+          {checks.leadership && (
+            <View style={styles.realLifeCheckItem}>
+              <Ionicons name="flag-outline" size={14} color={theme.textTertiary} />
+              <Text style={[styles.realLifeCheckText, { color: theme.textSecondary }]}><Text style={{ fontWeight: '600' }}>Leadership:</Text> {checks.leadership}</Text>
+            </View>
+          )}
+          {checks.stress && (
+            <View style={styles.realLifeCheckItem}>
+              <Ionicons name="warning-outline" size={14} color={theme.textTertiary} />
+              <Text style={[styles.realLifeCheckText, { color: theme.textSecondary }]}><Text style={{ fontWeight: '600' }}>Under Stress:</Text> {checks.stress}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  };
+  
+  // Today Connection Component
+  const renderTodayConnection = () => {
+    if (!adaptive?.today_connections || !data?.timing) return null;
+    const { today_connections } = adaptive;
+    const todayInteraction = data.timing.today.interaction;
+    
+    return (
+      <View style={[styles.todayConnectionBox, { 
+        backgroundColor: todayInteraction === 'pressure' ? '#FF572208' : todayInteraction === 'supporting' ? '#4CAF5008' : '#FF980008',
+        borderColor: todayInteraction === 'pressure' ? '#FF572230' : todayInteraction === 'supporting' ? '#4CAF5030' : '#FF980030',
+      }]}>
+        <View style={styles.todayConnectionHeader}>
+          <Ionicons 
+            name="today-outline" 
+            size={16} 
+            color={todayInteraction === 'pressure' ? '#FF5722' : todayInteraction === 'supporting' ? '#4CAF50' : '#FF9800'} 
+          />
+          <Text style={[styles.todayConnectionLabel, { 
+            color: todayInteraction === 'pressure' ? '#FF5722' : todayInteraction === 'supporting' ? '#4CAF50' : '#FF9800'
+          }]}>
+            TODAY CONNECTION
+          </Text>
+        </View>
+        <Text style={[styles.todayConnectionText, { color: theme.text }]}>
+          {today_connections.main}
+        </Text>
+        {today_connections.core_pattern && (
+          <Text style={[styles.todayConnectionSubtext, { color: theme.textSecondary }]}>
+            {today_connections.core_pattern}
+          </Text>
+        )}
+        {today_connections.pressure_note && (
+          <View style={[styles.pressureNoteBox, { backgroundColor: '#FF572210' }]}>
+            <Text style={[styles.pressureNoteText, { color: '#FF5722' }]}>
+              ⚠️ {today_connections.pressure_note}
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+  
+  // Contextual Prompts Component
+  const renderContextualPrompts = () => {
+    if (!adaptive?.contextual_prompts || !data) return null;
+    const { contextual_prompts } = adaptive;
+    
+    return (
+      <View style={[styles.contextualPromptsBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.contextualPromptsTitle, { color: theme.text }]}>Questions You Might Have</Text>
+        <View style={styles.contextualPromptsList}>
+          {contextual_prompts.slice(0, 4).map((prompt, idx) => (
+            <InlineReflectButton
+              key={idx}
+              source={{
+                lens: 'bazi',
+                type: 'contextual',
+                name: 'BaZi Deep Dive',
+                value: `Day Master: ${data.day_master.stem_pinyin} ${data.day_master.element}`,
+                id: `bazi_contextual_${idx}`,
+              }}
+              prompt={prompt}
+              variant="compact"
+            />
+          ))}
+        </View>
+      </View>
+    );
+  };
+  
+  // Reflection Prompts Component
+  const renderReflectionPrompts = () => {
+    if (!adaptive?.reflection_prompts || !data) return null;
+    const { reflection_prompts } = adaptive;
+    
+    return (
+      <View style={[styles.reflectionPromptsBox, { backgroundColor: theme.background }]}>
+        <Text style={[styles.reflectionPromptsTitle, { color: theme.textTertiary }]}>REFLECTION MODE</Text>
+        {reflection_prompts.map((prompt, idx) => (
+          <View key={idx} style={styles.reflectionPromptItem}>
+            <Text style={[styles.reflectionPromptText, { color: theme.text }]}>• {prompt}</Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
   // 1. Your Core Engine
   const renderCoreEngine = () => {
     if (!data?.deep_dive) return null;
@@ -739,6 +1022,15 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
           }}
           prompt="Explain my Day Master in my life. What does this strength actually mean for how I show up?"
         />
+        
+        {/* Real Life Check */}
+        {renderRealLifeCheck('day_master')}
+        
+        {/* Today Connection */}
+        {renderTodayConnection()}
+        
+        {/* Feedback Micro-Interaction */}
+        {renderFeedbackBlock('day_master')}
       </View>
     );
   };
@@ -984,6 +1276,12 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
             prompt="What should I focus on now based on my chart?"
           />
         </View>
+        
+        {/* Reflection Prompts */}
+        {renderReflectionPrompts()}
+        
+        {/* Feedback Micro-Interaction */}
+        {renderFeedbackBlock('life_pattern')}
       </View>
     );
   };
@@ -1074,6 +1372,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
             {renderBehavioralPatterns()}
             {renderHiddenLayers()}
             {renderLifePattern()}
+            {renderContextualPrompts()}
           </>
         )}
 
@@ -1777,5 +2076,159 @@ const styles = StyleSheet.create({
   },
   askButtonsRow: {
     marginTop: 8,
+  },
+
+  // =============================================================================
+  // ADAPTIVE INTELLIGENCE STYLES
+  // =============================================================================
+
+  // Feedback Block
+  feedbackBlock: {
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginTop: 16,
+  },
+  feedbackQuestion: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  feedbackButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  feedbackBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 4,
+  },
+  feedbackBtnText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  feedbackConfirmed: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginTop: 16,
+    gap: 8,
+  },
+  feedbackConfirmedText: {
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+
+  // Real Life Check
+  realLifeCheckBox: {
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginTop: 16,
+  },
+  realLifeCheckTitle: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  realLifeCheckItems: {
+    gap: 10,
+  },
+  realLifeCheckItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  realLifeCheckText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+
+  // Today Connection
+  todayConnectionBox: {
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginTop: 16,
+  },
+  todayConnectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  todayConnectionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  todayConnectionText: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: '500',
+  },
+  todayConnectionSubtext: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 8,
+  },
+  pressureNoteBox: {
+    padding: 10,
+    borderRadius: 6,
+    marginTop: 10,
+  },
+  pressureNoteText: {
+    fontSize: 12,
+    lineHeight: 18,
+  },
+
+  // Contextual Prompts
+  contextualPromptsBox: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 16,
+  },
+  contextualPromptsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 14,
+  },
+  contextualPromptsList: {
+    gap: 10,
+  },
+
+  // Reflection Prompts
+  reflectionPromptsBox: {
+    padding: 14,
+    borderRadius: 10,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  reflectionPromptsTitle: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  reflectionPromptItem: {
+    marginBottom: 6,
+  },
+  reflectionPromptText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: 'italic',
   },
 });

@@ -13031,6 +13031,493 @@ async def get_bazi_chart_full(user_id: str):
 
 
 # =====================================================================
+# BAZI FEEDBACK & PERSONALIZATION ENDPOINTS
+# =====================================================================
+
+class BaziFeedbackInput(BaseModel):
+    section: str  # life_pattern, ten_gods, day_master, hidden_dynamics, etc.
+    rating: str   # yes, somewhat, no
+    subsection: Optional[str] = None  # e.g., specific ten_god name
+
+
+@api_router.post("/bazi/{user_id}/feedback")
+async def submit_bazi_feedback(user_id: str, feedback: BaziFeedbackInput):
+    """
+    Store user feedback on BaZi insights.
+    Used for adaptive language and personalization.
+    """
+    try:
+        # Validate user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Store feedback in a dedicated collection
+        feedback_doc = {
+            "user_id": user_id,
+            "section": feedback.section,
+            "subsection": feedback.subsection,
+            "rating": feedback.rating,
+            "created_at": datetime.utcnow(),
+        }
+        
+        # Upsert - update if section+subsection exists, otherwise insert
+        await db.bazi_feedback.update_one(
+            {
+                "user_id": user_id,
+                "section": feedback.section,
+                "subsection": feedback.subsection,
+            },
+            {"$set": feedback_doc},
+            upsert=True
+        )
+        
+        logger.info(f"[BaZi Feedback] Stored feedback for user {user_id}: {feedback.section}/{feedback.subsection} = {feedback.rating}")
+        
+        return {
+            "success": True,
+            "message": "Feedback recorded",
+            "section": feedback.section,
+            "rating": feedback.rating,
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[BaZi Feedback] Error storing feedback for {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to store feedback")
+
+
+@api_router.get("/bazi/{user_id}/feedback")
+async def get_bazi_feedback(user_id: str):
+    """
+    Retrieve all stored feedback for a user's BaZi insights.
+    Used to adapt language and personalize content.
+    """
+    try:
+        feedbacks = await db.bazi_feedback.find({"user_id": user_id}).to_list(length=100)
+        
+        # Build a feedback map for easy lookup
+        feedback_map = {}
+        confirmed_traits = []
+        rejected_traits = []
+        
+        for fb in feedbacks:
+            key = fb.get("section", "")
+            if fb.get("subsection"):
+                key = f"{key}:{fb['subsection']}"
+            
+            rating = fb.get("rating", "somewhat")
+            feedback_map[key] = rating
+            
+            # Track confirmed/rejected traits
+            if rating == "yes":
+                confirmed_traits.append(key)
+            elif rating == "no":
+                rejected_traits.append(key)
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "feedback_count": len(feedbacks),
+            "feedback_map": feedback_map,
+            "confirmed_traits": confirmed_traits,
+            "rejected_traits": rejected_traits,
+        }
+    
+    except Exception as e:
+        logger.error(f"[BaZi Feedback] Error retrieving feedback for {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve feedback")
+
+
+@api_router.get("/bazi/{user_id}/adaptive")
+async def get_bazi_adaptive_content(user_id: str):
+    """
+    Get BaZi chart with adaptive content based on user feedback.
+    Returns personalized language and contextual prompts.
+    """
+    try:
+        # Get user data
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        birth_date = user.get("birth_date")
+        if not birth_date:
+            raise HTTPException(status_code=400, detail="Birth date required")
+        
+        birth_time = user.get("birth_time")
+        timezone = user.get("timezone")
+        
+        # Compute chart
+        chart = compute_bazi_chart_v2(
+            birth_date=birth_date,
+            birth_time=birth_time,
+            timezone=timezone,
+            include_timing=True
+        )
+        
+        # Get feedback
+        feedbacks = await db.bazi_feedback.find({"user_id": user_id}).to_list(length=100)
+        feedback_map = {
+            f"{fb['section']}:{fb.get('subsection', '')}".rstrip(':'): fb['rating']
+            for fb in feedbacks
+        }
+        
+        # Generate adaptive content
+        adaptive_content = generate_adaptive_bazi_content(chart, feedback_map)
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "chart": chart,
+            "adaptive": adaptive_content,
+            "feedback_map": feedback_map,
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[BaZi Adaptive] Error for {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get adaptive content")
+
+
+def generate_adaptive_bazi_content(chart: dict, feedback_map: dict) -> dict:
+    """
+    Generate adaptive content based on chart and user feedback.
+    Includes: real_life_checks, today_connections, contextual_prompts, reflection_prompts
+    """
+    day_master = chart.get("day_master", {})
+    timing = chart.get("timing", {})
+    deep_dive = chart.get("deep_dive", {})
+    
+    dm_element = day_master.get("element", "Metal")
+    dm_strength = day_master.get("strength", "strong")
+    today_ten_god = timing.get("today", {}).get("ten_god_name", "")
+    today_element = timing.get("today", {}).get("element", "")
+    today_interaction = timing.get("today", {}).get("interaction", "mixed")
+    
+    # Check if specific sections were confirmed or rejected
+    life_pattern_rating = feedback_map.get("life_pattern", "somewhat")
+    day_master_rating = feedback_map.get("day_master", "somewhat")
+    
+    # Generate Real Life Checks for each section
+    real_life_checks = generate_real_life_checks(dm_element, dm_strength, deep_dive)
+    
+    # Generate Today Connections - bridge personality to timing
+    today_connections = generate_today_connections(
+        dm_element, dm_strength, today_ten_god, today_element, today_interaction, deep_dive
+    )
+    
+    # Generate Contextual Ask Prompts
+    contextual_prompts = generate_contextual_prompts(
+        dm_element, dm_strength, today_ten_god, deep_dive, feedback_map
+    )
+    
+    # Generate Reflection Prompts
+    reflection_prompts = generate_reflection_prompts(
+        dm_element, dm_strength, today_ten_god, today_interaction, feedback_map
+    )
+    
+    # Adaptive language modifiers based on feedback
+    language_modifiers = {
+        "life_pattern": get_language_modifier(life_pattern_rating),
+        "day_master": get_language_modifier(day_master_rating),
+    }
+    
+    return {
+        "real_life_checks": real_life_checks,
+        "today_connections": today_connections,
+        "contextual_prompts": contextual_prompts,
+        "reflection_prompts": reflection_prompts,
+        "language_modifiers": language_modifiers,
+    }
+
+
+def get_language_modifier(rating: str) -> dict:
+    """Get language modifier based on feedback rating."""
+    if rating == "yes":
+        return {
+            "confidence": "high",
+            "prefix": "",
+            "suffix": "",
+            "tone": "direct",
+        }
+    elif rating == "no":
+        return {
+            "confidence": "low",
+            "prefix": "In certain contexts, ",
+            "suffix": " — though this may express differently for you.",
+            "tone": "exploratory",
+        }
+    else:  # somewhat
+        return {
+            "confidence": "medium",
+            "prefix": "You may find that ",
+            "suffix": "",
+            "tone": "balanced",
+        }
+
+
+def generate_real_life_checks(dm_element: str, dm_strength: str, deep_dive: dict) -> dict:
+    """Generate 'Where this shows up in real life' blocks for each section."""
+    
+    element_real_life = {
+        "Metal": {
+            "work": "You prioritize getting things right over getting them fast. Deadlines matter less than quality.",
+            "relationships": "You notice when others are imprecise or careless. This can create tension if unspoken.",
+            "leadership": "You lead through standards and discernment, not inspiration or charisma.",
+            "stress": "Under pressure, you become more critical — of yourself first, then others.",
+        },
+        "Wood": {
+            "work": "You push projects forward, sometimes before others are ready. Starting comes easier than finishing.",
+            "relationships": "You can dominate conversations without meaning to. Your drive can overwhelm quieter people.",
+            "leadership": "You lead by example and action, pulling others along by momentum.",
+            "stress": "Under pressure, you become forceful or impatient. You may override others' concerns.",
+        },
+        "Fire": {
+            "work": "You bring energy and visibility to projects. You're often the one who rallies people.",
+            "relationships": "You draw attention naturally. Some find this inspiring; others may feel overshadowed.",
+            "leadership": "You lead through presence and warmth, making people feel seen.",
+            "stress": "Under pressure, you may burn hot — dramatic reactions, scattered energy.",
+        },
+        "Earth": {
+            "work": "You stabilize projects and hold things together when others panic. You're the reliable one.",
+            "relationships": "People lean on you, sometimes too much. You may over-give without realizing.",
+            "leadership": "You lead through steady presence, not dramatic action.",
+            "stress": "Under pressure, you become stubborn or over-responsible. You carry too much.",
+        },
+        "Water": {
+            "work": "You adapt to changing conditions better than most. You find ways around obstacles.",
+            "relationships": "You read undercurrents others miss. This can feel invasive to some.",
+            "leadership": "You lead through insight and timing, not force.",
+            "stress": "Under pressure, you may withdraw or become hard to reach.",
+        },
+    }
+    
+    ten_gods = deep_dive.get("ten_gods_detailed", [])
+    ten_god_real_life = {}
+    
+    for god in ten_gods[:3]:
+        name = god.get("name", "")
+        if name == "resource":
+            ten_god_real_life[name] = {
+                "work": "You research before deciding. Colleagues may wait while you gather information.",
+                "relationships": "You process internally before sharing. Partners may wish you'd open up faster.",
+            }
+        elif name == "output":
+            ten_god_real_life[name] = {
+                "work": "You generate ideas constantly. The challenge is follow-through, not creativity.",
+                "relationships": "You express freely, sometimes too much. Others may need more space.",
+            }
+        elif name == "wealth":
+            ten_god_real_life[name] = {
+                "work": "You focus on results and tangible progress. Process matters less than outcomes.",
+                "relationships": "You may prioritize practical matters over emotional connection.",
+            }
+        elif name == "officer":
+            ten_god_real_life[name] = {
+                "work": "You take responsibility seriously, sometimes for things that aren't yours.",
+                "relationships": "You hold yourself and others to high standards. This can feel heavy.",
+            }
+        elif name == "companion":
+            ten_god_real_life[name] = {
+                "work": "You work independently. Collaboration requires conscious effort.",
+                "relationships": "You may compete when you mean to connect.",
+            }
+    
+    return {
+        "day_master": element_real_life.get(dm_element, element_real_life["Earth"]),
+        "ten_gods": ten_god_real_life,
+    }
+
+
+def generate_today_connections(
+    dm_element: str, 
+    dm_strength: str, 
+    today_ten_god: str, 
+    today_element: str,
+    today_interaction: str,
+    deep_dive: dict
+) -> dict:
+    """Generate connections between static patterns and current timing."""
+    
+    life_pattern = deep_dive.get("life_pattern", {})
+    core_drive = life_pattern.get("core_drive", "")
+    under_pressure = life_pattern.get("under_pressure", "")
+    
+    # Base connection template
+    if today_interaction == "pressure":
+        connection_template = "Today amplifies pressure on your patterns. {specific}"
+    elif today_interaction == "supporting":
+        connection_template = "Today supports your natural expression. {specific}"
+    else:
+        connection_template = "Today brings mixed energy to your patterns. {specific}"
+    
+    # Generate specific connections based on Ten God
+    ten_god_connections = {
+        "Resource": f"Your tendency to think before acting may be stronger. Give yourself processing time.",
+        "Output": f"Your expressive side is amplified. Good for creating, but watch for over-sharing.",
+        "Opportunity": f"Practical opportunities may present. Stay grounded in priorities.",
+        "Stability": f"Responsibilities may feel heavier. Distinguish chosen from inherited duties.",
+        "Structure": f"External expectations may feel pressing. Choose your battles carefully.",
+        "Power": f"Intensity is heightened. Transform pressure into focused action.",
+        "Companion": f"Peer dynamics are activated. Competition or collaboration — notice which you default to.",
+        "Competitor": f"Comparison energy is high. Focus on your path, not others'.",
+        "Insight": f"Your intuitive side is active. Trust what surfaces without forcing answers.",
+        "Expression": f"Your need to be seen or heard is stronger. Channel it constructively.",
+    }
+    
+    specific_connection = ten_god_connections.get(today_ten_god, "Notice how today's energy interacts with your patterns.")
+    
+    # Connection to core pattern
+    core_connection = ""
+    if "refine" in core_drive.lower() or "precision" in core_drive.lower():
+        if today_interaction == "pressure":
+            core_connection = "Your drive for precision meets external pressure today. High standards may feel like criticism."
+        else:
+            core_connection = "Your precision is supported today. Good for detailed work."
+    elif "initiate" in core_drive.lower() or "grow" in core_drive.lower():
+        if today_interaction == "pressure":
+            core_connection = "Your forward momentum meets resistance today. Choose where to push."
+        else:
+            core_connection = "Your initiative is supported today. Good for starting things."
+    elif "stabilize" in core_drive.lower() or "support" in core_drive.lower():
+        if today_interaction == "pressure":
+            core_connection = "Your stabilizing role may feel heavy today. Protect your reserves."
+        else:
+            core_connection = "Your grounding presence is valued today. Lead through steadiness."
+    
+    return {
+        "main": connection_template.format(specific=specific_connection),
+        "core_pattern": core_connection,
+        "ten_god_specific": specific_connection,
+        "pressure_note": under_pressure if today_interaction == "pressure" else None,
+    }
+
+
+def generate_contextual_prompts(
+    dm_element: str,
+    dm_strength: str,
+    today_ten_god: str,
+    deep_dive: dict,
+    feedback_map: dict
+) -> list:
+    """Generate contextual Ask prompts based on chart and feedback."""
+    
+    prompts = []
+    ten_gods = deep_dive.get("ten_gods_detailed", [])
+    life_pattern = deep_dive.get("life_pattern", {})
+    
+    # Element-based prompts
+    element_prompts = {
+        "Metal": [
+            "Why do I get frustrated when others are imprecise?",
+            "How do I balance standards with acceptance?",
+            "Why do I criticize myself so harshly?",
+        ],
+        "Wood": [
+            "Why do I rush into things before I'm ready?",
+            "How do I know when to push forward vs hold back?",
+            "Why do I struggle to let others lead?",
+        ],
+        "Fire": [
+            "Why do I need to be seen?",
+            "How do I sustain energy without burning out?",
+            "Why do some people feel overwhelmed by me?",
+        ],
+        "Earth": [
+            "Why do I take on other people's problems?",
+            "How do I receive as much as I give?",
+            "Why do I struggle to let things go?",
+        ],
+        "Water": [
+            "Why do I know things before I can explain them?",
+            "How do I surface my insights without losing them?",
+            "Why do I withdraw when things get intense?",
+        ],
+    }
+    
+    prompts.extend(element_prompts.get(dm_element, element_prompts["Earth"])[:2])
+    
+    # Ten God based prompts
+    for god in ten_gods[:2]:
+        name = god.get("name", "")
+        if name == "resource":
+            prompts.append("Why do I overthink decisions?")
+        elif name == "output":
+            prompts.append("Why do I scatter my energy across too many things?")
+        elif name == "wealth":
+            prompts.append("Why do I prioritize results over relationships?")
+        elif name == "officer":
+            prompts.append("Why do I feel responsible for everything?")
+    
+    # Timing-based prompt
+    prompts.append(f"What should I focus on this week given the {today_ten_god} influence?")
+    
+    # Feedback-adjusted prompts
+    if feedback_map.get("life_pattern") == "no":
+        prompts.append("Help me understand my patterns in a different way.")
+    
+    return prompts[:5]  # Return top 5
+
+
+def generate_reflection_prompts(
+    dm_element: str,
+    dm_strength: str,
+    today_ten_god: str,
+    today_interaction: str,
+    feedback_map: dict
+) -> list:
+    """Generate specific reflection prompts for journaling."""
+    
+    prompts = []
+    
+    # Pattern-based reflections
+    element_reflections = {
+        "Metal": [
+            "Where did I notice my critical side today?",
+            "Did I hold myself to impossible standards?",
+            "What would 'good enough' look like?",
+        ],
+        "Wood": [
+            "Where did I push when I should have paused?",
+            "Did I let others contribute, or did I take over?",
+            "What am I trying to grow right now?",
+        ],
+        "Fire": [
+            "Did I need attention today? Why?",
+            "Where did I bring warmth vs where did I perform?",
+            "What would sustainable brightness look like?",
+        ],
+        "Earth": [
+            "Who did I support today? At what cost?",
+            "Did I receive anything, or only give?",
+            "What am I holding that isn't mine?",
+        ],
+        "Water": [
+            "What did I sense but not say today?",
+            "Did I withdraw or engage when things got hard?",
+            "What is trying to surface?",
+        ],
+    }
+    
+    prompts.extend(element_reflections.get(dm_element, element_reflections["Earth"])[:2])
+    
+    # Timing-based reflections
+    if today_interaction == "pressure":
+        prompts.append("Where did I feel pressured today? How did I respond?")
+        prompts.append("Did I act from pressure or from clarity?")
+    else:
+        prompts.append("What flowed easily today? Why?")
+    
+    # Balance reflection
+    prompts.append("What would balance look like for me right now?")
+    
+    return prompts[:4]
+
+
+# =====================================================================
 # CROSS-LENS SYNTHESIS ENDPOINTS
 # =====================================================================
 
