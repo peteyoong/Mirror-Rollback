@@ -13211,7 +13211,7 @@ def generate_adaptive_bazi_content(chart: dict, feedback_map: dict) -> dict:
     
     # Generate Contextual Ask Prompts
     contextual_prompts = generate_contextual_prompts(
-        dm_element, dm_strength, today_ten_god, deep_dive, feedback_map
+        dm_element, dm_strength, today_ten_god, deep_dive, feedback_map, timing
     )
     
     # Generate Reflection Prompts
@@ -13401,65 +13401,206 @@ def generate_contextual_prompts(
     dm_strength: str,
     today_ten_god: str,
     deep_dive: dict,
-    feedback_map: dict
+    feedback_map: dict,
+    timing: dict = None
 ) -> list:
-    """Generate contextual Ask prompts based on chart and feedback."""
+    """
+    Generate highly contextual, emotionally relevant questions.
     
-    prompts = []
+    Each question must:
+    1. Be emotionally relevant
+    2. Reflect real internal struggle
+    3. Feel slightly uncomfortable / confronting
+    4. Be specific (NOT generic self-help)
+    """
+    
+    questions = []
     ten_gods = deep_dive.get("ten_gods_detailed", [])
     life_pattern = deep_dive.get("life_pattern", {})
+    today_interaction = timing.get("today", {}).get("interaction", "mixed") if timing else "mixed"
+    year_interaction = timing.get("year", {}).get("interaction", "mixed") if timing else "mixed"
     
-    # Element-based prompts
-    element_prompts = {
-        "Metal": [
-            "Why do I get frustrated when others are imprecise?",
-            "How do I balance standards with acceptance?",
-            "Why do I criticize myself so harshly?",
+    # =================================================================
+    # ELEMENT + STRENGTH SPECIFIC QUESTIONS (emotionally confronting)
+    # =================================================================
+    
+    element_questions = {
+        ("Metal", "strong"): [
+            "Why do I keep delaying decisions even when I already know the answer?",
+            "Why is it so hard for me to let things be 'good enough'?",
+            "Why do I get frustrated when people don't meet my standards?",
+            "What am I really afraid of when I criticize myself?",
+            "Why do I trust my own judgment more than other people's input?",
         ],
-        "Wood": [
-            "Why do I rush into things before I'm ready?",
-            "How do I know when to push forward vs hold back?",
-            "Why do I struggle to let others lead?",
+        ("Metal", "weak"): [
+            "Why do I doubt my judgment even when I'm usually right?",
+            "Why do I struggle to cut things out of my life that aren't working?",
+            "What would happen if I actually trusted my standards?",
+            "Why do I let others' sloppiness bother me but say nothing?",
         ],
-        "Fire": [
-            "Why do I need to be seen?",
-            "How do I sustain energy without burning out?",
-            "Why do some people feel overwhelmed by me?",
+        ("Wood", "strong"): [
+            "Why do I rush into things before checking if others are ready?",
+            "Why is slowing down so uncomfortable for me?",
+            "What am I running from when I keep pushing forward?",
+            "Why do I take over when I should let others lead?",
+            "Why does waiting feel like losing?",
         ],
-        "Earth": [
-            "Why do I take on other people's problems?",
-            "How do I receive as much as I give?",
-            "Why do I struggle to let things go?",
+        ("Wood", "weak"): [
+            "Why do I hesitate to start things I know I should start?",
+            "What blocks me from moving forward when I see the path?",
+            "Why do I let others set the pace when I know mine is better?",
         ],
-        "Water": [
-            "Why do I know things before I can explain them?",
-            "How do I surface my insights without losing them?",
-            "Why do I withdraw when things get intense?",
+        ("Fire", "strong"): [
+            "Why do I need to be seen to feel like I exist?",
+            "Why do I burn out trying to maintain my presence?",
+            "What am I hiding behind my brightness?",
+            "Why does being ignored feel so personal?",
+            "What would happen if I dimmed for a while?",
+        ],
+        ("Fire", "weak"): [
+            "Why do I hide my warmth when I know people need it?",
+            "What am I afraid will happen if I'm more visible?",
+            "Why do I let others shine when I have something to offer?",
+        ],
+        ("Earth", "strong"): [
+            "Why do I take on problems that aren't mine to solve?",
+            "Why do I give until I'm empty and then resent it?",
+            "What am I trying to prove by always being the stable one?",
+            "Why is receiving so much harder than giving?",
+            "What would fall apart if I stopped holding everything?",
+        ],
+        ("Earth", "weak"): [
+            "Why do I feel guilty when I'm not helping someone?",
+            "Why do I feel unstable when I'm supposed to be the stable one?",
+            "What would happen if I admitted I need support too?",
+        ],
+        ("Water", "strong"): [
+            "Why do I know things I can't explain and then doubt myself anyway?",
+            "Why do I withdraw when things get intense instead of engaging?",
+            "What am I avoiding by staying in observation mode?",
+            "Why does surface-level conversation feel like suffocation?",
+            "What would happen if I said what I actually sense?",
+        ],
+        ("Water", "weak"): [
+            "Why do I ignore my intuition when it's usually right?",
+            "Why do I struggle to go deep when that's where I thrive?",
+            "What am I afraid of finding if I really look inside?",
         ],
     }
     
-    prompts.extend(element_prompts.get(dm_element, element_prompts["Earth"])[:2])
+    # Get element-specific questions
+    strength_key = "strong" if dm_strength == "strong" else "weak"
+    elem_qs = element_questions.get((dm_element, strength_key), [])
+    if not elem_qs:
+        elem_qs = element_questions.get((dm_element, "strong"), [])[:3]
     
-    # Ten God based prompts
+    questions.extend(elem_qs[:2])  # Take top 2
+    
+    # =================================================================
+    # TEN GOD SPECIFIC QUESTIONS (behavioral confrontation)
+    # =================================================================
+    
+    ten_god_questions = {
+        "resource": [
+            "What am I avoiding by staying in analysis mode?",
+            "Why do I need to understand everything before I can act?",
+            "When did 'thinking more' become my way of avoiding decisions?",
+        ],
+        "output": [
+            "Why do I start things I never finish?",
+            "What am I trying to express that never quite comes out right?",
+            "Why do I scatter my energy instead of focusing it?",
+        ],
+        "wealth": [
+            "Why do I measure my worth by what I produce?",
+            "When did results become more important than relationships?",
+            "What am I trying to control that can't be controlled?",
+        ],
+        "officer": [
+            "Why do I feel responsible for things that aren't my job?",
+            "When did duty become heavier than it needs to be?",
+            "What would happen if I dropped some of my obligations?",
+        ],
+        "companion": [
+            "Why do I compare myself to others even when I don't want to?",
+            "Why is asking for help so hard when I know I need it?",
+            "What am I trying to prove by doing everything alone?",
+        ],
+    }
+    
+    # Add Ten God specific questions
     for god in ten_gods[:2]:
         name = god.get("name", "")
-        if name == "resource":
-            prompts.append("Why do I overthink decisions?")
-        elif name == "output":
-            prompts.append("Why do I scatter my energy across too many things?")
-        elif name == "wealth":
-            prompts.append("Why do I prioritize results over relationships?")
-        elif name == "officer":
-            prompts.append("Why do I feel responsible for everything?")
+        if name in ten_god_questions:
+            questions.append(ten_god_questions[name][0])  # Add top question
     
-    # Timing-based prompt
-    prompts.append(f"What should I focus on this week given the {today_ten_god} influence?")
+    # =================================================================
+    # TIMING-SPECIFIC QUESTIONS (at least 1-2)
+    # =================================================================
     
-    # Feedback-adjusted prompts
-    if feedback_map.get("life_pattern") == "no":
-        prompts.append("Help me understand my patterns in a different way.")
+    timing_questions = []
     
-    return prompts[:5]  # Return top 5
+    # Today timing
+    if today_interaction == "pressure":
+        timing_questions.extend([
+            "Why does everything feel heavier today?",
+            "What is this pressure trying to show me?",
+        ])
+    elif today_interaction == "supporting":
+        timing_questions.extend([
+            "Why do I still doubt myself when things are flowing?",
+            "What am I not taking advantage of while conditions are good?",
+        ])
+    
+    # Year timing
+    if year_interaction == "pressure":
+        timing_questions.extend([
+            "Why does everything feel heavier this year?",
+            "What is this year trying to push me to change?",
+            "Why am I feeling more pressure to perform right now?",
+        ])
+    elif year_interaction == "supporting":
+        timing_questions.extend([
+            "What opportunity am I not seeing this year?",
+            "Why am I holding back when this year supports expansion?",
+        ])
+    
+    # Add at least 1 timing question
+    if timing_questions:
+        questions.append(timing_questions[0])
+    
+    # =================================================================
+    # LIFE PATTERN SPECIFIC QUESTIONS
+    # =================================================================
+    
+    core_drive = life_pattern.get("core_drive", "").lower()
+    under_pressure = life_pattern.get("under_pressure", "").lower()
+    
+    if "refine" in core_drive or "precision" in core_drive or "perfect" in core_drive:
+        questions.append("What would happen if I stopped trying to get everything right?")
+    elif "initiate" in core_drive or "grow" in core_drive or "lead" in core_drive:
+        questions.append("What am I running toward — and what am I running from?")
+    elif "stabilize" in core_drive or "support" in core_drive or "nurture" in core_drive:
+        questions.append("When did I decide I had to be the stable one?")
+    elif "illuminate" in core_drive or "inspire" in core_drive or "visibility" in core_drive:
+        questions.append("What am I hiding behind my need to be seen?")
+    elif "adapt" in core_drive or "depth" in core_drive or "intuition" in core_drive:
+        questions.append("What do I know that I'm afraid to admit?")
+    
+    # =================================================================
+    # SORT BY EMOTIONAL INTENSITY & REMOVE DUPLICATES
+    # =================================================================
+    
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_questions = []
+    for q in questions:
+        if q not in seen:
+            seen.add(q)
+            unique_questions.append(q)
+    
+    # Return top 5 (priority: element first, then timing, then ten gods)
+    return unique_questions[:5]
 
 
 def generate_reflection_prompts(

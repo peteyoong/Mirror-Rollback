@@ -930,21 +930,33 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
     
     return (
       <View style={[styles.contextualPromptsBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[styles.contextualPromptsTitle, { color: theme.text }]}>Questions You Might Have</Text>
+        <View style={styles.contextualPromptsHeader}>
+          <Text style={[styles.contextualPromptsTitle, { color: theme.text }]}>Questions You Might Have</Text>
+          <Text style={[styles.contextualPromptsSubtitle, { color: theme.textTertiary }]}>
+            Tap to explore with Mirror
+          </Text>
+        </View>
         <View style={styles.contextualPromptsList}>
-          {contextual_prompts.slice(0, 4).map((prompt, idx) => (
-            <InlineReflectButton
-              key={idx}
-              source={{
-                lens: 'bazi',
-                type: 'contextual',
-                name: 'BaZi Deep Dive',
-                value: `Day Master: ${data.day_master.stem_pinyin} ${data.day_master.element}`,
-                id: `bazi_contextual_${idx}`,
-              }}
-              prompt={prompt}
-              variant="compact"
-            />
+          {contextual_prompts.slice(0, 5).map((prompt, idx) => (
+            <View key={idx} style={[styles.questionButtonWrapper, { backgroundColor: theme.background, borderColor: theme.border }]}>
+              <View style={styles.questionIcon}>
+                <Text style={styles.questionEmoji}>💬</Text>
+              </View>
+              <View style={styles.questionButtonInner}>
+                <InlineReflectButton
+                  source={{
+                    lens: 'bazi',
+                    type: 'contextual_question',
+                    name: 'BaZi Question',
+                    value: `Day Master: ${data.day_master.stem_pinyin} ${data.day_master.element}, Ten Gods: ${data.deep_dive?.ten_gods_detailed?.map(g => g.name).join(', ')}`,
+                    id: `bazi_question_${idx}`,
+                  }}
+                  prompt={prompt}
+                  variant="custom"
+                  customLabel={prompt}
+                />
+              </View>
+            </View>
           ))}
         </View>
       </View>
@@ -2343,5 +2355,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 8,
     fontStyle: 'italic',
+  },
+
+  // Contextual Prompts - Question Buttons
+  contextualPromptsHeader: {
+    marginBottom: 14,
+  },
+  contextualPromptsSubtitle: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  questionButtonWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 10,
+  },
+  questionIcon: {
+    marginRight: 12,
+  },
+  questionEmoji: {
+    fontSize: 18,
+  },
+  questionButtonInner: {
+    flex: 1,
   },
 });

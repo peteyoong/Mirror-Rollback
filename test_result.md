@@ -4158,6 +4158,73 @@ backend:
           
           CONCLUSION: BaZi Engagement & Adaptive Intelligence APIs are fully functional and working correctly. All test scenarios from the review request completed successfully with perfect data validation, response structure verification, and backend integration confirmation. The feedback system properly stores user ratings and the adaptive content system successfully personalizes responses based on feedback patterns.
 
+  - task: "BaZi Upgraded Contextual Questions API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          BAZI UPGRADED CONTEXTUAL QUESTIONS API TESTING COMPLETE ✅
+          
+          🧪 COMPREHENSIVE TESTING PERFORMED (6/6 TESTS PASSED):
+          
+          **Test Endpoint:** GET /api/bazi/{user_id}/adaptive
+          **Test User ID:** 6971c81f2b40fd5ef501d375 (Metal element, strong Day Master, Resource Ten God user)
+          **Response Time:** 0.25s (excellent performance)
+          
+          🔍 ALL UPGRADE REQUIREMENTS VERIFIED:
+          
+          1. ✅ **Maximum 5 questions requirement**:
+             - Question count: 5/5 (exactly at maximum limit)
+             - All questions returned as expected
+          
+          2. ✅ **Emotionally relevant & confronting language**:
+             - 3/5 questions contain confronting patterns ("Why do I keep delaying...", "Why is it so hard for me to...", "What am I avoiding...")
+             - No generic self-help language detected
+             - Questions probe real internal struggles
+          
+          3. ✅ **No generic self-help phrases**:
+             - Zero violations of bad patterns ("How can I improve", "What are my strengths", etc.)
+             - All questions avoid generic language successfully
+          
+          4. ✅ **At least 1 timing-related question**:
+             - Found 1 timing question: "Why do I still doubt myself when things are flowing?"
+             - References current timing context appropriately
+          
+          5. ✅ **Metal element / strong Day Master specificity**:
+             - User profile confirmed: Metal element, strong strength (matches expected)
+             - 2/5 questions contain Metal-specific themes: "delaying decisions", "good enough"
+             - Questions align with Metal element characteristics (precision, standards, criticism)
+          
+          6. ✅ **Quality matches required standard**:
+             - Found exact good example: "Why do I keep delaying decisions even when I already know the answer?"
+             - 3/5 questions are deep 'Why' questions with meaningful confrontation
+             - All questions feel slightly uncomfortable and emotionally relevant as required
+          
+          📝 **ALL 5 CONTEXTUAL QUESTIONS RETURNED:**
+          1. "Why do I keep delaying decisions even when I already know the answer?" (GOOD example match)
+          2. "Why is it so hard for me to let things be 'good enough'?" (Metal-specific perfectionism)
+          3. "What am I avoiding by staying in analysis mode?" (Resource Ten God specific)
+          4. "Why do I measure my worth by what I produce?" (Ten God behavioral pattern)
+          5. "Why do I still doubt myself when things are flowing?" (Timing-related question)
+          
+          🔧 BACKEND INTEGRATION VERIFIED:
+          - Endpoint accessible via public URL (https://home-screen-overhaul.preview.emergentagent.com/api)
+          - No HTTP errors or timeouts
+          - Response times excellent (0.25s)
+          - Backend logs confirm successful processing
+          - JSON structure complete and valid
+          - All adaptive content fields present and properly populated
+          
+          📊 TEST RESULTS: 6/6 TESTS PASSED (100% SUCCESS RATE)
+          
+          CONCLUSION: BaZi upgraded contextual questions API is fully functional and working correctly. All quality requirements from the review request are met including maximum 5 questions, emotionally confronting language, no generic phrases, timing-related questions, and Metal element specificity. The questions successfully probe deeper patterns and avoid generic self-help language as specified.
+
 agent_communication:
   - agent: "testing"
     message: |
@@ -4191,3 +4258,40 @@ agent_communication:
       **Backend Integration**: Feedback storage, retrieval, and adaptive content generation all working correctly
       
       🎉 **CONCLUSION**: All BaZi Engagement & Adaptive Intelligence APIs are fully functional and meet 100% of the review request specifications. The feedback system properly captures user preferences and the adaptive system successfully personalizes content based on those preferences.
+
+  - agent: "testing"
+    message: |
+      BAZI UPGRADED CONTEXTUAL QUESTIONS API TESTING COMPLETE ✅
+      
+      Successfully tested the upgraded contextual questions API for BaZi as requested in the review:
+      
+      🎯 REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+      
+      **Test Endpoint**: GET /api/bazi/{user_id}/adaptive ✅
+      **Test User**: 6971c81f2b40fd5ef501d375 (Metal element / strong Day Master / Resource Ten God user)
+      
+      **All Quality Requirements Met:**
+      
+      ✅ **Maximum 5 questions**: Exactly 5 questions returned (within limit)
+      ✅ **Emotionally relevant**: 3/5 questions contain confronting language patterns
+      ✅ **At least 1 timing-related**: Found "Why do I still doubt myself when things are flowing?"
+      ✅ **NO generic phrases**: Zero violations of "How can I improve" or "What are my strengths" patterns
+      ✅ **DOES contain confronting phrases**: "Why do I keep delaying...", "Why is it so hard for me to...", "What am I avoiding..."
+      ✅ **Metal element specificity**: Questions include Metal themes like "delaying decisions" and "good enough"
+      
+      **Quality Standard Verification:**
+      ✅ Found exact GOOD example: "Why do I keep delaying decisions even when I already know the answer?"
+      ✅ All questions avoid BAD patterns like "How can I improve my decision making?"
+      ✅ 3/5 questions are deep 'Why' questions that probe meaningful patterns
+      ✅ Questions feel appropriately uncomfortable and emotionally relevant as required
+      
+      **All 5 Questions Returned:**
+      1. "Why do I keep delaying decisions even when I already know the answer?" (Perfect example match)
+      2. "Why is it so hard for me to let things be 'good enough'?" (Metal perfectionism)
+      3. "What am I avoiding by staying in analysis mode?" (Resource Ten God specific)
+      4. "Why do I measure my worth by what I produce?" (Behavioral confrontation)
+      5. "Why do I still doubt myself when things are flowing?" (Timing-related)
+      
+      **Performance**: 0.25s response time, no errors, all backend integration working perfectly
+      
+      🎉 **CONCLUSION**: BaZi upgraded contextual questions API fully meets all quality requirements. Questions are emotionally confronting, element-specific, timing-aware, and completely avoid generic self-help language as specified in the upgrade requirements.
