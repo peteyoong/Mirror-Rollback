@@ -709,10 +709,10 @@ interface HumanDesignData {
 
 interface Props {
   userId: string;
-  onOpenChat: () => void;
+  onOpenChat: (initialMessage?: string) => void;
 }
 
-type TabType = 'summary' | 'today' | 'structure' | 'meaning' | 'deep_dive';
+type TabType = 'overview' | 'today' | 'deep_dive';
 
 export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Theme support
@@ -722,7 +722,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const { isInForumContext, forumId, forumName, setPrefilledSource } = useForumContext();
   const router = useRouter();
   
-  const [activeTab, setActiveTab] = useState<TabType>('summary');
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [data, setData] = useState<HumanDesignData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -756,9 +756,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     loadTabData(activeTab);
   }, [activeTab, userId]);
 
-  // Load centers definition for bodygraph highlighting when Structure tab is active
+  // Load centers definition for bodygraph highlighting when Deep Dive tab is active
   useEffect(() => {
-    if (activeTab === 'structure') {
+    if (activeTab === 'deep_dive') {
       loadCentersDefinition();
     }
   }, [activeTab, userId]);
@@ -863,11 +863,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     try {
       // Overview uses fast deterministic endpoint (no LLM)
       // Today uses LLM-generated endpoint
-      // Structure uses deep-dive for mechanics data
-      // Meaning tab loads data separately via GeneKeysView component
+      // Deep Dive uses deep-dive for mechanics data
       const endpoint = tab === 'today' 
         ? `/human-design/today/${userId}`
-        : (tab === 'structure')
+        : (tab === 'deep_dive')
         ? `/human-design/deep-dive/${userId}`
         : `/human-design/mechanics/${userId}`;  // Fast endpoint for Overview
 
@@ -891,23 +890,30 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     }
   };
 
-  // Tab descriptions for user clarity - integrated into tab bar
-  const TAB_DESCRIPTIONS: Record<TabType, string> = {
-    summary: "Quick orientation to your chart",
-    today: "Today's transit interactions",
-    structure: "Human Design mechanics",
-    meaning: "Gene Keys interpretation",
-    deep_dive: "Explore your mechanics in depth"
+  // Tab blurbs for each tab
+  const TAB_BLURBS: Record<TabType, { title: string; blurb: string }> = {
+    overview: {
+      title: "Your Core Pattern",
+      blurb: "How your energy, decisions, and interactions naturally operate.",
+    },
+    today: {
+      title: "What's Active Now",
+      blurb: "Where to act, where to wait, and what to notice today.",
+    },
+    deep_dive: {
+      title: "Deeper Mechanics",
+      blurb: "The structures and patterns that shape your experience.",
+    },
   };
 
   const renderTabs = () => (
     <View style={[styles.tabSection, { borderBottomColor: theme.border }]}>
       <View style={styles.tabContainer}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
-          onPress={() => setActiveTab('summary')}
+          style={[styles.tab, activeTab === 'overview' && styles.activeTab]}
+          onPress={() => setActiveTab('overview')}
         >
-          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'summary' && { color: theme.text }]}>
+          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'overview' && { color: theme.text }]}>
             Overview
           </Text>
         </TouchableOpacity>
@@ -920,32 +926,113 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'structure' && styles.activeTab]}
-          onPress={() => setActiveTab('structure')}
-        >
-          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'structure' && { color: theme.text }]}>
-            Structure
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'meaning' && styles.activeTab]}
-          onPress={() => setActiveTab('meaning')}
-        >
-          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'meaning' && { color: theme.text }]}>
-            Meaning
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
           style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
           onPress={() => setActiveTab('deep_dive')}
         >
           <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'deep_dive' && { color: theme.text }]}>
-            Explore
+            Deep Dive
           </Text>
         </TouchableOpacity>
       </View>
     </View>
   );
+
+  const renderTabBlurb = () => {
+    const content = TAB_BLURBS[activeTab];
+    return (
+      <View style={styles.tabBlurbContainer}>
+        <Text style={[styles.tabBlurbTitle, { color: theme.text }]}>{content.title}</Text>
+        <Text style={[styles.tabBlurbText, { color: theme.textTertiary }]}>{content.blurb}</Text>
+      </View>
+    );
+  };
+
+  // Default prompts per tab for Ask CTA
+  const getDefaultPromptForTab = (tab: TabType): string => {
+    switch (tab) {
+      case 'overview':
+        return "What stands out most in my Human Design?";
+      case 'today':
+        return "What is my design asking me to pay attention to right now?";
+      case 'deep_dive':
+        return "What deeper Human Design pattern matters most for me to understand?";
+      default:
+        return "Tell me about my Human Design.";
+    }
+  };
+
+  // Suggested questions for each tab
+  const getSuggestedQuestions = (tab: TabType): string[] => {
+    switch (tab) {
+      case 'overview':
+        return [
+          "How should I approach major decisions?",
+          "Why do I feel drained in certain situations?",
+          "What's my natural way of engaging with others?",
+        ];
+      case 'today':
+        return [
+          "What energy is most active for me today?",
+          "Where should I be patient right now?",
+          "What am I being asked to notice?",
+        ];
+      case 'deep_dive':
+        return [
+          "What does my profile reveal about how I learn?",
+          "How do my centers work together?",
+          "What patterns show up in my relationships?",
+        ];
+      default:
+        return [];
+    }
+  };
+
+  // Unified Ask Section (matches BaZi pattern)
+  const renderUnifiedAskSection = (tab: TabType) => {
+    const suggestedQuestions = getSuggestedQuestions(tab);
+    
+    return (
+      <View style={[styles.unifiedAskSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {/* Primary CTA - Open-ended Ask */}
+        <TouchableOpacity
+          style={[styles.primaryAskButton, { backgroundColor: theme.accent }]}
+          onPress={() => onOpenChat()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="chatbubble-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.primaryAskButtonText}>Ask About This Lens</Text>
+        </TouchableOpacity>
+        
+        <Text style={[styles.primaryAskSubtext, { color: theme.textTertiary }]}>
+          Ask anything about your design, your decisions, or how this shows up in your life.
+        </Text>
+        
+        {/* Suggested Questions - Optional Starters */}
+        {suggestedQuestions.length > 0 && (
+          <View style={styles.suggestedQuestionsSection}>
+            <Text style={[styles.suggestedQuestionsLabel, { color: theme.textTertiary }]}>
+              SUGGESTED QUESTIONS
+            </Text>
+            <View style={styles.suggestedQuestionsList}>
+              {suggestedQuestions.map((question, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={[styles.suggestedQuestionChip, { backgroundColor: theme.background, borderColor: theme.border }]}
+                  onPress={() => onOpenChat(question)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.suggestedQuestionText, { color: theme.text }]} numberOfLines={2}>
+                    {question}
+                  </Text>
+                  <Ionicons name="arrow-forward" size={14} color={theme.textTertiary} style={{ marginLeft: 8 }} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  };
 
   // Removed separate renderTabDescription - now integrated into renderTabs
 
@@ -1611,16 +1698,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {TYPE_ENERGY_PATTERNS[hdType] || TYPE_ENERGY_PATTERNS['Generator']}
           </Text>
-          <InlineReflectButton
-            source={{
-              lens: 'human_design',
-              type: 'type',
-              name: 'Energy Type',
-              value: hdType,
-              id: 'hd_type',
-            }}
-            prompt={TYPE_ENERGY_PATTERNS[hdType] || 'Your unique energy pattern.'}
-          />
         </View>
 
         {/* How You Engage Card (Strategy) */}
@@ -1629,16 +1706,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {strategyTranslation}
           </Text>
-          <InlineReflectButton
-            source={{
-              lens: 'human_design',
-              type: 'strategy',
-              name: 'Strategy',
-              value: data?.core_mechanics?.strategy || '',
-              id: 'hd_strategy',
-            }}
-            prompt={strategyTranslation}
-          />
         </View>
 
         {/* How Clarity Comes Card (Authority) */}
@@ -1648,16 +1715,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
             {authorityData.expanded}
           </Text>
-          <InlineReflectButton
-            source={{
-              lens: 'human_design',
-              type: 'authority',
-              name: 'Authority',
-              value: data?.core_mechanics?.authority || '',
-              id: 'hd_authority',
-            }}
-            prompt={authorityData.expanded}
-          />
         </View>
 
         {/* Where This Helps Card */}
@@ -1703,49 +1760,380 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
+  // TODAY TAB - Simplified today view with practical guidance
+  const renderTodayTab = () => {
+    if (!data) return null;
+    
+    const hdType = data.core_mechanics?.type || 'Unknown';
+    
+    // Get type-specific today guidance
+    const todayGuidance = {
+      'Generator': {
+        active: "Your sacral energy is looking for something to respond to. Notice what lights up your gut today.",
+        act: "Respond to what genuinely excites you. Your 'yes' or 'no' lives in your body, not your mind.",
+        wait: "Avoid initiating from mental ideas. Wait for something external to respond to.",
+        avoid: "Don't force yourself through tasks that drain your energy. Frustration is a signal, not a failure."
+      },
+      'Manifesting Generator': {
+        active: "Your multi-passionate energy wants to move. Notice what pulls your attention today.",
+        act: "Respond first, then move quickly. Inform others before sudden pivots.",
+        wait: "Wait for genuine response before committing. Speed comes after clarity.",
+        avoid: "Don't feel guilty about changing direction. Efficiency sometimes looks like inconsistency."
+      },
+      'Projector': {
+        active: "Your wisdom is sharp today. Notice where you're being genuinely invited to contribute.",
+        act: "Wait for recognition and invitation. Your guidance lands when it's truly wanted.",
+        wait: "Hold back unsolicited advice. Bitterness is a signal that you're giving where you weren't asked.",
+        avoid: "Don't try to keep up with Generator energy. Rest when needed."
+      },
+      'Manifestor': {
+        active: "Your initiating energy is ready to move. Notice the urges that want expression.",
+        act: "Inform before acting. It's not asking permission—it's reducing resistance.",
+        wait: "After big initiations, rest. Your energy comes in bursts, not sustained flow.",
+        avoid: "Don't suppress your impact to please others. Peace comes from informed action, not withdrawal."
+      },
+      'Reflector': {
+        active: "You're sampling the energy around you. Notice what feels true versus what you're absorbing.",
+        act: "For major decisions, allow the full lunar cycle. Today, observe rather than conclude.",
+        wait: "Don't rush yourself. Your process needs time to reveal clarity.",
+        avoid: "Avoid environments that feel off. You're highly sensitive to your surroundings."
+      }
+    };
+    
+    const guidance = todayGuidance[hdType as keyof typeof todayGuidance] || todayGuidance['Generator'];
+    
+    return (
+      <>
+        {/* Active Theme */}
+        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>WHAT'S ACTIVE</Text>
+          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
+            {guidance.active}
+          </Text>
+        </View>
+        
+        {/* Practical Guidance */}
+        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>WHERE TO ACT</Text>
+          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
+            {guidance.act}
+          </Text>
+        </View>
+        
+        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>WHERE TO WAIT</Text>
+          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
+            {guidance.wait}
+          </Text>
+        </View>
+        
+        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>WHAT TO AVOID</Text>
+          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
+            {guidance.avoid}
+          </Text>
+        </View>
+        
+        {/* Growth Edge */}
+        {data.mirror_prompt && (
+          <View style={[styles.hdReflectionCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
+            <Text style={[styles.hdReflectionLabel, { color: theme.textTertiary }]}>TODAY'S EDGE</Text>
+            <Text style={[styles.hdReflectionText, { color: theme.text }]}>
+              "{data.mirror_prompt}"
+            </Text>
+          </View>
+        )}
+      </>
+    );
+  };
+
+  // DEEP DIVE TAB - Collapsible sections with mechanics, centers, gates, sequences
+  const renderDeepDiveTab = () => {
+    if (!data) return null;
+    
+    return (
+      <>
+        {/* Profile Summary */}
+        {data.core_mechanics?.profile && (
+          <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>YOUR PROFILE</Text>
+            <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
+              {data.core_mechanics.profile} - {PROFILE_SUMMARIES[data.core_mechanics.profile] || 'Your unique way of moving through life.'}
+            </Text>
+          </View>
+        )}
+        
+        {/* Body Graph Visual */}
+        {renderBodygraph()}
+        
+        {/* Core Mechanics (Collapsible) */}
+        {renderCollapsibleSection('Core Mechanics', 'mechanics', renderCoreMechanics())}
+        
+        {/* Centers (Collapsible) */}
+        {centersData && renderCollapsibleSection('Centers', 'centers', renderCentersSection())}
+        
+        {/* Gates (Collapsible) */}
+        {gatesData && renderCollapsibleSection('Gates', 'gates', renderGatesSection())}
+        
+        {/* Sequences (Integrated narrative) */}
+        {renderSequencesSection()}
+        
+        {/* AI Generated Deep Dive sections */}
+        {data.sections?.map((section, index) => renderSection(section, index))}
+      </>
+    );
+  };
+
+  // Profile summaries for Deep Dive
+  const PROFILE_SUMMARIES: Record<string, string> = {
+    '1/3': 'You learn through deep research followed by trial and error. Foundation and experience are your teachers.',
+    '1/4': 'You need solid foundations and close networks. Research first, then share through trusted connections.',
+    '2/4': 'You have natural talents others recognize. Wait for the call, then share with your network.',
+    '2/5': 'Your natural gifts attract projection. People see you as a solution before you do.',
+    '3/5': 'You learn through breaking things and being seen as someone who can fix them.',
+    '3/6': 'First you experiment, then observe, then model wisdom. Three distinct life phases.',
+    '4/6': 'Your network is your foundation. First you connect, then observe, then become a role model.',
+    '4/1': 'You share your research through your network. Foundation and community work together.',
+    '5/1': 'You attract projections of being a savior. Ground yourself in research.',
+    '5/2': 'Others see you as a problem-solver. You have natural talents you may not recognize.',
+    '6/2': 'You move through three phases while carrying natural talent. Role model with inherent gifts.',
+    '6/3': 'You experiment early, observe mid-life, then become a role model of wisdom.',
+  };
+
+  // Collapsible section wrapper
+  const renderCollapsibleSection = (title: string, key: string, content: React.ReactNode) => {
+    const isExpanded = expandedSection === key;
+    
+    return (
+      <View style={[styles.structureAccordion, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <TouchableOpacity
+          style={styles.structureAccordionHeader}
+          onPress={() => setExpandedSection(isExpanded ? null : key)}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.structureAccordionTitle, { color: theme.text }]}>{title}</Text>
+          <Text style={[styles.structureAccordionChevron, { color: theme.textTertiary }]}>
+            {isExpanded ? '▲' : '▼'}
+          </Text>
+        </TouchableOpacity>
+        {isExpanded && (
+          <View style={styles.structureAccordionContent}>
+            {content}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  // Body graph render
+  const renderBodygraph = () => {
+    return (
+      <View style={[styles.bodygraphCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary, marginBottom: 12 }]}>YOUR BODY GRAPH</Text>
+        <View style={styles.bodygraphVisual}>
+          {/* Row 1: Head */}
+          <TouchableOpacity onPress={() => handleBodygraphCenterTap('Head')} activeOpacity={0.7}>
+            <View style={[styles.bodygraphHead, centersDefinition['head'] 
+              ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+              : { borderColor: theme.border, borderWidth: 2 }]} />
+          </TouchableOpacity>
+          
+          {/* Row 2: Ajna */}
+          <TouchableOpacity onPress={() => handleBodygraphCenterTap('Ajna')} activeOpacity={0.7}>
+            <View style={[styles.bodygraphAjna, centersDefinition['ajna'] 
+              ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+              : { borderColor: theme.border, borderWidth: 2 }]} />
+          </TouchableOpacity>
+          
+          {/* Row 3: Throat */}
+          <TouchableOpacity onPress={() => handleBodygraphCenterTap('Throat')} activeOpacity={0.7}>
+            <View style={[styles.bodygraphThroat, centersDefinition['throat'] 
+              ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+              : { borderColor: theme.border, borderWidth: 2 }]} />
+          </TouchableOpacity>
+          
+          {/* Row 4: G/Identity */}
+          <TouchableOpacity onPress={() => handleBodygraphCenterTap('G')} activeOpacity={0.7}>
+            <View style={[styles.bodygraphG, centersDefinition['g'] 
+              ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+              : { borderColor: theme.border, borderWidth: 2 }]} />
+          </TouchableOpacity>
+          
+          {/* Row 5: Heart + Spleen + Solar Plexus */}
+          <View style={styles.bodygraphMiddleRow}>
+            <TouchableOpacity onPress={() => handleBodygraphCenterTap('Heart')} activeOpacity={0.7}>
+              <View style={[styles.bodygraphHeart, centersDefinition['heart'] 
+                ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+                : { borderColor: theme.border, borderWidth: 2 }]} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleBodygraphCenterTap('Spleen')} activeOpacity={0.7}>
+              <View style={[styles.bodygraphSpleen, centersDefinition['spleen'] 
+                ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+                : { borderColor: theme.border, borderWidth: 2 }]} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleBodygraphCenterTap('Solar Plexus')} activeOpacity={0.7}>
+              <View style={[styles.bodygraphSolarPlexus, centersDefinition['solar_plexus'] 
+                ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+                : { borderColor: theme.border, borderWidth: 2 }]} />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Row 6: Sacral */}
+          <TouchableOpacity onPress={() => handleBodygraphCenterTap('Sacral')} activeOpacity={0.7}>
+            <View style={[styles.bodygraphSacral, centersDefinition['sacral'] 
+              ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+              : { borderColor: theme.border, borderWidth: 2 }]} />
+          </TouchableOpacity>
+          
+          {/* Row 7: Root */}
+          <TouchableOpacity onPress={() => handleBodygraphCenterTap('Root')} activeOpacity={0.7}>
+            <View style={[styles.bodygraphRoot, centersDefinition['root'] 
+              ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
+              : { borderColor: theme.border, borderWidth: 2 }]} />
+          </TouchableOpacity>
+        </View>
+        <Text style={[styles.bodygraphHint, { color: theme.textTertiary }]}>
+          Tap a center to learn more
+        </Text>
+      </View>
+    );
+  };
+
+  // Centers section for deep dive
+  const renderCentersSection = () => {
+    if (!centersData?.centers) return null;
+    
+    return (
+      <View style={{ gap: 12 }}>
+        {centersData.centers.map((center: any, idx: number) => (
+          <View key={idx} style={[styles.centerCard, { backgroundColor: theme.background, borderColor: theme.border }]}>
+            <View style={styles.centerHeader}>
+              <Text style={[styles.centerName, { color: theme.text }]}>{center.name}</Text>
+              <Text style={[styles.centerStatus, { 
+                color: center.defined ? '#FFD700' : theme.textTertiary 
+              }]}>
+                {center.defined ? 'Defined' : 'Undefined'}
+              </Text>
+            </View>
+            <Text style={[styles.centerDescription, { color: theme.textSecondary }]}>
+              {center.description || `The ${center.name} center governs ${center.theme || 'specific aspects of your experience'}.`}
+            </Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  // Gates section for deep dive
+  const renderGatesSection = () => {
+    if (!gatesData?.gates) return null;
+    
+    return (
+      <View style={{ gap: 12 }}>
+        {gatesData.gates.slice(0, 10).map((gate: any, idx: number) => (
+          <View key={idx} style={[styles.gateCard, { backgroundColor: theme.background, borderColor: theme.border }]}>
+            <View style={styles.gateHeader}>
+              <Text style={[styles.gateName, { color: theme.accent }]}>Gate {gate.gate}</Text>
+              <Text style={[styles.gateCenter, { color: theme.textTertiary }]}>{gate.center}</Text>
+            </View>
+            <Text style={[styles.gateTheme, { color: theme.text }]}>{gate.name || gate.theme}</Text>
+            <Text style={[styles.gateDescription, { color: theme.textSecondary }]}>
+              {gate.behavioral_description || gate.description || `You naturally express Gate ${gate.gate} energy.`}
+            </Text>
+          </View>
+        ))}
+        {gatesData.gates.length > 10 && (
+          <Text style={[styles.moreText, { color: theme.textTertiary }]}>
+            + {gatesData.gates.length - 10} more gates
+          </Text>
+        )}
+      </View>
+    );
+  };
+
+  // Sequences section (unified narrative)
+  const renderSequencesSection = () => {
+    if (!activationSequence && !venusSequence && !pearlSequence) return null;
+    
+    return (
+      <View style={[styles.structureAccordion, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <TouchableOpacity
+          style={styles.structureAccordionHeader}
+          onPress={() => setExpandedSection(expandedSection === 'sequences' ? null : 'sequences')}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.structureAccordionTitle, { color: theme.text }]}>Your Life Sequences</Text>
+          <Text style={[styles.structureAccordionChevron, { color: theme.textTertiary }]}>
+            {expandedSection === 'sequences' ? '▲' : '▼'}
+          </Text>
+        </TouchableOpacity>
+        {expandedSection === 'sequences' && (
+          <View style={styles.structureAccordionContent}>
+            <Text style={[styles.sequencesIntro, { color: theme.textSecondary }]}>
+              These sequences reveal how your life patterns unfold across different domains.
+            </Text>
+            
+            {/* Activation Sequence - Core Life Theme */}
+            {activationSequence && (
+              <View style={[styles.sequenceBlock, { borderLeftColor: theme.accent }]}>
+                <Text style={[styles.sequenceTitle, { color: theme.text }]}>Core Life Theme</Text>
+                <Text style={[styles.sequenceSubtitle, { color: theme.textTertiary }]}>What you're here to develop</Text>
+                {activationSequence.purpose && (
+                  <Text style={[styles.sequenceBody, { color: theme.textSecondary }]}>
+                    {activationSequence.purpose.interpretation || `Gate ${activationSequence.purpose.gate} shapes your life purpose.`}
+                  </Text>
+                )}
+              </View>
+            )}
+            
+            {/* Venus Sequence - Relationship Pattern */}
+            {venusSequence && (
+              <View style={[styles.sequenceBlock, { borderLeftColor: '#FF69B4' }]}>
+                <Text style={[styles.sequenceTitle, { color: theme.text }]}>Relationship Pattern</Text>
+                <Text style={[styles.sequenceSubtitle, { color: theme.textTertiary }]}>Emotional patterns and dynamics</Text>
+                {venusSequence.attraction && (
+                  <Text style={[styles.sequenceBody, { color: theme.textSecondary }]}>
+                    {venusSequence.attraction.interpretation || `Gate ${venusSequence.attraction.gate} influences how you attract and relate.`}
+                  </Text>
+                )}
+              </View>
+            )}
+            
+            {/* Pearl Sequence - Work & Contribution */}
+            {pearlSequence && (
+              <View style={[styles.sequenceBlock, { borderLeftColor: '#90EE90' }]}>
+                <Text style={[styles.sequenceTitle, { color: theme.text }]}>Work & Contribution</Text>
+                <Text style={[styles.sequenceSubtitle, { color: theme.textTertiary }]}>How value and prosperity flow</Text>
+                {pearlSequence.vocation && (
+                  <Text style={[styles.sequenceBody, { color: theme.textSecondary }]}>
+                    {pearlSequence.vocation.interpretation || `Gate ${pearlSequence.vocation.gate} defines your natural vocation.`}
+                  </Text>
+                )}
+              </View>
+            )}
+          </View>
+        )}
+      </View>
+    );
+  };
+
   const renderSection = (section: HumanDesignSection, index: number) => {
-    const isExpanded = expandedSection === section.label || activeTab !== 'deep_dive';
+    const isExpanded = expandedSection === section.label;
 
     return (
       <View key={index} style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <TouchableOpacity
           style={styles.sectionHeader}
-          onPress={() => {
-            if (activeTab === 'deep_dive') {
-              setExpandedSection(expandedSection === section.label ? null : section.label);
-            }
-          }}
-          activeOpacity={activeTab === 'deep_dive' ? 0.7 : 1}
+          onPress={() => setExpandedSection(isExpanded ? null : section.label)}
+          activeOpacity={0.7}
         >
           <Text style={[styles.sectionLabel, { color: theme.text }]}>{section.label}</Text>
-          {activeTab === 'deep_dive' && (
-            <Text style={{ fontSize: 16, color: theme.textTertiary }}>
-              {isExpanded ? '▲' : '▼'}
-            </Text>
-          )}
+          <Text style={{ fontSize: 16, color: theme.textTertiary }}>
+            {isExpanded ? '▲' : '▼'}
+          </Text>
         </TouchableOpacity>
         {isExpanded && (
-          <>
-            <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>{section.body}</Text>
-            {/* Debug: Show section-level metrics */}
-            <SectionDebug label={section.label} body={section.body} index={index} />
-            
-            {/* Reflect Button for deep dive sections */}
-            {activeTab === 'deep_dive' && (
-              <View style={styles.sectionReflectContainer}>
-                <InlineReflectButton
-                  source={{
-                    lens: 'human_design',
-                    type: `deep_dive_${section.label.toLowerCase().replace(/\s+/g, '_')}`,
-                    name: section.label,
-                    value: data?.core_mechanics?.type || 'Human Design',
-                    id: `hd_deep_dive_${section.label.toLowerCase().replace(/\s+/g, '_')}`,
-                  }}
-                  prompt={section.body?.slice(0, 200) + '...'}
-                />
-              </View>
-            )}
-          </>
+          <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>{section.body}</Text>
         )}
       </View>
     );
@@ -1785,234 +2173,37 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         ) : data ? (
           <>
-            {/* OVERVIEW TAB - New reflective summary */}
-            {activeTab === 'summary' && renderOverviewTab()}
+            {/* Tab Blurb - Show at top of each tab */}
+            {renderTabBlurb()}
+            
+            {/* OVERVIEW TAB */}
+            {activeTab === 'overview' && (
+              <>
+                {renderOverviewTab()}
+                {renderUnifiedAskSection('overview')}
+              </>
+            )}
 
-            {/* TODAY TAB - Keep existing */}
+            {/* TODAY TAB */}
             {activeTab === 'today' && (
               <>
-                <Text style={[styles.title, { color: theme.text }]}>{data.title || 'Today\'s Human Design'}</Text>
-                {data.date && <Text style={[styles.dateLabel, { color: theme.textTertiary }]}>{data.date}</Text>}
-                {data.sections?.map((section, index) => renderSection(section, index))}
-                {data.mirror_prompt && (
-                  <View style={[styles.mirrorPromptCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
-                    <Text style={[styles.mirrorPromptText, { color: theme.text }]}>{data.mirror_prompt}</Text>
-                  </View>
-                )}
+                {renderTodayTab()}
+                {renderUnifiedAskSection('today')}
               </>
             )}
 
-            {/* STRUCTURE TAB - Human Design mechanics in clean accordions */}
-            {activeTab === 'structure' && (
-              <>
-                <Text style={[styles.title, { color: theme.text }]}>Your Design Structure</Text>
-                <Text style={[styles.structureSubtitle, { color: theme.textTertiary }]}>
-                  The mechanical blueprint of your energy
-                </Text>
-                
-                {/* Section 1: Core Mechanics - Always expanded */}
-                {renderCoreMechanics()}
-                
-                {/* Bodygraph Visual - Interactive with correct highlighting */}
-                <View style={[styles.bodygraphCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                  <View style={styles.bodygraphVisual}>
-                    {/* Row 1: Head */}
-                    <TouchableOpacity 
-                      onPress={() => handleBodygraphCenterTap('Head')}
-                      activeOpacity={0.7}
-                    >
-                      <View style={[
-                        styles.bodygraphHead, 
-                        centersDefinition['head'] 
-                          ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
-                          : { borderColor: theme.border, borderWidth: 2 }
-                      ]} />
-                    </TouchableOpacity>
-                    
-                    {/* Row 2: Ajna */}
-                    <TouchableOpacity 
-                      onPress={() => handleBodygraphCenterTap('Ajna')}
-                      activeOpacity={0.7}
-                    >
-                      <View style={[
-                        styles.bodygraphAjna, 
-                        centersDefinition['ajna'] 
-                          ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
-                          : { borderColor: theme.border, borderWidth: 2 }
-                      ]} />
-                    </TouchableOpacity>
-                    
-                    {/* Row 3: Throat */}
-                    <TouchableOpacity 
-                      onPress={() => handleBodygraphCenterTap('Throat')}
-                      activeOpacity={0.7}
-                    >
-                      <View style={[
-                        styles.bodygraphThroat, 
-                        centersDefinition['throat'] 
-                          ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
-                          : { borderColor: theme.border, borderWidth: 2 }
-                      ]} />
-                    </TouchableOpacity>
-                    
-                    {/* Row 4: G Center (Identity) */}
-                    <TouchableOpacity 
-                      onPress={() => handleBodygraphCenterTap('G')}
-                      activeOpacity={0.7}
-                    >
-                      <View style={[
-                        styles.bodygraphGCenter, 
-                        centersDefinition['g'] || centersDefinition['identity'] || centersDefinition['g center']
-                          ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
-                          : { borderColor: theme.border, borderWidth: 2 }
-                      ]} />
-                    </TouchableOpacity>
-                    
-                    {/* Row 5: Heart, Spleen, Solar Plexus */}
-                    <View style={styles.bodygraphMiddle}>
-                      <TouchableOpacity 
-                        onPress={() => handleBodygraphCenterTap('Heart')}
-                        activeOpacity={0.7}
-                      >
-                        <View style={[
-                          styles.bodygraphHeart, 
-                          centersDefinition['heart'] || centersDefinition['ego'] || centersDefinition['heart / ego']
-                            ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
-                            : { borderColor: theme.border, borderWidth: 2 }
-                        ]} />
-                      </TouchableOpacity>
-                      <TouchableOpacity 
-                        onPress={() => handleBodygraphCenterTap('Spleen')}
-                        activeOpacity={0.7}
-                      >
-                        <View style={[
-                          styles.bodygraphSpleen, 
-                          centersDefinition['spleen'] 
-                            ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
-                            : { borderColor: theme.border, borderWidth: 2 }
-                        ]} />
-                      </TouchableOpacity>
-                      <TouchableOpacity 
-                        onPress={() => handleBodygraphCenterTap('Solar Plexus')}
-                        activeOpacity={0.7}
-                      >
-                        <View style={[
-                          styles.bodygraphSolarPlexus, 
-                          centersDefinition['solar plexus'] 
-                            ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
-                            : { borderColor: theme.border, borderWidth: 2 }
-                        ]} />
-                      </TouchableOpacity>
-                    </View>
-                    
-                    {/* Row 6: Sacral */}
-                    <TouchableOpacity 
-                      onPress={() => handleBodygraphCenterTap('Sacral')}
-                      activeOpacity={0.7}
-                    >
-                      <View style={[
-                        styles.bodygraphSacral, 
-                        centersDefinition['sacral'] 
-                          ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
-                          : { borderColor: theme.border, borderWidth: 2 }
-                      ]} />
-                    </TouchableOpacity>
-                    
-                    {/* Row 7: Root */}
-                    <TouchableOpacity 
-                      onPress={() => handleBodygraphCenterTap('Root')}
-                      activeOpacity={0.7}
-                    >
-                      <View style={[
-                        styles.bodygraphRoot, 
-                        centersDefinition['root'] 
-                          ? { backgroundColor: 'rgba(255, 215, 0, 0.4)', borderColor: '#FFD700', borderWidth: 3 }
-                          : { borderColor: theme.border, borderWidth: 2 }
-                      ]} />
-                    </TouchableOpacity>
-                  </View>
-                  <Text style={[styles.bodygraphCaption, { color: theme.textTertiary }]}>
-                    Tap a center to explore • Defined centers (filled) have consistent energy
-                  </Text>
-                </View>
-                
-                {/* Section 2: Centers Accordion */}
-                <CentersView userId={userId} ref={centersViewRef} />
-                
-                {/* Section 3: Defined Gates Accordion */}
-                <DefinedGatesView userId={userId} />
-              </>
-            )}
-
-            {/* MEANING TAB - Gene Keys interpretation */}
-            {activeTab === 'meaning' && (
-              <GeneKeysView userId={userId} />
-            )}
-
-            {/* DEEP DIVE TAB - Expandable accordion sections with detailed content */}
+            {/* DEEP DIVE TAB */}
             {activeTab === 'deep_dive' && (
               <>
-                <Text style={[styles.title, { color: theme.text }]}>Deep Dive</Text>
-                <Text style={[styles.structureSubtitle, { color: theme.textTertiary }]}>
-                  Explore your mechanics
-                </Text>
-                
-                {/* Type Accordion */}
-                {renderDeepDiveAccordion('type', 'Type', 'Your Energy Architecture', TYPE_STORIES[data?.core_mechanics?.type || 'Generator'])}
-                
-                {/* Strategy Accordion */}
-                {renderDeepDiveAccordion('strategy', 'Strategy', 'Your Engagement Pattern', getStrategyContent(data?.core_mechanics?.type))}
-                
-                {/* Authority Accordion */}
-                {renderDeepDiveAccordion('authority', 'Authority', 'Your Clarity Process', AUTHORITY_STORIES[data?.core_mechanics?.authority || 'Emotional'])}
-                
-                {/* Profile Accordion */}
-                {renderDeepDiveAccordion('profile', 'Profile', 'Your Learning Style', PROFILE_STORIES[data?.core_mechanics?.profile || '1/3'])}
-                
-                {/* Incarnation Cross Accordion */}
-                {renderDeepDiveAccordion('cross', 'Incarnation Cross', 'Your Life Direction', CROSS_STORIES[getCrossAngle(data?.core_mechanics?.incarnation_cross || '')])}
-                
-                {/* Definition & Centers Accordion */}
-                {renderDeepDiveAccordion('centers', 'Definition & Centers', 'Your Energy Configuration', getCentersContent())}
+                {renderDeepDiveTab()}
+                {renderUnifiedAskSection('deep_dive')}
               </>
             )}
-
-            {/* Ask Mirror Button - show on Today, Structure, and Deep Dive */}
-            {(activeTab === 'today' || activeTab === 'structure' || activeTab === 'deep_dive') && (
-              <TouchableOpacity
-                style={[styles.askMirrorButton, { backgroundColor: theme.text }]}
-                onPress={onOpenChat}
-              >
-                <Text style={{ fontSize: 16, color: theme.background }}>💬</Text>
-                <Text style={[styles.askMirrorText, { color: theme.background }]}>Ask about this lens</Text>
-              </TouchableOpacity>
-            )}
-
-            {/* Footer - only on Structure */}
-            {activeTab === 'structure' && (
-              <Text style={[styles.footer, { color: theme.textTertiary }]}>
-                A lens for understanding energy patterns, not a definition of who you are.
-              </Text>
-            )}
             
-            {/* Build Version Label - Always visible */}
+            {/* Build Version Label */}
             <Text style={[styles.buildVersion, { color: theme.textTertiary }]}>
               v{process.env.EXPO_PUBLIC_BUILD_VERSION || 'dev'} • {process.env.EXPO_PUBLIC_BUILD_ID || 'local'}
             </Text>
-            
-            {/* Version Debug Panel - only shows when DEBUG_MIRROR is enabled */}
-            {activeTab === 'structure' && renderVersionDebug()}
-            
-            {/* Debug Footer - only shows when DEBUG_MIRROR is enabled */}
-            {activeTab === 'structure' && data.sections && (
-              <DebugFooter 
-                lens="Human Design"
-                sections={data.sections}
-                source={data.debug_stamp?.source}
-                rawDataLength={rawDataLength}
-                debugStamp={data.debug_stamp}
-              />
-            )}
           </>
         ) : null}
       </ScrollView>
@@ -2022,7 +2213,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -3074,5 +3264,184 @@ const styles = StyleSheet.create({
   reflectInForumText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  
+  // Tab Blurb
+  tabBlurbContainer: {
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  tabBlurbTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  tabBlurbText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  
+  // Unified Ask Section
+  unifiedAskSection: {
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  primaryAskButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    gap: 10,
+  },
+  primaryAskButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  primaryAskSubtext: {
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 20,
+    lineHeight: 18,
+  },
+  suggestedQuestionsSection: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(128, 128, 128, 0.2)',
+    paddingTop: 20,
+  },
+  suggestedQuestionsLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    marginBottom: 12,
+    textTransform: 'uppercase',
+  },
+  suggestedQuestionsList: {
+    gap: 10,
+  },
+  suggestedQuestionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  suggestedQuestionText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  
+  // Today Tab Styles
+  hdReflectionCard: {
+    padding: 16,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    marginBottom: 16,
+  },
+  hdReflectionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  hdReflectionText: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontStyle: 'italic',
+  },
+  
+  // Deep Dive Styles
+  centerCard: {
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  centerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  centerName: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  centerStatus: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  centerDescription: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  gateCard: {
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  gateHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  gateName: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  gateCenter: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  gateTheme: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  gateDescription: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  moreText: {
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  sequencesIntro: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  sequenceBlock: {
+    paddingLeft: 14,
+    borderLeftWidth: 3,
+    marginBottom: 20,
+  },
+  sequenceTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  sequenceSubtitle: {
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  sequenceBody: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  bodygraphHint: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 12,
+    fontStyle: 'italic',
   },
 });

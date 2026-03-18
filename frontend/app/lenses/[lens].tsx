@@ -677,7 +677,7 @@ export default function LensDetail() {
         <>
           <HumanDesignLensView
             userId={user.id}
-            onOpenChat={() => setLensChatVisible(true)}
+            onOpenChat={handleOpenLensChat}
           />
           
           {/* Lens Chat Modal */}
@@ -685,16 +685,17 @@ export default function LensDetail() {
             visible={lensChatVisible}
             animationType="slide"
             presentationStyle="pageSheet"
-            onRequestClose={() => setLensChatVisible(false)}
+            onRequestClose={handleCloseLensChat}
           >
             <SafeAreaView style={styles.modalContainer} edges={['top', 'bottom']}>
               <MirrorChat
                 userId={user.id}
                 lens="human_design"
                 placeholder="Ask about your Human Design…"
-                headerTitle="Human Design Chat"
-                headerSubtitle="Lens-focused reflection"
-                onClose={() => setLensChatVisible(false)}
+                headerTitle="Ask About Human Design"
+                headerSubtitle="Human Design • Your Energy Pattern"
+                onClose={handleCloseLensChat}
+                initialMessage={lensChatInitialMessage}
               />
             </SafeAreaView>
           </Modal>
