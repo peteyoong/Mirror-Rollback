@@ -1905,6 +1905,21 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const dominantMessage = fieldContext.dominant_message;
     
     // ============================================
+    // DOMINANT SIGNAL - The ONE central theme
+    // ============================================
+    // All content should orbit this central idea
+    const dominantSignal = transitSignals?.dominant_signal || {
+      theme: '',
+      theme_id: '',
+      confidence: 0,
+      center_focus: null,
+      field_alignment: false,
+      today: '',
+      week: '',
+      month: '',
+    };
+    
+    // ============================================
     // LANGUAGE VARIATION HELPERS (Fix repeated phrases)
     // ============================================
     
@@ -1957,136 +1972,97 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     // SIGNAL-DERIVED CONTENT GENERATORS
     // ============================================
     
-    // Derive Today content from top signal (IMMEDIATE STATE FOCUS - shorter/sharper)
+    // ============================================
+    // TODAY/WEEK/MONTH - ALL ORBIT THE DOMINANT SIGNAL
+    // ============================================
+    
+    // Derive Today content - uses dominant signal for unity
     const getTodayFromSignals = () => {
+      // If dominant signal has today content, use it as primary
+      if (dominantSignal.today) {
+        const activeText = activation?.how_shows_up || dominantSignal.theme;
+        const bestUseText = dominantSignal.today;
+        const watchForText = friction?.how_shows_up || "Don't force what isn't ready.";
+        
+        return {
+          active: cleanLanguage(activeText),
+          bestUse: cleanLanguage(bestUseText),
+          watchFor: cleanLanguage(watchForText),
+          reflectionPrompt: `What about "${dominantSignal.theme.toLowerCase()}" showed up today?`
+        };
+      }
+      
+      // Fallback if no dominant signal
       if (!activation) {
         return getTypeFallbackToday(hdType, isEmotional);
       }
       
-      // TODAY is IMMEDIATE - what's present RIGHT NOW
-      // Use activation's how_shows_up but make it present-tense and sharp
-      let activeText = activation.how_shows_up || "Something different is present.";
-      
-      // Make it more immediate and human
-      activeText = activeText
-        .replace(/is pressing/g, 'is pressing right now')
-        .replace(/is amplified/g, 'feels amplified');
-      
-      // Best use should be immediate action
-      let bestUseText = activation.best_move || "Notice what's here.";
-      
-      // Watch for - get from friction but make it immediate
-      let watchForText = friction?.best_move || "Don't force anything.";
-      
-      // Field-aware modifications
-      if (clarityLevel === 'low') {
-        bestUseText = "Don't decide yet. " + bestUseText.replace(/^Don't /i, '');
-      }
-      
       return {
-        active: cleanLanguage(activeText),
-        bestUse: cleanLanguage(bestUseText),
-        watchFor: cleanLanguage(watchForText),
+        active: cleanLanguage(activation.how_shows_up || "Something is present."),
+        bestUse: cleanLanguage(activation.best_move || "Notice what's here."),
+        watchFor: cleanLanguage(friction?.how_shows_up || "Don't force anything."),
         reflectionPrompt: "What felt most present today?"
       };
     };
     
-    // Derive Week content from signals (REPEATING BEHAVIORAL PATTERN FOCUS)
-    // DIFFERENT from Today - focus on what KEEPS showing up over days
+    // Derive Week content - pattern expression of dominant signal
     const getWeekFromSignals = () => {
+      // If dominant signal has week content, use it
+      if (dominantSignal.week) {
+        const opportunityHelp = opportunity?.how_shows_up || "Follow what's actually pulling you.";
+        const frictionWatch = friction?.how_shows_up || "Forcing it will backfire.";
+        
+        return {
+          theme: cleanLanguage(dominantSignal.week),
+          helpsWhere: cleanLanguage(opportunityHelp),
+          frictionPattern: cleanLanguage(frictionWatch),
+          reflectionPrompt: "What pattern kept showing up this week?"
+        };
+      }
+      
+      // Fallback if no dominant signal
       if (!activation) {
         return getTypeFallbackWeek(hdType, isEmotional);
       }
       
-      const isTemporary = activation.label?.includes('Temporary');
-      const isReinforcing = activation.label?.includes('Reinforcing');
       const centerName = activation.center || 'this energy';
-      
-      // Week is about PATTERNS - what you'll notice repeatedly
-      // Must be DIFFERENT from Today's content
-      let weekTheme = '';
-      let helpsText = '';
-      let frictionText = '';
-      
-      if (isReinforcing) {
-        weekTheme = `Your ${centerName.toLowerCase()} pattern shows up consistently this week—watch what keeps returning.`;
-        helpsText = "Lean into the repetition. What comes back is worth attention.";
-        frictionText = "Pushing harder won't help—the pattern works on its own timing.";
-      } else if (isTemporary) {
-        weekTheme = "A visiting energy keeps appearing—notice it without making it permanent.";
-        helpsText = "Use the borrowed energy where it flows naturally.";
-        frictionText = "Mistaking intensity for identity is the trap here.";
-      } else {
-        // Default weekly pattern language
-        const centerPatterns: Record<string, string> = {
-          'Solar Plexus': "The same emotional wave keeps coming back—watch its rhythm.",
-          'Ajna': "The same thought keeps circling—notice what wants resolution.",
-          'Sacral': "Your energy pattern over days reveals what truly has pull.",
-          'Spleen': "An instinct keeps returning—it's trying to tell you something.",
-          'Heart': "The same drive or desire shows up daily—what's behind it?",
-          'Throat': "Words keep wanting to come out about the same thing.",
-          'G': "A question about direction keeps surfacing.",
-          'Root': "The same pressure keeps showing up—notice its source.",
-        };
-        weekTheme = centerPatterns[centerName] || "A pattern is forming—watch what repeats.";
-        helpsText = opportunity?.best_move 
-          ? cleanLanguage(opportunity.best_move)
-          : "Follow the pattern where it leads naturally.";
-        frictionText = "Forcing the pattern or ignoring it both backfire.";
-      }
-      
       return {
-        theme: cleanLanguage(weekTheme),
-        helpsWhere: cleanLanguage(helpsText),
-        frictionPattern: cleanLanguage(frictionText),
+        theme: `A ${centerName.toLowerCase()} pattern is forming—watch what keeps returning.`,
+        helpsWhere: cleanLanguage(opportunity?.best_move || "Follow the pattern where it leads."),
+        frictionPattern: cleanLanguage(friction?.how_shows_up || "Forcing it won't help."),
         reflectionPrompt: "What kept showing up this week?"
       };
     };
     
-    // Derive Month content from signals (IDENTITY/DEVELOPMENTAL ARC)
-    // DIFFERENT from Today and Week - focus on WHAT YOU'RE LEARNING
+    // Derive Month content - developmental arc of dominant signal
     const getMonthFromSignals = () => {
+      // If dominant signal has month content, use it
+      if (dominantSignal.month) {
+        const growthEdge = dominantSignal.center_focus 
+          ? `Trust the discomfort around your ${dominantSignal.center_focus.toLowerCase()}—it's part of the learning.`
+          : "Trust the discomfort—it's part of the refinement.";
+        const trapText = "This is a lesson, not a permanent state. Don't over-identify.";
+        
+        return {
+          theme: cleanLanguage(dominantSignal.month),
+          growthEdge: cleanLanguage(growthEdge),
+          commonTrap: cleanLanguage(trapText),
+          reflectionPrompt: `What is this month teaching you about ${dominantSignal.theme.toLowerCase()}?`
+        };
+      }
+      
+      // Fallback if no dominant signal
       if (!activation) {
         return getTypeFallbackMonth(hdType, isEmotional);
       }
       
       const centerFocus = activation.center || opportunity?.center || friction?.center;
-      
-      // Month is about GROWTH and IDENTITY - who you're becoming
-      // Must be DIFFERENT from Today (immediate) and Week (patterns)
-      let monthTheme = '';
-      let growthText = '';
-      let trapText = '';
-      
-      if (centerFocus) {
-        // Center-specific developmental lessons
-        const developmentalLessons: Record<string, string> = {
-          'Solar Plexus': "How you relate to emotional truth is being refined.",
-          'Ajna': "Your relationship with certainty and not-knowing is shifting.",
-          'Sacral': "What drains vs. sustains you is becoming clearer.",
-          'Spleen': "Trusting your instincts is the lesson being deepened.",
-          'Heart': "What you're willing to commit to is being tested.",
-          'Throat': "When to speak and when to wait is the teaching.",
-          'G': "Your sense of direction is being recalibrated.",
-          'Root': "How you handle pressure is evolving.",
-          'Head': "Your relationship with inspiration vs. overwhelm is maturing.",
-        };
-        
-        monthTheme = developmentalLessons[centerFocus] || "Something is being learned about this part of your design.";
-        growthText = "Trust the discomfort—it's part of the refinement.";
-        trapText = "This is a lesson, not a permanent state. Don't over-identify.";
-      } else {
-        monthTheme = "Multiple threads are weaving. The pattern becomes clear in hindsight.";
-        growthText = clarityLevel === 'low'
-          ? "The understanding comes after, not during."
-          : "Stay curious about what's forming.";
-        trapText = "Rushing to conclusions misses the deeper teaching.";
-      }
-      
       return {
-        theme: cleanLanguage(monthTheme),
-        growthEdge: cleanLanguage(growthText),
-        commonTrap: cleanLanguage(trapText),
+        theme: centerFocus 
+          ? `Your relationship with ${centerFocus.toLowerCase()} energy is being refined.`
+          : "Multiple threads are weaving. The pattern becomes clear in hindsight.",
+        growthEdge: "Trust the discomfort—it's part of the refinement.",
+        commonTrap: "This is a lesson, not a permanent state.",
         reflectionPrompt: "What is this month teaching me?"
       };
     };
@@ -2473,12 +2449,24 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
     return (
       <View style={styles.todayTabContainer}>
-        {/* SECTION 1: YOUR DESIGN TODAY - Short intro only (no card) */}
+        {/* SECTION 1: YOUR DESIGN TODAY - Dominant theme headline */}
         <View style={styles.todayIntroSection}>
           <Text style={[styles.todayIntroTitle, { color: theme.text }]}>Your Design Today</Text>
-          <Text style={[styles.todayIntroSubtitle, { color: theme.textSecondary }]}>
-            Real-time signals from your chart and what's happening in the sky.
-          </Text>
+          {/* Show the dominant signal theme as the central idea */}
+          {dominantSignal.theme ? (
+            <View style={[styles.dominantThemeContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.dominantThemeText, { color: theme.text }]}>
+                {dominantSignal.theme}
+              </Text>
+              <Text style={[styles.dominantThemeSubtext, { color: theme.textSecondary }]}>
+                Everything below points to this.
+              </Text>
+            </View>
+          ) : (
+            <Text style={[styles.todayIntroSubtitle, { color: theme.textSecondary }]}>
+              Real-time signals from your chart and what's happening in the sky.
+            </Text>
+          )}
         </View>
         
         {/* SECTION 2: THE BIGGER SHIFT - Macro sky context only (max 1-2 cards) */}
@@ -5362,6 +5350,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     opacity: 0.75,
+  },
+  // Dominant Signal Theme - The ONE central idea
+  dominantThemeContainer: {
+    marginTop: 12,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  dominantThemeText: {
+    fontSize: 20,
+    fontWeight: '600',
+    textAlign: 'center',
+    letterSpacing: -0.3,
+    lineHeight: 26,
+  },
+  dominantThemeSubtext: {
+    fontSize: 12,
+    marginTop: 6,
+    opacity: 0.6,
+    textAlign: 'center',
   },
   timingSectionHeader: {
     marginBottom: 16,

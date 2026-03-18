@@ -141,6 +141,234 @@ class TransitSignal:
     label: str = ""  # "Temporary activation" / "Reinforcing your design" / "Temporary completion"
     
 
+@dataclass
+class DominantSignal:
+    """Represents the ONE dominant theme that all content should orbit."""
+    theme: str  # Core idea in one sentence
+    theme_id: str  # Identifier: "emotional_wait", "mental_pressure", etc.
+    confidence: float  # 0.0 - 1.0
+    center_focus: Optional[str] = None  # Primary center involved
+    field_alignment: bool = False  # Does field context support this?
+    supporting_signals: List[str] = None  # List of signal types that align
+    
+    # Theme-specific content for each section
+    activation_framing: str = ""
+    opportunity_framing: str = ""
+    friction_framing: str = ""
+    today_framing: str = ""
+    week_framing: str = ""
+    month_framing: str = ""
+
+
+# =============================================================================
+# DOMINANT SIGNAL THEMES - Core narratives that unify the experience
+# =============================================================================
+
+DOMINANT_THEMES = {
+    "emotional_wait": {
+        "theme": "Clarity isn't ready yet",
+        "centers": ["Solar Plexus"],
+        "field_tones": ["reset", "turning_point"],
+        "activation": "Feelings are more intense than usual—this is information, not a decision.",
+        "opportunity": "If you let the wave complete, genuine knowing emerges.",
+        "friction": "The moment you try to force an answer, you lose clarity.",
+        "today": "Don't decide yet. Let feelings move through.",
+        "week": "The same emotional thread keeps returning—follow it without naming it.",
+        "month": "This cycle is teaching you how you relate to uncertainty.",
+    },
+    "mental_pressure": {
+        "theme": "The mind wants answers it can't have yet",
+        "centers": ["Ajna", "Head"],
+        "field_tones": ["reset", "clarity"],
+        "activation": "Mental activity is heightened—thoughts are louder than usual.",
+        "opportunity": "Use this energy to observe patterns, not to conclude.",
+        "friction": "Believing your first thought is the trap here.",
+        "today": "Notice thoughts without gripping them.",
+        "week": "A mental loop keeps returning—watch what it's trying to resolve.",
+        "month": "Your relationship with certainty is being refined.",
+    },
+    "energy_available": {
+        "theme": "New energy is accessible—use it wisely",
+        "centers": ["Sacral", "Root"],
+        "field_tones": ["building", "clarity"],
+        "activation": "There's more fuel available than usual.",
+        "opportunity": "Channel this toward what genuinely has pull.",
+        "friction": "Spraying energy everywhere wastes the opportunity.",
+        "today": "Follow the strongest pull.",
+        "week": "Watch where energy flows easily vs. where you force it.",
+        "month": "Learning what actually sustains you vs. what depletes.",
+    },
+    "instinct_amplified": {
+        "theme": "Body wisdom is speaking—listen",
+        "centers": ["Spleen"],
+        "field_tones": ["clarity", "building"],
+        "activation": "Instincts are sharper than usual.",
+        "opportunity": "Trust the immediate knowing—it's reliable right now.",
+        "friction": "Overriding gut responses creates regret.",
+        "today": "Act on what the body signals immediately.",
+        "week": "Notice which instincts keep proving right.",
+        "month": "Deepening trust in your body's intelligence.",
+    },
+    "expression_ready": {
+        "theme": "Something wants to be expressed",
+        "centers": ["Throat"],
+        "field_tones": ["building", "clarity"],
+        "activation": "Words and ideas want to come out.",
+        "opportunity": "Speak when invited—timing amplifies impact.",
+        "friction": "Forcing expression before the right moment backfires.",
+        "today": "Notice what wants to be said.",
+        "week": "A theme keeps wanting to be expressed—let it emerge.",
+        "month": "Finding your voice in this area of life.",
+    },
+    "direction_questioning": {
+        "theme": "Identity and direction are in flux",
+        "centers": ["G"],
+        "field_tones": ["reset", "turning_point"],
+        "activation": "Questions about where you're going feel more present.",
+        "opportunity": "Let direction emerge from genuine pull, not logic.",
+        "friction": "Forcing a decision about direction creates false paths.",
+        "today": "Don't commit to a direction yet.",
+        "week": "Notice what keeps calling you back.",
+        "month": "Your sense of purpose is being recalibrated.",
+    },
+    "willpower_test": {
+        "theme": "What you truly want is being tested",
+        "centers": ["Heart", "Ego"],
+        "field_tones": ["building", "clarity"],
+        "activation": "Drive and ambition are heightened.",
+        "opportunity": "Commit only to what genuinely matters.",
+        "friction": "Overcommitting or proving yourself wastes energy.",
+        "today": "Check if this is real desire or ego.",
+        "week": "What you keep returning to is what actually matters.",
+        "month": "Learning what you're actually willing to commit to.",
+    },
+    "reset_active": {
+        "theme": "A reset is happening—don't force clarity",
+        "centers": [],
+        "field_tones": ["reset"],
+        "activation": "Something is shifting beneath the surface.",
+        "opportunity": "Create space for what's forming to emerge.",
+        "friction": "Trying to understand too early blocks what's coming.",
+        "today": "Let go. Don't grip.",
+        "week": "Old patterns are loosening—don't re-tighten them.",
+        "month": "This is a clearing. The new shape comes after.",
+    },
+}
+
+
+def select_dominant_signal(
+    all_signals: List[TransitSignal],
+    field_context: Dict[str, str],
+    defined_centers: List[str],
+    undefined_centers: List[str]
+) -> DominantSignal:
+    """
+    Analyze all signals and select ONE dominant theme.
+    Everything else will orbit this central idea.
+    """
+    field_tone = field_context.get("field_tone", "clarity")
+    clarity_level = field_context.get("clarity_level", "high")
+    
+    # Count signals by center
+    center_counts = {}
+    center_strengths = {}
+    for sig in all_signals:
+        if sig.center:
+            center = sig.center
+            center_counts[center] = center_counts.get(center, 0) + 1
+            center_strengths[center] = max(center_strengths.get(center, 0), sig.strength)
+    
+    # Score each potential theme
+    theme_scores = {}
+    
+    for theme_id, theme_data in DOMINANT_THEMES.items():
+        score = 0.0
+        
+        # 1. Field alignment bonus (+0.3)
+        if field_tone in theme_data.get("field_tones", []):
+            score += 0.3
+        
+        # 2. Center activation bonus
+        theme_centers = theme_data.get("centers", [])
+        for center in theme_centers:
+            if center in center_counts:
+                score += center_counts[center] * 0.15
+                score += center_strengths.get(center, 0) * 0.2
+        
+        # 3. Low clarity favors "wait" themes
+        if clarity_level == "low" and theme_id in ["emotional_wait", "reset_active", "direction_questioning"]:
+            score += 0.25
+        
+        # 4. Undefined center bonus (temporary = higher impact)
+        for center in theme_centers:
+            if center in undefined_centers:
+                score += 0.1
+        
+        theme_scores[theme_id] = score
+    
+    # Select highest scoring theme
+    best_theme_id = max(theme_scores, key=theme_scores.get) if theme_scores else "reset_active"
+    best_score = theme_scores.get(best_theme_id, 0.5)
+    theme_data = DOMINANT_THEMES[best_theme_id]
+    
+    # Determine primary center focus
+    center_focus = None
+    if theme_data.get("centers"):
+        for c in theme_data["centers"]:
+            if c in center_counts:
+                center_focus = c
+                break
+        if not center_focus:
+            center_focus = theme_data["centers"][0] if theme_data["centers"] else None
+    
+    # Create supporting signals list
+    supporting = []
+    for sig in all_signals:
+        if sig.center and sig.center in theme_data.get("centers", []):
+            supporting.append(str(sig.signal_type))
+    
+    return DominantSignal(
+        theme=theme_data["theme"],
+        theme_id=best_theme_id,
+        confidence=min(0.95, 0.5 + best_score),
+        center_focus=center_focus,
+        field_alignment=field_tone in theme_data.get("field_tones", []),
+        supporting_signals=supporting[:3],
+        activation_framing=theme_data.get("activation", ""),
+        opportunity_framing=theme_data.get("opportunity", ""),
+        friction_framing=theme_data.get("friction", ""),
+        today_framing=theme_data.get("today", ""),
+        week_framing=theme_data.get("week", ""),
+        month_framing=theme_data.get("month", ""),
+    )
+
+
+def unify_signals_around_theme(
+    signals: List[TransitSignal],
+    dominant: DominantSignal,
+    field_context: Dict[str, str]
+) -> List[TransitSignal]:
+    """
+    Rewrite signal content to align with the dominant theme.
+    This ensures ONE coherent narrative across all sections.
+    """
+    if len(signals) < 3:
+        return signals
+    
+    # Signal 0 = Activation - articulates the dominant theme most clearly
+    signals[0].how_shows_up = dominant.activation_framing
+    
+    # Signal 1 = Opportunity - how to work WITH the dominant theme  
+    signals[1].how_shows_up = dominant.opportunity_framing
+    signals[1].best_move = dominant.opportunity_framing
+    
+    # Signal 2 = Friction - what goes wrong if you resist
+    signals[2].how_shows_up = dominant.friction_framing
+    signals[2].best_move = dominant.friction_framing
+    
+    return signals
+
+
 # =============================================================================
 # CURRENT TRANSIT CALCULATIONS
 # =============================================================================
@@ -620,13 +848,21 @@ def compute_transit_signals(
     # Apply field context adaptation to all signals
     adapted_signals = [adapt_signal_to_field(s, field_context, i == 0) for i, s in enumerate(top_signals)]
     
+    # === NEW: SELECT DOMINANT SIGNAL ===
+    # Analyze all signals and field context to identify ONE central theme
+    dominant = select_dominant_signal(all_signals, field_context, defined_centers, undefined_centers)
+    
+    # === NEW: UNIFY SIGNALS AROUND DOMINANT THEME ===
+    # Rewrite signal content to orbit the dominant theme
+    unified_signals = unify_signals_around_theme(adapted_signals, dominant, field_context)
+    
     # FINAL POLISH: Differentiate signals and compress language
-    polished_signals = differentiate_and_polish_signals(adapted_signals, field_context)
+    polished_signals = differentiate_and_polish_signals(unified_signals, field_context)
     
     # Assign roles: Biggest Activation, Opportunity, Friction
     categorized = categorize_signals(polished_signals)
     
-    logger.info(f"[TransitSignals] Computed {len(all_signals)} signals, returning top 3 (field_tone={field_context.get('field_tone')})")
+    logger.info(f"[TransitSignals] Computed {len(all_signals)} signals, dominant theme: {dominant.theme_id} (confidence: {dominant.confidence:.2f})")
     
     return {
         "computed_at": datetime.now(timezone.utc).isoformat(),
@@ -635,6 +871,17 @@ def compute_transit_signals(
             "activation": signal_to_dict(categorized["activation"]),
             "opportunity": signal_to_dict(categorized["opportunity"]),
             "friction": signal_to_dict(categorized["friction"]),
+        },
+        # === NEW: Include dominant signal in response ===
+        "dominant_signal": {
+            "theme": dominant.theme,
+            "theme_id": dominant.theme_id,
+            "confidence": dominant.confidence,
+            "center_focus": dominant.center_focus,
+            "field_alignment": dominant.field_alignment,
+            "today": dominant.today_framing,
+            "week": dominant.week_framing,
+            "month": dominant.month_framing,
         },
         "field_context": field_context,
         "user_context": {
