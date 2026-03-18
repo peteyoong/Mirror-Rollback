@@ -166,92 +166,92 @@ class DominantSignal:
 
 DOMINANT_THEMES = {
     "emotional_wait": {
-        "theme": "Clarity isn't ready yet",
+        "theme": "You may feel like something needs to be decided—but clarity isn't ready yet",
         "centers": ["Solar Plexus"],
         "field_tones": ["reset", "turning_point"],
-        "activation": "Feelings are more intense than usual—this is information, not a decision.",
-        "opportunity": "If you let the wave complete, genuine knowing emerges.",
-        "friction": "The moment you try to force an answer, you lose clarity.",
-        "today": "Don't decide yet. Let feelings move through.",
-        "week": "The same emotional thread keeps returning—follow it without naming it.",
-        "month": "This cycle is teaching you how you relate to uncertainty.",
+        "activation": "You might notice your feelings are more intense than usual. That intensity is information, not a decision.",
+        "opportunity": "If you let the wave complete, you may find the knowing emerges on its own.",
+        "friction": "Part of you may want to force an answer. That's the trap—clarity gets lost when you push.",
+        "today": "You may feel pressure to decide. Don't—let feelings move through first.",
+        "week": "You might notice the same emotional thread keeps returning. Follow it without needing to name it yet.",
+        "month": "This phase may feel uncertain longer than you'd like. It's teaching you how to relate to not-knowing.",
     },
     "mental_pressure": {
-        "theme": "The mind wants answers it can't have yet",
+        "theme": "Your mind may be demanding answers it can't have yet",
         "centers": ["Ajna", "Head"],
         "field_tones": ["reset", "clarity"],
-        "activation": "Mental activity is heightened—thoughts are louder than usual.",
-        "opportunity": "Use this energy to observe patterns, not to conclude.",
-        "friction": "Believing your first thought is the trap here.",
-        "today": "Notice thoughts without gripping them.",
-        "week": "A mental loop keeps returning—watch what it's trying to resolve.",
-        "month": "Your relationship with certainty is being refined.",
+        "activation": "You might notice your thoughts are louder than usual. Mental activity is heightened.",
+        "opportunity": "You can use this energy to observe patterns—just don't try to conclude yet.",
+        "friction": "Part of you may want to believe your first thought. That's the trap here.",
+        "today": "You may feel the urge to figure something out. Notice the thoughts without gripping them.",
+        "week": "You might notice a mental loop keeps returning. Watch what it's trying to resolve.",
+        "month": "This phase is refining your relationship with certainty. Let it.",
     },
     "energy_available": {
-        "theme": "New energy is accessible—use it wisely",
+        "theme": "You may feel new energy accessible—use it consciously",
         "centers": ["Sacral", "Root"],
         "field_tones": ["building", "clarity"],
-        "activation": "There's more fuel available than usual.",
-        "opportunity": "Channel this toward what genuinely has pull.",
-        "friction": "Spraying energy everywhere wastes the opportunity.",
-        "today": "Follow the strongest pull.",
-        "week": "Watch where energy flows easily vs. where you force it.",
-        "month": "Learning what actually sustains you vs. what depletes.",
+        "activation": "You might notice there's more fuel available than usual.",
+        "opportunity": "You can channel this toward what genuinely has pull. The traction is real.",
+        "friction": "Part of you may want to spray energy everywhere. That wastes the opportunity.",
+        "today": "You may feel pulled in a direction. Follow the strongest pull.",
+        "week": "You might notice where energy flows easily versus where you have to force it. That's the signal.",
+        "month": "This phase is teaching you what actually sustains you versus what depletes.",
     },
     "instinct_amplified": {
-        "theme": "Body wisdom is speaking—listen",
+        "theme": "Your body wisdom is speaking louder—listen",
         "centers": ["Spleen"],
         "field_tones": ["clarity", "building"],
-        "activation": "Instincts are sharper than usual.",
-        "opportunity": "Trust the immediate knowing—it's reliable right now.",
-        "friction": "Overriding gut responses creates regret.",
-        "today": "Act on what the body signals immediately.",
-        "week": "Notice which instincts keep proving right.",
-        "month": "Deepening trust in your body's intelligence.",
+        "activation": "You might notice your instincts are sharper than usual.",
+        "opportunity": "You can trust the immediate knowing—it's reliable right now.",
+        "friction": "Part of you may want to override what your gut says. That creates regret.",
+        "today": "You may feel something in your body before you understand it mentally. Act on that.",
+        "week": "You might notice which instincts keep proving right. That's building trust.",
+        "month": "This phase is deepening your relationship with your body's intelligence.",
     },
     "expression_ready": {
-        "theme": "Something wants to be expressed",
+        "theme": "Something wants to be expressed through you",
         "centers": ["Throat"],
         "field_tones": ["building", "clarity"],
-        "activation": "Words and ideas want to come out.",
-        "opportunity": "Speak when invited—timing amplifies impact.",
-        "friction": "Forcing expression before the right moment backfires.",
-        "today": "Notice what wants to be said.",
-        "week": "A theme keeps wanting to be expressed—let it emerge.",
-        "month": "Finding your voice in this area of life.",
+        "activation": "You might notice words and ideas want to come out.",
+        "opportunity": "You can speak when invited—timing amplifies impact.",
+        "friction": "Part of you may want to force expression before the right moment. That backfires.",
+        "today": "You may feel something wants to be said. Notice what it is.",
+        "week": "You might notice a theme keeps wanting to be expressed. Let it emerge.",
+        "month": "This phase is about finding your voice in this area of life.",
     },
     "direction_questioning": {
-        "theme": "Identity and direction are in flux",
+        "theme": "You may feel identity and direction are in flux—that's part of it",
         "centers": ["G"],
         "field_tones": ["reset", "turning_point"],
-        "activation": "Questions about where you're going feel more present.",
-        "opportunity": "Let direction emerge from genuine pull, not logic.",
-        "friction": "Forcing a decision about direction creates false paths.",
-        "today": "Don't commit to a direction yet.",
-        "week": "Notice what keeps calling you back.",
-        "month": "Your sense of purpose is being recalibrated.",
+        "activation": "You might notice questions about where you're going feel more present than usual.",
+        "opportunity": "You can let direction emerge from genuine pull, not logic.",
+        "friction": "Part of you may want to force a decision about direction. That creates false paths.",
+        "today": "You may feel uncertain about where you're going. Don't commit to a direction yet.",
+        "week": "You might notice what keeps calling you back. That's the real signal.",
+        "month": "This phase is recalibrating your sense of purpose. Let it take time.",
     },
     "willpower_test": {
         "theme": "What you truly want is being tested",
         "centers": ["Heart", "Ego"],
         "field_tones": ["building", "clarity"],
-        "activation": "Drive and ambition are heightened.",
-        "opportunity": "Commit only to what genuinely matters.",
-        "friction": "Overcommitting or proving yourself wastes energy.",
-        "today": "Check if this is real desire or ego.",
-        "week": "What you keep returning to is what actually matters.",
-        "month": "Learning what you're actually willing to commit to.",
+        "activation": "You might notice drive and ambition are heightened.",
+        "opportunity": "You can commit to what genuinely matters. The will is there.",
+        "friction": "Part of you may want to overcommit or prove yourself. That wastes energy.",
+        "today": "You may feel the urge to commit to something. Check if it's real desire or ego.",
+        "week": "You might notice what you keep returning to. That's what actually matters.",
+        "month": "This phase is teaching you what you're actually willing to commit to long-term.",
     },
     "reset_active": {
-        "theme": "A reset is happening—don't force clarity",
+        "theme": "Something is resetting—don't force clarity",
         "centers": [],
         "field_tones": ["reset"],
-        "activation": "Something is shifting beneath the surface.",
-        "opportunity": "Create space for what's forming to emerge.",
-        "friction": "Trying to understand too early blocks what's coming.",
-        "today": "Let go. Don't grip.",
-        "week": "Old patterns are loosening—don't re-tighten them.",
-        "month": "This is a clearing. The new shape comes after.",
+        "activation": "You might feel like something is shifting beneath the surface.",
+        "opportunity": "You can create space for what's forming to emerge. Don't fill the void.",
+        "friction": "Part of you may want to understand too early. That blocks what's coming.",
+        "today": "You may feel the urge to grip. Let go instead.",
+        "week": "You might notice old patterns are loosening. Don't re-tighten them.",
+        "month": "This is a clearing phase. The new shape comes after, not during.",
     },
 }
 
@@ -680,35 +680,35 @@ def compute_natal_reinforcement_signals(
 # =============================================================================
 
 def get_center_activation_behavior(center: str) -> str:
-    """Get behavior description for center activation."""
+    """Get behavior description for center activation - personalized."""
     behaviors = {
-        "Head": "Mental pressure, inspiration, or questions flood in. Ideas want your attention.",
-        "Ajna": "Thinking feels more certain or fixed. Watch for getting attached to being 'right'.",
-        "Throat": "The desire to speak, express, or manifest is stronger. Words want to come out.",
-        "G": "Your sense of direction or identity feels stronger—or questions arise about where you're going.",
-        "Heart": "Willpower, ambition, or the need to prove yourself is heightened. Watch for overcommitting.",
-        "Solar Plexus": "Emotional sensitivity is heightened. Feelings run deeper than usual.",
-        "Sacral": "Sustainable energy feels more available—or there's pressure to 'do' more.",
-        "Spleen": "Instincts and intuition are sharper. Body awareness is amplified.",
-        "Root": "Pressure to act, start things, or stress about time shows up more strongly.",
+        "Head": "You might feel mental pressure, inspiration, or questions flooding in. Ideas may want your attention more than usual.",
+        "Ajna": "You may feel thinking is more certain or fixed. Part of you might get attached to being 'right'.",
+        "Throat": "You might notice the desire to speak, express, or manifest is stronger. Words may want to come out.",
+        "G": "You may feel your sense of direction or identity is stronger—or questions arise about where you're going.",
+        "Heart": "You might notice willpower, ambition, or the need to prove yourself is heightened. Part of you may want to overcommit.",
+        "Solar Plexus": "You may feel emotional sensitivity is heightened. Feelings run deeper than usual.",
+        "Sacral": "You might feel sustainable energy is more available—or there's pressure to 'do' more.",
+        "Spleen": "You may notice instincts and intuition are sharper. Body awareness feels amplified.",
+        "Root": "You might feel pressure to act, start things, or stress about time shows up more strongly.",
     }
-    return behaviors.get(center, "This area of your life feels more active than usual.")
+    return behaviors.get(center, "You may notice this area of your life feels more active than usual.")
 
 
 def get_center_activation_move(center: str) -> str:
-    """Get best move for center activation."""
+    """Get best move for center activation - personalized."""
     moves = {
-        "Head": "Let the inspiration flow without needing to act on everything. Not every idea is yours to pursue.",
-        "Ajna": "Notice your thoughts without gripping them too tightly. Your natural flexibility is a gift.",
-        "Throat": "Speak when truly invited. This extra expression energy doesn't mean everything needs to be said.",
-        "G": "Follow what feels right without needing to know the whole path. Direction reveals itself.",
-        "Heart": "Notice where you're trying to prove yourself. You don't need to push—your value isn't in question.",
-        "Solar Plexus": "Let emotions move through without making permanent decisions from temporary feelings.",
-        "Sacral": "Use the extra energy for what genuinely excites you. Don't just fill time because you 'can'.",
-        "Spleen": "Trust the instant knowing, but don't let fear-based instincts run the show.",
-        "Root": "Notice what's truly urgent versus manufactured pressure. Most things can wait.",
+        "Head": "You may feel every idea is urgent. Let inspiration flow without needing to act on everything—not every idea is yours to pursue.",
+        "Ajna": "Part of you may want to grip your thoughts tightly. Notice them without holding on—your natural flexibility is a gift.",
+        "Throat": "You might feel everything needs to be said. Speak when truly invited—this extra expression energy doesn't mean everything belongs out loud.",
+        "G": "You may feel pressure to know where you're going. Follow what feels right without needing the whole path yet.",
+        "Heart": "Part of you may feel the need to prove yourself. Notice where you're pushing—your value isn't in question.",
+        "Solar Plexus": "You might want to act on how you feel right now. Let emotions move through without making permanent decisions from temporary feelings.",
+        "Sacral": "You may feel like you have to use all this energy. Use it for what genuinely excites you—don't just fill time because you 'can'.",
+        "Spleen": "You might feel your instincts pulling you. Trust the instant knowing, but don't let fear-based signals run everything.",
+        "Root": "Part of you may feel everything is urgent. Notice what's truly time-sensitive versus manufactured pressure—most things can wait.",
     }
-    return moves.get(center, "Be aware this energy is temporary. Observe without over-identifying.")
+    return moves.get(center, "You may feel this energy strongly. Be aware it's temporary—observe without over-identifying.")
 
 
 def get_authority_amplification_behavior(authority: str) -> str:
@@ -744,35 +744,35 @@ def get_authority_amplification_move(authority: str) -> str:
 
 
 def get_open_center_pressure_behavior(center: str) -> str:
-    """Get behavior for open center pressure."""
+    """Get behavior for open center pressure - personalized."""
     behaviors = {
-        "Head": "You may feel overwhelmed by questions or inspiration that isn't yours to solve.",
-        "Ajna": "You may feel pressure to have answers or appear certain about things.",
-        "Throat": "You may feel pressure to speak before you're ready or attract attention.",
-        "G": "You may feel lost or unclear about direction, or too attached to a fixed identity.",
-        "Heart": "You may feel pressure to prove your worth or compete unnecessarily.",
-        "Solar Plexus": "You may absorb emotions from others and mistake them for your own.",
-        "Sacral": "You may push past your natural limits or feel guilty for resting.",
-        "Spleen": "You may ignore your instincts or hold onto things past their time.",
-        "Root": "You may feel unnecessary urgency or rush decisions that can wait.",
+        "Head": "You may feel overwhelmed by questions or inspiration that isn't actually yours to solve.",
+        "Ajna": "Part of you may feel pressure to have answers or appear certain about things you don't know.",
+        "Throat": "You might feel pressure to speak before you're ready or attract attention you don't need.",
+        "G": "You may feel lost or unclear about direction, or too attached to a fixed identity that isn't really you.",
+        "Heart": "Part of you may feel pressure to prove your worth or compete when you don't need to.",
+        "Solar Plexus": "You might absorb emotions from others and mistake them for your own.",
+        "Sacral": "You may feel like you should push past your natural limits or feel guilty for resting.",
+        "Spleen": "Part of you may ignore your instincts or hold onto things past their time.",
+        "Root": "You might feel unnecessary urgency or rush decisions that can actually wait.",
     }
     return behaviors.get(center, "You may feel pressure or amplification in this area that isn't truly yours.")
 
 
 def get_open_center_pressure_move(center: str) -> str:
-    """Get best move for open center pressure."""
+    """Get best move for open center pressure - personalized."""
     moves = {
-        "Head": "Let questions exist without needing to answer them all. Not every inspiration is your responsibility.",
-        "Ajna": "It's okay not to know. Your openness here is wisdom, not weakness.",
-        "Throat": "Wait for invitation before speaking. Silence is also communication.",
-        "G": "Trust that your direction will become clear. You don't need to force identity.",
-        "Heart": "You have nothing to prove. Your value exists whether you push or not.",
-        "Solar Plexus": "Check whose feelings you're carrying. Return what isn't yours.",
-        "Sacral": "Rest is correct for you. Don't match others' energy output.",
-        "Spleen": "Notice what your body says, but don't let passing fears drive decisions.",
-        "Root": "Slow down. The urgency you feel may not reflect actual deadlines.",
+        "Head": "You may feel like you need to solve every question. Let them exist without needing to answer them all—not every inspiration is your responsibility.",
+        "Ajna": "Part of you may feel you should have answers. It's okay not to know—your openness here is wisdom, not weakness.",
+        "Throat": "You might feel the urge to fill silence. Wait for invitation before speaking—silence is also communication.",
+        "G": "You may feel lost without a clear direction. Trust that it will become clear—you don't need to force identity.",
+        "Heart": "Part of you may feel you have something to prove. You don't—your value exists whether you push or not.",
+        "Solar Plexus": "You might be carrying feelings that aren't yours. Check whose emotions you're holding—return what doesn't belong to you.",
+        "Sacral": "You may feel guilty for not doing more. Rest is correct for you—don't match others' energy output.",
+        "Spleen": "Part of you may feel fear-driven. Notice what your body says, but don't let passing fears drive major decisions.",
+        "Root": "You might feel like everything is urgent. Slow down—the urgency you feel may not reflect actual deadlines.",
     }
-    return moves.get(center, "Remember this energy is amplified, not yours. Observe without over-reacting.")
+    return moves.get(center, "You may feel this energy strongly. Remember it's amplified, not yours—observe without over-reacting.")
 
 
 # =============================================================================
@@ -1001,51 +1001,51 @@ def adapt_signal_to_field(signal: TransitSignal, field_context: Dict[str, str], 
 # Role-specific templates for generating unique content per signal position
 ROLE_SPECIFIC_CONTENT = {
     # ACTIVATION (position 0): What is strongest/unavoidable right now
-    # Tone: descriptive + slightly intense
+    # Tone: descriptive + slightly intense, names the internal state
     0: {
         "how_shows_up_templates": [
-            "This is the loudest energy right now.",
-            "Something is pressing for attention.",
-            "The intensity here is hard to ignore.",
-            "This shows up whether you want it or not.",
+            "You may feel like something needs your attention right now.",
+            "Part of you might sense the intensity is hard to ignore.",
+            "You might notice this pressing more than usual.",
+            "It can feel like something is asking to be acknowledged.",
         ],
         "best_move_templates": [
-            "Don't push against it—work with the intensity.",
-            "Name what you're feeling without judging it.",
-            "Let this move through rather than around you.",
-            "Acknowledge the pressure before deciding anything.",
+            "You may feel pressure to act—acknowledge it before deciding anything.",
+            "Part of you wants resolution. Name what you're feeling first.",
+            "It can feel urgent. Let this move through rather than around you.",
+            "You might want to push against it. Work with the intensity instead.",
         ],
     },
     # OPPORTUNITY (position 1): How to work WITH the energy
-    # Tone: enabling / directional
+    # Tone: enabling / directional, shows what opens if they don't react
     1: {
         "how_shows_up_templates": [
-            "There's extra bandwidth here if you use it.",
-            "This energy wants to help—let it.",
-            "Something is available that isn't usually.",
-            "A door is open that might close.",
+            "You may notice there's extra bandwidth here if you use it consciously.",
+            "Something feels available that isn't usually.",
+            "Part of you might sense a door opening.",
+            "It can feel like support is present where it wasn't before.",
         ],
         "best_move_templates": [
-            "Use this while it's here—it won't last.",
-            "Channel this energy toward what matters.",
-            "Let this support decisions you've been circling.",
-            "Experiment where the flow feels easiest.",
+            "You might find this supports something you've been circling.",
+            "If you don't force it, you may find this helps decisions settle.",
+            "Part of you may want to grab it. Let it support what's already forming.",
+            "You could channel this toward what actually has pull.",
         ],
     },
     # FRICTION (position 2): What goes wrong if misused
-    # Tone: caution / grounding  
+    # Tone: caution / grounding, calls out the specific mistake
     2: {
         "how_shows_up_templates": [
-            "Here's where things can go sideways.",
-            "This is the trap to avoid.",
-            "Watch for this pattern derailing you.",
-            "The distortion shows up as...",
+            "Part of you may want to do something about this right now.",
+            "You might notice an urge to fix, solve, or control.",
+            "It can feel like action is required. That's the distortion.",
+            "You may feel pressure that isn't actually yours.",
         ],
         "best_move_templates": [
-            "Notice when you're slipping into this.",
-            "Don't let this pattern run the show.",
-            "Catch yourself before this takes over.",
-            "Step back when you feel this pulling you.",
+            "You may be about to make this harder than it needs to be.",
+            "Part of you wants to react. Catch yourself before that takes over.",
+            "It can feel urgent, but rushing here creates the problem.",
+            "You might notice the pull to do something. That's what to pause on.",
         ],
     },
 }
@@ -1134,58 +1134,58 @@ def enforce_role_differentiation(
 
 
 def get_center_feeling(center: str) -> str:
-    """Get a human-readable feeling for each center - returns role-appropriate text."""
+    """Get a human-readable feeling for each center - returns role-appropriate text with personal hooks."""
     import random
     
     feeling_variations = {
         "Solar Plexus": [
-            "Feelings carry more weight than usual.",
-            "Emotions are closer to the surface.",
-            "What you feel matters more right now.",
+            "You may feel your emotions carrying more weight than usual.",
+            "Part of you might notice feelings are closer to the surface.",
+            "What you feel matters more right now than what you think.",
         ],
         "Ajna": [
-            "Thoughts want resolution faster than they should.",
-            "Mental activity is heightened.",
-            "The mind is working overtime.",
+            "You might notice thoughts wanting resolution faster than they should.",
+            "Part of you may feel mental activity is heightened.",
+            "Your mind may be working overtime—notice without gripping.",
         ],
         "Sacral": [
-            "The body is louder about what it wants.",
-            "Energy levels are more noticeable.",
-            "The pull toward or away from things is stronger.",
+            "You might feel your body is louder about what it wants.",
+            "Part of you may notice energy levels more distinctly.",
+            "The pull toward or away from things may feel stronger.",
         ],
         "Spleen": [
-            "Gut instincts are sharper.",
-            "Body wisdom is speaking louder.",
-            "Instinctual responses are amplified.",
+            "You may feel your gut instincts are sharper than usual.",
+            "Part of you might notice body wisdom speaking louder.",
+            "Instinctual responses may feel more pronounced.",
         ],
         "Heart": [
-            "The need to prove something is amplified.",
-            "Willpower and drive are heightened.",
-            "What matters to you feels more urgent.",
+            "You might feel the need to prove something is amplified.",
+            "Part of you may notice willpower and drive are heightened.",
+            "What matters to you may feel more urgent.",
         ],
         "Throat": [
-            "Words want to come out, ready or not.",
-            "Expression feels more urgent.",
-            "Communication energy is elevated.",
+            "You may feel words wanting to come out, ready or not.",
+            "Part of you might notice expression feels more urgent.",
+            "Something may want to be said.",
         ],
         "G": [
-            "Questions about direction feel more urgent.",
-            "Identity and purpose feel more in focus.",
-            "Where you're going matters more right now.",
+            "You might feel questions about direction are more present.",
+            "Part of you may notice identity and purpose feel more in focus.",
+            "Where you're going may matter more right now.",
         ],
         "Root": [
-            "Pressure to act or decide is heightened.",
-            "Urgency is amplified.",
-            "Time pressure feels more intense.",
+            "You may feel pressure to act or decide is heightened.",
+            "Part of you might notice urgency is amplified.",
+            "Time pressure may feel more intense than it actually is.",
         ],
         "Head": [
-            "Ideas flood in faster than you can process.",
-            "Inspiration and mental pressure are elevated.",
-            "Questions and possibilities are multiplying.",
+            "You might feel ideas flooding in faster than you can process.",
+            "Part of you may notice inspiration and mental pressure are elevated.",
+            "Questions and possibilities may be multiplying.",
         ],
     }
     
-    variations = feeling_variations.get(center, ["Something feels different here."])
+    variations = feeling_variations.get(center, ["You might notice something feels different here."])
     return random.choice(variations)
 
 
