@@ -1999,9 +1999,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       
       const authorityInsight: Record<string, string> = {
         'Emotional': 'Your clarity comes in waves—never rush major decisions. Wait for emotional neutrality.',
-        'Sacral': 'Your gut response tells you what's correct. Trust the immediate "uh-huh" or "uh-uh."',
-        'Splenic': 'Your instincts speak once and quickly. Trust the first knowing—it won't repeat.',
-        'Ego': 'What do you truly want? Your willpower guides when you're honest about desire.',
+        'Sacral': "Your gut response tells you what's correct. Trust the immediate 'uh-huh' or 'uh-uh.'",
+        'Splenic': "Your instincts speak once and quickly. Trust the first knowing—it won't repeat.",
+        'Ego': "What do you truly want? Your willpower guides when you're honest about desire.",
         'Self-Projected': 'Hear yourself speak to find clarity. Your truth reveals itself through your voice.',
         'Mental': 'Talk through decisions with trusted others—but the final knowing is yours alone.',
         'Lunar': 'Major decisions need a full moon cycle. Your clarity emerges over time, not in a moment.',
