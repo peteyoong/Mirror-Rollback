@@ -11,10 +11,10 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useForumContext, PrefilledSource } from '../contexts/ForumContext';
 import { useRouter } from 'expo-router';
-// Removed Ionicons - using text alternatives for web compatibility
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 import { 
