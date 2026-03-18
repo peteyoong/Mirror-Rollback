@@ -288,10 +288,10 @@ def compute_channel_completion_signals(
                 center=None,
                 channel_name=channel_data.get("name", channel_key),
                 title=f"Channel Activation: {channel_data.get('name', 'Connection')}",
-                what_happening=f"The {transit.get('planet')} is activating a gate that connects to your natal design, creating a temporary channel.",
-                why_happening=f"Your Gate {partner_gate} is meeting transit Gate {transit_gate}, completing the Channel of {channel_data.get('name', 'Connection')}.",
-                how_shows_up="You may feel a surge of new energy or capability that isn't usually available to you. This can feel exciting but also unfamiliar.",
-                best_move="Experiment with this energy while it's here. Notice what becomes possible that wasn't before.",
+                what_happening=f"The {transit.get('planet')} is completing a connection in your design.",
+                why_happening=f"A temporary channel is forming between your natal Gate {partner_gate} and transit Gate {transit_gate}.",
+                how_shows_up="New capability or energy is available that isn't usually accessible.",
+                best_move="Experiment with this while it's here.",
                 label="Temporary completion",
             )
             signals.append(signal)
@@ -323,8 +323,8 @@ def compute_center_activation_signals(
                 transit_gate=transit_gate,
                 center=transit_center,
                 title=f"Amplified {transit_center} Energy",
-                what_happening=f"The {planet} is temporarily activating your {transit_center} center, which is normally open in your design.",
-                why_happening=f"Your {transit_center} center is designed to sample and amplify energy from the environment. Right now, the {planet} is providing that energy directly.",
+                what_happening=f"The {planet} is activating your {transit_center} center right now.",
+                why_happening=f"Your {transit_center} center is open—it takes in and amplifies outside energy.",
                 how_shows_up=get_center_activation_behavior(transit_center),
                 best_move=get_center_activation_move(transit_center),
                 label="Temporary activation",
@@ -367,8 +367,8 @@ def compute_authority_amplification_signals(
                 transit_gate=transit.get("gate"),
                 center=transit_center,
                 title="Decision Clarity Heightened",
-                what_happening=f"The {planet} is amplifying your {user_authority}.",
-                why_happening=f"Your {transit_center} center is receiving extra energy from the current transit.",
+                what_happening=f"The {planet} is amplifying your {transit_center} center—where you feel into decisions.",
+                why_happening=f"Your {transit_center} center is receiving extra energy right now.",
                 how_shows_up=get_authority_amplification_behavior(user_authority),
                 best_move=get_authority_amplification_move(user_authority),
                 label="Reinforcing your design",
@@ -400,8 +400,8 @@ def compute_open_center_pressure_signals(
                 transit_gate=transit.get("gate"),
                 center=transit_center,
                 title=f"Watch Your {transit_center}",
-                what_happening=f"The {planet} is creating pressure on your open {transit_center} center.",
-                why_happening=f"Because your {transit_center} is undefined, you naturally amplify and absorb energy there. Right now, the transit is intensifying this.",
+                what_happening=f"The {planet} is pressing on your open {transit_center} center.",
+                why_happening="Open centers amplify outside energy—this one is getting extra right now.",
                 how_shows_up=get_open_center_pressure_behavior(transit_center),
                 best_move=get_open_center_pressure_move(transit_center),
                 label="Temporary activation",
@@ -436,8 +436,8 @@ def compute_natal_reinforcement_signals(
                 user_gate=transit_gate,
                 center=center,
                 title=f"Your Gate {transit_gate} Amplified",
-                what_happening=f"The {planet} is reinforcing energy you already carry in your design.",
-                why_happening=f"Gate {transit_gate} is part of who you are. The {planet} passing through it turns up the volume on this energy.",
+                what_happening=f"The {planet} is reinforcing energy you already carry.",
+                why_happening=f"Gate {transit_gate} is part of your design. The {planet} is turning up its volume.",
                 how_shows_up="You may feel more 'yourself' than usual in this area—or notice this theme appearing more prominently in your life.",
                 best_move="Lean into this amplified version of yourself. This is your design, just louder.",
                 label="Reinforcing your design",
@@ -723,6 +723,59 @@ def adapt_signal_to_field(signal: TransitSignal, field_context: Dict[str, str], 
 # SIGNAL DIFFERENTIATION + NARRATIVE COMPRESSION (FINAL POLISH)
 # =============================================================================
 
+# Role-specific templates for generating unique content per signal position
+ROLE_SPECIFIC_CONTENT = {
+    # ACTIVATION (position 0): What is strongest/unavoidable right now
+    # Tone: descriptive + slightly intense
+    0: {
+        "how_shows_up_templates": [
+            "This is the loudest energy right now.",
+            "Something is pressing for attention.",
+            "The intensity here is hard to ignore.",
+            "This shows up whether you want it or not.",
+        ],
+        "best_move_templates": [
+            "Don't push against it—work with the intensity.",
+            "Name what you're feeling without judging it.",
+            "Let this move through rather than around you.",
+            "Acknowledge the pressure before deciding anything.",
+        ],
+    },
+    # OPPORTUNITY (position 1): How to work WITH the energy
+    # Tone: enabling / directional
+    1: {
+        "how_shows_up_templates": [
+            "There's extra bandwidth here if you use it.",
+            "This energy wants to help—let it.",
+            "Something is available that isn't usually.",
+            "A door is open that might close.",
+        ],
+        "best_move_templates": [
+            "Use this while it's here—it won't last.",
+            "Channel this energy toward what matters.",
+            "Let this support decisions you've been circling.",
+            "Experiment where the flow feels easiest.",
+        ],
+    },
+    # FRICTION (position 2): What goes wrong if misused
+    # Tone: caution / grounding  
+    2: {
+        "how_shows_up_templates": [
+            "Here's where things can go sideways.",
+            "This is the trap to avoid.",
+            "Watch for this pattern derailing you.",
+            "The distortion shows up as...",
+        ],
+        "best_move_templates": [
+            "Notice when you're slipping into this.",
+            "Don't let this pattern run the show.",
+            "Catch yourself before this takes over.",
+            "Step back when you feel this pulling you.",
+        ],
+    },
+}
+
+
 def differentiate_and_polish_signals(
     signals: List[TransitSignal], 
     field_context: Dict[str, str]
@@ -734,6 +787,8 @@ def differentiate_and_polish_signals(
     3. Remove any remaining explanatory HD language
     4. Apply strict field filter
     5. Remove generic safe language
+    6. ENFORCE role differentiation (Activation/Opportunity/Friction)
+    7. DEDUPLICATE sentences across all signals
     """
     field_tone = field_context.get("field_tone", "clarity")
     clarity_level = field_context.get("clarity_level", "high")
@@ -749,7 +804,226 @@ def differentiate_and_polish_signals(
     # === STEP 2: Ensure no duplicate titles ===
     polished = ensure_distinct_titles(polished, field_tone, clarity_level)
     
+    # === STEP 3: ENFORCE ROLE DIFFERENTIATION ===
+    polished = enforce_role_differentiation(polished, field_tone, clarity_level)
+    
+    # === STEP 4: DEDUPLICATE sentences across all signals ===
+    polished = deduplicate_across_signals(polished)
+    
     return polished
+
+
+def enforce_role_differentiation(
+    signals: List[TransitSignal],
+    field_tone: str,
+    clarity_level: str
+) -> List[TransitSignal]:
+    """
+    Ensure each signal position has role-appropriate content.
+    Position 0 = Activation (what's strongest)
+    Position 1 = Opportunity (what's available)
+    Position 2 = Friction (what to avoid)
+    """
+    import random
+    
+    for i, signal in enumerate(signals):
+        if i not in ROLE_SPECIFIC_CONTENT:
+            continue
+            
+        role_content = ROLE_SPECIFIC_CONTENT[i]
+        
+        # Check if how_shows_up needs role-specific enhancement
+        current_how = signal.how_shows_up or ""
+        if len(current_how) < 20 or "rhythm runs deeper" in current_how.lower():
+            # Generate role-appropriate content
+            templates = role_content["how_shows_up_templates"]
+            base = random.choice(templates)
+            # Combine with center-specific context if available
+            if signal.center:
+                center_context = get_center_feeling(signal.center)
+                signal.how_shows_up = f"{base} {center_context}"
+            else:
+                signal.how_shows_up = base
+        
+        # Check if best_move needs role-specific enhancement
+        current_move = signal.best_move or ""
+        # If best_move looks generic or repeats common phrases
+        generic_phrases = ["wait.", "notice", "let this", "use this time"]
+        is_generic = any(p in current_move.lower()[:30] for p in generic_phrases) or len(current_move) < 15
+        
+        if is_generic:
+            templates = role_content["best_move_templates"]
+            signal.best_move = random.choice(templates)
+    
+    return signals
+
+
+def get_center_feeling(center: str) -> str:
+    """Get a human-readable feeling for each center - returns role-appropriate text."""
+    import random
+    
+    feeling_variations = {
+        "Solar Plexus": [
+            "Feelings carry more weight than usual.",
+            "Emotions are closer to the surface.",
+            "What you feel matters more right now.",
+        ],
+        "Ajna": [
+            "Thoughts want resolution faster than they should.",
+            "Mental activity is heightened.",
+            "The mind is working overtime.",
+        ],
+        "Sacral": [
+            "The body is louder about what it wants.",
+            "Energy levels are more noticeable.",
+            "The pull toward or away from things is stronger.",
+        ],
+        "Spleen": [
+            "Gut instincts are sharper.",
+            "Body wisdom is speaking louder.",
+            "Instinctual responses are amplified.",
+        ],
+        "Heart": [
+            "The need to prove something is amplified.",
+            "Willpower and drive are heightened.",
+            "What matters to you feels more urgent.",
+        ],
+        "Throat": [
+            "Words want to come out, ready or not.",
+            "Expression feels more urgent.",
+            "Communication energy is elevated.",
+        ],
+        "G": [
+            "Questions about direction feel more urgent.",
+            "Identity and purpose feel more in focus.",
+            "Where you're going matters more right now.",
+        ],
+        "Root": [
+            "Pressure to act or decide is heightened.",
+            "Urgency is amplified.",
+            "Time pressure feels more intense.",
+        ],
+        "Head": [
+            "Ideas flood in faster than you can process.",
+            "Inspiration and mental pressure are elevated.",
+            "Questions and possibilities are multiplying.",
+        ],
+    }
+    
+    variations = feeling_variations.get(center, ["Something feels different here."])
+    return random.choice(variations)
+
+
+def deduplicate_across_signals(signals: List[TransitSignal]) -> List[TransitSignal]:
+    """
+    Ensure no two signals share the same sentence or near-duplicate content.
+    """
+    import re
+    
+    def normalize(text: str) -> str:
+        """Normalize text for comparison."""
+        if not text:
+            return ""
+        # Lowercase, remove punctuation, collapse whitespace
+        text = re.sub(r'[^\w\s]', '', text.lower())
+        return ' '.join(text.split())
+    
+    def sentences_overlap(text1: str, text2: str) -> bool:
+        """Check if two texts share similar core content."""
+        norm1 = normalize(text1)
+        norm2 = normalize(text2)
+        
+        # Check for exact substring match
+        if norm1 in norm2 or norm2 in norm1:
+            return True
+        
+        # Check for high word overlap
+        words1 = set(norm1.split())
+        words2 = set(norm2.split())
+        if not words1 or not words2:
+            return False
+        
+        overlap = len(words1 & words2)
+        min_len = min(len(words1), len(words2))
+        if min_len > 0 and overlap / min_len > 0.6:
+            return True
+        
+        return False
+    
+    # Collect all unique sentences
+    seen_content = {}
+    
+    for i, signal in enumerate(signals):
+        for field in ['how_shows_up', 'best_move', 'what_happening']:
+            text = getattr(signal, field, '') or ''
+            if not text:
+                continue
+                
+            # Check against previously seen content
+            for prev_key, prev_text in seen_content.items():
+                if sentences_overlap(text, prev_text):
+                    # Generate alternative content based on position
+                    new_text = generate_alternative_content(field, i, signal.center)
+                    setattr(signal, field, new_text)
+                    text = new_text
+                    break
+            
+            # Store this content
+            seen_content[f"{i}_{field}"] = text
+    
+    return signals
+
+
+def generate_alternative_content(field: str, position: int, center: Optional[str]) -> str:
+    """Generate alternative content when deduplication is needed."""
+    import random
+    
+    alternatives = {
+        'how_shows_up': {
+            0: [  # Activation
+                "The intensity is impossible to miss.",
+                "This energy demands attention.",
+                "Something is amplified and won't be ignored.",
+            ],
+            1: [  # Opportunity
+                "There's traction here for what you've been waiting on.",
+                "Energy is available that wasn't before.",
+                "A window has opened—use it consciously.",
+            ],
+            2: [  # Friction
+                "This is where misalignment becomes obvious.",
+                "The distortion pattern tends to show up here.",
+                "Watch for this pulling you off track.",
+            ],
+        },
+        'best_move': {
+            0: [  # Activation
+                "Stay present with what's actually happening.",
+                "Don't interpret it yet—just feel it.",
+                "Let the intensity inform you without controlling you.",
+            ],
+            1: [  # Opportunity
+                "Move toward what feels expansive.",
+                "Follow the energy that opens doors.",
+                "Act where there's genuine pull.",
+            ],
+            2: [  # Friction
+                "Pause when you notice this pattern.",
+                "Name it before it names you.",
+                "Don't let this run on autopilot.",
+            ],
+        },
+        'what_happening': {
+            0: ["Something significant is moving through your design."],
+            1: ["An opportunity is present in how energy is configured."],
+            2: ["There's a potential friction point to navigate."],
+        },
+    }
+    
+    field_alts = alternatives.get(field, {})
+    position_alts = field_alts.get(position, field_alts.get(0, ["Something is present."]))
+    
+    return random.choice(position_alts)
 
 
 def polish_single_signal(

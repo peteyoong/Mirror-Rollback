@@ -1963,29 +1963,36 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         return getTypeFallbackToday(hdType, isEmotional);
       }
       
-      // Adapt based on field context - keep TODAY short and immediate
-      let activeText = cleanLanguage(varyPhrasing(activation.how_shows_up || "Something different is present."));
-      let bestUseText = activation.best_move || "Follow your strategy.";
-      let watchForText = cleanLanguage(friction?.how_shows_up || "Taking on energy that isn't yours.");
+      // TODAY is IMMEDIATE - what's present RIGHT NOW
+      // Use activation's how_shows_up but make it present-tense and sharp
+      let activeText = activation.how_shows_up || "Something different is present.";
+      
+      // Make it more immediate and human
+      activeText = activeText
+        .replace(/is pressing/g, 'is pressing right now')
+        .replace(/is amplified/g, 'feels amplified');
+      
+      // Best use should be immediate action
+      let bestUseText = activation.best_move || "Notice what's here.";
+      
+      // Watch for - get from friction but make it immediate
+      let watchForText = friction?.best_move || "Don't force anything.";
       
       // Field-aware modifications
       if (clarityLevel === 'low') {
-        activeText = activeText.replace(/clear/gi, 'forming').replace(/certain/gi, 'sensing');
-        bestUseText = "Wait. " + bestUseText;
+        bestUseText = "Don't decide yet. " + bestUseText.replace(/^Don't /i, '');
       }
       
       return {
-        active: activeText,
-        bestUse: bestUseText,
-        watchFor: watchForText,
-        reflectionPrompt: clarityLevel === 'low' 
-          ? "What am I sensing that isn't fully formed yet?"
-          : `What did I notice about ${activation.title?.toLowerCase() || 'this energy'} today?`,
+        active: cleanLanguage(activeText),
+        bestUse: cleanLanguage(bestUseText),
+        watchFor: cleanLanguage(watchForText),
+        reflectionPrompt: "What felt most present today?"
       };
     };
     
     // Derive Week content from signals (REPEATING BEHAVIORAL PATTERN FOCUS)
-    // Progressive from Today - not emotional state, but what pattern keeps resurfacing
+    // DIFFERENT from Today - focus on what KEEPS showing up over days
     const getWeekFromSignals = () => {
       if (!activation) {
         return getTypeFallbackWeek(hdType, isEmotional);
@@ -1993,50 +2000,51 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       
       const isTemporary = activation.label?.includes('Temporary');
       const isReinforcing = activation.label?.includes('Reinforcing');
+      const centerName = activation.center || 'this energy';
       
-      // Week is about PATTERN OVER TIME - different from Today's immediate state
-      // Avoid repeating field tone language - Week should focus on "what keeps returning"
+      // Week is about PATTERNS - what you'll notice repeatedly
+      // Must be DIFFERENT from Today's content
       let weekTheme = '';
       let helpsText = '';
       let frictionText = '';
       
       if (isReinforcing) {
-        weekTheme = `Watch what keeps returning after each emotional wave—there's a thread here.`;
-        helpsText = `Your ${activation.center || 'design'} energy is reliable this week. Lean into it.`;
-        frictionText = `The risk: pushing harder instead of letting this pattern work for you.`;
+        weekTheme = `Your ${centerName.toLowerCase()} pattern shows up consistently this week—watch what keeps returning.`;
+        helpsText = "Lean into the repetition. What comes back is worth attention.";
+        frictionText = "Pushing harder won't help—the pattern works on its own timing.";
       } else if (isTemporary) {
-        weekTheme = `A borrowed pattern is showing up repeatedly—notice it without gripping it.`;
-        helpsText = opportunity?.best_move 
-          ? cleanLanguage(opportunity.best_move) 
-          : `Use this visiting energy where it flows naturally.`;
-        frictionText = `Watch for: mistaking temporary intensity for permanent identity.`;
+        weekTheme = "A visiting energy keeps appearing—notice it without making it permanent.";
+        helpsText = "Use the borrowed energy where it flows naturally.";
+        frictionText = "Mistaking intensity for identity is the trap here.";
       } else {
-        // Default - make it about repeated behavior, not single-moment feeling
-        weekTheme = activation.center === 'Solar Plexus' 
-          ? `Your emotional pattern over these days reveals something—watch the repetition.`
-          : activation.center === 'Ajna'
-          ? `A mental loop keeps returning—notice what thought keeps circling back.`
-          : `A behavior pattern is forming. Watch what you keep doing without realizing.`;
+        // Default weekly pattern language
+        const centerPatterns: Record<string, string> = {
+          'Solar Plexus': "The same emotional wave keeps coming back—watch its rhythm.",
+          'Ajna': "The same thought keeps circling—notice what wants resolution.",
+          'Sacral': "Your energy pattern over days reveals what truly has pull.",
+          'Spleen': "An instinct keeps returning—it's trying to tell you something.",
+          'Heart': "The same drive or desire shows up daily—what's behind it?",
+          'Throat': "Words keep wanting to come out about the same thing.",
+          'G': "A question about direction keeps surfacing.",
+          'Root': "The same pressure keeps showing up—notice its source.",
+        };
+        weekTheme = centerPatterns[centerName] || "A pattern is forming—watch what repeats.";
         helpsText = opportunity?.best_move 
           ? cleanLanguage(opportunity.best_move)
-          : `Notice where this energy flows easily across multiple days.`;
-        frictionText = friction?.how_shows_up 
-          ? cleanLanguage(friction.how_shows_up.slice(0, 80))
-          : `Taking on others' patterns as your own.`;
+          : "Follow the pattern where it leads naturally.";
+        frictionText = "Forcing the pattern or ignoring it both backfire.";
       }
       
       return {
         theme: cleanLanguage(weekTheme),
         helpsWhere: cleanLanguage(helpsText),
         frictionPattern: cleanLanguage(frictionText),
-        reflectionPrompt: isTemporary 
-          ? "What behavior showed up this week that isn't usually mine?"
-          : "What pattern keeps returning when I'm not forcing anything?"
+        reflectionPrompt: "What kept showing up this week?"
       };
     };
     
     // Derive Month content from signals (IDENTITY/DEVELOPMENTAL ARC)
-    // Progressive from Week - not pattern, but what this is teaching/shaping
+    // DIFFERENT from Today and Week - focus on WHAT YOU'RE LEARNING
     const getMonthFromSignals = () => {
       if (!activation) {
         return getTypeFallbackMonth(hdType, isEmotional);
@@ -2044,40 +2052,42 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       
       const centerFocus = activation.center || opportunity?.center || friction?.center;
       
-      // Month is about IDENTITY and DEVELOPMENT - who you're becoming, not what's happening
-      // Avoid repeating "reset" or "shift" language from Field section
+      // Month is about GROWTH and IDENTITY - who you're becoming
+      // Must be DIFFERENT from Today (immediate) and Week (patterns)
       let monthTheme = '';
       let growthText = '';
       let trapText = '';
       
       if (centerFocus) {
-        // Make it developmental - about learning and growth
-        monthTheme = `This cycle is teaching you something about how you relate to ${
-          centerFocus === 'Solar Plexus' ? 'your emotional truth' :
-          centerFocus === 'Ajna' ? 'certainty and doubt' :
-          centerFocus === 'Sacral' ? 'energy and depletion' :
-          centerFocus === 'Spleen' ? 'instinct and fear' :
-          centerFocus === 'Heart' ? 'will and commitment' :
-          centerFocus === 'Throat' ? 'expression and timing' :
-          centerFocus === 'G' ? 'direction and identity' :
-          centerFocus === 'Root' ? 'pressure and timing' :
-          'this part of yourself'
-        }.`;
-        growthText = `The edge: trusting your design even when this energy is uncomfortable.`;
-        trapText = `Over-identifying with how things feel right now—this is a lesson, not a verdict.`;
+        // Center-specific developmental lessons
+        const developmentalLessons: Record<string, string> = {
+          'Solar Plexus': "How you relate to emotional truth is being refined.",
+          'Ajna': "Your relationship with certainty and not-knowing is shifting.",
+          'Sacral': "What drains vs. sustains you is becoming clearer.",
+          'Spleen': "Trusting your instincts is the lesson being deepened.",
+          'Heart': "What you're willing to commit to is being tested.",
+          'Throat': "When to speak and when to wait is the teaching.",
+          'G': "Your sense of direction is being recalibrated.",
+          'Root': "How you handle pressure is evolving.",
+          'Head': "Your relationship with inspiration vs. overwhelm is maturing.",
+        };
+        
+        monthTheme = developmentalLessons[centerFocus] || "Something is being learned about this part of your design.";
+        growthText = "Trust the discomfort—it's part of the refinement.";
+        trapText = "This is a lesson, not a permanent state. Don't over-identify.";
       } else {
-        monthTheme = `Multiple threads are weaving together. The shape will become clear in hindsight.`;
+        monthTheme = "Multiple threads are weaving. The pattern becomes clear in hindsight.";
         growthText = clarityLevel === 'low'
-          ? `Patience. The understanding comes after, not during.`
-          : `Stay curious. Experiment without needing to conclude.`;
-        trapText = `Rushing to make meaning before the cycle completes.`;
+          ? "The understanding comes after, not during."
+          : "Stay curious about what's forming.";
+        trapText = "Rushing to conclusions misses the deeper teaching.";
       }
       
       return {
         theme: cleanLanguage(monthTheme),
         growthEdge: cleanLanguage(growthText),
         commonTrap: cleanLanguage(trapText),
-        reflectionPrompt: "What is this month teaching me about how I operate?"
+        reflectionPrompt: "What is this month teaching me?"
       };
     };
     
