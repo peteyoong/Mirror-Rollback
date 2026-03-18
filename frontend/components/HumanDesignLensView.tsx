@@ -2039,17 +2039,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       };
     };
     
-    // Helper: Clean language - remove generic phrases
-    const cleanLanguage = (text: string): string => {
-      if (!text) return text;
-      // Remove overly generic phrases
-      return text
-        .replace(/what feels expansive/gi, 'what genuinely pulls you')
-        .replace(/something is available/gi, 'there may be an opening')
-        .replace(/energy is support/gi, 'this phase support')
-        .replace(/it's all connected/gi, '');
-    };
-    
     // Type fallbacks for TODAY - immediate posture, what to do RIGHT NOW
     const getTypeFallbackToday = (type: string, emotional: boolean) => {
       const defaults: Record<string, any> = {
