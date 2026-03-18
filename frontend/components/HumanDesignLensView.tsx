@@ -2216,8 +2216,14 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     return (
       <>
-        {/* PART 1: Core Mechanics as Cards at TOP */}
-        <Text style={[styles.deepDiveSectionHeader, { color: theme.textTertiary }]}>CORE MECHANICS</Text>
+        {/* 1. TOP SUMMARY GRAPH - Visual design overview */}
+        {renderDesignSummaryGraph()}
+        
+        {/* 2. BODY GRAPH */}
+        {renderImprovedBodygraph()}
+        
+        {/* 3. CORE MECHANICS CARDS */}
+        <Text style={[styles.deepDiveSectionHeader, { color: theme.textTertiary, marginTop: 24 }]}>CORE MECHANICS</Text>
         
         {/* Type Card */}
         {data.core_mechanics?.type && renderMechanicCard(
@@ -2251,13 +2257,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           'Incarnation Cross'
         )}
         
-        {/* Body Graph Visual */}
-        {renderImprovedBodygraph()}
-        
-        {/* SEQUENCES SECTION WITH TABS */}
-        {renderSequencesTabs()}
-        
-        {/* CENTERS SECTION */}
+        {/* 4. CENTERS SECTION */}
         {centersData && (
           <>
             <Text style={[styles.deepDiveSectionHeader, { color: theme.textTertiary, marginTop: 24 }]}>CENTERS</Text>
@@ -2265,15 +2265,95 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </>
         )}
         
-        {/* GATES SECTION */}
+        {/* 5. GATES SECTION */}
         {gatesData && (
           <>
             <Text style={[styles.deepDiveSectionHeader, { color: theme.textTertiary, marginTop: 24 }]}>YOUR GATES</Text>
             {renderGatesCards()}
           </>
         )}
+        
+        {/* 6. SEQUENCES SECTION - LAST */}
+        {renderSequencesTabs()}
       </>
     );
+  };
+  
+  // Design Summary Graph - Visual overview at top
+  const renderDesignSummaryGraph = () => {
+    if (!data?.core_mechanics) return null;
+    
+    const { type, authority, profile, definition, incarnation_cross } = data.core_mechanics;
+    
+    // Type colors
+    const typeColors: Record<string, string> = {
+      'Generator': '#FFD700',
+      'Manifesting Generator': '#FF8C00',
+      'Projector': '#87CEEB',
+      'Manifestor': '#FF6347',
+      'Reflector': '#E6E6FA'
+    };
+    
+    const typeColor = typeColors[type || ''] || theme.accent;
+    
+    return (
+      <View style={[styles.summaryGraphCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {/* Header */}
+        <View style={styles.summaryGraphHeader}>
+          <Text style={[styles.summaryGraphTitle, { color: theme.text }]}>Your Design</Text>
+        </View>
+        
+        {/* Main Type Badge */}
+        <View style={[styles.summaryGraphTypeBadge, { backgroundColor: typeColor + '20', borderColor: typeColor }]}>
+          <Text style={[styles.summaryGraphTypeText, { color: typeColor }]}>{type || 'Unknown Type'}</Text>
+        </View>
+        
+        {/* Key Attributes Grid */}
+        <View style={styles.summaryGraphGrid}>
+          {/* Authority */}
+          <View style={styles.summaryGraphItem}>
+            <Text style={[styles.summaryGraphItemLabel, { color: theme.textTertiary }]}>AUTHORITY</Text>
+            <Text style={[styles.summaryGraphItemValue, { color: theme.text }]}>{authority || 'Unknown'}</Text>
+          </View>
+          
+          {/* Profile */}
+          <View style={styles.summaryGraphItem}>
+            <Text style={[styles.summaryGraphItemLabel, { color: theme.textTertiary }]}>PROFILE</Text>
+            <Text style={[styles.summaryGraphItemValue, { color: theme.text }]}>{profile || 'Unknown'}</Text>
+          </View>
+          
+          {/* Definition */}
+          <View style={styles.summaryGraphItem}>
+            <Text style={[styles.summaryGraphItemLabel, { color: theme.textTertiary }]}>DEFINITION</Text>
+            <Text style={[styles.summaryGraphItemValue, { color: theme.text }]}>{definition || 'Unknown'}</Text>
+          </View>
+          
+          {/* Strategy */}
+          <View style={styles.summaryGraphItem}>
+            <Text style={[styles.summaryGraphItemLabel, { color: theme.textTertiary }]}>STRATEGY</Text>
+            <Text style={[styles.summaryGraphItemValue, { color: theme.text }]}>{getShortStrategy(type)}</Text>
+          </View>
+        </View>
+        
+        {/* Incarnation Cross */}
+        <View style={[styles.summaryGraphCross, { borderTopColor: theme.border }]}>
+          <Text style={[styles.summaryGraphCrossLabel, { color: theme.textTertiary }]}>INCARNATION CROSS</Text>
+          <Text style={[styles.summaryGraphCrossValue, { color: theme.text }]}>{incarnation_cross || 'Unknown'}</Text>
+        </View>
+      </View>
+    );
+  };
+  
+  // Helper for short strategy text
+  const getShortStrategy = (type: string | undefined): string => {
+    const strategies: Record<string, string> = {
+      'Generator': 'Wait to Respond',
+      'Manifesting Generator': 'Wait to Respond, then Inform',
+      'Projector': 'Wait for Invitation',
+      'Manifestor': 'Inform before Acting',
+      'Reflector': 'Wait a Lunar Cycle'
+    };
+    return strategies[type || ''] || 'Unknown';
   };
 
   // SEQUENCES TABS - Core / Relationship / Work
@@ -4956,5 +5036,69 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     padding: 20,
+  },
+  
+  // Summary Graph Styles
+  summaryGraphCard: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 20,
+    marginBottom: 16,
+  },
+  summaryGraphHeader: {
+    marginBottom: 16,
+  },
+  summaryGraphTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  summaryGraphTypeBadge: {
+    alignSelf: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+    borderWidth: 2,
+    marginBottom: 20,
+  },
+  summaryGraphTypeText: {
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  summaryGraphGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 16,
+  },
+  summaryGraphItem: {
+    width: '50%',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  summaryGraphItemLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  summaryGraphItemValue: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  summaryGraphCross: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 12,
+  },
+  summaryGraphCrossLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  summaryGraphCrossValue: {
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
