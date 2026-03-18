@@ -2449,27 +2449,30 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
     return (
       <View style={styles.todayTabContainer}>
-        {/* SECTION 1: YOUR DESIGN TODAY - Dominant theme headline */}
+        {/* PAGE TITLE - Single instance only */}
         <View style={styles.todayIntroSection}>
           <Text style={[styles.todayIntroTitle, { color: theme.text }]}>Your Design Today</Text>
-          {/* Show the dominant signal theme as the central idea */}
-          {dominantSignal.theme ? (
-            <View style={[styles.dominantThemeContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.dominantThemeText, { color: theme.text }]}>
-                {dominantSignal.theme}
-              </Text>
-              <Text style={[styles.dominantThemeSubtext, { color: theme.textSecondary }]}>
-                Everything below points to this.
-              </Text>
-            </View>
-          ) : (
-            <Text style={[styles.todayIntroSubtitle, { color: theme.textSecondary }]}>
-              Real-time signals from your chart and what's happening in the sky.
-            </Text>
-          )}
+          <Text style={[styles.todayIntroSubtitle, { color: theme.textSecondary }]}>
+            Real-time signals from your chart and the current transits.
+          </Text>
         </View>
         
-        {/* SECTION 2: THE BIGGER SHIFT - Macro sky context only (max 1-2 cards) */}
+        {/* DOMINANT THEME - The spine of the page */}
+        {dominantSignal.theme && (
+          <View style={styles.dominantThemeSection}>
+            <Text style={[styles.dominantThemeLabel, { color: theme.textTertiary }]}>DOMINANT THEME</Text>
+            <Text style={[styles.dominantThemeText, { color: theme.text }]}>
+              {dominantSignal.theme}
+            </Text>
+            <Text style={[styles.dominantThemeSupport, { color: theme.textSecondary }]}>
+              {dominantSignal.center_focus 
+                ? `Your ${dominantSignal.center_focus.toLowerCase()} is asking you to wait.`
+                : `Everything active right now points to this.`}
+            </Text>
+          </View>
+        )}
+        
+        {/* THE BIGGER SHIFT - Macro sky context only */}
         {renderFieldSection()}
         
         {/* Divider if field signals exist */}
@@ -2483,110 +2486,50 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* Divider */}
         <View style={[styles.todayDivider, { backgroundColor: theme.border }]} />
         
-        {/* SECTION 4: YOUR TIMING - Today / Week / Month progressive */}
+        {/* YOUR TIMING - Compact, guidance-focused cards */}
         <View style={styles.timingSectionHeader}>
           <Text style={[styles.timingSectionTitle, { color: theme.text }]}>Your Timing</Text>
-          <Text style={[styles.timingSectionSubtitle, { color: theme.textSecondary }]}>
-            How this unfolds across different timeframes.
-          </Text>
         </View>
 
-        {/* CARD 1: TODAY - What to notice immediately (shorter/sharper) */}
-        <View style={[styles.timingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={styles.timingCardHeader}>
-            <Text style={[styles.timingCardTitle, { color: theme.text }]}>Today</Text>
-            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>What to notice right now</Text>
-          </View>
-          
-          <View style={styles.timingCardContent}>
-            <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>WHAT'S PRESENT</Text>
-              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{todayContent.active}</Text>
-            </View>
-            
-            <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>BEST USE</Text>
-              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{todayContent.bestUse}</Text>
-            </View>
-            
-            <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>WATCH FOR</Text>
-              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{todayContent.watchFor}</Text>
-            </View>
-          </View>
-          
+        {/* TODAY - Immediate behavioral guidance */}
+        <View style={[styles.timingCardCompact, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.timingCardTitleCompact, { color: theme.text }]}>Today</Text>
+          <Text style={[styles.timingCardMainText, { color: theme.textSecondary }]}>{todayContent.bestUse}</Text>
+          <Text style={[styles.timingCardWatchText, { color: theme.textTertiary }]}>Watch for: {todayContent.watchFor}</Text>
           <TouchableOpacity
-            style={[styles.timingReflectCta, { borderTopColor: theme.border }]}
+            style={styles.timingReflectCtaCompact}
             onPress={() => openReflection('Today', 'timing', todayContent.reflectionPrompt, 'today', 'today_timing', hdType)}
             activeOpacity={0.7}
           >
-            <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+            <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect →</Text>
           </TouchableOpacity>
         </View>
 
-        {/* CARD 2: THIS WEEK - Repeating behavioral pattern */}
-        <View style={[styles.timingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={styles.timingCardHeader}>
-            <Text style={[styles.timingCardTitle, { color: theme.text }]}>This Week</Text>
-            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>The pattern that keeps returning</Text>
-          </View>
-          
-          <View style={styles.timingCardContent}>
-            <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>RECURRING THEME</Text>
-              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{weekContent.theme}</Text>
-            </View>
-            
-            <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>WHERE THIS HELPS</Text>
-              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{weekContent.helpsWhere}</Text>
-            </View>
-            
-            <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>FRICTION TO WATCH</Text>
-              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{weekContent.frictionPattern}</Text>
-            </View>
-          </View>
-          
+        {/* THIS WEEK - Pattern recurrence */}
+        <View style={[styles.timingCardCompact, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.timingCardTitleCompact, { color: theme.text }]}>This Week</Text>
+          <Text style={[styles.timingCardMainText, { color: theme.textSecondary }]}>{weekContent.theme}</Text>
+          <Text style={[styles.timingCardWatchText, { color: theme.textTertiary }]}>Friction: {weekContent.frictionPattern}</Text>
           <TouchableOpacity
-            style={[styles.timingReflectCta, { borderTopColor: theme.border }]}
+            style={styles.timingReflectCtaCompact}
             onPress={() => openReflection('This Week', 'timing', weekContent.reflectionPrompt, 'today', 'week_timing', hdType)}
             activeOpacity={0.7}
           >
-            <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+            <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect →</Text>
           </TouchableOpacity>
         </View>
 
-        {/* CARD 3: THIS MONTH - Identity and developmental arc */}
-        <View style={[styles.timingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={styles.timingCardHeader}>
-            <Text style={[styles.timingCardTitle, { color: theme.text }]}>This Month</Text>
-            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>The deeper developmental arc</Text>
-          </View>
-          
-          <View style={styles.timingCardContent}>
-            <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>WHAT THIS CYCLE IS TEACHING</Text>
-              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{monthContent.theme}</Text>
-            </View>
-            
-            <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>GROWTH EDGE</Text>
-              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{monthContent.growthEdge}</Text>
-            </View>
-            
-            <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>COMMON TRAP</Text>
-              <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{monthContent.commonTrap}</Text>
-            </View>
-          </View>
-          
+        {/* THIS MONTH - Developmental arc */}
+        <View style={[styles.timingCardCompact, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.timingCardTitleCompact, { color: theme.text }]}>This Month</Text>
+          <Text style={[styles.timingCardMainText, { color: theme.textSecondary }]}>{monthContent.theme}</Text>
+          <Text style={[styles.timingCardWatchText, { color: theme.textTertiary }]}>Trap: {monthContent.commonTrap}</Text>
           <TouchableOpacity
-            style={[styles.timingReflectCta, { borderTopColor: theme.border }]}
+            style={styles.timingReflectCtaCompact}
             onPress={() => openReflection('This Month', 'timing', monthContent.reflectionPrompt, 'today', 'month_timing', hdType)}
             activeOpacity={0.7}
           >
-            <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+            <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect →</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -5333,53 +5276,59 @@ const styles = StyleSheet.create({
   
   todayTabContainer: {
     width: '100%',
-    maxWidth: 900,
+    maxWidth: 720,  // Tighter max-width for more editorial feel
     alignSelf: 'center',
-    paddingHorizontal: 0, // padding handled by parent
+    paddingHorizontal: 0,
   },
   todayIntroSection: {
-    marginBottom: 20,
+    marginBottom: 8,  // Reduced vertical spacing
   },
   todayIntroTitle: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '700',
     letterSpacing: -0.5,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   todayIntroSubtitle: {
     fontSize: 14,
     lineHeight: 20,
-    opacity: 0.75,
+    opacity: 0.6,
   },
-  // Dominant Signal Theme - The ONE central idea
-  dominantThemeContainer: {
-    marginTop: 12,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
+  // Dominant Theme - The spine of the page (visually light)
+  dominantThemeSection: {
+    marginTop: 8,
+    marginBottom: 16,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  dominantThemeLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 1.2,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    opacity: 0.5,
   },
   dominantThemeText: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: '600',
-    textAlign: 'center',
-    letterSpacing: -0.3,
-    lineHeight: 26,
+    lineHeight: 22,
+    marginBottom: 2,
   },
-  dominantThemeSubtext: {
-    fontSize: 12,
-    marginTop: 6,
+  dominantThemeSupport: {
+    fontSize: 13,
+    lineHeight: 18,
     opacity: 0.6,
-    textAlign: 'center',
   },
   timingSectionHeader: {
-    marginBottom: 16,
-    marginTop: 8,
+    marginBottom: 12,
+    marginTop: 4,
   },
   timingSectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 4,
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 0,
   },
   timingSectionSubtitle: {
     fontSize: 13,
@@ -5568,8 +5517,8 @@ const styles = StyleSheet.create({
   
   todayDivider: {
     height: 1,
-    marginVertical: 20,
-    opacity: 0.3,
+    marginVertical: 14,  // Tighter vertical spacing
+    opacity: 0.15,
   },
 
   // ============================================
@@ -5630,6 +5579,36 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: "inherit",
+  },
+  // Compact timing cards (Today/Week/Month)
+  timingCardCompact: {
+    backgroundColor: "transparent",
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "transparent",
+    marginBottom: 10,
+    padding: 14,
+  },
+  timingCardTitleCompact: {
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+  },
+  timingCardMainText: {
+    fontSize: 15,
+    lineHeight: 21,
+    marginBottom: 8,
+  },
+  timingCardWatchText: {
+    fontSize: 13,
+    lineHeight: 18,
+    opacity: 0.7,
+  },
+  timingReflectCtaCompact: {
+    marginTop: 10,
+    alignItems: 'flex-start',
   },
 
   // Version Debug Panel styles (non-production)
