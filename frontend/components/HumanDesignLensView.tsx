@@ -2015,13 +2015,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               <Text style={[styles.accordionSectionText, { color: theme.textSecondary }]}>{content.tips}</Text>
             </View>
             
-            {/* Ask CTA */}
+            {/* Reflect CTA */}
             <TouchableOpacity
               style={[styles.accordionAskCta, { borderTopColor: theme.border }]}
-              onPress={() => onOpenChat(`Tell me more about my ${askContext}`)}
+              onPress={() => onOpenChat(`I want to reflect on my ${askContext}. What patterns should I notice?`)}
               activeOpacity={0.7}
             >
-              <Text style={[styles.accordionAskCtaText, { color: theme.accent }]}>Ask about this →</Text>
+              <Text style={[styles.accordionAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -2304,6 +2304,26 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* 6. SEQUENCES SECTION - LAST */}
         {renderSequencesTabs()}
       </>
+    );
+  };
+  
+  // Deep Dive Global Ask Section - page level CTA
+  const renderDeepDiveAskSection = () => {
+    return (
+      <View style={[styles.deepDiveAskSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.deepDiveAskTitle, { color: theme.text }]}>Ask About This Lens</Text>
+        <Text style={[styles.deepDiveAskSubtext, { color: theme.textSecondary }]}>
+          Ask anything about your design, your decisions, your patterns, or how this shows up in your life.
+        </Text>
+        <TouchableOpacity
+          style={[styles.deepDiveAskButton, { backgroundColor: theme.accent }]}
+          onPress={() => onOpenChat()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="chatbubble-outline" size={18} color="#FFFFFF" />
+          <Text style={styles.deepDiveAskButtonText}>Start a conversation</Text>
+        </TouchableOpacity>
+      </View>
     );
   };
   
@@ -2629,13 +2649,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         </View>
         
-        {/* Ask CTA */}
+        {/* Reflect CTA */}
         <TouchableOpacity
           style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
-          onPress={() => onOpenChat(`Tell me about my ${sphere.sphere_name} sphere (Gene Key ${sphere.gene_key})`)}
+          onPress={() => onOpenChat(`I want to reflect on my ${sphere.sphere_name} energy (Gene Key ${sphere.gene_key}). What should I notice?`)}
           activeOpacity={0.7}
         >
-          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Ask about this →</Text>
+          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
         </TouchableOpacity>
       </View>
     );
@@ -2701,13 +2721,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         </View>
         
-        {/* Ask CTA */}
+        {/* Reflect CTA */}
         <TouchableOpacity
           style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
-          onPress={() => onOpenChat(`Tell me about my ${isDefined ? 'defined' : 'undefined'} ${centerName} center`)}
+          onPress={() => onOpenChat(`I want to reflect on my ${isDefined ? 'defined' : 'undefined'} ${centerName} center. How does this show up in my life?`)}
           activeOpacity={0.7}
         >
-          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Ask about this →</Text>
+          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
         </TouchableOpacity>
       </View>
     );
@@ -2905,13 +2925,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         </View>
         
-        {/* Ask CTA */}
+        {/* Reflect CTA */}
         <TouchableOpacity
           style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
-          onPress={() => onOpenChat(`Tell me about Gate ${gateNum} (${gateName}) in my design`)}
+          onPress={() => onOpenChat(`I want to reflect on Gate ${gateNum} (${gateName}). How do I experience this energy?`)}
           activeOpacity={0.7}
         >
-          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Ask about this →</Text>
+          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
         </TouchableOpacity>
       </View>
     );
@@ -3621,7 +3641,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             {activeTab === 'deep_dive' && (
               <>
                 {renderDeepDiveTab()}
-                {/* Removed global Ask CTA - individual cards have their own Ask buttons */}
+                {/* Global Ask CTA - page level */}
+                {renderDeepDiveAskSection()}
               </>
             )}
             
@@ -5352,5 +5373,41 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 12,
     paddingBottom: 4,
+  },
+  
+  // Deep Dive Global Ask Section
+  deepDiveAskSection: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 20,
+    marginTop: 24,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  deepDiveAskTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  deepDiveAskSubtext: {
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  deepDiveAskButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    gap: 8,
+  },
+  deepDiveAskButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
