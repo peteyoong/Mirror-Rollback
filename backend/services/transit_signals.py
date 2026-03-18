@@ -1279,13 +1279,13 @@ def generate_alternative_content(field: str, position: int, center: Optional[str
             ],
             1: [  # Opportunity
                 "Move toward what feels expansive.",
-                "Follow the energy that opens doors.",
+                "Move toward what feels naturally easy.",
                 "Act where there's genuine pull.",
             ],
             2: [  # Friction
                 "Pause when you notice this pattern.",
                 "Name it before it names you.",
-                "Don't let this run on autopilot.",
+                "Notice when you're reacting without thinking.",
             ],
         },
         'what_happening': {
