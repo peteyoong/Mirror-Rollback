@@ -21076,11 +21076,15 @@ async def get_daily_pattern_signal(user_id: str):
         today = date_type.today()
         date_str = today.isoformat()
         
-        # Check cache first (valid for the whole day)
-        cached = await db.daily_pattern_signals.find_one({
-            "user_id": user_id,
-            "date": date_str
-        })
+        # HARD OVERRIDE: Skip cache to force new templates (v2)
+        # TODO: Remove this after confirming new copy is live
+        cached = None  # DISABLED: await db.daily_pattern_signals.find_one(...)
+        
+        # Old cache check disabled:
+        # cached = await db.daily_pattern_signals.find_one({
+        #     "user_id": user_id,
+        #     "date": date_str
+        # })
         
         if cached:
             logger.info(f"[DailyPatternSignal] Returning cached signal for {user_id} on {date_str}")
