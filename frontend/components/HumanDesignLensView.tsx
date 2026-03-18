@@ -1792,14 +1792,16 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // TODAY TAB - Simplified today view with practical guidance
+  // TODAY TAB - Type AND Authority-specific guidance
   const renderTodayTab = () => {
     if (!data) return null;
     
-    const hdType = data.core_mechanics?.type || 'Unknown';
+    const hdType = data.core_mechanics?.type || 'Generator';
+    const authority = data.core_mechanics?.authority || '';
+    const isEmotional = authority.toLowerCase().includes('emotional');
     
-    // Get type-specific today guidance
-    const todayGuidance = {
+    // Get type-specific base guidance
+    const typeGuidance: Record<string, { active: string; act: string; wait: string; avoid: string }> = {
       'Generator': {
         active: "Your sacral energy is looking for something to respond to. Notice what lights up your gut today.",
         act: "Respond to what genuinely excites you. Your 'yes' or 'no' lives in your body, not your mind.",
@@ -1815,28 +1817,88 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       'Projector': {
         active: "Your wisdom is sharp today. Notice where you're being genuinely invited to contribute.",
         act: "Wait for recognition and invitation. Your guidance lands when it's truly wanted.",
-        wait: "Hold back unsolicited advice. Bitterness is a signal that you're giving where you weren't asked.",
-        avoid: "Don't try to keep up with Generator energy. Rest when needed."
+        wait: "Hold back unsolicited advice. Bitterness signals you're giving where you weren't asked.",
+        avoid: "Don't try to match Generator energy. Rest when needed—your power is in precision, not endurance."
       },
       'Manifestor': {
-        active: "Your initiating energy is ready to move. Notice the urges that want expression.",
-        act: "Inform before acting. It's not asking permission—it's reducing resistance.",
-        wait: "After big initiations, rest. Your energy comes in bursts, not sustained flow.",
-        avoid: "Don't suppress your impact to please others. Peace comes from informed action, not withdrawal."
+        active: "Your initiating energy is ready to move. Notice the internal urges that want expression today.",
+        act: "Inform others before you act. It's not asking permission—it reduces resistance and clears your path.",
+        wait: "After big initiations, rest. Your energy comes in powerful bursts, not sustained flow.",
+        avoid: "Don't suppress your impact to keep peace. True peace comes from informed action, not withdrawal."
       },
       'Reflector': {
-        active: "You're sampling the energy around you. Notice what feels true versus what you're absorbing.",
-        act: "For major decisions, allow the full lunar cycle. Today, observe rather than conclude.",
-        wait: "Don't rush yourself. Your process needs time to reveal clarity.",
-        avoid: "Avoid environments that feel off. You're highly sensitive to your surroundings."
+        active: "You're sampling the energy around you. Notice what feels authentically yours versus absorbed.",
+        act: "For major decisions, wait through a full lunar cycle. Today, observe rather than conclude.",
+        wait: "Don't rush yourself. Your wisdom needs time to reveal what's truly correct.",
+        avoid: "Avoid environments and people that feel off. You amplify whatever surrounds you."
       }
     };
     
-    const guidance = todayGuidance[hdType as keyof typeof todayGuidance] || todayGuidance['Generator'];
+    // Emotional Authority override - adds timing layer
+    const emotionalOverride: Record<string, { act: string; wait: string }> = {
+      'Generator': {
+        act: "Respond to what excites you, then sleep on it. Emotional clarity comes in waves, not instant hits.",
+        wait: "Feel your response, then wait through the emotional wave before committing."
+      },
+      'Manifesting Generator': {
+        act: "Respond first, then wait for emotional clarity before fully committing. Speed can come after the wave settles.",
+        wait: "Your gut knows, but your emotions need time. Wait for the wave to settle before big moves."
+      },
+      'Projector': {
+        act: "When invited, don't answer immediately. Let your emotional wave settle before giving guidance.",
+        wait: "Invitations don't expire. Wait for emotional clarity before deciding."
+      },
+      'Manifestor': {
+        act: "Notice the urge to initiate, but wait for emotional clarity before acting. Impulsive action from emotional peaks or lows creates chaos.",
+        wait: "Your initiating power is strongest when you're emotionally clear. Don't act from emotional highs or lows."
+      },
+      'Reflector': {
+        act: "Your emotional wave adds another layer to your lunar process. Give yourself even more time for major decisions.",
+        wait: "Notice both the lunar cycle and your emotional wave. Clarity comes when both align."
+      }
+    };
+    
+    // Build final guidance
+    let guidance = typeGuidance[hdType] || typeGuidance['Generator'];
+    
+    // Apply emotional authority override
+    if (isEmotional && emotionalOverride[hdType]) {
+      guidance = {
+        ...guidance,
+        act: emotionalOverride[hdType].act,
+        wait: emotionalOverride[hdType].wait,
+      };
+    }
+    
+    // Authority-specific timing note
+    const authorityNote = isEmotional 
+      ? "With Emotional Authority, clarity comes over time. Never decide from emotional peaks or lows."
+      : authority.toLowerCase().includes('sacral')
+      ? "With Sacral Authority, trust your gut response in the moment."
+      : authority.toLowerCase().includes('splenic')
+      ? "With Splenic Authority, trust the instant knowing—it won't repeat."
+      : authority.toLowerCase().includes('ego')
+      ? "With Ego Authority, act on what you truly want and can commit to."
+      : authority.toLowerCase().includes('self')
+      ? "With Self-Projected Authority, hear yourself speak to find clarity."
+      : authority.toLowerCase().includes('lunar')
+      ? "With Lunar Authority, wait through the full moon cycle before deciding."
+      : authority.toLowerCase().includes('mental')
+      ? "With Mental Authority, talk it through with trusted others—but the decision is yours."
+      : "";
     
     return (
       <>
-        {/* Active Theme */}
+        {/* Type + Authority Context */}
+        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>YOUR DESIGN TODAY</Text>
+          <Text style={[styles.hdOverviewCardSubtitle, { color: theme.accent }]}>{hdType} • {authority || 'Authority'}</Text>
+          <Text style={[styles.hdOverviewCardBody, { color: theme.textSecondary, marginTop: 8 }]}>
+            {authorityNote}
+          </Text>
+        </View>
+        
+        {/* What's Active */}
         <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>WHAT'S ACTIVE</Text>
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
@@ -1844,7 +1906,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </Text>
         </View>
         
-        {/* Practical Guidance */}
+        {/* Where to Act */}
         <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>WHERE TO ACT</Text>
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
@@ -1852,6 +1914,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </Text>
         </View>
         
+        {/* Where to Wait */}
         <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>WHERE TO WAIT</Text>
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
@@ -1859,6 +1922,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </Text>
         </View>
         
+        {/* What to Avoid */}
         <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>WHAT TO AVOID</Text>
           <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
@@ -1879,40 +1943,83 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // DEEP DIVE TAB - Collapsible sections with mechanics, centers, gates, sequences
+  // DEEP DIVE TAB - Clean structure: Profile → Body Graph → Core Mechanics → Sequences → Centers → Gates
   const renderDeepDiveTab = () => {
     if (!data) return null;
     
     return (
       <>
-        {/* Profile Summary */}
+        {/* 1. Profile Summary - Short 2-3 lines */}
         {data.core_mechanics?.profile && (
           <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>YOUR PROFILE</Text>
-            <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
-              {data.core_mechanics.profile} - {PROFILE_SUMMARIES[data.core_mechanics.profile] || 'Your unique way of moving through life.'}
+            <Text style={[styles.hdOverviewCardSubtitle, { color: theme.accent }]}>{data.core_mechanics.profile}</Text>
+            <Text style={[styles.hdOverviewCardBody, { color: theme.text, marginTop: 8 }]}>
+              {PROFILE_SUMMARIES[data.core_mechanics.profile] || 'Your unique way of moving through life and learning.'}
             </Text>
           </View>
         )}
         
-        {/* Body Graph Visual */}
+        {/* 2. Body Graph Visual */}
         {renderBodygraph()}
         
-        {/* Core Mechanics (Collapsible) */}
-        {renderCollapsibleSection('Core Mechanics', 'mechanics', renderCoreMechanics())}
+        {/* 3. Core Mechanics - Direct display, NOT hidden in accordion */}
+        {renderCoreMechanicsBlock()}
         
-        {/* Centers (Collapsible) */}
-        {centersData && renderCollapsibleSection('Centers', 'centers', renderCentersSection())}
-        
-        {/* Gates (Collapsible) */}
-        {gatesData && renderCollapsibleSection('Gates', 'gates', renderGatesSection())}
-        
-        {/* Sequences (Integrated narrative) */}
+        {/* 4. Sequences - Integrated narrative */}
         {renderSequencesSection()}
         
-        {/* AI Generated Deep Dive sections */}
-        {data.sections?.map((section, index) => renderSection(section, index))}
+        {/* 5. Centers - Collapsible at bottom */}
+        {centersData && renderCollapsibleSection('Centers', 'centers', renderCentersSection())}
+        
+        {/* 6. Gates - Collapsible at bottom */}
+        {gatesData && renderCollapsibleSection('Gates', 'gates', renderGatesSection())}
       </>
+    );
+  };
+
+  // Core Mechanics as a clean summary block (NOT accordion)
+  const renderCoreMechanicsBlock = () => {
+    if (!data?.core_mechanics) return null;
+    
+    const { type, strategy, authority, profile, definition, incarnation_cross } = data.core_mechanics;
+    
+    return (
+      <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>CORE MECHANICS</Text>
+        
+        <View style={styles.coreMechanicsGrid}>
+          <View style={styles.coreMechanicsItem}>
+            <Text style={[styles.coreMechanicsLabel, { color: theme.textTertiary }]}>Type</Text>
+            <Text style={[styles.coreMechanicsValue, { color: theme.text }]}>{type}</Text>
+          </View>
+          
+          <View style={styles.coreMechanicsItem}>
+            <Text style={[styles.coreMechanicsLabel, { color: theme.textTertiary }]}>Strategy</Text>
+            <Text style={[styles.coreMechanicsValue, { color: theme.text }]}>{strategy}</Text>
+          </View>
+          
+          <View style={styles.coreMechanicsItem}>
+            <Text style={[styles.coreMechanicsLabel, { color: theme.textTertiary }]}>Authority</Text>
+            <Text style={[styles.coreMechanicsValue, { color: theme.text }]}>{authority}</Text>
+          </View>
+          
+          <View style={styles.coreMechanicsItem}>
+            <Text style={[styles.coreMechanicsLabel, { color: theme.textTertiary }]}>Profile</Text>
+            <Text style={[styles.coreMechanicsValue, { color: theme.text }]}>{profile}</Text>
+          </View>
+          
+          <View style={styles.coreMechanicsItem}>
+            <Text style={[styles.coreMechanicsLabel, { color: theme.textTertiary }]}>Definition</Text>
+            <Text style={[styles.coreMechanicsValue, { color: theme.text }]}>{definition || 'Single'}</Text>
+          </View>
+          
+          <View style={[styles.coreMechanicsItem, { flex: 2 }]}>
+            <Text style={[styles.coreMechanicsLabel, { color: theme.textTertiary }]}>Incarnation Cross</Text>
+            <Text style={[styles.coreMechanicsValue, { color: theme.text }]}>{incarnation_cross || 'Not calculated'}</Text>
+          </View>
+        </View>
+      </View>
     );
   };
 
@@ -2031,16 +2138,77 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Centers section for deep dive
+  // Centers section for deep dive - with correct defined/undefined copy
   const renderCentersSection = () => {
     if (!centersData?.centers) return null;
+    
+    // Correct center descriptions based on defined/undefined state
+    const getCenterDescription = (center: any): string => {
+      const centerName = (center.name || center.center_name || '').toLowerCase();
+      const isDefined = center.defined === true;
+      
+      const descriptions: Record<string, { defined: string; undefined: string; governs: string }> = {
+        'head': {
+          governs: 'mental pressure, inspiration, and questioning',
+          defined: 'You have consistent mental pressure and inspiration. Your mind reliably generates questions and ideas.',
+          undefined: 'You amplify mental pressure from your environment. You sample different ways of thinking and can get overwhelmed by questions that aren\'t yours.'
+        },
+        'ajna': {
+          governs: 'conceptualization, processing, and mental certainty',
+          defined: 'You have a consistent way of thinking and processing information. Your mental certainty is reliable.',
+          undefined: 'You\'re mentally flexible and can see things from many perspectives. Don\'t pressure yourself to have fixed opinions.'
+        },
+        'throat': {
+          governs: 'communication, expression, and manifestation',
+          defined: 'You have a consistent voice and way of expressing yourself. Communication flows naturally.',
+          undefined: 'Your voice and communication style adapts to your environment. Wait for the right timing to speak.'
+        },
+        'g': {
+          governs: 'identity, direction, and love',
+          defined: 'You have a fixed sense of identity and direction. You know who you are and where you\'re going.',
+          undefined: 'Your identity is fluid and you sample different directions in life. Let your environment show you where to go.'
+        },
+        'heart': {
+          governs: 'willpower, ego, and self-worth',
+          defined: 'You have consistent access to willpower. You naturally make and keep promises.',
+          undefined: 'Your willpower fluctuates. Don\'t make promises based on borrowed will—it won\'t sustain.'
+        },
+        'spleen': {
+          governs: 'survival instinct, intuition, and immune system',
+          defined: 'You have reliable instinctual awareness. You naturally sense what\'s healthy and what isn\'t.',
+          undefined: 'You amplify fears and survival energy from others. Learn to distinguish your instincts from absorbed fears.'
+        },
+        'solar plexus': {
+          governs: 'emotions, feelings, and emotional clarity',
+          defined: 'You have a consistent emotional wave. Your emotions cycle through highs and lows. Wait for clarity over time.',
+          undefined: 'You absorb and amplify emotions from others. You can sense how others feel more intensely than they do.'
+        },
+        'sacral': {
+          governs: 'life force energy, sexuality, and work capacity',
+          defined: 'You have consistent access to life force energy. You\'re designed to work and create sustainably.',
+          undefined: 'You don\'t have consistent energy for work. Rest when needed and don\'t try to keep up with Generators.'
+        },
+        'root': {
+          governs: 'adrenaline, pressure, and drive',
+          defined: 'You have consistent pressure and drive. You operate well under deadlines.',
+          undefined: 'You amplify pressure from your environment. Don\'t let external urgency rush your process.'
+        }
+      };
+      
+      const centerInfo = descriptions[centerName];
+      if (!centerInfo) {
+        return center.description || `The ${center.name} center governs specific aspects of your experience.`;
+      }
+      
+      return isDefined ? centerInfo.defined : centerInfo.undefined;
+    };
     
     return (
       <View style={{ gap: 12 }}>
         {centersData.centers.map((center: any, idx: number) => (
           <View key={idx} style={[styles.centerCard, { backgroundColor: theme.background, borderColor: theme.border }]}>
             <View style={styles.centerHeader}>
-              <Text style={[styles.centerName, { color: theme.text }]}>{center.name}</Text>
+              <Text style={[styles.centerName, { color: theme.text }]}>{center.name || center.center_name}</Text>
               <Text style={[styles.centerStatus, { 
                 color: center.defined ? '#FFD700' : theme.textTertiary 
               }]}>
@@ -2048,7 +2216,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               </Text>
             </View>
             <Text style={[styles.centerDescription, { color: theme.textSecondary }]}>
-              {center.description || `The ${center.name} center governs ${center.theme || 'specific aspects of your experience'}.`}
+              {getCenterDescription(center)}
             </Text>
           </View>
         ))}
@@ -3051,6 +3219,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
   },
+  
+  // Core Mechanics Grid (for Deep Dive)
+  coreMechanicsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 12,
+  },
+  coreMechanicsItem: {
+    flex: 1,
+    minWidth: '45%',
+  },
+  coreMechanicsLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  coreMechanicsValue: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  
   // Bodygraph Visual Card
   bodygraphCard: {
     borderRadius: 12,
