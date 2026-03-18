@@ -2531,12 +2531,57 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Sphere Card (for sequences) - follows universal card format
+  // Sphere Card (for sequences) - conversational tone
   const renderSphereCard = (sphere: any, accentColor: string) => {
-    const getShortInterpretation = (text: string | undefined, fallback: string): string => {
-      if (!text) return fallback;
-      const firstSentence = text.split('.')[0] + '.';
-      return firstSentence.length < 100 ? firstSentence : firstSentence.slice(0, 97) + '...';
+    // Get short, direct interpretation
+    const getDirectInterpretation = (text: string | undefined, sphereName: string): string => {
+      if (text) {
+        const firstSentence = text.split('.')[0] + '.';
+        return firstSentence.length < 90 ? firstSentence : firstSentence.slice(0, 87) + '...';
+      }
+      // More varied fallbacks based on sphere name
+      const fallbacks: Record<string, string> = {
+        "Life's Work": "This is where your core purpose tends to show up most clearly.",
+        "Evolution": "This shapes how you grow and transform over time.",
+        "Radiance": "This influences how others experience your presence.",
+        "Purpose": "This points to what you're really here to do.",
+        "Attraction": "This shapes who and what you draw into your life.",
+        "IQ": "This colors how you process and understand things.",
+        "EQ": "This influences how you navigate emotions and connection.",
+        "SQ": "This touches your sense of meaning and spirit.",
+        "Core": "This sits at the heart of your relational patterns.",
+        "Brand": "This shapes how others see and remember you.",
+        "Culture": "This influences the environments you create.",
+        "Vocation": "This points to work that feels genuinely meaningful.",
+        "Pearl": "This is about your lasting contribution."
+      };
+      return fallbacks[sphereName] || "This energy shapes a key part of who you are.";
+    };
+
+    // More varied challenge phrases
+    const getChallengeText = (shadow: string | undefined, gift: string | undefined): string => {
+      if (!shadow) return "The trap is going unconscious with this energy.";
+      const patterns = [
+        `The trap is ${shadow.toLowerCase()}—especially when stressed.`,
+        `When you're off-center, ${shadow.toLowerCase()} tends to take over.`,
+        `Watch for ${shadow.toLowerCase()}. That's usually the sign something's off.`,
+        `At its worst, this becomes ${shadow.toLowerCase()}.`
+      ];
+      return patterns[Math.floor(shadow.length % patterns.length)];
+    };
+
+    // More varied practical tips
+    const getPracticalTip = (sphere: any): string => {
+      if (sphere.practical_tips?.[0]) return sphere.practical_tips[0];
+      if (sphere.gift && sphere.shadow) {
+        const tips = [
+          `When you notice ${sphere.shadow.toLowerCase()}, pause. What would ${sphere.gift} look like here?`,
+          `Try: catch yourself in ${sphere.shadow.toLowerCase()} mode, then ask what ${sphere.gift} would do.`,
+          `Practice: name it when ${sphere.shadow.toLowerCase()} shows up. Just that creates space.`
+        ];
+        return tips[Math.floor((sphere.gene_key || 1) % tips.length)];
+      }
+      return "Notice when this energy feels off—that's useful information.";
     };
 
     return (
@@ -2555,23 +2600,23 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <View style={styles.deepDiveCardSection}>
             <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>STORY</Text>
             <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
-              {getShortInterpretation(sphere.what_this_means, `This sphere shapes your ${sphere.sphere_name?.toLowerCase() || 'expression'}.`)}
+              {getDirectInterpretation(sphere.what_this_means, sphere.sphere_name)}
             </Text>
           </View>
           
-          {/* How This Shows Up - use gift */}
+          {/* How This Shows Up */}
           <View style={styles.deepDiveCardSection}>
             <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>HOW THIS SHOWS UP</Text>
             <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
-              {sphere.gift ? `You express ${sphere.gift} naturally—others often notice this quality in you.` : 'Unique patterns in how this energy flows through you.'}
+              {sphere.gift ? `You tend toward ${sphere.gift.toLowerCase()}—people probably notice this about you.` : 'You have your own way of expressing this energy.'}
             </Text>
           </View>
           
-          {/* Challenge - use shadow */}
+          {/* Challenge */}
           <View style={styles.deepDiveCardSection}>
             <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>CHALLENGE</Text>
             <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
-              {sphere.shadow ? `Under pressure, ${sphere.shadow} can emerge. This is your growth edge.` : 'Working with this energy consciously takes practice.'}
+              {getChallengeText(sphere.shadow, sphere.gift)}
             </Text>
           </View>
           
@@ -2579,9 +2624,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <View style={styles.deepDiveCardSection}>
             <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>PRACTICAL TIPS</Text>
             <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
-              {sphere.practical_tips?.[0] || (sphere.gift && sphere.shadow 
-                ? `Notice when ${sphere.shadow} appears. Ask: "How can I shift toward ${sphere.gift}?"` 
-                : 'Pay attention to how this energy manifests in daily life.')}
+              {getPracticalTip(sphere)}
             </Text>
           </View>
         </View>
@@ -2603,7 +2646,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     if (!centersData?.centers) return null;
     
     return (
-      <View style={{ gap: 16 }}>
+      <View style={{ gap: 8 }}>
         {centersData.centers.map((center: any, idx: number) => renderCenterCard(center, idx))}
       </View>
     );
@@ -2748,16 +2791,76 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     if (!gatesData?.gates) return null;
     
     return (
-      <View style={{ gap: 16 }}>
+      <View style={{ gap: 8 }}>
         {gatesData.gates.slice(0, 12).map((gate: any, idx: number) => renderGateCard(gate, idx))}
       </View>
     );
   };
 
-  // Individual Gate Card
+  // Individual Gate Card - conversational tone
   const renderGateCard = (gate: any, idx: number) => {
     const gateName = gate.name || gate.gate_name || gate.theme || `Gate ${gate.gate_number || gate.gate}`;
     const gateNum = gate.gate_number || gate.gate;
+    
+    // More direct story text
+    const getGateStory = (): string => {
+      if (gate.what_this_means) {
+        const text = gate.what_this_means;
+        const firstSentence = text.split('.')[0] + '.';
+        return firstSentence.length < 85 ? firstSentence : firstSentence.slice(0, 82) + '...';
+      }
+      return `This is about ${gateName.toLowerCase()}—one of your consistent energies.`;
+    };
+
+    // More varied "shows up" phrases
+    const getGateShowsUp = (): string => {
+      if (gate.your_genius) {
+        const text = gate.your_genius;
+        const firstSentence = text.split('.')[0] + '.';
+        return firstSentence.length < 85 ? firstSentence : firstSentence.slice(0, 82) + '...';
+      }
+      if (gate.gift) {
+        const patterns = [
+          `You tend toward ${gate.gift.toLowerCase()}—it comes naturally.`,
+          `People notice your ${gate.gift.toLowerCase()}, even when you don't.`,
+          `${gate.gift} is your default mode here.`
+        ];
+        return patterns[gateNum % patterns.length];
+      }
+      return "You have your own way of expressing this.";
+    };
+
+    // More direct challenge phrases
+    const getGateChallenge = (): string => {
+      if (gate.your_challenge) {
+        const text = gate.your_challenge;
+        const firstSentence = text.split('.')[0] + '.';
+        return firstSentence.length < 85 ? firstSentence : firstSentence.slice(0, 82) + '...';
+      }
+      if (gate.shadow) {
+        const patterns = [
+          `The trap is ${gate.shadow.toLowerCase()}.`,
+          `Watch for ${gate.shadow.toLowerCase()}—that's the signal.`,
+          `When stressed, this can turn into ${gate.shadow.toLowerCase()}.`
+        ];
+        return patterns[gateNum % patterns.length];
+      }
+      return "The challenge is staying conscious with this energy.";
+    };
+
+    // More actionable tips
+    const getGateTip = (): string => {
+      if (gate.practical_experiments?.[0]) return gate.practical_experiments[0];
+      if (gate.shadow && gate.gift) {
+        const tips = [
+          `Catch ${gate.shadow.toLowerCase()} early. Then ask: what would ${gate.gift.toLowerCase()} do here?`,
+          `Try: name it when ${gate.shadow.toLowerCase()} shows up. That creates choice.`,
+          `When ${gate.shadow.toLowerCase()} appears, pause. ${gate.gift} is the alternative.`
+        ];
+        return tips[gateNum % tips.length];
+      }
+      return "Notice how this plays out in your daily life.";
+    };
     
     return (
       <View key={idx} style={[styles.deepDiveCard, { backgroundColor: theme.surface, borderColor: theme.border, borderLeftColor: theme.accent, borderLeftWidth: 3 }]}>
@@ -2773,7 +2876,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <View style={styles.deepDiveCardSection}>
             <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>STORY</Text>
             <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
-              {getShortText(gate.what_this_means) || `Gate ${gateNum} brings the energy of ${gateName.toLowerCase()} into your design.`}
+              {getGateStory()}
             </Text>
           </View>
           
@@ -2781,7 +2884,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <View style={styles.deepDiveCardSection}>
             <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>HOW THIS SHOWS UP</Text>
             <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
-              {gate.gift ? `You naturally express ${gate.gift}—this is your authentic strength.` : (gate.your_genius ? getShortText(gate.your_genius) : `You express Gate ${gateNum} energy in your unique way.`)}
+              {getGateShowsUp()}
             </Text>
           </View>
           
@@ -2789,7 +2892,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <View style={styles.deepDiveCardSection}>
             <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>CHALLENGE</Text>
             <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
-              {gate.shadow ? `Under pressure, ${gate.shadow} can surface. This is your shadow pattern.` : (gate.your_challenge ? getShortText(gate.your_challenge) : `Working with Gate ${gateNum} consciously takes practice.`)}
+              {getGateChallenge()}
             </Text>
           </View>
           
@@ -2797,9 +2900,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <View style={styles.deepDiveCardSection}>
             <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>PRACTICAL TIPS</Text>
             <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
-              {gate.practical_experiments?.[0] || (gate.shadow && gate.gift 
-                ? `Notice when ${gate.shadow} appears. How can you shift toward ${gate.gift}?`
-                : `Pay attention to how Gate ${gateNum} manifests in your daily experience.`)}
+              {getGateTip()}
             </Text>
           </View>
         </View>
@@ -3520,7 +3621,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             {activeTab === 'deep_dive' && (
               <>
                 {renderDeepDiveTab()}
-                {renderUnifiedAskSection('deep_dive')}
+                {/* Removed global Ask CTA - individual cards have their own Ask buttons */}
               </>
             )}
             
@@ -5002,50 +5103,50 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   
-  // NEW Deep Dive Card System
+  // NEW Deep Dive Card System - Compact & Premium
   deepDiveSectionHeader: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 10,
-    marginTop: 12,
+    marginBottom: 8,
+    marginTop: 10,
     paddingHorizontal: 4,
   },
   deepDiveCard: {
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 10,
+    marginBottom: 8,
     overflow: 'hidden',
   },
   deepDiveCardHeader: {
-    padding: 12,
-    paddingBottom: 6,
+    padding: 10,
+    paddingBottom: 4,
   },
   deepDiveCardTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 1,
   },
   deepDiveCardSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
   },
   deepDiveCardContent: {
-    paddingHorizontal: 12,
-    paddingBottom: 6,
+    paddingHorizontal: 10,
+    paddingBottom: 4,
   },
   deepDiveCardSection: {
-    marginBottom: 8,
+    marginBottom: 6,
   },
   deepDiveCardSectionLabel: {
     fontSize: 9,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 2,
+    marginBottom: 1,
   },
   deepDiveCardSectionText: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 17,
   },
   deepDiveAskCta: {
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -5167,24 +5268,24 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   
-  // Accordion Card Styles for Core Mechanics
+  // Accordion Card Styles for Core Mechanics - Compact
   accordionCard: {
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 8,
+    marginBottom: 6,
     overflow: 'hidden',
   },
   accordionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 14,
+    padding: 12,
   },
   accordionHeaderContent: {
     flex: 1,
   },
   accordionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
   accordionSubtitle: {
