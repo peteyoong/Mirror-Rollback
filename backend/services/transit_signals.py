@@ -620,8 +620,11 @@ def compute_transit_signals(
     # Apply field context adaptation to all signals
     adapted_signals = [adapt_signal_to_field(s, field_context, i == 0) for i, s in enumerate(top_signals)]
     
+    # FINAL POLISH: Differentiate signals and compress language
+    polished_signals = differentiate_and_polish_signals(adapted_signals, field_context)
+    
     # Assign roles: Biggest Activation, Opportunity, Friction
-    categorized = categorize_signals(adapted_signals)
+    categorized = categorize_signals(polished_signals)
     
     logger.info(f"[TransitSignals] Computed {len(all_signals)} signals, returning top 3 (field_tone={field_context.get('field_tone')})")
     
@@ -714,6 +717,455 @@ def adapt_signal_to_field(signal: TransitSignal, field_context: Dict[str, str], 
         adapted.best_move = remove_clarity_words(adapted.best_move)
     
     return adapted
+
+
+# =============================================================================
+# SIGNAL DIFFERENTIATION + NARRATIVE COMPRESSION (FINAL POLISH)
+# =============================================================================
+
+def differentiate_and_polish_signals(
+    signals: List[TransitSignal], 
+    field_context: Dict[str, str]
+) -> List[TransitSignal]:
+    """
+    Final polish layer:
+    1. Ensure each signal has a DISTINCT title and feeling
+    2. Compress language to be vivid and short
+    3. Remove any remaining explanatory HD language
+    4. Apply strict field filter
+    5. Remove generic safe language
+    """
+    field_tone = field_context.get("field_tone", "clarity")
+    clarity_level = field_context.get("clarity_level", "high")
+    
+    # === STEP 1: Generate vivid, distinct titles ===
+    used_title_themes = set()
+    polished = []
+    
+    for i, signal in enumerate(signals):
+        polished_signal = polish_single_signal(signal, i, field_tone, clarity_level, used_title_themes)
+        polished.append(polished_signal)
+    
+    # === STEP 2: Ensure no duplicate titles ===
+    polished = ensure_distinct_titles(polished, field_tone, clarity_level)
+    
+    return polished
+
+
+def polish_single_signal(
+    signal: TransitSignal,
+    position: int,
+    field_tone: str,
+    clarity_level: str,
+    used_themes: set
+) -> TransitSignal:
+    """
+    Polish a single signal with vivid language and compression.
+    """
+    # Create a copy to modify
+    polished = TransitSignal(
+        signal_type=signal.signal_type,
+        strength=signal.strength,
+        transit_planet=signal.transit_planet,
+        transit_gate=signal.transit_gate,
+        user_gate=signal.user_gate,
+        center=signal.center,
+        channel_name=signal.channel_name,
+        title=signal.title,
+        what_happening=signal.what_happening,
+        why_happening=signal.why_happening,
+        how_shows_up=signal.how_shows_up,
+        best_move=signal.best_move,
+        label=signal.label,
+    )
+    
+    # === GENERATE VIVID TITLE (4-6 words, emotionally sharp) ===
+    polished.title = generate_vivid_title(signal, position, field_tone, clarity_level, used_themes)
+    used_themes.add(polished.title.lower())
+    
+    # === COMPRESS AND VIVIFY CONTENT ===
+    polished.what_happening = compress_and_vivify(
+        polished.what_happening, 
+        field_tone, 
+        clarity_level,
+        max_sentences=2
+    )
+    
+    polished.how_shows_up = compress_and_vivify(
+        polished.how_shows_up,
+        field_tone,
+        clarity_level, 
+        max_sentences=1
+    )
+    
+    polished.best_move = compress_best_move(polished.best_move, field_tone, clarity_level)
+    
+    # === REMOVE EXPLANATORY HD LANGUAGE ===
+    polished.what_happening = remove_explanatory_language(polished.what_happening)
+    polished.why_happening = remove_explanatory_language(polished.why_happening)
+    polished.how_shows_up = remove_explanatory_language(polished.how_shows_up)
+    
+    # === STRICT FIELD FILTER ===
+    if clarity_level == "low":
+        polished = apply_strict_field_filter(polished)
+    
+    # === REMOVE GENERIC SAFE LANGUAGE ===
+    polished = remove_generic_language(polished)
+    
+    return polished
+
+
+def generate_vivid_title(
+    signal: TransitSignal,
+    position: int,
+    field_tone: str,
+    clarity_level: str,
+    used_themes: set
+) -> str:
+    """
+    Generate emotionally sharp titles (4-6 words).
+    Each title must feel DIFFERENT.
+    """
+    signal_type = signal.signal_type
+    center = signal.center or ""
+    
+    # Title banks based on signal type and field context
+    if field_tone == "reset" and clarity_level == "low":
+        # RESET TITLES - things are forming, unclear
+        title_banks = {
+            SignalType.CHANNEL_COMPLETION: [
+                "Something New Is Forming",
+                "A Bridge Is Building",
+                "Energy Is Connecting",
+                "A Path Wants to Open",
+            ],
+            SignalType.CENTER_ACTIVATION: {
+                "Solar Plexus": [
+                    "Feelings Without Names Yet",
+                    "Emotions Are Moving Through",
+                    "Something Wants to Be Felt",
+                ],
+                "Ajna": [
+                    "Your Mind Wants Answers",
+                    "Thoughts Without Conclusions",
+                    "The Need to Know",
+                ],
+                "Head": [
+                    "Questions Without Answers",
+                    "Inspiration Stirring",
+                    "Mental Pressure Building",
+                ],
+                "Throat": [
+                    "Words Not Ready Yet",
+                    "Expression Is Forming",
+                    "Something Wants Voice",
+                ],
+                "G": [
+                    "Direction Isn't Clear Yet",
+                    "Identity Is Shifting",
+                    "The Path Is Hidden",
+                ],
+                "Heart": [
+                    "Will Isn't Ready",
+                    "Commitment Needs Time",
+                    "Value Is Recalibrating",
+                ],
+                "Spleen": [
+                    "Instincts Are Fuzzy",
+                    "Trust What's Unclear",
+                    "Fear Moves Through",
+                ],
+                "Sacral": [
+                    "Energy Is Rebuilding",
+                    "Response Isn't Clear Yet",
+                    "Life Force Resetting",
+                ],
+                "Root": [
+                    "Pressure Without Direction",
+                    "Urgency Needs Waiting",
+                    "Drive Without Target",
+                ],
+                "default": [
+                    "Something Is Stirring Here",
+                    "Energy Is Shifting",
+                    "Change Without Shape Yet",
+                ],
+            },
+            SignalType.AUTHORITY_AMPLIFICATION: [
+                "Clarity Isn't Here Yet",
+                "Wait Before Deciding",
+                "Answers Are Still Coming",
+                "Trust Takes Time Now",
+            ],
+            SignalType.OPEN_CENTER_PRESSURE: [
+                "Watch What You Absorb",
+                "Not All of This Is Yours",
+                "Borrowed Energy Moving Through",
+                "Notice What's Not Yours",
+            ],
+            SignalType.NATAL_REINFORCEMENT: [
+                "Your Pattern Is Louder",
+                "Familiar Energy Amplified",
+                "You Feel More Yourself",
+            ],
+        }
+    elif field_tone == "clarity":
+        # CLARITY TITLES - things are visible
+        title_banks = {
+            SignalType.CHANNEL_COMPLETION: [
+                "A New Capability Is Here",
+                "Something Just Connected",
+                "A Channel Has Opened",
+            ],
+            SignalType.CENTER_ACTIVATION: {
+                "Solar Plexus": [
+                    "Emotions Are Heightened",
+                    "You Feel Everything More",
+                    "Emotional Waves Peak",
+                ],
+                "Ajna": [
+                    "Mental Clarity Sharpens",
+                    "Thoughts Come Faster",
+                    "Your Mind Is Active",
+                ],
+                "default": [
+                    "This Part of You Lights Up",
+                    "Extra Energy Here",
+                    "Amplification Happening",
+                ],
+            },
+            SignalType.AUTHORITY_AMPLIFICATION: [
+                "Decision Clarity Arrives",
+                "Your Knowing Is Sharp",
+                "Trust What You Feel",
+            ],
+            SignalType.OPEN_CENTER_PRESSURE: [
+                "Watch for Overdoing",
+                "Boundaries Needed Here",
+                "This Isn't All Yours",
+            ],
+            SignalType.NATAL_REINFORCEMENT: [
+                "Your Pattern Amplifies",
+                "More of What's Already You",
+                "Familiar Becomes Louder",
+            ],
+        }
+    else:
+        # DEFAULT/TURNING POINT TITLES
+        title_banks = {
+            SignalType.CHANNEL_COMPLETION: [
+                "Something Is Connecting",
+                "A Bridge Forms Temporarily",
+                "New Energy Available",
+            ],
+            SignalType.CENTER_ACTIVATION: {
+                "Solar Plexus": [
+                    "Emotional Intensity Rising",
+                    "Feelings Run Deep Now",
+                ],
+                "default": [
+                    "This Area Activates",
+                    "Energy Shifts Here",
+                ],
+            },
+            SignalType.AUTHORITY_AMPLIFICATION: [
+                "Your Inner Compass Shifts",
+                "Decision Energy Changes",
+            ],
+            SignalType.OPEN_CENTER_PRESSURE: [
+                "Watch What's Coming In",
+                "External Pressure Here",
+            ],
+            SignalType.NATAL_REINFORCEMENT: [
+                "Your Design Speaks Louder",
+                "Who You Are Intensifies",
+            ],
+        }
+    
+    # Get title bank for this signal type
+    bank = title_banks.get(signal_type, title_banks.get(SignalType.NATAL_REINFORCEMENT, []))
+    
+    # Handle nested center-specific banks
+    if isinstance(bank, dict):
+        center_key = center if center in bank else "default"
+        bank = bank.get(center_key, bank.get("default", []))
+    
+    # Find unused title
+    for title in bank:
+        if title.lower() not in used_themes:
+            return title
+    
+    # Fallback: generate based on position
+    position_titles = {
+        0: "The Main Thing Happening",
+        1: "Also Present Now",
+        2: "Watch For This",
+    }
+    return position_titles.get(position, "Energy Is Shifting")
+
+
+def compress_and_vivify(text: str, field_tone: str, clarity_level: str, max_sentences: int = 2) -> str:
+    """
+    Compress text to be vivid and short.
+    Max sentences, remove filler.
+    """
+    if not text:
+        return text
+    
+    # Split into sentences
+    sentences = [s.strip() for s in text.replace('...', '.').split('.') if s.strip()]
+    
+    # Take only first N sentences
+    sentences = sentences[:max_sentences]
+    
+    # Rejoin
+    result = '. '.join(sentences)
+    if result and not result.endswith('.'):
+        result += '.'
+    
+    return result
+
+
+def compress_best_move(text: str, field_tone: str, clarity_level: str) -> str:
+    """
+    Compress best_move to one clear action.
+    Adapt based on field.
+    """
+    if not text:
+        return "Notice what you feel."
+    
+    # If low clarity/reset, prepend "Wait."
+    if field_tone == "reset" and clarity_level == "low":
+        # Block action words
+        action_words = ["decide", "commit", "act", "move forward", "take action", "make a decision"]
+        for word in action_words:
+            if word in text.lower():
+                return "Wait. Let this settle before acting."
+    
+    # Compress to first sentence
+    first_sentence = text.split('.')[0].strip()
+    if first_sentence:
+        return first_sentence + '.'
+    return text
+
+
+def remove_explanatory_language(text: str) -> str:
+    """
+    Remove explanatory HD language.
+    NO: "Solar Plexus center—the seat of your inner authority"
+    YES: "This shows up as..."
+    """
+    if not text:
+        return text
+    
+    import re
+    
+    # Remove parenthetical explanations
+    text = re.sub(r'—[^.]*—', '', text)
+    text = re.sub(r'\([^)]*center[^)]*\)', '', text)
+    text = re.sub(r'—the seat of[^.]*', '', text)
+    
+    # Remove HD jargon explanations
+    explanatory_patterns = [
+        r'which is normally open in your design[,.]?',
+        r'which is normally undefined[,.]?',
+        r'is designed to sample and amplify[^.]*[,.]?',
+        r'Your .* center is designed to[^.]*[,.]?',
+        r'This gate connects to[^.]*[,.]?',
+        r'completing the Channel of[^.]*[,.]?',
+        r'the seat of your inner authority[,.]?',
+        r'the seat of your decision-making[,.]?',
+        r'energy from the environment[^.]*[,.]?',
+    ]
+    
+    for pattern in explanatory_patterns:
+        text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+    
+    # Clean up double spaces and trailing commas
+    text = re.sub(r'\s*,\s*\.', '.', text)
+    text = re.sub(r',\s*,', ',', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    text = re.sub(r'\s+\.', '.', text)
+    text = re.sub(r',\s*$', '', text)
+    text = re.sub(r',\.$', '.', text)
+    
+    return text
+
+
+def apply_strict_field_filter(signal: TransitSignal) -> TransitSignal:
+    """
+    STRICT: When clarity_level is low, block certain words entirely.
+    """
+    blocked_words = {
+        "clarity": "something forming",
+        "certainty": "a sense of something",
+        "certain": "sensing",
+        "decide": "notice",
+        "decisive": "aware",
+        "decision": "feeling",
+        "clear": "forming",
+        "obvious": "present",
+    }
+    
+    for field in ['what_happening', 'how_shows_up', 'best_move', 'why_happening']:
+        text = getattr(signal, field, '') or ''
+        for blocked, replacement in blocked_words.items():
+            text = text.replace(blocked, replacement)
+            text = text.replace(blocked.capitalize(), replacement.capitalize())
+        setattr(signal, field, text)
+    
+    return signal
+
+
+def remove_generic_language(signal: TransitSignal) -> TransitSignal:
+    """
+    Remove generic safe language.
+    Replace "may be" with more direct language.
+    """
+    replacements = [
+        ("may be", "is"),
+        ("might be", "is"),
+        ("can be", "shows up as"),
+        ("could be", "is"),
+        ("You may feel", "You feel"),
+        ("You might notice", "You notice"),
+        ("You may notice", "You notice"),
+        ("This may show", "This shows"),
+        ("This might show", "This shows"),
+    ]
+    
+    for field in ['what_happening', 'how_shows_up', 'best_move']:
+        text = getattr(signal, field, '') or ''
+        for old, new in replacements:
+            text = text.replace(old, new)
+        setattr(signal, field, text)
+    
+    return signal
+
+
+def ensure_distinct_titles(signals: List[TransitSignal], field_tone: str, clarity_level: str) -> List[TransitSignal]:
+    """
+    Ensure all 3 signals have distinct titles.
+    If duplicates found, rewrite.
+    """
+    titles = [s.title.lower() for s in signals]
+    
+    # Check for duplicates
+    if len(titles) != len(set(titles)):
+        # Find duplicates and rewrite
+        seen = set()
+        for i, signal in enumerate(signals):
+            if signal.title.lower() in seen:
+                # Generate alternative title based on position
+                alternatives = {
+                    0: "The Primary Pattern Now",
+                    1: "What Else Is Present",
+                    2: "The Friction Point",
+                }
+                signal.title = alternatives.get(i, f"Signal {i+1}")
+            seen.add(signal.title.lower())
+    
+    return signals
 
 
 def remove_mechanical_language(text: str, center: Optional[str] = None) -> str:
@@ -823,11 +1275,8 @@ def categorize_signals(signals: List[TransitSignal]) -> Dict[str, TransitSignal]
     friction_candidates = [s for s in signals if s.signal_type == SignalType.OPEN_CENTER_PRESSURE]
     friction = friction_candidates[0] if friction_candidates else (signals[2] if len(signals) > 2 else signals[-1])
     
-    # Ensure friction signal is properly labeled
-    if friction.signal_type != SignalType.OPEN_CENTER_PRESSURE:
-        # Convert to friction framing
-        friction.title = f"Watch For: {friction.center or 'Energy'} Distortion"
-        friction.label = "Temporary activation"
+    # Don't override polished titles with generic "Watch For:" pattern
+    # The polish layer already handles friction titles
     
     return {
         "activation": activation,
