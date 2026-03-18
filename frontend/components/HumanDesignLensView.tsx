@@ -752,6 +752,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Gene Keys expansion state
   const [expandedArc, setExpandedArc] = useState<string | null>(null);
   
+  // Sequence tab state for Deep Dive
+  const [activeSequenceTab, setActiveSequenceTab] = useState<'core' | 'relationship' | 'work'>('core');
+  
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
   
@@ -1943,41 +1946,728 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // DEEP DIVE TAB - Clean structure: Profile → Body Graph → Core Mechanics → Meaning Bridge → Sequences → Centers → Gates
+  // ============================================
+  // DEEP DIVE TAB - NEW CARD-BASED STRUCTURE
+  // ============================================
+  
+  // Universal Card Component for Deep Dive
+  const renderMechanicCard = (
+    title: string,
+    subtitle: string | null,
+    content: { story: string; showsUp: string; challenge: string; tips: string },
+    askContext: string,
+    accentColor?: string
+  ) => {
+    return (
+      <View style={[styles.deepDiveCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={styles.deepDiveCardHeader}>
+          <View>
+            <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>{title}</Text>
+            {subtitle && (
+              <Text style={[styles.deepDiveCardSubtitle, { color: accentColor || theme.accent }]}>{subtitle}</Text>
+            )}
+          </View>
+        </View>
+        
+        <View style={styles.deepDiveCardContent}>
+          {/* Story */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>STORY</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>{content.story}</Text>
+          </View>
+          
+          {/* How This Shows Up */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>HOW THIS SHOWS UP</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>{content.showsUp}</Text>
+          </View>
+          
+          {/* Challenge */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>CHALLENGE</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>{content.challenge}</Text>
+          </View>
+          
+          {/* Practical Tips */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>PRACTICAL TIPS</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>{content.tips}</Text>
+          </View>
+        </View>
+        
+        {/* Ask CTA */}
+        <TouchableOpacity
+          style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
+          onPress={() => onOpenChat(`Tell me more about my ${askContext}`)}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Ask about this →</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  // Get Type card content
+  const getTypeCardContent = (type: string) => {
+    const content: Record<string, { story: string; showsUp: string; challenge: string; tips: string }> = {
+      'Generator': {
+        story: 'You are a life force being, here to find work you love and build mastery through response.',
+        showsUp: 'Strong gut responses to opportunities. Deep satisfaction when engaged in meaningful work.',
+        challenge: 'Saying yes out of obligation rather than genuine excitement leads to frustration.',
+        tips: 'Wait for your gut "uh-huh" before committing. Trust your body over your mind.'
+      },
+      'Manifesting Generator': {
+        story: 'You combine sustainable energy with initiating power. Designed to respond quickly and pivot freely.',
+        showsUp: 'Quick bursts of energy when excited. Natural tendency to multi-task and find shortcuts.',
+        challenge: 'Forcing yourself to finish what no longer excites you. Judging your non-linear path.',
+        tips: 'Respond first, then move fast. Inform others before sudden changes.'
+      },
+      'Projector': {
+        story: 'You are a guide and seer, designed to understand systems and people more deeply than others.',
+        showsUp: 'Ability to see what others miss. Natural talent for guiding and advising when invited.',
+        challenge: 'Offering guidance that wasn\'t asked for leads to bitterness.',
+        tips: 'Wait for recognition and invitation. Rest more than you think you need.'
+      },
+      'Manifestor': {
+        story: 'You are an initiator, here to start things and set change in motion through action.',
+        showsUp: 'Strong urges to initiate. Powerful impact that ripples outward and affects others.',
+        challenge: 'Suppressing impulses to avoid conflict, or acting without informing creates resistance.',
+        tips: 'Inform others before acting. This isn\'t permission—it\'s reducing friction.'
+      },
+      'Reflector': {
+        story: 'You mirror the world around you, sampling and reflecting the health of your environment.',
+        showsUp: 'Deep sensitivity to environment. Wisdom from sampling many perspectives over time.',
+        challenge: 'Rushing decisions without allowing a full lunar cycle for clarity.',
+        tips: 'Give major decisions 28 days. Choose environments carefully—they shape you.'
+      }
+    };
+    return content[type] || content['Generator'];
+  };
+
+  // Get Authority card content
+  const getAuthorityCardContent = (authority: string) => {
+    const normalizedAuth = authority?.toLowerCase() || '';
+    const content: Record<string, { story: string; showsUp: string; challenge: string; tips: string }> = {
+      'emotional': {
+        story: 'Your clarity comes through emotional waves. Decisions gain truth over time, not in the moment.',
+        showsUp: 'Strong emotional responses. Changing feelings about the same choice over days.',
+        challenge: 'Deciding at emotional peaks or valleys leads to regret.',
+        tips: 'Sleep on important decisions. Revisit them over days. Wait for calm clarity.'
+      },
+      'sacral': {
+        story: 'Your body speaks through gut responses—visceral sounds and sensations that indicate yes or no.',
+        showsUp: 'Immediate gut reactions to questions. An "uh-huh" of expansion or "unh-uh" of contraction.',
+        challenge: 'Ignoring gut response because of mental reasoning or social pressure.',
+        tips: 'Pay attention to your first physical response. Ask yes/no questions to clarify.'
+      },
+      'splenic': {
+        story: 'Your intuition speaks once, quietly, in the present moment. It\'s immediate knowing.',
+        showsUp: 'Quick, quiet knowing in the moment. Instincts about safety and timing.',
+        challenge: 'Second-guessing your immediate knowing with mental analysis.',
+        tips: 'Trust your first hit. Don\'t hesitate—the splenic speaks once then moves on.'
+      },
+      'ego': {
+        story: 'Your decisions are clear when connected to what you truly want—what your heart desires.',
+        showsUp: 'Clarity when desires are genuinely felt. Strong willpower when heart is committed.',
+        challenge: 'Committing to things you should want rather than things you actually want.',
+        tips: 'Ask "Do I really want this? Is my heart in it?" before promising anything.'
+      },
+      'self-projected': {
+        story: 'Your clarity comes through your voice—hearing yourself speak reveals your truth.',
+        showsUp: 'Clarity that comes through speaking aloud. Recognizing truth in your own voice.',
+        challenge: 'Processing silently or seeking advice instead of hearing yourself.',
+        tips: 'Talk through decisions with trusted people. Listen to your own words, not their advice.'
+      },
+      'mental': {
+        story: 'Your clarity emerges through conversation and environment over time, not internal analysis.',
+        showsUp: 'Clarity through discussion in varied settings. Decisions that solidify through dialogue.',
+        challenge: 'Deciding in isolation or expecting others to give you the answer.',
+        tips: 'Cultivate trusted sounding boards. Discuss in different environments before deciding.'
+      },
+      'lunar': {
+        story: 'Your clarity unfolds over a complete lunar cycle—28 days to truly know what\'s correct.',
+        showsUp: 'Different feelings about decisions throughout the month. Wisdom from sampling varied energies.',
+        challenge: 'Pressure to decide quickly in a world that values fast answers.',
+        tips: 'Mark when decisions appear. Give them a full moon cycle before committing.'
+      },
+      'none': {
+        story: 'Your clarity comes from your environment—where and with whom you feel most clear.',
+        showsUp: 'Decisions that feel different in different places. Sensitivity to setting.',
+        challenge: 'Not recognizing how much your environment affects your knowing.',
+        tips: 'Make important decisions only in environments where you feel clear and grounded.'
+      }
+    };
+    
+    // Match partial authority names
+    for (const [key, value] of Object.entries(content)) {
+      if (normalizedAuth.includes(key)) return value;
+    }
+    return content['emotional'];
+  };
+
+  // Get Profile card content
+  const getProfileCardContent = (profile: string) => {
+    const content: Record<string, { story: string; showsUp: string; challenge: string; tips: string }> = {
+      '1/3': {
+        story: 'The Investigator-Martyr. You build deep foundations through research, then test them through trial.',
+        showsUp: 'Deep need to understand before committing. Learning most from mistakes and experiments.',
+        challenge: 'Feeling like you\'re always starting over. Judging experiments as failures.',
+        tips: 'Honor both your research phase and your trial-and-error process. They work together.'
+      },
+      '1/4': {
+        story: 'The Investigator-Opportunist. You research deeply, then share through close networks.',
+        showsUp: 'Deep research before forming opinions. Influence through trusted relationships.',
+        challenge: 'Trying to influence beyond your natural network. Sharing before research is complete.',
+        tips: 'Build solid foundations first. Your network will carry your message when it\'s ready.'
+      },
+      '2/4': {
+        story: 'The Hermit-Opportunist. You have natural gifts others see first, shared through your network.',
+        showsUp: 'Talents that emerge when called upon. Gifts others recognize before you do.',
+        challenge: 'Balancing solitude needs with social connection. Being called out too often.',
+        tips: 'Honor your need for retreat. Trust that your gifts will be called when needed.'
+      },
+      '2/5': {
+        story: 'The Hermit-Heretic. Natural gifts attract projections. Others see you as a solution.',
+        showsUp: 'Being called out of retreat to help. Others expecting you to save the day.',
+        challenge: 'Carrying projections you can\'t deliver on. Losing hermit time to demands.',
+        tips: 'Protect your solitude fiercely. Only engage with projections you can actually meet.'
+      },
+      '3/5': {
+        story: 'The Martyr-Heretic. You learn through trial and error, and others project expectations onto you.',
+        showsUp: 'Wisdom built from what hasn\'t worked. Being seen as someone who can fix things.',
+        challenge: 'Constant experimentation plus external expectations. Neither defines your worth.',
+        tips: 'Your experiments are your curriculum. Choose which projections are worth meeting.'
+      },
+      '3/6': {
+        story: 'The Martyr-Role Model. Three life phases: experiment until 30, observe until 50, then embody wisdom.',
+        showsUp: 'Intense early experimentation. Eventual emergence as a living example.',
+        challenge: 'Exhaustion from experimentation. Pressure to be perfect once on the roof.',
+        tips: 'Trust your current phase. Don\'t rush to the next one—each builds on the last.'
+      },
+      '4/6': {
+        story: 'The Opportunist-Role Model. Your influence moves through networks across three life phases.',
+        showsUp: 'Relationships central throughout life. Authority that emerges through connection.',
+        challenge: 'Maintaining relationships through the aloof roof period.',
+        tips: 'Your network carries you through all phases. Nurture key relationships always.'
+      },
+      '4/1': {
+        story: 'The Opportunist-Investigator. You share researched knowledge through trusted networks.',
+        showsUp: 'Deep research shared through close relationships. Need for both intellectual and social security.',
+        challenge: 'Rigidity when foundations or relationships need to shift.',
+        tips: 'Build solid foundations and relationships. Both require stability to thrive.'
+      },
+      '5/1': {
+        story: 'The Heretic-Investigator. Others project expectations; your research helps you deliver.',
+        showsUp: 'Universal appeal that attracts strangers. Capacity to deliver when foundations are solid.',
+        challenge: 'Carrying projections without the foundation to meet them.',
+        tips: 'Research thoroughly before engaging. Only meet projections your knowledge supports.'
+      },
+      '5/2': {
+        story: 'The Heretic-Hermit. Others project savior expectations while you need significant solitude.',
+        showsUp: 'Being called out of retreat constantly. Natural talents that emerge when needed.',
+        challenge: 'Being pulled from necessary solitude by unrealistic expectations.',
+        tips: 'Your hermit time is non-negotiable. Engage selectively with worthy calls.'
+      },
+      '6/2': {
+        story: 'The Role Model-Hermit. Three life phases with natural gifts that emerge when called.',
+        showsUp: 'Eventual wisdom combined with innate talents. Being called out of retreat.',
+        challenge: 'Balancing three-phase journey with hermit needs.',
+        tips: 'Your gifts call you out when needed. Return to retreat to regenerate.'
+      },
+      '6/3': {
+        story: 'The Role Model-Martyr. Three life phases with intense trial-and-error throughout.',
+        showsUp: 'Many experiments tried. Eventual role model status earned through experience.',
+        challenge: 'The sheer volume of experimentation across all phases.',
+        tips: 'Every experiment contributes to eventual wisdom. Trust the process.'
+      }
+    };
+    return content[profile] || { story: 'Your profile shapes how you learn and grow.', showsUp: 'Unique patterns in how you engage with life.', challenge: 'Resisting your natural way of being.', tips: 'Embrace how you\'re designed to operate.' };
+  };
+
+  // Get Incarnation Cross card content
+  const getIncarnationCrossCardContent = (crossName: string) => {
+    const angle = getCrossAngle(crossName);
+    const content: Record<string, { story: string; showsUp: string; challenge: string; tips: string }> = {
+      'Right Angle': {
+        story: 'Your destiny is personal—focused on your own journey and growth. Your life purpose unfolds through self-discovery.',
+        showsUp: 'Life lessons that are primarily internal. Growth through your own journey.',
+        challenge: 'Thinking you should be more focused on others. Judging your path as selfish.',
+        tips: 'Your personal curriculum is the point. Trust that your journey serves something larger.'
+      },
+      'Left Angle': {
+        story: 'Your destiny is transpersonal—woven into the lives of others. Purpose unfolds through relationship.',
+        showsUp: 'Life shaped by key relationships and meetings. Purpose through connection.',
+        challenge: 'Losing yourself in others\' paths. Trying to control the transpersonal unfolding.',
+        tips: 'Your encounters matter in ways you may not see yet. Trust the connections.'
+      },
+      'Juxtaposition': {
+        story: 'Your destiny is fixed and geometric—a specific role you\'re here to play. Less flexibility, more focus.',
+        showsUp: 'Life that keeps returning to the same themes. A sense of fixed purpose.',
+        challenge: 'Fighting the fixedness of your path. Not recognizing your specific role.',
+        tips: 'Your focused destiny is a gift, not a limitation. Lean into the specificity.'
+      }
+    };
+    return content[angle] || content['Right Angle'];
+  };
+
+  // DEEP DIVE TAB - Card-based structure
   const renderDeepDiveTab = () => {
     if (!data) return null;
     
     return (
       <>
-        {/* 1. Profile Summary - Short 2-3 lines */}
-        {data.core_mechanics?.profile && (
-          <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>YOUR PROFILE</Text>
-            <Text style={[styles.hdOverviewCardSubtitle, { color: theme.accent }]}>{data.core_mechanics.profile}</Text>
-            <Text style={[styles.hdOverviewCardBody, { color: theme.text, marginTop: 8 }]}>
-              {PROFILE_SUMMARIES[data.core_mechanics.profile] || 'Your unique way of moving through life and learning.'}
-            </Text>
-          </View>
+        {/* PART 1: Core Mechanics as Cards at TOP */}
+        <Text style={[styles.deepDiveSectionHeader, { color: theme.textTertiary }]}>CORE MECHANICS</Text>
+        
+        {/* Type Card */}
+        {data.core_mechanics?.type && renderMechanicCard(
+          data.core_mechanics.type,
+          'Your Energy Type',
+          getTypeCardContent(data.core_mechanics.type),
+          'Human Design Type'
         )}
         
-        {/* 2. Body Graph Visual */}
+        {/* Authority Card */}
+        {data.core_mechanics?.authority && renderMechanicCard(
+          data.core_mechanics.authority,
+          'Your Decision Authority',
+          getAuthorityCardContent(data.core_mechanics.authority),
+          'Human Design Authority'
+        )}
+        
+        {/* Profile Card */}
+        {data.core_mechanics?.profile && renderMechanicCard(
+          data.core_mechanics.profile,
+          'Your Profile',
+          getProfileCardContent(data.core_mechanics.profile),
+          'Human Design Profile'
+        )}
+        
+        {/* Incarnation Cross Card */}
+        {data.core_mechanics?.incarnation_cross && renderMechanicCard(
+          data.core_mechanics.incarnation_cross,
+          'Your Life Purpose',
+          getIncarnationCrossCardContent(data.core_mechanics.incarnation_cross),
+          'Incarnation Cross'
+        )}
+        
+        {/* Body Graph Visual */}
         {renderImprovedBodygraph()}
         
-        {/* 3. Core Mechanics - Direct display */}
-        {renderCoreMechanicsBlock()}
+        {/* SEQUENCES SECTION WITH TABS */}
+        {renderSequencesTabs()}
         
-        {/* 4. Meaning Bridge - How mechanics shape life */}
-        {renderMeaningBridge()}
+        {/* CENTERS SECTION */}
+        {centersData && (
+          <>
+            <Text style={[styles.deepDiveSectionHeader, { color: theme.textTertiary, marginTop: 24 }]}>CENTERS</Text>
+            {renderCentersCards()}
+          </>
+        )}
         
-        {/* 5. Sequences - ALWAYS VISIBLE, not collapsed */}
-        {renderSequencesSectionExpanded()}
-        
-        {/* 6. Centers - Collapsible at bottom */}
-        {centersData && renderCollapsibleSection('Centers', 'centers', renderCentersSection())}
-        
-        {/* 7. Gates - Collapsible at bottom */}
-        {gatesData && renderCollapsibleSection('Gates', 'gates', renderGatesSection())}
+        {/* GATES SECTION */}
+        {gatesData && (
+          <>
+            <Text style={[styles.deepDiveSectionHeader, { color: theme.textTertiary, marginTop: 24 }]}>YOUR GATES</Text>
+            {renderGatesCards()}
+          </>
+        )}
       </>
+    );
+  };
+
+  // SEQUENCES TABS - Core / Relationship / Work
+  const renderSequencesTabs = () => {
+    return (
+      <View style={styles.sequencesTabsContainer}>
+        <Text style={[styles.deepDiveSectionHeader, { color: theme.textTertiary, marginTop: 24 }]}>SEQUENCES</Text>
+        
+        {/* Tab Bar */}
+        <View style={[styles.sequencesTabBar, { backgroundColor: theme.background, borderColor: theme.border }]}>
+          <TouchableOpacity
+            style={[styles.sequenceTab, activeSequenceTab === 'core' && { backgroundColor: theme.surface }]}
+            onPress={() => setActiveSequenceTab('core')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.sequenceTabText, { color: activeSequenceTab === 'core' ? theme.text : theme.textTertiary }]}>Core</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.sequenceTab, activeSequenceTab === 'relationship' && { backgroundColor: theme.surface }]}
+            onPress={() => setActiveSequenceTab('relationship')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.sequenceTabText, { color: activeSequenceTab === 'relationship' ? theme.text : theme.textTertiary }]}>Relationship</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.sequenceTab, activeSequenceTab === 'work' && { backgroundColor: theme.surface }]}
+            onPress={() => setActiveSequenceTab('work')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.sequenceTabText, { color: activeSequenceTab === 'work' ? theme.text : theme.textTertiary }]}>Work</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {/* Tab Content */}
+        <View style={styles.sequencesTabContent}>
+          {activeSequenceTab === 'core' && renderActivationSequence()}
+          {activeSequenceTab === 'relationship' && renderVenusSequence()}
+          {activeSequenceTab === 'work' && renderPearlSequence()}
+        </View>
+      </View>
+    );
+  };
+
+  // Render Activation Sequence (Core tab)
+  const renderActivationSequence = () => {
+    const spheres = activationSequence?.spheres || [];
+    const accentColor = '#FFD700'; // Gold
+    
+    return (
+      <View style={styles.sequenceContent}>
+        <Text style={[styles.sequenceDescription, { color: theme.textSecondary }]}>
+          Your core life theme and purpose
+        </Text>
+        {spheres.map((sphere: any, idx: number) => (
+          <View key={idx}>
+            {idx > 0 && <View style={[styles.sphereConnectorLine, { backgroundColor: theme.border }]} />}
+            {renderSphereCard(sphere, accentColor)}
+          </View>
+        ))}
+        {spheres.length === 0 && (
+          <Text style={[styles.noDataText, { color: theme.textTertiary }]}>Sequence data loading...</Text>
+        )}
+      </View>
+    );
+  };
+
+  // Render Venus Sequence (Relationship tab)
+  const renderVenusSequence = () => {
+    const spheres = venusSequence?.spheres || [];
+    const accentColor = '#FF69B4'; // Pink
+    
+    return (
+      <View style={styles.sequenceContent}>
+        <Text style={[styles.sequenceDescription, { color: theme.textSecondary }]}>
+          How you connect and relate
+        </Text>
+        {spheres.map((sphere: any, idx: number) => (
+          <View key={idx}>
+            {idx > 0 && <View style={[styles.sphereConnectorLine, { backgroundColor: theme.border }]} />}
+            {renderSphereCard(sphere, accentColor)}
+          </View>
+        ))}
+        {spheres.length === 0 && (
+          <Text style={[styles.noDataText, { color: theme.textTertiary }]}>Sequence data loading...</Text>
+        )}
+      </View>
+    );
+  };
+
+  // Render Pearl Sequence (Work tab)
+  const renderPearlSequence = () => {
+    const spheres = pearlSequence?.spheres || [];
+    const accentColor = '#90EE90'; // Green
+    
+    return (
+      <View style={styles.sequenceContent}>
+        <Text style={[styles.sequenceDescription, { color: theme.textSecondary }]}>
+          Your work and contribution path
+        </Text>
+        {spheres.map((sphere: any, idx: number) => (
+          <View key={idx}>
+            {idx > 0 && <View style={[styles.sphereConnectorLine, { backgroundColor: theme.border }]} />}
+            {renderSphereCard(sphere, accentColor)}
+          </View>
+        ))}
+        {spheres.length === 0 && (
+          <Text style={[styles.noDataText, { color: theme.textTertiary }]}>Sequence data loading...</Text>
+        )}
+      </View>
+    );
+  };
+
+  // Sphere Card (for sequences) - follows universal card format
+  const renderSphereCard = (sphere: any, accentColor: string) => {
+    const getShortInterpretation = (text: string | undefined, fallback: string): string => {
+      if (!text) return fallback;
+      const firstSentence = text.split('.')[0] + '.';
+      return firstSentence.length < 100 ? firstSentence : firstSentence.slice(0, 97) + '...';
+    };
+
+    return (
+      <View style={[styles.deepDiveCard, { backgroundColor: theme.surface, borderColor: theme.border, borderLeftColor: accentColor, borderLeftWidth: 3 }]}>
+        <View style={styles.deepDiveCardHeader}>
+          <View>
+            <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>{sphere.sphere_name}</Text>
+            {sphere.gene_key && (
+              <Text style={[styles.deepDiveCardSubtitle, { color: accentColor }]}>GK {sphere.gene_key}</Text>
+            )}
+          </View>
+        </View>
+        
+        <View style={styles.deepDiveCardContent}>
+          {/* Story */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>STORY</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
+              {getShortInterpretation(sphere.what_this_means, `This sphere shapes your ${sphere.sphere_name?.toLowerCase() || 'expression'}.`)}
+            </Text>
+          </View>
+          
+          {/* How This Shows Up - use gift */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>HOW THIS SHOWS UP</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
+              {sphere.gift ? `You express ${sphere.gift} naturally—others often notice this quality in you.` : 'Unique patterns in how this energy flows through you.'}
+            </Text>
+          </View>
+          
+          {/* Challenge - use shadow */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>CHALLENGE</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
+              {sphere.shadow ? `Under pressure, ${sphere.shadow} can emerge. This is your growth edge.` : 'Working with this energy consciously takes practice.'}
+            </Text>
+          </View>
+          
+          {/* Practical Tips */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>PRACTICAL TIPS</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
+              {sphere.practical_tips?.[0] || (sphere.gift && sphere.shadow 
+                ? `Notice when ${sphere.shadow} appears. Ask: "How can I shift toward ${sphere.gift}?"` 
+                : 'Pay attention to how this energy manifests in daily life.')}
+            </Text>
+          </View>
+        </View>
+        
+        {/* Ask CTA */}
+        <TouchableOpacity
+          style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
+          onPress={() => onOpenChat(`Tell me about my ${sphere.sphere_name} sphere (Gene Key ${sphere.gene_key})`)}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Ask about this →</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  // Centers Cards - each center as its own card
+  const renderCentersCards = () => {
+    if (!centersData?.centers) return null;
+    
+    return (
+      <View style={{ gap: 16 }}>
+        {centersData.centers.map((center: any, idx: number) => renderCenterCard(center, idx))}
+      </View>
+    );
+  };
+
+  // Individual Center Card
+  const renderCenterCard = (center: any, idx: number) => {
+    const centerName = center.name || center.center_name;
+    const isDefined = center.defined === true;
+    const accentColor = isDefined ? '#FFD700' : theme.textTertiary;
+    
+    return (
+      <View key={idx} style={[styles.deepDiveCard, { backgroundColor: theme.surface, borderColor: theme.border, borderLeftColor: accentColor, borderLeftWidth: 3 }]}>
+        <View style={styles.deepDiveCardHeader}>
+          <View>
+            <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>{centerName}</Text>
+            <Text style={[styles.deepDiveCardSubtitle, { color: accentColor }]}>{isDefined ? 'Defined' : 'Undefined'}</Text>
+          </View>
+        </View>
+        
+        <View style={styles.deepDiveCardContent}>
+          {/* Story */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>STORY</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
+              {getShortCenterStory(center)}
+            </Text>
+          </View>
+          
+          {/* How This Shows Up */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>HOW THIS SHOWS UP</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
+              {center.your_genius || getDefaultCenterShowsUp(centerName, isDefined)}
+            </Text>
+          </View>
+          
+          {/* Challenge */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>CHALLENGE</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
+              {getShortText(center.your_challenge) || getDefaultCenterChallenge(centerName, isDefined)}
+            </Text>
+          </View>
+          
+          {/* Practical Tips */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>PRACTICAL TIPS</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
+              {center.practical_experiments?.[0] || getDefaultCenterTip(centerName, isDefined)}
+            </Text>
+          </View>
+        </View>
+        
+        {/* Ask CTA */}
+        <TouchableOpacity
+          style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
+          onPress={() => onOpenChat(`Tell me about my ${isDefined ? 'defined' : 'undefined'} ${centerName} center`)}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Ask about this →</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  // Helper functions for center content
+  const getShortCenterStory = (center: any): string => {
+    if (center.what_this_means) {
+      const text = center.what_this_means;
+      const firstSentence = text.split('.')[0] + '.';
+      return firstSentence.length < 100 ? firstSentence : firstSentence.slice(0, 97) + '...';
+    }
+    const name = center.name || center.center_name;
+    return center.defined 
+      ? `Your ${name} center is defined, giving you consistent access to this energy.`
+      : `Your ${name} center is undefined, meaning you take in and amplify this energy from others.`;
+  };
+
+  const getShortText = (text: string | undefined): string => {
+    if (!text) return '';
+    const firstSentence = text.split('.')[0] + '.';
+    return firstSentence.length < 100 ? firstSentence : firstSentence.slice(0, 97) + '...';
+  };
+
+  const getDefaultCenterShowsUp = (centerName: string, isDefined: boolean): string => {
+    const name = centerName.toLowerCase();
+    const defaults: Record<string, { defined: string; undefined: string }> = {
+      'head': { defined: 'Consistent mental inspiration and questions.', undefined: 'You sample different ways of thinking from your environment.' },
+      'ajna': { defined: 'Reliable way of processing and conceptualizing.', undefined: 'Mental flexibility—seeing things from many angles.' },
+      'throat': { defined: 'Consistent voice and communication style.', undefined: 'Adaptable expression that matches your context.' },
+      'g': { defined: 'Fixed sense of identity and direction.', undefined: 'Fluid identity shaped by where and who you\'re with.' },
+      'g center': { defined: 'Fixed sense of identity and direction.', undefined: 'Fluid identity shaped by where and who you\'re with.' },
+      'heart': { defined: 'Reliable willpower and ability to commit.', undefined: 'Fluctuating willpower—don\'t over-promise.' },
+      'ego': { defined: 'Reliable willpower and ability to commit.', undefined: 'Fluctuating willpower—don\'t over-promise.' },
+      'spleen': { defined: 'Consistent intuition and instinctual awareness.', undefined: 'Amplified fears—learn to distinguish yours from others.' },
+      'solar plexus': { defined: 'Emotional wave that cycles through highs and lows.', undefined: 'Absorbing and amplifying others\' emotions intensely.' },
+      'sacral': { defined: 'Sustainable life force energy for work.', undefined: 'No consistent work energy—rest is essential.' },
+      'root': { defined: 'Consistent drive and ability to handle pressure.', undefined: 'Amplified pressure from environment—don\'t rush.' }
+    };
+    return defaults[name]?.[isDefined ? 'defined' : 'undefined'] || `This center shapes how you experience ${name} energy.`;
+  };
+
+  const getDefaultCenterChallenge = (centerName: string, isDefined: boolean): string => {
+    const name = centerName.toLowerCase();
+    const defaults: Record<string, { defined: string; undefined: string }> = {
+      'head': { defined: 'Overthinking or mental pressure.', undefined: 'Chasing questions that aren\'t yours to answer.' },
+      'ajna': { defined: 'Rigid thinking patterns.', undefined: 'Feeling pressure to have fixed opinions.' },
+      'throat': { defined: 'Speaking without timing.', undefined: 'Forcing expression when you have nothing to say.' },
+      'g': { defined: 'Inflexibility about identity.', undefined: 'Confusion about who you really are.' },
+      'g center': { defined: 'Inflexibility about identity.', undefined: 'Confusion about who you really are.' },
+      'heart': { defined: 'Over-committing willpower.', undefined: 'Making promises you can\'t sustain.' },
+      'ego': { defined: 'Over-committing willpower.', undefined: 'Making promises you can\'t sustain.' },
+      'spleen': { defined: 'Ignoring subtle intuitive hits.', undefined: 'Acting on borrowed fears.' },
+      'solar plexus': { defined: 'Deciding during emotional highs or lows.', undefined: 'Thinking others\' emotions are your own.' },
+      'sacral': { defined: 'Overwork and burnout.', undefined: 'Trying to keep up with Generators.' },
+      'root': { defined: 'Addiction to pressure and stress.', undefined: 'Letting external urgency dictate your pace.' }
+    };
+    return defaults[name]?.[isDefined ? 'defined' : 'undefined'] || `Working with this energy consciously.`;
+  };
+
+  const getDefaultCenterTip = (centerName: string, isDefined: boolean): string => {
+    const name = centerName.toLowerCase();
+    const defaults: Record<string, { defined: string; undefined: string }> = {
+      'head': { defined: 'Notice which questions actually serve you.', undefined: 'Ask: Would I still care about this alone?' },
+      'ajna': { defined: 'Share your perspective without attachment.', undefined: 'Practice saying "I see it differently in different contexts."' },
+      'throat': { defined: 'Time your communication for impact.', undefined: 'Be comfortable with silence when you have nothing genuine to say.' },
+      'g': { defined: 'Trust your consistent sense of direction.', undefined: 'Let your environment show you where to go.' },
+      'g center': { defined: 'Trust your consistent sense of direction.', undefined: 'Let your environment show you where to go.' },
+      'heart': { defined: 'Only commit when your heart is truly in it.', undefined: 'Only promise what you can deliver without borrowed will.' },
+      'ego': { defined: 'Only commit when your heart is truly in it.', undefined: 'Only promise what you can deliver without borrowed will.' },
+      'spleen': { defined: 'Trust your first instinctual hit.', undefined: 'Distinguish your fears from absorbed fears.' },
+      'solar plexus': { defined: 'Wait for emotional clarity before deciding.', undefined: 'Notice when you\'re absorbing someone else\'s emotion.' },
+      'sacral': { defined: 'Follow your gut response to opportunities.', undefined: 'Honor your need for rest without guilt.' },
+      'root': { defined: 'Use pressure productively, then release.', undefined: 'Don\'t let external urgency rush your process.' }
+    };
+    return defaults[name]?.[isDefined ? 'defined' : 'undefined'] || `Pay attention to how this center affects you.`;
+  };
+
+  // Gates Cards - each gate as its own card with unique content
+  const renderGatesCards = () => {
+    if (!gatesData?.gates) return null;
+    
+    return (
+      <View style={{ gap: 16 }}>
+        {gatesData.gates.slice(0, 12).map((gate: any, idx: number) => renderGateCard(gate, idx))}
+      </View>
+    );
+  };
+
+  // Individual Gate Card
+  const renderGateCard = (gate: any, idx: number) => {
+    const gateName = gate.name || gate.gate_name || gate.theme || `Gate ${gate.gate_number || gate.gate}`;
+    const gateNum = gate.gate_number || gate.gate;
+    
+    return (
+      <View key={idx} style={[styles.deepDiveCard, { backgroundColor: theme.surface, borderColor: theme.border, borderLeftColor: theme.accent, borderLeftWidth: 3 }]}>
+        <View style={styles.deepDiveCardHeader}>
+          <View>
+            <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>Gate {gateNum}</Text>
+            <Text style={[styles.deepDiveCardSubtitle, { color: theme.accent }]}>{gateName}</Text>
+          </View>
+        </View>
+        
+        <View style={styles.deepDiveCardContent}>
+          {/* Story */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>STORY</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
+              {getShortText(gate.what_this_means) || `Gate ${gateNum} brings the energy of ${gateName.toLowerCase()} into your design.`}
+            </Text>
+          </View>
+          
+          {/* How This Shows Up */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>HOW THIS SHOWS UP</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
+              {gate.gift ? `You naturally express ${gate.gift}—this is your authentic strength.` : (gate.your_genius ? getShortText(gate.your_genius) : `You express Gate ${gateNum} energy in your unique way.`)}
+            </Text>
+          </View>
+          
+          {/* Challenge */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>CHALLENGE</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
+              {gate.shadow ? `Under pressure, ${gate.shadow} can surface. This is your shadow pattern.` : (gate.your_challenge ? getShortText(gate.your_challenge) : `Working with Gate ${gateNum} consciously takes practice.`)}
+            </Text>
+          </View>
+          
+          {/* Practical Tips */}
+          <View style={styles.deepDiveCardSection}>
+            <Text style={[styles.deepDiveCardSectionLabel, { color: theme.textTertiary }]}>PRACTICAL TIPS</Text>
+            <Text style={[styles.deepDiveCardSectionText, { color: theme.textSecondary }]}>
+              {gate.practical_experiments?.[0] || (gate.shadow && gate.gift 
+                ? `Notice when ${gate.shadow} appears. How can you shift toward ${gate.gift}?`
+                : `Pay attention to how Gate ${gateNum} manifests in your daily experience.`)}
+            </Text>
+          </View>
+        </View>
+        
+        {/* Ask CTA */}
+        <TouchableOpacity
+          style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
+          onPress={() => onOpenChat(`Tell me about Gate ${gateNum} (${gateName}) in my design`)}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Ask about this →</Text>
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -4165,5 +4855,106 @@ const styles = StyleSheet.create({
   sequenceBlockBody: {
     fontSize: 14,
     lineHeight: 21,
+  },
+  
+  // NEW Deep Dive Card System
+  deepDiveSectionHeader: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 12,
+    marginTop: 16,
+    paddingHorizontal: 4,
+  },
+  deepDiveCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  deepDiveCardHeader: {
+    padding: 16,
+    paddingBottom: 8,
+  },
+  deepDiveCardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  deepDiveCardSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  deepDiveCardContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  deepDiveCardSection: {
+    marginBottom: 12,
+  },
+  deepDiveCardSectionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  deepDiveCardSectionText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  deepDiveAskCta: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'flex-end',
+  },
+  deepDiveAskCtaText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  
+  // Sequences Tabs
+  sequencesTabsContainer: {
+    marginTop: 8,
+  },
+  sequencesTabBar: {
+    flexDirection: 'row',
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 4,
+    marginBottom: 16,
+  },
+  sequenceTab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  sequenceTabText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  sequencesTabContent: {
+    minHeight: 200,
+  },
+  sequenceContent: {
+    gap: 0,
+  },
+  sequenceDescription: {
+    fontSize: 13,
+    marginBottom: 16,
+    fontStyle: 'italic',
+  },
+  sphereConnectorLine: {
+    width: 2,
+    height: 16,
+    marginLeft: 24,
+    marginVertical: 4,
+  },
+  noDataText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    padding: 20,
   },
 });
