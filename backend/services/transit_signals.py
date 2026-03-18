@@ -557,6 +557,7 @@ def compute_transit_signals(
     defined_centers: List[str],
     user_authority: str,
     user_type: str,
+    field_context: Optional[Dict[str, str]] = None,
     dt: Optional[datetime] = None
 ) -> Dict[str, Any]:
     """
@@ -568,6 +569,7 @@ def compute_transit_signals(
         defined_centers: List of defined center names
         user_authority: User's authority type
         user_type: User's HD type
+        field_context: Field context from field_signals (tone, clarity, pace)
         dt: Datetime for transit calculation (default: now)
     
     Returns:
@@ -579,6 +581,15 @@ def compute_transit_signals(
     # Derive undefined centers
     all_centers = ["Head", "Ajna", "Throat", "G", "Heart", "Solar Plexus", "Sacral", "Spleen", "Root"]
     undefined_centers = [c for c in all_centers if c.lower() not in [dc.lower() for dc in defined_centers]]
+    
+    # Default field context if not provided
+    if not field_context:
+        field_context = {
+            "field_tone": "clarity",
+            "clarity_level": "high",
+            "pace": "building",
+            "dominant_message": "things are relatively stable",
+        }
     
     # Compute all signal types
     all_signals = []
@@ -606,11 +617,13 @@ def compute_transit_signals(
     while len(top_signals) < 3:
         top_signals.append(create_default_signal(user_type, len(top_signals)))
     
-    # Assign roles: Biggest Activation, Opportunity, Friction
-    # First is strongest (activation), second is opportunity, third is friction/watch
-    categorized = categorize_signals(top_signals)
+    # Apply field context adaptation to all signals
+    adapted_signals = [adapt_signal_to_field(s, field_context, i == 0) for i, s in enumerate(top_signals)]
     
-    logger.info(f"[TransitSignals] Computed {len(all_signals)} signals, returning top 3")
+    # Assign roles: Biggest Activation, Opportunity, Friction
+    categorized = categorize_signals(adapted_signals)
+    
+    logger.info(f"[TransitSignals] Computed {len(all_signals)} signals, returning top 3 (field_tone={field_context.get('field_tone')})")
     
     return {
         "computed_at": datetime.now(timezone.utc).isoformat(),
@@ -620,6 +633,7 @@ def compute_transit_signals(
             "opportunity": signal_to_dict(categorized["opportunity"]),
             "friction": signal_to_dict(categorized["friction"]),
         },
+        "field_context": field_context,
         "user_context": {
             "type": user_type,
             "authority": user_authority,
@@ -627,6 +641,173 @@ def compute_transit_signals(
             "undefined_centers": undefined_centers,
         }
     }
+
+
+def adapt_signal_to_field(signal: TransitSignal, field_context: Dict[str, str], is_primary: bool = False) -> TransitSignal:
+    """
+    Adapt a transit signal based on field context.
+    
+    Rules:
+    - If clarity_level is "low", remove words like "clarity", "certain", "decisive"
+    - Add field connection line
+    - Adjust pace language
+    """
+    field_tone = field_context.get("field_tone", "clarity")
+    clarity_level = field_context.get("clarity_level", "high")
+    pace = field_context.get("pace", "building")
+    dominant_message = field_context.get("dominant_message", "")
+    
+    # Create adapted copy
+    adapted = TransitSignal(
+        signal_type=signal.signal_type,
+        strength=signal.strength,
+        transit_planet=signal.transit_planet,
+        transit_gate=signal.transit_gate,
+        user_gate=signal.user_gate,
+        center=signal.center,
+        channel_name=signal.channel_name,
+        title=signal.title,
+        what_happening=signal.what_happening,
+        why_happening=signal.why_happening,
+        how_shows_up=signal.how_shows_up,
+        best_move=signal.best_move,
+        label=signal.label,
+    )
+    
+    # === ADAPT TITLE BASED ON FIELD TONE ===
+    if field_tone == "reset" and clarity_level == "low":
+        # Override clarity-related titles
+        if "clarity" in adapted.title.lower() or "heightened" in adapted.title.lower():
+            adapted.title = "Something Is Stirring"
+        elif "decision" in adapted.title.lower():
+            adapted.title = "Clarity Isn't Here Yet"
+    
+    # === ADAPT WHAT'S HAPPENING (remove mechanical language) ===
+    # Replace "The Sun is amplifying..." with "You're feeling..."
+    adapted.what_happening = remove_mechanical_language(adapted.what_happening, signal.center)
+    
+    # === ADAPT WHY HAPPENING TO CONNECT TO FIELD ===
+    # Add field connection line
+    if is_primary and dominant_message:
+        field_connection = f"This is intensified by {dominant_message}."
+        if adapted.why_happening:
+            adapted.why_happening = f"{adapted.why_happening} {field_connection}"
+        else:
+            adapted.why_happening = field_connection
+    
+    # === ADAPT HOW IT SHOWS UP BASED ON CLARITY ===
+    if clarity_level == "low":
+        adapted.how_shows_up = adapt_for_low_clarity(adapted.how_shows_up)
+    elif clarity_level == "emerging":
+        adapted.how_shows_up = adapt_for_emerging_clarity(adapted.how_shows_up)
+    
+    # === ADAPT BEST MOVE BASED ON PACE ===
+    if pace == "slow":
+        adapted.best_move = adapt_for_slow_pace(adapted.best_move)
+    elif pace == "fast":
+        adapted.best_move = adapt_for_fast_pace(adapted.best_move)
+    
+    # === REMOVE CONTRADICTING WORDS ===
+    if clarity_level == "low":
+        adapted.what_happening = remove_clarity_words(adapted.what_happening)
+        adapted.how_shows_up = remove_clarity_words(adapted.how_shows_up)
+        adapted.best_move = remove_clarity_words(adapted.best_move)
+    
+    return adapted
+
+
+def remove_mechanical_language(text: str, center: Optional[str] = None) -> str:
+    """Replace mechanical planetary language with experiential language."""
+    replacements = [
+        ("The Sun is amplifying", "You're feeling a heightening of"),
+        ("The Sun is activating", "You may notice more activity in"),
+        ("The Sun is temporarily activating", "You're sensing increased energy in"),
+        ("The Earth is activating", "There's grounding pressure on"),
+        ("The Earth is creating pressure", "You may feel weight or stability around"),
+        ("The Moon is activating", "Your emotional awareness of"),
+        ("The Moon is creating", "There's a shifting quality to"),
+        ("Transit is hitting", "Energy is moving through"),
+        ("transit Gate", "this energy pattern"),
+        ("Transit completes", "A connection forms in"),
+    ]
+    
+    result = text
+    for old, new in replacements:
+        result = result.replace(old, new)
+    
+    # Add experiential opener if still starts with planet name
+    if result.startswith(("The Sun", "The Moon", "The Earth")):
+        result = "You may notice " + result[0].lower() + result[1:]
+    
+    return result
+
+
+def remove_clarity_words(text: str) -> str:
+    """Remove words that imply clarity when field clarity is low."""
+    replacements = [
+        ("clarity", "a sense of something forming"),
+        ("Clarity", "Something"),
+        ("certain", "sensing"),
+        ("decisive", "aware"),
+        ("clear", "forming"),
+        ("Clear", "Emerging"),
+        ("heightened", "stirring"),
+        ("Heightened", "Shifting"),
+    ]
+    
+    result = text
+    for old, new in replacements:
+        result = result.replace(old, new)
+    
+    return result
+
+
+def adapt_for_low_clarity(text: str) -> str:
+    """Adapt text when clarity is low (reset, eclipse)."""
+    # Add uncertainty framing
+    if not text.startswith(("You may", "This might", "There's")):
+        text = "You may notice " + text[0].lower() + text[1:]
+    
+    # Add "but unclear" qualifier for definitive statements
+    if "will" in text.lower() and "may" not in text.lower():
+        text = text.replace(" will ", " may ")
+    
+    return text
+
+
+def adapt_for_emerging_clarity(text: str) -> str:
+    """Adapt text when clarity is emerging."""
+    # Less definitive but still forward
+    if text.startswith("You will"):
+        text = text.replace("You will", "You may begin to")
+    return text
+
+
+def adapt_for_slow_pace(text: str) -> str:
+    """Adapt best_move text for slow pace."""
+    pace_phrases = [
+        ("Act on", "When ready, act on"),
+        ("Move on", "Take your time and move on"),
+        ("Decide", "Before deciding"),
+        ("Commit", "Before committing"),
+    ]
+    
+    result = text
+    for old, new in pace_phrases:
+        if result.startswith(old):
+            result = new + result[len(old):]
+            break
+    
+    return result
+
+
+def adapt_for_fast_pace(text: str) -> str:
+    """Adapt best_move text for fast pace."""
+    # Fast pace means things are moving - stay present
+    if "wait" in text.lower():
+        # Don't contradict "wait" advice, but acknowledge the intensity
+        text = text + " The pace is intense right now."
+    return text
 
 
 def categorize_signals(signals: List[TransitSignal]) -> Dict[str, TransitSignal]:

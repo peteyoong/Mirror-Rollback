@@ -1892,26 +1892,50 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const opportunity = signals?.opportunity;
     const friction = signals?.friction;
     
+    // Get field context for coherence
+    const fieldContext = transitSignals?.field_context || fieldSignals?.field_context || {
+      field_tone: 'clarity',
+      clarity_level: 'high',
+      pace: 'building',
+      dominant_message: '',
+    };
+    const fieldTone = fieldContext.field_tone;
+    const clarityLevel = fieldContext.clarity_level;
+    const pace = fieldContext.pace;
+    const dominantMessage = fieldContext.dominant_message;
+    
     // ============================================
     // SIGNAL-DERIVED CONTENT GENERATORS
     // ============================================
     
-    // Derive Today content from top signal
+    // Derive Today content from top signal (EMOTIONAL STATE FOCUS)
     const getTodayFromSignals = () => {
       if (!activation) {
-        // Fallback to type-based content
         return getTypeFallbackToday(hdType, isEmotional);
       }
       
+      // Adapt based on field context
+      let activeText = activation.how_shows_up || "Notice what's different today.";
+      let bestUseText = activation.best_move || "Follow your strategy.";
+      let watchForText = friction?.how_shows_up || "Watch for taking on energy that isn't yours.";
+      
+      // Field-aware modifications
+      if (clarityLevel === 'low') {
+        activeText = activeText.replace(/clear/gi, 'forming').replace(/certain/gi, 'sensing');
+        bestUseText = "Wait. " + bestUseText;
+      }
+      
       return {
-        active: activation.how_shows_up || "Notice what's different today.",
-        bestUse: activation.best_move || "Follow your strategy.",
-        watchFor: friction?.how_shows_up || "Watch for taking on energy that isn't yours.",
-        reflectionPrompt: `${activation.title}: ${activation.what_happening?.slice(0, 80)}... What do I notice?`,
+        active: activeText,
+        bestUse: bestUseText,
+        watchFor: watchForText,
+        reflectionPrompt: clarityLevel === 'low' 
+          ? "What am I sensing that isn't fully formed yet?"
+          : `What did I notice about ${activation.title?.toLowerCase() || 'this energy'} today?`,
       };
     };
     
-    // Derive Week content from signals (pattern over time)
+    // Derive Week content from signals (BEHAVIOR PATTERN FOCUS)
     const getWeekFromSignals = () => {
       if (!activation) {
         return getTypeFallbackWeek(hdType, isEmotional);
@@ -1920,19 +1944,29 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       const isTemporary = activation.label?.includes('Temporary');
       const isReinforcing = activation.label?.includes('Reinforcing');
       
+      // Progressive from Today: shift from emotional state to behavior patterns
+      let weekTheme = '';
+      if (fieldTone === 'reset') {
+        weekTheme = "This week is about noticing what's clearing and what's beginning to seed.";
+      } else if (fieldTone === 'turning_point') {
+        weekTheme = "You may notice old patterns ending and new ones emerging.";
+      } else if (isReinforcing) {
+        weekTheme = `Your ${activation.center || 'design'} energy is expressing more loudly this week.`;
+      } else {
+        weekTheme = `A ${isTemporary ? 'temporary' : 'developing'} pattern is showing up in how you ${activation.center === 'Solar Plexus' ? 'feel and respond' : activation.center === 'Ajna' ? 'think and process' : 'engage with life'}.`;
+      }
+      
       return {
-        theme: isReinforcing 
-          ? `Your ${activation.center || 'design'} energy is amplified this week. This is familiar territory.`
-          : `A ${activation.signal_type === 'channel_completion' ? 'temporary channel' : 'center activation'} is creating new patterns in your week.`,
-        helpsWhere: opportunity?.how_shows_up || "Where this energy supports you.",
-        frictionPattern: friction?.how_shows_up || "Notice when this energy becomes pressure.",
+        theme: weekTheme,
+        helpsWhere: `Where the ${activation.center || 'activated'} energy supports you: ${opportunity?.best_move || 'Notice where this energy flows easily.'}`,
+        frictionPattern: `Watch for: ${friction?.how_shows_up?.slice(0, 100) || 'Taking on patterns that aren\'t yours.'}`,
         reflectionPrompt: isTemporary 
-          ? "What new capability or pattern showed up this week that isn't usually available?"
-          : "How is this familiar energy expressing itself more strongly?"
+          ? "What behavior pattern showed up this week that isn't usually mine?"
+          : "How is this energy changing how I show up day to day?"
       };
     };
     
-    // Derive Month content from signals (developmental arc)
+    // Derive Month content from signals (IDENTITY/GROWTH FOCUS)
     const getMonthFromSignals = () => {
       if (!activation) {
         return getTypeFallbackMonth(hdType, isEmotional);
@@ -1940,13 +1974,29 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       
       const centerFocus = activation.center || opportunity?.center || friction?.center;
       
+      // Progressive from Week: shift from behavior patterns to identity/growth
+      let monthTheme = '';
+      if (fieldTone === 'reset' || fieldTone === 'turning_point') {
+        monthTheme = dominantMessage 
+          ? `This month is part of a bigger shift: ${dominantMessage}. Notice how this shapes who you're becoming.`
+          : "A significant transition is underway. This month is about letting old identities release.";
+      } else if (centerFocus) {
+        monthTheme = `Your relationship with your ${centerFocus} center is deepening this month—whether defined or open in your design.`;
+      } else {
+        monthTheme = "Multiple energies are teaching you about your design's edges and possibilities.";
+      }
+      
       return {
-        theme: centerFocus 
-          ? `The ${centerFocus} center is being developed this month—whether through your design or transit influence.`
-          : "Multiple energies are teaching you about your design's edges.",
-        growthEdge: activation.best_move || "Experiment with what's being activated.",
-        commonTrap: friction?.how_shows_up || "Watch for over-identifying with temporary energy.",
-        reflectionPrompt: "What is this month trying to teach me about how I operate?"
+        theme: monthTheme,
+        growthEdge: clarityLevel === 'low'
+          ? "Trust the process even when you can't see where it's going."
+          : (activation.best_move || "Experiment with what's being activated."),
+        commonTrap: fieldTone === 'reset' 
+          ? "Trying to force clarity before it's ready."
+          : (friction?.how_shows_up || "Watch for over-identifying with temporary energy."),
+        reflectionPrompt: fieldTone === 'turning_point'
+          ? "Who am I becoming through this shift?"
+          : "What is this month trying to teach me about how I operate?"
       };
     };
     

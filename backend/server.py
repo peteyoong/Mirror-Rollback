@@ -9828,13 +9828,23 @@ async def get_human_design_transit_signals(user_id: str):
         authority = hd_data.get('authority', 'Emotional')
         user_type = hd_data.get('type', 'Generator')
         
-        # Compute transit signals
+        # First, get field context for signal adaptation
+        try:
+            from services.field_signals import compute_field_signals
+            field_data = compute_field_signals(hd_type=user_type, hd_authority=authority)
+            field_context = field_data.get('field_context', None)
+        except Exception as fe:
+            logger.warning(f"[TransitSignals] Could not get field context: {fe}")
+            field_context = None
+        
+        # Compute transit signals with field context
         signals_data = compute_transit_signals(
             user_gates=all_gates,
             user_channels=defined_channels,
             defined_centers=defined_centers,
             user_authority=authority,
             user_type=user_type,
+            field_context=field_context,
         )
         
         # Add user HD summary to response

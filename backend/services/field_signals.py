@@ -615,6 +615,9 @@ def compute_field_signals(
     
     logger.info(f"[FieldSignals] Computed {len(all_signals)} signals, returning top {len(top_signals)}")
     
+    # Compute field context for downstream signal adaptation
+    field_context = compute_field_context(top_signals, moon_data, season_data, eclipse_data)
+    
     return {
         "computed_at": dt.isoformat(),
         "moon_phase": moon_data,
@@ -623,6 +626,91 @@ def compute_field_signals(
         "signals": [signal_to_dict(s) for s in top_signals],
         "hd_connection_hints": hd_connection_hints,
         "has_major_event": len(top_signals) > 0 and top_signals[0].strength >= 0.85,
+        "field_context": field_context,
+    }
+
+
+def compute_field_context(
+    signals: List[FieldSignal],
+    moon_data: Dict,
+    season_data: Dict,
+    eclipse_data: Dict
+) -> Dict[str, str]:
+    """
+    Compute field context that governs how HD signals should be adapted.
+    
+    Returns:
+        field_tone: "reset" | "clarity" | "pressure" | "release" | "turning_point"
+        clarity_level: "low" | "emerging" | "high"
+        pace: "slow" | "building" | "fast"
+        dominant_message: A short phrase for connecting signals
+    """
+    if not signals:
+        return {
+            "field_tone": "clarity",
+            "clarity_level": "high",
+            "pace": "building",
+            "dominant_message": "things are relatively stable",
+        }
+    
+    primary = signals[0]
+    signal_type = primary.signal_type
+    
+    # Determine field tone based on signal type
+    if signal_type in [FieldSignalType.NEW_MOON]:
+        field_tone = "reset"
+        clarity_level = "low"
+        pace = "slow"
+        dominant_message = "a reset is happening—things are still forming"
+    elif signal_type in [FieldSignalType.FULL_MOON]:
+        field_tone = "clarity"
+        clarity_level = "high"
+        pace = "fast"
+        dominant_message = "everything is illuminated right now"
+    elif signal_type in [FieldSignalType.WANING_CRESCENT]:
+        field_tone = "release"
+        clarity_level = "emerging"
+        pace = "slow"
+        dominant_message = "a cycle is completing"
+    elif signal_type in [FieldSignalType.EQUINOX]:
+        field_tone = "turning_point"
+        clarity_level = "emerging"
+        pace = "building"
+        dominant_message = "a major shift is unfolding"
+    elif signal_type in [FieldSignalType.SOLSTICE]:
+        field_tone = "turning_point"
+        clarity_level = "emerging"
+        pace = "slow"
+        dominant_message = "the energy is at an extreme"
+    elif signal_type in [FieldSignalType.ECLIPSE_SOLAR, FieldSignalType.ECLIPSE_LUNAR]:
+        field_tone = "pressure"
+        clarity_level = "low"
+        pace = "fast"
+        dominant_message = "powerful forces are at play"
+    else:
+        field_tone = "clarity"
+        clarity_level = "emerging"
+        pace = "building"
+        dominant_message = "subtle shifts are happening"
+    
+    # Check for secondary signals that modify context
+    if len(signals) > 1:
+        secondary = signals[1]
+        if secondary.signal_type in [FieldSignalType.ECLIPSE_SOLAR, FieldSignalType.ECLIPSE_LUNAR]:
+            # Eclipse intensifies everything
+            if clarity_level == "high":
+                clarity_level = "emerging"
+            pace = "fast"
+        elif secondary.signal_type in [FieldSignalType.EQUINOX, FieldSignalType.SOLSTICE]:
+            # Seasonal shift adds turning point energy
+            if field_tone not in ["reset", "pressure"]:
+                field_tone = "turning_point"
+    
+    return {
+        "field_tone": field_tone,
+        "clarity_level": clarity_level,
+        "pace": pace,
+        "dominant_message": dominant_message,
     }
 
 
