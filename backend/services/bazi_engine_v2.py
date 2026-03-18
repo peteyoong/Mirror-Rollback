@@ -230,6 +230,157 @@ DAY_MASTER_PROFILES = {
 }
 
 # =============================================================================
+# DEEP DIVE: TEN GODS BEHAVIORAL TEMPLATES
+# =============================================================================
+
+TEN_GODS_BEHAVIORAL = {
+    "resource": {
+        "category": "resource",
+        "label": "Resource / Seal",
+        "behavioral_high": "You tend to think before acting. Learning, processing, and understanding come naturally. Others may see you as thoughtful, perhaps sometimes overly cautious.",
+        "behavioral_low": "You may jump into action without enough preparation. Building a stronger foundation of knowledge and support could help.",
+        "stress_pattern": "Under pressure, you may withdraw into analysis mode—researching more, deciding less.",
+        "others_experience": "People experience you as someone who values understanding over speed. They may come to you for wisdom but find you slow to act.",
+        "risk": "Can overthink or stay in preparation mode indefinitely. May avoid action by gathering more information.",
+        "insight": "Your natural mode is to understand before doing",
+        "tension": "This can delay necessary action or create analysis paralysis",
+        "action": "Set a decision deadline before you start researching",
+    },
+    "output": {
+        "category": "output",
+        "label": "Output / Expression",
+        "behavioral_high": "You have a strong drive to express, create, and put things out into the world. Ideas want to become visible through you.",
+        "behavioral_low": "Expression may feel blocked or unsafe. Finding trusted outlets for your creativity matters.",
+        "stress_pattern": "Under pressure, you may over-express—talking too much, creating chaotically, or becoming provocative.",
+        "others_experience": "People experience you as creative and expressive. They may find you inspiring but sometimes overwhelming.",
+        "risk": "Can scatter energy across too many outputs. May express before thinking through consequences.",
+        "insight": "Your natural mode is to create and express",
+        "tension": "This can scatter your focus or overwhelm others",
+        "action": "Choose one thing to complete before starting another",
+    },
+    "wealth": {
+        "category": "wealth",
+        "label": "Wealth / Execution",
+        "behavioral_high": "You're oriented toward results and practical outcomes. Getting things done, managing resources, and seeing tangible progress matters to you.",
+        "behavioral_low": "Practical execution may feel draining. You might benefit from delegating or simplifying what you're trying to manage.",
+        "stress_pattern": "Under pressure, you may become overly focused on control—managing, organizing, directing—at the expense of other values.",
+        "others_experience": "People experience you as capable and results-oriented. They may rely on you to execute but find you sometimes overly focused on outcomes.",
+        "risk": "Can prioritize productivity over wellbeing. May lose sight of why results matter.",
+        "insight": "Your natural mode is to execute and produce results",
+        "tension": "This can make you impatient with process or people",
+        "action": "Pause to ask what outcome actually matters before optimizing",
+    },
+    "officer": {
+        "category": "officer",
+        "label": "Officer / Structure",
+        "behavioral_high": "You have a strong relationship with structure, rules, and responsibility. You may naturally take on duties or feel the weight of expectations.",
+        "behavioral_low": "Structure may feel oppressive rather than supportive. Finding ways to create your own frameworks could help.",
+        "stress_pattern": "Under pressure, you may become rigid, over-responsible, or feel trapped by obligations you didn't choose.",
+        "others_experience": "People experience you as responsible and trustworthy. They may rely on you heavily, sometimes taking your dependability for granted.",
+        "risk": "Can over-identify with duty. May sacrifice personal needs for perceived obligations.",
+        "insight": "Your natural mode is to maintain structure and meet expectations",
+        "tension": "This can make you rigid or resentful when others don't reciprocate",
+        "action": "Distinguish between duties you chose and duties you inherited",
+    },
+    "companion": {
+        "category": "companion",
+        "label": "Companion / Self",
+        "behavioral_high": "You have a strong sense of self and natural independence. Peer relationships and collaboration come easily, though you may also feel competitive.",
+        "behavioral_low": "You may struggle with isolation or difficulty finding your tribe. Building genuine peer connections could help.",
+        "stress_pattern": "Under pressure, you may become overly competitive, comparing yourself to others or feeling threatened by their success.",
+        "others_experience": "People experience you as confident and self-sufficient. They may admire your independence but find it hard to truly help you.",
+        "risk": "Can isolate or compete when collaboration would serve better. May resist help.",
+        "insight": "Your natural mode is to rely on yourself and compete",
+        "tension": "This can isolate you or create unnecessary rivalry",
+        "action": "Ask for help before you need it",
+    },
+}
+
+# =============================================================================
+# DEEP DIVE: LIFE PATTERN TEMPLATES BY DAY MASTER
+# =============================================================================
+
+LIFE_PATTERN_TEMPLATES = {
+    ("Wood", "Yang"): {
+        "core_drive": "To initiate, grow, and lead forward motion",
+        "default_mode": "You naturally push through obstacles and start things. You're often the one who says 'let's go' when others are still planning.",
+        "under_pressure": "You may become forceful, impatient, or bulldoze through situations that require more finesse. Your drive intensifies but your judgment may narrow.",
+        "growth_direction": "Learning to pause, delegate, and trust others' timelines. Fire (expression) helps channel your energy; Metal (precision) helps refine it.",
+    },
+    ("Wood", "Yin"): {
+        "core_drive": "To adapt, connect, and find ways through",
+        "default_mode": "You bend rather than break. You find alternative routes and build networks of support. Growth happens sideways as much as upward.",
+        "under_pressure": "You may become overly accommodating, losing your own direction while adapting to everyone else's. Your flexibility becomes indecision.",
+        "growth_direction": "Building a stronger center that bends but doesn't break. Fire helps you express; Water helps you trust your own flow.",
+    },
+    ("Fire", "Yang"): {
+        "core_drive": "To illuminate, inspire, and be seen",
+        "default_mode": "You naturally draw attention and clarify situations. Your presence is felt. You may not try to lead but often end up there anyway.",
+        "under_pressure": "You may burn hot and fast—dramatic reactions, visibility at all costs, or exhaustion from sustaining high energy.",
+        "growth_direction": "Learning to sustain rather than blaze. Wood (growth) feeds you constructively; Earth (grounding) helps you not burn out.",
+    },
+    ("Fire", "Yin"): {
+        "core_drive": "To nurture warmth and maintain steady light",
+        "default_mode": "You provide consistent warmth rather than dramatic heat. You're the candle in the darkness, not the bonfire.",
+        "under_pressure": "You may dim yourself to avoid overwhelming others, or flicker erratically when your fuel runs low.",
+        "growth_direction": "Trusting that your light is needed, even when it feels small. Wood supports you; Earth grounds you.",
+    },
+    ("Earth", "Yang"): {
+        "core_drive": "To stabilize, contain, and provide solid ground",
+        "default_mode": "You're the mountain others lean on. Stability comes naturally. You hold space for what others cannot.",
+        "under_pressure": "You may become immovable, stubborn, or weighted down by everything you're carrying. Your stability becomes rigidity.",
+        "growth_direction": "Learning that flexibility is not weakness. Metal helps you refine; Fire helps you transform what's stuck.",
+    },
+    ("Earth", "Yin"): {
+        "core_drive": "To nurture, support, and cultivate growth in others",
+        "default_mode": "You create conditions for things to flourish. You receive, process, and make fertile. Others grow well in your presence.",
+        "under_pressure": "You may over-give, lose yourself in others' needs, or feel depleted by constant nurturing without receiving.",
+        "growth_direction": "Learning to receive as much as you give. Metal helps you set boundaries; Water helps you restore.",
+    },
+    ("Metal", "Yang"): {
+        "core_drive": "To decide, cut through, and hold standards",
+        "default_mode": "You naturally see what matters and what doesn't. You make decisions others avoid. Your standards are high.",
+        "under_pressure": "You may become harsh, judgmental, or rigidly attached to being right. Your clarity becomes coldness.",
+        "growth_direction": "Learning that not everything needs cutting. Water softens you; Earth gives you patience.",
+    },
+    ("Metal", "Yin"): {
+        "core_drive": "To refine, perfect, and notice what others miss",
+        "default_mode": "You see the small things. Quality matters more than quantity. You prefer less but better.",
+        "under_pressure": "You may become overly critical—of yourself first, then others. Your precision becomes perfectionism.",
+        "growth_direction": "Learning that 'good enough' is sometimes perfect. Water helps you flow; Fire helps you express without judgment.",
+    },
+    ("Water", "Yang"): {
+        "core_drive": "To move, adapt, and face the unknown",
+        "default_mode": "You flow through obstacles rather than fighting them. You're comfortable with uncertainty that paralyzes others.",
+        "under_pressure": "You may become scattered, always moving but never arriving, or reckless in the face of danger.",
+        "growth_direction": "Learning when to stop flowing and take root. Wood gives you direction; Earth gives you stability.",
+    },
+    ("Water", "Yin"): {
+        "core_drive": "To understand depths and trust intuition",
+        "default_mode": "You perceive undercurrents. You understand things before you can explain them. Stillness reveals what movement hides.",
+        "under_pressure": "You may withdraw into inner depths, becoming hard to reach, or lose yourself in reflection without action.",
+        "growth_direction": "Learning to surface and share what you know. Wood helps you grow outward; Fire helps you express.",
+    },
+}
+
+# =============================================================================
+# DEEP DIVE: HIDDEN DYNAMICS INTERPRETATIONS
+# =============================================================================
+
+HIDDEN_STEM_MEANINGS = {
+    "甲": "Hidden Wood (Jia): An underlying drive to grow, initiate, or push forward that may not be visible on the surface.",
+    "乙": "Hidden Wood (Yi): A subtle adaptability or networking instinct operating beneath the surface.",
+    "丙": "Hidden Fire (Bing): An inner warmth or desire for visibility that may not always show externally.",
+    "丁": "Hidden Fire (Ding): A quiet nurturing warmth or steady illumination working in the background.",
+    "戊": "Hidden Earth (Wu): An underlying need for stability or containment that influences decisions.",
+    "己": "Hidden Earth (Ji): A subtle nurturing quality or desire to support growth operating beneath awareness.",
+    "庚": "Hidden Metal (Geng): An underlying decisiveness or critical faculty that may emerge under pressure.",
+    "辛": "Hidden Metal (Xin): A subtle precision or refinement instinct influencing choices without being obvious.",
+    "壬": "Hidden Water (Ren): An underlying adaptability or willingness to flow that may not be consciously accessed.",
+    "癸": "Hidden Water (Gui): A deep intuitive perception or reflective quality operating beneath the surface.",
+}
+
+# =============================================================================
 # PILLAR MEANING LABELS
 # =============================================================================
 
@@ -690,6 +841,273 @@ def calculate_timing_interaction(
     }
 
 # =============================================================================
+# DEEP DIVE CALCULATIONS
+# =============================================================================
+
+def calculate_day_master_analysis(
+    day_master_element: str,
+    day_master_polarity: str,
+    elements: Dict[str, float],
+    element_analysis: Dict,
+    season: str,
+    pillars: Dict
+) -> Dict[str, Any]:
+    """
+    Calculate detailed Day Master analysis for Deep Dive.
+    
+    Returns strength reasoning, implications, and behavioral interpretation.
+    """
+    strength = element_analysis["day_master_strength"]
+    producer = ELEMENT_PRODUCED_BY.get(day_master_element)
+    controller = ELEMENT_CONTROLLED_BY.get(day_master_element)
+    drainer = ELEMENT_PRODUCES.get(day_master_element)
+    
+    # Build reasoning
+    reasoning = []
+    
+    # Season influence
+    season_strength = SEASON_ELEMENT_STRENGTH.get(season, {})
+    dm_seasonal = season_strength.get(day_master_element, 1.0)
+    if dm_seasonal >= 1.3:
+        reasoning.append(f"Born in {season} - your element ({day_master_element}) is naturally strong this season")
+    elif dm_seasonal <= 0.7:
+        reasoning.append(f"Born in {season} - your element ({day_master_element}) is naturally weaker this season")
+    else:
+        reasoning.append(f"Born in {season} - moderate seasonal support for {day_master_element}")
+    
+    # Support from producer element
+    producer_score = elements.get(producer, 0) if producer else 0
+    if producer_score >= 2.0:
+        reasoning.append(f"Strongly supported by {producer} (your resource element)")
+    elif producer_score >= 1.0:
+        reasoning.append(f"Moderately supported by {producer}")
+    else:
+        reasoning.append(f"Limited support from {producer} (your resource element)")
+    
+    # Same element presence
+    same_score = elements.get(day_master_element, 0)
+    if same_score >= 2.5:
+        reasoning.append(f"High presence of {day_master_element} in your chart reinforces your core")
+    
+    # Drain/control factors
+    drainer_score = elements.get(drainer, 0) if drainer else 0
+    controller_score = elements.get(controller, 0) if controller else 0
+    
+    if drainer_score >= 2.0:
+        reasoning.append(f"Drained by strong {drainer} presence (output/expression pulls from your reserves)")
+    if controller_score >= 2.0:
+        reasoning.append(f"Challenged by strong {controller} presence (pressure/structure demands adaptation)")
+    
+    # Determine real strength with nuance
+    total = sum(elements.values())
+    dm_support = same_score + producer_score
+    dm_challenge = drainer_score + controller_score
+    
+    if dm_support >= total * 0.45:
+        strength_real = "strong"
+    elif dm_support <= total * 0.25:
+        strength_real = "weak"
+    else:
+        strength_real = "balanced"
+    
+    # Behavioral implication
+    profile = DAY_MASTER_PROFILES.get((day_master_element, day_master_polarity), {})
+    if strength_real == "strong":
+        implication = profile.get("strength_strong", "Your core energy is robust and accessible.")
+    elif strength_real == "weak":
+        implication = profile.get("strength_weak", "Your core energy may need conscious cultivation.")
+    else:
+        implication = f"You have a balanced {day_master_element} Day Master. Your core is neither over nor under-supported, allowing flexibility in how you express it."
+    
+    return {
+        "strength_real": strength_real,
+        "reasoning": reasoning,
+        "implication": implication,
+    }
+
+def calculate_favorable_elements(
+    day_master_element: str,
+    strength: str,
+    elements: Dict[str, float]
+) -> Tuple[List[str], List[str]]:
+    """
+    Calculate favorable and unfavorable elements based on Day Master strength.
+    
+    Classical BaZi: Strong DM needs draining/controlling; Weak DM needs support.
+    """
+    producer = ELEMENT_PRODUCED_BY.get(day_master_element)
+    controller = ELEMENT_CONTROLLED_BY.get(day_master_element)
+    drainer = ELEMENT_PRODUCES.get(day_master_element)
+    controlled = ELEMENT_CONTROLS.get(day_master_element)
+    
+    if strength == "strong":
+        # Strong DM benefits from being drained (output) and controlled (structure)
+        favorable = [drainer, controlled]
+        # Too much support can create stagnation
+        unfavorable = [producer, day_master_element]
+    else:
+        # Weak DM benefits from support and same element
+        favorable = [producer, day_master_element]
+        # Draining and controlling weaken further
+        unfavorable = [drainer, controller]
+    
+    # Filter None values
+    favorable = [e for e in favorable if e]
+    unfavorable = [e for e in unfavorable if e]
+    
+    return favorable, unfavorable
+
+def calculate_ten_gods_detailed(
+    day_master_stem: str,
+    pillars: Dict,
+    ten_gods_summary: Dict,
+    season: str
+) -> List[Dict[str, Any]]:
+    """
+    Calculate detailed Ten Gods analysis for Deep Dive.
+    
+    Returns behavioral expressions, risks, and stress patterns for each present category.
+    """
+    detailed = []
+    dm_element = STEM_ELEMENTS[day_master_stem]
+    
+    # Get categories present with their positions
+    category_positions = {cat: [] for cat in TEN_GODS_CATEGORIES.keys()}
+    
+    positions = [
+        ("year", pillars["year"]["stem"]),
+        ("month", pillars["month"]["stem"]),
+        ("hour", pillars["hour"]["stem"]),
+    ]
+    
+    for pos_name, stem in positions:
+        if stem == day_master_stem:
+            continue
+        ten_god = get_ten_god(day_master_stem, stem)
+        for cat, members in TEN_GODS_CATEGORIES.items():
+            if ten_god in members:
+                category_positions[cat].append(pos_name)
+    
+    # Also check hidden stems in month branch (highest weight)
+    for hidden in pillars["month"].get("hidden_stems", []):
+        ten_god = get_ten_god(day_master_stem, hidden)
+        for cat, members in TEN_GODS_CATEGORIES.items():
+            if ten_god in members and "month (hidden)" not in category_positions[cat]:
+                category_positions[cat].append("month (hidden)")
+    
+    # Build detailed for present categories
+    scores = ten_gods_summary.get("scores", {})
+    
+    for category in ten_gods_summary.get("categories_present", []):
+        if category not in TEN_GODS_BEHAVIORAL:
+            continue
+        
+        template = TEN_GODS_BEHAVIORAL[category]
+        positions_list = category_positions.get(category, [])
+        
+        # Determine strength based on score
+        cat_score = sum(scores.get(g, 0) for g in TEN_GODS_CATEGORIES.get(category, []))
+        if cat_score >= 4.0:
+            strength = "high"
+            behavioral = template["behavioral_high"]
+        elif cat_score >= 2.0:
+            strength = "moderate"
+            behavioral = template["behavioral_high"]  # Use high template but note moderate
+        else:
+            strength = "low"
+            behavioral = template["behavioral_low"]
+        
+        detailed.append({
+            "name": category,
+            "label": template["label"],
+            "strength": strength,
+            "present_in": positions_list,
+            "behavioral_expression": behavioral,
+            "stress_pattern": template["stress_pattern"],
+            "others_experience": template["others_experience"],
+            "risk": template["risk"],
+            "insight": template["insight"],
+            "tension": template["tension"],
+            "action": template["action"],
+        })
+    
+    # Sort by strength (high first)
+    strength_order = {"high": 0, "moderate": 1, "low": 2}
+    detailed.sort(key=lambda x: strength_order.get(x["strength"], 3))
+    
+    return detailed
+
+def calculate_hidden_dynamics(pillars: Dict, day_master_stem: str) -> List[Dict[str, Any]]:
+    """
+    Calculate hidden dynamics from branch hidden stems.
+    
+    Focus on the most significant hidden influences.
+    """
+    dynamics = []
+    
+    pillar_order = [
+        ("month", "Month Pillar (Work/Career)"),
+        ("day", "Day Pillar (Self/Partnerships)"),
+        ("year", "Year Pillar (Roots/Family)"),
+        ("hour", "Hour Pillar (Inner World)"),
+    ]
+    
+    for pillar_key, pillar_label in pillar_order:
+        pillar = pillars[pillar_key]
+        hidden_stems = pillar.get("hidden_stems", [])
+        
+        if not hidden_stems:
+            continue
+        
+        # Focus on the main hidden stem (first one is usually most significant)
+        main_hidden = hidden_stems[0]
+        main_hidden_pinyin = HEAVENLY_STEMS_PINYIN[HEAVENLY_STEMS.index(main_hidden)]
+        
+        # Skip if it's the same as day master
+        if main_hidden == day_master_stem:
+            continue
+        
+        meaning = HIDDEN_STEM_MEANINGS.get(main_hidden, f"Hidden {STEM_ELEMENTS.get(main_hidden, 'element')} influence")
+        
+        # Get the Ten God relationship for more context
+        ten_god = get_ten_god(day_master_stem, main_hidden)
+        ten_god_name = TEN_GODS_DISPLAY.get(ten_god, {}).get("name", ten_god)
+        
+        dynamics.append({
+            "pillar": pillar_key,
+            "pillar_label": pillar_label,
+            "hidden_stem": main_hidden,
+            "hidden_stem_pinyin": main_hidden_pinyin,
+            "element": STEM_ELEMENTS.get(main_hidden),
+            "ten_god": ten_god_name,
+            "meaning": meaning,
+        })
+    
+    return dynamics[:3]  # Limit to top 3 most significant
+
+def calculate_life_pattern(day_master_element: str, day_master_polarity: str, favorable: List[str]) -> Dict[str, Any]:
+    """
+    Generate the Life Pattern section for Deep Dive.
+    """
+    template = LIFE_PATTERN_TEMPLATES.get(
+        (day_master_element, day_master_polarity),
+        LIFE_PATTERN_TEMPLATES[("Earth", "Yin")]  # fallback
+    )
+    
+    # Customize growth direction with favorable elements
+    growth_direction = template["growth_direction"]
+    if favorable:
+        favorable_names = ", ".join(favorable)
+        growth_direction = f"{template['growth_direction']} Currently, {favorable_names} would help balance your chart."
+    
+    return {
+        "core_drive": template["core_drive"],
+        "default_mode": template["default_mode"],
+        "under_pressure": template["under_pressure"],
+        "growth_direction": growth_direction,
+    }
+
+# =============================================================================
 # STRUCTURE SUMMARY
 # =============================================================================
 
@@ -888,6 +1306,41 @@ def compute_bazi_chart_v2(
             },
         }
         chart["timing"] = timing
+    
+    # =================================================================
+    # DEEP DIVE CALCULATIONS
+    # =================================================================
+    
+    # Day Master detailed analysis
+    day_master_analysis = calculate_day_master_analysis(
+        dm_element, dm_polarity, elements, element_analysis, season, pillars
+    )
+    
+    # Favorable/unfavorable elements
+    favorable, unfavorable = calculate_favorable_elements(
+        dm_element, strength, elements
+    )
+    
+    # Ten Gods detailed behavioral analysis
+    ten_gods_detailed = calculate_ten_gods_detailed(
+        day_stem, pillars, ten_gods_summary, season
+    )
+    
+    # Hidden dynamics
+    hidden_dynamics = calculate_hidden_dynamics(pillars, day_stem)
+    
+    # Life pattern
+    life_pattern = calculate_life_pattern(dm_element, dm_polarity, favorable)
+    
+    # Add Deep Dive section to chart
+    chart["deep_dive"] = {
+        "day_master_analysis": day_master_analysis,
+        "favorable_elements": favorable,
+        "unfavorable_elements": unfavorable,
+        "ten_gods_detailed": ten_gods_detailed,
+        "hidden_dynamics": hidden_dynamics,
+        "life_pattern": life_pattern,
+    }
     
     logger.info(f"[BaZi V2] Computed chart: Day Master = {day_master['stem_pinyin']} {dm_element} ({strength})")
     

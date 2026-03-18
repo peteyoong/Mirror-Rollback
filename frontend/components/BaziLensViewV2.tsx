@@ -115,6 +115,7 @@ interface BaziChartV2 {
   ten_gods_summary: TenGodsSummary;
   structure_summary: StructureSummary;
   timing: Timing;
+  deep_dive?: DeepDiveV2;
   birth_data: {
     date: string;
     time: string;
@@ -123,6 +124,53 @@ interface BaziChartV2 {
     bazi_month: number;
   };
   calculation_version: string;
+}
+
+// Deep Dive Interfaces
+interface DayMasterAnalysis {
+  strength_real: string;
+  reasoning: string[];
+  implication: string;
+}
+
+interface TenGodDetailed {
+  name: string;
+  label: string;
+  strength: string;
+  present_in: string[];
+  behavioral_expression: string;
+  stress_pattern: string;
+  others_experience: string;
+  risk: string;
+  insight: string;
+  tension: string;
+  action: string;
+}
+
+interface HiddenDynamic {
+  pillar: string;
+  pillar_label: string;
+  hidden_stem: string;
+  hidden_stem_pinyin: string;
+  element: string;
+  ten_god: string;
+  meaning: string;
+}
+
+interface LifePattern {
+  core_drive: string;
+  default_mode: string;
+  under_pressure: string;
+  growth_direction: string;
+}
+
+interface DeepDiveV2 {
+  day_master_analysis: DayMasterAnalysis;
+  favorable_elements: string[];
+  unfavorable_elements: string[];
+  ten_gods_detailed: TenGodDetailed[];
+  hidden_dynamics: HiddenDynamic[];
+  life_pattern: LifePattern;
 }
 
 interface BaziResponseV2 {
@@ -198,7 +246,7 @@ const ELEMENT_INTERPRETATIONS: Record<string, { strong: string; weak: string }> 
 // MAIN COMPONENT
 // =============================================================================
 
-type TabType = 'summary' | 'snapshot';
+type TabType = 'summary' | 'snapshot' | 'deep_dive';
 
 export default function BaziLensView({ userId, onOpenChat }: Props) {
   const { theme, isDark } = useTheme();
@@ -266,6 +314,14 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
       >
         <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'snapshot' && { color: theme.text, fontWeight: '600' }]}>
           Snapshot
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.tab, activeTab === 'deep_dive' && styles.activeTab]}
+        onPress={() => setActiveTab('deep_dive')}
+      >
+        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'deep_dive' && { color: theme.text, fontWeight: '600' }]}>
+          Deep Dive
         </Text>
       </TouchableOpacity>
     </View>
@@ -617,6 +673,322 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
   };
 
   // =============================================================================
+  // DEEP DIVE TAB COMPONENTS
+  // =============================================================================
+
+  // 1. Your Core Engine
+  const renderCoreEngine = () => {
+    if (!data?.deep_dive) return null;
+    const { day_master, deep_dive } = data;
+    const { day_master_analysis } = deep_dive;
+    
+    return (
+      <View style={[styles.deepDiveSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.deepDiveSectionTitle, { color: theme.text }]}>Your Core Engine</Text>
+        
+        {/* Day Master Identity */}
+        <View style={styles.coreEngineHeader}>
+          <View style={[styles.elementBadgeLarge, { backgroundColor: ELEMENT_COLORS[day_master.element] + '20' }]}>
+            <Text style={styles.elementIconLarge}>{ELEMENT_ICONS[day_master.element]}</Text>
+          </View>
+          <View style={styles.coreEngineInfo}>
+            <Text style={[styles.coreEngineName, { color: theme.text }]}>
+              {day_master.stem_pinyin} {day_master.element}
+            </Text>
+            <View style={[styles.strengthBadge, { 
+              backgroundColor: day_master_analysis.strength_real === 'strong' ? '#4CAF5020' : 
+                               day_master_analysis.strength_real === 'weak' ? '#FF572220' : '#FF980020'
+            }]}>
+              <Text style={[styles.strengthBadgeText, { 
+                color: day_master_analysis.strength_real === 'strong' ? '#4CAF50' : 
+                       day_master_analysis.strength_real === 'weak' ? '#FF5722' : '#FF9800'
+              }]}>
+                {day_master_analysis.strength_real.toUpperCase()} Day Master
+              </Text>
+            </View>
+          </View>
+        </View>
+        
+        {/* Strength Reasoning */}
+        <View style={[styles.reasoningBox, { backgroundColor: theme.background }]}>
+          <Text style={[styles.reasoningTitle, { color: theme.textTertiary }]}>WHY YOUR DAY MASTER IS {day_master_analysis.strength_real.toUpperCase()}</Text>
+          {day_master_analysis.reasoning.map((reason, idx) => (
+            <View key={idx} style={styles.reasoningItem}>
+              <Text style={[styles.reasoningBullet, { color: theme.textTertiary }]}>•</Text>
+              <Text style={[styles.reasoningText, { color: theme.textSecondary }]}>{reason}</Text>
+            </View>
+          ))}
+        </View>
+        
+        {/* Implication */}
+        <View style={styles.implicationBox}>
+          <Text style={[styles.implicationLabel, { color: theme.textTertiary }]}>WHAT THIS MEANS</Text>
+          <Text style={[styles.implicationText, { color: theme.text }]}>
+            {day_master_analysis.implication}
+          </Text>
+        </View>
+        
+        {/* Ask Button */}
+        <InlineReflectButton
+          source={{
+            lens: 'bazi',
+            type: 'day_master_analysis',
+            name: 'Day Master Analysis',
+            value: `${day_master.stem_pinyin} ${day_master.element} (${day_master_analysis.strength_real})`,
+            id: 'bazi_core_engine',
+          }}
+          prompt="Explain my Day Master in my life. What does this strength actually mean for how I show up?"
+        />
+      </View>
+    );
+  };
+
+  // 2. What Supports vs Drains
+  const renderSupportsAndDrains = () => {
+    if (!data?.deep_dive) return null;
+    const { favorable_elements, unfavorable_elements } = data.deep_dive;
+    
+    return (
+      <View style={[styles.deepDiveSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.deepDiveSectionTitle, { color: theme.text }]}>What Supports vs Drains You</Text>
+        
+        <View style={styles.supportsGrid}>
+          {/* Supports */}
+          <View style={[styles.supportsCard, { backgroundColor: '#4CAF5010', borderColor: '#4CAF5030' }]}>
+            <Text style={[styles.supportsLabel, { color: '#4CAF50' }]}>SUPPORTS</Text>
+            <Text style={[styles.supportsDescription, { color: theme.textTertiary }]}>
+              What helps you function better
+            </Text>
+            <View style={styles.elementsList}>
+              {favorable_elements.map((elem, idx) => (
+                <View key={idx} style={styles.elementItem}>
+                  <Text style={styles.elementItemIcon}>{ELEMENT_ICONS[elem]}</Text>
+                  <Text style={[styles.elementItemName, { color: theme.text }]}>{elem}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+          
+          {/* Drains */}
+          <View style={[styles.supportsCard, { backgroundColor: '#FF572210', borderColor: '#FF572230' }]}>
+            <Text style={[styles.supportsLabel, { color: '#FF5722' }]}>DRAINS</Text>
+            <Text style={[styles.supportsDescription, { color: theme.textTertiary }]}>
+              What creates friction or fatigue
+            </Text>
+            <View style={styles.elementsList}>
+              {unfavorable_elements.map((elem, idx) => (
+                <View key={idx} style={styles.elementItem}>
+                  <Text style={styles.elementItemIcon}>{ELEMENT_ICONS[elem]}</Text>
+                  <Text style={[styles.elementItemName, { color: theme.text }]}>{elem}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+        
+        {/* Ask Button */}
+        <View style={{ marginTop: 12 }}>
+          <InlineReflectButton
+            source={{
+              lens: 'bazi',
+              type: 'elements',
+              name: 'Element Balance',
+              value: `Favorable: ${favorable_elements.join(', ')}`,
+              id: 'bazi_elements',
+            }}
+            prompt="How do these elements actually show up in my life? Give me concrete examples."
+          />
+        </View>
+      </View>
+    );
+  };
+
+  // 3. Behavioral Patterns (Ten Gods)
+  const renderBehavioralPatterns = () => {
+    if (!data?.deep_dive?.ten_gods_detailed) return null;
+    const { ten_gods_detailed } = data.deep_dive;
+    
+    if (ten_gods_detailed.length === 0) return null;
+    
+    return (
+      <View style={[styles.deepDiveSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.deepDiveSectionTitle, { color: theme.text }]}>Your Behavioral Patterns</Text>
+        <Text style={[styles.deepDiveSubtitle, { color: theme.textTertiary }]}>
+          How the Ten Gods express through you
+        </Text>
+        
+        {ten_gods_detailed.slice(0, 3).map((god, idx) => (
+          <View key={idx} style={[styles.tenGodCard, { backgroundColor: theme.background, borderColor: theme.border }]}>
+            {/* Header */}
+            <View style={styles.tenGodHeader}>
+              <View>
+                <Text style={[styles.tenGodName, { color: theme.text }]}>{god.label}</Text>
+                <View style={styles.tenGodPresence}>
+                  {god.present_in.length > 0 && (
+                    <Text style={[styles.tenGodPresenceText, { color: theme.textTertiary }]}>
+                      Present in: {god.present_in.join(', ')}
+                    </Text>
+                  )}
+                </View>
+              </View>
+              <View style={[styles.tenGodStrengthBadge, { 
+                backgroundColor: god.strength === 'high' ? '#4CAF5020' : god.strength === 'moderate' ? '#FF980020' : theme.surface
+              }]}>
+                <Text style={[styles.tenGodStrengthText, { 
+                  color: god.strength === 'high' ? '#4CAF50' : god.strength === 'moderate' ? '#FF9800' : theme.textTertiary
+                }]}>
+                  {god.strength}
+                </Text>
+              </View>
+            </View>
+            
+            {/* Behavioral Expression */}
+            <Text style={[styles.tenGodBehavior, { color: theme.textSecondary }]}>
+              {god.behavioral_expression}
+            </Text>
+            
+            {/* Insight / Tension / Action */}
+            <View style={styles.tenGodITA}>
+              <View style={[styles.itaBox, { backgroundColor: theme.surface }]}>
+                <Text style={[styles.itaLabel, { color: '#4CAF50' }]}>INSIGHT</Text>
+                <Text style={[styles.itaText, { color: theme.text }]}>{god.insight}</Text>
+              </View>
+              <View style={[styles.itaBox, { backgroundColor: theme.surface }]}>
+                <Text style={[styles.itaLabel, { color: '#FF9800' }]}>TENSION</Text>
+                <Text style={[styles.itaText, { color: theme.text }]}>{god.tension}</Text>
+              </View>
+              <View style={[styles.itaBox, { backgroundColor: theme.surface }]}>
+                <Text style={[styles.itaLabel, { color: '#2196F3' }]}>ACTION</Text>
+                <Text style={[styles.itaText, { color: theme.text }]}>{god.action}</Text>
+              </View>
+            </View>
+            
+            {/* Under Pressure */}
+            <View style={[styles.stressBox, { borderColor: theme.border }]}>
+              <Text style={[styles.stressLabel, { color: theme.textTertiary }]}>UNDER PRESSURE</Text>
+              <Text style={[styles.stressText, { color: theme.textSecondary }]}>{god.stress_pattern}</Text>
+            </View>
+          </View>
+        ))}
+        
+        {/* Ask Button */}
+        <InlineReflectButton
+          source={{
+            lens: 'bazi',
+            type: 'ten_gods',
+            name: 'Ten Gods Patterns',
+            value: ten_gods_detailed.map(g => g.name).join(', '),
+            id: 'bazi_ten_gods',
+          }}
+          prompt="Why do I behave this way? Help me understand my patterns better."
+        />
+      </View>
+    );
+  };
+
+  // 4. Hidden Layers
+  const renderHiddenLayers = () => {
+    if (!data?.deep_dive?.hidden_dynamics) return null;
+    const { hidden_dynamics } = data.deep_dive;
+    
+    if (hidden_dynamics.length === 0) return null;
+    
+    return (
+      <View style={[styles.deepDiveSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.deepDiveSectionTitle, { color: theme.text }]}>Hidden Layers</Text>
+        <Text style={[styles.deepDiveSubtitle, { color: theme.textTertiary }]}>
+          Influences that aren't obvious but affect how you respond internally
+        </Text>
+        
+        {hidden_dynamics.map((dynamic, idx) => (
+          <View key={idx} style={[styles.hiddenCard, { backgroundColor: theme.background, borderColor: theme.border }]}>
+            <View style={styles.hiddenHeader}>
+              <View style={[styles.hiddenElementBadge, { backgroundColor: ELEMENT_COLORS[dynamic.element] + '20' }]}>
+                <Text style={styles.hiddenElementIcon}>{ELEMENT_ICONS[dynamic.element]}</Text>
+              </View>
+              <View style={styles.hiddenInfo}>
+                <Text style={[styles.hiddenPillar, { color: theme.textTertiary }]}>{dynamic.pillar_label}</Text>
+                <Text style={[styles.hiddenStem, { color: theme.text }]}>
+                  {dynamic.hidden_stem_pinyin} ({dynamic.element})
+                </Text>
+              </View>
+              <View style={[styles.hiddenTenGod, { backgroundColor: theme.surface }]}>
+                <Text style={[styles.hiddenTenGodText, { color: theme.textSecondary }]}>{dynamic.ten_god}</Text>
+              </View>
+            </View>
+            <Text style={[styles.hiddenMeaning, { color: theme.textSecondary }]}>{dynamic.meaning}</Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  // 5. Life Pattern
+  const renderLifePattern = () => {
+    if (!data?.deep_dive?.life_pattern) return null;
+    const { life_pattern } = data.deep_dive;
+    
+    return (
+      <View style={[styles.deepDiveSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.deepDiveSectionTitle, { color: theme.text }]}>Your Life Pattern</Text>
+        <Text style={[styles.deepDiveSubtitle, { color: theme.textTertiary }]}>
+          The core patterns that shape how you move through life
+        </Text>
+        
+        {/* Core Drive */}
+        <View style={[styles.lifePatternCard, { backgroundColor: theme.background }]}>
+          <View style={styles.lifePatternHeader}>
+            <Ionicons name="flash" size={18} color="#FF9800" />
+            <Text style={[styles.lifePatternLabel, { color: '#FF9800' }]}>CORE DRIVE</Text>
+          </View>
+          <Text style={[styles.lifePatternText, { color: theme.text }]}>{life_pattern.core_drive}</Text>
+        </View>
+        
+        {/* Default Mode */}
+        <View style={[styles.lifePatternCard, { backgroundColor: theme.background }]}>
+          <View style={styles.lifePatternHeader}>
+            <Ionicons name="repeat" size={18} color="#2196F3" />
+            <Text style={[styles.lifePatternLabel, { color: '#2196F3' }]}>DEFAULT MODE</Text>
+          </View>
+          <Text style={[styles.lifePatternText, { color: theme.text }]}>{life_pattern.default_mode}</Text>
+        </View>
+        
+        {/* Under Pressure */}
+        <View style={[styles.lifePatternCard, { backgroundColor: '#FF572208' }]}>
+          <View style={styles.lifePatternHeader}>
+            <Ionicons name="warning" size={18} color="#FF5722" />
+            <Text style={[styles.lifePatternLabel, { color: '#FF5722' }]}>UNDER PRESSURE</Text>
+          </View>
+          <Text style={[styles.lifePatternText, { color: theme.text }]}>{life_pattern.under_pressure}</Text>
+        </View>
+        
+        {/* Growth Direction */}
+        <View style={[styles.lifePatternCard, { backgroundColor: '#4CAF5008' }]}>
+          <View style={styles.lifePatternHeader}>
+            <Ionicons name="trending-up" size={18} color="#4CAF50" />
+            <Text style={[styles.lifePatternLabel, { color: '#4CAF50' }]}>GROWTH DIRECTION</Text>
+          </View>
+          <Text style={[styles.lifePatternText, { color: theme.text }]}>{life_pattern.growth_direction}</Text>
+        </View>
+        
+        {/* Ask Buttons */}
+        <View style={styles.askButtonsRow}>
+          <InlineReflectButton
+            source={{
+              lens: 'bazi',
+              type: 'life_pattern',
+              name: 'Life Pattern',
+              value: life_pattern.core_drive,
+              id: 'bazi_life_pattern',
+            }}
+            prompt="What should I focus on now based on my chart?"
+          />
+        </View>
+      </View>
+    );
+  };
+
+  // =============================================================================
   // LOADING / ERROR STATES
   // =============================================================================
 
@@ -692,6 +1064,16 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
             {renderSnapshotPeriod(data.timing.today, 'Today', 'today')}
             {renderSnapshotPeriod(data.timing.month, 'This Month', 'month')}
             {renderSnapshotPeriod(data.timing.year, 'This Year', 'year')}
+          </>
+        )}
+
+        {activeTab === 'deep_dive' && data?.deep_dive && (
+          <>
+            {renderCoreEngine()}
+            {renderSupportsAndDrains()}
+            {renderBehavioralPatterns()}
+            {renderHiddenLayers()}
+            {renderLifePattern()}
           </>
         )}
 
@@ -1114,5 +1496,286 @@ const styles = StyleSheet.create({
   askButtonContainer: {
     padding: 16,
     paddingTop: 0,
+  },
+
+  // =============================================================================
+  // DEEP DIVE STYLES
+  // =============================================================================
+
+  deepDiveSection: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 16,
+  },
+  deepDiveSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  deepDiveSubtitle: {
+    fontSize: 13,
+    marginBottom: 16,
+  },
+
+  // Core Engine
+  coreEngineHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  elementBadgeLarge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  elementIconLarge: {
+    fontSize: 32,
+  },
+  coreEngineInfo: {
+    flex: 1,
+  },
+  coreEngineName: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  strengthBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+  },
+  strengthBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  reasoningBox: {
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+  reasoningTitle: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  reasoningItem: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  reasoningBullet: {
+    fontSize: 14,
+    marginRight: 8,
+    lineHeight: 20,
+  },
+  reasoningText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  implicationBox: {
+    marginBottom: 16,
+  },
+  implicationLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  implicationText: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: '500',
+  },
+
+  // Supports & Drains
+  supportsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  supportsCard: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  supportsLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  supportsDescription: {
+    fontSize: 12,
+    marginBottom: 12,
+  },
+  elementsList: {
+    gap: 8,
+  },
+  elementItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  elementItemIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  elementItemName: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  // Ten Gods
+  tenGodCard: {
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 14,
+  },
+  tenGodHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  tenGodName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  tenGodPresence: {
+    flexDirection: 'row',
+  },
+  tenGodPresenceText: {
+    fontSize: 11,
+  },
+  tenGodStrengthBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  tenGodStrengthText: {
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  tenGodBehavior: {
+    fontSize: 14,
+    lineHeight: 21,
+    marginBottom: 14,
+  },
+  tenGodITA: {
+    gap: 10,
+    marginBottom: 14,
+  },
+  itaBox: {
+    padding: 12,
+    borderRadius: 8,
+  },
+  itaLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  itaText: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  stressBox: {
+    padding: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  stressLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  stressText: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
+  },
+
+  // Hidden Layers
+  hiddenCard: {
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 12,
+  },
+  hiddenHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  hiddenElementBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  hiddenElementIcon: {
+    fontSize: 20,
+  },
+  hiddenInfo: {
+    flex: 1,
+  },
+  hiddenPillar: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  hiddenStem: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  hiddenTenGod: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  hiddenTenGodText: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  hiddenMeaning: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+
+  // Life Pattern
+  lifePatternCard: {
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+  lifePatternHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  lifePatternLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginLeft: 8,
+  },
+  lifePatternText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  askButtonsRow: {
+    marginTop: 8,
   },
 });
