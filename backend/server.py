@@ -60,6 +60,7 @@ from services.lifeline_patterns import generate_lifeline_patterns, generate_full
 
 # Import BaZi Engine
 from services.bazi_engine import compute_bazi_chart, get_element_description
+from services.bazi_engine_v2 import compute_bazi_chart_v2
 
 # Import Cross-Lens Synthesis
 from services.cross_lens_synthesis import generate_cross_lens_synthesis, condense_synthesis_for_homepage
@@ -12967,6 +12968,66 @@ async def get_bazi_summary(user_id: str):
     except Exception as e:
         logger.error(f"[BaZi] Summary error for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to get BaZi summary")
+
+
+@api_router.get("/bazi/{user_id}/full")
+async def get_bazi_chart_full(user_id: str):
+    """
+    Get the full BaZi (Four Pillars of Destiny) chart with V2 structure.
+    
+    Returns the enhanced response shape including:
+    - day_master: with keywords, strength, Mirror language description
+    - pillars: with hidden stems, animal emoji, meaning labels
+    - elements: with dominant, weak, supporting, balancing
+    - ten_gods_summary: weighted analysis with dominant and present
+    - structure_summary: season, climate, supporting/balancing elements
+    - timing: today, month, year interactions with Ten God overlay
+    """
+    try:
+        # Get user data
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check for required birth data
+        birth_date = user.get("birth_date")
+        if not birth_date:
+            raise HTTPException(
+                status_code=400, 
+                detail="Birth date is required for BaZi calculation. Please complete onboarding."
+            )
+        
+        # Get birth time and timezone
+        birth_time = user.get("birth_time")
+        timezone = user.get("timezone")
+        
+        # Compute V2 BaZi chart with timing
+        chart = compute_bazi_chart_v2(
+            birth_date=birth_date,
+            birth_time=birth_time,
+            timezone=timezone,
+            include_timing=True
+        )
+        
+        logger.info(f"[BaZi V2] Generated full chart for user {user_id}: Day Master = {chart['day_master']['stem_pinyin']} {chart['day_master']['element']} ({chart['day_master']['strength']})")
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "has_birth_time": birth_time is not None,
+            "chart": chart,
+        }
+    
+    except HTTPException:
+        raise
+    except ValueError as e:
+        logger.error(f"[BaZi V2] Calculation error for user {user_id}: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"[BaZi V2] Unexpected error for user {user_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Failed to compute BaZi chart")
 
 
 # =====================================================================

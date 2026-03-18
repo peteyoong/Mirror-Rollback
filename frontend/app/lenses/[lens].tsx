@@ -25,7 +25,7 @@ import HumanDesignLensView from '../../components/HumanDesignLensView';
 // Restored NumerologyLensView with integrated PatternView for Deep Dive
 import NumerologyLensView from '../../components/NumerologyLensView';
 import EnneagramLensView from '../../components/EnneagramLensView';
-import BaziLensView from '../../components/BaziLensView';
+import BaziLensView from '../../components/BaziLensViewV2';
 
 // Lens metadata
 const LENS_META: { [key: string]: { name: string; icon: string } } = {
