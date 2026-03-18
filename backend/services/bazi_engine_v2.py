@@ -163,221 +163,326 @@ SEASON_ELEMENT_STRENGTH = {
 }
 
 # =============================================================================
-# DAY MASTER KEYWORDS & DESCRIPTIONS (Mirror Language)
+# DAY MASTER KEYWORDS & DESCRIPTIONS (Mirror Language - UPGRADED)
 # =============================================================================
 
 DAY_MASTER_PROFILES = {
     ("Wood", "Yang"): {
         "keywords": ["initiative", "growth", "leadership"],
-        "description": "You may naturally take the lead, push through obstacles, and start things others hesitate to begin. There's often an urge to grow, build, and move forward.",
-        "strength_strong": "Your drive and initiative come easily. The challenge may be knowing when to pause or let others lead.",
-        "strength_weak": "You may have vision but feel blocked from acting on it. Building support before acting could help.",
+        "wow_line": "You don't wait for permission — you move first and figure it out later.",
+        "description": "You push through obstacles that stop others. You start things. You lead by moving, not by planning.",
+        "strength_strong": "Your drive is powerful and accessible. The work: knowing when to pause and let others catch up.",
+        "strength_weak": "You see the path forward but feel blocked from taking it. The work: building support before the sprint.",
+        "why_pattern": "Strong Wood creates forward momentum. Your chart generates natural leadership energy that makes inaction uncomfortable.",
     },
     ("Wood", "Yin"): {
         "keywords": ["adaptability", "persistence", "connection"],
-        "description": "You may find ways around resistance rather than through it. There's a quiet persistence—bending without breaking, growing in unexpected directions.",
-        "strength_strong": "Your flexibility is a strength. You adapt well, though you may sometimes avoid necessary confrontation.",
-        "strength_weak": "You may feel easily swayed or struggle to hold your ground. Finding your root could be the work.",
+        "wow_line": "You grow around obstacles that stop others cold.",
+        "description": "You find ways through resistance that others can't see. You persist quietly, bending without breaking.",
+        "strength_strong": "Your flexibility is genuine strength. The work: not avoiding confrontation when it's actually needed.",
+        "strength_weak": "You get swayed too easily. The work: finding your root before trying to grow.",
+        "why_pattern": "Yin Wood adapts to survive. Your chart emphasizes connection and persistence over force.",
     },
     ("Fire", "Yang"): {
         "keywords": ["clarity", "warmth", "visibility"],
-        "description": "You may naturally illuminate situations and draw attention. There's often clarity in how you see things and warmth in how you connect.",
-        "strength_strong": "Your presence is noticed. The challenge may be sustaining energy without burning out.",
-        "strength_weak": "You may have warmth inside that struggles to express outward. Finding safe spaces to shine helps.",
+        "wow_line": "You light up rooms without trying — and notice when others dim.",
+        "description": "You illuminate situations. You draw attention naturally. You see clearly and connect warmly.",
+        "strength_strong": "Your presence fills space. The work: sustaining without burning out or needing constant fuel.",
+        "strength_weak": "Your inner light struggles to express outward. The work: finding safe spaces where you can actually shine.",
+        "why_pattern": "Yang Fire radiates outward. Your chart generates visibility and clarity that makes hiding uncomfortable.",
     },
     ("Fire", "Yin"): {
         "keywords": ["nurturing warmth", "steady light", "patience"],
-        "description": "Your warmth may be gentler—a candle rather than a bonfire. You may nurture through consistent presence rather than dramatic gestures.",
-        "strength_strong": "Your steady warmth is reliable. Be careful not to hide your light to avoid overwhelming others.",
-        "strength_weak": "You may feel your inner light flickering. Protecting your energy sources becomes important.",
+        "wow_line": "You're the candle that stays lit when the bonfire burns out.",
+        "description": "Your warmth is consistent, not dramatic. You nurture through steady presence, not grand gestures.",
+        "strength_strong": "Your steady warmth is reliable. The work: not dimming yourself to make others comfortable.",
+        "strength_weak": "Your inner light flickers. The work: protecting your energy sources before they run dry.",
+        "why_pattern": "Yin Fire sustains through consistency. Your chart values endurance over intensity.",
     },
     ("Earth", "Yang"): {
         "keywords": ["stability", "reliability", "containment"],
-        "description": "You may be the one others lean on when things shake. There's often a mountain-like quality—solid, patient, able to hold space for what others cannot.",
-        "strength_strong": "Your stability is genuine and others sense it. The challenge is avoiding becoming immovable.",
-        "strength_weak": "You may want to be the solid ground but feel unsteady yourself. Building your own foundation first matters.",
+        "wow_line": "You're the mountain people lean on when everything else shakes.",
+        "description": "You hold space that others can't. You're solid when others crumble. You contain what would overflow.",
+        "strength_strong": "Your stability is real and others sense it. The work: not becoming so solid you can't move.",
+        "strength_weak": "You want to be the ground but feel unsteady yourself. The work: building your foundation first.",
+        "why_pattern": "Yang Earth provides structure. Your chart generates stability that makes chaos uncomfortable.",
     },
     ("Earth", "Yin"): {
         "keywords": ["nurturing", "receptivity", "cultivation"],
-        "description": "You may naturally support others' growth, creating conditions for things to flourish. There's often a receptive quality—taking in, processing, making fertile.",
-        "strength_strong": "Your nurturing capacity is strong. Be careful not to over-give or lose yourself in others' needs.",
-        "strength_weak": "You may want to help but feel depleted. Learning to receive as much as you give becomes essential.",
+        "wow_line": "You grow what you touch — sometimes at the cost of yourself.",
+        "description": "You create conditions for others to flourish. You receive, process, and make things fertile.",
+        "strength_strong": "Your nurturing capacity is powerful. The work: not over-giving until you're depleted.",
+        "strength_weak": "You want to help but feel empty. The work: learning to receive as much as you give.",
+        "why_pattern": "Yin Earth cultivates growth in others. Your chart emphasizes support over self-assertion.",
     },
     ("Metal", "Yang"): {
         "keywords": ["decisiveness", "standards", "boundaries"],
-        "description": "You may naturally cut through confusion to find what matters. There's often a clarity about right and wrong, and a willingness to hold difficult standards.",
-        "strength_strong": "Your discernment is sharp. The challenge may be rigidity or expecting others to meet your standards.",
-        "strength_weak": "You may see what needs cutting but struggle to act. Building confidence in your judgment helps.",
+        "wow_line": "You cut through confusion that paralyzes others — sometimes too quickly.",
+        "description": "You see what matters and what doesn't. You decide when others deliberate. You hold standards others avoid.",
+        "strength_strong": "Your discernment is sharp and fast. The work: not becoming rigid or expecting others to match you.",
+        "strength_weak": "You see what needs cutting but can't pull the trigger. The work: trusting your judgment enough to act.",
+        "why_pattern": "Yang Metal creates clarity through elimination. Your chart generates decisiveness that makes ambiguity uncomfortable.",
     },
     ("Metal", "Yin"): {
         "keywords": ["precision", "discernment", "refinement"],
-        "description": "You may notice details others miss and hold yourself to precise internal standards. There's often a quality of refinement—preferring less but better.",
-        "strength_strong": "Your precision is a gift. Be careful that high standards don't become self-criticism.",
-        "strength_weak": "You may feel scattered when you crave precision. Creating small areas of order can help.",
+        "wow_line": "You don't move fast — you move right. And you notice when others don't.",
+        "description": "You catch details others miss. You hold yourself to precise internal standards. You prefer less but better.",
+        "strength_strong": "Your precision is a gift. The work: not letting high standards become self-criticism.",
+        "strength_weak": "You crave precision but feel scattered. The work: creating small pockets of order to anchor yourself.",
+        "why_pattern": "Yin Metal refines through attention to detail. Your chart generates quality consciousness that makes sloppiness painful.",
     },
     ("Water", "Yang"): {
         "keywords": ["momentum", "adaptability", "courage"],
-        "description": "You may move through life with a certain flow—adapting to circumstances while maintaining momentum. There's often courage in facing the unknown.",
-        "strength_strong": "Your adaptability and momentum are strong. The challenge is knowing when to rest rather than always moving.",
-        "strength_weak": "You may feel stuck in still waters. Finding what creates natural movement for you matters.",
+        "wow_line": "You flow around obstacles that stop others — and sometimes can't stop yourself.",
+        "description": "You adapt while maintaining momentum. You face the unknown with less fear than most.",
+        "strength_strong": "Your adaptability and momentum are powerful. The work: knowing when to stop rather than always moving.",
+        "strength_weak": "You feel stuck in still waters. The work: finding what creates natural movement for you.",
+        "why_pattern": "Yang Water moves through obstacles. Your chart generates forward flow that makes stagnation uncomfortable.",
     },
     ("Water", "Yin"): {
         "keywords": ["depth", "reflection", "intuition"],
-        "description": "You may understand things before you can explain them. There's often a deep, still quality—reflective, perceptive, connected to undercurrents others miss.",
-        "strength_strong": "Your depth and intuition are accessible. Be careful not to get lost in inner waters.",
-        "strength_weak": "You may feel disconnected from your intuition. Creating stillness and space for reflection helps.",
+        "wow_line": "You understand things before you can explain them — and sometimes before you should.",
+        "description": "You perceive undercurrents others miss. You know things before you have words for them.",
+        "strength_strong": "Your depth and intuition are accessible. The work: not getting lost in inner waters.",
+        "strength_weak": "You feel disconnected from your intuition. The work: creating stillness so you can hear yourself.",
+        "why_pattern": "Yin Water perceives through stillness. Your chart generates intuitive knowing that makes surface living unsatisfying.",
     },
 }
 
 # =============================================================================
-# DEEP DIVE: TEN GODS BEHAVIORAL TEMPLATES
+# DEEP DIVE: TEN GODS BEHAVIORAL TEMPLATES (UPGRADED)
 # =============================================================================
 
 TEN_GODS_BEHAVIORAL = {
     "resource": {
         "category": "resource",
         "label": "Resource / Seal",
-        "behavioral_high": "You tend to think before acting. Learning, processing, and understanding come naturally. Others may see you as thoughtful, perhaps sometimes overly cautious.",
-        "behavioral_low": "You may jump into action without enough preparation. Building a stronger foundation of knowledge and support could help.",
-        "stress_pattern": "Under pressure, you may withdraw into analysis mode—researching more, deciding less.",
-        "others_experience": "People experience you as someone who values understanding over speed. They may come to you for wisdom but find you slow to act.",
-        "risk": "Can overthink or stay in preparation mode indefinitely. May avoid action by gathering more information.",
-        "insight": "Your natural mode is to understand before doing",
-        "tension": "This can delay necessary action or create analysis paralysis",
+        "wow_line": "You trust your own thinking more than other people's urgency.",
+        "behavioral_high": "You slow down to understand before acting — which creates delays when speed matters. You process internally, research thoroughly, and prepare carefully.",
+        "behavioral_low": "You jump without enough preparation. Building a stronger foundation of knowledge and support helps.",
+        "stress_pattern": "Under pressure, you retreat into analysis mode — researching more, deciding less, waiting for certainty that never comes.",
+        "others_experience": "People see you as thoughtful but slow. They come to you for wisdom but get frustrated waiting for action.",
+        "risk": "Overthinking becomes avoidance. You gather more information instead of making the call.",
+        "insight": "You understand before doing",
+        "tension": "This delays necessary action",
         "action": "Set a decision deadline before you start researching",
+        "why_pattern": "Strong Resource energy supports your Day Master, making you process and analyze before acting. This creates wisdom but also hesitation.",
+        "go_deeper": "Resource (印星) represents support, learning, and protection. High Resource creates a tendency to seek understanding before commitment. The risk is analysis paralysis.",
     },
     "output": {
         "category": "output",
         "label": "Output / Expression",
-        "behavioral_high": "You have a strong drive to express, create, and put things out into the world. Ideas want to become visible through you.",
-        "behavioral_low": "Expression may feel blocked or unsafe. Finding trusted outlets for your creativity matters.",
-        "stress_pattern": "Under pressure, you may over-express—talking too much, creating chaotically, or becoming provocative.",
-        "others_experience": "People experience you as creative and expressive. They may find you inspiring but sometimes overwhelming.",
-        "risk": "Can scatter energy across too many outputs. May express before thinking through consequences.",
-        "insight": "Your natural mode is to create and express",
-        "tension": "This can scatter your focus or overwhelm others",
-        "action": "Choose one thing to complete before starting another",
+        "wow_line": "You create to exist — holding back feels like suffocating.",
+        "behavioral_high": "You express, create, and put things into the world constantly. Ideas demand to become visible through you.",
+        "behavioral_low": "Expression feels blocked or unsafe. Finding trusted outlets for creativity matters.",
+        "stress_pattern": "Under pressure, you over-express — talking too much, creating chaotically, becoming provocative to force a reaction.",
+        "others_experience": "People see you as creative and expressive. They find you inspiring but exhausting.",
+        "risk": "Energy scatters across too many outputs. You express before thinking through consequences.",
+        "insight": "You create to process",
+        "tension": "This scatters your focus",
+        "action": "Complete one thing before starting another",
+        "why_pattern": "Strong Output energy drains from your Day Master into creation. This makes expression necessary but potentially depleting.",
+        "go_deeper": "Output (食傷) represents expression, creativity, and talent. High Output drives creation but can exhaust the self if not managed.",
     },
     "wealth": {
         "category": "wealth",
         "label": "Wealth / Execution",
-        "behavioral_high": "You're oriented toward results and practical outcomes. Getting things done, managing resources, and seeing tangible progress matters to you.",
-        "behavioral_low": "Practical execution may feel draining. You might benefit from delegating or simplifying what you're trying to manage.",
-        "stress_pattern": "Under pressure, you may become overly focused on control—managing, organizing, directing—at the expense of other values.",
-        "others_experience": "People experience you as capable and results-oriented. They may rely on you to execute but find you sometimes overly focused on outcomes.",
-        "risk": "Can prioritize productivity over wellbeing. May lose sight of why results matter.",
-        "insight": "Your natural mode is to execute and produce results",
-        "tension": "This can make you impatient with process or people",
-        "action": "Pause to ask what outcome actually matters before optimizing",
+        "wow_line": "You measure progress in results, not intentions — and get impatient with people who don't.",
+        "behavioral_high": "You focus on results and practical outcomes. Getting things done, managing resources, and seeing tangible progress drives you.",
+        "behavioral_low": "Practical execution drains you. Delegating or simplifying what you're managing helps.",
+        "stress_pattern": "Under pressure, you become controlling — managing, organizing, directing — at the expense of other values.",
+        "others_experience": "People see you as capable and results-oriented. They rely on you but find you focused on outcomes over relationships.",
+        "risk": "Productivity becomes the only value. You lose sight of why results matter.",
+        "insight": "You execute to feel secure",
+        "tension": "This makes you impatient with process",
+        "action": "Ask what outcome actually matters before optimizing",
+        "why_pattern": "Strong Wealth energy means your Day Master controls resources effectively. This creates capability but also restlessness without progress.",
+        "go_deeper": "Wealth (財星) represents what you control and manage. High Wealth creates results-orientation but can become obsessive about productivity.",
     },
     "officer": {
         "category": "officer",
         "label": "Officer / Structure",
-        "behavioral_high": "You have a strong relationship with structure, rules, and responsibility. You may naturally take on duties or feel the weight of expectations.",
-        "behavioral_low": "Structure may feel oppressive rather than supportive. Finding ways to create your own frameworks could help.",
-        "stress_pattern": "Under pressure, you may become rigid, over-responsible, or feel trapped by obligations you didn't choose.",
-        "others_experience": "People experience you as responsible and trustworthy. They may rely on you heavily, sometimes taking your dependability for granted.",
-        "risk": "Can over-identify with duty. May sacrifice personal needs for perceived obligations.",
-        "insight": "Your natural mode is to maintain structure and meet expectations",
-        "tension": "This can make you rigid or resentful when others don't reciprocate",
-        "action": "Distinguish between duties you chose and duties you inherited",
+        "wow_line": "You feel responsible for things that aren't your job — and resent when others don't.",
+        "behavioral_high": "You have a strong relationship with structure, rules, and responsibility. You take on duties naturally and feel the weight of expectations.",
+        "behavioral_low": "Structure feels oppressive rather than supportive. Creating your own frameworks helps.",
+        "stress_pattern": "Under pressure, you become rigid, over-responsible, or feel trapped by obligations you didn't choose.",
+        "others_experience": "People see you as responsible and trustworthy. They rely on you heavily, taking your dependability for granted.",
+        "risk": "You over-identify with duty. Personal needs get sacrificed for perceived obligations.",
+        "insight": "You structure to feel safe",
+        "tension": "This makes you rigid under pressure",
+        "action": "Distinguish duties you chose from duties you inherited",
+        "why_pattern": "Strong Officer energy controls your Day Master through structure. This creates reliability but also pressure and rigidity.",
+        "go_deeper": "Officer (官星) represents external authority, structure, and pressure. High Officer creates responsibility but can feel like constant obligation.",
     },
     "companion": {
         "category": "companion",
         "label": "Companion / Self",
-        "behavioral_high": "You have a strong sense of self and natural independence. Peer relationships and collaboration come easily, though you may also feel competitive.",
-        "behavioral_low": "You may struggle with isolation or difficulty finding your tribe. Building genuine peer connections could help.",
-        "stress_pattern": "Under pressure, you may become overly competitive, comparing yourself to others or feeling threatened by their success.",
-        "others_experience": "People experience you as confident and self-sufficient. They may admire your independence but find it hard to truly help you.",
-        "risk": "Can isolate or compete when collaboration would serve better. May resist help.",
-        "insight": "Your natural mode is to rely on yourself and compete",
-        "tension": "This can isolate you or create unnecessary rivalry",
+        "wow_line": "You compete with yourself more than anyone else — and still rarely win.",
+        "behavioral_high": "You have strong independence and self-reliance. Peer relationships come easily, though you notice competition more than collaboration.",
+        "behavioral_low": "You struggle with isolation or finding your tribe. Building genuine peer connections helps.",
+        "stress_pattern": "Under pressure, you become competitive — comparing yourself to others, feeling threatened by their success.",
+        "others_experience": "People see you as confident and self-sufficient. They admire your independence but find it hard to help you.",
+        "risk": "You isolate or compete when collaboration would serve better. You resist help.",
+        "insight": "You rely on yourself first",
+        "tension": "This isolates you from support",
         "action": "Ask for help before you need it",
+        "why_pattern": "Strong Companion energy means your Day Master has peer support. This creates independence but also isolation and competition.",
+        "go_deeper": "Companion (比劫) represents self and peers. High Companion creates self-reliance but can become isolation or rivalry.",
     },
 }
 
 # =============================================================================
-# DEEP DIVE: LIFE PATTERN TEMPLATES BY DAY MASTER
+# HIDDEN STEM MEANINGS (UPGRADED - BEHAVIORAL)
+# =============================================================================
+
+HIDDEN_STEM_MEANINGS = {
+    "甲": {
+        "name": "Hidden Wood (Jia)",
+        "description": "An underlying drive to grow, initiate, or push forward that operates beneath your conscious awareness.",
+        "behavioral": "You make sudden moves when you feel stuck. Under pressure, you push forward even when patience would serve better.",
+        "shows_up": "Impatience with stagnation, unexpected bursts of initiative, frustration when growth feels blocked.",
+    },
+    "乙": {
+        "name": "Hidden Wood (Yi)",
+        "description": "A subtle adaptability or networking instinct operating beneath the surface.",
+        "behavioral": "You find alternative routes instinctively. When blocked, you bend rather than break — sometimes avoiding necessary confrontation.",
+        "shows_up": "Quiet persistence, relationship-building without trying, flexibility that can look like inconsistency.",
+    },
+    "丙": {
+        "name": "Hidden Fire (Bing)",
+        "description": "An inner warmth or desire for visibility that doesn't always show externally.",
+        "behavioral": "You notice when you're not being seen. You draw attention in unexpected moments, even when you don't intend to.",
+        "shows_up": "Sudden clarity about situations, unexpected warmth toward others, frustration when overlooked.",
+    },
+    "丁": {
+        "name": "Hidden Fire (Ding)",
+        "description": "A quiet nurturing warmth or steady illumination working in the background.",
+        "behavioral": "You provide consistent support without fanfare. You're the candle that stays lit when others burn out.",
+        "shows_up": "Patient teaching, steady encouragement, warmth that emerges in crisis rather than celebration.",
+    },
+    "戊": {
+        "name": "Hidden Earth (Wu)",
+        "description": "An underlying need for stability or containment that influences decisions.",
+        "behavioral": "You create structure when things feel chaotic. You become the solid ground for others, sometimes at your own expense.",
+        "shows_up": "Taking responsibility during uncertainty, preference for reliable over exciting, resistance to sudden change.",
+    },
+    "己": {
+        "name": "Hidden Earth (Ji)",
+        "description": "A subtle nurturing quality or desire to support growth operating beneath awareness.",
+        "behavioral": "You cultivate others' potential without realizing it. You process and transform what others give you.",
+        "shows_up": "Being the one people come to, absorbing others' stress, growing what you touch.",
+    },
+    "庚": {
+        "name": "Hidden Metal (Geng)",
+        "description": "An underlying decisiveness or critical faculty that emerges under pressure.",
+        "behavioral": "You make fast judgments under pressure. You become sharply critical when things don't meet standards you didn't know you had.",
+        "shows_up": "Snap decisions in crisis, unexpected harshness, sudden clarity about what needs cutting.",
+    },
+    "辛": {
+        "name": "Hidden Metal (Xin)",
+        "description": "A subtle precision or refinement instinct influencing choices without being obvious.",
+        "behavioral": "You notice quality differences others miss. You hold internal standards you rarely articulate but always feel.",
+        "shows_up": "Preference for quality over quantity, noticing imperfections, silent disappointment with sloppiness.",
+    },
+    "壬": {
+        "name": "Hidden Water (Ren)",
+        "description": "An underlying adaptability or willingness to flow that isn't consciously accessed.",
+        "behavioral": "You navigate around obstacles instinctively. You face the unknown with less fear than you realize.",
+        "shows_up": "Unexpected courage in uncertainty, flowing around blockers, momentum that builds without planning.",
+    },
+    "癸": {
+        "name": "Hidden Water (Gui)",
+        "description": "A deep intuitive perception or reflective quality operating beneath the surface.",
+        "behavioral": "You know things before you can explain them. You perceive undercurrents others miss entirely.",
+        "shows_up": "Accurate gut feelings, sensing what's not being said, understanding before explanation.",
+    },
+}
+
+# =============================================================================
+# DEEP DIVE: LIFE PATTERN TEMPLATES BY DAY MASTER (UPGRADED)
 # =============================================================================
 
 LIFE_PATTERN_TEMPLATES = {
     ("Wood", "Yang"): {
         "core_drive": "To initiate, grow, and lead forward motion",
-        "default_mode": "You naturally push through obstacles and start things. You're often the one who says 'let's go' when others are still planning.",
-        "under_pressure": "You may become forceful, impatient, or bulldoze through situations that require more finesse. Your drive intensifies but your judgment may narrow.",
-        "growth_direction": "Learning to pause, delegate, and trust others' timelines. Fire (expression) helps channel your energy; Metal (precision) helps refine it.",
+        "wow_line": "You don't wait for permission — you move first.",
+        "default_mode": "You push through obstacles and start things. You're the one who says 'let's go' when others are still planning.",
+        "under_pressure": "You become forceful, impatient, and bulldoze through situations that require finesse. Your drive intensifies but judgment narrows.",
+        "growth_direction": "Learning to pause, delegate, and trust others' timelines. Fire channels your energy; Metal refines it.",
+        "why_pattern": "Strong Yang Wood creates relentless forward momentum. Your chart is built for initiation, making inaction feel like failure.",
     },
     ("Wood", "Yin"): {
         "core_drive": "To adapt, connect, and find ways through",
-        "default_mode": "You bend rather than break. You find alternative routes and build networks of support. Growth happens sideways as much as upward.",
-        "under_pressure": "You may become overly accommodating, losing your own direction while adapting to everyone else's. Your flexibility becomes indecision.",
-        "growth_direction": "Building a stronger center that bends but doesn't break. Fire helps you express; Water helps you trust your own flow.",
+        "wow_line": "You grow around obstacles that stop others cold.",
+        "default_mode": "You bend rather than break. You find alternative routes and build networks. Growth happens sideways as much as upward.",
+        "under_pressure": "You become overly accommodating, losing your direction while adapting to everyone else's. Flexibility becomes indecision.",
+        "growth_direction": "Building a stronger center that bends but doesn't break. Fire helps you express; Water helps you trust your flow.",
+        "why_pattern": "Yin Wood survives through adaptation. Your chart emphasizes connection and persistence over direct force.",
     },
     ("Fire", "Yang"): {
         "core_drive": "To illuminate, inspire, and be seen",
-        "default_mode": "You naturally draw attention and clarify situations. Your presence is felt. You may not try to lead but often end up there anyway.",
-        "under_pressure": "You may burn hot and fast—dramatic reactions, visibility at all costs, or exhaustion from sustaining high energy.",
-        "growth_direction": "Learning to sustain rather than blaze. Wood (growth) feeds you constructively; Earth (grounding) helps you not burn out.",
+        "wow_line": "You light up rooms without trying — and notice when others dim.",
+        "default_mode": "You draw attention and clarify situations naturally. Your presence fills space. You end up leading even when you don't try.",
+        "under_pressure": "You burn hot and fast — dramatic reactions, visibility at all costs, exhaustion from sustaining high energy.",
+        "growth_direction": "Learning to sustain rather than blaze. Wood feeds you constructively; Earth keeps you from burning out.",
+        "why_pattern": "Yang Fire radiates outward. Your chart generates visibility and warmth that makes hiding feel wrong.",
     },
     ("Fire", "Yin"): {
         "core_drive": "To nurture warmth and maintain steady light",
-        "default_mode": "You provide consistent warmth rather than dramatic heat. You're the candle in the darkness, not the bonfire.",
-        "under_pressure": "You may dim yourself to avoid overwhelming others, or flicker erratically when your fuel runs low.",
+        "wow_line": "You're the candle that stays lit when the bonfire burns out.",
+        "default_mode": "You provide consistent warmth rather than dramatic heat. You nurture through steady presence.",
+        "under_pressure": "You dim yourself to make others comfortable, or flicker erratically when your fuel runs low.",
         "growth_direction": "Trusting that your light is needed, even when it feels small. Wood supports you; Earth grounds you.",
+        "why_pattern": "Yin Fire sustains through consistency. Your chart values endurance and quiet illumination over spectacle.",
     },
     ("Earth", "Yang"): {
         "core_drive": "To stabilize, contain, and provide solid ground",
-        "default_mode": "You're the mountain others lean on. Stability comes naturally. You hold space for what others cannot.",
-        "under_pressure": "You may become immovable, stubborn, or weighted down by everything you're carrying. Your stability becomes rigidity.",
+        "wow_line": "You're the mountain people lean on when everything else shakes.",
+        "default_mode": "You hold space that others can't. You're solid when others crumble. Stability comes naturally.",
+        "under_pressure": "You become immovable, stubborn, or weighted down by everything you're carrying. Stability becomes rigidity.",
         "growth_direction": "Learning that flexibility is not weakness. Metal helps you refine; Fire helps you transform what's stuck.",
+        "why_pattern": "Yang Earth provides structure. Your chart generates stability that makes chaos uncomfortable.",
     },
     ("Earth", "Yin"): {
         "core_drive": "To nurture, support, and cultivate growth in others",
-        "default_mode": "You create conditions for things to flourish. You receive, process, and make fertile. Others grow well in your presence.",
-        "under_pressure": "You may over-give, lose yourself in others' needs, or feel depleted by constant nurturing without receiving.",
+        "wow_line": "You grow what you touch — sometimes at the cost of yourself.",
+        "default_mode": "You create conditions for things to flourish. You receive, process, and make fertile. Others grow in your presence.",
+        "under_pressure": "You over-give, lose yourself in others' needs, or feel depleted by constant nurturing without receiving.",
         "growth_direction": "Learning to receive as much as you give. Metal helps you set boundaries; Water helps you restore.",
+        "why_pattern": "Yin Earth cultivates growth in others. Your chart emphasizes support and receptivity over self-assertion.",
     },
     ("Metal", "Yang"): {
         "core_drive": "To decide, cut through, and hold standards",
-        "default_mode": "You naturally see what matters and what doesn't. You make decisions others avoid. Your standards are high.",
-        "under_pressure": "You may become harsh, judgmental, or rigidly attached to being right. Your clarity becomes coldness.",
-        "growth_direction": "Learning that not everything needs cutting. Water softens you; Earth gives you patience.",
+        "wow_line": "You cut through confusion that paralyzes others — sometimes too quickly.",
+        "default_mode": "You see what matters and what doesn't. You decide when others deliberate. You hold standards others avoid.",
+        "under_pressure": "You become harsh, judgmental, or rigidly attached to being right. Clarity becomes coldness.",
+        "growth_direction": "Learning that not everything needs cutting. Water softens you; Earth gives patience.",
+        "why_pattern": "Yang Metal eliminates to clarify. Your chart generates decisiveness that makes ambiguity uncomfortable.",
     },
     ("Metal", "Yin"): {
         "core_drive": "To refine, perfect, and notice what others miss",
+        "wow_line": "You don't move fast — you move right. And you notice when others don't.",
         "default_mode": "You see the small things. Quality matters more than quantity. You prefer less but better.",
-        "under_pressure": "You may become overly critical—of yourself first, then others. Your precision becomes perfectionism.",
+        "under_pressure": "You become overly critical — of yourself first, then others. Precision becomes perfectionism.",
         "growth_direction": "Learning that 'good enough' is sometimes perfect. Water helps you flow; Fire helps you express without judgment.",
+        "why_pattern": "Yin Metal refines through attention. Your chart generates quality consciousness that makes sloppiness painful.",
     },
     ("Water", "Yang"): {
         "core_drive": "To move, adapt, and face the unknown",
-        "default_mode": "You flow through obstacles rather than fighting them. You're comfortable with uncertainty that paralyzes others.",
-        "under_pressure": "You may become scattered, always moving but never arriving, or reckless in the face of danger.",
-        "growth_direction": "Learning when to stop flowing and take root. Wood gives you direction; Earth gives you stability.",
+        "wow_line": "You flow around obstacles that stop others — and sometimes can't stop yourself.",
+        "default_mode": "You navigate around obstacles rather than through them. You're comfortable with uncertainty that paralyzes others.",
+        "under_pressure": "You become scattered, always moving but never arriving, or reckless in the face of danger.",
+        "growth_direction": "Learning when to stop flowing and take root. Wood gives you direction; Earth gives stability.",
+        "why_pattern": "Yang Water moves through obstacles. Your chart generates forward flow that makes stagnation unbearable.",
     },
     ("Water", "Yin"): {
         "core_drive": "To understand depths and trust intuition",
+        "wow_line": "You understand things before you can explain them — and sometimes before you should.",
         "default_mode": "You perceive undercurrents. You understand things before you can explain them. Stillness reveals what movement hides.",
-        "under_pressure": "You may withdraw into inner depths, becoming hard to reach, or lose yourself in reflection without action.",
+        "under_pressure": "You withdraw into inner depths, becoming hard to reach, or lose yourself in reflection without action.",
         "growth_direction": "Learning to surface and share what you know. Wood helps you grow outward; Fire helps you express.",
+        "why_pattern": "Yin Water perceives through stillness. Your chart generates intuitive knowing that makes surface living unsatisfying.",
     },
-}
-
-# =============================================================================
-# DEEP DIVE: HIDDEN DYNAMICS INTERPRETATIONS
-# =============================================================================
-
-HIDDEN_STEM_MEANINGS = {
-    "甲": "Hidden Wood (Jia): An underlying drive to grow, initiate, or push forward that may not be visible on the surface.",
-    "乙": "Hidden Wood (Yi): A subtle adaptability or networking instinct operating beneath the surface.",
-    "丙": "Hidden Fire (Bing): An inner warmth or desire for visibility that may not always show externally.",
-    "丁": "Hidden Fire (Ding): A quiet nurturing warmth or steady illumination working in the background.",
-    "戊": "Hidden Earth (Wu): An underlying need for stability or containment that influences decisions.",
-    "己": "Hidden Earth (Ji): A subtle nurturing quality or desire to support growth operating beneath awareness.",
-    "庚": "Hidden Metal (Geng): An underlying decisiveness or critical faculty that may emerge under pressure.",
-    "辛": "Hidden Metal (Xin): A subtle precision or refinement instinct influencing choices without being obvious.",
-    "壬": "Hidden Water (Ren): An underlying adaptability or willingness to flow that may not be consciously accessed.",
-    "癸": "Hidden Water (Gui): A deep intuitive perception or reflective quality operating beneath the surface.",
 }
 
 # =============================================================================
@@ -1020,6 +1125,7 @@ def calculate_ten_gods_detailed(
         detailed.append({
             "name": category,
             "label": template["label"],
+            "wow_line": template.get("wow_line", ""),
             "strength": strength,
             "present_in": positions_list,
             "behavioral_expression": behavioral,
@@ -1029,6 +1135,8 @@ def calculate_ten_gods_detailed(
             "insight": template["insight"],
             "tension": template["tension"],
             "action": template["action"],
+            "why_pattern": template.get("why_pattern", ""),
+            "go_deeper": template.get("go_deeper", ""),
         })
     
     # Sort by strength (high first)
@@ -1067,7 +1175,16 @@ def calculate_hidden_dynamics(pillars: Dict, day_master_stem: str) -> List[Dict[
         if main_hidden == day_master_stem:
             continue
         
-        meaning = HIDDEN_STEM_MEANINGS.get(main_hidden, f"Hidden {STEM_ELEMENTS.get(main_hidden, 'element')} influence")
+        hidden_data = HIDDEN_STEM_MEANINGS.get(main_hidden, {})
+        if isinstance(hidden_data, str):
+            # Old format - convert to new
+            meaning = hidden_data
+            behavioral = ""
+            shows_up = ""
+        else:
+            meaning = hidden_data.get("description", f"Hidden {STEM_ELEMENTS.get(main_hidden, 'element')} influence")
+            behavioral = hidden_data.get("behavioral", "")
+            shows_up = hidden_data.get("shows_up", "")
         
         # Get the Ten God relationship for more context
         ten_god = get_ten_god(day_master_stem, main_hidden)
@@ -1081,6 +1198,8 @@ def calculate_hidden_dynamics(pillars: Dict, day_master_stem: str) -> List[Dict[
             "element": STEM_ELEMENTS.get(main_hidden),
             "ten_god": ten_god_name,
             "meaning": meaning,
+            "behavioral": behavioral,
+            "shows_up": shows_up,
         })
     
     return dynamics[:3]  # Limit to top 3 most significant
@@ -1102,9 +1221,11 @@ def calculate_life_pattern(day_master_element: str, day_master_polarity: str, fa
     
     return {
         "core_drive": template["core_drive"],
+        "wow_line": template.get("wow_line", ""),
         "default_mode": template["default_mode"],
         "under_pressure": template["under_pressure"],
         "growth_direction": growth_direction,
+        "why_pattern": template.get("why_pattern", ""),
     }
 
 # =============================================================================
@@ -1233,6 +1354,8 @@ def compute_bazi_chart_v2(
         "keywords": dm_profile["keywords"],
         "description": dm_profile["description"],
         "strength_description": strength_desc,
+        "wow_line": dm_profile.get("wow_line", ""),
+        "why_pattern": dm_profile.get("why_pattern", ""),
     }
     
     # Ten Gods weighted analysis

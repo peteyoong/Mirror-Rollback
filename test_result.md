@@ -3623,6 +3623,77 @@ backend:
           - timing.year.interaction = "pressure" (Fire controls Metal) ✓
           
           Performance: 0.25s response time
+      - working: true
+        agent: "testing"
+        comment: |
+          BAZI V2 PRECISE LANGUAGE FEATURES TESTING COMPLETE ✅ (6/6 tests passed)
+          
+          🎯 COMPREHENSIVE PRECISE LANGUAGE VALIDATION PERFORMED:
+          
+          **Test Endpoint:** GET /api/bazi/{user_id}/full
+          **Test User ID:** 6971c81f2b40fd5ef501d375 (Xin Metal Day Master with birth data)
+          **Response Time:** 0.52s (excellent performance)
+          
+          🔍 ALL PRECISE LANGUAGE REQUIREMENTS VERIFIED:
+          
+          1. ✅ **Day Master wow_line and why_pattern Fields**:
+             - wow_line: "You don't move fast — you move right. And you notice when others don't." ✅
+             - why_pattern: "Yin Metal refines through attention to detail. Your chart generates quality consciousness that makes sloppiness painful." ✅
+             - Contains expected Xin Metal characteristics (precision/accuracy focus) ✅
+             - No generic language detected ("you tend to", "you may often", etc.) ✅
+          
+          2. ✅ **Deep Dive - Life Pattern wow_line and why_pattern**:
+             - wow_line: Present and sharp identity statement ✅
+             - why_pattern: Explains chart reasoning with behavioral meaning ✅
+             - Direct language patterns ("You don't", "You notice") confirmed ✅
+          
+          3. ✅ **Deep Dive - Ten Gods Detailed (first item) Complete Structure**:
+             - wow_line: Sharp statement present ✅
+             - why_pattern: Explains pattern with technical reasoning ✅
+             - go_deeper: Technical explanation with BaZi terminology ✅
+             - All behavioral fields using precise language ✅
+          
+          4. ✅ **Deep Dive - Hidden Dynamics (first item) Behavioral Fields**:
+             - behavioral: "You find alternative routes instinctively. When blocked, you bend rather than break..." ✅
+             - shows_up: "Quiet persistence, relationship-building without trying, flexibility that can look like inconsistency." ✅
+             - Specific behavioral descriptions, not vague language ✅
+          
+          5. ✅ **Generic Language Verification - COMPREHENSIVE CHECK**:
+             - Scanned 27 text fields across all sections ✅
+             - Zero generic language patterns detected ✅
+             - Forbidden phrases ("you tend to", "you may often", "you typically") absent ✅
+             - 3 fields contain direct, precise language patterns ✅
+          
+          6. ✅ **Xin Metal Expected Content Verification**:
+             - Day Master element: "Metal" ✅
+             - Day Master stem: "Xin" ✅
+             - Found 4 Xin Metal characteristic patterns:
+               * "move right" (precision/accuracy focus) ✅
+               * "notice" (attention to quality) ✅
+               * "refine" (refinement characteristic) ✅
+               * "quality" (quality consciousness) ✅
+             - All expected behavioral expressions present ✅
+          
+          🔧 BACKEND INTEGRATION VERIFIED:
+          - Endpoint accessible via public URL (https://home-screen-overhaul.preview.emergentagent.com/api) ✅
+          - No HTTP errors or timeouts ✅
+          - Response times excellent (0.52s) ✅
+          - Backend logs confirm successful processing ✅
+          - All precise language fields properly populated ✅
+          
+          📊 TEST RESULTS: 6/6 TESTS PASSED (100% SUCCESS RATE)
+          
+          **REVIEW REQUEST REQUIREMENTS 100% VERIFIED:**
+          - ✅ Day Master has wow_line with sharp identity statement ("You don't move fast...")
+          - ✅ Day Master has why_pattern explaining chart reasoning
+          - ✅ Deep Dive Life Pattern has wow_line and why_pattern fields
+          - ✅ Deep Dive Ten Gods Detailed (first item) has wow_line, why_pattern, go_deeper
+          - ✅ Deep Dive Hidden Dynamics (first item) has behavioral and shows_up fields
+          - ✅ NO generic language detected ("you tend to", "you may often" completely absent)
+          - ✅ Language is direct and precise ("You notice...", "You prioritize...", "You don't...")
+          - ✅ Expected Xin Metal characteristics properly represented
+          
+          CONCLUSION: BaZi V2 API with precise language features is fully functional and working correctly. All upgraded language features are implemented as specified in the review request. The API successfully returns sharp, direct statements instead of generic language, with proper behavioral descriptions and technical explanations for all Deep Dive sections.
 
 frontend:
   - task: "BaZi Lens V2 UI"

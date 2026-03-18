@@ -39,6 +39,8 @@ interface DayMasterV2 {
   keywords: string[];
   description: string;
   strength_description: string;
+  wow_line?: string;
+  why_pattern?: string;
 }
 
 interface PillarV2 {
@@ -136,6 +138,7 @@ interface DayMasterAnalysis {
 interface TenGodDetailed {
   name: string;
   label: string;
+  wow_line?: string;
   strength: string;
   present_in: string[];
   behavioral_expression: string;
@@ -145,6 +148,8 @@ interface TenGodDetailed {
   insight: string;
   tension: string;
   action: string;
+  why_pattern?: string;
+  go_deeper?: string;
 }
 
 interface HiddenDynamic {
@@ -155,13 +160,17 @@ interface HiddenDynamic {
   element: string;
   ten_god: string;
   meaning: string;
+  behavioral?: string;
+  shows_up?: string;
 }
 
 interface LifePattern {
   core_drive: string;
+  wow_line?: string;
   default_mode: string;
   under_pressure: string;
   growth_direction: string;
+  why_pattern?: string;
 }
 
 interface DeepDiveV2 {
@@ -992,6 +1001,15 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
           </View>
         </View>
         
+        {/* Wow Line */}
+        {day_master.wow_line && (
+          <View style={[styles.wowLineBox, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}>
+            <Text style={[styles.wowLineText, { color: theme.text }]}>
+              "{day_master.wow_line}"
+            </Text>
+          </View>
+        )}
+        
         {/* Strength Reasoning */}
         <View style={[styles.reasoningBox, { backgroundColor: theme.background }]}>
           <Text style={[styles.reasoningTitle, { color: theme.textTertiary }]}>WHY YOUR DAY MASTER IS {day_master_analysis.strength_real.toUpperCase()}</Text>
@@ -1010,6 +1028,14 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
             {day_master_analysis.implication}
           </Text>
         </View>
+        
+        {/* Why This Pattern Exists */}
+        {day_master.why_pattern && (
+          <View style={[styles.whyPatternBox, { backgroundColor: theme.background }]}>
+            <Text style={[styles.whyPatternLabel, { color: theme.textTertiary }]}>WHY THIS PATTERN EXISTS IN YOUR CHART</Text>
+            <Text style={[styles.whyPatternText, { color: theme.textSecondary }]}>{day_master.why_pattern}</Text>
+          </View>
+        )}
         
         {/* Ask Button */}
         <InlineReflectButton
@@ -1209,6 +1235,21 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
               </View>
             </View>
             <Text style={[styles.hiddenMeaning, { color: theme.textSecondary }]}>{dynamic.meaning}</Text>
+            
+            {/* Behavioral - How this shows up */}
+            {dynamic.behavioral && (
+              <View style={[styles.hiddenBehavioralBox, { backgroundColor: theme.background }]}>
+                <Text style={[styles.hiddenBehavioralLabel, { color: theme.textTertiary }]}>HOW THIS SHOWS UP IN YOU:</Text>
+                <Text style={[styles.hiddenBehavioralText, { color: theme.text }]}>{dynamic.behavioral}</Text>
+              </View>
+            )}
+            
+            {/* Shows Up - Specific behaviors */}
+            {dynamic.shows_up && (
+              <Text style={[styles.hiddenShowsUp, { color: theme.textTertiary }]}>
+                Examples: {dynamic.shows_up}
+              </Text>
+            )}
           </View>
         ))}
       </View>
@@ -1226,6 +1267,15 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         <Text style={[styles.deepDiveSubtitle, { color: theme.textTertiary }]}>
           The core patterns that shape how you move through life
         </Text>
+        
+        {/* Wow Line */}
+        {life_pattern.wow_line && (
+          <View style={[styles.wowLineBox, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}>
+            <Text style={[styles.wowLineText, { color: theme.text }]}>
+              "{life_pattern.wow_line}"
+            </Text>
+          </View>
+        )}
         
         {/* Core Drive */}
         <View style={[styles.lifePatternCard, { backgroundColor: theme.background }]}>
@@ -1262,6 +1312,14 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
           </View>
           <Text style={[styles.lifePatternText, { color: theme.text }]}>{life_pattern.growth_direction}</Text>
         </View>
+        
+        {/* Why This Pattern Exists */}
+        {life_pattern.why_pattern && (
+          <View style={[styles.whyPatternBox, { backgroundColor: theme.background }]}>
+            <Text style={[styles.whyPatternLabel, { color: theme.textTertiary }]}>WHY THIS PATTERN EXISTS IN YOUR CHART</Text>
+            <Text style={[styles.whyPatternText, { color: theme.textSecondary }]}>{life_pattern.why_pattern}</Text>
+          </View>
+        )}
         
         {/* Ask Buttons */}
         <View style={styles.askButtonsRow}>
@@ -2229,6 +2287,61 @@ const styles = StyleSheet.create({
   reflectionPromptText: {
     fontSize: 14,
     lineHeight: 20,
+    fontStyle: 'italic',
+  },
+
+  // Wow Line
+  wowLineBox: {
+    padding: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  wowLineText: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+
+  // Why Pattern
+  whyPatternBox: {
+    padding: 14,
+    borderRadius: 10,
+    marginTop: 16,
+  },
+  whyPatternLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  whyPatternText: {
+    fontSize: 13,
+    lineHeight: 20,
+  },
+
+  // Hidden Layers Behavioral
+  hiddenBehavioralBox: {
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  hiddenBehavioralLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  hiddenBehavioralText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  hiddenShowsUp: {
+    fontSize: 12,
+    marginTop: 8,
     fontStyle: 'italic',
   },
 });
