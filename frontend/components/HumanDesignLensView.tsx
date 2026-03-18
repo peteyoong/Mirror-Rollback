@@ -2187,7 +2187,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       // Get field signals
       const fieldSignalsList = fieldSignals?.signals || [];
       const hasMajorEvent = fieldSignals?.has_major_event || false;
-      const hdHints = fieldSignals?.hd_connection_hints || [];
       
       if (fieldLoading) {
         return (
@@ -2208,45 +2207,31 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         <View style={styles.fieldSection}>
           {/* Field Title */}
           <Text style={[styles.fieldTitle, { color: theme.text }]}>The Bigger Shift</Text>
-          <Text style={[styles.fieldSubtitle, { color: theme.textSecondary }]}>
-            The wider pattern influencing everything right now.
-          </Text>
           
-          {/* Field Signal Cards (1-2 max) */}
+          {/* Field Signal Cards (1-2 max) - Ultra compact */}
           {fieldSignalsList.map((field: any, index: number) => (
             <View 
               key={index} 
               style={[
-                styles.fieldCard, 
+                styles.fieldCardCompact, 
                 { 
                   backgroundColor: theme.surface, 
                   borderColor: hasMajorEvent && index === 0 ? theme.accent : theme.border,
-                  borderWidth: hasMajorEvent && index === 0 ? 1.5 : StyleSheet.hairlineWidth,
                 }
               ]}
             >
-              {/* Headline */}
-              <Text style={[styles.fieldCardHeadline, { color: theme.text }]}>
+              <Text style={[styles.fieldCardTitle, { color: theme.text }]}>
                 {field.headline}
               </Text>
-              
-              {/* What's Happening - shorter, more direct */}
-              <Text style={[styles.fieldCardWhatText, { color: theme.textSecondary }]}>
-                {field.what_happening}
+              <Text style={[styles.fieldCardBody, { color: theme.textSecondary }]}>
+                {field.what_happening} {field.how_interacts_with_hd}
               </Text>
-              
-              {/* How It Affects You - the key insight */}
-              <Text style={[styles.fieldCardHowText, { color: theme.text }]}>
-                {field.how_interacts_with_hd}
-              </Text>
-              
-              {/* Reflect CTA */}
               <TouchableOpacity
-                style={[styles.fieldCardCta, { borderTopColor: theme.border }]}
+                style={styles.fieldCardCtaCompact}
                 onPress={() => openReflection(
                   field.headline,
                   'field_signal',
-                  `${field.what_happening} How is this showing up in my life right now?`,
+                  `${field.what_happening} How is this showing up for me?`,
                   'today',
                   `field_${field.signal_type}`,
                   field.signal_type
@@ -5282,6 +5267,29 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
     marginBottom: 12,
     overflow: 'hidden',
+  },
+  // Compact field card for The Bigger Shift
+  fieldCardCompact: {
+    backgroundColor: "transparent",
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "transparent",
+    marginBottom: 10,
+    padding: 12,
+  },
+  fieldCardTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  fieldCardBody: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 8,
+    opacity: 0.85,
+  },
+  fieldCardCtaCompact: {
+    alignItems: 'flex-start',
   },
   fieldCardHeadline: {
     fontSize: 17,
