@@ -661,7 +661,7 @@ def compute_field_context(
         field_tone = "reset"
         clarity_level = "low"
         pace = "slow"
-        dominant_message = "a reset is happening—things are still forming"
+        dominant_message = "a reset is happening—something new is taking shape"
     elif signal_type in [FieldSignalType.FULL_MOON]:
         field_tone = "clarity"
         clarity_level = "high"

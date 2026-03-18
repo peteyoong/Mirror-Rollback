@@ -1905,19 +1905,68 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const dominantMessage = fieldContext.dominant_message;
     
     // ============================================
+    // LANGUAGE VARIATION HELPERS (Fix repeated phrases)
+    // ============================================
+    
+    // Vary sentence starters to avoid "You notice..." / "You may notice..." repetition
+    const varyPhrasing = (text: string): string => {
+      if (!text) return text;
+      
+      const variations: [RegExp, string[]][] = [
+        [/^You notice\s/i, ["What rises now is ", "This lands as ", "The feeling is ", ""]],
+        [/^You may notice\s/i, ["This can feel like ", "The pressure shows up as ", "In real life, this lands as ", ""]],
+        [/^This is amplified by\s/i, ["This is colored by ", "This deepens with ", "Adding to this, "]],
+        [/^This is intensified by\s/i, ["This gains weight from ", "Layered with ", "Made sharper by "]],
+        [/^Your emotional waves? is\s/i, ["Your emotional rhythm ", "How you feel ", "Your inner tide "]],
+      ];
+      
+      for (const [pattern, replacements] of variations) {
+        if (pattern.test(text)) {
+          const replacement = replacements[Math.floor(Math.random() * replacements.length)];
+          return text.replace(pattern, replacement);
+        }
+      }
+      return text;
+    };
+    
+    // Clean grammar issues and awkward phrasing
+    const cleanLanguage = (text: string): string => {
+      if (!text) return text;
+      
+      return text
+        // Fix grammar issues
+        .replace(/centeris/gi, 'center is')
+        .replace(/how you make correct feelings/gi, 'how you arrive at what feels right')
+        .replace(/your emotional waves is/gi, 'your emotional rhythm is')
+        .replace(/things are still forming/gi, 'something is taking shape')
+        // Remove clunky HD explanations unless truly necessary
+        .replace(/—the seat of your inner authority—?/gi, '')
+        .replace(/the seat of your inner authority/gi, '')
+        .replace(/—the seat of your decision-making—?/gi, '')
+        // Make language more direct
+        .replace(/You may feel/g, 'You feel')
+        .replace(/You might notice/g, 'You notice')
+        .replace(/can be more pronounced/gi, 'is heightened')
+        .replace(/is more pronounced/gi, 'runs deeper')
+        // Trim any resulting double spaces
+        .replace(/\s+/g, ' ')
+        .trim();
+    };
+    
+    // ============================================
     // SIGNAL-DERIVED CONTENT GENERATORS
     // ============================================
     
-    // Derive Today content from top signal (EMOTIONAL STATE FOCUS)
+    // Derive Today content from top signal (IMMEDIATE STATE FOCUS - shorter/sharper)
     const getTodayFromSignals = () => {
       if (!activation) {
         return getTypeFallbackToday(hdType, isEmotional);
       }
       
-      // Adapt based on field context
-      let activeText = activation.how_shows_up || "Notice what's different today.";
+      // Adapt based on field context - keep TODAY short and immediate
+      let activeText = cleanLanguage(varyPhrasing(activation.how_shows_up || "Something different is present."));
       let bestUseText = activation.best_move || "Follow your strategy.";
-      let watchForText = friction?.how_shows_up || "Watch for taking on energy that isn't yours.";
+      let watchForText = cleanLanguage(friction?.how_shows_up || "Taking on energy that isn't yours.");
       
       // Field-aware modifications
       if (clarityLevel === 'low') {
@@ -1935,7 +1984,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       };
     };
     
-    // Derive Week content from signals (BEHAVIOR PATTERN FOCUS)
+    // Derive Week content from signals (REPEATING BEHAVIORAL PATTERN FOCUS)
+    // Progressive from Today - not emotional state, but what pattern keeps resurfacing
     const getWeekFromSignals = () => {
       if (!activation) {
         return getTypeFallbackWeek(hdType, isEmotional);
@@ -1944,29 +1994,49 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       const isTemporary = activation.label?.includes('Temporary');
       const isReinforcing = activation.label?.includes('Reinforcing');
       
-      // Progressive from Today: shift from emotional state to behavior patterns
+      // Week is about PATTERN OVER TIME - different from Today's immediate state
+      // Avoid repeating field tone language - Week should focus on "what keeps returning"
       let weekTheme = '';
-      if (fieldTone === 'reset') {
-        weekTheme = "This week is about noticing what's clearing and what's beginning to seed.";
-      } else if (fieldTone === 'turning_point') {
-        weekTheme = "You may notice old patterns ending and new ones emerging.";
-      } else if (isReinforcing) {
-        weekTheme = `Your ${activation.center || 'design'} energy is expressing more loudly this week.`;
+      let helpsText = '';
+      let frictionText = '';
+      
+      if (isReinforcing) {
+        weekTheme = `Watch what keeps returning after each emotional wave—there's a thread here.`;
+        helpsText = `Your ${activation.center || 'design'} energy is reliable this week. Lean into it.`;
+        frictionText = `The risk: pushing harder instead of letting this pattern work for you.`;
+      } else if (isTemporary) {
+        weekTheme = `A borrowed pattern is showing up repeatedly—notice it without gripping it.`;
+        helpsText = opportunity?.best_move 
+          ? cleanLanguage(opportunity.best_move) 
+          : `Use this visiting energy where it flows naturally.`;
+        frictionText = `Watch for: mistaking temporary intensity for permanent identity.`;
       } else {
-        weekTheme = `A ${isTemporary ? 'temporary' : 'developing'} pattern is showing up in how you ${activation.center === 'Solar Plexus' ? 'feel and respond' : activation.center === 'Ajna' ? 'think and process' : 'engage with life'}.`;
+        // Default - make it about repeated behavior, not single-moment feeling
+        weekTheme = activation.center === 'Solar Plexus' 
+          ? `Your emotional pattern over these days reveals something—watch the repetition.`
+          : activation.center === 'Ajna'
+          ? `A mental loop keeps returning—notice what thought keeps circling back.`
+          : `A behavior pattern is forming. Watch what you keep doing without realizing.`;
+        helpsText = opportunity?.best_move 
+          ? cleanLanguage(opportunity.best_move)
+          : `Notice where this energy flows easily across multiple days.`;
+        frictionText = friction?.how_shows_up 
+          ? cleanLanguage(friction.how_shows_up.slice(0, 80))
+          : `Taking on others' patterns as your own.`;
       }
       
       return {
-        theme: weekTheme,
-        helpsWhere: `Where the ${activation.center || 'activated'} energy supports you: ${opportunity?.best_move || 'Notice where this energy flows easily.'}`,
-        frictionPattern: `Watch for: ${friction?.how_shows_up?.slice(0, 100) || 'Taking on patterns that aren\'t yours.'}`,
+        theme: cleanLanguage(weekTheme),
+        helpsWhere: cleanLanguage(helpsText),
+        frictionPattern: cleanLanguage(frictionText),
         reflectionPrompt: isTemporary 
-          ? "What behavior pattern showed up this week that isn't usually mine?"
-          : "How is this energy changing how I show up day to day?"
+          ? "What behavior showed up this week that isn't usually mine?"
+          : "What pattern keeps returning when I'm not forcing anything?"
       };
     };
     
-    // Derive Month content from signals (IDENTITY/GROWTH FOCUS)
+    // Derive Month content from signals (IDENTITY/DEVELOPMENTAL ARC)
+    // Progressive from Week - not pattern, but what this is teaching/shaping
     const getMonthFromSignals = () => {
       if (!activation) {
         return getTypeFallbackMonth(hdType, isEmotional);
@@ -1974,29 +2044,40 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       
       const centerFocus = activation.center || opportunity?.center || friction?.center;
       
-      // Progressive from Week: shift from behavior patterns to identity/growth
+      // Month is about IDENTITY and DEVELOPMENT - who you're becoming, not what's happening
+      // Avoid repeating "reset" or "shift" language from Field section
       let monthTheme = '';
-      if (fieldTone === 'reset' || fieldTone === 'turning_point') {
-        monthTheme = dominantMessage 
-          ? `This month is part of a bigger shift: ${dominantMessage}. Notice how this shapes who you're becoming.`
-          : "A significant transition is underway. This month is about letting old identities release.";
-      } else if (centerFocus) {
-        monthTheme = `Your relationship with your ${centerFocus} center is deepening this month—whether defined or open in your design.`;
+      let growthText = '';
+      let trapText = '';
+      
+      if (centerFocus) {
+        // Make it developmental - about learning and growth
+        monthTheme = `This cycle is teaching you something about how you relate to ${
+          centerFocus === 'Solar Plexus' ? 'your emotional truth' :
+          centerFocus === 'Ajna' ? 'certainty and doubt' :
+          centerFocus === 'Sacral' ? 'energy and depletion' :
+          centerFocus === 'Spleen' ? 'instinct and fear' :
+          centerFocus === 'Heart' ? 'will and commitment' :
+          centerFocus === 'Throat' ? 'expression and timing' :
+          centerFocus === 'G' ? 'direction and identity' :
+          centerFocus === 'Root' ? 'pressure and timing' :
+          'this part of yourself'
+        }.`;
+        growthText = `The edge: trusting your design even when this energy is uncomfortable.`;
+        trapText = `Over-identifying with how things feel right now—this is a lesson, not a verdict.`;
       } else {
-        monthTheme = "Multiple energies are teaching you about your design's edges and possibilities.";
+        monthTheme = `Multiple threads are weaving together. The shape will become clear in hindsight.`;
+        growthText = clarityLevel === 'low'
+          ? `Patience. The understanding comes after, not during.`
+          : `Stay curious. Experiment without needing to conclude.`;
+        trapText = `Rushing to make meaning before the cycle completes.`;
       }
       
       return {
-        theme: monthTheme,
-        growthEdge: clarityLevel === 'low'
-          ? "Trust the process even when you can't see where it's going."
-          : (activation.best_move || "Experiment with what's being activated."),
-        commonTrap: fieldTone === 'reset' 
-          ? "Trying to force clarity before it's ready."
-          : (friction?.how_shows_up || "Watch for over-identifying with temporary energy."),
-        reflectionPrompt: fieldTone === 'turning_point'
-          ? "Who am I becoming through this shift?"
-          : "What is this month trying to teach me about how I operate?"
+        theme: cleanLanguage(monthTheme),
+        growthEdge: cleanLanguage(growthText),
+        commonTrap: cleanLanguage(trapText),
+        reflectionPrompt: "What is this month teaching me about how I operate?"
       };
     };
     
@@ -2381,8 +2462,16 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     };
 
     return (
-      <>
-        {/* FIELD: The Bigger Shift */}
+      <View style={styles.todayTabContainer}>
+        {/* SECTION 1: YOUR DESIGN TODAY - Short intro only (no card) */}
+        <View style={styles.todayIntroSection}>
+          <Text style={[styles.todayIntroTitle, { color: theme.text }]}>Your Design Today</Text>
+          <Text style={[styles.todayIntroSubtitle, { color: theme.textSecondary }]}>
+            Real-time signals from your chart and what's happening in the sky.
+          </Text>
+        </View>
+        
+        {/* SECTION 2: THE BIGGER SHIFT - Macro sky context only (max 1-2 cards) */}
         {renderFieldSection()}
         
         {/* Divider if field signals exist */}
@@ -2390,30 +2479,30 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <View style={[styles.todayDivider, { backgroundColor: theme.border }]} />
         )}
         
-        {/* HERO: What's Active Now */}
+        {/* SECTION 3: WHAT'S ACTIVE NOW - Personalized HD transit signals (max 3 cards) */}
         {renderHeroSection()}
         
         {/* Divider */}
         <View style={[styles.todayDivider, { backgroundColor: theme.border }]} />
         
-        {/* Header for Timing Sections */}
-        <View style={{ marginBottom: 16, marginTop: 8 }}>
-          <Text style={[styles.hdOverviewTitle, { color: theme.text }]}>Your Timing</Text>
-          <Text style={[styles.hdOverviewSubtitle, { color: theme.textSecondary }]}>
-            How these signals unfold across today, this week, and this month.
+        {/* SECTION 4: YOUR TIMING - Today / Week / Month progressive */}
+        <View style={styles.timingSectionHeader}>
+          <Text style={[styles.timingSectionTitle, { color: theme.text }]}>Your Timing</Text>
+          <Text style={[styles.timingSectionSubtitle, { color: theme.textSecondary }]}>
+            How this unfolds across different timeframes.
           </Text>
         </View>
 
-        {/* CARD 1: TODAY */}
+        {/* CARD 1: TODAY - What to notice immediately (shorter/sharper) */}
         <View style={[styles.timingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.timingCardHeader}>
             <Text style={[styles.timingCardTitle, { color: theme.text }]}>Today</Text>
-            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>What is immediately active</Text>
+            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>What to notice right now</Text>
           </View>
           
           <View style={styles.timingCardContent}>
             <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>ACTIVE PATTERN</Text>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>WHAT'S PRESENT</Text>
               <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{todayContent.active}</Text>
             </View>
             
@@ -2426,11 +2515,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>WATCH FOR</Text>
               <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{todayContent.watchFor}</Text>
             </View>
-            
-            <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.accent }]}>REFLECTION PROMPT</Text>
-              <Text style={[styles.timingSectionText, { color: theme.text, fontStyle: 'italic' }]}>"{todayContent.reflectionPrompt}"</Text>
-            </View>
           </View>
           
           <TouchableOpacity
@@ -2442,32 +2526,27 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* CARD 2: THIS WEEK */}
+        {/* CARD 2: THIS WEEK - Repeating behavioral pattern */}
         <View style={[styles.timingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.timingCardHeader}>
             <Text style={[styles.timingCardTitle, { color: theme.text }]}>This Week</Text>
-            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>The pattern likely to repeat</Text>
+            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>The pattern that keeps returning</Text>
           </View>
           
           <View style={styles.timingCardContent}>
             <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>WEEKLY THEME</Text>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>RECURRING THEME</Text>
               <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{weekContent.theme}</Text>
             </View>
             
             <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>WHERE IT HELPS</Text>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>WHERE THIS HELPS</Text>
               <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{weekContent.helpsWhere}</Text>
             </View>
             
             <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>FRICTION PATTERN</Text>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>FRICTION TO WATCH</Text>
               <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{weekContent.frictionPattern}</Text>
-            </View>
-            
-            <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.accent }]}>REFLECTION PROMPT</Text>
-              <Text style={[styles.timingSectionText, { color: theme.text, fontStyle: 'italic' }]}>"{weekContent.reflectionPrompt}"</Text>
             </View>
           </View>
           
@@ -2480,16 +2559,16 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* CARD 3: THIS MONTH */}
+        {/* CARD 3: THIS MONTH - Identity and developmental arc */}
         <View style={[styles.timingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.timingCardHeader}>
             <Text style={[styles.timingCardTitle, { color: theme.text }]}>This Month</Text>
-            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>The deeper pattern being developed</Text>
+            <Text style={[styles.timingCardSubtitle, { color: theme.textSecondary }]}>The deeper developmental arc</Text>
           </View>
           
           <View style={styles.timingCardContent}>
             <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>MONTHLY THEME</Text>
+              <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>WHAT THIS CYCLE IS TEACHING</Text>
               <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{monthContent.theme}</Text>
             </View>
             
@@ -2502,11 +2581,6 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               <Text style={[styles.timingSectionLabel, { color: theme.textTertiary }]}>COMMON TRAP</Text>
               <Text style={[styles.timingSectionText, { color: theme.textSecondary }]}>{monthContent.commonTrap}</Text>
             </View>
-            
-            <View style={styles.timingSection}>
-              <Text style={[styles.timingSectionLabel, { color: theme.accent }]}>REFLECTION PROMPT</Text>
-              <Text style={[styles.timingSectionText, { color: theme.text, fontStyle: 'italic' }]}>"{monthContent.reflectionPrompt}"</Text>
-            </View>
           </View>
           
           <TouchableOpacity
@@ -2517,7 +2591,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect on this →</Text>
           </TouchableOpacity>
         </View>
-      </>
+      </View>
     );
   };
 
@@ -4829,7 +4903,7 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
             {activeTab === 'today' && (
               <>
                 {renderTodayTab()}
-                {renderUnifiedAskSection('today')}
+                {/* No global Ask block in Today - only per-card "Reflect on this →" CTAs */}
               </>
             )}
 
@@ -5253,6 +5327,45 @@ const styles = StyleSheet.create({
   hdSubtleLinkText: {
     fontSize: 13,
     color: "inherit",
+  },
+
+  // ============================================
+  // TODAY TAB CONTAINER - Responsive layout for iPad/tablet
+  // ============================================
+  
+  todayTabContainer: {
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
+    paddingHorizontal: 0, // padding handled by parent
+  },
+  todayIntroSection: {
+    marginBottom: 20,
+  },
+  todayIntroTitle: {
+    fontSize: 26,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+    marginBottom: 6,
+  },
+  todayIntroSubtitle: {
+    fontSize: 14,
+    lineHeight: 20,
+    opacity: 0.75,
+  },
+  timingSectionHeader: {
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  timingSectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  timingSectionSubtitle: {
+    fontSize: 13,
+    opacity: 0.7,
+    lineHeight: 18,
   },
 
   // ============================================

@@ -366,9 +366,9 @@ def compute_authority_amplification_signals(
                 transit_planet=planet,
                 transit_gate=transit.get("gate"),
                 center=transit_center,
-                title=f"Decision Clarity Heightened",
-                what_happening=f"The {planet} is amplifying your {user_authority}, which is how you make correct decisions.",
-                why_happening=f"Your {transit_center} center—the seat of your inner authority—is receiving extra energy from the current transit.",
+                title="Decision Clarity Heightened",
+                what_happening=f"The {planet} is amplifying your {user_authority}.",
+                why_happening=f"Your {transit_center} center is receiving extra energy from the current transit.",
                 how_shows_up=get_authority_amplification_behavior(user_authority),
                 best_move=get_authority_amplification_move(user_authority),
                 label="Reinforcing your design",
@@ -454,17 +454,17 @@ def compute_natal_reinforcement_signals(
 def get_center_activation_behavior(center: str) -> str:
     """Get behavior description for center activation."""
     behaviors = {
-        "Head": "You may notice more mental pressure, inspiration, or questions flooding in. Ideas want your attention.",
-        "Ajna": "Your thinking may feel more certain or fixed. Watch for getting attached to being 'right'.",
-        "Throat": "You may feel more desire to speak, express, or manifest. Words want to come out.",
-        "G": "Your sense of direction or identity may feel stronger—or you may question where you're going.",
-        "Heart": "You may feel more willpower, ambition, or need to prove yourself. Watch for overcommitting.",
-        "Solar Plexus": "Your emotional sensitivity is heightened. Feelings may be more intense than usual.",
-        "Sacral": "You may notice more sustainable energy available—or pressure to 'do' more.",
-        "Spleen": "Your instincts and intuition may be sharper. Body awareness is amplified.",
-        "Root": "You may feel more pressure to act, start things, or feel stress about time.",
+        "Head": "Mental pressure, inspiration, or questions flood in. Ideas want your attention.",
+        "Ajna": "Thinking feels more certain or fixed. Watch for getting attached to being 'right'.",
+        "Throat": "The desire to speak, express, or manifest is stronger. Words want to come out.",
+        "G": "Your sense of direction or identity feels stronger—or questions arise about where you're going.",
+        "Heart": "Willpower, ambition, or the need to prove yourself is heightened. Watch for overcommitting.",
+        "Solar Plexus": "Emotional sensitivity is heightened. Feelings run deeper than usual.",
+        "Sacral": "Sustainable energy feels more available—or there's pressure to 'do' more.",
+        "Spleen": "Instincts and intuition are sharper. Body awareness is amplified.",
+        "Root": "Pressure to act, start things, or stress about time shows up more strongly.",
     }
-    return behaviors.get(center, "You may notice this area of your life feeling more active than usual.")
+    return behaviors.get(center, "This area of your life feels more active than usual.")
 
 
 def get_center_activation_move(center: str) -> str:
@@ -487,16 +487,16 @@ def get_authority_amplification_behavior(authority: str) -> str:
     """Get behavior for authority amplification."""
     auth_lower = authority.lower()
     if "emotional" in auth_lower:
-        return "Your emotional waves may be more pronounced. Clarity will come—but it needs time to settle."
+        return "Emotional rhythm runs deeper right now. Clarity will come—but it needs time to settle."
     if "sacral" in auth_lower:
-        return "Your gut responses may be clearer and more reliable. Notice the pull toward or away from things."
+        return "Gut responses feel clearer and more reliable. The pull toward or away from things is more pronounced."
     if "splenic" in auth_lower:
-        return "Your instinctual knowing may be sharper. Pay attention to what your body signals in the moment."
+        return "Instinctual knowing is sharper. What the body signals in the moment is more pronounced."
     if "ego" in auth_lower:
-        return "Your willpower and sense of what you truly want may be clearer. Trust your heart's direction."
+        return "Willpower and sense of what you truly want is clearer. Trust the heart's direction."
     if "self" in auth_lower or "projected" in auth_lower:
-        return "Your sense of self and direction may feel more accessible. Notice what you hear yourself saying."
-    return "Your natural way of making decisions is heightened. Trust your process more than usual."
+        return "Sense of self and direction feels more accessible. What you hear yourself saying matters now."
+    return "The natural way of making decisions is heightened. Trust the process more than usual."
 
 
 def get_authority_amplification_move(authority: str) -> str:
@@ -1119,25 +1119,59 @@ def apply_strict_field_filter(signal: TransitSignal) -> TransitSignal:
 
 def remove_generic_language(signal: TransitSignal) -> TransitSignal:
     """
-    Remove generic safe language.
+    Remove generic safe language and fix common grammar/phrasing issues.
     Replace "may be" with more direct language.
     """
     replacements = [
+        # Fix "You notice" / "You may notice" openings
+        ("You notice your ", ""),
+        ("You notice the ", "The "),
+        ("You notice ", ""),
+        ("You may notice ", ""),
+        ("You feel ", ""),
+        ("Your ", ""),  # Make it even more direct at the start
+        # Generic hedging
         ("may be", "is"),
         ("might be", "is"),
         ("can be", "shows up as"),
         ("could be", "is"),
-        ("You may feel", "You feel"),
-        ("You might notice", "You notice"),
-        ("You may notice", "You notice"),
+        ("You may feel", "The feeling is"),
+        ("You might notice", "What rises is"),
         ("This may show", "This shows"),
         ("This might show", "This shows"),
+        # Grammar fixes
+        ("waves is", "rhythm is"),
+        ("emotional waves is", "emotional rhythm is"),
+        ("your emotional waves is", "your emotional rhythm is"),
+        ("centeris", "center is"),
+        ("center is is", "center is"),
+        # Awkward phrasing fixes
+        ("how you make correct feelings", "how you arrive at what feels right"),
+        ("make correct decisions", "make decisions that are right for you"),
+        ("correct feelings", "real clarity"),
+        ("the seat of your inner authority", ""),
+        ("the seat of your decision-making", ""),
+        ("—the seat of", "—"),
+        # More natural phrasing
+        ("is more pronounced", "runs deeper"),
+        ("can be more pronounced", "is heightened"),
+        ("may be more pronounced", "is heightened"),
+        ("is amplified", "is heightened"),
+        ("things are still forming", "something is taking shape"),
+        ("still forming", "taking shape"),
     ]
     
     for field in ['what_happening', 'how_shows_up', 'best_move']:
         text = getattr(signal, field, '') or ''
         for old, new in replacements:
             text = text.replace(old, new)
+            # Also handle capitalized versions
+            text = text.replace(old.capitalize(), new.capitalize() if new else new)
+        # Ensure first letter is capitalized after all replacements
+        if text and text[0].islower():
+            text = text[0].upper() + text[1:]
+        # Clean up double spaces
+        text = ' '.join(text.split())
         setattr(signal, field, text)
     
     return signal
@@ -1171,16 +1205,20 @@ def ensure_distinct_titles(signals: List[TransitSignal], field_tone: str, clarit
 def remove_mechanical_language(text: str, center: Optional[str] = None) -> str:
     """Replace mechanical planetary language with experiential language."""
     replacements = [
-        ("The Sun is amplifying", "You're feeling a heightening of"),
-        ("The Sun is activating", "You may notice more activity in"),
-        ("The Sun is temporarily activating", "You're sensing increased energy in"),
-        ("The Earth is activating", "There's grounding pressure on"),
-        ("The Earth is creating pressure", "You may feel weight or stability around"),
-        ("The Moon is activating", "Your emotional awareness of"),
+        ("The Sun is amplifying", "What rises now is a heightening of"),
+        ("The Sun is activating", "The feeling is increased activity in"),
+        ("The Sun is temporarily activating", "This lands as increased energy in"),
+        ("The Earth is activating", "The grounding pressure shows up in"),
+        ("The Earth is creating pressure", "This can feel like weight or stability around"),
+        ("The Moon is activating", "Your emotional awareness shifts around"),
         ("The Moon is creating", "There's a shifting quality to"),
         ("Transit is hitting", "Energy is moving through"),
         ("transit Gate", "this energy pattern"),
         ("Transit completes", "A connection forms in"),
+        ("You notice the", "The"),
+        ("You may notice the", "The"),
+        ("You notice", "The feeling is"),
+        ("You may notice", "This can feel like"),
     ]
     
     result = text
@@ -1189,7 +1227,7 @@ def remove_mechanical_language(text: str, center: Optional[str] = None) -> str:
     
     # Add experiential opener if still starts with planet name
     if result.startswith(("The Sun", "The Moon", "The Earth")):
-        result = "You may notice " + result[0].lower() + result[1:]
+        result = "The pressure shows up as " + result[4:].strip()
     
     return result
 
