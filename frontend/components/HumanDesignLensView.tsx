@@ -2042,57 +2042,61 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     };
     
     // Helper: Add personal hooks naturally without being verbose
+    // DETERMINISTIC version: Uses string hash instead of random to ensure consistent UI
     const addPersonalHook = (text: string, timeframe: 'today' | 'week' | 'month'): string => {
       if (!text) return text;
       // Don't add if already has a personal hook
-      if (/^(You may|You might|You feel|You notice|It can feel|Part of you)/i.test(text)) {
+      if (/^(You may|You might|You feel|You notice|It can feel|Part of you|This phase|This cycle)/i.test(text)) {
         return text;
       }
+      // Simple hash function for deterministic hook selection
+      const hash = text.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
       // Add subtle personal framing based on timeframe
       const hooks: Record<string, string[]> = {
-        today: ['You may feel the urge to ', 'You might notice ', ''],
-        week: ['You might notice ', 'It can feel like ', ''],
-        month: ['This phase may feel ', 'You may find yourself ', ''],
+        today: ['You may feel ', 'You might notice ', ''],
+        week: ['You might notice ', 'You may feel ', ''],
+        month: ['This phase may feel like ', 'You may find ', ''],
       };
-      // Only add hook ~60% of the time to avoid overuse
-      if (Math.random() > 0.6) return text;
+      // Use hash to decide ~40% of the time to add hook
+      if (hash % 10 > 4) return text;
       const hookOptions = hooks[timeframe];
-      const hook = hookOptions[Math.floor(Math.random() * hookOptions.length)];
+      const hook = hookOptions[hash % hookOptions.length];
       if (!hook) return text;
       // Lowercase first letter of original text if adding hook
       return hook + text.charAt(0).toLowerCase() + text.slice(1);
     };
     
-    // Type fallbacks (used when transit data unavailable) - PERSONALIZED
+    // Type fallbacks (used when transit data unavailable) - ASTROLOGIST + MIRROR SYSTEM
+    // Pattern: Hook → Name → Reframe → Action
     const getTypeFallbackToday = (type: string, emotional: boolean) => {
       const defaults: Record<string, any> = {
         'Generator': {
-          active: emotional ? "You may feel your emotions coloring every response today." : "You might notice your gut is louder than usual.",
-          bestUse: emotional ? "You may feel pressure to decide something today. Sleep on anything that matters." : "You might feel pulled toward something. Follow it—engage what actually lights you up.",
+          active: emotional ? "You may feel your emotions coloring every response. That's data, not a deadline." : "You might notice your gut is louder than usual. Trust that signal.",
+          bestUse: emotional ? "You may feel pressure to decide something. That pressure isn't clarity—sleep on it." : "You might feel pulled toward something. That pull is real—follow it.",
           watchFor: "saying yes when your body says no",
           reflectionPrompt: "What genuinely excited me today?"
         },
         'Manifesting Generator': {
-          active: emotional ? "You may feel speed and emotion colliding—respond first, decide later." : "You might notice multiple things pulling at your attention.",
-          bestUse: emotional ? "It can feel urgent, but sample first—commit when the wave settles." : "You might feel the urge to move fast. Trust what resonates.",
+          active: emotional ? "You may feel speed and emotion colliding. That's not confusion—it's information." : "You might notice multiple things pulling at you. That's normal for you.",
+          bestUse: emotional ? "Part of you wants to commit now. That's the trap—sample first, decide later." : "You may feel the urge to move fast. Trust what resonates most.",
           watchFor: "starting things just because you can",
           reflectionPrompt: "Where did my energy want to go today?"
         },
         'Projector': {
-          active: emotional ? "You may feel the need to wait for both invitation and emotional clarity." : "You might notice you're seeing more than usual.",
-          bestUse: emotional ? "Part of you may want to answer quickly. Take time before responding." : "You may feel the urge to share what you see. Wait until you're asked.",
+          active: emotional ? "You may feel the need to wait for both invitation and clarity. That's wisdom, not weakness." : "You might notice you're seeing more than usual. That's your gift working.",
+          bestUse: emotional ? "Part of you wants to answer quickly. That's the trap—take time." : "You may feel the urge to share what you see. Wait until asked.",
           watchFor: "offering guidance that wasn't requested",
           reflectionPrompt: "Where was I truly seen today?"
         },
         'Manifestor': {
-          active: emotional ? "You may feel the urge to initiate, but the timing isn't clear yet." : "You might notice impulses ready to move.",
-          bestUse: emotional ? "Part of you wants to act now. Feel it fully, then inform before moving." : "You may feel something wants to start. Inform others before you act.",
+          active: emotional ? "You may feel the urge to initiate, but timing isn't clear. That's the wave doing its work." : "You might notice impulses ready to move. That's your nature.",
+          bestUse: emotional ? "Part of you wants to act now. That's the trap—feel it fully first, then inform." : "You may feel something wants to start. Inform before you move.",
           watchFor: "acting from the peak or valley of a feeling",
           reflectionPrompt: "What wanted to be initiated today?"
         },
         'Reflector': {
-          active: "You may feel different depending on where you are. Today is one data point—observe without concluding.",
-          bestUse: "You might notice some environments feel better than others. Pay attention to that.",
+          active: "You may feel different depending on where you are. That's not inconsistency—it's sampling.",
+          bestUse: "You might notice some environments feel better than others. That's the data you need.",
           watchFor: "mistaking others' energy for your own",
           reflectionPrompt: "What am I reflecting from my environment?"
         }
@@ -2100,34 +2104,36 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       return defaults[type] || defaults['Generator'];
     };
     
+    // Week fallbacks - DESCENT MODEL: repeating pattern layer
+    // Pattern: Hook → Pattern name → What it shows
     const getTypeFallbackWeek = (type: string, emotional: boolean) => {
       const defaults: Record<string, any> = {
         'Generator': {
-          theme: emotional ? "You might notice certain emotions keep surfacing—they're showing you what actually matters to your gut." : "You may feel your energy either building or depleting. That's the signal.",
+          theme: emotional ? "You might notice certain emotions keep surfacing. That's not random—they're showing you what actually matters to your gut." : "You may feel your energy either building or depleting across the week. That's the signal you need.",
           helpsWhere: "Work that genuinely excites you.",
           frictionPattern: "accumulated frustration from saying yes when you meant no",
           reflectionPrompt: "What have I been giving energy to this week?"
         },
         'Manifesting Generator': {
-          theme: emotional ? "You might feel torn between multiple interests while your emotions cycle. Notice which excitement survives the wave." : "You may feel pulled in several directions. Pay attention to what keeps calling you back.",
+          theme: emotional ? "You might feel torn between multiple interests while emotions cycle. Notice which excitement survives the wave—that's real." : "You may feel pulled in several directions this week. Pay attention to what keeps calling you back.",
           helpsWhere: "Pivoting when energy dies.",
           frictionPattern: "forcing yourself to finish what lost its spark",
           reflectionPrompt: "What started this week still has energy?"
         },
         'Projector': {
-          theme: emotional ? "You might notice recognition and clarity need to align before anything lands right." : "You may feel your insights piling up. Some will be received, some won't.",
+          theme: emotional ? "You might notice recognition and emotional clarity need to align. When they don't, nothing lands right." : "You may feel your insights piling up. Some will be received, some won't—and that's the pattern.",
           helpsWhere: "Being selective about energy expenditure.",
           frictionPattern: "giving too much to people who don't really see you",
           reflectionPrompt: "Where was my guidance truly received?"
         },
         'Manifestor': {
-          theme: emotional ? "You might notice which impulses survive once the emotional wave settles. Those are the real ones." : "You may feel a clearer pattern of what wants to be initiated.",
+          theme: emotional ? "You might notice which impulses survive the emotional wave. Those are the real ones—the rest is noise." : "You may feel a clearer pattern of what wants to be initiated this week.",
           helpsWhere: "Starting things that impact.",
           frictionPattern: "anger from holding back what wanted to move",
           reflectionPrompt: "What did I initiate this week?"
         },
         'Reflector': {
-          theme: "You may feel different energies passing through you. Notice which environments felt right and which didn't.",
+          theme: "You may feel different energies passing through you this week. Notice which environments felt right and which felt off—that's your data.",
           helpsWhere: "Community health-checking.",
           frictionPattern: "absorbing dysfunction without realizing it",
           reflectionPrompt: "Which places felt nourishing this week?"
@@ -2136,34 +2142,36 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       return defaults[type] || defaults['Generator'];
     };
     
+    // Month fallbacks - DESCENT MODEL: developmental lesson layer
+    // Pattern: Hook → Cycle name → What it teaches
     const getTypeFallbackMonth = (type: string, emotional: boolean) => {
       const defaults: Record<string, any> = {
         'Generator': {
-          theme: emotional ? "You may feel your emotional patterns revealing what genuinely lights you up versus what you've been tolerating." : "You might notice a bigger pattern emerging about where your energy actually wants to go.",
+          theme: emotional ? "You may feel your emotional patterns revealing what genuinely lights you up versus what you've been tolerating. Let that be the lesson." : "You might notice a bigger pattern emerging about where your energy actually wants to go. Trust it.",
           growthEdge: "Trusting your 'no' as much as your 'yes'.",
           commonTrap: "staying committed to things that stopped feeling right",
           reflectionPrompt: "What has my gut been telling me this month?"
         },
         'Manifesting Generator': {
-          theme: emotional ? "This phase may feel scattered, but it's showing which interests survive beyond the initial spark." : "You might notice an efficiency pattern—which paths actually go somewhere.",
+          theme: emotional ? "This phase may feel scattered, but it's showing which interests survive beyond the initial spark. That's the filter working." : "You might notice an efficiency pattern emerging—which paths actually go somewhere. That's not failure, it's refinement.",
           growthEdge: "Trusting your non-linear path.",
           commonTrap: "forcing yourself down dead tracks",
           reflectionPrompt: "What pattern of interests is emerging?"
         },
         'Projector': {
-          theme: emotional ? "You may feel your emotional wisdom maturing—knowing which invitations deserve your energy." : "You might notice a pattern in where your guidance lands and where it doesn't.",
+          theme: emotional ? "You may feel your emotional wisdom maturing this month—knowing which invitations deserve your energy. Let that discernment deepen." : "You might notice a pattern in where your guidance lands and where it doesn't. That's strategic information.",
           growthEdge: "Waiting longer for the right invitations.",
           commonTrap: "bitterness from giving wisdom to people who weren't ready",
           reflectionPrompt: "Where has my insight been valued this month?"
         },
         'Manifestor': {
-          theme: emotional ? "This phase may feel like a test—watching which impulses survive the emotional wave." : "You might notice your initiating pattern becoming clearer.",
+          theme: emotional ? "This phase may feel like a test—watching which impulses survive the emotional wave. The ones that do are real." : "You might notice your initiating pattern becoming clearer this month. That's your rhythm emerging.",
           growthEdge: "Informing earlier. Not softening your impact.",
           commonTrap: "either exploding or imploding",
           reflectionPrompt: "What pattern of initiation is emerging?"
         },
         'Reflector': {
-          theme: "This lunar cycle may be showing you what's consistently true versus what shifts with your environment.",
+          theme: "This lunar cycle may be showing you what's consistently true versus what shifts with your environment. That consistency is your anchor.",
           growthEdge: "Trusting that clarity takes 28 days.",
           commonTrap: "deciding too fast, taking on identities that aren't yours",
           reflectionPrompt: "What has remained true throughout this lunar cycle?"
