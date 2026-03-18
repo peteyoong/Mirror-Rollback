@@ -1973,17 +1973,15 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     // ============================================
     
     // ============================================
-    // TODAY/WEEK/MONTH - DISTINCT ROLES, PERSONALIZED
+    // TODAY/WEEK/MONTH - DESCENT MODEL: Distinct roles, no repetition
     // ============================================
     
-    // TODAY = immediate posture (what to do right now)
+    // TODAY = immediate posture (what to do RIGHT NOW)
     const getTodayFromSignals = () => {
       if (dominantSignal.today) {
-        // Add personal hook to dominant signal content
-        const personalizedToday = addPersonalHook(cleanLanguage(dominantSignal.today), 'today');
         return {
-          bestUse: personalizedToday,
-          watchFor: "rushing an answer that isn't ready",
+          bestUse: cleanLanguage(dominantSignal.today),
+          watchFor: "forcing clarity before it arrives",
           reflectionPrompt: "What showed up today?"
         };
       }
@@ -1993,17 +1991,17 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       }
       
       return {
-        bestUse: addPersonalHook(cleanLanguage(activation.best_move || "Notice what's here."), 'today'),
+        bestUse: cleanLanguage(activation.best_move || "Notice what's here."),
         watchFor: "forcing something before it's ready",
         reflectionPrompt: "What felt most present today?"
       };
     };
     
-    // THIS WEEK = repeating pattern (what keeps surfacing)
+    // THIS WEEK = repeating pattern (what keeps RETURNING once urgency fades)
     const getWeekFromSignals = () => {
       if (dominantSignal.week) {
         return {
-          theme: addPersonalHook(cleanLanguage(dominantSignal.week), 'week'),
+          theme: cleanLanguage(dominantSignal.week),
           frictionPattern: "confusing urgency with importance",
           reflectionPrompt: "What pattern kept showing up?"
         };
@@ -2014,17 +2012,17 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       }
       
       return {
-        theme: "You might notice the same thing keeps coming back once the urgency drops. That's what actually matters.",
+        theme: "Notice what keeps coming back once the urgency drops. That's what actually matters.",
         frictionPattern: "trying to resolve too early",
         reflectionPrompt: "What kept showing up this week?"
       };
     };
     
-    // THIS MONTH = developmental lesson (what this cycle teaches)
+    // THIS MONTH = developmental lesson (what this PHASE is teaching)
     const getMonthFromSignals = () => {
       if (dominantSignal.month) {
         return {
-          theme: addPersonalHook(cleanLanguage(dominantSignal.month), 'month'),
+          theme: cleanLanguage(dominantSignal.month),
           commonTrap: "treating how things feel now as permanent",
           reflectionPrompt: "What is this month teaching you?"
         };
@@ -2041,61 +2039,41 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       };
     };
     
-    // Helper: Add personal hooks naturally without being verbose
-    // DETERMINISTIC version: Uses string hash instead of random to ensure consistent UI
-    const addPersonalHook = (text: string, timeframe: 'today' | 'week' | 'month'): string => {
+    // Helper: Clean language - remove generic phrases
+    const cleanLanguage = (text: string): string => {
       if (!text) return text;
-      // Don't add if already has a personal hook
-      if (/^(You may|You might|You feel|You notice|It can feel|Part of you|This phase|This cycle)/i.test(text)) {
-        return text;
-      }
-      // Simple hash function for deterministic hook selection
-      const hash = text.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      // Add subtle personal framing based on timeframe
-      const hooks: Record<string, string[]> = {
-        today: ['You may feel ', 'You might notice ', ''],
-        week: ['You might notice ', 'You may feel ', ''],
-        month: ['This phase may feel like ', 'You may find ', ''],
-      };
-      // Use hash to decide ~40% of the time to add hook
-      if (hash % 10 > 4) return text;
-      const hookOptions = hooks[timeframe];
-      const hook = hookOptions[hash % hookOptions.length];
-      if (!hook) return text;
-      // Lowercase first letter of original text if adding hook
-      return hook + text.charAt(0).toLowerCase() + text.slice(1);
+      // Remove overly generic phrases
+      return text
+        .replace(/what feels expansive/gi, 'what genuinely pulls you')
+        .replace(/something is available/gi, 'there may be an opening')
+        .replace(/energy is support/gi, 'this phase support')
+        .replace(/it's all connected/gi, '');
     };
     
-    // Type fallbacks (used when transit data unavailable) - ASTROLOGIST + MIRROR SYSTEM
-    // Pattern: Hook → Name → Reframe → Action
+    // Type fallbacks for TODAY - immediate posture, what to do RIGHT NOW
     const getTypeFallbackToday = (type: string, emotional: boolean) => {
       const defaults: Record<string, any> = {
         'Generator': {
-          active: emotional ? "You may feel your emotions coloring every response. That's data, not a deadline." : "You might notice your gut is louder than usual. Trust that signal.",
-          bestUse: emotional ? "You may feel pressure to decide something. That pressure isn't clarity—sleep on it." : "You might feel pulled toward something. That pull is real—follow it.",
+          bestUse: emotional ? "You may feel pressure to decide. That pressure isn't clarity—sleep on it." : "You might feel pulled toward something. That pull is real—follow it.",
           watchFor: "saying yes when your body says no",
           reflectionPrompt: "What genuinely excited me today?"
         },
         'Manifesting Generator': {
-          active: emotional ? "You may feel speed and emotion colliding. That's not confusion—it's information." : "You might notice multiple things pulling at you. That's normal for you.",
           bestUse: emotional ? "Part of you wants to commit now. That's the trap—sample first, decide later." : "You may feel the urge to move fast. Trust what resonates most.",
           watchFor: "starting things just because you can",
           reflectionPrompt: "Where did my energy want to go today?"
         },
         'Projector': {
-          active: emotional ? "You may feel the need to wait for both invitation and clarity. That's wisdom, not weakness." : "You might notice you're seeing more than usual. That's your gift working.",
           bestUse: emotional ? "Part of you wants to answer quickly. That's the trap—take time." : "You may feel the urge to share what you see. Wait until asked.",
           watchFor: "offering guidance that wasn't requested",
           reflectionPrompt: "Where was I truly seen today?"
         },
         'Manifestor': {
-          active: emotional ? "You may feel the urge to initiate, but timing isn't clear. That's the wave doing its work." : "You might notice impulses ready to move. That's your nature.",
           bestUse: emotional ? "Part of you wants to act now. That's the trap—feel it fully first, then inform." : "You may feel something wants to start. Inform before you move.",
           watchFor: "acting from the peak or valley of a feeling",
           reflectionPrompt: "What wanted to be initiated today?"
         },
         'Reflector': {
-          active: "You may feel different depending on where you are. That's not inconsistency—it's sampling.",
           bestUse: "You might notice some environments feel better than others. That's the data you need.",
           watchFor: "mistaking others' energy for your own",
           reflectionPrompt: "What am I reflecting from my environment?"
@@ -2104,37 +2082,31 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       return defaults[type] || defaults['Generator'];
     };
     
-    // Week fallbacks - DESCENT MODEL: repeating pattern layer
-    // Pattern: Hook → Pattern name → What it shows
+    // Type fallbacks for THIS WEEK - repeating pattern, what keeps RETURNING
     const getTypeFallbackWeek = (type: string, emotional: boolean) => {
       const defaults: Record<string, any> = {
         'Generator': {
-          theme: emotional ? "You might notice certain emotions keep surfacing. That's not random—they're showing you what actually matters to your gut." : "You may feel your energy either building or depleting across the week. That's the signal you need.",
-          helpsWhere: "Work that genuinely excites you.",
+          theme: emotional ? "Notice what emotions keep surfacing—they're showing you what actually matters to your gut." : "Notice where your energy naturally builds or drains. That's the signal.",
           frictionPattern: "accumulated frustration from saying yes when you meant no",
           reflectionPrompt: "What have I been giving energy to this week?"
         },
         'Manifesting Generator': {
-          theme: emotional ? "You might feel torn between multiple interests while emotions cycle. Notice which excitement survives the wave—that's real." : "You may feel pulled in several directions this week. Pay attention to what keeps calling you back.",
-          helpsWhere: "Pivoting when energy dies.",
+          theme: emotional ? "Notice which excitement survives the wave—that's real." : "Pay attention to what keeps calling you back after the initial spark fades.",
           frictionPattern: "forcing yourself to finish what lost its spark",
           reflectionPrompt: "What started this week still has energy?"
         },
         'Projector': {
-          theme: emotional ? "You might notice recognition and emotional clarity need to align. When they don't, nothing lands right." : "You may feel your insights piling up. Some will be received, some won't—and that's the pattern.",
-          helpsWhere: "Being selective about energy expenditure.",
+          theme: emotional ? "Notice where recognition and clarity align—when they don't, nothing lands right." : "Notice the pattern of where your guidance lands and where it doesn't.",
           frictionPattern: "giving too much to people who don't really see you",
           reflectionPrompt: "Where was my guidance truly received?"
         },
         'Manifestor': {
-          theme: emotional ? "You might notice which impulses survive the emotional wave. Those are the real ones—the rest is noise." : "You may feel a clearer pattern of what wants to be initiated this week.",
-          helpsWhere: "Starting things that impact.",
+          theme: emotional ? "Notice which impulses survive the wave—those are the real ones." : "Notice what keeps wanting to be initiated. That's the pattern.",
           frictionPattern: "anger from holding back what wanted to move",
           reflectionPrompt: "What did I initiate this week?"
         },
         'Reflector': {
-          theme: "You may feel different energies passing through you this week. Notice which environments felt right and which felt off—that's your data.",
-          helpsWhere: "Community health-checking.",
+          theme: "Notice which environments felt right and which felt off. That's your data.",
           frictionPattern: "absorbing dysfunction without realizing it",
           reflectionPrompt: "Which places felt nourishing this week?"
         }
@@ -2142,37 +2114,31 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       return defaults[type] || defaults['Generator'];
     };
     
-    // Month fallbacks - DESCENT MODEL: developmental lesson layer
-    // Pattern: Hook → Cycle name → What it teaches
+    // Type fallbacks for THIS MONTH - developmental lesson, what this PHASE teaches
     const getTypeFallbackMonth = (type: string, emotional: boolean) => {
       const defaults: Record<string, any> = {
         'Generator': {
-          theme: emotional ? "You may feel your emotional patterns revealing what genuinely lights you up versus what you've been tolerating. Let that be the lesson." : "You might notice a bigger pattern emerging about where your energy actually wants to go. Trust it.",
-          growthEdge: "Trusting your 'no' as much as your 'yes'.",
+          theme: emotional ? "This phase is revealing what genuinely lights you up versus what you've been tolerating." : "This phase is teaching you where your energy actually wants to go.",
           commonTrap: "staying committed to things that stopped feeling right",
           reflectionPrompt: "What has my gut been telling me this month?"
         },
         'Manifesting Generator': {
-          theme: emotional ? "This phase may feel scattered, but it's showing which interests survive beyond the initial spark. That's the filter working." : "You might notice an efficiency pattern emerging—which paths actually go somewhere. That's not failure, it's refinement.",
-          growthEdge: "Trusting your non-linear path.",
+          theme: emotional ? "This phase is showing which interests survive beyond the initial spark." : "This phase is teaching you which paths actually go somewhere.",
           commonTrap: "forcing yourself down dead tracks",
           reflectionPrompt: "What pattern of interests is emerging?"
         },
         'Projector': {
-          theme: emotional ? "You may feel your emotional wisdom maturing this month—knowing which invitations deserve your energy. Let that discernment deepen." : "You might notice a pattern in where your guidance lands and where it doesn't. That's strategic information.",
-          growthEdge: "Waiting longer for the right invitations.",
+          theme: emotional ? "This phase is maturing your wisdom—knowing which invitations deserve your energy." : "This phase is teaching you where your guidance actually lands.",
           commonTrap: "bitterness from giving wisdom to people who weren't ready",
           reflectionPrompt: "Where has my insight been valued this month?"
         },
         'Manifestor': {
-          theme: emotional ? "This phase may feel like a test—watching which impulses survive the emotional wave. The ones that do are real." : "You might notice your initiating pattern becoming clearer this month. That's your rhythm emerging.",
-          growthEdge: "Informing earlier. Not softening your impact.",
+          theme: emotional ? "This phase is testing which impulses survive the wave—those are real." : "This phase is clarifying your initiating pattern.",
           commonTrap: "either exploding or imploding",
           reflectionPrompt: "What pattern of initiation is emerging?"
         },
         'Reflector': {
-          theme: "This lunar cycle may be showing you what's consistently true versus what shifts with your environment. That consistency is your anchor.",
-          growthEdge: "Trusting that clarity takes 28 days.",
+          theme: "This lunar cycle is showing you what's consistently true versus what shifts with your environment.",
           commonTrap: "deciding too fast, taking on identities that aren't yours",
           reflectionPrompt: "What has remained true throughout this lunar cycle?"
         }
@@ -2185,7 +2151,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const monthContent = getMonthFromSignals();
 
     // ============================================
-    // RENDER FIELD SECTION (THE BIGGER SHIFT)
+    // RENDER FIELD SECTION (THE BIGGER SHIFT) - LIGHTER VERSION
     // ============================================
     const renderFieldSection = () => {
       // Get field signals
@@ -2212,7 +2178,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           {/* Field Title */}
           <Text style={[styles.fieldTitle, { color: theme.text }]}>The Bigger Shift</Text>
           
-          {/* Field Signal Cards (1-2 max) - Ultra compact */}
+          {/* Field Signal Cards - Simplified: title + single body + CTA */}
           {fieldSignalsList.map((field: any, index: number) => (
             <View 
               key={index} 
@@ -2228,7 +2194,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                 {field.headline}
               </Text>
               <Text style={[styles.fieldCardBody, { color: theme.textSecondary }]}>
-                {field.what_happening} {field.how_interacts_with_hd}
+                {field.what_happening}
               </Text>
               <TouchableOpacity
                 style={styles.fieldCardCtaCompact}
@@ -2274,13 +2240,17 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           {/* Hero Title */}
           <Text style={[styles.heroTitle, { color: theme.text }]}>What's Active Now</Text>
           
-          {/* Signal Card 1: Biggest Activation */}
+          {/* Signal Card 1: Biggest Activation - The core thing happening */}
           {activation && (
             <View style={[styles.signalCard, styles.signalCardActivation, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
               <Text style={[styles.signalCardLabel, { color: theme.accent }]}>ACTIVATION</Text>
               <Text style={[styles.signalCardTitle, { color: theme.text }]}>{activation.title}</Text>
-              <Text style={[styles.signalCardBody, { color: theme.textSecondary }]}>{activation.how_shows_up}</Text>
-              <Text style={[styles.signalCardMove, { color: theme.text }]}>{activation.best_move}</Text>
+              <Text style={[styles.signalCardBody, { color: theme.textSecondary }]}>
+                {activation.how_shows_up}
+              </Text>
+              <Text style={[styles.signalCardAction, { color: theme.text }]}>
+                {activation.best_move}
+              </Text>
               <TouchableOpacity
                 style={[styles.signalCardCta, { borderTopColor: theme.border }]}
                 onPress={() => openReflection(
@@ -2298,13 +2268,17 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             </View>
           )}
           
-          {/* Signal Card 2: Opportunity */}
+          {/* Signal Card 2: Opportunity - How to work with it */}
           {opportunity && (
             <View style={[styles.signalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <Text style={[styles.signalCardLabel, { color: theme.success || '#4CAF50' }]}>OPPORTUNITY</Text>
               <Text style={[styles.signalCardTitle, { color: theme.text }]}>{opportunity.title}</Text>
-              <Text style={[styles.signalCardBody, { color: theme.textSecondary }]}>{opportunity.how_shows_up}</Text>
-              <Text style={[styles.signalCardMove, { color: theme.text }]}>{opportunity.best_move}</Text>
+              <Text style={[styles.signalCardBody, { color: theme.textSecondary }]}>
+                {opportunity.how_shows_up}
+              </Text>
+              <Text style={[styles.signalCardAction, { color: theme.text }]}>
+                {opportunity.best_move}
+              </Text>
               <TouchableOpacity
                 style={[styles.signalCardCta, { borderTopColor: theme.border }]}
                 onPress={() => openReflection(
@@ -2322,13 +2296,17 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             </View>
           )}
           
-          {/* Signal Card 3: Friction */}
+          {/* Signal Card 3: Friction - How you distort it */}
           {friction && (
             <View style={[styles.signalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <Text style={[styles.signalCardLabel, { color: theme.warning || '#FF9800' }]}>WATCH FOR</Text>
               <Text style={[styles.signalCardTitle, { color: theme.text }]}>{friction.title}</Text>
-              <Text style={[styles.signalCardBody, { color: theme.textSecondary }]}>{friction.how_shows_up}</Text>
-              <Text style={[styles.signalCardMove, { color: theme.text }]}>{friction.best_move}</Text>
+              <Text style={[styles.signalCardBody, { color: theme.textSecondary }]}>
+                {friction.how_shows_up}
+              </Text>
+              <Text style={[styles.signalCardAction, { color: theme.text }]}>
+                {friction.best_move}
+              </Text>
               <TouchableOpacity
                 style={[styles.signalCardCta, { borderTopColor: theme.border }]}
                 onPress={() => openReflection(
@@ -5422,6 +5400,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingBottom: 8,
     opacity: 0.85,
+  },
+  signalCardAction: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+    paddingHorizontal: 14,
+    paddingBottom: 12,
+    paddingTop: 4,
   },
   signalCardMove: {
     fontSize: 14,
