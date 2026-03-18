@@ -604,46 +604,108 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // E. Ask CTA - Primary CTA Section for Summary Tab
-  const renderAskCTA = () => {
-    if (!data) return null;
+  // =============================================================================
+  // UNIFIED ASK SECTION - Primary CTA + Suggested Questions
+  // =============================================================================
+  
+  // Default prompts per tab (hidden context passed to chat)
+  const getDefaultPromptForTab = (tab: TabType): string => {
+    switch (tab) {
+      case 'summary':
+        return "What stands out most in my BaZi chart?";
+      case 'snapshot':
+        return "What is my chart being asked to pay attention to right now?";
+      case 'deep_dive':
+        return "What deeper BaZi pattern is most important for me to understand?";
+      default:
+        return "Tell me about my BaZi chart.";
+    }
+  };
+  
+  // Get suggested questions based on tab
+  const getSuggestedQuestions = (tab: TabType): string[] => {
+    const contextualPrompts = adaptive?.contextual_prompts || [];
     
-    const prompts = [
-      "What does my Day Master mean in daily life?",
-      "Which element should I focus on activating?",
-      "How do my Four Pillars work together?",
-    ];
-    
-    const handlePromptTap = (prompt: string) => {
-      setSelectedQuestion(prompt);
-      setShowQuestionModal(true);
+    // Tab-specific fallback suggestions
+    const fallbackSuggestions: Record<TabType, string[]> = {
+      summary: [
+        "What does my Day Master mean in daily life?",
+        "Which element should I focus on activating?",
+        "How do my Four Pillars work together?",
+      ],
+      snapshot: [
+        "What should I pay attention to today?",
+        "What's the main theme of this month for me?",
+        "What is this year asking me to learn?",
+      ],
+      deep_dive: [
+        "Why do I behave this way under pressure?",
+        "What pattern keeps showing up in my life?",
+        "What am I not seeing about myself?",
+      ],
     };
     
+    // Use contextual prompts if available, otherwise use fallbacks
+    if (contextualPrompts.length > 0) {
+      return contextualPrompts.slice(0, 4);
+    }
+    return fallbackSuggestions[tab] || fallbackSuggestions.summary;
+  };
+  
+  // Open chat in open-ended mode (no pre-filled question)
+  const handleOpenEndedAsk = () => {
+    setSelectedQuestion(null); // No pre-filled question
+    setShowQuestionModal(true);
+  };
+  
+  // Render the unified Ask section for any tab
+  const renderUnifiedAskSection = (tab: TabType) => {
+    if (!data) return null;
+    
+    const suggestedQuestions = getSuggestedQuestions(tab);
+    
     return (
-      <View style={[styles.askSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[styles.askTitle, { color: theme.text }]}>Ask About This Lens</Text>
-        <Text style={[styles.askSubtitle, { color: theme.textTertiary }]}>
-          Explore your chart with Mirror
+      <View style={[styles.unifiedAskSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {/* Primary CTA - Open-ended Ask */}
+        <TouchableOpacity
+          style={[styles.primaryAskButton, { backgroundColor: theme.accent }]}
+          onPress={handleOpenEndedAsk}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="chatbubble-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.primaryAskButtonText}>Ask About This Lens</Text>
+        </TouchableOpacity>
+        
+        <Text style={[styles.primaryAskSubtext, { color: theme.textTertiary }]}>
+          Ask anything about this chart, this timing, or what it means in your life.
         </Text>
         
-        <View style={styles.promptsList}>
-          {prompts.map((prompt, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={[styles.questionButton, { backgroundColor: theme.background, borderColor: theme.border }]}
-              onPress={() => handlePromptTap(prompt)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.questionButtonContent}>
-                <Text style={styles.questionEmoji}>💬</Text>
-                <Text style={[styles.questionText, { color: theme.text }]} numberOfLines={2}>
-                  {prompt}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} />
-            </TouchableOpacity>
-          ))}
-        </View>
+        {/* Suggested Questions - Optional Starters */}
+        {suggestedQuestions.length > 0 && (
+          <View style={styles.suggestedQuestionsSection}>
+            <Text style={[styles.suggestedQuestionsLabel, { color: theme.textTertiary }]}>
+              SUGGESTED QUESTIONS
+            </Text>
+            <View style={styles.suggestedQuestionsList}>
+              {suggestedQuestions.map((question, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={[styles.suggestedQuestionChip, { backgroundColor: theme.background, borderColor: theme.border }]}
+                  onPress={() => {
+                    setSelectedQuestion(question);
+                    setShowQuestionModal(true);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.suggestedQuestionText, { color: theme.text }]} numberOfLines={2}>
+                    {question}
+                  </Text>
+                  <Ionicons name="arrow-forward" size={14} color={theme.textTertiary} style={{ marginLeft: 8 }} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
       </View>
     );
   };
@@ -757,22 +819,6 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.reflectionLabel, { color: theme.textTertiary }]}>REFLECTION</Text>
           <Text style={[styles.reflectionText, { color: theme.text }]}>{content.reflection}</Text>
         </View>
-        
-        {/* Ask Button - Tappable Question */}
-        <TouchableOpacity
-          style={[styles.snapshotAskButton, { backgroundColor: theme.background, borderColor: theme.border }]}
-          onPress={() => {
-            setSelectedQuestion(`Tell me more about ${label.toLowerCase()} and what I might notice.`);
-            setShowQuestionModal(true);
-          }}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.snapshotAskEmoji}>💬</Text>
-          <Text style={[styles.snapshotAskText, { color: theme.accent }]}>
-            Ask about {label.toLowerCase()}
-          </Text>
-          <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
-        </TouchableOpacity>
       </View>
     );
   };
@@ -938,49 +984,6 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
   const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const { isInForumContext, forumId, forumName } = useForumContext();
-
-  // =============================================================================
-  // CONTEXTUAL PROMPTS - FIXED RENDERING
-  // =============================================================================
-  
-  const renderContextualPrompts = () => {
-    if (!adaptive?.contextual_prompts || !data) return null;
-    const { contextual_prompts } = adaptive;
-    
-    const handleQuestionTap = (question: string) => {
-      setSelectedQuestion(question);
-      setShowQuestionModal(true);
-    };
-    
-    return (
-      <View style={[styles.contextualPromptsBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <View style={styles.contextualPromptsHeader}>
-          <Text style={[styles.contextualPromptsTitle, { color: theme.text }]}>Questions You Might Have</Text>
-          <Text style={[styles.contextualPromptsSubtitle, { color: theme.textTertiary }]}>
-            Tap to explore with Mirror
-          </Text>
-        </View>
-        <View style={styles.contextualPromptsList}>
-          {contextual_prompts.slice(0, 5).map((question, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={[styles.questionButton, { backgroundColor: theme.background, borderColor: theme.border }]}
-              onPress={() => handleQuestionTap(question)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.questionButtonContent}>
-                <Text style={styles.questionEmoji}>💬</Text>
-                <Text style={[styles.questionText, { color: theme.text }]} numberOfLines={2}>
-                  {question}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} />
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-    );
-  };
   
   // Reflection Prompts Component
   const renderReflectionPrompts = () => {
@@ -1068,22 +1071,6 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
           </View>
         )}
         
-        {/* Ask Button - Tappable Question */}
-        <TouchableOpacity
-          style={[styles.deepDiveAskButton, { backgroundColor: theme.background, borderColor: theme.border }]}
-          onPress={() => {
-            setSelectedQuestion("Explain my Day Master in my life. What does this strength actually mean for how I show up?");
-            setShowQuestionModal(true);
-          }}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.deepDiveAskEmoji}>💬</Text>
-          <Text style={[styles.deepDiveAskText, { color: theme.accent }]} numberOfLines={2}>
-            How does my Day Master show up in real life?
-          </Text>
-          <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
-        </TouchableOpacity>
-        
         {/* Real Life Check */}
         {renderRealLifeCheck('day_master')}
         
@@ -1138,22 +1125,6 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
             </View>
           </View>
         </View>
-        
-        {/* Ask Button - Tappable Question */}
-        <TouchableOpacity
-          style={[styles.deepDiveAskButton, { backgroundColor: theme.background, borderColor: theme.border, marginTop: 12 }]}
-          onPress={() => {
-            setSelectedQuestion("How do these elements actually show up in my life? Give me concrete examples.");
-            setShowQuestionModal(true);
-          }}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.deepDiveAskEmoji}>💬</Text>
-          <Text style={[styles.deepDiveAskText, { color: theme.accent }]} numberOfLines={2}>
-            How do these elements show up in my life?
-          </Text>
-          <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
-        </TouchableOpacity>
       </View>
     );
   };
@@ -1225,22 +1196,6 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
             </View>
           </View>
         ))}
-        
-        {/* Ask Button - Tappable Question */}
-        <TouchableOpacity
-          style={[styles.deepDiveAskButton, { backgroundColor: theme.background, borderColor: theme.border }]}
-          onPress={() => {
-            setSelectedQuestion("Why do I behave this way? Help me understand my patterns better.");
-            setShowQuestionModal(true);
-          }}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.deepDiveAskEmoji}>💬</Text>
-          <Text style={[styles.deepDiveAskText, { color: theme.accent }]} numberOfLines={2}>
-            Why do I behave this way?
-          </Text>
-          <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
-        </TouchableOpacity>
       </View>
     );
   };
@@ -1362,22 +1317,6 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
           </View>
         )}
         
-        {/* Ask Button - Tappable Question */}
-        <TouchableOpacity
-          style={[styles.deepDiveAskButton, { backgroundColor: theme.background, borderColor: theme.border, marginTop: 16 }]}
-          onPress={() => {
-            setSelectedQuestion("What should I focus on now based on my chart?");
-            setShowQuestionModal(true);
-          }}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.deepDiveAskEmoji}>💬</Text>
-          <Text style={[styles.deepDiveAskText, { color: theme.accent }]} numberOfLines={2}>
-            What should I focus on now?
-          </Text>
-          <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
-        </TouchableOpacity>
-        
         {/* Reflection Prompts */}
         {renderReflectionPrompts()}
         
@@ -1454,7 +1393,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
             {renderChartPattern()}
             {renderFourPillars()}
             {renderTimingPreview()}
-            {renderAskCTA()}
+            {renderUnifiedAskSection('summary')}
           </>
         )}
 
@@ -1463,6 +1402,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
             {renderSnapshotPeriod(data.timing.today, 'Today', 'today')}
             {renderSnapshotPeriod(data.timing.month, 'This Month', 'month')}
             {renderSnapshotPeriod(data.timing.year, 'This Year', 'year')}
+            {renderUnifiedAskSection('snapshot')}
           </>
         )}
 
@@ -1473,7 +1413,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
             {renderBehavioralPatterns()}
             {renderHiddenLayers()}
             {renderLifePattern()}
-            {renderContextualPrompts()}
+            {renderUnifiedAskSection('deep_dive')}
           </>
         )}
 
@@ -1481,26 +1421,24 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         <View style={{ height: 40 }} />
       </ScrollView>
       
-      {/* Question Modal */}
-      {selectedQuestion && (
-        <UniversalReflectionModal
-          visible={showQuestionModal}
-          onClose={() => {
-            setShowQuestionModal(false);
-            setSelectedQuestion(null);
-          }}
-          source={{
-            lens: 'bazi',
-            type: 'contextual_question',
-            name: 'BaZi Question',
-            value: data?.day_master ? `${data.day_master.stem_pinyin} ${data.day_master.element}` : 'BaZi Chart',
-            id: 'bazi_question_modal',
-          }}
-          initialPrompt={selectedQuestion}
-          activeForumId={isInForumContext ? forumId || undefined : undefined}
-          activeForumName={isInForumContext ? forumName || undefined : undefined}
-        />
-      )}
+      {/* Question Modal - Supports both open-ended and pre-filled modes */}
+      <UniversalReflectionModal
+        visible={showQuestionModal}
+        onClose={() => {
+          setShowQuestionModal(false);
+          setSelectedQuestion(null);
+        }}
+        source={{
+          lens: 'bazi',
+          type: 'open_ask',
+          name: 'BaZi',
+          value: data?.day_master ? `${data.day_master.stem_pinyin} ${data.day_master.element}` : 'BaZi Chart',
+          id: 'bazi_open_ask',
+        }}
+        initialPrompt={selectedQuestion || getDefaultPromptForTab(activeTab)}
+        activeForumId={isInForumContext ? forumId || undefined : undefined}
+        activeForumName={isInForumContext ? forumName || undefined : undefined}
+      />
     </View>
   );
 }
@@ -1811,6 +1749,63 @@ const styles = StyleSheet.create({
   },
   promptsList: {
     gap: 10,
+  },
+  
+  // Unified Ask Section (Open-ended + Suggested Questions)
+  unifiedAskSection: {
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 16,
+  },
+  primaryAskButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    gap: 10,
+  },
+  primaryAskButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  primaryAskSubtext: {
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 20,
+    lineHeight: 18,
+  },
+  suggestedQuestionsSection: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(128, 128, 128, 0.2)',
+    paddingTop: 20,
+  },
+  suggestedQuestionsLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    marginBottom: 12,
+    textTransform: 'uppercase',
+  },
+  suggestedQuestionsList: {
+    gap: 10,
+  },
+  suggestedQuestionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  suggestedQuestionText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
   },
 
   // Snapshot Cards
