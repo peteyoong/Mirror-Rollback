@@ -21206,92 +21206,83 @@ def _generate_pattern_signal(
 ) -> Dict[str, Any]:
     """
     Generate the daily pattern signal content.
-    
-    Task 76B: Uses DIRECT, PERSONAL language - no system voice.
-    Matches Mirror card tone: Hook → Body → Pattern Bridge
+    Mirror-grade language. No system voice.
     """
     
-    # Pre-defined signal templates - PERSONAL, MIRROR-TONE language
-    # Structure: hook (implicit in title), body (insight_text), pattern_bridge (past_reflection)
-    # NO "Looking at your timeline", NO "TO NOTICE" questions
-    
+    # MIRROR-GRADE TEMPLATES - Direct recognition, not analysis
     PATTERN_SIGNAL_TEMPLATES = {
-        # For when active patterns are detected
         "active_pattern": [
             {
-                "signal_title": "This Isn't Random",
-                "insight_text": "Something about today may feel familiar. Not the situation itself—but the feeling underneath it. You've been here before, in a slightly different form.",
-                "past_reflection": "What you felt back then may be shaping how you respond now.",
-                "reflective_question": "Where in your body does this recognition live?"
+                "signal_title": "You've Been Here Before",
+                "insight_text": "Something about today may feel familiar. Not the surface details—the inner tension underneath it. You may be standing in a pattern you've already lived, just wearing different clothes.",
+                "past_reflection": "The way you respond now may be shaped by what this pattern taught you before.",
+                "reflective_question": "What part of this have you lived before?"
             },
             {
-                "signal_title": "You've Seen This Before",
-                "insight_text": "There's a quality to {pattern_domain} today that echoes something older. Part of you already knows what this is. You've navigated similar terrain.",
-                "past_reflection": "The part of you that remembers is trying to speak.",
+                "signal_title": "This Isn't Random",
+                "insight_text": "The moment itself may be new, but the feeling in it may not be. You may have known this pressure before: the need to choose, prove, hold, or protect. That's why this lands deeper than it looks.",
+                "past_reflection": None,
                 "reflective_question": "What does this moment remind you of?"
             },
             {
-                "signal_title": "A Familiar Shape",
-                "insight_text": "This isn't the first time you've felt this pull around {pattern_domain}. The details are new. The pattern is not.",
+                "signal_title": "An Old Pattern May Be Back",
+                "insight_text": "You may notice that your first reaction comes quickly here. That usually means this moment is touching something older. Not everything that feels urgent is new.",
                 "past_reflection": None,
-                "reflective_question": "What decision tends to form in moments like this?"
+                "reflective_question": "What's the older thing this is touching?"
             },
         ],
-        # For tension patterns
         "tension_pattern": [
             {
-                "signal_title": "Two Parts of You",
-                "insight_text": "You may feel torn between {category_a} and {category_b} today. This tension isn't a problem to solve—it's a conversation that keeps returning.",
-                "past_reflection": "You've held both before. Each time, something clarified.",
-                "reflective_question": "What is this tension actually asking of you?"
+                "signal_title": "A Familiar Tug",
+                "insight_text": "There's a pull you may recognize—between what you want and what you think you should do. This tension isn't new. You've held it before, in different forms.",
+                "past_reflection": "The way you've navigated this before is still in you.",
+                "reflective_question": "Which side usually wins?"
             },
             {
-                "signal_title": "The Pull Returns",
-                "insight_text": "There's that familiar pull between {category_a} and {category_b}. You've felt it before. You'll feel it again. That's not failure—it's depth.",
+                "signal_title": "Two Directions Again",
+                "insight_text": "Part of you wants one thing. Part of you wants another. This split may feel familiar—not because you're stuck, but because this is a place you keep returning to.",
                 "past_reflection": None,
-                "reflective_question": "Which side of you is louder today?"
+                "reflective_question": "What does this tension keep teaching you?"
             },
         ],
-        # For lifeline-based patterns
         "lifeline_pattern": [
             {
-                "signal_title": "This Theme Again",
-                "insight_text": "Something about {theme} is surfacing again. You've been here before—maybe years ago, maybe recently. The specific situation is different, but the underlying rhythm is the same.",
-                "past_reflection": "What you learned then is still working in you now.",
-                "reflective_question": "What thread connects this to your larger story?"
+                "signal_title": "This Shape Again",
+                "insight_text": "Something about this moment echoes something older. The situation is different, but the inner move may be the same. You've made a version of this choice before.",
+                "past_reflection": "What you learned then is still here.",
+                "reflective_question": "What did you learn last time?"
             },
             {
-                "signal_title": "The Wave Returns",
-                "insight_text": "{theme} tends to come in waves for you. This is one of those moments. You're not starting from zero—you've built something through every previous round.",
+                "signal_title": "The Same Pressure, New Form",
+                "insight_text": "The details are different, but the pressure underneath may be familiar. Life has asked this of you before. You may already know more than you think.",
                 "past_reflection": None,
-                "reflective_question": "What's completing, and what's beginning?"
+                "reflective_question": "What do you already know about this?"
             },
         ],
-        # For low-data or general fallback
         "general": [
             {
                 "signal_title": "Something Familiar",
-                "insight_text": "There's something familiar about today. Not the events—but the texture of how it feels. You've been in moments like this before.",
-                "past_reflection": "The past doesn't just disappear. It leaves grooves.",
-                "reflective_question": "What feeling keeps visiting you lately?"
+                "insight_text": "There's something about today that may not be new. Not the events—the texture of how it feels. You've been in moments like this before, even if you can't name them.",
+                "past_reflection": "The past doesn't disappear. It leaves grooves.",
+                "reflective_question": "What feels familiar here?"
             },
             {
-                "signal_title": "A Pattern Wants Attention",
-                "insight_text": "You may not be able to name it yet, but something in you recognizes this moment. There's a pattern here—quiet, but present.",
+                "signal_title": "Not the First Time",
+                "insight_text": "This moment may be touching something older. Not everything that feels fresh is actually new. Part of you may already know how this goes.",
                 "past_reflection": None,
-                "reflective_question": "What pattern in your life is ready to be seen?"
+                "reflective_question": "What pattern is this part of?"
             },
             {
-                "signal_title": "Part of Something Larger",
-                "insight_text": "This moment is connected to something larger in your life. Not everything needs to be understood—some things just need to be noticed.",
-                "past_reflection": "What feels small today may be part of a bigger arc.",
-                "reflective_question": "What does this moment echo from your past?"
-            },
-            {
-                "signal_title": "The Familiar Pressure",
-                "insight_text": "There's a familiar pressure or ease present today. You've felt this quality before—in different circumstances, but with the same undertone.",
+                "signal_title": "A Pattern Underneath",
+                "insight_text": "You may not be able to name it yet, but something in you recognizes this. There's a shape here you've lived before—quietly, but present.",
                 "past_reflection": None,
-                "reflective_question": "What decision tends to form in moments like this?"
+                "reflective_question": "What is the pattern underneath?"
+            },
+            {
+                "signal_title": "You Know This One",
+                "insight_text": "There's a familiar quality to today. The situation may be different, but the inner experience may be something you've met before.",
+                "past_reflection": "What you've learned from that is still working in you.",
+                "reflective_question": "What did this pattern teach you last time?"
             },
         ]
     }
