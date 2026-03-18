@@ -4737,8 +4737,8 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
           </View>
         ) : data ? (
           <>
-            {/* Tab Blurb - Show at top of each tab */}
-            {renderTabBlurb()}
+            {/* Tab Blurb - Show at top of each tab EXCEPT Today (which has its own header) */}
+            {activeTab !== 'today' && renderTabBlurb()}
             
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
