@@ -2127,83 +2127,83 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     return content['emotional'];
   };
 
-  // Get Profile card content
+  // Get Profile card content - more human tone
   const getProfileCardContent = (profile: string) => {
     const content: Record<string, { story: string; showsUp: string; challenge: string; tips: string }> = {
       '1/3': {
-        story: 'The Investigator-Martyr. You build deep foundations through research, then test them through trial.',
-        showsUp: 'Deep need to understand before committing. Learning most from mistakes and experiments.',
-        challenge: 'Feeling like you\'re always starting over. Judging experiments as failures.',
-        tips: 'Honor both your research phase and your trial-and-error process. They work together.'
+        story: 'You need to understand things deeply before you move. Then you learn by doing—often the hard way.',
+        showsUp: 'Researching before committing. Learning most from mistakes. Starting over doesn\'t scare you.',
+        challenge: 'The trap is feeling like you\'re always behind or always fixing what went wrong.',
+        tips: 'Both phases matter—the research AND the bumps. Neither is wasted.'
       },
       '1/4': {
-        story: 'The Investigator-Opportunist. You research deeply, then share through close networks.',
-        showsUp: 'Deep research before forming opinions. Influence through trusted relationships.',
-        challenge: 'Trying to influence beyond your natural network. Sharing before research is complete.',
-        tips: 'Build solid foundations first. Your network will carry your message when it\'s ready.'
+        story: 'You dig into things deeply, then share what you know through the people closest to you.',
+        showsUp: 'You don\'t broadcast—you influence through real relationships. Your network trusts your depth.',
+        challenge: 'The trap is trying to reach people you don\'t actually know, or sharing before you\'re ready.',
+        tips: 'Build the foundation first. Your people will carry it forward when it\'s solid.'
       },
       '2/4': {
-        story: 'The Hermit-Opportunist. You have natural gifts others see first, shared through your network.',
-        showsUp: 'Talents that emerge when called upon. Gifts others recognize before you do.',
-        challenge: 'Balancing solitude needs with social connection. Being called out too often.',
-        tips: 'Honor your need for retreat. Trust that your gifts will be called when needed.'
+        story: 'You have natural talents that others often see before you do. Your gifts emerge through connection.',
+        showsUp: 'People call on you for things you didn\'t even know you were good at. You\'re seen.',
+        challenge: 'The trap is being pulled out of needed alone time, or not believing your own gifts.',
+        tips: 'Protect your retreat. Trust that what you have is enough—others already see it.'
       },
       '2/5': {
-        story: 'The Hermit-Heretic. Natural gifts attract projections. Others see you as a solution.',
-        showsUp: 'Being called out of retreat to help. Others expecting you to save the day.',
-        challenge: 'Carrying projections you can\'t deliver on. Losing hermit time to demands.',
-        tips: 'Protect your solitude fiercely. Only engage with projections you can actually meet.'
+        story: 'You have quiet gifts, but people project expectations onto you—often ones you didn\'t ask for.',
+        showsUp: 'Being called out of solitude to help. Others seeing you as the answer to their problem.',
+        challenge: 'The trap is meeting projections you can\'t deliver on, or losing all your alone time.',
+        tips: 'Guard your solitude. Say no to projections that aren\'t actually yours to carry.'
       },
       '3/5': {
-        story: 'The Martyr-Heretic. You learn through trial and error, and others project expectations onto you.',
-        showsUp: 'Wisdom built from what hasn\'t worked. Being seen as someone who can fix things.',
-        challenge: 'Constant experimentation plus external expectations. Neither defines your worth.',
-        tips: 'Your experiments are your curriculum. Choose which projections are worth meeting.'
+        story: 'You learn by trial and error, and people tend to see you as someone who can fix things.',
+        showsUp: 'Wisdom from what hasn\'t worked. Being asked to solve problems you didn\'t create.',
+        challenge: 'The trap is endless experimentation plus unrealistic expectations from others.',
+        tips: 'Your experiments are your education. Choose which projections are worth engaging.'
       },
       '3/6': {
-        story: 'The Martyr-Role Model. Three life phases: experiment until 30, observe until 50, then embody wisdom.',
-        showsUp: 'Intense early experimentation. Eventual emergence as a living example.',
-        challenge: 'Exhaustion from experimentation. Pressure to be perfect once on the roof.',
-        tips: 'Trust your current phase. Don\'t rush to the next one—each builds on the last.'
+        story: 'Your life has phases: experiment hard early, step back and observe, then embody what you\'ve learned.',
+        showsUp: 'Intense trial-and-error in youth. Growing objectivity. Eventually becoming the example.',
+        challenge: 'The trap is exhaustion in the early phase, or pressure to be perfect once you\'re seen as wise.',
+        tips: 'Trust your current phase. Don\'t rush—each stage builds on the last.'
       },
       '4/6': {
-        story: 'The Opportunist-Role Model. Your influence moves through networks across three life phases.',
-        showsUp: 'Relationships central throughout life. Authority that emerges through connection.',
-        challenge: 'Maintaining relationships through the aloof roof period.',
-        tips: 'Your network carries you through all phases. Nurture key relationships always.'
+        story: 'Relationships matter deeply throughout your life. Your wisdom grows through connection and time.',
+        showsUp: 'Key relationships that shape each phase. Authority that emerges through people who know you.',
+        challenge: 'The trap is pulling away from your network when you need them most.',
+        tips: 'Your people carry you through all phases. Keep nurturing the relationships that matter.'
       },
       '4/1': {
-        story: 'The Opportunist-Investigator. You share researched knowledge through trusted networks.',
-        showsUp: 'Deep research shared through close relationships. Need for both intellectual and social security.',
-        challenge: 'Rigidity when foundations or relationships need to shift.',
-        tips: 'Build solid foundations and relationships. Both require stability to thrive.'
+        story: 'You build deep knowledge and share it through close relationships. Security matters.',
+        showsUp: 'Research shared through trusted people. Needing both intellectual and social stability.',
+        challenge: 'The trap is rigidity when your foundations or relationships need to shift.',
+        tips: 'Build strong roots. But stay flexible when the ground moves.'
       },
       '5/1': {
-        story: 'The Heretic-Investigator. Others project expectations; your research helps you deliver.',
-        showsUp: 'Universal appeal that attracts strangers. Capacity to deliver when foundations are solid.',
-        challenge: 'Carrying projections without the foundation to meet them.',
-        tips: 'Research thoroughly before engaging. Only meet projections your knowledge supports.'
+        story: 'People project onto you quickly. You deliver best when you\'ve done the work to back it up.',
+        showsUp: 'Strangers trust you before they know you. You can meet their expectations—if you\'ve prepared.',
+        challenge: 'The trap is carrying projections you haven\'t built the foundation to meet.',
+        tips: 'Research first. Only step into projections your knowledge actually supports.'
       },
       '5/2': {
-        story: 'The Heretic-Hermit. Others project savior expectations while you need significant solitude.',
-        showsUp: 'Being called out of retreat constantly. Natural talents that emerge when needed.',
-        challenge: 'Being pulled from necessary solitude by unrealistic expectations.',
-        tips: 'Your hermit time is non-negotiable. Engage selectively with worthy calls.'
+        story: 'People expect you to save them, but you need significant time alone to stay sane.',
+        showsUp: 'Being called out constantly. Natural talents that emerge when genuinely needed.',
+        challenge: 'The trap is losing your solitude to demands that weren\'t really yours.',
+        tips: 'Hermit time is non-negotiable. Engage only with calls that genuinely fit.'
       },
       '6/2': {
-        story: 'The Role Model-Hermit. Three life phases with natural gifts that emerge when called.',
-        showsUp: 'Eventual wisdom combined with innate talents. Being called out of retreat.',
-        challenge: 'Balancing three-phase journey with hermit needs.',
-        tips: 'Your gifts call you out when needed. Return to retreat to regenerate.'
+        story: 'Your life has phases, and you have quiet gifts that emerge when people call on you.',
+        showsUp: 'Eventual wisdom combined with natural talents. Being recognized and called forward.',
+        challenge: 'The trap is not honoring your need for retreat between calls.',
+        tips: 'Your gifts will be called when needed. Return to rest so you have something to give.'
       },
       '6/3': {
-        story: 'The Role Model-Martyr. Three life phases with intense trial-and-error throughout.',
-        showsUp: 'Many experiments tried. Eventual role model status earned through experience.',
-        challenge: 'The sheer volume of experimentation across all phases.',
-        tips: 'Every experiment contributes to eventual wisdom. Trust the process.'
+        story: 'Your life has phases, and you learn through constant experimentation across all of them.',
+        showsUp: 'Many things tried. Many things dropped. Eventual authority earned through living it.',
+        challenge: 'The trap is exhaustion from the sheer volume of experiments.',
+        tips: 'Every experiment contributes to eventual wisdom. Nothing is wasted.'
       }
     };
-    return content[profile] || { story: 'Your profile shapes how you learn and grow.', showsUp: 'Unique patterns in how you engage with life.', challenge: 'Resisting your natural way of being.', tips: 'Embrace how you\'re designed to operate.' };
+    return content[profile] || { story: 'You have your own way of moving through life and learning.', showsUp: 'Patterns unique to how you engage with experience.', challenge: 'The trap is resisting your natural rhythm.', tips: 'Pay attention to what consistently works for you.' };
   };
 
   // Get Incarnation Cross card content
@@ -2733,17 +2733,31 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Helper functions for center content
+  // Helper functions for center content - more human tone
   const getShortCenterStory = (center: any): string => {
     if (center.what_this_means) {
       const text = center.what_this_means;
       const firstSentence = text.split('.')[0] + '.';
-      return firstSentence.length < 100 ? firstSentence : firstSentence.slice(0, 97) + '...';
+      return firstSentence.length < 90 ? firstSentence : firstSentence.slice(0, 87) + '...';
     }
-    const name = center.name || center.center_name;
-    return center.defined 
-      ? `Your ${name} center is defined, giving you consistent access to this energy.`
-      : `Your ${name} center is undefined, meaning you take in and amplify this energy from others.`;
+    const name = (center.name || center.center_name || '').toLowerCase();
+    // More human fallbacks based on center
+    const stories: Record<string, { defined: string; undefined: string }> = {
+      'head': { defined: 'Your mind consistently generates questions and ideas—it doesn\'t turn off easily.', undefined: 'You pick up on the mental energy around you. Not all those questions are yours.' },
+      'ajna': { defined: 'You have your own reliable way of thinking things through.', undefined: 'You can see things from multiple angles—your thinking shifts depending on context.' },
+      'throat': { defined: 'You have a consistent voice and way of expressing yourself.', undefined: 'Your expression adapts to your environment. Sometimes you have a lot to say, sometimes not.' },
+      'g': { defined: 'You carry a stable sense of who you are and where you\'re going.', undefined: 'Your sense of self shifts with your environment and the people around you.' },
+      'g center': { defined: 'You carry a stable sense of who you are and where you\'re going.', undefined: 'Your sense of self shifts with your environment and the people around you.' },
+      'heart': { defined: 'You have consistent willpower when you commit to something.', undefined: 'Your willpower fluctuates. Careful what you promise.' },
+      'ego': { defined: 'You have consistent willpower when you commit to something.', undefined: 'Your willpower fluctuates. Careful what you promise.' },
+      'spleen': { defined: 'Your intuition speaks clearly—quick knowing about what\'s right or not.', undefined: 'You absorb fears from your environment. Learn to tell which ones are actually yours.' },
+      'solar plexus': { defined: 'You ride emotional waves—highs, lows, and everything between.', undefined: 'You absorb others\' emotions deeply. Not all that feeling belongs to you.' },
+      'sacral': { defined: 'You have sustainable energy for work you love. Your gut knows what\'s right.', undefined: 'You don\'t have consistent work energy. Rest isn\'t optional—it\'s required.' },
+      'root': { defined: 'You handle pressure in a consistent way. It doesn\'t control you.', undefined: 'You amplify pressure from outside. Not everything is as urgent as it feels.' }
+    };
+    return stories[name]?.[center.defined ? 'defined' : 'undefined'] || (center.defined 
+      ? 'You have consistent access to this energy.'
+      : 'You take in this energy from others and amplify it.');
   };
 
   const getShortText = (text: string | undefined): string => {
