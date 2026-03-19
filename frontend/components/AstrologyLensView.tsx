@@ -453,11 +453,30 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
         ) : data ? (
           <>
             {/* Title */}
-            <Text style={[styles.title, { color: theme.text }]}>{data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : 'Astrology')}</Text>
+            <Text style={[styles.title, { color: theme.text }]}>{data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : activeTab === 'today' ? 'Today' : 'Astrology')}</Text>
 
             {/* Date for Today's Snapshot tab only */}
             {activeTab === 'today' && data.date && (
               <Text style={[styles.dateLabel, { color: theme.textTertiary }]}>{data.date}</Text>
+            )}
+
+            {/* v6: TODAY TAB - Render narrative card */}
+            {activeTab === 'today' && (
+              <>
+                {/* Debug: Log narrative data */}
+                {console.log('[ASTROLOGY_TODAY] data:', JSON.stringify({ narrative: data.narrative, technical: data.technical }, null, 2))}
+                
+                {data.narrative ? (
+                  renderTodayNarrative()
+                ) : (
+                  /* Fallback when no narrative */
+                  <View style={[styles.narrativeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                    <Text style={[styles.narrativeText, { color: theme.textSecondary, fontStyle: 'italic' }]}>
+                      Still forming…
+                    </Text>
+                  </View>
+                )}
+              </>
             )}
 
             {/* Core Placements Card (Deep Dive only) - always show even if success=false */}
@@ -466,8 +485,8 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
             {/* ERROR CARD: Show when Deep Dive computation failed */}
             {activeTab === 'deep_dive' && data.success === false && renderComputeErrorCard()}
 
-            {/* Only show content sections if success !== false */}
-            {data.success !== false && (
+            {/* Only show content sections if success !== false AND not today tab (today uses narrative) */}
+            {data.success !== false && activeTab !== 'today' && (
               <>
                 {/* Expand Button (Deep Dive only) */}
                 {activeTab === 'deep_dive' && (
@@ -859,5 +878,57 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
+  },
+  // v6 Narrative styles for Today tab
+  narrativeContainer: {
+    marginBottom: 20,
+  },
+  narrativeCard: {
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'transparent',
+  },
+  narrativeText: {
+    fontSize: 16,
+    lineHeight: 26,
+    color: 'inherit',
+  },
+  technicalToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  technicalToggleText: {
+    fontSize: 13,
+    color: 'inherit',
+  },
+  technicalCard: {
+    backgroundColor: 'transparent',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'transparent',
+  },
+  technicalRow: {
+    marginBottom: 10,
+  },
+  technicalLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    color: 'inherit',
+    marginBottom: 4,
+  },
+  technicalValue: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: 'inherit',
   },
 });
