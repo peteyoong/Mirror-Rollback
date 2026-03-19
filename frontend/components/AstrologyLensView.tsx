@@ -19,6 +19,28 @@ interface AstrologySection {
   body: string;
 }
 
+// v6: Narrative-based response from /astrology/today-v2
+interface AstrologyNarrativeData {
+  success: boolean;
+  version: string;
+  date: string;
+  narrative: string;
+  experience?: string;
+  cause?: string;
+  guidance?: string;
+  internal_dynamics?: string;
+  technical?: {
+    placements?: string[];
+    transits?: string[];
+  };
+  day_class?: string;
+  transit_summary?: string;
+  validation?: {
+    valid: boolean;
+    feels_like_thought?: boolean;
+  };
+}
+
 interface AstrologyData {
   title: string;
   sections: AstrologySection[];
@@ -32,6 +54,12 @@ interface AstrologyData {
   success?: boolean;
   error?: string;
   message?: string;
+  // v6: narrative data for Today tab
+  narrative?: string;
+  technical?: {
+    placements?: string[];
+    transits?: string[];
+  };
   // Debug fields from API
   debug_stamp?: {
     fallback_used?: boolean;
@@ -72,14 +100,30 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
     setError(null);
 
     try {
+      // v6: Use today-v2 endpoint for Mirror-style narrative
       const endpoint = tab === 'today' 
-        ? `/astrology/today/${userId}`
+        ? `/astrology/today-v2/${userId}`
         : tab === 'deep_dive'
         ? `/astrology/deep-dive/${userId}`
         : `/astrology/summary/${userId}`;
 
       const response = await api.get(endpoint);
-      setData(response.data);
+      
+      // v6: Transform today-v2 response to unified format
+      if (tab === 'today' && response.data.narrative) {
+        const narrativeData = response.data as AstrologyNarrativeData;
+        setData({
+          title: 'Today',
+          sections: [], // No sections for narrative view
+          mirror_prompt: '',
+          date: narrativeData.date,
+          success: narrativeData.success,
+          narrative: narrativeData.narrative,
+          technical: narrativeData.technical,
+        });
+      } else {
+        setData(response.data);
+      }
       
       // Debug: Calculate raw data length for comparison
       if (isDebugEnabled() && response.data?.sections) {
@@ -310,6 +354,70 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
       </View>
     </Modal>
   );
+
+  // v6: Render Mirror-style narrative for Today tab (no sections, no headers)
+  const renderTodayNarrative = () => {
+    if (!data?.narrative) return null;
+
+    return (
+      <View style={styles.narrativeContainer}>
+        {/* Single narrative card - no headers inside */}
+        <View style={[styles.narrativeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.narrativeText, { color: theme.text }]}>
+            {data.narrative}
+          </Text>
+        </View>
+
+        {/* Collapsible "See what's driving this" */}
+        {data.technical && (data.technical.placements || data.technical.transits) && (
+          <TouchableOpacity
+            style={styles.technicalToggle}
+            onPress={() => setExpandedSection(expandedSection === 'technical' ? null : 'technical')}
+          >
+            <Text style={[styles.technicalToggleText, { color: theme.textTertiary }]}>
+              {expandedSection === 'technical' ? 'Hide' : 'See'} what's driving this
+            </Text>
+            <Text style={{ fontSize: 12, color: theme.textTertiary }}>
+              {expandedSection === 'technical' ? '▲' : '▼'}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Technical details (hidden by default) */}
+        {expandedSection === 'technical' && data.technical && (
+          <View style={[styles.technicalCard, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
+            {data.technical.placements && data.technical.placements.length > 0 && (
+              <View style={styles.technicalRow}>
+                <Text style={[styles.technicalLabel, { color: theme.textTertiary }]}>PLACEMENTS</Text>
+                <Text style={[styles.technicalValue, { color: theme.textSecondary }]}>
+                  {data.technical.placements.join(' • ')}
+                </Text>
+              </View>
+            )}
+            {data.technical.transits && data.technical.transits.length > 0 && (
+              <View style={styles.technicalRow}>
+                <Text style={[styles.technicalLabel, { color: theme.textTertiary }]}>TRANSITS</Text>
+                <Text style={[styles.technicalValue, { color: theme.textSecondary }]}>
+                  {data.technical.transits.join(' • ')}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Reflect button */}
+        <InlineReflectButton
+          source={{
+            lens: 'astrology',
+            type: 'today_narrative',
+            name: 'Today',
+            id: 'astrology_today_narrative',
+          }}
+          prompt={`Reflect on today: ${data.narrative.slice(0, 150)}...`}
+        />
+      </View>
+    );
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
