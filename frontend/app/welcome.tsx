@@ -204,7 +204,7 @@ export default function Welcome() {
               onPress={handleContinue}
               activeOpacity={0.8}
             >
-              <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Continue</Text>
+              <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Enter</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -212,7 +212,7 @@ export default function Welcome() {
               onPress={handleBeginReflection}
               activeOpacity={0.8}
             >
-              <Text style={[styles.textButtonText, { color: darkTheme.textTertiary }]}>Start Fresh</Text>
+              <Text style={[styles.textButtonText, { color: darkTheme.textTertiary }]}>Begin Again</Text>
             </TouchableOpacity>
           </View>
 
@@ -308,7 +308,7 @@ export default function Welcome() {
                 {isLoading ? (
                   <ActivityIndicator size="small" color={darkTheme.buttonPrimaryText} />
                 ) : (
-                  <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Sign In</Text>
+                  <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Enter</Text>
                 )}
               </TouchableOpacity>
               
