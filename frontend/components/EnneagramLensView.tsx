@@ -15,6 +15,7 @@ import { useTheme, ThemeColors } from '../contexts/ThemeContext';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { InlineReflectButton } from './UniversalReflectButton';
+import KeystoneReferenceLink from './KeystoneReferenceLink';
 import { 
   sendEnneagramChat, 
   getEnneagramTraits,
@@ -1482,41 +1483,21 @@ export default function EnneagramLensView({ result, userId }: Props) {
     return { text: 'Exploratory', tier: 'low' };
   };
 
-  // Render Keystone Pattern explanation section (Deep Dive only)
+  // ARCHITECTURE LOCK: Lenses explain the Keystone, they don't display it.
+  // This renders ONLY the lens-specific explanation (WHY THIS KEEPS REPEATING)
+  // The full Keystone card lives on Home. KeystoneReferenceLink handles navigation.
   const renderKeystoneExplanation = () => {
     console.log('[EnneagramLensView] renderKeystoneExplanation - deepDiveData:', !!deepDiveData, 'keystone_explanation:', !!deepDiveData?.keystone_explanation);
     if (!deepDiveData?.keystone_explanation) return null;
     
     const { 
-      keystone_label, 
-      keystone_sequence, 
       lens_explanation_title, 
       lens_explanation_body 
     } = deepDiveData.keystone_explanation;
 
     return (
       <View style={[styles.keystoneExplanationCard, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
-        {/* Keystone Anchor */}
-        <View style={styles.keystoneAnchor}>
-          <Text style={[styles.keystoneEyebrow, { color: theme.textTertiary }]}>
-            TODAY'S PATTERN
-          </Text>
-          <Text style={[styles.keystoneLabel, { color: theme.text }]}>
-            {keystone_label}
-          </Text>
-          <View style={styles.keystoneSequence}>
-            {keystone_sequence?.map((line, idx) => (
-              <Text key={idx} style={[styles.keystoneSequenceLine, { color: theme.textSecondary }]}>
-                {line}
-              </Text>
-            ))}
-          </View>
-        </View>
-
-        {/* Divider */}
-        <View style={[styles.keystoneDivider, { backgroundColor: theme.border }]} />
-
-        {/* Enneagram Repetition Explanation */}
+        {/* Enneagram Repetition Explanation ONLY - No Keystone anchor/sequence */}
         <View style={styles.keystoneExplanation}>
           <Text style={[styles.keystoneRoleLabel, { color: theme.accent }]}>
             WHY THIS KEEPS REPEATING
@@ -2063,6 +2044,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
+        {/* ARCHITECTURE LOCK: Keystone Reference Link at top of all tabs */}
+        {/* Navigates to Home where the full Keystone card lives */}
+        <KeystoneReferenceLink patternLabel={deepDiveData?.keystone_explanation?.keystone_label} />
+        
         {activeTab === 'summary' && renderSummaryTab()}
         {activeTab === 'at_a_glance' && renderAtAGlanceTab()}
         {activeTab === 'today' && renderTodayTab()}

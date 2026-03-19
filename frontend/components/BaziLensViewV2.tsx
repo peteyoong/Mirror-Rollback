@@ -37,6 +37,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
+import KeystoneReferenceLink from './KeystoneReferenceLink';
 
 // =============================================================================
 // INTERFACES (V2 Response Shape)

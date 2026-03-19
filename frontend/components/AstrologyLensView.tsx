@@ -13,6 +13,7 @@ import { InlineReflectButton } from './UniversalReflectButton';
 // Removed Ionicons - using text alternatives for web compatibility
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
+import KeystoneReferenceLink from './KeystoneReferenceLink';
 
 interface AstrologySection {
   label: string;
@@ -378,41 +379,21 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
     );
   };
 
-  // Render Keystone Pattern explanation section (Deep Dive only)
+  // ARCHITECTURE LOCK: Lenses explain the Keystone, they don't display it.
+  // This renders ONLY the lens-specific explanation (WHY THIS IS LOUD TODAY)
+  // The full Keystone card lives on Home. KeystoneReferenceLink handles navigation.
   const renderKeystoneExplanation = () => {
     if (activeTab !== 'deep_dive') return null;
     if (!data?.keystone_explanation) return null;
     
     const { 
-      keystone_label, 
-      keystone_sequence, 
       lens_explanation_title, 
       lens_explanation_body 
     } = data.keystone_explanation;
 
     return (
       <View style={[styles.keystoneExplanationCard, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
-        {/* Keystone Anchor */}
-        <View style={styles.keystoneAnchor}>
-          <Text style={[styles.keystoneEyebrow, { color: theme.textTertiary }]}>
-            TODAY'S PATTERN
-          </Text>
-          <Text style={[styles.keystoneLabel, { color: theme.text }]}>
-            {keystone_label}
-          </Text>
-          <View style={styles.keystoneSequence}>
-            {keystone_sequence?.map((line, idx) => (
-              <Text key={idx} style={[styles.keystoneSequenceLine, { color: theme.textSecondary }]}>
-                {line}
-              </Text>
-            ))}
-          </View>
-        </View>
-
-        {/* Divider */}
-        <View style={[styles.keystoneDivider, { backgroundColor: theme.border }]} />
-
-        {/* Astrology Explanation */}
+        {/* Astrology Explanation ONLY - No Keystone anchor/sequence */}
         <View style={styles.keystoneExplanation}>
           <Text style={[styles.keystoneRoleLabel, { color: theme.accent }]}>
             WHY THIS IS LOUD TODAY
@@ -718,6 +699,10 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           </View>
         ) : data ? (
           <>
+            {/* ARCHITECTURE LOCK: Keystone Reference Link at top of all tabs */}
+            {/* Navigates to Home where the full Keystone card lives */}
+            <KeystoneReferenceLink patternLabel={data?.keystone_explanation?.keystone_label} />
+
             {/* Title - only show for non-Today tabs */}
             {activeTab !== 'today' && (
               <Text style={[styles.title, { color: theme.text }]}>{data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : 'Astrology')}</Text>

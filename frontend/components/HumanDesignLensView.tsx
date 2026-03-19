@@ -32,6 +32,7 @@ import DefinedGatesView from './DefinedGatesView';
 import { ForumContextBanner } from './ForumContextBanner';
 import { InlineReflectButton } from './UniversalReflectButton';
 import { UniversalReflectionModal, ReflectionSource } from './UniversalReflectionModal';
+import KeystoneReferenceLink from './KeystoneReferenceLink';
 
 // Build info for debugging
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
@@ -2870,40 +2871,20 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
   
-  // Render Keystone Pattern explanation section (Deep Dive only)
+  // ARCHITECTURE LOCK: Lenses explain the Keystone, they don't display it.
+  // This renders ONLY the lens-specific explanation (WHERE THIS COMES FROM)
+  // The full Keystone card lives on Home. KeystoneReferenceLink handles navigation.
   const renderKeystoneExplanation = () => {
     if (!data?.keystone_explanation) return null;
     
     const { 
-      keystone_label, 
-      keystone_sequence, 
       lens_explanation_title, 
       lens_explanation_body 
     } = data.keystone_explanation;
 
     return (
       <View style={[styles.keystoneExplanationCard, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
-        {/* Keystone Anchor */}
-        <View style={styles.keystoneAnchor}>
-          <Text style={[styles.keystoneEyebrow, { color: theme.textTertiary }]}>
-            TODAY'S PATTERN
-          </Text>
-          <Text style={[styles.keystoneLabel, { color: theme.text }]}>
-            {keystone_label}
-          </Text>
-          <View style={styles.keystoneSequence}>
-            {keystone_sequence?.map((line, idx) => (
-              <Text key={idx} style={[styles.keystoneSequenceLine, { color: theme.textSecondary }]}>
-                {line}
-              </Text>
-            ))}
-          </View>
-        </View>
-
-        {/* Divider */}
-        <View style={[styles.keystoneDivider, { backgroundColor: theme.border }]} />
-
-        {/* HD Mechanism Explanation */}
+        {/* HD Mechanism Explanation ONLY - No Keystone anchor/sequence */}
         <View style={styles.keystoneExplanation}>
           <Text style={[styles.keystoneRoleLabel, { color: theme.accent }]}>
             WHERE THIS COMES FROM
@@ -4755,6 +4736,10 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
           </View>
         ) : data ? (
           <>
+            {/* ARCHITECTURE LOCK: Keystone Reference Link at top of all tabs */}
+            {/* Navigates to Home where the full Keystone card lives */}
+            <KeystoneReferenceLink patternLabel={data?.keystone_explanation?.keystone_label} />
+            
             {/* Tab Blurb - Show at top of each tab EXCEPT Today (which has its own header) */}
             {activeTab !== 'today' && renderTabBlurb()}
             
