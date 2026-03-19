@@ -11049,6 +11049,51 @@ You're essentially here for one thing. The specific gates of your cross describe
         result["debug_stamp"]["quality_gate"] = quality_gate_debug
         
         # =====================================================================
+        # KEYSTONE PATTERN EXPLANATION: Where this pattern comes from
+        # Role: MECHANISM
+        # =====================================================================
+        try:
+            from services.keystone_lens_explanations import generate_human_design_keystone_explanation, validate_lens_explanation
+            from datetime import timezone as tz
+            
+            # Get today's date string
+            today_date = datetime.now(tz.utc).strftime("%Y-%m-%d")
+            
+            # Fetch user's current Keystone Pattern
+            keystone_doc = await db.keystone_patterns.find_one({
+                "user_id": user_id,
+                "date": today_date
+            })
+            
+            if keystone_doc:
+                # Generate the explanation
+                keystone_explanation = generate_human_design_keystone_explanation(
+                    keystone_pattern_id=keystone_doc.get("pattern_id"),
+                    keystone_label=keystone_doc.get("pattern_label"),
+                    keystone_sequence=keystone_doc.get("behavior_sequence", [])
+                )
+                
+                # Validate the explanation matches
+                validation = validate_lens_explanation(
+                    keystone_explanation,
+                    keystone_doc.get("pattern_id")
+                )
+                
+                if validation["valid"]:
+                    result["keystone_explanation"] = keystone_explanation
+                    logger.info(f"[HumanDesignDeepDive] Added keystone explanation for pattern: {keystone_doc.get('pattern_id')}")
+                else:
+                    logger.warning(f"[HumanDesignDeepDive] Keystone validation failed: {validation}")
+                    result["keystone_explanation"] = None
+            else:
+                logger.info(f"[HumanDesignDeepDive] No keystone found for user {user_id}")
+                result["keystone_explanation"] = None
+                
+        except Exception as keystone_err:
+            logger.warning(f"[HumanDesignDeepDive] Keystone explanation error: {keystone_err}")
+            result["keystone_explanation"] = None
+        
+        # =====================================================================
         # CACHE THE RESPONSE for instant repeat views
         # =====================================================================
         await set_cached_deep_dive(user_id, "human_design", result)

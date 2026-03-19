@@ -163,6 +163,143 @@ def generate_astrology_keystone_explanation(
 
 
 # =============================================================================
+# HUMAN DESIGN MECHANISM EXPLANATIONS
+# Maps pattern_id → where this pattern comes from in the person's system
+#
+# RULES:
+# - Must reference specific HD mechanics (centers, channels, authority type)
+# - Must answer: "Why does this pattern happen in my system?"
+# - NO banned words: energy, alignment, growth, transformation, awareness
+# - Must describe the MECHANISM, not the whole person
+# - Must NOT create a new daily truth or compete with Keystone
+# =============================================================================
+
+HUMAN_DESIGN_MECHANISM_EXPLANATIONS = {
+    "decision_switch_loop": {
+        "title": "Where The Switching Comes From",
+        "body": "Your system processes decisions through multiple centers before landing. The Head and Ajna want certainty. The Solar Plexus wants emotional clarity. When they don't sync, you cycle through options. This isn't indecision—it's your mechanism requiring more passes before commitment."
+    },
+    "decide_then_undo": {
+        "title": "Why You Reverse After Committing",
+        "body": "Your design has a fast response mechanism paired with a slower emotional wave. The initial 'yes' comes from one center. Then another center catches up and overrides. The undo isn't flip-flopping—it's a two-stage verification system built into your wiring."
+    },
+    "endless_options": {
+        "title": "Why Options Keep Multiplying",
+        "body": "Your Head Center generates possibilities faster than your Authority can filter them. Each option triggers three more considerations. The paralysis isn't weakness—it's an overactive conceptual system outpacing your decision mechanism."
+    },
+    "start_stop_restart": {
+        "title": "Why Momentum Breaks",
+        "body": "Your Sacral responds in bursts, not sustained streams. It says 'yes' to begin, then needs to check again mid-process. The stopping isn't lack of commitment—it's your generator mechanism requiring re-confirmation to continue."
+    },
+    "almost_act": {
+        "title": "Why You Pull Back at the Edge",
+        "body": "Your system has a built-in pause before action. The Spleen or Solar Plexus sends a last-second check signal. You get to the threshold, then something in your design says 'wait.' The hesitation is protective circuitry, not fear."
+    },
+    "action_delay_loop": {
+        "title": "Why Doing Gets Postponed",
+        "body": "Your Authority requires time that your mind doesn't want to give. The head plans immediately. The body needs to process longer. The delay isn't procrastination—it's a mismatch between your mental speed and your decision mechanism's timing requirements."
+    },
+    "force_clarity_fail": {
+        "title": "Why Clarity Won't Arrive on Demand",
+        "body": "Your design doesn't produce clarity through force. The Ajna analyzes, but your Authority operates on its own timeline. Pushing harder creates static, not signal. Your mechanism requires patience that your mind resists."
+    },
+    "think_loop": {
+        "title": "Why Thoughts Keep Circling",
+        "body": "Your Head Center is defined and constantly active. It generates questions, then questions the answers. The loop isn't overthinking—it's a pressure system designed to process deeply, not quickly. Completion comes from the body, not the mind."
+    },
+    "check_recheck": {
+        "title": "Why Verification Never Satisfies",
+        "body": "Your system has an undefined center that amplifies uncertainty. It absorbs doubt from the environment and magnifies it internally. The checking isn't paranoia—it's an open center looking for stability it can't generate on its own."
+    },
+    "direction_shift": {
+        "title": "Why Direction Keeps Changing",
+        "body": "Your G Center or Spleen receives new orientation data continuously. Each input recalibrates your sense of direction. The shifting isn't confusion—it's a navigation system that updates in real-time rather than locking in."
+    },
+    "restless_pivot": {
+        "title": "Why Settling Feels Impossible",
+        "body": "Your design has motor energy that seeks movement. Stillness creates pressure in your system. The restlessness isn't anxiety—it's defined motor centers that aren't satisfied with static states. Your mechanism is built to move."
+    },
+    "forward_backward": {
+        "title": "Why Progress Reverses",
+        "body": "Your Authority operates in waves, not straight lines. Forward movement triggers a review signal from another center. The backward step isn't regression—it's your system's natural integration rhythm. Two steps forward, one step back is your pattern, not a flaw."
+    },
+    "almost_done": {
+        "title": "Why Finishing Stalls",
+        "body": "Your system has a completion checkpoint that activates near the end. The Throat or Solar Plexus sends a pause signal before the final step. The stall isn't resistance—it's a quality-control mechanism asking: 'Are we actually ready to close this?'"
+    },
+    "hold_open": {
+        "title": "Why Closure Gets Avoided",
+        "body": "Your design processes better with options than with finality. Closing a loop triggers loss signals in your system. The avoidance isn't fear of commitment—it's a mechanism that values possibility over completion."
+    },
+    "finish_unfinish": {
+        "title": "Why Done Keeps Reopening",
+        "body": "Your Authority doesn't recognize 'done' the way your mind does. The mental 'complete' happens before the body agrees. The reopening isn't perfectionism—it's your system signaling that the actual completion criteria weren't met."
+    },
+    "react_regret": {
+        "title": "Why Response Outruns Processing",
+        "body": "Your Sacral or Solar Plexus responds before your Ajna can evaluate. The response mechanism is faster than the analysis mechanism. The regret isn't impulsivity—it's a timing gap between reaction and understanding that's built into your design."
+    },
+    "feel_before_think": {
+        "title": "Why Emotion Arrives First",
+        "body": "Your Solar Plexus is defined and processes ahead of your mental centers. Feeling is your first data point, not an afterthought. The sequencing isn't irrationality—it's your system prioritizing emotional intelligence over mental analysis."
+    },
+    "snap_then_soften": {
+        "title": "Why Sharpness Comes Before Tenderness",
+        "body": "Your system has a protective edge that activates before your softer response. The Spleen or defined Will pushes out first. Vulnerability follows once safety is established. The snap isn't aggression—it's a defense mechanism that fires before your heart center engages."
+    },
+}
+
+
+def generate_human_design_keystone_explanation(
+    keystone_pattern_id: str,
+    keystone_label: str,
+    keystone_sequence: list,
+    hd_data: Optional[Dict] = None
+) -> Dict[str, Any]:
+    """
+    Generate Human Design's explanation of WHERE this Keystone Pattern comes from.
+    
+    Role: MECHANISM
+    Question answered: "Why does this pattern happen in my system?"
+    
+    Returns the Lens Framing Contract:
+    {
+        "keystone_pattern_id": "...",
+        "lens_role": "mechanism",
+        "lens_explanation_title": "...",
+        "lens_explanation_body": "...",
+        "supports_keystone": true
+    }
+    """
+    
+    # Get the pre-written explanation for this pattern
+    explanation = HUMAN_DESIGN_MECHANISM_EXPLANATIONS.get(keystone_pattern_id)
+    
+    if explanation:
+        return {
+            "keystone_pattern_id": keystone_pattern_id,
+            "keystone_label": keystone_label,
+            "keystone_sequence": keystone_sequence,
+            "lens_role": LensRole.MECHANISM.value,
+            "lens_explanation_title": explanation["title"],
+            "lens_explanation_body": explanation["body"],
+            "supports_keystone": True
+        }
+    
+    # Fallback if pattern not in library
+    logger.warning(f"[KeystoneExplanation] No HD explanation for pattern: {keystone_pattern_id}")
+    return {
+        "keystone_pattern_id": keystone_pattern_id,
+        "keystone_label": keystone_label,
+        "keystone_sequence": keystone_sequence,
+        "lens_role": LensRole.MECHANISM.value,
+        "lens_explanation_title": "Where This Pattern Lives In Your Design",
+        "lens_explanation_body": "This behavioral loop originates from specific centers and channels in your Human Design. Your system processes this way by design, not by choice.",
+        "supports_keystone": True
+    }
+
+
+# =============================================================================
 # VALIDATION: Ensure lens explanation matches Keystone
 # =============================================================================
 
@@ -186,7 +323,8 @@ def validate_lens_explanation(
     - keystone_pattern_id doesn't match
     - supports_keystone is False
     - explanation contains banned words
-    - explanation is too generic (doesn't mention timing)
+    - Astrology: doesn't mention timing language
+    - Human Design: doesn't mention mechanism language
     
     Returns validation result with pass/fail status.
     """
@@ -194,6 +332,7 @@ def validate_lens_explanation(
     actual_pattern_id = lens_explanation.get("keystone_pattern_id")
     supports_keystone = lens_explanation.get("supports_keystone", False)
     explanation_body = lens_explanation.get("lens_explanation_body", "").lower()
+    lens_role = lens_explanation.get("lens_role", "")
     
     # Check 1: Pattern ID must match
     if actual_pattern_id != expected_pattern_id:
@@ -225,25 +364,46 @@ def validate_lens_explanation(
             "pattern_id": actual_pattern_id
         }
     
-    # Check 4: Must contain timing language (for astrology)
-    timing_indicators = [
-        "today", "right now", "this transit", "currently", 
-        "mercury", "mars", "venus", "saturn", "jupiter", "uranus", "neptune", "pluto",
-        "moon", "sun", "retrograde", "square", "conjunct", "aspect",
-        "this window", "this period", "passes", "moves on", "clears"
-    ]
-    has_timing = any(indicator in explanation_body for indicator in timing_indicators)
+    # Check 4: Lens-specific language requirements
+    if lens_role == LensRole.TIMING_TRIGGER.value:
+        # Astrology must contain timing language
+        timing_indicators = [
+            "today", "right now", "this transit", "currently", 
+            "mercury", "mars", "venus", "saturn", "jupiter", "uranus", "neptune", "pluto",
+            "moon", "sun", "retrograde", "square", "conjunct", "aspect",
+            "this window", "this period", "passes", "moves on", "clears"
+        ]
+        has_timing = any(indicator in explanation_body for indicator in timing_indicators)
+        
+        if not has_timing:
+            logger.warning(f"[LensValidation] No timing language found in astrology explanation")
+            return {
+                "valid": False,
+                "error": "missing_timing_language",
+                "pattern_id": actual_pattern_id
+            }
     
-    if not has_timing:
-        logger.warning(f"[LensValidation] No timing language found in explanation")
-        return {
-            "valid": False,
-            "error": "missing_timing_language",
-            "pattern_id": actual_pattern_id
-        }
+    elif lens_role == LensRole.MECHANISM.value:
+        # Human Design must contain mechanism language
+        mechanism_indicators = [
+            "center", "centers", "channel", "channels", "authority", "type",
+            "sacral", "solar plexus", "spleen", "head", "ajna", "throat", "g center",
+            "heart", "root", "defined", "undefined", "open", "generator", "projector",
+            "manifestor", "reflector", "system", "design", "wiring", "mechanism",
+            "response", "invitation", "inform", "wait"
+        ]
+        has_mechanism = any(indicator in explanation_body for indicator in mechanism_indicators)
+        
+        if not has_mechanism:
+            logger.warning(f"[LensValidation] No mechanism language found in HD explanation")
+            return {
+                "valid": False,
+                "error": "missing_mechanism_language",
+                "pattern_id": actual_pattern_id
+            }
     
     return {
         "valid": True,
         "pattern_id": actual_pattern_id,
-        "lens_role": lens_explanation.get("lens_role")
+        "lens_role": lens_role
     }

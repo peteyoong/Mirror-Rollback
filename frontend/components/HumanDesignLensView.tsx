@@ -706,6 +706,16 @@ interface HumanDesignData {
     timestamp?: string;
     cached?: boolean;
   };
+  // Keystone explanation for Deep Dive tab
+  keystone_explanation?: {
+    keystone_pattern_id: string;
+    keystone_label: string;
+    keystone_sequence: string[];
+    lens_role: string;
+    lens_explanation_title: string;
+    lens_explanation_body: string;
+    supports_keystone: boolean;
+  } | null;
 }
 
 interface Props {
@@ -2833,6 +2843,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     return (
       <>
+        {/* KEYSTONE EXPLANATION: Where this pattern comes from */}
+        {renderKeystoneExplanation()}
+        
         {/* Mode Toggle */}
         <View style={[styles.deepDiveModeToggle, { backgroundColor: theme.background, borderColor: theme.border }]}>
           <TouchableOpacity
@@ -2854,6 +2867,55 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* Conditional render based on mode */}
         {deepDiveMode === 'explore' ? renderExploreMode() : renderReadingMode()}
       </>
+    );
+  };
+  
+  // Render Keystone Pattern explanation section (Deep Dive only)
+  const renderKeystoneExplanation = () => {
+    if (!data?.keystone_explanation) return null;
+    
+    const { 
+      keystone_label, 
+      keystone_sequence, 
+      lens_explanation_title, 
+      lens_explanation_body 
+    } = data.keystone_explanation;
+
+    return (
+      <View style={[styles.keystoneExplanationCard, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
+        {/* Keystone Anchor */}
+        <View style={styles.keystoneAnchor}>
+          <Text style={[styles.keystoneEyebrow, { color: theme.textTertiary }]}>
+            TODAY'S PATTERN
+          </Text>
+          <Text style={[styles.keystoneLabel, { color: theme.text }]}>
+            {keystone_label}
+          </Text>
+          <View style={styles.keystoneSequence}>
+            {keystone_sequence?.map((line, idx) => (
+              <Text key={idx} style={[styles.keystoneSequenceLine, { color: theme.textSecondary }]}>
+                {line}
+              </Text>
+            ))}
+          </View>
+        </View>
+
+        {/* Divider */}
+        <View style={[styles.keystoneDivider, { backgroundColor: theme.border }]} />
+
+        {/* HD Mechanism Explanation */}
+        <View style={styles.keystoneExplanation}>
+          <Text style={[styles.keystoneRoleLabel, { color: theme.accent }]}>
+            WHERE THIS COMES FROM
+          </Text>
+          <Text style={[styles.keystoneExplanationTitle, { color: theme.text }]}>
+            {lens_explanation_title}
+          </Text>
+          <Text style={[styles.keystoneExplanationBody, { color: theme.textSecondary }]}>
+            {lens_explanation_body}
+          </Text>
+        </View>
+      </View>
     );
   };
   
@@ -6932,5 +6994,58 @@ const styles = StyleSheet.create({
   readingParagraph: {
     fontSize: 15,
     lineHeight: 24,
+  },
+  // Keystone Explanation Card styles
+  keystoneExplanationCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderLeftWidth: 3,
+  },
+  keystoneAnchor: {
+    marginBottom: 16,
+  },
+  keystoneEyebrow: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  keystoneLabel: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  keystoneSequence: {
+    gap: 6,
+  },
+  keystoneSequenceLine: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  keystoneDivider: {
+    height: 1,
+    marginVertical: 16,
+  },
+  keystoneExplanation: {
+    gap: 8,
+  },
+  keystoneRoleLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  keystoneExplanationTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  keystoneExplanationBody: {
+    fontSize: 15,
+    lineHeight: 23,
+    marginTop: 4,
   },
 });
