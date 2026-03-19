@@ -29,80 +29,86 @@ class LensRole(str, Enum):
 # =============================================================================
 # ASTROLOGY TIMING EXPLANATIONS
 # Maps pattern_id → why this pattern is loud TODAY
+#
+# RULES:
+# - Must reference specific timing (transit, moon phase, planetary position)
+# - Must answer: "Why TODAY specifically?"
+# - NO banned words: energy, alignment, growth, transformation, awareness
+# - Must be causally tied to the Keystone behavior, not personality
 # =============================================================================
 
 ASTROLOGY_TIMING_EXPLANATIONS = {
     "decision_switch_loop": {
-        "title": "Why You Can't Land on Anything Today",
-        "body": "Mercury is creating static in your decision-making. Information isn't landing cleanly. Every option seems equally valid—and equally flawed. The timing is working against closure."
+        "title": "Why You Can't Land on Anything Right Now",
+        "body": "Mercury is square Neptune today. Information is distorted. What seemed clear five minutes ago now has gaps. You're not indecisive—you're receiving conflicting signals that make commitment feel premature."
     },
     "decide_then_undo": {
         "title": "Why You Keep Taking Things Back",
-        "body": "There's tension between your impulse to act and your need to be sure. Today's timing rewards neither—commit too fast and you'll regret it, wait too long and the window closes."
+        "body": "Mars is pushing action while the Moon is in a holding pattern. You commit from impulse, then the slower part of you catches up and says 'wait.' The reversal isn't weakness—it's two different timing systems colliding."
     },
     "endless_options": {
         "title": "Why Nothing Feels Like The One",
-        "body": "The current energy expands possibilities instead of narrowing them. Every door opens two more. Your system is absorbing options faster than it can process them."
+        "body": "Jupiter is expanding your field of perception today. Every option opens two more. Your system is absorbing faster than it can filter. The paralysis isn't in you—it's in the volume of incoming data."
     },
     "start_stop_restart": {
         "title": "Why You Can't Sustain Momentum",
-        "body": "Today's rhythm is choppy. Energy comes in bursts that don't last. You have initiation without follow-through—not because you lack will, but because the timing doesn't support continuity."
+        "body": "The Moon is void-of-course right now. Actions started during this window tend to stall or need restarting. This isn't a personal failing—it's literally a dead zone for follow-through."
     },
     "almost_act": {
-        "title": "Why You Keep Pulling Back",
-        "body": "There's a gap between readiness and release. You get to the edge, but something in the timing says 'not yet.' The hesitation isn't fear—it's information."
+        "title": "Why You Keep Pulling Back at the Edge",
+        "body": "Saturn is aspecting your action planets today. Every time you reach forward, something pulls you back for one more check. The hesitation is Saturn asking: 'Are you actually ready for what happens next?'"
     },
     "action_delay_loop": {
         "title": "Why You Keep Postponing",
-        "body": "The energy today favors planning over execution. Every time you try to act, something pulls you back to preparation. The delay isn't procrastination—it's misaligned timing."
+        "body": "Mars is in a slow sign and squared by Saturn. The drive to act is there, but the timing keeps saying 'not yet.' You're not procrastinating—the window for clean action hasn't opened."
     },
     "force_clarity_fail": {
         "title": "Why Answers Aren't Coming",
-        "body": "Today's transit obscures rather than reveals. The harder you push for clarity, the more elusive it becomes. Understanding will come—but not through force."
+        "body": "Mercury is conjunct Neptune today. The harder you push for clarity, the more it dissolves. This isn't confusion—it's a transit that dissolves false certainty before real understanding arrives."
     },
     "think_loop": {
-        "title": "Why Your Mind Won't Stop",
-        "body": "Mercury is amplifying your mental processing. Thoughts loop because there's too much information and not enough ground to stand on. The answer isn't more thinking."
+        "title": "Why Your Mind Won't Stop Looping",
+        "body": "Mercury is in a tight aspect to Pluto today. Thoughts go deep, then deeper, then circle back. You're not overthinking—you're caught in a transit that demands you see what's underneath."
     },
     "check_recheck": {
         "title": "Why You Keep Looking Again",
-        "body": "Today's energy creates uncertainty about what you already know. Verification doesn't satisfy because the ground keeps shifting. Trust is hard to hold."
+        "body": "The Moon is in Virgo today, activating the part of you that double-checks everything. Verification doesn't satisfy because the transit keeps moving the threshold for 'enough.' It passes tomorrow."
     },
     "direction_shift": {
         "title": "Why You Keep Changing Course",
-        "body": "Cross-currents are pulling you in multiple directions. Each new input suggests a different path. The instability isn't in you—it's in the timing."
+        "body": "Uranus is active in your chart today. Each new input rewrites the previous plan. The instability isn't in your character—it's in a transit that literally specializes in sudden pivots."
     },
     "restless_pivot": {
-        "title": "Why You Can't Settle",
-        "body": "The current transit creates internal restlessness. Stillness feels wrong. Movement feels purposeless. Your system is searching for ground that keeps moving."
+        "title": "Why You Can't Stay in One Place",
+        "body": "The Moon is making multiple hard aspects today—square, opposition, square again. Every few hours, your internal state shifts. You're not restless by nature right now—you're being moved by rapid lunar transits."
     },
     "forward_backward": {
         "title": "Why Progress Feels Like Regression",
-        "body": "Today's energy has a retrograde quality. Two steps forward, one step back. The pattern isn't failure—it's integration happening in real time."
+        "body": "Mercury is stationing retrograde (or just stationed direct). Forward motion hits review mode. Two steps forward, one step back isn't failure—it's the literal signature of this transit period."
     },
     "almost_done": {
         "title": "Why You Can't Cross The Finish Line",
-        "body": "Completion is blocked by something you can't name. The last 10% feels harder than the first 90%. There's unfinished internal work that won't let you call it done."
+        "body": "Saturn is aspecting your completion planets today. The last 10% requires more than the first 90%. This isn't resistance—it's a transit that demands you earn the ending."
     },
     "hold_open": {
         "title": "Why You Won't Close The Loop",
-        "body": "Something in today's timing rewards optionality over closure. Keeping things open feels safer than finishing. The cost of commitment feels higher than usual."
+        "body": "Neptune is active today, blurring boundaries between done and not-done. Closure feels like loss of possibility. You're not avoiding commitment—you're under a transit that makes endings feel premature."
     },
     "finish_unfinish": {
         "title": "Why Done Never Stays Done",
-        "body": "Today's transit makes completion feel premature. What you finished keeps reopening because the timing wasn't actually right. Patience, not persistence, is the medicine."
+        "body": "Mercury retrograde (or its shadow) is activating revision. What you finished keeps reopening because the transit insists on one more pass. Completion will stick once Mercury clears this zone."
     },
     "react_regret": {
         "title": "Why You're Moving Faster Than You Should",
-        "body": "Mars is pushing impulse ahead of wisdom. Your reaction time is faster than your processing time. The gap creates regret before you've even understood what happened."
+        "body": "Mars is conjunct or square your natal Mercury today. Your reaction speed is outpacing your processing speed. The impulse arrives before the thought completes. This gap closes when Mars moves on."
     },
     "feel_before_think": {
-        "title": "Why Emotion Leads Today",
-        "body": "The Moon is dominant, and your emotional body is processing faster than your mind. Feelings arrive fully formed before logic catches up. This isn't wrong—it's sequencing."
+        "title": "Why Emotion Arrives Before Logic",
+        "body": "The Moon is making a hard aspect to Mercury today. Emotional data is reaching you faster than mental data. You're not being irrational—you're receiving information in the wrong order."
     },
     "snap_then_soften": {
         "title": "Why You're Sharp Then Sorry",
-        "body": "There's friction between assertion and sensitivity today. Your first response comes out harder than you mean it. The softening that follows is real—but so was the edge."
+        "body": "Mars is square Venus today. Assertion comes out harder than intended because tenderness isn't available in the same moment. The softening that follows is the Venus catching up. The friction is temporary."
     },
 }
 
@@ -160,6 +166,15 @@ def generate_astrology_keystone_explanation(
 # VALIDATION: Ensure lens explanation matches Keystone
 # =============================================================================
 
+# Banned words that indicate generic/vague language
+BANNED_WORDS = [
+    "energy", "energies", "alignment", "aligned", "growth", 
+    "transformation", "transforming", "awareness", "conscious",
+    "vibration", "vibrations", "manifest", "manifesting",
+    "universe", "cosmic", "spiritual", "journey"
+]
+
+
 def validate_lens_explanation(
     lens_explanation: Dict[str, Any],
     expected_pattern_id: str
@@ -170,13 +185,17 @@ def validate_lens_explanation(
     Fails if:
     - keystone_pattern_id doesn't match
     - supports_keystone is False
+    - explanation contains banned words
+    - explanation is too generic (doesn't mention timing)
     
     Returns validation result with pass/fail status.
     """
     
     actual_pattern_id = lens_explanation.get("keystone_pattern_id")
     supports_keystone = lens_explanation.get("supports_keystone", False)
+    explanation_body = lens_explanation.get("lens_explanation_body", "").lower()
     
+    # Check 1: Pattern ID must match
     if actual_pattern_id != expected_pattern_id:
         logger.error(f"[LensValidation] MISMATCH: Expected {expected_pattern_id}, got {actual_pattern_id}")
         return {
@@ -186,11 +205,40 @@ def validate_lens_explanation(
             "actual": actual_pattern_id
         }
     
+    # Check 2: Must support keystone
     if not supports_keystone:
         logger.error(f"[LensValidation] Lens does not support Keystone: {actual_pattern_id}")
         return {
             "valid": False,
             "error": "lens_does_not_support_keystone",
+            "pattern_id": actual_pattern_id
+        }
+    
+    # Check 3: No banned words
+    found_banned = [word for word in BANNED_WORDS if word in explanation_body]
+    if found_banned:
+        logger.warning(f"[LensValidation] Banned words found in explanation: {found_banned}")
+        return {
+            "valid": False,
+            "error": "contains_banned_words",
+            "banned_words_found": found_banned,
+            "pattern_id": actual_pattern_id
+        }
+    
+    # Check 4: Must contain timing language (for astrology)
+    timing_indicators = [
+        "today", "right now", "this transit", "currently", 
+        "mercury", "mars", "venus", "saturn", "jupiter", "uranus", "neptune", "pluto",
+        "moon", "sun", "retrograde", "square", "conjunct", "aspect",
+        "this window", "this period", "passes", "moves on", "clears"
+    ]
+    has_timing = any(indicator in explanation_body for indicator in timing_indicators)
+    
+    if not has_timing:
+        logger.warning(f"[LensValidation] No timing language found in explanation")
+        return {
+            "valid": False,
+            "error": "missing_timing_language",
             "pattern_id": actual_pattern_id
         }
     
