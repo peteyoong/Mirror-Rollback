@@ -3,21 +3,178 @@
 Simple structured insight generation for Home Screen.
 Phase 1: Transform existing data into new structured format.
 v1.5: Day-Class Hero Framing - titles/copy selected by day classification
+v1.7: ELIMINATE GENERIC FALLBACK - Signal Dominance Rule
 """
 
 import logging
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 import hashlib
+import re
 
 logger = logging.getLogger(__name__)
 
 
 # =============================================================================
-# DAY-CLASS HERO FRAMING (v1.5)
+# v1.7: BANNED GENERIC PATTERNS - These MUST NEVER appear in output
+# =============================================================================
+
+BANNED_PATTERNS = [
+    r"something is present",
+    r"worth paying attention",
+    r"you may notice",
+    r"something is shifting(?!\s*under)",  # Allow "shifting under your feet" but not vague "shifting"
+    r"something is here",
+    r"there's something here",
+    r"pay attention to what",
+    r"notice what comes up",
+    r"something wants your attention",
+    r"there's a quality to today",
+    r"something may be emerging",
+    r"you might feel something",
+    r"notice what you're noticing",
+    r"what's present today",
+    r"something is asking",
+    r"be open to what",
+    r"stay curious about",
+    r"allow yourself to notice",
+]
+
+# Compile patterns for efficiency
+BANNED_PATTERN_REGEX = re.compile(
+    '|'.join(BANNED_PATTERNS), 
+    re.IGNORECASE
+)
+
+
+def is_generic_copy(text: str, is_title: bool = False) -> bool:
+    """
+    Check if text contains banned generic patterns.
+    Returns True if text is generic and should be rejected.
+    
+    v1.7: Titles have different validation - strong declarative titles are allowed.
+    """
+    if not text:
+        return True
+    
+    # Check against banned patterns
+    if BANNED_PATTERN_REGEX.search(text):
+        return True
+    
+    # Titles have different validation rules
+    if is_title:
+        # Strong declarative titles are NOT generic
+        strong_title_patterns = [
+            "not a normal day",
+            "don't lock",
+            "turning",
+            "shifting",
+            "moving",
+            "ready before",
+            "grip",
+            "know",
+            "choice",
+            "coming to a head",
+            "threshold",
+            "off but",
+            "been here before",
+            "shape again",
+            "energy without",
+            "moved",
+            "spent",
+            "wants to be said",
+            "waiting for",
+            "pattern",
+        ]
+        if any(pattern in text.lower() for pattern in strong_title_patterns):
+            return False
+        
+        # Short titles are OK if they're declarative
+        if len(text) < 40:
+            return False
+    
+    # Additional check for body text: if text is too short and vague
+    if len(text) < 50 and not any(word in text.lower() for word in [
+        "pressure", "decide", "urge", "force", "trap", "cost", "mistake",
+        "relief", "discomfort", "incomplete", "unfinished", "tension",
+        "grip", "control", "waiting", "stuck", "frustrated", "ready",
+        "want", "feel", "know", "surface", "forming", "shifting"
+    ]):
+        return True
+    
+    return False
+
+
+def validate_hero_copy(title: str, body: str, bridge: str, day_class: str) -> Dict[str, Any]:
+    """
+    Validate hero copy against quality requirements.
+    
+    v1.7 REQUIREMENTS:
+    1. Must include a real human tension
+    2. Must include a wrong move / trap
+    3. Must have a felt experience
+    4. NO generic fallback allowed
+    
+    Returns: {"valid": bool, "issues": list, "severity": str}
+    """
+    issues = []
+    
+    # Check title - use is_title=True for proper title validation
+    if is_generic_copy(title, is_title=True):
+        issues.append(f"TITLE_GENERIC: '{title}' is too vague")
+    
+    # Check body - body needs full validation
+    if is_generic_copy(body, is_title=False):
+        issues.append("BODY_GENERIC: Body copy lacks tension or specificity")
+    
+    # Check for required elements in body
+    combined = f"{title} {body} {bridge}".lower()
+    
+    tension_words = ["pressure", "urge", "pull", "push", "tension", "discomfort", "uncomfortable", "tight", "want", "need", "feel"]
+    trap_words = ["trap", "mistake", "wrong", "cost", "risk", "danger", "temptation", "avoid", "don't", "wait", "stop"]
+    felt_words = ["feel", "sense", "notice", "experience", "uncomfortable", "heavy", "light", "relief", "ready", "part of you"]
+    
+    has_tension = any(word in combined for word in tension_words)
+    has_trap = any(word in combined for word in trap_words)
+    has_felt = any(word in combined for word in felt_words)
+    
+    # For phase_shift, we REQUIRE tension
+    if not has_tension and day_class in ["phase_shift", "cycle_event"]:
+        issues.append("MISSING_TENSION: No tension language found in copy")
+    
+    # Only flag missing trap if ALL three are missing
+    if not has_trap and not has_tension and not has_felt:
+        issues.append("MISSING_TRAP: No wrong-move/trap language found")
+    
+    if not has_felt and not has_tension:
+        issues.append("MISSING_FELT: No felt-experience language found")
+    
+    # Determine severity - be less aggressive
+    if any("BODY_GENERIC" in i for i in issues):
+        severity = "BLOCK"  # Only block if body is generic
+    elif len(issues) >= 3:
+        severity = "REWRITE"  # Should try to fix
+    elif issues:
+        severity = "WARNING"  # Log but allow
+    else:
+        severity = "PASS"
+    
+    return {
+        "valid": len(issues) == 0,
+        "issues": issues,
+        "severity": severity,
+        "has_tension": has_tension,
+        "has_trap": has_trap,
+        "has_felt": has_felt,
+    }
+
+
+# =============================================================================
+# DAY-CLASS HERO FRAMING (v1.5 + v1.7 Signal Dominance)
 # =============================================================================
 # Hero title and shape are determined by day classification FIRST
 # Then modulated tension fills in the specific message
+# v1.7: phase_shift ALWAYS uses interruptive tone, never generic
 
 DAY_CLASS_FRAMINGS = {
     "phase_shift": {
@@ -83,14 +240,13 @@ DAY_CLASS_FRAMINGS = {
             "Something Underneath This",
             "The Same Shape Again",
             "A Familiar Pressure",
-            "Something Present",
             "Part of You Knows",
             "The Pattern Returns",
         ],
         "body_templates": [
             "You're feeling something strongly, but you can't name it cleanly. Part of you wants to make it make sense just so the pressure will stop. But the pressure isn't the answer.",
             "This moment may feel familiar—not the details, but the shape of it. You've been somewhere like this before. The question is whether you'll respond the same way.",
-            "There's a pull you might not be able to explain. Something underneath the surface is asking for attention. You don't have to name it yet—just notice it.",
+            "There's a pull you might not be able to explain. Something underneath the surface is asking for attention. You don't have to name it yet—just notice that it's pulling.",
             "Part of you already knows what this is about. The thinking hasn't caught up yet, but the knowing is there. Don't rush it.",
         ],
         "bridge_templates": [
@@ -112,7 +268,7 @@ PHASE_SHIFT_THEME_TITLES = {
     "portal_opening": [
         "A Portal Is Open",
         "This Is Not a Normal Day",
-        "Something Is Shifting",
+        "Something Is Shifting Under Your Feet",
     ],
     "culmination_at_threshold": [
         "Something Is Coming to a Head",
@@ -129,6 +285,41 @@ PHASE_SHIFT_THEME_TITLES = {
         "Let It Go",
         "This Is Not a Normal Day",
     ],
+    "reset_at_extreme": [
+        "A Reset at Peak Intensity",
+        "The Ground Is Still Moving",
+        "Don't Lock It In Yet",
+    ],
+    "peak_illumination": [
+        "Everything Is Illuminated",
+        "The Full Picture Is Here",
+        "What You See Is Real",
+    ],
+    "emotional_culmination": [
+        "Deep Feelings Are Surfacing",
+        "Something Is Releasing",
+        "Let It Move Through",
+    ],
+    "portal_at_threshold": [
+        "A Rare Convergence",
+        "This Is Not a Normal Day",
+        "Multiple Forces Are Active",
+    ],
+    "portal_at_extreme": [
+        "Portal at Peak Intensity",
+        "Don't Force It",
+        "Let It Move You",
+    ],
+    "release_at_threshold": [
+        "Old Patterns Are Falling Away",
+        "Deep Release at a Turning Point",
+        "Let Go",
+    ],
+    "multiple_events_active": [
+        "Multiple Forces Are Converging",
+        "This Is Not a Normal Day",
+        "The Ground Is Still Moving",
+    ],
 }
 
 
@@ -142,6 +333,9 @@ def select_hero_framing(
     
     v1.5: Hero title and shape are determined by day_class FIRST,
     then modulated tension fills in the specific message.
+    
+    v1.7: SIGNAL DOMINANCE - phase_shift ALWAYS uses phase_shift templates.
+    NO fallback to generic copy allowed.
     
     Returns:
     {
@@ -160,20 +354,32 @@ def select_hero_framing(
     interaction_theme = transit_stack.get("interaction_theme", "")
     intensity = transit_stack.get("intensity", 0.5)
     
-    # Select title based on day class and interaction theme
+    # v1.7: SIGNAL DOMINANCE RULE
+    # If day_class is phase_shift, ALWAYS use phase_shift framing
+    # DO NOT allow override by weak signals or low confidence
+    
     if day_class == "phase_shift":
         # Use theme-specific titles if available
         theme_titles = PHASE_SHIFT_THEME_TITLES.get(interaction_theme, framing["title_options"])
         title_options = theme_titles
         hero_mode = "turning_point"
+        
+        # FORCE phase_shift templates - no fallback
+        body_options = framing["body_templates"]
+        bridge_options = framing["bridge_templates"]
+        
     elif day_class == "cycle_event":
         title_options = framing["title_options"]
         hero_mode = "threshold"
+        body_options = framing["body_templates"]
+        bridge_options = framing["bridge_templates"]
     else:
         title_options = framing["title_options"]
         hero_mode = "pattern"
+        body_options = framing["body_templates"]
+        bridge_options = framing["bridge_templates"]
     
-    # Use date-based seed for consistent title selection within a day
+    # Use date-based seed for consistent selection within a day
     date_seed = datetime.now(timezone.utc).strftime("%Y%m%d")
     seed_hash = int(hashlib.md5(date_seed.encode()).hexdigest()[:8], 16)
     
@@ -181,21 +387,51 @@ def select_hero_framing(
     title_index = seed_hash % len(title_options)
     selected_title = title_options[title_index]
     
-    # Select body and bridge direction
-    body_index = (seed_hash + 1) % len(framing["body_directions"])
-    bridge_index = (seed_hash + 2) % len(framing["bridge_directions"])
+    # Select body and bridge direction from templates
+    body_index = (seed_hash + 1) % len(body_options)
+    bridge_index = (seed_hash + 2) % len(bridge_options)
     
-    body_direction = framing["body_directions"][body_index]
-    bridge_direction = framing["bridge_directions"][bridge_index]
+    body_direction = body_options[body_index]
+    bridge_direction = bridge_options[bridge_index]
     
-    # If we have a modulated tension with strong copy, prefer it for body
+    # v1.7: If we have a modulated tension with strong copy, use it ONLY if it's specific enough
     if dominant_tension and dominant_tension.get("modulated_copy"):
         modulated_copy = dominant_tension.get("modulated_copy", "")
-        # Only use if it matches the day class tone
-        if day_class == "phase_shift" and any(word in modulated_copy.lower() for word in ["shift", "form", "shape", "decide", "land", "stable"]):
-            body_direction = modulated_copy
-        elif day_class == "cycle_event" and any(word in modulated_copy.lower() for word in ["turn", "open", "culminat", "threshold"]):
-            body_direction = modulated_copy
+        
+        # Only use if it passes validation (not generic)
+        if not is_generic_copy(modulated_copy):
+            # Only use if it matches the day class tone
+            if day_class == "phase_shift" and any(word in modulated_copy.lower() for word in 
+                ["shift", "form", "shape", "decide", "land", "stable", "pressure", "force", "incomplete"]):
+                body_direction = modulated_copy
+            elif day_class == "cycle_event" and any(word in modulated_copy.lower() for word in 
+                ["turn", "open", "culminat", "threshold", "peak", "reveal", "weight"]):
+                body_direction = modulated_copy
+    
+    # v1.7: VALIDATION - Ensure selected copy is not generic
+    validation = validate_hero_copy(selected_title, body_direction, bridge_direction, day_class)
+    
+    if validation["severity"] == "BLOCK":
+        # Generic copy detected - force regeneration with different seed
+        logger.warning(f"[HeroFraming] BLOCKED generic copy, regenerating. Issues: {validation['issues']}")
+        
+        # Try next options
+        for offset in range(1, len(title_options)):
+            alt_title_index = (title_index + offset) % len(title_options)
+            alt_body_index = (body_index + offset) % len(body_options)
+            alt_bridge_index = (bridge_index + offset) % len(bridge_options)
+            
+            alt_title = title_options[alt_title_index]
+            alt_body = body_options[alt_body_index]
+            alt_bridge = bridge_options[alt_bridge_index]
+            
+            alt_validation = validate_hero_copy(alt_title, alt_body, alt_bridge, day_class)
+            if alt_validation["severity"] != "BLOCK":
+                selected_title = alt_title
+                body_direction = alt_body
+                bridge_direction = alt_bridge
+                logger.info(f"[HeroFraming] Regenerated to non-generic copy: {selected_title}")
+                break
     
     logger.info(f"[HeroFraming] Day class: {day_class}, Mode: {hero_mode}, Title: {selected_title}")
     
@@ -208,6 +444,7 @@ def select_hero_framing(
         "bridge_direction": bridge_direction,
         "tone": framing["tone"],
         "intensity": intensity,
+        "validation": validation,
     }
 
 
@@ -220,28 +457,56 @@ def generate_day_class_hero(
     """
     Generate complete hero content using day-class framing.
     
-    This is the main entry point for v1.5 hero generation.
+    v1.7: SIGNAL DOMINANCE - phase_shift ALWAYS dominates.
+    Generic fallback is ELIMINATED.
+    Body must always be substantial (>100 chars with real tension).
     """
     # Get hero framing based on day class
     framing = select_hero_framing(day_class, transit_stack, dominant_tension)
     
-    # For phase_shift, ensure body reflects transition
-    if day_class == "phase_shift":
-        body = framing["body_direction"]
-        bridge = framing["bridge_direction"]
+    body = framing["body_direction"]
+    bridge = framing["bridge_direction"]
+    
+    # v1.7: Ensure body is substantial for phase_shift
+    # The framing should always have full body templates, but validate
+    if day_class == "phase_shift" and len(body) < 100:
+        # Body is too short - force use of full body template
+        framing_templates = DAY_CLASS_FRAMINGS.get(day_class, {})
+        body_templates = framing_templates.get("body_templates", [])
         
-        # Add emphasis on incompleteness if from tension
+        if body_templates:
+            date_seed = datetime.now(timezone.utc).strftime("%Y%m%d")
+            seed_hash = int(hashlib.md5(date_seed.encode()).hexdigest()[:8], 16)
+            body_index = (seed_hash + 1) % len(body_templates)
+            body = body_templates[body_index]
+            logger.info(f"[HeroFraming] Body was too short ({len(framing['body_direction'])} chars), using full template")
+    
+    # For phase_shift, add emphasis-based bridge if from tension
+    if day_class == "phase_shift":
         if dominant_tension and dominant_tension.get("emphasis"):
             emphasis = dominant_tension.get("emphasis", [])
             if "incompleteness" in emphasis:
                 bridge = "It's not finished forming. Don't force it."
             elif "instability" in emphasis:
-                bridge = "The ground is still moving."
+                bridge = "The ground is still moving. Stay flexible."
             elif "letting_go" in emphasis:
                 bridge = "Release is what this moment asks for."
-    else:
-        body = framing["body_direction"]
-        bridge = framing["bridge_direction"]
+            elif "pressure" in emphasis:
+                bridge = "The pressure is real, but it's not a signal to act."
+            elif "patience" in emphasis:
+                bridge = "What feels urgent may not actually be ready."
+    
+    # v1.7: Final validation before return
+    final_validation = validate_hero_copy(framing["selected_title"], body, bridge, day_class)
+    
+    if final_validation["severity"] == "BLOCK":
+        # This should not happen after select_hero_framing, but safety check
+        logger.error("[HeroFraming] CRITICAL: Generic copy slipped through. Forcing override.")
+        
+        # Force a strong phase_shift override
+        if day_class == "phase_shift":
+            body = "You may feel pressure to decide something before it's ready. The urge is to lock it in just to stop the discomfort. That's where you can mistake pressure for clarity."
+            bridge = "Don't mistake the pressure for the answer."
     
     return {
         "success": True,
@@ -254,16 +519,18 @@ def generate_day_class_hero(
         "pattern_key": pattern_key,
         "transit_stack": transit_stack,
         "dominant_tension": dominant_tension.get("modulated_id") if dominant_tension else None,
+        "validation": final_validation,
         "debug": {
-            "framing_source": "day_class_v1.5",
+            "framing_source": "day_class_v1.7_signal_dominance",
             "interaction_theme": framing.get("interaction_theme"),
             "intensity": framing.get("intensity"),
+            "generic_blocked": final_validation.get("severity") == "BLOCK",
         }
     }
 
 
 # =============================================================================
-# PHASE 1: SIMPLE PATTERN TEMPLATES
+# PHASE 1: PATTERN TEMPLATES (v1.7 - NO DEFAULT GENERIC)
 # =============================================================================
 # Direct, behavioral language. No hedging.
 
@@ -356,14 +623,35 @@ PATTERN_TEMPLATES = {
         "better_move": "Use the space for maintenance—loose ends, small tasks. Don't fill it with new drama.",
         "interrupt": "You're scanning for a problem. Stop. There isn't one. Let the quiet be quiet."
     },
-    "default": {
-        "title": "Something Present",
-        "what_happening": "There's something here today. You can't name it yet, but you can feel it pulling at the edges.",
-        "why_feels": "Not everything that matters announces itself clearly.",
-        "watch_for": "Dismissing the feeling because you can't explain it. Moving too fast past something that needed another minute.",
-        "better_move": "Don't rush to label it. Sit with what you're noticing before you try to solve it.",
-        "interrupt": "You're about to move on. Something in you hesitated. Listen to that."
-    }
+    # v1.7: REMOVED "default" pattern - NO GENERIC FALLBACK
+}
+
+# v1.7: Fallback patterns when no signal is detected - still tension-based
+SIGNAL_ABSENT_PATTERNS = {
+    "ambient_unease": {
+        "title": "Something Is Off But You Can't Name It",
+        "what_happening": "There's a low-grade discomfort today. Not crisis-level, but not neutral either. Part of you keeps scanning for what's wrong.",
+        "why_feels": "Unnamed tension is harder to release. You want to fix something, but there's nothing obvious to fix.",
+        "watch_for": "Projecting the discomfort onto small things. Creating problems so the feeling has somewhere to go.",
+        "better_move": "Acknowledge the unease without solving it. It might just be atmospheric today.",
+        "interrupt": "You're about to pick a fight with something small. That's not what this is about."
+    },
+    "restless_readiness": {
+        "title": "You're Ready—But For What?",
+        "what_happening": "There's energy available, but no clear place to put it. You're ready to move, but nothing is calling you forward yet.",
+        "why_feels": "Readiness without direction feels like wasted potential. The urge is to create something to move toward.",
+        "watch_for": "Starting things just to use the energy. Saying yes to invitations that aren't actually right.",
+        "better_move": "Stay coiled. The right thing will appear. When it does, you'll be ready.",
+        "interrupt": "You're about to commit to something just because you're bored. Wait."
+    },
+    "familiar_pressure": {
+        "title": "This Shape Again",
+        "what_happening": "You've been here before. The situation is different, but the feeling is the same. Part of you knows exactly how this usually goes.",
+        "why_feels": "Patterns are comfortable even when they hurt. Breaking them takes more energy than repeating them.",
+        "watch_for": "Defaulting to the familiar response. Knowing the ending but walking toward it anyway.",
+        "better_move": "Notice the script. Ask what one small thing could be different this time.",
+        "interrupt": "You're about to do the thing you always do. What if you didn't?"
+    },
 }
 
 
@@ -766,14 +1054,15 @@ def select_pattern_from_signals(flags: Dict[str, bool]) -> tuple:
         return ("decision_avoidance",
                 "Low clarity + doubt = decision avoidance")
     
-    # No strong signals - return None to fall back to default logic
+    # v1.7: NO GENERIC FALLBACK - return signal-absent pattern instead
     return (None, "No strong lived-state signals detected")
 
 
 def select_pattern_for_user(user_id: str, signal_flags: Dict[str, bool], chart_data: Optional[dict] = None) -> tuple:
     """
     Select appropriate pattern template based on signal flags.
-    Phase 2: Signal-based selection with fallback.
+    
+    v1.7: When no signals detected, use SIGNAL_ABSENT_PATTERNS instead of generic default.
     
     Returns (pattern_key, reason)
     """
@@ -787,26 +1076,30 @@ def select_pattern_for_user(user_id: str, signal_flags: Dict[str, bool], chart_d
             logger.info(f"[HomeInsight] Signal-selected pattern '{pattern_key}' for user {user_id[:8]}: {reason}")
             return (pattern_key, reason)
     
-    # Fallback: deterministic daily variety (when no strong signals)
+    # v1.7: Fallback to SIGNAL_ABSENT patterns - still tension-based, NOT generic
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     seed = hashlib.sha256(f"{user_id}:{today}".encode()).hexdigest()
     
-    # Get list of pattern keys (excluding default)
-    pattern_keys = [k for k in PATTERN_TEMPLATES.keys() if k != "default"]
+    # Get list of signal-absent pattern keys
+    absent_keys = list(SIGNAL_ABSENT_PATTERNS.keys())
     
     # Select based on seed
-    index = int(seed[:8], 16) % len(pattern_keys)
-    selected = pattern_keys[index]
+    index = int(seed[:8], 16) % len(absent_keys)
+    selected = absent_keys[index]
     
-    logger.info(f"[HomeInsight] Fallback-selected pattern '{selected}' for user {user_id[:8]}")
-    return (selected, "No lived-state signals - using daily rotation")
+    logger.info(f"[HomeInsight] Signal-absent pattern '{selected}' for user {user_id[:8]}")
+    return (selected, "No lived-state signals - using tension-based signal-absent pattern")
 
 
 async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     """
     Generate structured daily insight for Home Screen.
     
-    Phase 2: Signal-based pattern selection from lived-state data.
+    v1.7: SIGNAL DOMINANCE + NO GENERIC FALLBACK
+    - phase_shift days ALWAYS use phase_shift framing
+    - Generic copy is BLOCKED
+    - Signal-absent days use tension-based patterns, not generic
+    
     Returns the new structured format with debug info.
     """
     from datetime import datetime, timezone, timedelta
@@ -821,7 +1114,6 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     signal_sources = []
     
     # Calculate cutoff date (no timezone for MongoDB comparison with naive datetimes)
-    from datetime import datetime, timedelta
     seven_days_ago = datetime.utcnow() - timedelta(days=7)
     
     # Get recent journal entries (last 7 days)
@@ -897,7 +1189,17 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         logger.debug(f"[HomeInsight] Could not load chart: {e}")
     
     pattern_key, selection_reason = select_pattern_for_user(user_id, signal_flags, chart_data)
-    template = PATTERN_TEMPLATES.get(pattern_key, PATTERN_TEMPLATES["default"])
+    
+    # v1.7: Check if using signal-absent pattern
+    if pattern_key in SIGNAL_ABSENT_PATTERNS:
+        template = SIGNAL_ABSENT_PATTERNS[pattern_key]
+    elif pattern_key in PATTERN_TEMPLATES:
+        template = PATTERN_TEMPLATES[pattern_key]
+    else:
+        # Absolute fallback - should never happen
+        template = SIGNAL_ABSENT_PATTERNS["ambient_unease"]
+        pattern_key = "ambient_unease"
+        logger.warning(f"[HomeInsight] Pattern key '{pattern_key}' not found, using ambient_unease")
     
     # =================================================================
     # STEP 5: Apply phase modifier to template
@@ -905,7 +1207,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     modified_template = apply_phase_modifier(template, phase, phase_description)
     
     # =================================================================
-    # STEP 5.5 (v1.5): GET DAY-CLASS HERO FRAMING
+    # STEP 5.5 (v1.5 + v1.7): GET DAY-CLASS HERO FRAMING WITH SIGNAL DOMINANCE
     # =================================================================
     # Fetch transit stack from field signals for day classification
     try:
@@ -926,13 +1228,13 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         logger.debug(f"[HomeInsight] Tension modulation error: {e}")
         dominant_tension = None
     
-    # Generate day-class aware hero
+    # v1.7: SIGNAL DOMINANCE - Generate day-class aware hero with validation
     hero_output = generate_day_class_hero(day_class, transit_stack, dominant_tension, pattern_key)
     
     logger.info(f"[HomeInsight] Day class: {day_class}, Hero title: {hero_output.get('title')}")
     
     # =================================================================
-    # STEP 6: Build response with day-class hero
+    # STEP 6: Build response with day-class hero (v1.7 validated)
     # =================================================================
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
@@ -943,31 +1245,48 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     elif len(active_flags) >= 1:
         confidence = "medium"
     
-    # Use day-class hero for title and body if phase_shift or cycle_event
+    # v1.7: SIGNAL DOMINANCE RULE
+    # phase_shift and cycle_event ALWAYS use day-class framing
+    # NO fallback to generic copy
+    
     if day_class in ["phase_shift", "cycle_event"]:
-        # Day-class framing takes priority
+        # Day-class framing takes priority - ALWAYS
         title = hero_output.get("title", modified_template["title"])
         body = hero_output.get("body", modified_template["what_happening"])
         bridge = hero_output.get("bridge", "")
     else:
-        # Normal flow - use pattern-based title but can still use day-class body
+        # Normal flow - use pattern-based title
         title = modified_template["title"]
         body = modified_template["what_happening"]
-        # Clean any system language
-        body = body.replace("Looking at your timeline", "").replace("a certain rhythm appears", "").strip()
-        if body.startswith(","):
-            body = body[1:].strip()
+        
+        # v1.7: Validate even normal flow copy
+        if is_generic_copy(body):
+            logger.warning("[HomeInsight] Generic body detected in normal_flow, using signal-absent pattern")
+            fallback = SIGNAL_ABSENT_PATTERNS["ambient_unease"]
+            title = fallback["title"]
+            body = fallback["what_happening"]
+        
         # Use why_feels as bridge if it's personal enough
         bridge = modified_template.get("why_feels", "")
-        if "timeline" in bridge.lower() or "rhythm" in bridge.lower() or "pattern suggests" in bridge.lower():
-            bridge = ""  # Don't use system-sounding bridges
+        if is_generic_copy(bridge):
+            bridge = ""
+    
+    # v1.7: Final validation - BLOCK generic output
+    final_validation = validate_hero_copy(title, body, bridge, day_class)
+    
+    if final_validation["severity"] == "BLOCK":
+        logger.error("[HomeInsight] BLOCKED GENERIC OUTPUT - forcing strong override")
+        # Force a strong tension-based output
+        title = "Something Is Off But You Can't Name It"
+        body = "There's a low-grade discomfort today. Not crisis-level, but not neutral either. Part of you keeps scanning for what's wrong."
+        bridge = "Unnamed tension is harder to release."
     
     return {
         "success": True,
         "date": today,
         "pattern_id": f"{pattern_key}_{today.replace('-', '')}",
         "title": title,
-        # New Mirror-format fields (v1.5 day-class aware)
+        # New Mirror-format fields (v1.7 signal dominance)
         "body": body,
         "bridge": bridge if bridge else None,
         # Day-class metadata
@@ -983,7 +1302,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "phase": phase,
         "phase_description": phase_description,
         "confidence": confidence,
-        "card_version": "mirror_v5_dayclass",  # Version flag for frontend
+        "card_version": "mirror_v7_signal_dominance",  # Version flag for frontend
         "debug": {
             "pattern_key": pattern_key,
             "selection_reason": selection_reason,
@@ -994,12 +1313,14 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
             "signal_sources": list(set(signal_sources)),
             "texts_analyzed": len(texts_to_analyze),
             "entries_in_history": len(entry_history),
-            "source": "signal_v5_dayclass" if day_class != "normal_flow" else "signal_v3_trajectory" if active_flags else "fallback_rotation",
+            "source": "signal_v7_dominance" if day_class != "normal_flow" else "signal_v7_pattern" if active_flags else "signal_v7_absent",
             "day_class": day_class,
             "hero_mode": hero_output.get("hero_mode"),
             "interaction_theme": transit_stack.get("interaction_theme"),
             "transit_intensity": transit_stack.get("intensity"),
             "dominant_tension": dominant_tension.get("modulated_id") if dominant_tension else None,
+            "validation": final_validation,
+            "generic_blocked": final_validation.get("severity") == "BLOCK",
             "computed_at": datetime.now(timezone.utc).isoformat()
         }
     }
