@@ -8867,6 +8867,50 @@ General atmosphere: supportive of inward focus.
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/astrology/today-v2/{user_id}")
+async def get_astrology_today_v2(user_id: str):
+    """
+    Astrology Today Snapshot v2 — Causal Layer Architecture
+    
+    Returns 3-layer structure:
+    1. EXPERIENCE - what user feels (clear human tension)
+    2. CAUSE - what is driving it (transit stack translated to plain language)
+    3. GUIDANCE - how to relate to it (1-line activation)
+    
+    NO vague astrology language
+    NO generic statements
+    ALWAYS explains "why now"
+    """
+    try:
+        from services.astrology_today_v2 import (
+            generate_astrology_snapshot_v2,
+            format_snapshot_for_display
+        )
+        from services.field_signals import detect_transit_convergence
+        
+        # Get transit stack (real data from field_signals)
+        transit_stack = detect_transit_convergence()
+        day_class = transit_stack.get("classification", "normal_flow")
+        
+        # Generate v2 snapshot with causal layer
+        snapshot = generate_astrology_snapshot_v2(
+            transit_stack=transit_stack,
+            day_class=day_class,
+            user_context={"user_id": user_id}
+        )
+        
+        # Also return formatted version for display
+        snapshot["display"] = format_snapshot_for_display(snapshot)
+        
+        logger.info(f"[AstrologyV2] Generated snapshot for {user_id[:8]}: day_class={day_class}, theme={transit_stack.get('interaction_theme')}")
+        
+        return snapshot
+        
+    except Exception as e:
+        logger.error(f"Astrology today v2 error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.get("/astrology/deep-dive/{user_id}")
 async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
     """
