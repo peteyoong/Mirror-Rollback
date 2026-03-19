@@ -345,7 +345,7 @@ export default function PatternsScreen() {
   };
 
   // ============================================================================
-  // RENDER: TIMELINE SECTION (PRIMARY)
+  // RENDER: WEEK ENTRY (used by repeating list)
   // ============================================================================
 
   const renderWeekEntry = (week: WeekEntry, index: number) => {
@@ -354,7 +354,7 @@ export default function PatternsScreen() {
     
     if (!week.top_domain) return null;
     
-    // Use index to get unique behavioral variation for this week
+    // Use index to get unique behavioral phase for this week
     const behavioralSummary = getBehavioralSummary(week, index);
     
     return (
@@ -380,7 +380,7 @@ export default function PatternsScreen() {
             </Text>
           </View>
           <Text style={[styles.weekChevron, { color: theme.textTertiary }]}>
-            {isExpanded ? '−' : '+'}
+            {isExpanded ? '-' : '+'}
           </Text>
         </View>
         
@@ -395,13 +395,17 @@ export default function PatternsScreen() {
     );
   };
 
-  const renderTimelineSection = () => {
+  // ============================================================================
+  // RENDER: HERO SECTION (Pattern fingerprint)
+  // ============================================================================
+
+  const renderHeroSection = () => {
     if (timelineLoading) {
       return (
         <View style={styles.loadingSection}>
           <ActivityIndicator size="small" color={theme.accent} />
           <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-            Building your pattern timeline...
+            Loading your patterns...
           </Text>
         </View>
       );
@@ -412,10 +416,10 @@ export default function PatternsScreen() {
         <View style={[styles.emptySection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.emptySectionIcon]}>◷</Text>
           <Text style={[styles.emptySectionTitle, { color: theme.text }]}>
-            Your timeline is still forming
+            Your patterns are still forming
           </Text>
           <Text style={[styles.emptySectionText, { color: theme.textSecondary }]}>
-            As patterns accumulate over time, you'll see when they've appeared before.
+            As patterns accumulate over time, you will see what keeps showing up.
           </Text>
         </View>
       );
@@ -430,21 +434,31 @@ export default function PatternsScreen() {
     const humanPhrase = getHumanPhrase(mostRecurringId, mostRecurring);
 
     return (
-      <View style={styles.section}>
-        {/* HERO: Human Pattern Phrase - First thing user sees */}
-        <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
-          <Text style={[styles.heroPattern, { color: theme.text }]}>
-            {humanPhrase}
-          </Text>
-          <Text style={[styles.heroCount, { color: theme.accent }]}>
-            Seen {weeksWithPattern} times in {timeline.weeks.length} weeks
-          </Text>
-          <Text style={[styles.heroSubtext, { color: theme.textSecondary }]}>
-            This is real. It keeps happening.
-          </Text>
-        </View>
+      <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
+        <Text style={[styles.heroPattern, { color: theme.text }]}>
+          {humanPhrase}
+        </Text>
+        <Text style={[styles.heroCount, { color: theme.accent }]}>
+          Seen {weeksWithPattern} times in {timeline.weeks.length} weeks
+        </Text>
+        <Text style={[styles.heroSubtext, { color: theme.textSecondary }]}>
+          This is real. It keeps happening.
+        </Text>
+      </View>
+    );
+  };
 
-        {/* Week by Week instances */}
+  // ============================================================================
+  // RENDER: REPEATING PATTERNS LIST (Evidence/receipts)
+  // ============================================================================
+
+  const renderRepeatingList = () => {
+    if (!timeline || !timeline.weeks || timeline.weeks.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
             WHEN IT APPEARED
@@ -668,16 +682,19 @@ export default function PatternsScreen() {
           />
         }
       >
-        {/* SECTION 1: TIMELINE (PRIMARY) - Proof of recurrence */}
-        {renderTimelineSection()}
+        {/* SECTION 1: HERO - Pattern fingerprint */}
+        {renderHeroSection()}
         
-        {/* SECTION 2: THIS WEEK - What's active now */}
-        {renderThisWeekSection()}
-        
-        {/* SECTION 3: ARCHETYPE (LAST) - Meaning after evidence */}
+        {/* SECTION 2: ARCHETYPE - What it points to */}
         {renderArchetypeSection()}
         
-        {/* REFLECTION PROMPT */}
+        {/* SECTION 3: REPEATING PATTERNS LIST - Evidence/receipts */}
+        {renderRepeatingList()}
+        
+        {/* SECTION 4: THIS WEEK - Current activation */}
+        {renderThisWeekSection()}
+        
+        {/* SECTION 5: REFLECTION PROMPT */}
         {renderReflectionPrompt()}
         
         {/* Bottom padding for tab bar */}
