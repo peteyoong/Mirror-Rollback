@@ -104,159 +104,90 @@ TODAY_GUIDANCE = {
 
 
 # =============================================================================
-# WEEK HOOKS - Pattern recognition, what keeps returning
+# WEEK — PATTERN ENGINE (v6+ Mirror Language)
 # =============================================================================
-# WIDER RHYTHM. What repeats AFTER the first reaction fades.
-# Flowing, not stacked. Shows the recurrence unfolding.
+# JOB: Make user feel "This has happened multiple times already"
+# MUST show: repetition across time, loop structure (attempt → interruption → return)
+# MUST NOT: explain meaning, interpret, advise
+# TONE: observational only
 
-WEEK_HOOKS = {
+WEEK_PATTERNS = {
     "phase_shift": [
-        "This is the same crossroads you were at a few days ago. You thought you'd moved past it, but here it is again, dressed slightly differently.",
-        "The decision you didn't make earlier this week is still sitting there. You've walked around it, looked at it from different angles, but it hasn't budged.",
-        "Every few days you arrive back at the same fork. You stand there, consider both paths, then step back without choosing. The pattern holds.",
-        "You keep returning to this. Forward or stay. You've run through it multiple times now, and you're no closer to resolution than when you started.",
-        "Watch for the moment when you almost commit to something, then pull back. That hesitation has been happening all week.",
+        "You've come back to this more than once already.\n\nEach time, you get close. Then something slows you down. You step away. Then later, you're back again.\n\nNotice where it stalls. Not the decision — the moment right before it.\n\nThat's been repeating all week.",
+        
+        "This isn't the first time you've stood here this week.\n\nYou approach. Something makes you pause. You move on to other things. Then you're back, standing in the same place.\n\nThe loop is visible now. Same crossroads, different days.",
+        
+        "You've run through this before. More than once.\n\nYou start to move forward. Then you stop. You tell yourself you'll come back to it. And you do — again and again.\n\nWatch the moment where forward becomes later.",
+        
+        "There's a pattern forming.\n\nYou reach for it. Something pulls you back. You let it go. Then it resurfaces, and you reach again.\n\nThis has happened several times now. The shape is becoming clear.",
+        
+        "You keep arriving at this point.\n\nEach time you think you're ready. Each time something interrupts. Each time you circle back.\n\nThe decision isn't the pattern. The hesitation is.",
     ],
     "cycle_event": [
-        "There's something cycling through this week. You've noticed it more than once — the same feeling surfacing in different situations.",
-        "The same emotional tone keeps returning. Different triggers, but the same reaction underneath. That's not coincidence.",
-        "There's a rhythm running through these past few days. Tension builds, then releases, then builds again. You can feel it even when you can't name it.",
-        "A familiar feeling keeps showing up. It finds you in conversations, in quiet moments, in reactions you don't quite understand.",
-        "The same theme is threading through your week. Different contexts, same underlying current.",
+        "The same feeling has surfaced more than once this week.\n\nDifferent moments, different triggers. But underneath — the same thing.\n\nYou push it aside. It comes back. You push it aside again.\n\nNotice how it keeps finding you.",
+        
+        "You've felt this before. Recently.\n\nIt showed up a few days ago. You moved past it. Now it's here again, wearing different clothes.\n\nThe return itself is information.",
+        
+        "Something keeps cycling through.\n\nIt arrives. You handle it or ignore it. It fades. Then it's back.\n\nThis isn't new — it's been running underneath the whole week.",
+        
+        "There's a rhythm you've noticed.\n\nTension builds. It releases. Then it builds again. You've been through this loop more than once already.\n\nThe repetition is the thing to look at.",
+        
+        "A familiar weight keeps returning.\n\nYou felt it earlier in the week. You're feeling it again now. Different context, same undertone.\n\nIt's not coincidence. It's recurrence.",
     ],
     "normal_flow": [
-        "Something quiet keeps returning. Not dramatic, not urgent, but present. A thought that surfaces at odd moments.",
-        "There's a background hum to this week. You've half-noticed it — something persistent underneath the ordinary.",
-        "The same thought keeps appearing when you're not paying attention. In the shower, between tasks, right before sleep.",
-        "The week has a theme, even if you can't name it yet. Something keeps catching your attention, again and again.",
-        "Something small keeps pulling at you. It's easy to dismiss, but it keeps coming back.",
+        "Something quiet keeps coming back.\n\nNot dramatic. Not urgent. But there — again and again.\n\nYou notice it. You let it go. Then it reappears.\n\nThat's been the shape of this week.",
+        
+        "The same thought has surfaced multiple times.\n\nIn the morning. Between tasks. Right before sleep.\n\nYou're not seeking it out. It keeps finding you.",
+        
+        "There's a thread running through these past few days.\n\nYou've caught it more than once. A thought that returns, a feeling that resurfaces.\n\nThe repetition is quiet, but it's there.",
+        
+        "You keep coming back to something.\n\nNot consciously. Not on purpose. But the same thing keeps appearing when your attention wanders.\n\nNotice what that is.",
+        
+        "A small pattern is forming.\n\nThe same moment keeps recurring — not exactly the same, but close enough to recognize.\n\nYou've felt this more than once this week.",
     ],
 }
-
-WEEK_CONTEXT = {
-    "phase_shift": [
-        "Think about how many times you've said 'I'll figure it out later' this week. That later keeps getting pushed forward.",
-        "The thing you've been postponing has been on your mental list for days now. Maybe longer. It's not going anywhere.",
-        "How many versions of this decision have you already played out in your head? And yet here you are, still undecided.",
-        "There's probably a message or a conversation you've been avoiding since earlier this week. It's still waiting.",
-        "Try to track where you keep getting stuck. The location where progress stalls — that's where the real issue lives.",
-    ],
-    "cycle_event": [
-        "Notice that the same topic keeps surfacing with different people. The common thread isn't them — it's you.",
-        "What bothered you earlier this week? Check if it's still there, unprocessed, still carrying weight.",
-        "There's a conversation you've been meaning to have. You keep finding reasons to postpone it.",
-        "Think about what you promised yourself you'd handle this week. Has it actually been handled?",
-        "The pattern is most visible when you're not working. Pay attention to what shows up in the quiet moments.",
-    ],
-    "normal_flow": [
-        "Notice what keeps coming back when you have a free moment. That's where your attention actually wants to go.",
-        "Pay attention to what you've mentioned to others more than once this week. That repetition is meaningful.",
-        "The thought you keep having in the background isn't background. It's foreground waiting to be acknowledged.",
-        "When you stop directing your attention, where does it drift? That's the thread worth following.",
-        "There's something you keep meaning to address. It's been waiting patiently for days now.",
-    ],
-}
-
-WEEK_GUIDANCE = {
-    "phase_shift": [
-        "You don't have to break the pattern yet. Just naming it is enough for now. Recognition before resolution.",
-        "Stop pretending the loop isn't happening. You've been running through the same options all week — acknowledge that.",
-        "Find where the decision keeps stalling out. The sticking point tells you more than the options themselves.",
-        "This week isn't about making the choice. It's about noticing what's been blocking the choice.",
-        "Let the repetition teach you something. What keeps coming back? That's the information.",
-    ],
-    "cycle_event": [
-        "The feeling that keeps returning is asking to be seen, not solved. You can't process what you won't acknowledge.",
-        "Instead of pushing past it again, try staying with it for a moment. See what it's actually carrying.",
-        "The cycle will keep running until you acknowledge what it's trying to show you. That's how these things work.",
-        "You can't process what you won't name. Start by naming it, even if just to yourself.",
-        "This isn't about taking action. It's about recognition. Action comes later.",
-    ],
-    "normal_flow": [
-        "The quiet pattern is still a pattern. Don't dismiss it just because it's not loud.",
-        "Follow the thread and see where it leads. You don't have to do anything about it yet.",
-        "The thought that keeps recurring has information in it. What is it pointing toward?",
-        "Don't wait for it to get louder before you pay attention. It's already been speaking all week.",
-        "Let the pattern show you what it wants. Stop trying to direct it.",
-    ],
-}
-
 
 # =============================================================================
-# MONTH HOOKS - Developmental arc, what this phase is teaching
+# MONTH — IDENTITY SHIFT ENGINE (v6+ Mirror Language)
 # =============================================================================
-# LEAST REACTIVE. Most developmental. Flows like reflection.
-# Answer: "What is this period trying to do in me?"
+# JOB: Make user feel "Something about me is changing"
+# MUST show: behavioral shift over time, implicit past vs now comparison
+# MUST NOT: explain lesson, coach, advise, resolve
+# TONE: observational, ambiguous
 
-MONTH_HOOKS = {
+MONTH_SHIFTS = {
     "phase_shift": [
-        "This period is reshaping how you hold decisions. You can feel it in the way you approach choices now — more carefully, more hesitantly. Something is shifting.",
-        "The discomfort you've been feeling isn't random. It's the friction that comes from becoming someone who waits differently than you used to.",
-        "You're learning to stay still when every instinct says move. It doesn't feel like progress, but it is.",
-        "Something in you is being restructured. You won't be able to see the shape of it until later, but the work is happening now.",
-        "This phase is teaching you to tolerate not-knowing. That's harder than deciding, and also more important.",
+        "Something in how you move is changing.\n\nYou're not responding the way you used to. There's more hesitation. More space before you act.\n\nIt can feel like you're stuck. Like things aren't moving.\n\nBut look closer — you're not reacting the same way anymore.",
+        
+        "Your timing has shifted.\n\nDecisions that used to come quickly now take longer. Things that used to feel urgent don't land the same way.\n\nYou're not who you were a month ago in this.\n\nThe change is subtle, but it's there.",
+        
+        "There's a different rhythm now.\n\nYou used to push through faster. Now there's a pause where there wasn't one before.\n\nIt's not indecision. It's something else.\n\nYou're holding things differently than you did.",
+        
+        "You're not moving the same way.\n\nThe old pattern was: feel the pressure, act. Now there's a gap in between. A hesitation that wasn't there.\n\nSomething about how you respond has changed.",
+        
+        "Compare how you handled things a month ago to now.\n\nThere's a difference. Not in what you're doing — in how you're doing it.\n\nMore measured. More careful. Or maybe just slower.\n\nThe shift happened somewhere along the way.",
     ],
     "cycle_event": [
-        "What keeps surfacing this month is asking to finally close. It's been open for longer than you realized, and now it wants resolution.",
-        "This phase is completing something that started well before this month. You're at the end of a cycle, not the beginning.",
-        "You're being taught that some things can only be felt through, not figured out. The understanding comes after, not before.",
-        "The cycle that's been running is reaching its endpoint. What you've been holding is ready to be set down.",
-        "Clearing is happening, whether you're directing it or not. Space is being made for something you can't see yet.",
+        "Something is completing.\n\nYou can feel it — the sense that a long arc is bending toward its end.\n\nYou're not holding things the way you were. There's less grip now.\n\nThis is different from a month ago.",
+        
+        "You're not carrying it the same way.\n\nThe thing that felt heavy before — it's still there, but your relationship to it has shifted.\n\nSomewhere in the past few weeks, something changed.\n\nYou're closer to setting it down than you realize.",
+        
+        "There's less resistance than there was.\n\nA month ago, you were holding tighter. Now something has loosened.\n\nNot resolved. Not fixed. Just... different.\n\nNotice how you're relating to it now versus before.",
+        
+        "The cycle is reaching somewhere.\n\nYou've been through several turns of this already. But this time feels different.\n\nYou're not reacting the same. The edges have softened.\n\nSomething shifted without you noticing.",
+        
+        "You used to push back harder.\n\nNow there's more give. More willingness to let it be what it is.\n\nThis isn't something you decided. It happened gradually.\n\nYou're not the same in this as you were.",
     ],
     "normal_flow": [
-        "Nothing dramatic is happening on the surface, but something is shifting underneath. You can sense it in the background.",
-        "This is a building phase. The foundation being laid now isn't visible yet, but it will support what comes next.",
-        "The quiet work happening this month will become obvious later. Right now it just feels like ordinary time.",
-        "Preparation is underway for something you can't see yet. Trust the process even when you can't track the progress.",
-        "Integration is the work of this period. Let what's happened recently settle into place. That's enough for now.",
-    ],
-}
-
-MONTH_CONTEXT = {
-    "phase_shift": [
-        "Look at how you've been approaching decisions over the past few weeks. Notice if there's a pattern forming in how you hesitate, reconsider, wait.",
-        "Ask yourself: has your tolerance for uncertainty been growing or shrinking? The answer tells you something about what this phase is doing.",
-        "The real question isn't 'what should I do?' It's 'who am I becoming while I wait?' That's what this month is about.",
-        "This phase is testing a specific edge in you. Can you name what capacity is being stretched? What tolerance is being built?",
-        "What you're learning right now isn't about the situation itself. It's about how you hold situations like this one.",
-    ],
-    "cycle_event": [
-        "Look back at the past month. What has kept appearing? That repeated theme is the through-line trying to complete.",
-        "Something that started before now is reaching its natural endpoint. You can feel the arc bending toward conclusion.",
-        "The emotional material surfacing this month has roots further back than you might think. It's connected to older patterns.",
-        "This cycle has been in motion for a while. You're approaching the point of resolution or release — whichever is needed.",
-        "Things that seemed unrelated are starting to connect. See the larger pattern that's been emerging.",
-    ],
-    "normal_flow": [
-        "Even in quiet periods like this, something is being built. Look for the subtle evidence of change.",
-        "The changes happening now are foundational rather than dramatic. They won't be visible until later.",
-        "What's integrating this month will support what comes next. The quiet work matters.",
-        "Your system is consolidating something. Give it time to finish before you push for the next thing.",
-        "The work is happening whether you can see it or not. Some progress isn't measurable in the moment.",
-    ],
-}
-
-MONTH_GUIDANCE = {
-    "phase_shift": [
-        "Let this phase do its work. You're being shaped by it, not punished by it.",
-        "The discomfort is educational. Instead of trying to end it, ask what it's teaching you about yourself.",
-        "Don't rush toward an ending. The timing has its own intelligence, and forcing it won't help.",
-        "The lesson is in the waiting itself. Stay present to the process instead of focusing on when it will end.",
-        "You're not stuck. You're being restructured. Those feel similar but aren't the same thing.",
-    ],
-    "cycle_event": [
-        "Let what wants to complete, complete. Stop holding things open that are ready to close.",
-        "The release being asked of you is specific. Can you name what you're being asked to let go of?",
-        "This ends when you let go. Not before. The timing is connected to your willingness.",
-        "Clearing creates room. Trust that what's being made space for is worth what's leaving.",
-        "Honor what's ending instead of rushing past it. Endings deserve attention too.",
-    ],
-    "normal_flow": [
-        "Nothing dramatic doesn't mean nothing important. Stay attentive to the quiet shifts.",
-        "Use this period to prepare. Something is coming that will need you ready.",
-        "Let the quiet do its work. Integration happens in stillness, not activity.",
-        "Don't force intensity where there isn't any. This period has its own value exactly as it is.",
-        "Trust the building that's happening beneath the surface. The foundation matters.",
+        "Something quiet has shifted.\n\nYou might not see it clearly yet. But compare how you felt a month ago to now.\n\nThere's a difference. Not dramatic. Not obvious. But real.\n\nYou're not in the same place anymore.",
+        
+        "You're not approaching things the same way.\n\nThe urgency that used to be there has faded. Or maybe it's not urgency — maybe it's just pace.\n\nEither way, you've slowed down somewhere.\n\nNotice where.",
+        
+        "There's been a gradual shift.\n\nNothing sudden. Nothing you could point to as a turning point.\n\nBut if you compare now to a month ago, you're not standing in the same place.\n\nSomething moved.",
+        
+        "Your baseline has changed.\n\nThe way you rest. The way you wait. The way you hold uncertainty.\n\nIt's different than it was. Not better or worse. Just different.\n\nYou're not who you were in this.",
+        
+        "Look at how you've been over the past few weeks.\n\nThere's a thread there — a gradual change in how you respond, how you hold things, how you wait.\n\nYou're not moving the same way you were.\n\nThe shift is quiet, but it's real.",
     ],
 }
 
@@ -292,6 +223,83 @@ def get_altitude_day_class(transit_stack: Dict[str, Any], altitude: str) -> str:
     return base_class
 
 
+# =============================================================================
+# VALIDATION RULES (v6+ Mirror Language)
+# =============================================================================
+
+WEEK_FAIL_PHRASES = [
+    "this week is about",
+    "you're learning",
+    "you are learning",
+    "this is about",
+    "the lesson",
+    "what you need",
+    "try to",
+    "should",
+]
+
+MONTH_FAIL_PHRASES = [
+    "you're learning",
+    "you are learning", 
+    "this period",
+    "this phase is teaching",
+    "you need to",
+    "should",
+    "the lesson",
+    "it's asking you to",
+]
+
+WEEK_REQUIRED_MARKERS = [
+    "again", "each time", "more than once", "come back", "keep", 
+    "returning", "repeating", "multiple times", "same", "loop",
+    "resurface", "recur", "pattern"
+]
+
+MONTH_REQUIRED_MARKERS = [
+    "used to", "not the same", "changing", "shifted", "different",
+    "anymore", "wasn't there", "wasn't before", "compare", "gradual",
+    "no longer", "now there's"
+]
+
+
+def validate_week_narrative(body: str) -> bool:
+    """Check WEEK narrative passes v6+ rules."""
+    body_lower = body.lower()
+    
+    # Check for fail phrases
+    for phrase in WEEK_FAIL_PHRASES:
+        if phrase in body_lower:
+            logger.warning(f"[WeekValidation] FAIL: contains '{phrase}'")
+            return False
+    
+    # Check for required repetition markers
+    has_repetition = any(marker in body_lower for marker in WEEK_REQUIRED_MARKERS)
+    if not has_repetition:
+        logger.warning("[WeekValidation] FAIL: no repetition markers found")
+        return False
+    
+    return True
+
+
+def validate_month_narrative(body: str) -> bool:
+    """Check MONTH narrative passes v6+ rules."""
+    body_lower = body.lower()
+    
+    # Check for fail phrases
+    for phrase in MONTH_FAIL_PHRASES:
+        if phrase in body_lower:
+            logger.warning(f"[MonthValidation] FAIL: contains '{phrase}'")
+            return False
+    
+    # Check for required shift markers (past vs now comparison)
+    has_shift = any(marker in body_lower for marker in MONTH_REQUIRED_MARKERS)
+    if not has_shift:
+        logger.warning("[MonthValidation] FAIL: no behavioral shift markers found")
+        return False
+    
+    return True
+
+
 def generate_altitude_narrative(
     altitude: str,
     day_class: str,
@@ -299,6 +307,10 @@ def generate_altitude_narrative(
 ) -> Dict[str, Any]:
     """
     Generate narrative for a single altitude.
+    
+    TODAY: immediate lived experience (unchanged)
+    WEEK: pattern engine - shows repetition/loop structure
+    MONTH: identity shift engine - shows behavioral change over time
     
     Args:
         altitude: "today" | "week" | "month"
@@ -320,36 +332,57 @@ def generate_altitude_narrative(
     seed_str = f"{date_seed}_{altitude}_{day_class}"
     seed_hash = int(hashlib.md5(seed_str.encode()).hexdigest()[:8], 16)
     
-    # Select content based on altitude
+    # Generate based on altitude type
     if altitude == "today":
+        # TODAY uses the existing hook/context/guidance structure
         hooks = TODAY_HOOKS.get(day_class, TODAY_HOOKS["normal_flow"])
         contexts = TODAY_CONTEXT.get(day_class, TODAY_CONTEXT["normal_flow"])
         guidances = TODAY_GUIDANCE.get(day_class, TODAY_GUIDANCE["normal_flow"])
         title = "Today"
+        
+        # Select deterministically
+        hook = hooks[(seed_hash + seed_offset) % len(hooks)]
+        context = contexts[(seed_hash + seed_offset + 3) % len(contexts)]
+        guidance = guidances[(seed_hash + seed_offset + 7) % len(guidances)]
+        
+        body = f"{hook} {context} {guidance}"
+        
     elif altitude == "week":
-        hooks = WEEK_HOOKS.get(day_class, WEEK_HOOKS["normal_flow"])
-        contexts = WEEK_CONTEXT.get(day_class, WEEK_CONTEXT["normal_flow"])
-        guidances = WEEK_GUIDANCE.get(day_class, WEEK_GUIDANCE["normal_flow"])
+        # WEEK uses pre-written pattern narratives (v6+ Mirror Language)
+        patterns = WEEK_PATTERNS.get(day_class, WEEK_PATTERNS["normal_flow"])
         title = "This Week"
+        
+        # Select and validate
+        for attempt in range(len(patterns)):
+            idx = (seed_hash + seed_offset + attempt) % len(patterns)
+            body = patterns[idx]
+            if validate_week_narrative(body):
+                break
+        else:
+            # Fallback: use first pattern
+            body = patterns[0]
+            logger.warning("[WeekNarrative] All patterns failed validation, using first")
+        
     elif altitude == "month":
-        hooks = MONTH_HOOKS.get(day_class, MONTH_HOOKS["normal_flow"])
-        contexts = MONTH_CONTEXT.get(day_class, MONTH_CONTEXT["normal_flow"])
-        guidances = MONTH_GUIDANCE.get(day_class, MONTH_GUIDANCE["normal_flow"])
+        # MONTH uses pre-written shift narratives (v6+ Mirror Language)
+        shifts = MONTH_SHIFTS.get(day_class, MONTH_SHIFTS["normal_flow"])
         title = "This Month"
+        
+        # Select and validate
+        for attempt in range(len(shifts)):
+            idx = (seed_hash + seed_offset + attempt) % len(shifts)
+            body = shifts[idx]
+            if validate_month_narrative(body):
+                break
+        else:
+            # Fallback: use first shift
+            body = shifts[0]
+            logger.warning("[MonthNarrative] All shifts failed validation, using first")
+    
     else:
         return {"title": altitude.title(), "body": "Unknown altitude.", "bridge": None}
     
-    # Select deterministically with offset
-    hook = hooks[(seed_hash + seed_offset) % len(hooks)]
-    context = contexts[(seed_hash + seed_offset + 3) % len(contexts)]
-    guidance = guidances[(seed_hash + seed_offset + 7) % len(guidances)]
-    
-    # Build body: HOOK → CONTEXT → GUIDANCE as ONE COHERENT DESCENT
-    # Not 3 disconnected slogans - one fluid movement
-    body = f"{hook} {context} {guidance}"
-    
-    # NO FILLER BRIDGE - removed generic explanatory text
-    # The narrative should speak for itself
+    # NO FILLER BRIDGE - narrative speaks for itself
     bridge = None
     
     return {
