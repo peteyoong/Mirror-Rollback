@@ -21,7 +21,7 @@ import api from '../../services/api';
 import { storage } from '../../store';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
 import { InlineReflectButton } from '../../components/UniversalReflectButton';
-import DailyPatternSignalCard from '../../components/DailyPatternSignalCard';
+// DailyPatternSignalCard REMOVED - merged into HomeInsightCard
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
 import HomeArchetypeCard from '../../components/HomeArchetypeCard';
 import HomeInsightCard, { DailyInsight } from '../../components/HomeInsightCard';
@@ -496,7 +496,8 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            SECTION 1: DAILY INSIGHT - New Structured Format
+            SECTION 1: DAILY INSIGHT - Primary Mirror Card (ONLY ONE)
+            Pattern Signal merged into this card via backend/toMirrorFormat
             =================================================================== */}
         {!isLoading && (
           <HomeInsightCard 
@@ -506,72 +507,28 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            SECTION 1.5: DAILY SIGNAL CARD - Task 43 & Task 49
-            Shows either Lunar Reflection (for Reflectors) or Pattern Signal (for others)
-            The LunarReflectionSignalCard notifies parent of Reflector status
+            LUNAR REFLECTION - Shows ONLY for Reflectors (replaces daily card)
             =================================================================== */}
         {!isLoading && user?.id && (
-          <>
-            {/* Lunar Reflection Signal - shows ONLY for Reflectors */}
-            <LunarReflectionSignalCard 
-              userId={user.id} 
-              onReflectorStatus={(isReflector) => {
-                // Store in local state to hide DailyPatternSignalCard for Reflectors
-                if (isReflector && !userIsReflector) {
-                  setUserIsReflector(true);
-                }
-              }}
-            />
-            {/* Daily Pattern Signal - shows ONLY for non-Reflectors */}
-            {!userIsReflector && <DailyPatternSignalCard userId={user.id} />}
-          </>
+          <LunarReflectionSignalCard 
+            userId={user.id} 
+            onReflectorStatus={(isReflector) => {
+              if (isReflector && !userIsReflector) {
+                setUserIsReflector(true);
+              }
+            }}
+          />
         )}
 
-        {/* ===================================================================
-            SECTION 2: WHY THIS IS SHOWING UP
-            =================================================================== */}
-        {activeInfluences.length > 0 && !isLoading && (
-          <View style={[styles.influencesSection, { borderColor: theme.border }]}>
-            <Text style={[styles.influencesTitle, { color: theme.textTertiary }]}>
-              ACTIVE INFLUENCES
-            </Text>
-            <View style={styles.influencesList}>
-              {activeInfluences.slice(0, 4).map((influence, index) => (
-                <View key={index} style={styles.influenceItem}>
-                  <View style={[styles.influenceDot, { backgroundColor: theme.accent }]} />
-                  <Text style={[styles.influenceText, { color: theme.textSecondary }]}>
-                    <Text style={{ fontWeight: '500', color: theme.text }}>{influence.source}</Text>
-                    {' · '}
-                    {influence.label}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
+        {/* REMOVED: DailyPatternSignalCard - merged into HomeInsightCard */}
+        {/* REMOVED: ACTIVE INFLUENCES - clutters homepage */}
 
         {/* ===================================================================
-            SECTION 3: THREE CLEAR DOORWAYS
+            SECTION 2: SECONDARY NAVIGATION
             =================================================================== */}
         {!isLoading && (
           <View style={styles.doorwaysSection}>
-            {/* Primary Doorway - Reflect */}
-            <TouchableOpacity
-              style={[styles.doorwayPrimary, { backgroundColor: theme.surface, borderColor: theme.border }]}
-              onPress={handleReflect}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.doorwayIcon, { color: theme.accent }]}>◉</Text>
-              <View style={styles.doorwayContent}>
-                <Text style={[styles.doorwayTitle, { color: theme.text }]}>Reflect</Text>
-                <Text style={[styles.doorwaySubtitle, { color: theme.textTertiary }]}>
-                  {keystone?.reflect_question || 'What feels present right now?'}
-                </Text>
-              </View>
-              <Text style={[styles.doorwayChevron, { color: theme.textTertiary }]}>›</Text>
-            </TouchableOpacity>
-
-            {/* Secondary Doorways */}
+            {/* Secondary Doorways - Explore and Patterns */}
             <View style={styles.doorwaysRow}>
               <TouchableOpacity
                 style={[styles.doorwaySecondary, { backgroundColor: theme.surface, borderColor: theme.border }]}
