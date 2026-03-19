@@ -186,159 +186,140 @@ export default function PatternsScreen() {
     return 'A pattern you recognize - even when you wish you did not';
   };
 
-  // VARIATION GENERATOR - Unique behavioral summary for each week
-  // All variations map to the same core pattern, but express it differently
-  // NO REPEATED PHRASES allowed in the same timeline
+  // PHASE-BASED PROGRESSION - Each week shows a different stage of how the pattern unfolds
+  // NOT random variations, but a STORY that progresses through time
+  // Structure: Phase 1 (trigger) → Phase 2 (escalation) → ... → Phase 8 (aftermath)
   const getBehavioralSummary = (week: WeekEntry, weekIndex: number): string => {
     const domainId = week.top_domain_id;
     
-    // VARIATION BANKS - 8+ unique phrases per domain, all expressing same core pattern
-    const variationBanks: Record<string, string[]> = {
+    // PHASE SEQUENCES - Each pattern unfolds through these stages over time
+    // Week 0 = earliest, Week 7 = most recent
+    // The sequence tells the STORY of how this pattern plays out
+    const phaseSequences: Record<string, string[]> = {
       'energy_vitality': [
-        'You kept going even after your body said stop',
-        'You pushed harder, hoping effort would fix the strain',
-        'You stayed with it too long because stopping felt worse',
-        'You overrode the fatigue and only noticed it later',
-        'You treated depletion like something to push through',
-        'You kept carrying it after the energy had already dropped',
-        'You forced momentum when recovery was what was needed',
-        'You only stopped once your system made the decision for you',
-        'You ran on empty and called it discipline',
-        'You mistook exhaustion for not trying hard enough',
+        'You felt the pressure building and decided to push through',
+        'You increased effort, thinking more would solve it',
+        'Something started to feel off - but you ignored it',
+        'You noticed the fatigue... but kept going anyway',
+        'You were running on low, but did not slow down',
+        'Your energy dropped - but you tried to maintain momentum',
+        'Your system forced a stop',
+        'You were left wondering why you felt so exhausted',
       ],
       'emotional_landscape': [
-        'You held it in until holding became its own weight',
-        'You swallowed what needed to come out',
-        'You kept composure while something cracked underneath',
-        'You smiled through it and no one noticed',
-        'You numbed the signal instead of hearing it',
-        'You let it build because expressing felt unsafe',
-        'You carried more than you showed anyone',
-        'You felt it all but said nothing',
-        'You kept functioning while something inside went quiet',
-        'You performed calm while chaos lived beneath it',
+        'Something stirred that you did not want to feel',
+        'You pushed it down and kept moving',
+        'It started leaking through in small ways',
+        'You held tighter, hoping it would pass',
+        'The pressure built but you kept the lid on',
+        'Cracks started to show',
+        'It came out - not when you chose, but when it had to',
+        'You were left processing what you had been carrying',
       ],
       'identity_direction': [
-        'You started over again, hoping this time it would stick',
-        'You questioned the path even while walking it',
-        'You changed direction before the last one settled',
-        'You abandoned what was working because it did not feel like you',
-        'You reinvented before anyone could pin you down',
-        'You second-guessed the decision before it had a chance',
-        'You wondered if this version of you was real either',
-        'You searched for yourself in a new form',
-        'You let go of something before knowing why',
-        'You started fresh but brought the same doubts with you',
+        'You felt the pull to become something new',
+        'You started questioning what you thought you knew about yourself',
+        'You made a change, hoping it would feel right',
+        'The newness wore off and the old doubts returned',
+        'You wondered if this version was any more real',
+        'You started looking for the next thing to become',
+        'You let go of what you were building',
+        'You were left asking who you actually are',
       ],
       'relationships_connection': [
-        'You reached out then pulled back before they could respond',
-        'You wanted closeness but created distance instead',
-        'You tested them to see if they would stay',
+        'You wanted to feel close to someone',
+        'You reached out, maybe more than usual',
+        'You noticed yourself watching for signs of rejection',
+        'You started to pull back before they could',
+        'The distance grew even as you wanted connection',
         'You protected yourself by not asking for what you needed',
-        'You felt alone in the room even with people around',
-        'You kept them at arm length and felt the gap',
-        'You showed up halfway and wondered why it felt hollow',
-        'You gave more than you let yourself receive',
-        'You stayed guarded and called it being careful',
-        'You wanted to be seen but hid the parts that mattered',
+        'The gap became too wide to bridge easily',
+        'You were left wondering why closeness feels so hard',
       ],
       'work_purpose': [
-        'You worked harder hoping it would finally feel like enough',
-        'You produced more and felt less satisfied',
-        'You delivered but the meaning did not land',
-        'You stayed late and still felt behind',
-        'You achieved the goal and immediately moved the bar',
-        'You kept going because stopping felt like failing',
-        'You tied your worth to output and came up short',
-        'You performed well but felt like a fraud',
-        'You finished it and felt nothing',
-        'You did more and mattered less to yourself',
+        'You felt driven to prove something through work',
+        'You took on more, hoping it would feel meaningful',
+        'You delivered, but the satisfaction did not land',
+        'You pushed harder, thinking effort was the answer',
+        'You started to feel trapped by what you built',
+        'The work kept coming but the purpose faded',
+        'You hit a wall you could not work through',
+        'You were left questioning what any of it was for',
       ],
       'creativity_expression': [
-        'You made something then convinced yourself it was nothing',
-        'You created and immediately dismissed it',
-        'You shared then wished you had not',
-        'You held back the work that felt most true',
-        'You edited the life out of what you made',
-        'You compared it before it even had a chance',
-        'You doubted it before anyone else could',
-        'You created in private and kept it hidden',
-        'You wanted to be seen but not judged',
-        'You made art then called it waste',
+        'You felt something wanting to come out',
+        'You started creating with hope',
+        'The inner critic showed up early',
+        'You edited before you finished',
+        'You compared it to others and found it lacking',
+        'You considered abandoning it altogether',
+        'You held back the part that felt most true',
+        'You were left wondering why you cannot just create freely',
       ],
       'health_body': [
-        'You ignored what your body was telling you',
-        'You pushed past the warning signs',
-        'You treated symptoms instead of causes',
-        'You powered through when rest was the answer',
-        'You let it get worse before paying attention',
-        'You dismissed the signal until it screamed',
-        'You knew something was off but kept going anyway',
-        'You waited too long to listen',
-        'You prioritized everything except your own body',
-        'You ran the system into the ground',
+        'Your body sent a small signal',
+        'You noticed it but decided it could wait',
+        'The signal came again, a little louder',
+        'You overrode it with willpower',
+        'Other symptoms started to appear',
+        'You kept functioning on borrowed time',
+        'Your body made the decision you would not make',
+        'You were left realizing you cannot outrun yourself',
       ],
       'spirituality_meaning': [
-        'You searched for answers then abandoned them before they landed',
-        'You found something real then doubted it away',
-        'You craved meaning but resisted stillness',
-        'You touched depth then retreated to the surface',
-        'You asked the big questions then distracted yourself',
-        'You glimpsed something true then looked away',
-        'You wanted to believe but could not let yourself',
-        'You sought connection then ran from what you found',
-        'You reached for transcendence then called it foolish',
-        'You needed more and settled for less',
+        'You felt a pull toward something deeper',
+        'You started exploring with genuine curiosity',
+        'Something meaningful started to form',
+        'Doubt crept in and you questioned it',
+        'You pulled back from what you found',
+        'The search felt pointless for a while',
+        'You abandoned what was starting to take root',
+        'You were left wondering why you cannot let meaning settle',
       ],
       'money_security': [
-        'You built security then tore it down',
-        'You saved then spent it all at once',
-        'You planned carefully then sabotaged the plan',
-        'You got close to stable then created chaos',
-        'You accumulated then felt guilty for having',
-        'You protected then punished yourself for it',
-        'You earned more and felt less secure',
-        'You restricted then released in the worst moment',
-        'You hoarded then gave away what you needed',
-        'You chased enough and never arrived',
+        'You felt the urge to build security',
+        'You started accumulating with purpose',
+        'Things were coming together',
+        'You started to feel uneasy with what you had',
+        'You found reasons to undo the progress',
+        'You spent or gave away what you built',
+        'The stability you created collapsed',
+        'You were left asking why you sabotage your own security',
       ],
       'family_roots': [
-        'You carried them but would not let them carry you',
-        'You protected everyone else and left yourself exposed',
-        'You gave what you never got',
-        'You stayed strong for them and fell apart alone',
-        'You absorbed their weight and called it love',
-        'You held the family together while you crumbled',
-        'You kept the peace by losing yourself',
-        'You showed up for them but never asked for the same',
-        'You parented everyone including yourself',
-        'You sacrificed without saying what it cost',
+        'You felt responsible for holding something together',
+        'You took on more than your share',
+        'You noticed resentment building',
+        'You pushed it down because others needed you',
+        'You kept giving while running on empty',
+        'You started to feel invisible despite all you carried',
+        'You reached a point where you could not carry more',
+        'You were left wondering when someone will carry you',
       ],
     };
 
-    // Generic fallback variations (used if domain not in bank)
-    const genericVariations = [
-      'Something familiar showed up again',
-      'The same thing returned in a different form',
-      'You recognized this even before you named it',
-      'It appeared again, wearing new clothes',
-      'The pattern surfaced whether you wanted it to or not',
-      'You saw it coming and still could not stop it',
-      'It found you again like it always does',
-      'The cycle continued even as you noticed it',
-      'You caught yourself doing it again',
-      'It returned like an old habit you thought you broke',
+    // Generic phase sequence for unknown domains
+    const genericPhaseSequence = [
+      'Something familiar started to stir',
+      'You noticed the pattern beginning again',
+      'You tried to handle it differently this time',
+      'The same old pull returned',
+      'You found yourself in familiar territory',
+      'The pattern strengthened despite your awareness',
+      'It played out the way it always does',
+      'You were left recognizing what keeps returning',
     ];
 
-    // Get the variation bank for this domain, or use generic
-    const variations = domainId && variationBanks[domainId] 
-      ? variationBanks[domainId] 
-      : genericVariations;
+    // Get the phase sequence for this domain, or use generic
+    const phases = domainId && phaseSequences[domainId] 
+      ? phaseSequences[domainId] 
+      : genericPhaseSequence;
 
-    // Use weekIndex to select a unique variation (modulo to handle overflow)
-    const variationIndex = weekIndex % variations.length;
+    // Map week index to phase (modulo handles overflow)
+    // Week 0 = Phase 0 (earliest/trigger), Week 7 = Phase 7 (most recent/aftermath)
+    const phaseIndex = weekIndex % phases.length;
     
-    return variations[variationIndex];
+    return phases[phaseIndex];
   };
 
   const formatDateRange = (start: string, end: string) => {
