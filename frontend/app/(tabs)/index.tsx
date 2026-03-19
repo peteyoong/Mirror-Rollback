@@ -387,28 +387,25 @@ export default function MirrorScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Loading State */}
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.textTertiary} />
-          </View>
-        )}
-
         {/* ===================================================================
-            LAYER 1: KEYSTONE PATTERN - ONE truth per day. ONE card. ONE action.
-            All lenses explain this pattern - it is the single source of truth.
+            POSITION 1: KEYSTONE PATTERN - ALWAYS FIRST. NO EXCEPTIONS.
+            ARCHITECTURE LOCK: This must be the FIRST rendered content block.
+            - If loading: show skeleton placeholder IN THIS POSITION
+            - If no data: show fallback IN THIS POSITION
+            - NEVER shift this position based on data availability
             =================================================================== */}
-        {!isLoading && !userIsReflector && (
+        {!userIsReflector && (
           <KeystoneHeroCard 
             data={keystoneData} 
-            isLoading={keystoneLoading} 
+            isLoading={isLoading || keystoneLoading} 
           />
         )}
 
         {/* ===================================================================
-            LUNAR REFLECTION - Shows ONLY for Reflectors (replaces hero)
+            POSITION 1 (REFLECTORS ONLY): LUNAR REFLECTION
+            Replaces Keystone for Reflector types only
             =================================================================== */}
-        {!isLoading && user?.id && (
+        {userIsReflector && user?.id && (
           <LunarReflectionSignalCard 
             userId={user.id} 
             onReflectorStatus={(isReflector) => {
@@ -420,66 +417,65 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            LAYER 3: NAVIGATION - Explore and Patterns
+            POSITION 2: NAVIGATION - Explore Lenses / View Patterns
+            ALWAYS renders after Keystone, even if loading
             =================================================================== */}
-        {!isLoading && (
-          <View style={styles.doorwaysSection}>
-            <View style={styles.doorwaysRow}>
-              <TouchableOpacity
-                style={[styles.doorwaySecondary, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                onPress={() => router.push('/(tabs)/lenses')}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.doorwayIconSmall, { color: theme.textSecondary }]}>◇</Text>
-                <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>Explore Lenses</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.doorwaySecondary, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                onPress={() => router.push('/(tabs)/patterns')}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.doorwayIconSmall, { color: theme.textSecondary }]}>◈</Text>
-                <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>View Patterns</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {/* ===================================================================
-            DEMOTED: YOUR LIFELINE - below navigation, subtle
-            =================================================================== */}
-        {!isLoading && (
-          <View style={[styles.lifelineBridge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.lifelineBridgeLabel, { color: theme.textTertiary }]}>
-              YOUR LIFELINE
-            </Text>
-            <Text style={[styles.lifelineBridgeText, { color: theme.textSecondary }]}>
-              {lifelineEventCount > 0 
-                ? "The patterns you notice today often began much earlier."
-                : "Mirror learns from the moments that shaped you."}
-            </Text>
+        <View style={styles.doorwaysSection}>
+          <View style={styles.doorwaysRow}>
             <TouchableOpacity
-              style={[styles.lifelineBridgeCTA, { backgroundColor: theme.accent }]}
-              onPress={() => router.push('/(tabs)/life')}
-              activeOpacity={0.8}
+              style={[styles.doorwaySecondary, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => router.push('/(tabs)/lenses')}
+              activeOpacity={0.7}
             >
-              <Text style={styles.lifelineBridgeCTAText}>
-                {lifelineEventCount > 0 ? 'Explore your Lifeline' : 'Start your Lifeline'}
-              </Text>
+              <Text style={[styles.doorwayIconSmall, { color: theme.textSecondary }]}>◇</Text>
+              <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>Explore Lenses</Text>
             </TouchableOpacity>
-            {lifelineEventCount > 0 && (
-              <Text style={[styles.lifelineBridgeCount, { color: theme.textTertiary }]}>
-                {lifelineEventCount} moment{lifelineEventCount !== 1 ? 's' : ''} mapped
-              </Text>
-            )}
+
+            <TouchableOpacity
+              style={[styles.doorwaySecondary, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => router.push('/(tabs)/patterns')}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.doorwayIconSmall, { color: theme.textSecondary }]}>◈</Text>
+              <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>View Patterns</Text>
+            </TouchableOpacity>
           </View>
-        )}
+        </View>
 
         {/* ===================================================================
-            SECTION 5: CONTINUITY / MEMORY - feels like cues, not records
+            POSITION 3: YOUR LIFELINE
+            ALWAYS renders in this position after Navigation
             =================================================================== */}
-        {!isLoading && (recentReflection || patternTension) && (
+        <View style={[styles.lifelineBridge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.lifelineBridgeLabel, { color: theme.textTertiary }]}>
+            YOUR LIFELINE
+          </Text>
+          <Text style={[styles.lifelineBridgeText, { color: theme.textSecondary }]}>
+            {lifelineEventCount > 0 
+              ? "The patterns you notice today often began much earlier."
+              : "Mirror learns from the moments that shaped you."}
+          </Text>
+          <TouchableOpacity
+            style={[styles.lifelineBridgeCTA, { backgroundColor: theme.accent }]}
+            onPress={() => router.push('/(tabs)/life')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.lifelineBridgeCTAText}>
+              {lifelineEventCount > 0 ? 'Explore your Lifeline' : 'Start your Lifeline'}
+            </Text>
+          </TouchableOpacity>
+          {lifelineEventCount > 0 && (
+            <Text style={[styles.lifelineBridgeCount, { color: theme.textTertiary }]}>
+              {lifelineEventCount} moment{lifelineEventCount !== 1 ? 's' : ''} mapped
+            </Text>
+          )}
+        </View>
+
+        {/* ===================================================================
+            POSITION 4: MIRROR REMEMBERS
+            Renders in position, content appears when data available
+            =================================================================== */}
+        {(recentReflection || patternTension) && (
           <View style={[styles.continuitySection, { borderColor: theme.border }]}>
             <Text style={[styles.continuityTitle, { color: theme.textTertiary }]}>
               MIRROR REMEMBERS
@@ -529,9 +525,9 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            SECTION 6: DEPTH PREVIEW
+            POSITION 5: ACTIVE PATTERNS
             =================================================================== */}
-        {!isLoading && topPatterns.length > 0 && (
+        {topPatterns.length > 0 && (
           <View style={[styles.depthSection, { borderColor: theme.border }]}>
             <View style={styles.depthHeader}>
               <Text style={[styles.depthTitle, { color: theme.textTertiary }]}>
@@ -577,25 +573,25 @@ export default function MirrorScreen() {
           </View>
         )}
 
-        {/* Forums Entry */}
-        {!isLoading && (
-          <TouchableOpacity 
-            style={[styles.forumsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-            onPress={() => router.push('/forums')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.forumsCardContent}>
-              <Text style={[styles.forumsIcon, { color: theme.accent }]}>◎</Text>
-              <View style={styles.forumsTextContent}>
-                <Text style={[styles.forumsTitle, { color: theme.text }]}>Forums</Text>
-                <Text style={[styles.forumsSubtitle, { color: theme.textTertiary }]}>
-                  Reflect with your trusted circle
-                </Text>
-              </View>
+        {/* ===================================================================
+            POSITION 6: FORUMS
+            =================================================================== */}
+        <TouchableOpacity 
+          style={[styles.forumsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          onPress={() => router.push('/forums')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.forumsCardContent}>
+            <Text style={[styles.forumsIcon, { color: theme.accent }]}>◎</Text>
+            <View style={styles.forumsTextContent}>
+              <Text style={[styles.forumsTitle, { color: theme.text }]}>Forums</Text>
+              <Text style={[styles.forumsSubtitle, { color: theme.textTertiary }]}>
+                Reflect with your trusted circle
+              </Text>
             </View>
-            <Text style={[styles.forumsChevron, { color: theme.textTertiary }]}>›</Text>
-          </TouchableOpacity>
-        )}
+          </View>
+          <Text style={[styles.forumsChevron, { color: theme.textTertiary }]}>›</Text>
+        </TouchableOpacity>
 
         {/* Debug Panel */}
         {user?.id && <DebugComputeInputs userId={user.id} />}
