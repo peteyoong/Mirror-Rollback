@@ -29,7 +29,7 @@ export default function KeystoneReferenceLink({ patternLabel }: Props) {
   const router = useRouter();
 
   const handlePress = () => {
-    // Navigate to Home tab
+    // Navigate to Mirror tab (Home = where the daily truth lives)
     router.push('/(tabs)');
   };
 
