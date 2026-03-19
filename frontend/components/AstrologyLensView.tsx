@@ -470,26 +470,19 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* Date Display */}
+        {/* Date Display - small, quiet */}
         <Text style={[styles.altitudeDate, { color: theme.textTertiary }]}>
           {getDateDisplay()}
         </Text>
 
-        {/* Bridge - what this altitude represents */}
-        {currentAltitude.bridge && (
-          <Text style={[styles.altitudeBridge, { color: theme.textSecondary }]}>
-            {currentAltitude.bridge}
-          </Text>
-        )}
-
-        {/* Narrative Card */}
+        {/* Narrative Card - the main event, no filler above */}
         <View style={[styles.narrativeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.narrativeText, { color: theme.text }]}>
             {currentAltitude.body}
           </Text>
         </View>
 
-        {/* Technical Details Toggle */}
+        {/* Technical Details Toggle - secondary, collapsed */}
         {currentAltitude.technical && (currentAltitude.technical.transits || currentAltitude.technical.placements) && (
           <TouchableOpacity
             style={styles.technicalToggle}
@@ -504,7 +497,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           </TouchableOpacity>
         )}
 
-        {/* Technical Details (expanded) */}
+        {/* Technical Details (expanded) - supporting evidence, not main experience */}
         {expandedSection === 'technical' && currentAltitude.technical && (
           <View style={[styles.technicalCard, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
             {currentAltitude.technical.transits && currentAltitude.technical.transits.length > 0 && (
@@ -534,7 +527,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           </View>
         )}
 
-        {/* Reflect Button */}
+        {/* Reflect Button - exactly "Reflect →" */}
         <InlineReflectButton
           source={{
             lens: 'astrology',
