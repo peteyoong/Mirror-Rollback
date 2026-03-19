@@ -272,45 +272,35 @@ export default function PatternsScreen() {
       );
     }
 
+    // Calculate recurrence count for HERO display
+    const weeksWithPattern = timeline.weeks.filter(w => w.top_domain).length;
+    const mostRecurring = timeline.insights?.most_recurring_domain || timeline.weeks[0]?.top_domain;
+
     return (
       <View style={styles.section}>
+        {/* HERO: Recurrence Count - First thing user sees */}
+        <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
+          <Text style={[styles.heroCount, { color: theme.accent }]}>
+            Seen {weeksWithPattern} times in {timeline.weeks.length} weeks
+          </Text>
+          <Text style={[styles.heroPattern, { color: theme.text }]}>
+            {mostRecurring}
+          </Text>
+          <Text style={[styles.heroSubtext, { color: theme.textSecondary }]}>
+            This is real and has happened multiple times.
+          </Text>
+        </View>
+
+        {/* Week by Week instances */}
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-            WHEN THIS HAS APPEARED
-          </Text>
-          <Text style={[styles.sectionRange, { color: theme.textTertiary }]}>
-            {timeline.range_label}
+            WHEN IT APPEARED
           </Text>
         </View>
         
-        {/* Timeline Narrative - the "proof" */}
-        <View style={[styles.narrativeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.narrativeText, { color: theme.textSecondary }]}>
-            {timeline.narrative_summary}
-          </Text>
-        </View>
-
-        {/* Week by Week recurrence */}
         <View style={styles.weeksContainer}>
           {timeline.weeks.map((week, index) => renderWeekEntry(week, index))}
         </View>
-
-        {/* Recurrence insights */}
-        {timeline.insights.most_recurring_domain && (
-          <View style={[styles.insightCard, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
-            <Text style={[styles.insightLabel, { color: theme.textTertiary }]}>
-              Most recurring pattern
-            </Text>
-            <Text style={[styles.insightValue, { color: theme.text }]}>
-              {timeline.insights.most_recurring_domain}
-            </Text>
-            {timeline.insights.reemerging_domain && timeline.insights.reemerging_domain !== timeline.insights.most_recurring_domain && (
-              <Text style={[styles.insightNote, { color: theme.textSecondary }]}>
-                Also re-emerging: {timeline.insights.reemerging_domain}
-              </Text>
-            )}
-          </View>
-        )}
       </View>
     );
   };
@@ -332,40 +322,31 @@ export default function PatternsScreen() {
       return null;
     }
 
+    // Get the top domain for this week
+    const topDomain = weeklySummary.top_domains?.[0]?.domain;
+
     return (
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-            WHAT'S ACTIVE NOW
+            THIS WEEK
           </Text>
           <Text style={[styles.sectionRange, { color: theme.textTertiary }]}>
             {formatDateRange(weeklySummary.week_start, weeklySummary.week_end)}
           </Text>
         </View>
 
+        {/* Simplified, direct language */}
         <View style={[styles.narrativeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.narrativeText, { color: theme.textSecondary }]}>
-            {weeklySummary.narrative}
+          <Text style={[styles.narrativeText, { color: theme.text }]}>
+            {topDomain ? `${topDomain} is active again this week.` : 'This pattern is active again this week.'}
           </Text>
+          {weeklySummary.top_domains && weeklySummary.top_domains.length > 1 && (
+            <Text style={[styles.narrativeSubtext, { color: theme.textSecondary }]}>
+              Also present: {weeklySummary.top_domains.slice(1, 3).map(d => d.domain).join(', ')}
+            </Text>
+          )}
         </View>
-
-        {weeklySummary.top_domains && weeklySummary.top_domains.length > 0 && (
-          <View style={styles.domainsRow}>
-            {weeklySummary.top_domains.slice(0, 3).map((domain) => (
-              <View 
-                key={domain.domain_id}
-                style={[styles.domainChip, { backgroundColor: theme.surface, borderColor: theme.border }]}
-              >
-                <Text style={[styles.domainChipName, { color: theme.text }]}>
-                  {domain.domain}
-                </Text>
-                <Text style={[styles.domainChipTrend, { color: getTrendColor(domain.trend) }]}>
-                  {getTrendLabel(domain.trend)}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
 
         {/* Link to current Keystone */}
         <TouchableOpacity
@@ -373,7 +354,7 @@ export default function PatternsScreen() {
           onPress={() => router.push('/(tabs)')}
           activeOpacity={0.7}
         >
-          <Text style={[styles.keystoneLinkLabel, { color: theme.textTertiary }]}>
+          <Text style={[styles.keystoneLinkLabel, { color: theme.accent }]}>
             See today's pattern →
           </Text>
         </TouchableOpacity>
@@ -568,6 +549,37 @@ const styles = StyleSheet.create({
   narrativeText: {
     fontSize: 15,
     lineHeight: 24,
+  },
+  narrativeSubtext: {
+    fontSize: 13,
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  
+  // Hero Card (Timeline HERO)
+  heroCard: {
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 24,
+    alignItems: 'center',
+  },
+  heroCount: {
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  heroPattern: {
+    fontSize: 22,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  heroSubtext: {
+    fontSize: 14,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   
   // Week Cards (Timeline)
